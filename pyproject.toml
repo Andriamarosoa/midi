@@ -12,7 +12,8 @@ dependencies = [
     "pandas>=1.5,<2.2",
     "librosa>=0.10,<0.11",
     "matplotlib>=3.6,<3.9",
-    "tqdm>=4.64,<5"
+    "tqdm>=4.64,<5",
+    "sounddevice>=0.4.6,<0.6",
 ]
 
 [build-system]
