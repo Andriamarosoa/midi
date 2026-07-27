@@ -19,7 +19,7 @@ def main() -> int:
     parser.add_argument("--artifact-dir", type=Path, required=True)
     parser.add_argument(
         "--manifest", type=Path,
-        default=Path("data/dataset/v5_3_harmonics/manifest.csv"),
+        default=Path("data/processed/v5_3_harmonics/manifest.csv"),
     )
     parser.add_argument("--examples", type=int, default=300)
     args = parser.parse_args()
@@ -44,9 +44,9 @@ def main() -> int:
         for path, indices in selected.items():
             # Swap the same relative manifest path to the V5.3 label build.
             harmonic_path = Path(str(path).replace(
-                "data\\dataset\\v5_2", "data\\dataset\\v5_3_harmonics"
+                "data\\processed\\v5_2", "data\\processed\\v5_3_harmonics"
             ).replace(
-                "data/dataset/v5_2", "data/dataset/v5_3_harmonics"
+                "data/processed/v5_2", "data/processed/v5_3_harmonics"
             ))
             with np.load(harmonic_path, allow_pickle=False) as arrays:
                 for index in indices:

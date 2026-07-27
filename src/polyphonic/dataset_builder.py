@@ -406,7 +406,7 @@ def main() -> None:
     parser.add_argument(
         "--output-root",
         type=Path,
-        default=Path("data/dataset/polyphonic_v2_0"),
+        default=Path("data/processed/polyphonic_v2_0"),
     )
     args = parser.parse_args()
     report = build_guitarset_dataset(args.data_root, args.output_root)

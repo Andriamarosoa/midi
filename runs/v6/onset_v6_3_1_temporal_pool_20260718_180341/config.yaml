@@ -1,5 +1,5 @@
 dataset:
-  manifest: data/dataset/v6_3_continuous_onset/manifest.csv
+  manifest: data/processed/v6_3_continuous_onset/manifest.csv
   guitarset_root: data/GuitarSet
   sample_rate: 44100
   hop_size: 256

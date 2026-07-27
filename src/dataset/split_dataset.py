@@ -10,7 +10,7 @@ from pathlib import Path
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", type=Path, required=True)
-    parser.add_argument("--output", type=Path, default=Path("data/dataset/stream/splits.csv"))
+    parser.add_argument("--output", type=Path, default=Path("data/processed/stream/splits.csv"))
     parser.add_argument("--train", type=float, default=0.70)
     parser.add_argument("--validation", type=float, default=0.15)
     parser.add_argument("--seed", type=int, default=42)

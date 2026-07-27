@@ -99,7 +99,7 @@ def evaluate(model, selected, total: int) -> dict[str, object]:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--artifact-dir", type=Path, required=True)
-    parser.add_argument("--manifest", type=Path, default=Path("data/dataset/v5_2/manifest.csv"))
+    parser.add_argument("--manifest", type=Path, default=Path("data/processed/v5_2/manifest.csv"))
     parser.add_argument("--examples", type=int, default=1500)
     args = parser.parse_args()
     bundle = ProductBundle(args.artifact_dir)

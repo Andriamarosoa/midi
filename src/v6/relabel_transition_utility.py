@@ -185,11 +185,11 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--source-manifest", type=Path,
-        default=Path("data/dataset/v6_3_2_transition_gate/manifest.csv"),
+        default=Path("data/processed/v6_3_2_transition_gate/manifest.csv"),
     )
     parser.add_argument(
         "--output-dir", type=Path,
-        default=Path("data/dataset/v6_3_3_transition_utility"),
+        default=Path("data/processed/v6_3_3_transition_utility"),
     )
     parser.add_argument("--overwrite", action="store_true")
     args = parser.parse_args()

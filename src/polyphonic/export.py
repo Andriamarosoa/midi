@@ -358,7 +358,6 @@ def export(run_dir: Path, output_dir: Path, examples: int = 96) -> dict[str, obj
         "decoder": decoder_config,
         "outputs": list(OUTPUT_NAMES),
         "recommended_tflite_threads": latency["tflite"]["recommended_threads"],
-        "recommended_android_tflite_threads": 1,
         "tflite_weight_quantization": "float16",
         "tflite_io_dtype": "float32",
         "export_checks_split": export_check_split,

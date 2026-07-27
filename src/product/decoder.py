@@ -1,4 +1,4 @@
-"""Causal global-MIDI transition decoder shared by PC and Android contracts."""
+"""Causal global-MIDI transition decoder shared by desktop runtimes."""
 
 from __future__ import annotations
 

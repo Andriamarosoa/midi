@@ -235,11 +235,11 @@ def main() -> int:
     parser.add_argument("--artifact-dir", type=Path, required=True)
     parser.add_argument(
         "--pitch-manifest", type=Path,
-        default=Path("data/dataset/v6_0_active/manifest.csv"),
+        default=Path("data/processed/v6_0_active/manifest.csv"),
     )
     parser.add_argument(
         "--gate-manifest", type=Path,
-        default=Path("data/dataset/v6_3_3_transition_utility/manifest.csv"),
+        default=Path("data/processed/v6_3_3_transition_utility/manifest.csv"),
     )
     args = parser.parse_args()
     print(json.dumps(verify(

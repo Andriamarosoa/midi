@@ -1,5 +1,5 @@
 dataset:
-  manifest: data/dataset/v6_3_2_transition_gate/manifest.csv
+  manifest: data/processed/v6_3_2_transition_gate/manifest.csv
   seed: 42
 
 train:

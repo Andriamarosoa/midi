@@ -20,10 +20,6 @@
       "bytes": 4433,
       "sha256": "8cf4cb5f073ef69542e46d9e6801d1747080ba9fe21bd8b2b0e893ead7b70c90"
     },
-    "GuitarMidiAI-1.0.0-debug.apk": {
-      "bytes": 16278749,
-      "sha256": "5ccbd938bf585b112cf3ebf10ae5fe388bafc0e3cc897fe2524f2ff6d80c6e1a"
-    },
     "midi-1.0.0-py3-none-any.whl": {
       "bytes": 289491,
       "sha256": "163c608e86a25f20e82d34d1352b0ed6aa1e914adec199916c314c747c87b4d0"
@@ -49,15 +45,12 @@
     "wav_strict_regression": false,
     "hardware_no_audio_drop": true,
     "hardware_skip_within_validated_limit": true,
-    "android_compiled": true,
-    "wav_cli_smoke": true,
-    "android_device_smoke_test": false
+    "wav_cli_smoke": true
   },
   "known_limits": [
     "Single pitch softmax: no simultaneous chord transcription.",
     "Safe profile can merge rapid repetitions of the same MIDI pitch.",
-    "IDMT D2 is outside the guaranteed domain.",
-    "No Android device was connected for a hardware smoke test."
+    "IDMT D2 is outside the guaranteed domain."
   ],
   "release_ready_for_declared_scope": true
 }

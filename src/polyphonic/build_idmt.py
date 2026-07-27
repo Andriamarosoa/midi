@@ -226,7 +226,7 @@ def main() -> None:
     parser.add_argument("--data-root", type=Path, default=Path("data"))
     parser.add_argument(
         "--output-root", type=Path,
-        default=Path("data/dataset/polyphonic_v2_2_idmt_research"),
+        default=Path("data/processed/polyphonic_v2_2_idmt_research"),
     )
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()

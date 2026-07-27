@@ -229,7 +229,7 @@ def main() -> int:
     parser.add_argument("--wav", type=Path, required=True)
     parser.add_argument("--jams", type=Path, required=True)
     parser.add_argument("--harmonic-csv", type=Path, required=True)
-    parser.add_argument("--output-dir", type=Path, default=Path("data/dataset/stream"))
+    parser.add_argument("--output-dir", type=Path, default=Path("data/processed/stream"))
     parser.add_argument("--windows", type=int, nargs="+", default=list(DEFAULT_WINDOWS))
     parser.add_argument("--max-window", type=int, default=4096)
     parser.add_argument("--max-harmonics", type=int, default=20)

@@ -359,7 +359,7 @@ def main() -> int:
     parser.add_argument("--v60-run", type=Path, required=True)
     parser.add_argument(
         "--output-dir", type=Path,
-        default=Path("data/dataset/v6_3_2_transition_gate"),
+        default=Path("data/processed/v6_3_2_transition_gate"),
     )
     parser.add_argument("--batch-size", type=int, default=1024)
     parser.add_argument("--overwrite", action="store_true")

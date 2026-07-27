@@ -1,2 +1,0 @@
-com.guitarmidi.ai
-style AppTheme

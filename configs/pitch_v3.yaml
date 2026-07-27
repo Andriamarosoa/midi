@@ -1,5 +1,5 @@
 data:
-  npz: data/dataset/stream/00_BN1-129-Eb_comp_hex.npz
+  npz: data/processed/stream/00_BN1-129-Eb_comp_hex.npz
   min_pitch: 40
   max_pitch: 88
   validation_ratio: 0.20

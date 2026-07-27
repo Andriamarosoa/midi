@@ -241,7 +241,7 @@ def main() -> None:
     parser.add_argument("--data-root", type=Path, default=Path("data"))
     parser.add_argument(
         "--output-root", type=Path,
-        default=Path("data/dataset/polyphonic_v2_1_gaps"),
+        default=Path("data/processed/polyphonic_v2_1_gaps"),
     )
     parser.add_argument("--validation-recordings", type=int, default=30)
     parser.add_argument("--seed", type=int, default=42)

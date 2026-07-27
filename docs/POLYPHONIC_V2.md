@@ -119,6 +119,6 @@ sont ouverts qu’après ce choix unique.
 
 L’export produit un seul modèle causal à quatre sorties : `frame`, `onset`,
 `harmonic_amplitude` et `harmonic_offset_cents`. Le bundle contient aussi le
-SHA-256 du modèle et la configuration complète du décodeur. Le bureau et
-Android lisent ce même contrat afin de garder les mêmes états MIDI, seuils,
+SHA-256 du modèle et la configuration complète du décodeur. Les runtimes
+desktop lisent ce même contrat afin de garder les mêmes états MIDI, seuils,
 temporisations et règles anti-harmoniques.

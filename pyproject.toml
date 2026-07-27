@@ -1,7 +1,8 @@
 [project]
 name = "midi"
 version = "1.0.0"
-description = "Causal clean monophonic guitar audio-to-MIDI product"
+description = "Causal guitar audio-to-MIDI desktop product"
+readme = "readme/README.md"
 requires-python = ">=3.9,<3.10"
 
 dependencies = [

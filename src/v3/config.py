@@ -8,7 +8,7 @@ import json
 
 @dataclass
 class DataConfig:
-    npz: str = "data/dataset/stream/00_BN1-129-Eb_comp_hex.npz"
+    npz: str = "data/processed/stream/00_BN1-129-Eb_comp_hex.npz"
     min_pitch: int = 40
     max_pitch: int = 88
     validation_ratio: float = 0.20

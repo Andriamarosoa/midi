@@ -1,5 +1,5 @@
 {
-  "manifest": "data\\dataset\\polyphonic_v2_1_gaps\\manifest.csv",
+  "manifest": "data\\processed\\polyphonic_v2_1_gaps\\manifest.csv",
   "split": {
     "seed": 42,
     "group_key": "case-sensitive scorehash, falling back to id",

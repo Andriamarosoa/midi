@@ -43,7 +43,6 @@
     "hop_budget_ms": 5.804988662131519,
     "recommended_desktop_threads": 3,
     "recommended_desktop_p95_ms": 2.597485,
-    "recommended_android_threads": 1,
     "algorithmic_delay_added_by_quantization_ms": 0.0
   },
   "onnx_validation": {

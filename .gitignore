@@ -1,9 +1,14 @@
 .venv/
 .venv-onnx/
+.agents/
 __pycache__/
 *.pyc
 *.egg-info/
-bin/
+build/
 dist/
+tmp/
 
-data/
+data/*
+!data/processed/
+data/processed/*
+!data/processed/.gitkeep

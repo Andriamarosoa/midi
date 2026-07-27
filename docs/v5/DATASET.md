@@ -117,7 +117,7 @@ Provenance des mesures :
 Commande de construction complète, à exécuter après la fin de V5.2 :
 
 ```powershell
-.\.venv\Scripts\python.exe -m src.v5.external_data --extract-harmonics --output-dir data\dataset\v5_3_harmonics
+.\.venv\Scripts\python.exe -m src.v5.external_data --extract-harmonics --output-dir data\processed\v5_3_harmonics
 ```
 
 L'extraction est entièrement offline : elle n'ajoute aucun délai à

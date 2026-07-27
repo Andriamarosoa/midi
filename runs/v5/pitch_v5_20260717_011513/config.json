@@ -1,6 +1,6 @@
 {
   "dataset": {
-    "manifest": "data\\dataset\\stream\\manifest.csv",
+    "manifest": "data\\processed\\stream\\manifest.csv",
     "min_pitch": 40,
     "max_pitch": 76,
     "train_players": [

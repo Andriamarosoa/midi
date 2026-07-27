@@ -459,7 +459,7 @@ def main() -> int:
     parser.add_argument("--guitarset-root", type=Path, default=Path("data/GuitarSet"))
     parser.add_argument(
         "--output-dir", type=Path,
-        default=Path("data/dataset/v6_3_continuous_onset"),
+        default=Path("data/processed/v6_3_continuous_onset"),
     )
     parser.add_argument("--overwrite", action="store_true")
     parser.add_argument("--seed", type=int, default=42)

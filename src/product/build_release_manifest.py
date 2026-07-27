@@ -32,7 +32,6 @@ def main() -> int:
         "guitar_midi_transition_gate.tflite",
         "guitar_midi_pitch.onnx",
         "guitar_midi_transition_gate.onnx",
-        "GuitarMidiAI-1.0.0-debug.apk",
         "midi-1.0.0-py3-none-any.whl",
         "external_smoke_guitar_techs.wav",
         "external_smoke_guitar_techs.mid",
@@ -58,24 +57,21 @@ def main() -> int:
                 hardware["inference_skip_percent"]
                 <= backpressure["max_inference_skip_percent"]
             ),
-            "android_compiled": (root / "GuitarMidiAI-1.0.0-debug.apk").is_file(),
             "wav_cli_smoke": (
                 wav_smoke["note_on_events"] > 0
                 and (root / "external_smoke_guitar_techs.mid").read_bytes().startswith(b"MThd")
                 and (root / "external_smoke_guitar_techs.mid").read_bytes().endswith(b"\x00\xff\x2f\x00")
             ),
-            "android_device_smoke_test": False,
         },
         "known_limits": [
             "Single pitch softmax: no simultaneous chord transcription.",
             "Safe profile can merge rapid repetitions of the same MIDI pitch.",
             "IDMT D2 is outside the guaranteed domain.",
-            "No Android device was connected for a hardware smoke test.",
         ],
     }
     required = [
         value for name, value in manifest["acceptance"].items()
-        if name not in {"wav_strict_regression", "android_device_smoke_test"}
+        if name != "wav_strict_regression"
     ]
     manifest["release_ready_for_declared_scope"] = bool(all(required))
     output = root / "release_manifest.json"

@@ -134,11 +134,11 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--manifest", type=Path,
-        default=Path("data/dataset/v6_3_2_transition_gate/manifest.csv"),
+        default=Path("data/processed/v6_3_2_transition_gate/manifest.csv"),
     )
     parser.add_argument(
         "--output", type=Path,
-        default=Path("data/dataset/v6_3_2_transition_gate/validation_report.json"),
+        default=Path("data/processed/v6_3_2_transition_gate/validation_report.json"),
     )
     args = parser.parse_args()
     report = validate(args.manifest)

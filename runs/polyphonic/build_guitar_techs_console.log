@@ -1,5 +1,5 @@
 {
-  "manifest": "data\\dataset\\polyphonic_v2_2_guitar_techs\\manifest.csv",
+  "manifest": "data\\processed\\polyphonic_v2_2_guitar_techs\\manifest.csv",
   "recordings": 208,
   "split_recordings": {
     "train": 92,

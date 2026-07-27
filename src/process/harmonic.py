@@ -7,7 +7,7 @@ it analyses the corresponding WAV channel (taken from
 note/harmonic to ``data/processed/<wav-title>.csv``.
 
 Example:
-    python process/harmonic.py data/raw/example.wav data/annotations/example.jams
+    python -m src.process.harmonic data/GuitarSet/<audio>.wav data/GuitarSet/<annotation>.jams
 """
 
 from __future__ import annotations

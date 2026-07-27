@@ -1,6 +1,6 @@
 {
   "dataset": {
-    "manifest": "data/dataset/polyphonic_v2_0/manifest.csv",
+    "manifest": "data/processed/polyphonic_v2_0/manifest.csv",
     "seed": 42,
     "input_samples": 4096,
     "normalization_gain": 1.4932045250002872

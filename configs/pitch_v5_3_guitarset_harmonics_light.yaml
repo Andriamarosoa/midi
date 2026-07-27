@@ -1,5 +1,5 @@
 dataset:
-  manifest: data/dataset/v5_3_harmonics/manifest.csv
+  manifest: data/processed/v5_3_harmonics/manifest.csv
   include_datasets: ["guitarset_mono_mix"]
   min_pitch: 40
   max_pitch: 76

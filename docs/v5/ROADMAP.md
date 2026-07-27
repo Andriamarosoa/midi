@@ -34,11 +34,11 @@
 - quantification ;
 - benchmark CPU/GPU.
 
-## V9 — Mobile
+## V9 — Optimisation desktop
 
-- Android ;
-- Oboe ;
-- NNAPI/GPU delegate ;
+- capture audio native ;
+- SIMD et délégation CPU/GPU ;
+- mesure loopback de la latence.
 - consommation énergétique.
 
 ## V10 — Production

@@ -16,11 +16,8 @@ Date de clôture automatique : 22 juillet 2026.
 - TFLite float16 : SHA256 conforme à `metadata.json`.
 - ONNX : SHA256 conforme et rapport de parité validé.
 - Comparaison événementielle Keras FP32 / TFLite float16 sur validation : validée.
-- APK debug V2.2 assemblé : `android/app/build/outputs/apk/debug/app-debug.apk`.
-- SHA256 APK : `809a829171b64469bc228d8e667b8813396d2743a2a2812d4c42bf39cbc87358`.
 - Contrat desktop corrigé : live et transcription chargent V2.2 par défaut et acceptent les 3 threads mesurés.
 - Tests de non-régression Python finaux : 34/34 réussis.
-- Tests unitaires Android : 9/9 réussis, aucune erreur.
 
 ## Généralisation sur le test propre
 
@@ -83,10 +80,10 @@ Le spectre indique qu'une partie des sorties non appariées possède une énergi
 - Pointe maximale observée : `835.066 ms`.
 - Moyenne pondérée par la durée : `4.827 ms`.
 
-Le diagnostic spectral est hors ligne et n'ajoute aucune latence au live. En revanche, les pointes d'inférence continues imposent un stress live réel avant certification desktop. Le réglage Android à un thread n'a pas encore été mesuré sur un appareil réel.
+Le diagnostic spectral est hors ligne et n'ajoute aucune latence au live. En revanche, les pointes d'inférence continues imposent un stress live réel avant certification desktop.
 
 ## Verdict
 
-V2.2 est un prototype polyphonique causal exporté et testable sur desktop/Android. L'intégrité du bundle, la parité de format et la généralisation frame sont établies. L'acceptation runtime valide le format TFLite float16, pas la qualité musicale du produit.
+V2.2 est un prototype polyphonique causal exporté et testable sur desktop. L'intégrité du bundle, la parité de format et la généralisation frame sont établies. L'acceptation runtime valide le format TFLite float16, pas la qualité musicale du produit.
 
-V2.2 n'est pas encore production-ready musicalement : trop de notes événementielles non appariées, trop de notes manquantes, offsets faibles et latence longue durée instable. Le modèle est limité à MIDI 40–76 et à six notes simultanées. L'APK est une version debug non signée, sans validation thermique, audio ou MIDI sur téléphone réel. La prochaine validation utile est un essai live instrumenté avec guitare sèche, casque, WAV enregistré, trace MIDI/debug et mesure de backlog. Toute amélioration V2.3 devra être sélectionnée sur validation ou nouvelles données, jamais sur ce test final.
+V2.2 n'est pas encore production-ready musicalement : trop de notes événementielles non appariées, trop de notes manquantes, offsets faibles et latence longue durée instable. Le modèle est limité à MIDI 40–76 et à six notes simultanées. La prochaine validation utile est un essai live instrumenté avec guitare sèche, casque, WAV enregistré, trace MIDI/debug et mesure de backlog. Toute amélioration V2.3 devra être sélectionnée sur validation ou nouvelles données, jamais sur ce test final.

@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "extraction": {
+    "guitarset_annotations": 0,
+    "guitarset_debleeded_audio": 0,
+    "guitar_techs_archives": 0
+  },
+  "harmonics": {
+    "recordings": 360,
+    "reused": 360,
+    "generated": 0,
+    "generated_notes": 0,
+    "generated_rows": 0
+  },
+  "datasets": {
+    "guitarset": {
+      "frames": 1889292,
+      "valid_frames": 1875113,
+      "invalid_frames": 14179,
+      "active_frames": 1486111,
+      "onset_frames": 101405,
+      "polyphonic_frames": 750620,
+      "outside_scope_frames": 7041,
+      "over_six_frames": 0,
+      "duplicate_pitch_frames": 7138,
+      "notes": 62476,
+      "notes_with_harmonics": 62476
+    },
+    "gaps": {
+      "frames": 10303136,
+      "valid_frames": 9791248,
+      "invalid_frames": 511888,
+      "active_frames": 8881556,
+      "polyphonic_frames": 6338344,
+      "onset_frames": 438986,
+      "outside_scope_frames": 447026,
+      "over_six_frames": 17644,
+      "notes": 279391
+    },
+    "guitar_techs": {
+      "frames": 6230436,
+      "valid_frames": 6019932,
+      "active_frames": 4603314,
+      "polyphonic_frames": 2691252,
+      "onset_frames": 70436,
+      "notes": 37868
+    },
+    "combined": {
+      "inputs": [
+        "data\\processed\\polyphonic_v2_0\\manifest.csv",
+        "data\\processed\\polyphonic_v2_1_gaps\\manifest.csv",
+        "data\\processed\\polyphonic_v2_2_guitar_techs\\manifest.csv"
+      ],
+      "output": "data\\processed\\polyphonic_v2_2_combined\\manifest.csv",
+      "rows": 868,
+      "counts": {
+        "gaps_poly_mix": {
+          "test": 30,
+          "train": 240,
+          "validation": 30
+        },
+        "guitar_techs_poly_directinput": {
+          "test": 12,
+          "train": 46,
+          "validation": 46
+        },
+        "guitar_techs_poly_micamp": {
+          "test": 12,
+          "train": 46,
+          "validation": 46
+        },
+        "guitarset_poly_mix": {
+          "test": 60,
+          "train": 240,
+          "validation": 60
+        }
+      },
+      "leaking_groups": {},
+      "passed": true
+    },
+    "validation": {
+      "manifest": "data\\processed\\polyphonic_v2_2_combined\\manifest.csv",
+      "recordings": 868,
+      "splits": {
+        "test": {
+          "recordings": 114,
+          "frames": 1577786,
+          "valid_frames": 1520986,
+          "active_frames": 1337413,
+          "polyphonic_frames": 981579,
+          "onset_frames": 59269,
+          "notes": 37641,
+          "harmonic_notes": 8715,
+          "evaluation_notes": 35997
+        },
+        "train": {
+          "recordings": 572,
+          "frames": 12343995,
+          "valid_frames": 11864461,
+          "active_frames": 10155367,
+          "polyphonic_frames": 6776606,
+          "onset_frames": 457177,
+          "notes": 284023,
+          "harmonic_notes": 43508,
+          "evaluation_notes": 271292
+        },
+        "validation": {
+          "recordings": 182,
+          "frames": 4501083,
+          "valid_frames": 4300846,
+          "active_frames": 3478201,
+          "polyphonic_frames": 2022031,
+          "onset_frames": 94381,
+          "notes": 58071,
+          "harmonic_notes": 10253,
+          "evaluation_notes": 54506
+        }
+      },
+      "leaking_groups": {},
+      "failures": [],
+      "passed": true
+    }
+  }
+}
+Rapport: data\processed\rebuild_report.json

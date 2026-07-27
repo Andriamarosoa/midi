@@ -6,7 +6,7 @@ import yaml
 
 @dataclass(frozen=True)
 class DataConfig:
-    manifest: Path = Path("data/dataset/stream/manifest.csv")
+    manifest: Path = Path("data/processed/stream/manifest.csv")
     min_pitch: int = 40
     max_pitch: int = 88
     train_players: tuple[str, ...] = ("00", "01", "02", "03")

@@ -1074,11 +1074,11 @@ def main() -> int:
         parser.error("--silence-guard-ms doit etre >= 0")
     if args.output_dir is None:
         if args.include_inactive:
-            args.output_dir = Path("data/dataset/v6_0_active")
+            args.output_dir = Path("data/processed/v6_0_active")
         else:
             args.output_dir = Path(
-                "data/dataset/v5_3_harmonics"
-                if args.extract_harmonics else "data/dataset/v5_2"
+                "data/processed/v5_3_harmonics"
+                if args.extract_harmonics else "data/processed/v5_2"
             )
 
     recordings: list[SourceRecording] = []

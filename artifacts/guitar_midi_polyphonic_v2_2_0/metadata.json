@@ -36,7 +36,6 @@
     "harmonic_offset_cents"
   ],
   "recommended_tflite_threads": 3,
-  "recommended_android_tflite_threads": 1,
   "tflite_weight_quantization": "float16",
   "tflite_io_dtype": "float32",
   "export_checks_split": "validation",

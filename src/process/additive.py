@@ -14,7 +14,7 @@ Optional attack columns:
 Example:
     python src/process/additive.py ^
         --csv data/processed/00_BN1-129-Eb_comp_hex.csv ^
-        --output data/diagnostic/00_BN1-129-Eb_comp_hex_additive.wav
+        --output data/processed/diagnostics/00_BN1-129-Eb_comp_hex_additive.wav
 """
 
 from __future__ import annotations
