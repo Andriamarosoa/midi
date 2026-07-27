@@ -1,0 +1,200 @@
+"""Publish private Kaggle datasets and GPU notebooks with the official CLI.
+
+Authentication is intentionally delegated to ``kaggle auth login``. Dataset
+creation omits ``--public`` so the input remains private.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+from typing import Any
+
+
+ROOT = Path(__file__).resolve().parents[2]
+NOTEBOOK = ROOT / "kaggle/polyphonic_pipeline.ipynb"
+KERNEL_TEMPLATE = ROOT / "kaggle/kernel-metadata.template.json"
+KAGGLE_CONFIG = ROOT / "tmp/kaggle/config"
+
+
+def _kaggle() -> str:
+    candidates = [
+        Path(sys.executable).with_name("kaggle.exe"),
+        Path(sys.executable).with_name("kaggle"),
+    ]
+    executable = next(
+        (str(path) for path in candidates if path.is_file()),
+        shutil.which("kaggle"),
+    )
+    if executable is None:
+        raise RuntimeError(
+            "Kaggle CLI missing. Install requirements/kaggle-upload.txt "
+            "with Python 3.11+."
+        )
+    return executable
+
+
+def _run(command: list[str]) -> None:
+    print("+ " + " ".join(command), flush=True)
+    KAGGLE_CONFIG.mkdir(parents=True, exist_ok=True)
+    environment = dict(os.environ)
+    environment["KAGGLE_CONFIG_DIR"] = str(KAGGLE_CONFIG)
+    subprocess.run(
+        command, cwd=ROOT, env=environment, check=True
+    )
+
+
+def _read_package_report(dataset_dir: Path) -> dict[str, Any]:
+    report_path = dataset_dir / "package_report.json"
+    if not report_path.is_file():
+        raise FileNotFoundError(report_path)
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    if report.get("passed") is not True:
+        raise ValueError("Kaggle package validation did not pass.")
+    if (
+        report.get("kind") == "polyphonic_train_validation"
+        and report.get("locked_test_included") is not False
+    ):
+        raise ValueError("The locked test must not enter the training dataset.")
+    return report
+
+
+def publish_dataset(
+    *,
+    dataset_dir: Path,
+    handle: str,
+    title: str,
+    new_version: bool,
+    version_notes: str,
+) -> None:
+    if handle.count("/") != 1:
+        raise ValueError("Dataset handle must be USERNAME/SLUG.")
+    dataset_dir = dataset_dir.resolve()
+    _read_package_report(dataset_dir)
+    metadata = {
+        "title": title,
+        "id": handle,
+        "licenses": [{"name": "CC-BY-4.0"}],
+    }
+    (dataset_dir / "dataset-metadata.json").write_text(
+        json.dumps(metadata, indent=2) + "\n", encoding="utf-8"
+    )
+    if new_version:
+        _run([
+            _kaggle(), "datasets", "version",
+            "-p", str(dataset_dir), "-m", version_notes,
+        ])
+    else:
+        # Kaggle datasets are private by default; --public is not used.
+        _run([_kaggle(), "datasets", "create", "-p", str(dataset_dir)])
+
+
+def _task_notebook(task: str) -> dict[str, Any]:
+    notebook = json.loads(NOTEBOOK.read_text(encoding="utf-8"))
+    replaced = False
+    for cell in notebook["cells"]:
+        if cell.get("cell_type") != "code":
+            continue
+        source = cell.get("source", [])
+        for index, line in enumerate(source):
+            if line.startswith("TASK = "):
+                source[index] = (
+                    f'TASK = "{task}"  # "smoke", "train" ou "rebuild"\n'
+                )
+                replaced = True
+    if not replaced:
+        raise ValueError("TASK cell not found in Kaggle notebook.")
+    return notebook
+
+
+def publish_kernel(
+    *,
+    owner: str,
+    dataset_handle: str,
+    task: str,
+    output_dir: Path,
+) -> str:
+    if "/" in owner or not owner:
+        raise ValueError("Owner must be a Kaggle username.")
+    if dataset_handle.count("/") != 1:
+        raise ValueError("Dataset handle must be USERNAME/SLUG.")
+    output_dir = output_dir.resolve()
+    if output_dir.exists():
+        raise FileExistsError(
+            f"Kernel staging already exists: {output_dir}"
+        )
+    output_dir.mkdir(parents=True)
+    notebook_name = f"polyphonic_{task}.ipynb"
+    (output_dir / notebook_name).write_text(
+        json.dumps(_task_notebook(task), indent=1, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    metadata = json.loads(KERNEL_TEMPLATE.read_text(encoding="utf-8"))
+    slug = f"guitar-midi-polyphonic-{task}"
+    metadata.update({
+        "id": f"{owner}/{slug}",
+        "title": f"Guitar MIDI polyphonic {task}",
+        "code_file": notebook_name,
+        "dataset_sources": [dataset_handle],
+    })
+    (output_dir / "kernel-metadata.json").write_text(
+        json.dumps(metadata, indent=2) + "\n", encoding="utf-8"
+    )
+    _run([
+        _kaggle(), "kernels", "push",
+        "-p", str(output_dir),
+        "--accelerator", "NvidiaTeslaP100",
+    ])
+    return str(metadata["id"])
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    dataset = subparsers.add_parser("dataset")
+    dataset.add_argument("--dataset-dir", type=Path, required=True)
+    dataset.add_argument("--handle", required=True)
+    dataset.add_argument("--title", required=True)
+    dataset.add_argument("--new-version", action="store_true")
+    dataset.add_argument(
+        "--version-notes", default="Updated validated input package."
+    )
+
+    kernel = subparsers.add_parser("kernel")
+    kernel.add_argument("--owner", required=True)
+    kernel.add_argument("--dataset-handle", required=True)
+    kernel.add_argument(
+        "--task", choices=("smoke", "train", "rebuild"), required=True
+    )
+    kernel.add_argument(
+        "--output-dir", type=Path, default=Path("tmp/kaggle/kernel")
+    )
+
+    args = parser.parse_args()
+    if args.command == "dataset":
+        publish_dataset(
+            dataset_dir=args.dataset_dir,
+            handle=args.handle,
+            title=args.title,
+            new_version=args.new_version,
+            version_notes=args.version_notes,
+        )
+    else:
+        kernel_id = publish_kernel(
+            owner=args.owner,
+            dataset_handle=args.dataset_handle,
+            task=args.task,
+            output_dir=args.output_dir,
+        )
+        print(json.dumps({"kernel": kernel_id, "task": args.task}, indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

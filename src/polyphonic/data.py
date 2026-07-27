@@ -35,6 +35,11 @@ class CachedLabels:
     arrays: Mapping[str, np.ndarray]
 
 
+def _manifest_path(value: str) -> Path:
+    """Load manifests produced on Windows or POSIX on either platform."""
+    return Path(value.replace("\\", "/"))
+
+
 def load_manifest(path: Path) -> list[ManifestItem]:
     with path.open("r", encoding="utf-8-sig", newline="") as handle:
         rows = list(csv.DictReader(handle))
@@ -54,9 +59,9 @@ def load_manifest(path: Path) -> list[ManifestItem]:
         player_id=row["player_id"],
         group_id=row["group_id"],
         split=row["split"],
-        audio_path=Path(row["audio_path"]),
+        audio_path=_manifest_path(row["audio_path"]),
         audio_member=row["audio_member"],
-        labels_path=Path(row["labels_path"]),
+        labels_path=_manifest_path(row["labels_path"]),
         capture_id=row["capture_id"],
         license_id=row["license_id"],
     ) for row in rows]

@@ -23,6 +23,39 @@ from src.polyphonic.train import _weights
 
 
 class PolyphonicDataTests(unittest.TestCase):
+    def test_manifest_paths_are_portable_between_windows_and_linux(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            manifest_path = Path(temporary) / "manifest.csv"
+            fields = [
+                "source_id", "dataset_id", "player_id", "group_id", "split",
+                "audio_path", "audio_member", "labels_path", "capture_id",
+                "license_id",
+            ]
+            with manifest_path.open("w", newline="", encoding="utf-8") as handle:
+                writer = csv.DictWriter(handle, fieldnames=fields)
+                writer.writeheader()
+                writer.writerow({
+                    "source_id": "portable",
+                    "dataset_id": "unit",
+                    "player_id": "p",
+                    "group_id": "g",
+                    "split": "train",
+                    "audio_path": r"data\processed\audio.npy",
+                    "audio_member": "",
+                    "labels_path": r"data\processed\labels.npz",
+                    "capture_id": "clean",
+                    "license_id": "unit",
+                })
+
+            item = load_manifest(manifest_path)[0]
+
+        self.assertEqual(
+            item.audio_path.as_posix(), "data/processed/audio.npy"
+        )
+        self.assertEqual(
+            item.labels_path.as_posix(), "data/processed/labels.npz"
+        )
+
     def test_softened_class_weights_preserve_rarity_without_saturation(self) -> None:
         positives = np.asarray([1.0, 4.0], np.float64)
 
