@@ -1,0 +1,17 @@
+{
+  "source_id": "gsmono_00_bn1_129_eb_solo",
+  "dataset_id": "guitarset_mono_mix",
+  "player_id": "00",
+  "split": "train",
+  "duration_s": 22.32439909297052,
+  "frames": 3845,
+  "evaluable_frames": 2334,
+  "candidates": 59,
+  "allowed_labels": 39,
+  "rejected_labels": 20,
+  "recent_onset_candidates": 15,
+  "harmonic_suspect_negatives": 4,
+  "csv_harmonic_negatives": 4,
+  "csv_profile_notes": 71,
+  "v6_0_inference_s": 4.774730599999999
+}

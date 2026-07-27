@@ -1,0 +1,8 @@
+{
+  "samples": 47132,
+  "top1": 0.04071543749469575,
+  "top3": 0.12231604854451328,
+  "mean_absolute_semitone_error": 11.332937282525673,
+  "semitone_errors": 1579,
+  "octave_errors": 2854
+}

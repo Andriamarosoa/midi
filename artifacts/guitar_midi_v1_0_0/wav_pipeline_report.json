@@ -1,0 +1,116 @@
+{
+  "pipeline": "WAV -> causal frontend -> TFLite pitch -> TFLite gate -> MIDI state",
+  "calibration": "one second of prepended silence, identical live engine",
+  "validation_sources": [
+    "gsmono_04_bn1_129_eb_solo",
+    "gsmono_04_bn1_147_gb_solo",
+    "gsmono_04_bn2_131_b_solo",
+    "gsmono_04_bn3_119_g_solo"
+  ],
+  "validation": {
+    "duration_s": 103.46231292517007,
+    "active_f1": 0.8928748553479914,
+    "joint_frame_accuracy": 0.8005563117713204,
+    "gated_correct_pitch_recall": 0.7914725621792341,
+    "ghost_events_per_minute": 40.0145703585255,
+    "events": 285,
+    "missing": 19,
+    "covered_majority": 197,
+    "reference_notes": 232,
+    "unsupported_retriggers": 0,
+    "controlled_retriggers": 0,
+    "transition_decisions": 0,
+    "transition_vetoes": 0,
+    "harmonic_evidence_vetoes": 0,
+    "tflite_inference_mean_ms": 8.54821854424799,
+    "tflite_inference_p95_ms": 13.068249702453606
+  },
+  "validation_reference": {
+    "duration_s": 103.47959183673468,
+    "active_f1": 0.9178406582380092,
+    "joint_frame_accuracy": 0.8292596318873173,
+    "gated_correct_pitch_recall": 0.8366363995262535,
+    "ghost_events_per_minute": 61.4613943398087,
+    "events": 400,
+    "missing": 11,
+    "covered_majority": 207,
+    "reference_notes": 232,
+    "unsupported_retriggers": 40,
+    "controlled_retriggers": 47,
+    "transition_decisions": 177,
+    "transition_vetoes": 18,
+    "harmonic_evidence_vetoes": 0,
+    "accepted": true
+  },
+  "validation_acceptance": {
+    "missing_not_worse": false,
+    "ghosts_not_worse": true,
+    "unsupported_retriggers_not_worse": true,
+    "joint_within_tolerance": false,
+    "active_f1_within_tolerance": false
+  },
+  "validation_safe_profile_acceptance": {
+    "ghosts_reduced_at_least_25_percent": true,
+    "missing_increase_bounded_to_ten_notes": true,
+    "unsupported_retriggers_not_worse": true,
+    "joint_accuracy_floor": true,
+    "active_f1_floor": true
+  },
+  "test_sources_locked": [
+    "gsmono_05_bn1_129_eb_solo",
+    "gsmono_05_bn1_147_gb_solo",
+    "gsmono_05_bn2_131_b_solo",
+    "gsmono_05_bn3_119_g_solo"
+  ],
+  "test": {
+    "duration_s": 103.46231292517007,
+    "active_f1": 0.8138873646929715,
+    "joint_frame_accuracy": 0.7644686772306469,
+    "gated_correct_pitch_recall": 0.6995572422517394,
+    "ghost_events_per_minute": 28.416144167648543,
+    "events": 262,
+    "missing": 10,
+    "covered_majority": 167,
+    "reference_notes": 199,
+    "unsupported_retriggers": 2,
+    "controlled_retriggers": 2,
+    "transition_decisions": 0,
+    "transition_vetoes": 0,
+    "harmonic_evidence_vetoes": 0,
+    "tflite_inference_mean_ms": 7.8597721367554385,
+    "tflite_inference_p95_ms": 11.633759593963607
+  },
+  "test_reference": {
+    "duration_s": 103.47959183673468,
+    "active_f1": 0.848726191047354,
+    "joint_frame_accuracy": 0.795251888453456,
+    "gated_correct_pitch_recall": 0.7583807716635041,
+    "ghost_events_per_minute": 51.0245537915393,
+    "events": 366,
+    "missing": 5,
+    "covered_majority": 168,
+    "reference_notes": 199,
+    "unsupported_retriggers": 15,
+    "controlled_retriggers": 18,
+    "transition_decisions": 78,
+    "transition_vetoes": 4,
+    "harmonic_evidence_vetoes": 0
+  },
+  "test_acceptance": {
+    "missing_not_worse": false,
+    "ghosts_not_worse": true,
+    "unsupported_retriggers_not_worse": true,
+    "joint_within_tolerance": false,
+    "active_f1_within_tolerance": false
+  },
+  "test_safe_profile_acceptance": {
+    "ghosts_reduced_at_least_25_percent": true,
+    "missing_increase_bounded_to_ten_notes": true,
+    "unsupported_retriggers_not_worse": true,
+    "joint_accuracy_floor": true,
+    "active_f1_floor": true
+  },
+  "strict_regression_accepted": false,
+  "acceptance_profile": "safe_low_ghost",
+  "accepted_for_product": true
+}

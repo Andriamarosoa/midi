@@ -1,0 +1,51 @@
+dataset:
+  manifest: data/dataset/polyphonic_v2_2_combined/manifest.csv
+  seed: 44
+  input_samples: 4096
+  normalization_gain: 1.4932045250002872
+
+train:
+  run_name: polyphonic_v2_2_ablation_linear_weights
+  output_root: runs/polyphonic
+  epochs: 8
+  batch_size: 64
+  examples_per_epoch: 240000
+  validation_examples: 60000
+  learning_rate: 0.0001
+  minimum_learning_rate: 0.000001
+  early_stopping_patience: 4
+  reduce_lr_patience: 2
+  maximum_frame_weight: 12.0
+  maximum_onset_weight: 20.0
+  class_weight_basis: sampled
+  class_weight_exponent: 1.0
+  workers: 1
+  augmentation_gain_db: 6.0
+  dataset_fractions:
+    guitarset_poly_mix: 0.45
+    gaps_poly_mix: 0.35
+    guitar_techs_poly_directinput: 0.15
+    guitar_techs_poly_micamp: 0.05
+  validation_dataset_fractions:
+    guitarset_poly_mix: 0.45
+    gaps_poly_mix: 0.35
+    guitar_techs_poly_directinput: 0.15
+    guitar_techs_poly_micamp: 0.05
+  sampling_fractions:
+    onset: 0.30
+    polyphonic: 0.30
+    monophonic: 0.25
+    silence: 0.15
+
+model:
+  channels: 32
+  tcn_blocks: 4
+  dropout: 0.10
+  dense_units: 128
+  harmonic_offset_scale_cents: 35.0
+  onset_loss_weight: 0.50
+  harmonic_amplitude_loss_weight: 0.05
+  harmonic_offset_loss_weight: 0.01
+
+initialization:
+  mono_checkpoint: ""

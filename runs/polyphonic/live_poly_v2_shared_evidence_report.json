@@ -1,0 +1,32 @@
+{
+  "input_wav": "runs\\polyphonic\\live_poly_v2.wav",
+  "output_midi": "runs\\polyphonic\\live_poly_v2_shared_evidence.mid",
+  "duration_s": 59.791383219954646,
+  "events": 448,
+  "note_on_events": 224,
+  "silent_priming_hops": 172,
+  "audio_evidence": {
+    "calibrated": true,
+    "audio_hop_index": 10299,
+    "synthetic_priming_hops": 172,
+    "onset_detector_tick_index": 10472,
+    "audio_activity_gate": {
+      "calibrated": true,
+      "calibration_stable": true,
+      "minimum_calibration_hops": 172,
+      "maximum_calibration_hops": 517,
+      "calibration_hops_seen": 172,
+      "calibration_extended_hops": 0,
+      "tail_hops": 69,
+      "tail_spread_db": 0.0,
+      "open_threshold_dbfs": -72.0,
+      "close_threshold_dbfs": -75.0,
+      "active": true
+    }
+  },
+  "inference_ms": {
+    "mean": 6.116679533980593,
+    "p95": 10.633809999999498,
+    "max": 59.73809999999702
+  }
+}

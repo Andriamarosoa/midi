@@ -1,0 +1,27 @@
+{
+  "selected_on": "validation",
+  "checkpoint": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\epochs\\epoch-05.keras",
+  "examples": 60000,
+  "frame": 0.5499999999999999,
+  "onset": 0.595,
+  "frame_selection": {
+    "threshold": 0.5499999999999999,
+    "true_positive": 47579,
+    "false_positive": 50985,
+    "false_negative": 59018,
+    "true_negative": 2062418,
+    "precision": 0.4827218862870825,
+    "recall": 0.4463446438455116,
+    "f1": 0.4638210966021807
+  },
+  "onset_selection": {
+    "threshold": 0.595,
+    "true_positive": 309,
+    "false_positive": 2924,
+    "false_negative": 2882,
+    "true_negative": 2213885,
+    "precision": 0.09557686359418496,
+    "recall": 0.0968348480100282,
+    "f1": 0.09620174346201743
+  }
+}

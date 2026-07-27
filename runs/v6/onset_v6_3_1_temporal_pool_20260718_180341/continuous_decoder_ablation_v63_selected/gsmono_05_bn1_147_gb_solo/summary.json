@@ -1,0 +1,132 @@
+{
+  "source_id": "gsmono_05_bn1_147_gb_solo",
+  "duration_s": 19.585600907029477,
+  "frames": 3373,
+  "onset_threshold_validation_only": 0.049921965086460116,
+  "onset_frame_metrics": {
+    "count": 3373,
+    "positives": 54,
+    "negatives": 3319,
+    "threshold": 0.049921965086460116,
+    "tp": 54,
+    "fp": 1360,
+    "tn": 1959,
+    "fn": 0,
+    "precision": 0.03818953323903819,
+    "recall": 1.0,
+    "specificity": 0.5902380235010546,
+    "f1": 0.07356948228882833,
+    "false_positive_rate": 0.40976197649894547,
+    "false_negative_rate": 0.0,
+    "accuracy": 0.5967981025793062,
+    "average_precision": 0.3418420898637468
+  },
+  "onset_event_metrics": {
+    "threshold": 0.049921965086460116,
+    "tp": 3,
+    "fp": 94,
+    "fn": 24,
+    "precision": 0.030927835051546393,
+    "recall": 0.1111111111111111,
+    "f1": 0.04838709677419355,
+    "false_events_per_minute": 287.96665605372084,
+    "latency_mean_ms": 1.6250944822373394,
+    "latency_p95_ms": 2.63265306122449,
+    "recordings": 1,
+    "audio_duration_s": 19.585600907029477
+  },
+  "offline_inference": {
+    "v6_0_seconds": 8.035539700000015,
+    "v6_3_onset_seconds": 0.6631277999999838
+  },
+  "latency_contract": {
+    "algorithmic_lookahead_ms": 0.0,
+    "hop_ms": 5.804988662131519,
+    "maximum_stability_delay_ms": 5.804988662131519,
+    "onset_past_context_ms": 11.609977324263038
+  },
+  "variants": {
+    "v6_0_baseline": {
+      "active": {
+        "count": 3367,
+        "positives": 1776,
+        "negatives": 1591,
+        "threshold": 0.5,
+        "tp": 1391,
+        "fp": 60,
+        "tn": 1531,
+        "fn": 385,
+        "precision": 0.9586492074431426,
+        "recall": 0.7832207207207207,
+        "specificity": 0.9622878692646134,
+        "f1": 0.8621010226216299,
+        "false_positive_rate": 0.03771213073538655,
+        "false_negative_rate": 0.21677927927927929,
+        "accuracy": 0.8678348678348679
+      },
+      "joint_frame_accuracy": 0.8601128601128601,
+      "gated_correct_pitch_recall": 0.768581081081081,
+      "active_audio_ticks_with_no_active_prediction": 385,
+      "events": {
+        "generated": 42,
+        "supported": 31,
+        "weak": 1,
+        "harmonic_suspect": 0,
+        "unsupported": 10,
+        "ghost_events_per_minute": 30.634750644012854,
+        "controlled_same_midi_retriggers": 0,
+        "unsupported_same_midi_retriggers": 0,
+        "harmonic_veto_frames": 0
+      },
+      "reference_notes": {
+        "evaluable": 27,
+        "covered_any": 26,
+        "covered_majority": 23,
+        "missing": 1,
+        "onset_latency_mean_ms": 44.02752485611553,
+        "onset_latency_p95_ms": 76.54671201811114
+      }
+    },
+    "v6_3_onset_gate": {
+      "active": {
+        "count": 3367,
+        "positives": 1776,
+        "negatives": 1591,
+        "threshold": 0.5,
+        "tp": 1391,
+        "fp": 60,
+        "tn": 1531,
+        "fn": 385,
+        "precision": 0.9586492074431426,
+        "recall": 0.7832207207207207,
+        "specificity": 0.9622878692646134,
+        "f1": 0.8621010226216299,
+        "false_positive_rate": 0.03771213073538655,
+        "false_negative_rate": 0.21677927927927929,
+        "accuracy": 0.8678348678348679
+      },
+      "joint_frame_accuracy": 0.8601128601128601,
+      "gated_correct_pitch_recall": 0.768581081081081,
+      "active_audio_ticks_with_no_active_prediction": 385,
+      "events": {
+        "generated": 119,
+        "supported": 105,
+        "weak": 1,
+        "harmonic_suspect": 0,
+        "unsupported": 13,
+        "ghost_events_per_minute": 39.82517583721671,
+        "controlled_same_midi_retriggers": 77,
+        "unsupported_same_midi_retriggers": 72,
+        "harmonic_veto_frames": 0
+      },
+      "reference_notes": {
+        "evaluable": 27,
+        "covered_any": 26,
+        "covered_majority": 23,
+        "missing": 1,
+        "onset_latency_mean_ms": 44.02752485611553,
+        "onset_latency_p95_ms": 76.54671201811114
+      }
+    }
+  }
+}

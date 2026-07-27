@@ -1,0 +1,13 @@
+{
+  "artifacts": "artifacts\\guitar_midi_polyphonic_v2_2_0",
+  "assets": "android\\app\\src\\main\\assets",
+  "model": "android\\app\\src\\main\\assets\\guitar_midi_polyphonic.tflite",
+  "metadata": "android\\app\\src\\main\\assets\\polyphonic_metadata.json",
+  "sha256": "4a4df49d34c1fd359fab98c20bb598f37c7f42f22493c70923a2e829176df744",
+  "product_version": "2.2.0",
+  "parity_passed": true,
+  "latency_passed": true,
+  "onnx_passed": true,
+  "runtime_validation_passed": true,
+  "numerical_outlier_exception_reviewed": true
+}

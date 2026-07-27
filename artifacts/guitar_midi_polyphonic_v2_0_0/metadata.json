@@ -1,0 +1,45 @@
+{
+  "product_version": "2.0.0",
+  "model_stack": "causal polyphonic frame+onset+20-partial harmonics",
+  "sample_rate": 44100,
+  "hop_samples": 256,
+  "max_window_samples": 4096,
+  "normalization_gain": 1.4932045250002872,
+  "min_pitch": 40,
+  "max_pitch": 76,
+  "maximum_polyphony": 6,
+  "polyphony_supported": true,
+  "frame_threshold": 0.7949999999999999,
+  "onset_threshold": 0.7749999999999999,
+  "decoder": {
+    "midi_min": 40,
+    "midi_max": 76,
+    "frame_on_threshold": 0.7949999999999999,
+    "strong_frame_threshold": 0.95,
+    "frame_off_threshold": 0.4769999999999999,
+    "onset_threshold": 0.7749999999999999,
+    "activation_frames": 2,
+    "release_frames": 3,
+    "minimum_retrigger_frames": 14,
+    "silence_release_frames": 2,
+    "maximum_polyphony": 6,
+    "harmonic_suppression_strength": 0.25,
+    "harmonic_tolerance_cents": 35.0
+  },
+  "outputs": [
+    "frame",
+    "onset",
+    "harmonic_amplitude",
+    "harmonic_offset_cents"
+  ],
+  "recommended_tflite_threads": 1,
+  "artifact": {
+    "tflite": "guitar_midi_polyphonic.tflite",
+    "sha256": "40fe8073c26b70c72b8f536b9ed2562c2e1c9395ce1536307c44f1135f8988fa",
+    "parity_examples": "parity_examples.npz",
+    "onnx": "guitar_midi_polyphonic.onnx",
+    "onnx_sha256": "e990c01b0a26ea21fc6d3aac12b3cf18174cf364ecda08be61acb5900be79b33"
+  },
+  "source_run": "runs\\polyphonic\\polyphonic_v2_1_guitarset_gaps_20260720_001211",
+  "source_checkpoint": "runs\\polyphonic\\polyphonic_v2_1_guitarset_gaps_20260720_001211\\selected.keras"
+}

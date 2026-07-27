@@ -1,0 +1,72 @@
+{
+  "selection": "deterministic random windows, seed 6300 + sorted group index",
+  "model_training_scope": "V6.0 GuitarSet train players 00-03",
+  "groups": {
+    "guitar_techs_directinput": {
+      "population_examples": 39289,
+      "sampled_examples": 1500,
+      "active_f1": 0.9871708305199189,
+      "active_precision": 1.0,
+      "active_recall": 0.9746666666666667,
+      "pitch_evaluable": 1500,
+      "pitch_top1": 0.9466666666666667,
+      "pitch_top3": 0.9773333333333334,
+      "harmonic_labeled_bins": 0,
+      "harmonic_amplitude_mae": null
+    },
+    "guitar_techs_micamp": {
+      "population_examples": 39289,
+      "sampled_examples": 1500,
+      "active_f1": 0.9878542510121457,
+      "active_precision": 1.0,
+      "active_recall": 0.976,
+      "pitch_evaluable": 1500,
+      "pitch_top1": 0.902,
+      "pitch_top3": 0.9593333333333334,
+      "harmonic_labeled_bins": 0,
+      "harmonic_amplitude_mae": null
+    },
+    "guitarset_player05_reference": {
+      "population_examples": 12685,
+      "sampled_examples": 1500,
+      "active_f1": 0.9795918367346939,
+      "active_precision": 1.0,
+      "active_recall": 0.96,
+      "pitch_evaluable": 1500,
+      "pitch_top1": 0.93,
+      "pitch_top3": 0.972,
+      "harmonic_labeled_bins": 0,
+      "harmonic_amplitude_mae": null
+    },
+    "idmt_d1_mono": {
+      "population_examples": 1872,
+      "sampled_examples": 1500,
+      "active_f1": 0.9953114534494306,
+      "active_precision": 1.0,
+      "active_recall": 0.9906666666666667,
+      "pitch_evaluable": 1500,
+      "pitch_top1": 0.812,
+      "pitch_top3": 0.9046666666666666,
+      "harmonic_labeled_bins": 0,
+      "harmonic_amplitude_mae": null
+    },
+    "idmt_d2_mono": {
+      "population_examples": 3973,
+      "sampled_examples": 1500,
+      "active_f1": 0.8344988344988344,
+      "active_precision": 1.0,
+      "active_recall": 0.716,
+      "pitch_evaluable": 1500,
+      "pitch_top1": 0.49733333333333335,
+      "pitch_top3": 0.6026666666666667,
+      "harmonic_labeled_bins": 0,
+      "harmonic_amplitude_mae": null
+    }
+  },
+  "gaps": {
+    "available": true,
+    "included_in_monophonic_metrics": false,
+    "reason": "GAPS contient des partitions de guitare classique polyphoniques; le produit 1.0 a une seule sortie softmax pitch et ne peut pas representer plusieurs notes simultanees.",
+    "required_future_architecture": "multi-label pitch activation per MIDI class"
+  }
+}

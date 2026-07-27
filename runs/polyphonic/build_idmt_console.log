@@ -1,0 +1,19 @@
+{
+  "manifest": "data\\dataset\\polyphonic_v2_2_idmt_research\\manifest.csv",
+  "recordings": 657,
+  "split_recordings": {
+    "train": 538,
+    "validation": 59,
+    "test": 60
+  },
+  "license_scope": "Research/non-commercial ablation only (CC-BY-NC-ND-4.0); not enabled in the deployable product configuration.",
+  "totals": {
+    "frames": 775603,
+    "valid_frames": 756705,
+    "active_frames": 503706,
+    "polyphonic_frames": 121823,
+    "onset_frames": 8975,
+    "notes": 5164
+  },
+  "passed": true
+}

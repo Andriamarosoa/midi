@@ -1,0 +1,35 @@
+{
+  "frame": {
+    "maximum_absolute_error": 0.001060783863067627,
+    "mean_absolute_error": 6.562948692589998e-05
+  },
+  "onset": {
+    "maximum_absolute_error": 0.0006681978702545166,
+    "mean_absolute_error": 2.6980333132087253e-05
+  },
+  "harmonic_amplitude": {
+    "maximum_absolute_error": 0.0010960102081298828,
+    "mean_absolute_error": 1.6335650798282586e-05
+  },
+  "harmonic_offset_cents": {
+    "maximum_absolute_error": 0.04599404335021973,
+    "mean_absolute_error": 0.003420778550207615
+  },
+  "frame_decision_agreement": 1.0,
+  "frame_decision_mismatches": 0,
+  "onset_decision_agreement": 1.0,
+  "onset_decision_mismatches": 0,
+  "data_split": "validation",
+  "examples": 96,
+  "policy": {
+    "maximum_absolute_error_by_output": {
+      "frame": 0.002,
+      "onset": 0.002,
+      "harmonic_amplitude": 0.002,
+      "harmonic_offset_cents": 0.1
+    },
+    "minimum_frame_decision_agreement": 0.999,
+    "minimum_onset_decision_agreement": 0.999
+  },
+  "passed": true
+}

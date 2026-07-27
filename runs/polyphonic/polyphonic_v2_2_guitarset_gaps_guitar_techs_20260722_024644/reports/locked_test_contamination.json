@@ -1,0 +1,355 @@
+{
+  "reason": "The pre-fix export parity sampler read 96 test frames. No labels, thresholds or model weights were selected from their results.",
+  "reproduction": "natural_validation_refs(test, 96, dataset_seed + 99)",
+  "seed": 143,
+  "frames": 96,
+  "references_sha256": "ab1e0b88a6002ce6e4fc8ce2784c715aa1cb8020ce5c43320ce54734eaf0f573",
+  "recordings_touched": 49,
+  "groups_to_exclude": [
+    "1M1wc",
+    "1w1wc",
+    "441wc",
+    "4w1wc",
+    "5N1wc",
+    "BSswc",
+    "GD1wc",
+    "Jw1wc",
+    "Lf1wc",
+    "Ny1wc",
+    "VD1wc",
+    "Vpswc",
+    "W41wc",
+    "XD1wc",
+    "Zpswc",
+    "bc1wc",
+    "c41wc",
+    "cw1wc",
+    "gk1wc",
+    "gtech_p3_music_02",
+    "gtech_p3_music_03",
+    "gtech_p3_music_05",
+    "gtech_p3_music_06",
+    "gtech_p3_music_08",
+    "gtech_p3_music_09",
+    "gtech_p3_music_10",
+    "gtech_p3_music_11",
+    "gtech_p3_music_12",
+    "guitarset_05_BN3-119-G_solo",
+    "guitarset_05_Funk1-114-Ab_comp",
+    "guitarset_05_Funk1-97-C_comp",
+    "guitarset_05_Funk2-119-G_solo",
+    "guitarset_05_Funk3-112-C#_solo",
+    "guitarset_05_Jazz2-110-Bb_comp",
+    "guitarset_05_Jazz2-187-F#_solo",
+    "guitarset_05_Jazz3-137-Eb_comp",
+    "guitarset_05_Rock2-85-F_comp",
+    "guitarset_05_SS1-68-E_comp",
+    "guitarset_05_SS2-107-Ab_comp",
+    "guitarset_05_SS2-88-F_comp",
+    "guitarset_05_SS2-88-F_solo",
+    "mf1wc",
+    "pM1wc",
+    "rc1wc",
+    "sy1wc",
+    "vpswc",
+    "xf1wc",
+    "y41wc"
+  ],
+  "touched": [
+    {
+      "dataset_id": "gaps_poly_mix",
+      "source_id": "019_Vpswc",
+      "group_id": "Vpswc",
+      "frames_touched": 2
+    },
+    {
+      "dataset_id": "gaps_poly_mix",
+      "source_id": "027_Zpswc",
+      "group_id": "Zpswc",
+      "frames_touched": 4
+    },
+    {
+      "dataset_id": "gaps_poly_mix",
+      "source_id": "031_vpswc",
+      "group_id": "vpswc",
+      "frames_touched": 2
+    },
+    {
+      "dataset_id": "gaps_poly_mix",
+      "source_id": "043_bc1wc",
+      "group_id": "bc1wc",
+      "frames_touched": 5
+    },
+    {
+      "dataset_id": "gaps_poly_mix",
+      "source_id": "051_rc1wc",
+      "group_id": "rc1wc",
+      "frames_touched": 1
+    },
+    {
+      "dataset_id": "gaps_poly_mix",
+      "source_id": "100_Lf1wc",
+      "group_id": "Lf1wc",
+      "frames_touched": 1
+    },
+    {
+      "dataset_id": "gaps_poly_mix",
+      "source_id": "104_xf1wc",
+      "group_id": "xf1wc",
+      "frames_touched": 2
+    },
+    {
+      "dataset_id": "gaps_poly_mix",
+      "source_id": "112_mf1wc",
+      "group_id": "mf1wc",
+      "frames_touched": 4
+    },
+    {
+      "dataset_id": "gaps_poly_mix",
+      "source_id": "118_VD1wc",
+      "group_id": "VD1wc",
+      "frames_touched": 2
+    },
+    {
+      "dataset_id": "gaps_poly_mix",
+      "source_id": "126_XD1wc",
+      "group_id": "XD1wc",
+      "frames_touched": 3
+    },
+    {
+      "dataset_id": "gaps_poly_mix",
+      "source_id": "142_GD1wc",
+      "group_id": "GD1wc",
+      "frames_touched": 6
+    },
+    {
+      "dataset_id": "gaps_poly_mix",
+      "source_id": "179_pM1wc",
+      "group_id": "pM1wc",
+      "frames_touched": 1
+    },
+    {
+      "dataset_id": "gaps_poly_mix",
+      "source_id": "201_gk1wc",
+      "group_id": "gk1wc",
+      "frames_touched": 3
+    },
+    {
+      "dataset_id": "gaps_poly_mix",
+      "source_id": "208_c41wc",
+      "group_id": "c41wc",
+      "frames_touched": 1
+    },
+    {
+      "dataset_id": "gaps_poly_mix",
+      "source_id": "212_y41wc",
+      "group_id": "y41wc",
+      "frames_touched": 5
+    },
+    {
+      "dataset_id": "gaps_poly_mix",
+      "source_id": "222_W41wc",
+      "group_id": "W41wc",
+      "frames_touched": 4
+    },
+    {
+      "dataset_id": "gaps_poly_mix",
+      "source_id": "235_Ny1wc",
+      "group_id": "Ny1wc",
+      "frames_touched": 5
+    },
+    {
+      "dataset_id": "gaps_poly_mix",
+      "source_id": "247_sy1wc",
+      "group_id": "sy1wc",
+      "frames_touched": 1
+    },
+    {
+      "dataset_id": "gaps_poly_mix",
+      "source_id": "263_cw1wc",
+      "group_id": "cw1wc",
+      "frames_touched": 1
+    },
+    {
+      "dataset_id": "gaps_poly_mix",
+      "source_id": "270_Jw1wc",
+      "group_id": "Jw1wc",
+      "frames_touched": 3
+    },
+    {
+      "dataset_id": "gaps_poly_mix",
+      "source_id": "294_BSswc",
+      "group_id": "BSswc",
+      "frames_touched": 1
+    },
+    {
+      "dataset_id": "gaps_poly_mix",
+      "source_id": "303_5N1wc",
+      "group_id": "5N1wc",
+      "frames_touched": 3
+    },
+    {
+      "dataset_id": "gaps_poly_mix",
+      "source_id": "341_1M1wc",
+      "group_id": "1M1wc",
+      "frames_touched": 1
+    },
+    {
+      "dataset_id": "gaps_poly_mix",
+      "source_id": "358_441wc",
+      "group_id": "441wc",
+      "frames_touched": 1
+    },
+    {
+      "dataset_id": "gaps_poly_mix",
+      "source_id": "373_4w1wc",
+      "group_id": "4w1wc",
+      "frames_touched": 4
+    },
+    {
+      "dataset_id": "gaps_poly_mix",
+      "source_id": "375_1w1wc",
+      "group_id": "1w1wc",
+      "frames_touched": 1
+    },
+    {
+      "dataset_id": "guitar_techs_poly_directinput",
+      "source_id": "gtech_p3_music_02_directinput",
+      "group_id": "gtech_p3_music_02",
+      "frames_touched": 1
+    },
+    {
+      "dataset_id": "guitar_techs_poly_directinput",
+      "source_id": "gtech_p3_music_03_directinput",
+      "group_id": "gtech_p3_music_03",
+      "frames_touched": 1
+    },
+    {
+      "dataset_id": "guitar_techs_poly_directinput",
+      "source_id": "gtech_p3_music_06_directinput",
+      "group_id": "gtech_p3_music_06",
+      "frames_touched": 1
+    },
+    {
+      "dataset_id": "guitar_techs_poly_directinput",
+      "source_id": "gtech_p3_music_08_directinput",
+      "group_id": "gtech_p3_music_08",
+      "frames_touched": 1
+    },
+    {
+      "dataset_id": "guitar_techs_poly_directinput",
+      "source_id": "gtech_p3_music_10_directinput",
+      "group_id": "gtech_p3_music_10",
+      "frames_touched": 1
+    },
+    {
+      "dataset_id": "guitar_techs_poly_directinput",
+      "source_id": "gtech_p3_music_11_directinput",
+      "group_id": "gtech_p3_music_11",
+      "frames_touched": 1
+    },
+    {
+      "dataset_id": "guitar_techs_poly_directinput",
+      "source_id": "gtech_p3_music_12_directinput",
+      "group_id": "gtech_p3_music_12",
+      "frames_touched": 4
+    },
+    {
+      "dataset_id": "guitar_techs_poly_micamp",
+      "source_id": "gtech_p3_music_05_micamp",
+      "group_id": "gtech_p3_music_05",
+      "frames_touched": 1
+    },
+    {
+      "dataset_id": "guitar_techs_poly_micamp",
+      "source_id": "gtech_p3_music_09_micamp",
+      "group_id": "gtech_p3_music_09",
+      "frames_touched": 1
+    },
+    {
+      "dataset_id": "guitar_techs_poly_micamp",
+      "source_id": "gtech_p3_music_10_micamp",
+      "group_id": "gtech_p3_music_10",
+      "frames_touched": 1
+    },
+    {
+      "dataset_id": "guitarset_poly_mix",
+      "source_id": "05_BN3-119-G_solo",
+      "group_id": "guitarset_05_BN3-119-G_solo",
+      "frames_touched": 2
+    },
+    {
+      "dataset_id": "guitarset_poly_mix",
+      "source_id": "05_Funk1-114-Ab_comp",
+      "group_id": "guitarset_05_Funk1-114-Ab_comp",
+      "frames_touched": 2
+    },
+    {
+      "dataset_id": "guitarset_poly_mix",
+      "source_id": "05_Funk1-97-C_comp",
+      "group_id": "guitarset_05_Funk1-97-C_comp",
+      "frames_touched": 2
+    },
+    {
+      "dataset_id": "guitarset_poly_mix",
+      "source_id": "05_Funk2-119-G_solo",
+      "group_id": "guitarset_05_Funk2-119-G_solo",
+      "frames_touched": 1
+    },
+    {
+      "dataset_id": "guitarset_poly_mix",
+      "source_id": "05_Funk3-112-C#_solo",
+      "group_id": "guitarset_05_Funk3-112-C#_solo",
+      "frames_touched": 1
+    },
+    {
+      "dataset_id": "guitarset_poly_mix",
+      "source_id": "05_Jazz2-110-Bb_comp",
+      "group_id": "guitarset_05_Jazz2-110-Bb_comp",
+      "frames_touched": 1
+    },
+    {
+      "dataset_id": "guitarset_poly_mix",
+      "source_id": "05_Jazz2-187-F#_solo",
+      "group_id": "guitarset_05_Jazz2-187-F#_solo",
+      "frames_touched": 1
+    },
+    {
+      "dataset_id": "guitarset_poly_mix",
+      "source_id": "05_Jazz3-137-Eb_comp",
+      "group_id": "guitarset_05_Jazz3-137-Eb_comp",
+      "frames_touched": 1
+    },
+    {
+      "dataset_id": "guitarset_poly_mix",
+      "source_id": "05_Rock2-85-F_comp",
+      "group_id": "guitarset_05_Rock2-85-F_comp",
+      "frames_touched": 1
+    },
+    {
+      "dataset_id": "guitarset_poly_mix",
+      "source_id": "05_SS1-68-E_comp",
+      "group_id": "guitarset_05_SS1-68-E_comp",
+      "frames_touched": 1
+    },
+    {
+      "dataset_id": "guitarset_poly_mix",
+      "source_id": "05_SS2-107-Ab_comp",
+      "group_id": "guitarset_05_SS2-107-Ab_comp",
+      "frames_touched": 1
+    },
+    {
+      "dataset_id": "guitarset_poly_mix",
+      "source_id": "05_SS2-88-F_comp",
+      "group_id": "guitarset_05_SS2-88-F_comp",
+      "frames_touched": 1
+    },
+    {
+      "dataset_id": "guitarset_poly_mix",
+      "source_id": "05_SS2-88-F_solo",
+      "group_id": "guitarset_05_SS2-88-F_solo",
+      "frames_touched": 1
+    }
+  ],
+  "policy": "Exclude every touched group from all final locked-test reports."
+}

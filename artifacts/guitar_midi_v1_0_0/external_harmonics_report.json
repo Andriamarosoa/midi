@@ -1,0 +1,41 @@
+{
+  "label_build": "V5.3 multi-source harmonic extraction",
+  "selection": "deterministic random windows, seed 7300 + sorted group index",
+  "groups": {
+    "guitar_techs_directinput": {
+      "population_examples": 39289,
+      "sampled_examples": 300,
+      "harmonic_labeled_bins": 5740,
+      "harmonic_amplitude_mae": 0.044155903928463816,
+      "harmonic_offset_cents_mae": 11.230010143984822
+    },
+    "guitar_techs_micamp": {
+      "population_examples": 39289,
+      "sampled_examples": 300,
+      "harmonic_labeled_bins": 5846,
+      "harmonic_amplitude_mae": 0.03630763353466262,
+      "harmonic_offset_cents_mae": 11.623035046204752
+    },
+    "guitarset_player05_reference": {
+      "population_examples": 12685,
+      "sampled_examples": 300,
+      "harmonic_labeled_bins": 5816,
+      "harmonic_amplitude_mae": 0.0336234103602752,
+      "harmonic_offset_cents_mae": 7.038437454083081
+    },
+    "idmt_d1_mono": {
+      "population_examples": 1872,
+      "sampled_examples": 300,
+      "harmonic_labeled_bins": 5913,
+      "harmonic_amplitude_mae": 0.05377010642549181,
+      "harmonic_offset_cents_mae": 9.641580472029487
+    },
+    "idmt_d2_mono": {
+      "population_examples": 3973,
+      "sampled_examples": 300,
+      "harmonic_labeled_bins": 5632,
+      "harmonic_amplitude_mae": 0.06769677191617506,
+      "harmonic_offset_cents_mae": 11.732293162758156
+    }
+  }
+}

@@ -1,7 +1,7 @@
 [project]
 name = "midi"
-version = "0.1.0"
-description = "Audio and harmonic processing tools"
+version = "1.0.0"
+description = "Causal clean monophonic guitar audio-to-MIDI product"
 requires-python = ">=3.9,<3.10"
 
 dependencies = [
@@ -14,11 +14,21 @@ dependencies = [
     "matplotlib>=3.6,<3.9",
     "tqdm>=4.64,<5",
     "sounddevice>=0.4.6,<0.6",
+    "pyfluidsynth>=1.3.6,<2",
+    "tensorflow>=2.15,<2.16",
+    "PyYAML>=6,<7",
 ]
+
+[project.scripts]
+guitar-midi = "src.product.live:main"
+guitar-midi-transcribe = "src.product.transcribe:main"
+guitar-midi-poly = "src.polyphonic.live:main"
+guitar-midi-poly-transcribe = "src.polyphonic.transcribe:main"
 
 [build-system]
 requires = ["setuptools>=70"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-packages = ["src"]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]

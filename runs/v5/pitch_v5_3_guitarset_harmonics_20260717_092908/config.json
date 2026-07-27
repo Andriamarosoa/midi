@@ -1,0 +1,62 @@
+{
+  "dataset": {
+    "manifest": "data\\dataset\\v5_3_harmonics\\manifest.csv",
+    "include_datasets": [
+      "guitarset_mono_mix"
+    ],
+    "min_pitch": 40,
+    "max_pitch": 76,
+    "train_players": [
+      "00",
+      "01",
+      "02",
+      "03"
+    ],
+    "validation_players": [
+      "04"
+    ],
+    "test_players": [
+      "05"
+    ],
+    "seed": 42,
+    "sample_rate": 44100,
+    "hop_size": 256,
+    "max_window": 4096,
+    "normalization_percentile": 95.0,
+    "normalization_target": 0.8,
+    "max_gain": 16.0
+  },
+  "cache": {
+    "mode": "ram",
+    "validate_schema": true
+  },
+  "train": {
+    "run_name": "pitch_v5_3_guitarset_harmonics",
+    "output_root": "runs\\v5",
+    "batch_size": 32,
+    "epochs": 15,
+    "learning_rate": 0.001,
+    "early_stopping_patience": 5,
+    "reduce_lr_patience": 2,
+    "min_learning_rate": 1e-06,
+    "workers": 1,
+    "use_class_weights": false,
+    "max_class_weight": 10.0
+  },
+  "model": {
+    "channels": 32,
+    "tcn_blocks": 4,
+    "dropout": 0.1,
+    "dense_units": 128,
+    "pooling": "hybrid",
+    "harmonic_auxiliary": true,
+    "harmonic_count": 20,
+    "harmonic_offset_scale_cents": 35.0,
+    "harmonic_amplitude_loss_weight": 0.2,
+    "harmonic_offset_loss_weight": 0.05
+  },
+  "evaluation": {
+    "make_plots": true,
+    "save_predictions": false
+  }
+}

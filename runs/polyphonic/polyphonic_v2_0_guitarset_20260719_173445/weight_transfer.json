@@ -1,0 +1,32 @@
+{
+  "source": "runs\\v6\\pitch_v6_0_guitarset_active_20260717_134759\\best_pitch.keras",
+  "transferred": [
+    "frontend_conv_1",
+    "frontend_norm_1",
+    "frontend_conv_2",
+    "frontend_norm_2",
+    "tcn_0_conv_1",
+    "tcn_0_conv_2",
+    "tcn_0_norm",
+    "tcn_1_conv_1",
+    "tcn_1_conv_2",
+    "tcn_1_norm",
+    "tcn_2_conv_1",
+    "tcn_2_conv_2",
+    "tcn_2_norm",
+    "tcn_3_conv_1",
+    "tcn_3_conv_2",
+    "tcn_3_norm",
+    "pitch_dense"
+  ],
+  "skipped": [
+    "onset_conv_1",
+    "onset_norm_1",
+    "onset_conv_2",
+    "harmonic_offset_logits",
+    "onset_dense",
+    "harmonic_amplitude_flat",
+    "frame",
+    "onset"
+  ]
+}

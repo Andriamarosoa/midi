@@ -1,0 +1,72 @@
+{
+  "input_wav": "data\\test\\Until I Found You_basic_pitch.wav",
+  "output_midi": "runs\\polyphonic\\wav_live_validation_v221\\Until I Found You_v221.mid",
+  "duration_s": 175.6822222222222,
+  "events": 952,
+  "note_on_events": 476,
+  "capture_gain": 1.0,
+  "gain_induced_clipped_samples": 8,
+  "silent_priming_hops": 172,
+  "audio_active_hops": 30039,
+  "physical_onset_hops": 206,
+  "event_reason_counts": {
+    "frame_attack": 333,
+    "frame_fallback": 94,
+    "harmonic_strong_frame": 4,
+    "model_onset": 41,
+    "release": 472,
+    "retrigger": 8
+  },
+  "note_on_reason_counts": {
+    "frame_attack": 333,
+    "frame_fallback": 94,
+    "harmonic_strong_frame": 4,
+    "model_onset": 41,
+    "retrigger": 4
+  },
+  "audio_evidence": {
+    "calibrated": true,
+    "audio_hop_index": 30264,
+    "synthetic_priming_hops": 172,
+    "onset_detector_tick_index": 30437,
+    "onset_detector": {
+      "cooldown_hops": 14,
+      "rearm_ratio": 1.35,
+      "enable_peak_rearm": true,
+      "robust_rearm": true,
+      "rearm_stable_hops": 3,
+      "rearm_attack_ratio": 3.0,
+      "rearm_flux_ratio": 2.0,
+      "rearm_growth_ratio": 8.0,
+      "require_joint_temporal_evidence": true
+    },
+    "audio_activity_gate": {
+      "calibrated": true,
+      "calibration_stable": true,
+      "minimum_calibration_hops": 172,
+      "maximum_calibration_hops": 517,
+      "calibration_hops_seen": 172,
+      "calibration_extended_hops": 0,
+      "tail_hops": 69,
+      "tail_spread_db": 0.0,
+      "open_threshold_dbfs": -72.0,
+      "close_threshold_dbfs": -75.0,
+      "active": false
+    }
+  },
+  "automatic_model_input_level": {
+    "enabled": false
+  },
+  "inference_ms": {
+    "mean": 1.323005339501071,
+    "p95": 2.0561400000012497,
+    "max": 10.592899999998906
+  },
+  "pipeline_ms": {
+    "mean": 1.8449549281348119,
+    "p95": 2.984980000002224,
+    "max": 11.955199999999166,
+    "hop_budget_ms": 5.804988662131519,
+    "meets_hop_budget_p95": true
+  }
+}

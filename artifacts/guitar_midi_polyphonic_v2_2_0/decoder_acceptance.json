@@ -1,0 +1,62 @@
+{
+  "purpose": "Desktop anti-ghost acceptance for enforcement of the configured unattacked-frame threshold.",
+  "decision": "accepted_for_desktop",
+  "locked_test_used": false,
+  "model_weights_changed": false,
+  "thresholds_reselected": false,
+  "runtime_policy": {
+    "unattacked_frame_threshold_enforced": true,
+    "unattacked_frame_threshold": 0.9,
+    "recent_physical_attack_uses_frame_on_threshold": true,
+    "pitch_specific_model_onset_remains_available": true
+  },
+  "controlled_four_recording_ablation": {
+    "baseline_report": "runs/polyphonic/polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644/reports/validation_live_input_level_v2_2_1_tflite_4_min0.json",
+    "candidate_report": "runs/polyphonic/polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644/reports/validation_decoder_unattacked_threshold_v2_2_1_tflite_4.json",
+    "same_runtime_model_config_and_audio_evidence": true,
+    "weighted_onset_f1_delta": 0.01053902741435206,
+    "global_onset_f1_delta": -0.0019734697404953,
+    "precision_delta": 0.04425231152204837,
+    "recall_delta": -0.07696969696969697,
+    "false_positive_notes_delta": -1603,
+    "matched_notes_delta": -127,
+    "harmonic_interval_false_positives_delta": -100,
+    "fragmented_reference_notes_delta": -72,
+    "excess_fragments_delta": -86
+  },
+  "twelve_recording_coverage_confirmation": {
+    "baseline_report": "runs/polyphonic/polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644/reports/validation_runtime_events_fp16.json",
+    "candidate_report": "validation_decoder_unattacked_threshold.json",
+    "same_selected_sources": true,
+    "same_reference_notes": 3639,
+    "note": "This broader historical comparison confirms coverage on the same 12 sources; the four-recording comparison above is the isolated decoder ablation.",
+    "weighted_onset_f1_before": 0.2293687269435181,
+    "weighted_onset_f1_after": 0.2291485616400665,
+    "global_onset_f1_before": 0.15346079986641062,
+    "global_onset_f1_after": 0.17507864861168101,
+    "precision_before": 0.11021827776445191,
+    "precision_after": 0.17429193899782136,
+    "recall_before": 0.2525419071173399,
+    "recall_after": 0.17587249244297884,
+    "false_positive_notes_delta": -4387,
+    "matched_notes_delta": -279,
+    "harmonic_interval_false_positives_delta": -328,
+    "fragmented_reference_notes_delta": -276,
+    "excess_fragments_delta": -495,
+    "tflite_batch1_p95_ms": 2.1747999999249146,
+    "hop_budget_ms": 5.804988662131519
+  },
+  "existing_live_capture_smoke": {
+    "wav": "runs/polyphonic/live_poly_v2.wav",
+    "note_on_before": 261,
+    "note_on_after": 121,
+    "frame_fallback_note_on_before": 186,
+    "frame_fallback_note_on_after": 25,
+    "spectrally_unsupported_before": 4,
+    "spectrally_unsupported_after": 0,
+    "pipeline_p95_ms": 2.8249050000002107,
+    "report": "runs/polyphonic/live_poly_v2_v221_fallback90.json",
+    "spectral_report": "runs/polyphonic/live_poly_v2_v221_fallback90_spectral.json"
+  },
+  "accepted_tradeoff": "Far fewer ghost, harmonic and fragmented notes at the cost of lower recall, especially on dense chords."
+}

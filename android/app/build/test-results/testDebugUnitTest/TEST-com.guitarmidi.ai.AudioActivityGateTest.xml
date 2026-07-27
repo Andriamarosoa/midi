@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.guitarmidi.ai.AudioActivityGateTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-07-22T03:08:28.239Z" hostname="TINAHR-UCLAP" time="0.043">
+  <properties/>
+  <testcase name="stableSilenceCalibratesThenGuitarOpensTheGate" classname="com.guitarmidi.ai.AudioActivityGateTest" time="0.034"/>
+  <testcase name="unstableCalibrationIsBounded" classname="com.guitarmidi.ai.AudioActivityGateTest" time="0.001"/>
+  <testcase name="hysteresisKeepsActivityUntilCloseThreshold" classname="com.guitarmidi.ai.AudioActivityGateTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

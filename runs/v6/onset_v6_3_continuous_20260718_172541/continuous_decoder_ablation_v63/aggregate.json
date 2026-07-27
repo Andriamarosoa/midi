@@ -1,0 +1,81 @@
+{
+  "sources": [
+    "gsmono_05_bn1_129_eb_solo",
+    "gsmono_05_bn1_147_gb_solo",
+    "gsmono_05_bn2_131_b_solo",
+    "gsmono_05_bn3_119_g_solo"
+  ],
+  "duration_s": 103.47959183673468,
+  "onset_threshold_validation_only": 0.7615125706006295,
+  "onset_latency_batch_one": {
+    "repeats_each": 400,
+    "keras_eager": {
+      "mean_ms": 10.381673249999768,
+      "p95_ms": 14.978630000004495,
+      "max_ms": 21.447199999997224
+    },
+    "tf_function": {
+      "mean_ms": 1.8594677500001746,
+      "p95_ms": 3.438770000000346,
+      "max_ms": 7.153800000004651
+    }
+  },
+  "variants": {
+    "v6_0_baseline": {
+      "active_f1": 0.848726191047354,
+      "joint_frame_accuracy": 0.795024706082808,
+      "gated_correct_pitch_recall": 0.7580193367669649,
+      "events": {
+        "generated": 369,
+        "supported": 266,
+        "weak": 12,
+        "harmonic_suspect": 1,
+        "unsupported": 90,
+        "controlled_same_midi_retriggers": 18,
+        "unsupported_same_midi_retriggers": 15,
+        "ghost_events_per_minute": 52.76402721625087
+      },
+      "reference_notes": {
+        "evaluable": 199,
+        "covered_any": 194,
+        "covered_majority": 168,
+        "missing": 5
+      }
+    },
+    "v6_3_onset_gate": {
+      "active_f1": 0.848726191047354,
+      "joint_frame_accuracy": 0.7402737547566309,
+      "gated_correct_pitch_recall": 0.670913526701003,
+      "events": {
+        "generated": 286,
+        "supported": 200,
+        "weak": 21,
+        "harmonic_suspect": 1,
+        "unsupported": 64,
+        "controlled_same_midi_retriggers": 6,
+        "unsupported_same_midi_retriggers": 3,
+        "ghost_events_per_minute": 37.688590868750616
+      },
+      "reference_notes": {
+        "evaluable": 199,
+        "covered_any": 161,
+        "covered_majority": 141,
+        "missing": 38
+      }
+    }
+  },
+  "acceptance": {
+    "v6_0_reference": {
+      "ghost_events_per_minute_max": 52.18,
+      "missing_notes_max": 3,
+      "joint_frame_accuracy_min": 0.795,
+      "unsupported_retriggers_max": 0
+    },
+    "observed": {
+      "ghosts_not_worse": true,
+      "missing_not_worse": false,
+      "joint_not_worse": false,
+      "unsupported_retriggers_not_worse": true
+    }
+  }
+}

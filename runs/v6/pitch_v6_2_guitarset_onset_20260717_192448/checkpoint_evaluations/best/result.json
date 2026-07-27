@@ -1,0 +1,71 @@
+{
+  "checkpoint": "best.keras",
+  "output_dir": "C:\\Users\\user\\Desktop\\midi\\runs\\v6\\pitch_v6_2_guitarset_onset_20260717_192448\\checkpoint_evaluations\\best",
+  "threshold": 0.2823147177696228,
+  "active": {
+    "count": 17252,
+    "positives": 12685,
+    "negatives": 4567,
+    "threshold": 0.2823147177696228,
+    "tp": 11995,
+    "fp": 578,
+    "tn": 3989,
+    "fn": 690,
+    "precision": 0.9540284737135131,
+    "recall": 0.9456050453291289,
+    "specificity": 0.8734398948981826,
+    "f1": 0.9497980837754375,
+    "false_positive_rate": 0.1265601051018174,
+    "false_negative_rate": 0.05439495467087111,
+    "accuracy": 0.9265012752144679,
+    "average_precision": 0.9906447320966586,
+    "threshold_source": "validation"
+  },
+  "pitch_on_true_active": {
+    "samples": 12685,
+    "top1": 0.9055577453685455,
+    "top3": 0.9623965313362239,
+    "mean_absolute_semitone_error": 0.35293653921955065,
+    "semitone_errors": 673,
+    "octave_errors": 42,
+    "evaluated_checkpoint": "best.keras"
+  },
+  "joint": {
+    "samples": 17252,
+    "joint_frame_accuracy": 0.868421052631579,
+    "gated_correct_pitch_recall": 0.8666141111549074,
+    "conditional_pitch_top1": 0.9055577453685455,
+    "conditional_pitch_top3": 0.9623965313362239,
+    "evaluated_checkpoint": "best.keras"
+  },
+  "harmonics_on_true_active": {
+    "samples": 12685,
+    "harmonic_count": 20,
+    "valid_partial_values": 245592,
+    "amplitude_mae": 0.03533249028113701,
+    "zero_amplitude_baseline_mae": 0.10665103352307893,
+    "amplitude_improvement_over_zero": 0.07131854324194192,
+    "amplitude_weighted_offset_mae_cents": 4.785834403628405,
+    "zero_offset_baseline_mae_cents": 5.77932971391654,
+    "offset_improvement_over_zero_cents": 0.993495310288135
+  },
+  "onset": {
+    "count": 17252,
+    "positives": 2406,
+    "negatives": 14846,
+    "threshold": 0.6246715784072876,
+    "tp": 517,
+    "fp": 885,
+    "tn": 13961,
+    "fn": 1889,
+    "precision": 0.36875891583452214,
+    "recall": 0.21487946799667498,
+    "specificity": 0.9403879832951637,
+    "f1": 0.2715336134453782,
+    "false_positive_rate": 0.05961201670483632,
+    "false_negative_rate": 0.785120532003325,
+    "accuracy": 0.8392070484581498,
+    "average_precision": 0.2958728873952126,
+    "threshold_source": "validation"
+  }
+}

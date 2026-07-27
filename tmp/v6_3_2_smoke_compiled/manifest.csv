@@ -1,0 +1,3 @@
+source_id,npz_path,dataset_id,player_id,group_id,capture_id,split,candidates,allowed_labels,rejected_labels,harmonic_suspect_negatives,csv_harmonic_negatives
+gsmono_00_bn1_129_eb_solo,tmp\v6_3_2_smoke_compiled\gsmono_00_bn1_129_eb_solo.npz,guitarset_mono_mix,00,guitarset_00_bn1_129_eb_solo,mono_pickup_mix,train,59,39,20,4,4
+gsmono_00_bn1_147_gb_solo,tmp\v6_3_2_smoke_compiled\gsmono_00_bn1_147_gb_solo.npz,guitarset_mono_mix,00,guitarset_00_bn1_147_gb_solo,mono_pickup_mix,train,70,46,24,1,1

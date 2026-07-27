@@ -1,0 +1,11 @@
+{
+  "samples": 12685,
+  "harmonic_count": 20,
+  "valid_partial_values": 245592,
+  "amplitude_mae": 0.032967475894344074,
+  "zero_amplitude_baseline_mae": 0.10665103352307893,
+  "amplitude_improvement_over_zero": 0.07368355762873485,
+  "amplitude_weighted_offset_mae_cents": 4.907137560705565,
+  "zero_offset_baseline_mae_cents": 5.77932971391654,
+  "offset_improvement_over_zero_cents": 0.8721921532109747
+}

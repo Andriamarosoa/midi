@@ -1,0 +1,68 @@
+{
+  "active": {
+    "count": 17252,
+    "positives": 12685,
+    "negatives": 4567,
+    "threshold": 0.1572733223438263,
+    "tp": 12116,
+    "fp": 546,
+    "tn": 4021,
+    "fn": 569,
+    "precision": 0.9568788501026694,
+    "recall": 0.9551438707134411,
+    "specificity": 0.8804466827238888,
+    "f1": 0.9560105732433819,
+    "false_positive_rate": 0.11955331727611124,
+    "false_negative_rate": 0.04485612928655893,
+    "accuracy": 0.9353698121956875,
+    "average_precision": 0.9925922894098261,
+    "threshold_source": "validation"
+  },
+  "pitch_on_true_active": {
+    "samples": 12685,
+    "top1": 0.9210878990934174,
+    "top3": 0.9635001970831691,
+    "mean_absolute_semitone_error": 0.29389042175798186,
+    "semitone_errors": 519,
+    "octave_errors": 24,
+    "evaluated_checkpoint": "best_pitch.keras"
+  },
+  "joint": {
+    "samples": 17252,
+    "joint_frame_accuracy": 0.8880709482958498,
+    "gated_correct_pitch_recall": 0.8908159243200631,
+    "conditional_pitch_top1": 0.9210878990934174,
+    "conditional_pitch_top3": 0.9635001970831691,
+    "evaluated_checkpoint": "best_pitch.keras"
+  },
+  "harmonics_on_true_active": {
+    "samples": 12685,
+    "harmonic_count": 20,
+    "valid_partial_values": 245592,
+    "amplitude_mae": 0.033128566239306455,
+    "zero_amplitude_baseline_mae": 0.10665103352307893,
+    "amplitude_improvement_over_zero": 0.07352246728377249,
+    "amplitude_weighted_offset_mae_cents": 4.9107436547360335,
+    "zero_offset_baseline_mae_cents": 5.77932971391654,
+    "offset_improvement_over_zero_cents": 0.8685860591805064
+  },
+  "onset": {
+    "count": 17252,
+    "positives": 2406,
+    "negatives": 14846,
+    "threshold": 0.5755304098129272,
+    "tp": 1274,
+    "fp": 1631,
+    "tn": 13215,
+    "fn": 1132,
+    "precision": 0.43855421686746987,
+    "recall": 0.5295095594347464,
+    "specificity": 0.8901387579145897,
+    "f1": 0.4797589907738655,
+    "false_positive_rate": 0.10986124208541022,
+    "false_negative_rate": 0.4704904405652535,
+    "accuracy": 0.8398446556920937,
+    "average_precision": 0.42326160231518317,
+    "threshold_source": "validation"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "samples": 13615,
+  "top1": 0.9211898641204553,
+  "top3": 0.9632757987513771,
+  "mean_absolute_semitone_error": 0.3177377892030848,
+  "semitone_errors": 535,
+  "octave_errors": 38,
+  "evaluated_checkpoint": "best.keras"
+}

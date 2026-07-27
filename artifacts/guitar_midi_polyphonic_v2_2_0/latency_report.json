@@ -1,0 +1,209 @@
+{
+  "hop_budget_ms": 5.804988662131519,
+  "data_split": "validation",
+  "tflite": {
+    "protocol": {
+      "kind": "saturated_multisession_smoke",
+      "sessions": 3,
+      "repeats_per_session": 600,
+      "warmup_calls": 100,
+      "thread_counts": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "thread_order_rotated": true,
+      "selection_uses_worst_session": true,
+      "portable_process_priority": "normal",
+      "portable_affinity": "os_default",
+      "thread_selection": "smallest_eligible_to_limit_live_contention"
+    },
+    "eligibility": {
+      "p95_limit_ms": 4.353741496598639,
+      "p99_limit_ms": 5.804988662131519,
+      "maximum_over_hop_rate": 0.001,
+      "maximum_single_inference_ms": 11.609977324263038,
+      "maximum_consecutive_hop_misses": 1,
+      "maximum_p95_inter_session_variation": 0.15
+    },
+    "threads": {
+      "1": {
+        "sessions": [
+          {
+            "samples": 600,
+            "mean_ms": 2.0361418333333337,
+            "p50_ms": 1.3998499999999998,
+            "p95_ms": 4.017079999999999,
+            "p99_ms": 5.769591999999999,
+            "max_ms": 7.5547,
+            "over_hop_rate": 0.01,
+            "longest_consecutive_hop_misses": 2
+          },
+          {
+            "samples": 600,
+            "mean_ms": 1.6938561666666667,
+            "p50_ms": 1.27755,
+            "p95_ms": 3.161359999999999,
+            "p99_ms": 4.619074999999995,
+            "max_ms": 7.1418,
+            "over_hop_rate": 0.0033333333333333335,
+            "longest_consecutive_hop_misses": 2
+          },
+          {
+            "samples": 600,
+            "mean_ms": 2.427443166666667,
+            "p50_ms": 2.20045,
+            "p95_ms": 4.51192,
+            "p99_ms": 5.050796,
+            "max_ms": 5.3833,
+            "over_hop_rate": 0.0,
+            "longest_consecutive_hop_misses": 0
+          }
+        ],
+        "mean_ms": 2.427443166666667,
+        "p50_ms": 2.20045,
+        "p95_ms": 4.51192,
+        "p99_ms": 5.769591999999999,
+        "max_ms": 7.5547,
+        "over_hop_rate": 0.01,
+        "longest_consecutive_hop_misses": 2,
+        "p95_inter_session_variation": 0.4272085431586411,
+        "eligible": false
+      },
+      "2": {
+        "sessions": [
+          {
+            "samples": 600,
+            "mean_ms": 1.7739550000000002,
+            "p50_ms": 1.51925,
+            "p95_ms": 3.399095,
+            "p99_ms": 4.712797999999997,
+            "max_ms": 5.6866,
+            "over_hop_rate": 0.0,
+            "longest_consecutive_hop_misses": 0
+          },
+          {
+            "samples": 600,
+            "mean_ms": 1.897630666666667,
+            "p50_ms": 2.02285,
+            "p95_ms": 2.800905,
+            "p99_ms": 3.367753999999999,
+            "max_ms": 5.0208,
+            "over_hop_rate": 0.0,
+            "longest_consecutive_hop_misses": 0
+          },
+          {
+            "samples": 600,
+            "mean_ms": 2.7172971666666665,
+            "p50_ms": 2.4391999999999996,
+            "p95_ms": 4.803725,
+            "p99_ms": 7.138093999999998,
+            "max_ms": 11.2558,
+            "over_hop_rate": 0.03,
+            "longest_consecutive_hop_misses": 1
+          }
+        ],
+        "mean_ms": 2.7172971666666665,
+        "p50_ms": 2.4391999999999996,
+        "p95_ms": 4.803725,
+        "p99_ms": 7.138093999999998,
+        "max_ms": 11.2558,
+        "over_hop_rate": 0.03,
+        "longest_consecutive_hop_misses": 1,
+        "p95_inter_session_variation": 0.715061738973653,
+        "eligible": false
+      },
+      "3": {
+        "sessions": [
+          {
+            "samples": 600,
+            "mean_ms": 1.4710083333333333,
+            "p50_ms": 1.2843499999999999,
+            "p95_ms": 2.447219999999999,
+            "p99_ms": 3.150505,
+            "max_ms": 3.7592,
+            "over_hop_rate": 0.0,
+            "longest_consecutive_hop_misses": 0
+          },
+          {
+            "samples": 600,
+            "mean_ms": 1.5730978333333334,
+            "p50_ms": 1.3914,
+            "p95_ms": 2.597485,
+            "p99_ms": 3.4677679999999973,
+            "max_ms": 4.7172,
+            "over_hop_rate": 0.0,
+            "longest_consecutive_hop_misses": 0
+          },
+          {
+            "samples": 600,
+            "mean_ms": 1.6380401666666666,
+            "p50_ms": 1.5654,
+            "p95_ms": 2.590249999999999,
+            "p99_ms": 3.416075999999999,
+            "max_ms": 4.7338,
+            "over_hop_rate": 0.0,
+            "longest_consecutive_hop_misses": 0
+          }
+        ],
+        "mean_ms": 1.6380401666666666,
+        "p50_ms": 1.5654,
+        "p95_ms": 2.597485,
+        "p99_ms": 3.4677679999999973,
+        "max_ms": 4.7338,
+        "over_hop_rate": 0.0,
+        "longest_consecutive_hop_misses": 0,
+        "p95_inter_session_variation": 0.061402325904496145,
+        "eligible": true
+      },
+      "4": {
+        "sessions": [
+          {
+            "samples": 600,
+            "mean_ms": 1.3131671666666667,
+            "p50_ms": 1.19355,
+            "p95_ms": 1.8935799999999996,
+            "p99_ms": 2.334656,
+            "max_ms": 3.407,
+            "over_hop_rate": 0.0,
+            "longest_consecutive_hop_misses": 0
+          },
+          {
+            "samples": 600,
+            "mean_ms": 1.3931708333333335,
+            "p50_ms": 1.22485,
+            "p95_ms": 2.2617999999999996,
+            "p99_ms": 3.10443,
+            "max_ms": 3.7953,
+            "over_hop_rate": 0.0,
+            "longest_consecutive_hop_misses": 0
+          },
+          {
+            "samples": 600,
+            "mean_ms": 1.3408553333333335,
+            "p50_ms": 1.20805,
+            "p95_ms": 2.0873649999999992,
+            "p99_ms": 3.265873999999999,
+            "max_ms": 4.7094,
+            "over_hop_rate": 0.0,
+            "longest_consecutive_hop_misses": 0
+          }
+        ],
+        "mean_ms": 1.3931708333333335,
+        "p50_ms": 1.22485,
+        "p95_ms": 2.2617999999999996,
+        "p99_ms": 3.265873999999999,
+        "max_ms": 4.7094,
+        "over_hop_rate": 0.0,
+        "longest_consecutive_hop_misses": 0,
+        "p95_inter_session_variation": 0.19445706017173822,
+        "eligible": false
+      }
+    },
+    "recommended_threads": 3,
+    "recommended_p95_ms": 2.597485,
+    "meets_hop_budget_p95": true
+  },
+  "passed": true
+}

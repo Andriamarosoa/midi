@@ -1,0 +1,19 @@
+{
+  "count": 19779,
+  "positives": 13615,
+  "negatives": 6164,
+  "threshold": 0.19416169822216034,
+  "tp": 12888,
+  "fp": 759,
+  "tn": 5405,
+  "fn": 727,
+  "precision": 0.944383380962849,
+  "recall": 0.9466030113845024,
+  "specificity": 0.8768656716417911,
+  "f1": 0.9454918934781015,
+  "false_positive_rate": 0.12313432835820895,
+  "false_negative_rate": 0.05339698861549761,
+  "accuracy": 0.9248698114161484,
+  "average_precision": 0.988771886413403,
+  "threshold_source": "validation"
+}

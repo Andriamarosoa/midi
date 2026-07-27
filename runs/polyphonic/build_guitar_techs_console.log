@@ -1,0 +1,23 @@
+{
+  "manifest": "data\\dataset\\polyphonic_v2_2_guitar_techs\\manifest.csv",
+  "recordings": 208,
+  "split_recordings": {
+    "train": 92,
+    "validation": 92,
+    "test": 24
+  },
+  "harmonic_supervision": {
+    "available": false,
+    "reason": "No per-note partial annotation is supplied for mixed chords.",
+    "training_behavior": "Masked; never inferred from neighbouring chord notes."
+  },
+  "totals": {
+    "frames": 6230436,
+    "valid_frames": 6019932,
+    "active_frames": 4603314,
+    "polyphonic_frames": 2691252,
+    "onset_frames": 70436,
+    "notes": 37868
+  },
+  "passed": true
+}

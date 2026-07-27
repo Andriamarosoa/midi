@@ -1,0 +1,237 @@
+{
+  "purpose": "Annotation-free generated-MIDI to source-WAV spectral audit. This diagnoses unsupported events but cannot measure missing notes.",
+  "inputs": {
+    "wav": "data\\test\\Until I Found You_basic_pitch.wav",
+    "midi": "runs\\polyphonic\\song_live_sim_v2_2\\Until I Found You_v2_2.mid"
+  },
+  "contract": {
+    "sample_rate": 22050,
+    "hop_samples": 256,
+    "duration_s": 175.6822222222222,
+    "aligned_annotations_available": false,
+    "locked_test_used": false
+  },
+  "midi": {
+    "notes": 1179,
+    "notes_per_minute": 402.6588410893406,
+    "unique_pitches": 34,
+    "pitch_counts": {
+      "40": 72,
+      "42": 8,
+      "43": 25,
+      "44": 28,
+      "45": 67,
+      "46": 27,
+      "47": 61,
+      "48": 18,
+      "49": 1,
+      "50": 10,
+      "51": 27,
+      "52": 92,
+      "53": 15,
+      "54": 40,
+      "55": 2,
+      "56": 63,
+      "57": 12,
+      "58": 4,
+      "59": 96,
+      "60": 8,
+      "61": 37,
+      "62": 9,
+      "63": 58,
+      "64": 102,
+      "65": 3,
+      "66": 54,
+      "67": 20,
+      "68": 90,
+      "69": 18,
+      "70": 1,
+      "71": 87,
+      "72": 8,
+      "73": 6,
+      "76": 10
+    },
+    "maximum_polyphony": 6,
+    "duration_ms": {
+      "median": 284.37499999999716,
+      "p10": 75.00000000000284,
+      "shorter_than_50_ms": 57
+    }
+  },
+  "spectral_inverse": {
+    "policy": "Aligned annotations are primary; causal 4096-sample FFT probes at 0/1/2/4 hops after onset are an independent diagnostic.",
+    "generated_to_wav": {
+      "notes": 1179,
+      "class_counts": {
+        "spectrally_supported_unmatched": 876,
+        "unsupported": 156,
+        "weak": 147
+      },
+      "spectral_ratio": {
+        "count": 1179,
+        "mean": 0.5721446536047112,
+        "median": 0.5899215509978379,
+        "p10": 0.06168592405015134
+      },
+      "suspect_examples": [
+        {
+          "pitch": 40,
+          "start_s": 3.66875,
+          "duration_ms": 284.37499999999983,
+          "spectral_support_ratio": 0.09995277887334476,
+          "classification": "unsupported"
+        },
+        {
+          "pitch": 64,
+          "start_s": 3.784375,
+          "duration_ms": 232.2916666666668,
+          "spectral_support_ratio": 0.04139836093699779,
+          "classification": "unsupported"
+        },
+        {
+          "pitch": 49,
+          "start_s": 5.613541666666667,
+          "duration_ms": 127.08333333333232,
+          "spectral_support_ratio": 0.01512857340144504,
+          "classification": "unsupported"
+        },
+        {
+          "pitch": 40,
+          "start_s": 11.597916666666666,
+          "duration_ms": 151.04166666666785,
+          "spectral_support_ratio": 0.03583378176797579,
+          "classification": "unsupported"
+        },
+        {
+          "pitch": 63,
+          "start_s": 12.64375,
+          "duration_ms": 284.3749999999989,
+          "spectral_support_ratio": 0.036025648248119636,
+          "classification": "unsupported"
+        },
+        {
+          "pitch": 47,
+          "start_s": 13.896875,
+          "duration_ms": 859.375,
+          "spectral_support_ratio": 0.040236491348333576,
+          "classification": "unsupported"
+        },
+        {
+          "pitch": 72,
+          "start_s": 14.925,
+          "duration_ms": 22.916666666665364,
+          "spectral_support_ratio": 0.031425867609461526,
+          "classification": "unsupported"
+        },
+        {
+          "pitch": 67,
+          "start_s": 15.232291666666667,
+          "duration_ms": 17.708333333333215,
+          "spectral_support_ratio": 0.06795777876255878,
+          "classification": "unsupported"
+        },
+        {
+          "pitch": 48,
+          "start_s": 17.194791666666667,
+          "duration_ms": 266.6666666666657,
+          "spectral_support_ratio": 0.04232162641791451,
+          "classification": "unsupported"
+        },
+        {
+          "pitch": 40,
+          "start_s": 17.583333333333332,
+          "duration_ms": 1051.0416666666665,
+          "spectral_support_ratio": 0.06219596899698837,
+          "classification": "unsupported"
+        },
+        {
+          "pitch": 40,
+          "start_s": 20.636458333333334,
+          "duration_ms": 423.95833333333496,
+          "spectral_support_ratio": 0.031091908497598634,
+          "classification": "unsupported"
+        },
+        {
+          "pitch": 51,
+          "start_s": 21.19375,
+          "duration_ms": 243.74999999999858,
+          "spectral_support_ratio": 0.06363235389934098,
+          "classification": "unsupported"
+        },
+        {
+          "pitch": 51,
+          "start_s": 21.542708333333334,
+          "duration_ms": 97.91666666666643,
+          "spectral_support_ratio": 0.029770260596958642,
+          "classification": "unsupported"
+        },
+        {
+          "pitch": 67,
+          "start_s": 22.31458333333333,
+          "duration_ms": 127.08333333333499,
+          "spectral_support_ratio": 0.01386735474713085,
+          "classification": "unsupported"
+        },
+        {
+          "pitch": 54,
+          "start_s": 23.196875,
+          "duration_ms": 139.58333333333428,
+          "spectral_support_ratio": 0.03459474108381251,
+          "classification": "unsupported"
+        },
+        {
+          "pitch": 48,
+          "start_s": 23.82916666666667,
+          "duration_ms": 64.58333333333144,
+          "spectral_support_ratio": 0.05784912844574071,
+          "classification": "unsupported"
+        },
+        {
+          "pitch": 48,
+          "start_s": 24.375,
+          "duration_ms": 261.4583333333336,
+          "spectral_support_ratio": 0.054903835679137286,
+          "classification": "unsupported"
+        },
+        {
+          "pitch": 63,
+          "start_s": 24.93854166666667,
+          "duration_ms": 272.91666666666356,
+          "spectral_support_ratio": 0.08154760973374199,
+          "classification": "unsupported"
+        },
+        {
+          "pitch": 59,
+          "start_s": 26.401041666666668,
+          "duration_ms": 1852.0833333333328,
+          "spectral_support_ratio": 0.024618132423947676,
+          "classification": "unsupported"
+        },
+        {
+          "pitch": 40,
+          "start_s": 27.6375,
+          "duration_ms": 597.9166666666699,
+          "spectral_support_ratio": 0.05592251963188948,
+          "classification": "unsupported"
+        }
+      ]
+    },
+    "wav_to_generated": {
+      "missing_annotation_notes": 0,
+      "spectrally_strong_missing": 0,
+      "spectral_ratio": {
+        "count": 0,
+        "mean": 0.0,
+        "median": 0.0,
+        "p10": 0.0
+      }
+    },
+    "latency_impact": "Offline diagnostic only; zero added live algorithmic latency."
+  },
+  "decision_support": {
+    "spectrally_supported_ratio_ge_0_25": 876,
+    "weak_ratio_0_10_to_0_25": 147,
+    "unsupported_ratio_lt_0_10": 156,
+    "recall_is_not_claimed_without_aligned_annotations": true
+  }
+}

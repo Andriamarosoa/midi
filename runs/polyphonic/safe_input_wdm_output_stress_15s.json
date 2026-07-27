@@ -1,0 +1,122 @@
+{
+  "duration_requested_s": 15.0,
+  "calibrated_frames": 2212,
+  "skipped_inferences": 16,
+  "skip_percent": 0.7233273056057866,
+  "audio_hops_dropped": 38,
+  "audio_status_events": 0,
+  "invalid_audio_blocks": 0,
+  "queue_overflow_drops": 0,
+  "backlog_discarded_hops": 38,
+  "overload_recoveries": 2,
+  "overload_recovery_events": [
+    {
+      "time_s": 8.110000000000582,
+      "reason": "dangerous_backlog",
+      "discarded_hops": 19,
+      "total_dropped_hops": 19
+    },
+    {
+      "time_s": 9.39100000000326,
+      "reason": "dangerous_backlog",
+      "discarded_hops": 19,
+      "total_dropped_hops": 38
+    }
+  ],
+  "stop_reason": "duration",
+  "inference_ms": {
+    "count": 2192,
+    "mean": 2.7009478558394004,
+    "p95": 4.345990000001086,
+    "max": 56.947700000002044
+  },
+  "pipeline_ms": {
+    "count": 2192,
+    "mean": 10.968079972627729,
+    "p95": 33.529630000002435,
+    "max": 101.05769999999836
+  },
+  "input_rms_dbfs": {
+    "count": 2212,
+    "mean": -67.79578983737744,
+    "p95": -63.40783691890174,
+    "max": -58.793465544550365
+  },
+  "input_peak_dbfs": -49.019838914655985,
+  "clipped_input_samples": 0,
+  "capture_gain": 1.0,
+  "model_normalization_gain": 1.4932045250002872,
+  "audio_activity_gate": {
+    "calibrated": true,
+    "calibration_stable": true,
+    "minimum_calibration_hops": 172,
+    "maximum_calibration_hops": 517,
+    "calibration_hops_seen": 194,
+    "calibration_extended_hops": 22,
+    "tail_hops": 69,
+    "tail_spread_db": 7.971984930058895,
+    "open_threshold_dbfs": -61.02015859510001,
+    "close_threshold_dbfs": -62.41819594994084,
+    "active": false
+  },
+  "audio_active_frames": 26,
+  "audio_inactive_frames": 2166,
+  "audio_active_percent": 1.186131386861314,
+  "longest_audio_inactive_frames": 675,
+  "strong_predictions_vetoed_by_activity_gate": 0,
+  "maximum_simultaneous_notes": 0,
+  "recorded_wav": null,
+  "recorded_samples": 0,
+  "debug_npz": null,
+  "audio_input": {
+    "direction": "input",
+    "device_index": 1,
+    "device_name": "External Microphone (Realtek(R)",
+    "host_api": "MME",
+    "native_sample_rate": 44100,
+    "target_sample_rate": 44100,
+    "block_size": 256,
+    "latency_ms": 17.414965986394556,
+    "wasapi_shared": false,
+    "automatic_selection": true,
+    "kernel_streaming": false,
+    "requested_latency_ms": null,
+    "conversion_active": false
+  },
+  "audio_outputs": [
+    {
+      "backend": "fluidsynth",
+      "soundfont": "C:\\Users\\user\\Downloads\\FluidR3 GM.sf2",
+      "output_status_events": 0,
+      "consecutive_output_status_events": 0,
+      "recent_output_status_events": 0,
+      "recent_output_status_window": 16,
+      "render_errors": 0,
+      "consecutive_render_errors": 0,
+      "last_render_error": null,
+      "command_delay_ms": {
+        "count": 4,
+        "p50": 3.287650000002529,
+        "p95": 4.0626200000016155,
+        "max": 4.074200000001582
+      },
+      "direction": "output",
+      "device_index": 12,
+      "device_name": "Headphones (Realtek(R) Audio)",
+      "host_api": "Windows WASAPI",
+      "native_sample_rate": 48000,
+      "target_sample_rate": 44100,
+      "block_size": 128,
+      "latency_ms": 23.49206349206349,
+      "wasapi_shared": true,
+      "automatic_selection": true,
+      "kernel_streaming": false,
+      "requested_latency_ms": null,
+      "conversion_active": true
+    }
+  ],
+  "negotiated_audio_io_ms": 40.90702947845804,
+  "output_health_error": null,
+  "runtime_error": null,
+  "cleanup_errors": []
+}

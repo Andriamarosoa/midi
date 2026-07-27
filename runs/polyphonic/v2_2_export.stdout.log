@@ -1,0 +1,53 @@
+{
+  "output_dir": "artifacts\\guitar_midi_polyphonic_v2_2_0",
+  "parity": {
+    "frame": {
+      "maximum_absolute_error": 4.76837158203125e-07,
+      "mean_absolute_error": 3.9307600729898695e-08
+    },
+    "onset": {
+      "maximum_absolute_error": 2.980232238769531e-07,
+      "mean_absolute_error": 2.5676573756072685e-08
+    },
+    "harmonic_amplitude": {
+      "maximum_absolute_error": 7.748603820800781e-07,
+      "mean_absolute_error": 1.1576948288904987e-08
+    },
+    "harmonic_offset_cents": {
+      "maximum_absolute_error": 7.009506225585938e-05,
+      "mean_absolute_error": 2.3176312424766365e-06
+    },
+    "frame_decision_agreement": 1.0,
+    "onset_decision_agreement": 1.0,
+    "passed": true
+  },
+  "latency": {
+    "hop_budget_ms": 5.804988662131519,
+    "tflite": {
+      "threads": {
+        "1": {
+          "mean_ms": 6.368701333333485,
+          "p50_ms": 5.72029999999657,
+          "p95_ms": 8.766930000001247,
+          "max_ms": 23.451999999998918
+        },
+        "2": {
+          "mean_ms": 4.431276666666737,
+          "p50_ms": 3.849850000001709,
+          "p95_ms": 8.713644999997431,
+          "max_ms": 21.158399999997357
+        },
+        "4": {
+          "mean_ms": 5.133552999999983,
+          "p50_ms": 3.7658999999976572,
+          "p95_ms": 11.417629999999697,
+          "max_ms": 65.39190000000161
+        }
+      },
+      "recommended_threads": 2,
+      "recommended_p95_ms": 8.713644999997431,
+      "meets_hop_budget_p95": false
+    },
+    "passed": false
+  }
+}

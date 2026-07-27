@@ -1,0 +1,21 @@
+{
+  "frame": {
+    "maximum_absolute_error": 1.3262033462524414e-06,
+    "mean_absolute_error": 7.82275435540214e-08
+  },
+  "onset": {
+    "maximum_absolute_error": 6.258487701416016e-07,
+    "mean_absolute_error": 4.3263923998893006e-08
+  },
+  "harmonic_amplitude": {
+    "maximum_absolute_error": 3.7550926208496094e-06,
+    "mean_absolute_error": 3.384757363278368e-08
+  },
+  "harmonic_offset_cents": {
+    "maximum_absolute_error": 0.0001621246337890625,
+    "mean_absolute_error": 2.907609086832963e-06
+  },
+  "frame_decision_agreement": 1.0,
+  "onset_decision_agreement": 1.0,
+  "passed": true
+}

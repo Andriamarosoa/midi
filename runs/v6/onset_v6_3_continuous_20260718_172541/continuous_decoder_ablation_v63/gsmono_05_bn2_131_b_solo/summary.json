@@ -1,0 +1,132 @@
+{
+  "source_id": "gsmono_05_bn2_131_b_solo",
+  "duration_s": 29.30639455782313,
+  "frames": 5048,
+  "onset_threshold_validation_only": 0.7615125706006295,
+  "onset_frame_metrics": {
+    "count": 5048,
+    "positives": 138,
+    "negatives": 4910,
+    "threshold": 0.7615125706006295,
+    "tp": 10,
+    "fp": 27,
+    "tn": 4883,
+    "fn": 128,
+    "precision": 0.2702702702702703,
+    "recall": 0.07246376811594203,
+    "specificity": 0.9945010183299389,
+    "f1": 0.1142857142857143,
+    "false_positive_rate": 0.0054989816700610995,
+    "false_negative_rate": 0.927536231884058,
+    "accuracy": 0.9692947702060222,
+    "average_precision": 0.1968220443183121
+  },
+  "onset_event_metrics": {
+    "threshold": 0.7615125706006295,
+    "tp": 13,
+    "fp": 2,
+    "fn": 56,
+    "precision": 0.8666666666666667,
+    "recall": 0.18840579710144928,
+    "f1": 0.30952380952380953,
+    "false_events_per_minute": 4.094669501675936,
+    "latency_mean_ms": 11.730333158904589,
+    "latency_p95_ms": 25.990929705215418,
+    "recordings": 1,
+    "audio_duration_s": 29.30639455782313
+  },
+  "offline_inference": {
+    "v6_0_seconds": 12.259526099999999,
+    "v6_3_onset_seconds": 1.022249599999995
+  },
+  "latency_contract": {
+    "algorithmic_lookahead_ms": 0.0,
+    "hop_ms": 5.804988662131519,
+    "maximum_stability_delay_ms": 5.804988662131519,
+    "onset_past_context_ms": 11.609977324263038
+  },
+  "variants": {
+    "v6_0_baseline": {
+      "active": {
+        "count": 4971,
+        "positives": 2952,
+        "negatives": 2019,
+        "threshold": 0.5,
+        "tp": 2424,
+        "fp": 328,
+        "tn": 1691,
+        "fn": 528,
+        "precision": 0.8808139534883721,
+        "recall": 0.8211382113821138,
+        "specificity": 0.8375433382862804,
+        "f1": 0.8499298737727911,
+        "false_positive_rate": 0.16245666171371967,
+        "false_negative_rate": 0.17886178861788618,
+        "accuracy": 0.827801247233957
+      },
+      "joint_frame_accuracy": 0.7835445584389459,
+      "gated_correct_pitch_recall": 0.7466124661246613,
+      "active_audio_ticks_with_no_active_prediction": 528,
+      "events": {
+        "generated": 121,
+        "supported": 83,
+        "weak": 5,
+        "harmonic_suspect": 0,
+        "unsupported": 33,
+        "ghost_events_per_minute": 67.56204677765294,
+        "controlled_same_midi_retriggers": 1,
+        "unsupported_same_midi_retriggers": 1,
+        "harmonic_veto_frames": 0
+      },
+      "reference_notes": {
+        "evaluable": 68,
+        "covered_any": 65,
+        "covered_majority": 57,
+        "missing": 3,
+        "onset_latency_mean_ms": 40.444235129955544,
+        "onset_latency_p95_ms": 101.71337868482158
+      }
+    },
+    "v6_3_onset_gate": {
+      "active": {
+        "count": 4971,
+        "positives": 2952,
+        "negatives": 2019,
+        "threshold": 0.5,
+        "tp": 2424,
+        "fp": 328,
+        "tn": 1691,
+        "fn": 528,
+        "precision": 0.8808139534883721,
+        "recall": 0.8211382113821138,
+        "specificity": 0.8375433382862804,
+        "f1": 0.8499298737727911,
+        "false_positive_rate": 0.16245666171371967,
+        "false_negative_rate": 0.17886178861788618,
+        "accuracy": 0.827801247233957
+      },
+      "joint_frame_accuracy": 0.7044860189096761,
+      "gated_correct_pitch_recall": 0.6134823848238482,
+      "active_audio_ticks_with_no_active_prediction": 528,
+      "events": {
+        "generated": 92,
+        "supported": 56,
+        "weak": 12,
+        "harmonic_suspect": 0,
+        "unsupported": 24,
+        "ghost_events_per_minute": 49.13603402011123,
+        "controlled_same_midi_retriggers": 4,
+        "unsupported_same_midi_retriggers": 2,
+        "harmonic_veto_frames": 0
+      },
+      "reference_notes": {
+        "evaluable": 68,
+        "covered_any": 47,
+        "covered_majority": 41,
+        "missing": 21,
+        "onset_latency_mean_ms": 29.96078544894338,
+        "onset_latency_p95_ms": 74.73378684814341
+      }
+    }
+  }
+}

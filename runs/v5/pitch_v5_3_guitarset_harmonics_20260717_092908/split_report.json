@@ -1,0 +1,2872 @@
+{
+  "train": [
+    {
+      "source_id": "gsmono_00_bn1_129_eb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_bn1_129_eb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_bn1_129_eb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_00_bn1_129_eb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_bn1_129_eb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_bn1_129_eb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_00_bn1_147_gb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_bn1_147_gb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_bn1_147_gb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_00_bn1_147_gb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_bn1_147_gb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_bn1_147_gb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_00_bn2_131_b_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_bn2_131_b_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_bn2_131_b_comp.npz"
+    },
+    {
+      "source_id": "gsmono_00_bn2_131_b_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_bn2_131_b_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_bn2_131_b_solo.npz"
+    },
+    {
+      "source_id": "gsmono_00_bn2_166_ab_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_bn2_166_ab_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_bn2_166_ab_comp.npz"
+    },
+    {
+      "source_id": "gsmono_00_bn2_166_ab_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_bn2_166_ab_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_bn2_166_ab_solo.npz"
+    },
+    {
+      "source_id": "gsmono_00_bn3_119_g_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_bn3_119_g_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_bn3_119_g_comp.npz"
+    },
+    {
+      "source_id": "gsmono_00_bn3_119_g_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_bn3_119_g_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_bn3_119_g_solo.npz"
+    },
+    {
+      "source_id": "gsmono_00_bn3_154_e_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_bn3_154_e_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_bn3_154_e_comp.npz"
+    },
+    {
+      "source_id": "gsmono_00_bn3_154_e_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_bn3_154_e_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_bn3_154_e_solo.npz"
+    },
+    {
+      "source_id": "gsmono_00_funk1_114_ab_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_funk1_114_ab_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_funk1_114_ab_comp.npz"
+    },
+    {
+      "source_id": "gsmono_00_funk1_114_ab_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_funk1_114_ab_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_funk1_114_ab_solo.npz"
+    },
+    {
+      "source_id": "gsmono_00_funk1_97_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_funk1_97_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_funk1_97_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_00_funk1_97_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_funk1_97_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_funk1_97_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_00_funk2_108_eb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_funk2_108_eb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_funk2_108_eb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_00_funk2_108_eb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_funk2_108_eb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_funk2_108_eb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_00_funk2_119_g_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_funk2_119_g_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_funk2_119_g_comp.npz"
+    },
+    {
+      "source_id": "gsmono_00_funk2_119_g_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_funk2_119_g_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_funk2_119_g_solo.npz"
+    },
+    {
+      "source_id": "gsmono_00_funk3_112_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_funk3_112_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_funk3_112_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_00_funk3_112_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_funk3_112_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_funk3_112_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_00_funk3_98_a_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_funk3_98_a_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_funk3_98_a_comp.npz"
+    },
+    {
+      "source_id": "gsmono_00_funk3_98_a_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_funk3_98_a_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_funk3_98_a_solo.npz"
+    },
+    {
+      "source_id": "gsmono_00_jazz1_130_d_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_jazz1_130_d_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_jazz1_130_d_comp.npz"
+    },
+    {
+      "source_id": "gsmono_00_jazz1_130_d_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_jazz1_130_d_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_jazz1_130_d_solo.npz"
+    },
+    {
+      "source_id": "gsmono_00_jazz1_200_b_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_jazz1_200_b_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_jazz1_200_b_comp.npz"
+    },
+    {
+      "source_id": "gsmono_00_jazz1_200_b_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_jazz1_200_b_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_jazz1_200_b_solo.npz"
+    },
+    {
+      "source_id": "gsmono_00_jazz2_110_bb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_jazz2_110_bb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_jazz2_110_bb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_00_jazz2_110_bb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_jazz2_110_bb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_jazz2_110_bb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_00_jazz2_187_f_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_jazz2_187_f_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_jazz2_187_f_comp.npz"
+    },
+    {
+      "source_id": "gsmono_00_jazz2_187_f_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_jazz2_187_f_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_jazz2_187_f_solo.npz"
+    },
+    {
+      "source_id": "gsmono_00_jazz3_137_eb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_jazz3_137_eb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_jazz3_137_eb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_00_jazz3_137_eb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_jazz3_137_eb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_jazz3_137_eb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_00_jazz3_150_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_jazz3_150_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_jazz3_150_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_00_jazz3_150_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_jazz3_150_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_jazz3_150_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_00_rock1_130_a_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_rock1_130_a_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_rock1_130_a_comp.npz"
+    },
+    {
+      "source_id": "gsmono_00_rock1_130_a_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_rock1_130_a_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_rock1_130_a_solo.npz"
+    },
+    {
+      "source_id": "gsmono_00_rock1_90_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_rock1_90_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_rock1_90_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_00_rock1_90_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_rock1_90_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_rock1_90_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_00_rock2_142_d_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_rock2_142_d_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_rock2_142_d_comp.npz"
+    },
+    {
+      "source_id": "gsmono_00_rock2_142_d_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_rock2_142_d_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_rock2_142_d_solo.npz"
+    },
+    {
+      "source_id": "gsmono_00_rock2_85_f_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_rock2_85_f_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_rock2_85_f_comp.npz"
+    },
+    {
+      "source_id": "gsmono_00_rock2_85_f_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_rock2_85_f_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_rock2_85_f_solo.npz"
+    },
+    {
+      "source_id": "gsmono_00_rock3_117_bb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_rock3_117_bb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_rock3_117_bb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_00_rock3_117_bb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_rock3_117_bb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_rock3_117_bb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_00_rock3_148_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_rock3_148_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_rock3_148_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_00_rock3_148_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_rock3_148_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_rock3_148_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_00_ss1_100_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_ss1_100_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_ss1_100_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_00_ss1_100_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_ss1_100_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_ss1_100_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_00_ss1_68_e_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_ss1_68_e_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_ss1_68_e_comp.npz"
+    },
+    {
+      "source_id": "gsmono_00_ss1_68_e_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_ss1_68_e_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_ss1_68_e_solo.npz"
+    },
+    {
+      "source_id": "gsmono_00_ss2_107_ab_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_ss2_107_ab_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_ss2_107_ab_comp.npz"
+    },
+    {
+      "source_id": "gsmono_00_ss2_107_ab_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_ss2_107_ab_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_ss2_107_ab_solo.npz"
+    },
+    {
+      "source_id": "gsmono_00_ss2_88_f_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_ss2_88_f_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_ss2_88_f_comp.npz"
+    },
+    {
+      "source_id": "gsmono_00_ss2_88_f_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_ss2_88_f_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_ss2_88_f_solo.npz"
+    },
+    {
+      "source_id": "gsmono_00_ss3_84_bb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_ss3_84_bb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_ss3_84_bb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_00_ss3_84_bb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_ss3_84_bb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_ss3_84_bb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_00_ss3_98_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_ss3_98_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_ss3_98_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_00_ss3_98_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "00",
+      "group_id": "guitarset_00_ss3_98_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_00_ss3_98_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_01_bn1_129_eb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_bn1_129_eb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_bn1_129_eb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_01_bn1_129_eb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_bn1_129_eb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_bn1_129_eb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_01_bn1_147_gb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_bn1_147_gb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_bn1_147_gb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_01_bn1_147_gb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_bn1_147_gb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_bn1_147_gb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_01_bn2_131_b_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_bn2_131_b_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_bn2_131_b_comp.npz"
+    },
+    {
+      "source_id": "gsmono_01_bn2_131_b_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_bn2_131_b_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_bn2_131_b_solo.npz"
+    },
+    {
+      "source_id": "gsmono_01_bn2_166_ab_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_bn2_166_ab_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_bn2_166_ab_comp.npz"
+    },
+    {
+      "source_id": "gsmono_01_bn2_166_ab_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_bn2_166_ab_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_bn2_166_ab_solo.npz"
+    },
+    {
+      "source_id": "gsmono_01_bn3_119_g_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_bn3_119_g_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_bn3_119_g_comp.npz"
+    },
+    {
+      "source_id": "gsmono_01_bn3_119_g_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_bn3_119_g_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_bn3_119_g_solo.npz"
+    },
+    {
+      "source_id": "gsmono_01_bn3_154_e_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_bn3_154_e_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_bn3_154_e_comp.npz"
+    },
+    {
+      "source_id": "gsmono_01_bn3_154_e_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_bn3_154_e_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_bn3_154_e_solo.npz"
+    },
+    {
+      "source_id": "gsmono_01_funk1_114_ab_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_funk1_114_ab_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_funk1_114_ab_comp.npz"
+    },
+    {
+      "source_id": "gsmono_01_funk1_114_ab_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_funk1_114_ab_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_funk1_114_ab_solo.npz"
+    },
+    {
+      "source_id": "gsmono_01_funk1_97_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_funk1_97_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_funk1_97_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_01_funk1_97_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_funk1_97_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_funk1_97_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_01_funk2_108_eb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_funk2_108_eb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_funk2_108_eb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_01_funk2_108_eb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_funk2_108_eb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_funk2_108_eb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_01_funk2_119_g_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_funk2_119_g_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_funk2_119_g_comp.npz"
+    },
+    {
+      "source_id": "gsmono_01_funk2_119_g_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_funk2_119_g_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_funk2_119_g_solo.npz"
+    },
+    {
+      "source_id": "gsmono_01_funk3_112_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_funk3_112_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_funk3_112_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_01_funk3_112_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_funk3_112_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_funk3_112_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_01_funk3_98_a_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_funk3_98_a_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_funk3_98_a_comp.npz"
+    },
+    {
+      "source_id": "gsmono_01_funk3_98_a_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_funk3_98_a_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_funk3_98_a_solo.npz"
+    },
+    {
+      "source_id": "gsmono_01_jazz1_130_d_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_jazz1_130_d_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_jazz1_130_d_comp.npz"
+    },
+    {
+      "source_id": "gsmono_01_jazz1_130_d_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_jazz1_130_d_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_jazz1_130_d_solo.npz"
+    },
+    {
+      "source_id": "gsmono_01_jazz1_200_b_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_jazz1_200_b_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_jazz1_200_b_comp.npz"
+    },
+    {
+      "source_id": "gsmono_01_jazz1_200_b_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_jazz1_200_b_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_jazz1_200_b_solo.npz"
+    },
+    {
+      "source_id": "gsmono_01_jazz2_110_bb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_jazz2_110_bb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_jazz2_110_bb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_01_jazz2_110_bb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_jazz2_110_bb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_jazz2_110_bb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_01_jazz2_187_f_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_jazz2_187_f_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_jazz2_187_f_comp.npz"
+    },
+    {
+      "source_id": "gsmono_01_jazz2_187_f_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_jazz2_187_f_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_jazz2_187_f_solo.npz"
+    },
+    {
+      "source_id": "gsmono_01_jazz3_137_eb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_jazz3_137_eb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_jazz3_137_eb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_01_jazz3_137_eb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_jazz3_137_eb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_jazz3_137_eb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_01_jazz3_150_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_jazz3_150_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_jazz3_150_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_01_jazz3_150_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_jazz3_150_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_jazz3_150_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_01_rock1_130_a_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_rock1_130_a_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_rock1_130_a_comp.npz"
+    },
+    {
+      "source_id": "gsmono_01_rock1_130_a_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_rock1_130_a_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_rock1_130_a_solo.npz"
+    },
+    {
+      "source_id": "gsmono_01_rock1_90_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_rock1_90_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_rock1_90_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_01_rock1_90_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_rock1_90_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_rock1_90_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_01_rock2_142_d_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_rock2_142_d_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_rock2_142_d_comp.npz"
+    },
+    {
+      "source_id": "gsmono_01_rock2_142_d_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_rock2_142_d_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_rock2_142_d_solo.npz"
+    },
+    {
+      "source_id": "gsmono_01_rock2_85_f_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_rock2_85_f_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_rock2_85_f_comp.npz"
+    },
+    {
+      "source_id": "gsmono_01_rock2_85_f_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_rock2_85_f_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_rock2_85_f_solo.npz"
+    },
+    {
+      "source_id": "gsmono_01_rock3_117_bb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_rock3_117_bb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_rock3_117_bb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_01_rock3_117_bb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_rock3_117_bb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_rock3_117_bb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_01_rock3_148_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_rock3_148_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_rock3_148_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_01_rock3_148_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_rock3_148_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_rock3_148_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_01_ss1_100_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_ss1_100_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_ss1_100_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_01_ss1_100_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_ss1_100_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_ss1_100_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_01_ss1_68_e_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_ss1_68_e_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_ss1_68_e_comp.npz"
+    },
+    {
+      "source_id": "gsmono_01_ss1_68_e_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_ss1_68_e_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_ss1_68_e_solo.npz"
+    },
+    {
+      "source_id": "gsmono_01_ss2_107_ab_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_ss2_107_ab_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_ss2_107_ab_comp.npz"
+    },
+    {
+      "source_id": "gsmono_01_ss2_107_ab_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_ss2_107_ab_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_ss2_107_ab_solo.npz"
+    },
+    {
+      "source_id": "gsmono_01_ss2_88_f_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_ss2_88_f_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_ss2_88_f_comp.npz"
+    },
+    {
+      "source_id": "gsmono_01_ss2_88_f_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_ss2_88_f_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_ss2_88_f_solo.npz"
+    },
+    {
+      "source_id": "gsmono_01_ss3_84_bb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_ss3_84_bb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_ss3_84_bb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_01_ss3_84_bb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_ss3_84_bb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_ss3_84_bb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_01_ss3_98_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "01",
+      "group_id": "guitarset_01_ss3_98_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_01_ss3_98_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_02_bn1_129_eb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_bn1_129_eb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_bn1_129_eb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_02_bn1_129_eb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_bn1_129_eb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_bn1_129_eb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_02_bn1_147_gb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_bn1_147_gb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_bn1_147_gb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_02_bn1_147_gb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_bn1_147_gb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_bn1_147_gb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_02_bn2_131_b_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_bn2_131_b_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_bn2_131_b_comp.npz"
+    },
+    {
+      "source_id": "gsmono_02_bn2_131_b_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_bn2_131_b_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_bn2_131_b_solo.npz"
+    },
+    {
+      "source_id": "gsmono_02_bn2_166_ab_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_bn2_166_ab_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_bn2_166_ab_comp.npz"
+    },
+    {
+      "source_id": "gsmono_02_bn2_166_ab_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_bn2_166_ab_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_bn2_166_ab_solo.npz"
+    },
+    {
+      "source_id": "gsmono_02_bn3_119_g_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_bn3_119_g_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_bn3_119_g_comp.npz"
+    },
+    {
+      "source_id": "gsmono_02_bn3_119_g_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_bn3_119_g_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_bn3_119_g_solo.npz"
+    },
+    {
+      "source_id": "gsmono_02_bn3_154_e_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_bn3_154_e_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_bn3_154_e_comp.npz"
+    },
+    {
+      "source_id": "gsmono_02_bn3_154_e_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_bn3_154_e_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_bn3_154_e_solo.npz"
+    },
+    {
+      "source_id": "gsmono_02_funk1_114_ab_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_funk1_114_ab_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_funk1_114_ab_comp.npz"
+    },
+    {
+      "source_id": "gsmono_02_funk1_114_ab_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_funk1_114_ab_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_funk1_114_ab_solo.npz"
+    },
+    {
+      "source_id": "gsmono_02_funk1_97_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_funk1_97_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_funk1_97_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_02_funk1_97_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_funk1_97_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_funk1_97_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_02_funk2_108_eb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_funk2_108_eb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_funk2_108_eb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_02_funk2_108_eb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_funk2_108_eb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_funk2_108_eb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_02_funk2_119_g_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_funk2_119_g_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_funk2_119_g_comp.npz"
+    },
+    {
+      "source_id": "gsmono_02_funk2_119_g_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_funk2_119_g_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_funk2_119_g_solo.npz"
+    },
+    {
+      "source_id": "gsmono_02_funk3_112_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_funk3_112_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_funk3_112_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_02_funk3_112_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_funk3_112_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_funk3_112_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_02_funk3_98_a_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_funk3_98_a_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_funk3_98_a_comp.npz"
+    },
+    {
+      "source_id": "gsmono_02_funk3_98_a_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_funk3_98_a_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_funk3_98_a_solo.npz"
+    },
+    {
+      "source_id": "gsmono_02_jazz1_130_d_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_jazz1_130_d_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_jazz1_130_d_comp.npz"
+    },
+    {
+      "source_id": "gsmono_02_jazz1_130_d_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_jazz1_130_d_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_jazz1_130_d_solo.npz"
+    },
+    {
+      "source_id": "gsmono_02_jazz1_200_b_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_jazz1_200_b_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_jazz1_200_b_comp.npz"
+    },
+    {
+      "source_id": "gsmono_02_jazz1_200_b_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_jazz1_200_b_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_jazz1_200_b_solo.npz"
+    },
+    {
+      "source_id": "gsmono_02_jazz2_110_bb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_jazz2_110_bb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_jazz2_110_bb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_02_jazz2_110_bb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_jazz2_110_bb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_jazz2_110_bb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_02_jazz2_187_f_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_jazz2_187_f_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_jazz2_187_f_comp.npz"
+    },
+    {
+      "source_id": "gsmono_02_jazz2_187_f_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_jazz2_187_f_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_jazz2_187_f_solo.npz"
+    },
+    {
+      "source_id": "gsmono_02_jazz3_137_eb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_jazz3_137_eb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_jazz3_137_eb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_02_jazz3_137_eb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_jazz3_137_eb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_jazz3_137_eb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_02_jazz3_150_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_jazz3_150_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_jazz3_150_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_02_jazz3_150_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_jazz3_150_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_jazz3_150_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_02_rock1_130_a_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_rock1_130_a_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_rock1_130_a_comp.npz"
+    },
+    {
+      "source_id": "gsmono_02_rock1_130_a_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_rock1_130_a_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_rock1_130_a_solo.npz"
+    },
+    {
+      "source_id": "gsmono_02_rock1_90_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_rock1_90_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_rock1_90_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_02_rock1_90_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_rock1_90_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_rock1_90_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_02_rock2_142_d_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_rock2_142_d_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_rock2_142_d_comp.npz"
+    },
+    {
+      "source_id": "gsmono_02_rock2_142_d_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_rock2_142_d_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_rock2_142_d_solo.npz"
+    },
+    {
+      "source_id": "gsmono_02_rock2_85_f_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_rock2_85_f_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_rock2_85_f_comp.npz"
+    },
+    {
+      "source_id": "gsmono_02_rock2_85_f_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_rock2_85_f_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_rock2_85_f_solo.npz"
+    },
+    {
+      "source_id": "gsmono_02_rock3_117_bb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_rock3_117_bb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_rock3_117_bb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_02_rock3_117_bb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_rock3_117_bb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_rock3_117_bb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_02_rock3_148_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_rock3_148_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_rock3_148_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_02_rock3_148_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_rock3_148_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_rock3_148_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_02_ss1_100_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_ss1_100_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_ss1_100_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_02_ss1_100_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_ss1_100_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_ss1_100_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_02_ss1_68_e_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_ss1_68_e_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_ss1_68_e_comp.npz"
+    },
+    {
+      "source_id": "gsmono_02_ss1_68_e_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_ss1_68_e_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_ss1_68_e_solo.npz"
+    },
+    {
+      "source_id": "gsmono_02_ss2_107_ab_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_ss2_107_ab_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_ss2_107_ab_comp.npz"
+    },
+    {
+      "source_id": "gsmono_02_ss2_107_ab_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_ss2_107_ab_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_ss2_107_ab_solo.npz"
+    },
+    {
+      "source_id": "gsmono_02_ss2_88_f_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_ss2_88_f_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_ss2_88_f_comp.npz"
+    },
+    {
+      "source_id": "gsmono_02_ss2_88_f_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_ss2_88_f_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_ss2_88_f_solo.npz"
+    },
+    {
+      "source_id": "gsmono_02_ss3_84_bb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_ss3_84_bb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_ss3_84_bb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_02_ss3_84_bb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_ss3_84_bb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_ss3_84_bb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_02_ss3_98_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_ss3_98_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_ss3_98_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_02_ss3_98_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "02",
+      "group_id": "guitarset_02_ss3_98_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_02_ss3_98_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_03_bn1_129_eb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_bn1_129_eb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_bn1_129_eb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_03_bn1_129_eb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_bn1_129_eb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_bn1_129_eb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_03_bn1_147_gb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_bn1_147_gb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_bn1_147_gb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_03_bn1_147_gb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_bn1_147_gb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_bn1_147_gb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_03_bn2_131_b_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_bn2_131_b_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_bn2_131_b_comp.npz"
+    },
+    {
+      "source_id": "gsmono_03_bn2_131_b_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_bn2_131_b_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_bn2_131_b_solo.npz"
+    },
+    {
+      "source_id": "gsmono_03_bn2_166_ab_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_bn2_166_ab_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_bn2_166_ab_comp.npz"
+    },
+    {
+      "source_id": "gsmono_03_bn2_166_ab_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_bn2_166_ab_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_bn2_166_ab_solo.npz"
+    },
+    {
+      "source_id": "gsmono_03_bn3_119_g_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_bn3_119_g_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_bn3_119_g_comp.npz"
+    },
+    {
+      "source_id": "gsmono_03_bn3_119_g_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_bn3_119_g_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_bn3_119_g_solo.npz"
+    },
+    {
+      "source_id": "gsmono_03_bn3_154_e_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_bn3_154_e_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_bn3_154_e_comp.npz"
+    },
+    {
+      "source_id": "gsmono_03_bn3_154_e_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_bn3_154_e_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_bn3_154_e_solo.npz"
+    },
+    {
+      "source_id": "gsmono_03_funk1_114_ab_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_funk1_114_ab_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_funk1_114_ab_comp.npz"
+    },
+    {
+      "source_id": "gsmono_03_funk1_114_ab_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_funk1_114_ab_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_funk1_114_ab_solo.npz"
+    },
+    {
+      "source_id": "gsmono_03_funk1_97_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_funk1_97_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_funk1_97_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_03_funk1_97_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_funk1_97_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_funk1_97_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_03_funk2_108_eb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_funk2_108_eb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_funk2_108_eb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_03_funk2_108_eb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_funk2_108_eb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_funk2_108_eb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_03_funk2_119_g_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_funk2_119_g_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_funk2_119_g_comp.npz"
+    },
+    {
+      "source_id": "gsmono_03_funk2_119_g_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_funk2_119_g_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_funk2_119_g_solo.npz"
+    },
+    {
+      "source_id": "gsmono_03_funk3_112_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_funk3_112_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_funk3_112_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_03_funk3_112_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_funk3_112_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_funk3_112_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_03_funk3_98_a_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_funk3_98_a_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_funk3_98_a_comp.npz"
+    },
+    {
+      "source_id": "gsmono_03_funk3_98_a_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_funk3_98_a_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_funk3_98_a_solo.npz"
+    },
+    {
+      "source_id": "gsmono_03_jazz1_130_d_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_jazz1_130_d_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_jazz1_130_d_comp.npz"
+    },
+    {
+      "source_id": "gsmono_03_jazz1_130_d_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_jazz1_130_d_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_jazz1_130_d_solo.npz"
+    },
+    {
+      "source_id": "gsmono_03_jazz1_200_b_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_jazz1_200_b_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_jazz1_200_b_comp.npz"
+    },
+    {
+      "source_id": "gsmono_03_jazz1_200_b_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_jazz1_200_b_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_jazz1_200_b_solo.npz"
+    },
+    {
+      "source_id": "gsmono_03_jazz2_110_bb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_jazz2_110_bb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_jazz2_110_bb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_03_jazz2_110_bb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_jazz2_110_bb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_jazz2_110_bb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_03_jazz2_187_f_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_jazz2_187_f_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_jazz2_187_f_comp.npz"
+    },
+    {
+      "source_id": "gsmono_03_jazz2_187_f_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_jazz2_187_f_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_jazz2_187_f_solo.npz"
+    },
+    {
+      "source_id": "gsmono_03_jazz3_137_eb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_jazz3_137_eb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_jazz3_137_eb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_03_jazz3_137_eb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_jazz3_137_eb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_jazz3_137_eb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_03_jazz3_150_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_jazz3_150_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_jazz3_150_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_03_jazz3_150_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_jazz3_150_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_jazz3_150_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_03_rock1_130_a_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_rock1_130_a_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_rock1_130_a_comp.npz"
+    },
+    {
+      "source_id": "gsmono_03_rock1_130_a_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_rock1_130_a_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_rock1_130_a_solo.npz"
+    },
+    {
+      "source_id": "gsmono_03_rock1_90_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_rock1_90_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_rock1_90_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_03_rock1_90_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_rock1_90_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_rock1_90_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_03_rock2_142_d_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_rock2_142_d_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_rock2_142_d_comp.npz"
+    },
+    {
+      "source_id": "gsmono_03_rock2_142_d_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_rock2_142_d_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_rock2_142_d_solo.npz"
+    },
+    {
+      "source_id": "gsmono_03_rock2_85_f_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_rock2_85_f_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_rock2_85_f_comp.npz"
+    },
+    {
+      "source_id": "gsmono_03_rock2_85_f_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_rock2_85_f_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_rock2_85_f_solo.npz"
+    },
+    {
+      "source_id": "gsmono_03_rock3_117_bb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_rock3_117_bb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_rock3_117_bb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_03_rock3_117_bb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_rock3_117_bb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_rock3_117_bb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_03_rock3_148_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_rock3_148_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_rock3_148_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_03_rock3_148_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_rock3_148_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_rock3_148_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_03_ss1_100_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_ss1_100_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_ss1_100_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_03_ss1_100_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_ss1_100_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_ss1_100_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_03_ss1_68_e_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_ss1_68_e_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_ss1_68_e_comp.npz"
+    },
+    {
+      "source_id": "gsmono_03_ss1_68_e_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_ss1_68_e_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_ss1_68_e_solo.npz"
+    },
+    {
+      "source_id": "gsmono_03_ss2_107_ab_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_ss2_107_ab_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_ss2_107_ab_comp.npz"
+    },
+    {
+      "source_id": "gsmono_03_ss2_107_ab_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_ss2_107_ab_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_ss2_107_ab_solo.npz"
+    },
+    {
+      "source_id": "gsmono_03_ss2_88_f_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_ss2_88_f_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_ss2_88_f_comp.npz"
+    },
+    {
+      "source_id": "gsmono_03_ss2_88_f_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_ss2_88_f_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_ss2_88_f_solo.npz"
+    },
+    {
+      "source_id": "gsmono_03_ss3_84_bb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_ss3_84_bb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_ss3_84_bb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_03_ss3_84_bb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_ss3_84_bb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_ss3_84_bb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_03_ss3_98_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_ss3_98_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_ss3_98_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_03_ss3_98_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "03",
+      "group_id": "guitarset_03_ss3_98_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_03_ss3_98_c_solo.npz"
+    }
+  ],
+  "validation": [
+    {
+      "source_id": "gsmono_04_bn1_129_eb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_bn1_129_eb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_bn1_129_eb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_04_bn1_129_eb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_bn1_129_eb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_bn1_129_eb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_04_bn1_147_gb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_bn1_147_gb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_bn1_147_gb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_04_bn1_147_gb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_bn1_147_gb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_bn1_147_gb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_04_bn2_131_b_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_bn2_131_b_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_bn2_131_b_comp.npz"
+    },
+    {
+      "source_id": "gsmono_04_bn2_131_b_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_bn2_131_b_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_bn2_131_b_solo.npz"
+    },
+    {
+      "source_id": "gsmono_04_bn2_166_ab_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_bn2_166_ab_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_bn2_166_ab_comp.npz"
+    },
+    {
+      "source_id": "gsmono_04_bn2_166_ab_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_bn2_166_ab_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_bn2_166_ab_solo.npz"
+    },
+    {
+      "source_id": "gsmono_04_bn3_119_g_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_bn3_119_g_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_bn3_119_g_comp.npz"
+    },
+    {
+      "source_id": "gsmono_04_bn3_119_g_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_bn3_119_g_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_bn3_119_g_solo.npz"
+    },
+    {
+      "source_id": "gsmono_04_bn3_154_e_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_bn3_154_e_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_bn3_154_e_comp.npz"
+    },
+    {
+      "source_id": "gsmono_04_bn3_154_e_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_bn3_154_e_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_bn3_154_e_solo.npz"
+    },
+    {
+      "source_id": "gsmono_04_funk1_114_ab_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_funk1_114_ab_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_funk1_114_ab_comp.npz"
+    },
+    {
+      "source_id": "gsmono_04_funk1_114_ab_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_funk1_114_ab_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_funk1_114_ab_solo.npz"
+    },
+    {
+      "source_id": "gsmono_04_funk1_97_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_funk1_97_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_funk1_97_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_04_funk1_97_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_funk1_97_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_funk1_97_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_04_funk2_108_eb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_funk2_108_eb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_funk2_108_eb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_04_funk2_108_eb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_funk2_108_eb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_funk2_108_eb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_04_funk2_119_g_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_funk2_119_g_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_funk2_119_g_comp.npz"
+    },
+    {
+      "source_id": "gsmono_04_funk2_119_g_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_funk2_119_g_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_funk2_119_g_solo.npz"
+    },
+    {
+      "source_id": "gsmono_04_funk3_112_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_funk3_112_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_funk3_112_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_04_funk3_112_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_funk3_112_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_funk3_112_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_04_funk3_98_a_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_funk3_98_a_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_funk3_98_a_comp.npz"
+    },
+    {
+      "source_id": "gsmono_04_funk3_98_a_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_funk3_98_a_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_funk3_98_a_solo.npz"
+    },
+    {
+      "source_id": "gsmono_04_jazz1_130_d_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_jazz1_130_d_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_jazz1_130_d_comp.npz"
+    },
+    {
+      "source_id": "gsmono_04_jazz1_130_d_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_jazz1_130_d_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_jazz1_130_d_solo.npz"
+    },
+    {
+      "source_id": "gsmono_04_jazz1_200_b_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_jazz1_200_b_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_jazz1_200_b_comp.npz"
+    },
+    {
+      "source_id": "gsmono_04_jazz1_200_b_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_jazz1_200_b_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_jazz1_200_b_solo.npz"
+    },
+    {
+      "source_id": "gsmono_04_jazz2_110_bb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_jazz2_110_bb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_jazz2_110_bb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_04_jazz2_110_bb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_jazz2_110_bb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_jazz2_110_bb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_04_jazz2_187_f_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_jazz2_187_f_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_jazz2_187_f_comp.npz"
+    },
+    {
+      "source_id": "gsmono_04_jazz2_187_f_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_jazz2_187_f_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_jazz2_187_f_solo.npz"
+    },
+    {
+      "source_id": "gsmono_04_jazz3_137_eb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_jazz3_137_eb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_jazz3_137_eb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_04_jazz3_137_eb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_jazz3_137_eb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_jazz3_137_eb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_04_jazz3_150_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_jazz3_150_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_jazz3_150_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_04_jazz3_150_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_jazz3_150_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_jazz3_150_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_04_rock1_130_a_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_rock1_130_a_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_rock1_130_a_comp.npz"
+    },
+    {
+      "source_id": "gsmono_04_rock1_130_a_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_rock1_130_a_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_rock1_130_a_solo.npz"
+    },
+    {
+      "source_id": "gsmono_04_rock1_90_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_rock1_90_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_rock1_90_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_04_rock1_90_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_rock1_90_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_rock1_90_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_04_rock2_142_d_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_rock2_142_d_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_rock2_142_d_comp.npz"
+    },
+    {
+      "source_id": "gsmono_04_rock2_142_d_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_rock2_142_d_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_rock2_142_d_solo.npz"
+    },
+    {
+      "source_id": "gsmono_04_rock2_85_f_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_rock2_85_f_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_rock2_85_f_comp.npz"
+    },
+    {
+      "source_id": "gsmono_04_rock2_85_f_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_rock2_85_f_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_rock2_85_f_solo.npz"
+    },
+    {
+      "source_id": "gsmono_04_rock3_117_bb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_rock3_117_bb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_rock3_117_bb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_04_rock3_117_bb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_rock3_117_bb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_rock3_117_bb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_04_rock3_148_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_rock3_148_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_rock3_148_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_04_rock3_148_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_rock3_148_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_rock3_148_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_04_ss1_100_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_ss1_100_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_ss1_100_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_04_ss1_100_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_ss1_100_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_ss1_100_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_04_ss1_68_e_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_ss1_68_e_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_ss1_68_e_solo.npz"
+    },
+    {
+      "source_id": "gsmono_04_ss2_107_ab_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_ss2_107_ab_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_ss2_107_ab_comp.npz"
+    },
+    {
+      "source_id": "gsmono_04_ss2_107_ab_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_ss2_107_ab_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_ss2_107_ab_solo.npz"
+    },
+    {
+      "source_id": "gsmono_04_ss2_88_f_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_ss2_88_f_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_ss2_88_f_comp.npz"
+    },
+    {
+      "source_id": "gsmono_04_ss2_88_f_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_ss2_88_f_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_ss2_88_f_solo.npz"
+    },
+    {
+      "source_id": "gsmono_04_ss3_84_bb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_ss3_84_bb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_ss3_84_bb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_04_ss3_84_bb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_ss3_84_bb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_ss3_84_bb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_04_ss3_98_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_ss3_98_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_ss3_98_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_04_ss3_98_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "04",
+      "group_id": "guitarset_04_ss3_98_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_04_ss3_98_c_solo.npz"
+    }
+  ],
+  "test": [
+    {
+      "source_id": "gsmono_05_bn1_129_eb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_bn1_129_eb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_bn1_129_eb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_05_bn1_129_eb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_bn1_129_eb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_bn1_129_eb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_05_bn1_147_gb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_bn1_147_gb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_bn1_147_gb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_05_bn1_147_gb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_bn1_147_gb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_bn1_147_gb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_05_bn2_131_b_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_bn2_131_b_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_bn2_131_b_comp.npz"
+    },
+    {
+      "source_id": "gsmono_05_bn2_131_b_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_bn2_131_b_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_bn2_131_b_solo.npz"
+    },
+    {
+      "source_id": "gsmono_05_bn2_166_ab_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_bn2_166_ab_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_bn2_166_ab_comp.npz"
+    },
+    {
+      "source_id": "gsmono_05_bn2_166_ab_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_bn2_166_ab_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_bn2_166_ab_solo.npz"
+    },
+    {
+      "source_id": "gsmono_05_bn3_119_g_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_bn3_119_g_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_bn3_119_g_comp.npz"
+    },
+    {
+      "source_id": "gsmono_05_bn3_119_g_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_bn3_119_g_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_bn3_119_g_solo.npz"
+    },
+    {
+      "source_id": "gsmono_05_bn3_154_e_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_bn3_154_e_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_bn3_154_e_comp.npz"
+    },
+    {
+      "source_id": "gsmono_05_bn3_154_e_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_bn3_154_e_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_bn3_154_e_solo.npz"
+    },
+    {
+      "source_id": "gsmono_05_funk1_114_ab_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_funk1_114_ab_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_funk1_114_ab_comp.npz"
+    },
+    {
+      "source_id": "gsmono_05_funk1_114_ab_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_funk1_114_ab_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_funk1_114_ab_solo.npz"
+    },
+    {
+      "source_id": "gsmono_05_funk1_97_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_funk1_97_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_funk1_97_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_05_funk1_97_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_funk1_97_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_funk1_97_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_05_funk2_108_eb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_funk2_108_eb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_funk2_108_eb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_05_funk2_108_eb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_funk2_108_eb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_funk2_108_eb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_05_funk2_119_g_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_funk2_119_g_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_funk2_119_g_comp.npz"
+    },
+    {
+      "source_id": "gsmono_05_funk2_119_g_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_funk2_119_g_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_funk2_119_g_solo.npz"
+    },
+    {
+      "source_id": "gsmono_05_funk3_112_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_funk3_112_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_funk3_112_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_05_funk3_112_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_funk3_112_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_funk3_112_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_05_funk3_98_a_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_funk3_98_a_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_funk3_98_a_comp.npz"
+    },
+    {
+      "source_id": "gsmono_05_funk3_98_a_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_funk3_98_a_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_funk3_98_a_solo.npz"
+    },
+    {
+      "source_id": "gsmono_05_jazz1_130_d_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_jazz1_130_d_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_jazz1_130_d_comp.npz"
+    },
+    {
+      "source_id": "gsmono_05_jazz1_130_d_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_jazz1_130_d_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_jazz1_130_d_solo.npz"
+    },
+    {
+      "source_id": "gsmono_05_jazz1_200_b_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_jazz1_200_b_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_jazz1_200_b_comp.npz"
+    },
+    {
+      "source_id": "gsmono_05_jazz1_200_b_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_jazz1_200_b_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_jazz1_200_b_solo.npz"
+    },
+    {
+      "source_id": "gsmono_05_jazz2_110_bb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_jazz2_110_bb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_jazz2_110_bb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_05_jazz2_110_bb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_jazz2_110_bb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_jazz2_110_bb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_05_jazz2_187_f_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_jazz2_187_f_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_jazz2_187_f_comp.npz"
+    },
+    {
+      "source_id": "gsmono_05_jazz2_187_f_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_jazz2_187_f_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_jazz2_187_f_solo.npz"
+    },
+    {
+      "source_id": "gsmono_05_jazz3_137_eb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_jazz3_137_eb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_jazz3_137_eb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_05_jazz3_137_eb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_jazz3_137_eb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_jazz3_137_eb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_05_jazz3_150_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_jazz3_150_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_jazz3_150_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_05_jazz3_150_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_jazz3_150_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_jazz3_150_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_05_rock1_130_a_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_rock1_130_a_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_rock1_130_a_comp.npz"
+    },
+    {
+      "source_id": "gsmono_05_rock1_130_a_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_rock1_130_a_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_rock1_130_a_solo.npz"
+    },
+    {
+      "source_id": "gsmono_05_rock1_90_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_rock1_90_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_rock1_90_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_05_rock1_90_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_rock1_90_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_rock1_90_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_05_rock2_142_d_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_rock2_142_d_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_rock2_142_d_comp.npz"
+    },
+    {
+      "source_id": "gsmono_05_rock2_142_d_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_rock2_142_d_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_rock2_142_d_solo.npz"
+    },
+    {
+      "source_id": "gsmono_05_rock2_85_f_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_rock2_85_f_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_rock2_85_f_comp.npz"
+    },
+    {
+      "source_id": "gsmono_05_rock2_85_f_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_rock2_85_f_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_rock2_85_f_solo.npz"
+    },
+    {
+      "source_id": "gsmono_05_rock3_117_bb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_rock3_117_bb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_rock3_117_bb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_05_rock3_117_bb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_rock3_117_bb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_rock3_117_bb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_05_rock3_148_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_rock3_148_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_rock3_148_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_05_rock3_148_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_rock3_148_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_rock3_148_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_05_ss1_100_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_ss1_100_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_ss1_100_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_05_ss1_100_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_ss1_100_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_ss1_100_c_solo.npz"
+    },
+    {
+      "source_id": "gsmono_05_ss1_68_e_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_ss1_68_e_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_ss1_68_e_comp.npz"
+    },
+    {
+      "source_id": "gsmono_05_ss1_68_e_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_ss1_68_e_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_ss1_68_e_solo.npz"
+    },
+    {
+      "source_id": "gsmono_05_ss2_107_ab_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_ss2_107_ab_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_ss2_107_ab_comp.npz"
+    },
+    {
+      "source_id": "gsmono_05_ss2_107_ab_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_ss2_107_ab_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_ss2_107_ab_solo.npz"
+    },
+    {
+      "source_id": "gsmono_05_ss2_88_f_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_ss2_88_f_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_ss2_88_f_comp.npz"
+    },
+    {
+      "source_id": "gsmono_05_ss2_88_f_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_ss2_88_f_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_ss2_88_f_solo.npz"
+    },
+    {
+      "source_id": "gsmono_05_ss3_84_bb_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_ss3_84_bb_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_ss3_84_bb_comp.npz"
+    },
+    {
+      "source_id": "gsmono_05_ss3_84_bb_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_ss3_84_bb_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_ss3_84_bb_solo.npz"
+    },
+    {
+      "source_id": "gsmono_05_ss3_98_c_comp",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_ss3_98_c_comp",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_ss3_98_c_comp.npz"
+    },
+    {
+      "source_id": "gsmono_05_ss3_98_c_solo",
+      "dataset_id": "guitarset_mono_mix",
+      "player_id": "05",
+      "group_id": "guitarset_05_ss3_98_c_solo",
+      "capture_id": "mono_pickup_mix",
+      "npz_path": "C:\\Users\\user\\Desktop\\midi\\data\\dataset\\v5_3_harmonics\\gsmono_05_ss3_98_c_solo.npz"
+    }
+  ]
+}

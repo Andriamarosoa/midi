@@ -1,0 +1,117 @@
+recording 1/1 gaps_poly_mix 336_-D1wc
+{
+  "output": "C:\\Users\\user\\Desktop\\midi\\runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\reports\\validation_live_input_level_v2_2_1_tflite_1_min0.json",
+  "recordings": 1,
+  "baseline_onset": {
+    "reference_notes": 1107,
+    "estimated_notes": 1784,
+    "matched_notes": 270,
+    "false_positive_notes": 1514,
+    "missing_notes": 837,
+    "precision": 0.15134529147982062,
+    "recall": 0.24390243902439024,
+    "f1": 0.18678657903839502,
+    "onset_error_mean_ms": 30.804448704741205,
+    "onset_error_p95_absolute_ms": 49.26432914906975
+  },
+  "automatic_onset": {
+    "reference_notes": 1107,
+    "estimated_notes": 1788,
+    "matched_notes": 270,
+    "false_positive_notes": 1518,
+    "missing_notes": 837,
+    "precision": 0.15100671140939598,
+    "recall": 0.24390243902439024,
+    "f1": 0.18652849740932645,
+    "onset_error_mean_ms": 30.804448704741205,
+    "onset_error_p95_absolute_ms": 49.26432914906975
+  },
+  "automatic_minus_baseline": {
+    "onset": {
+      "estimated_notes": 4,
+      "matched_notes": 0,
+      "false_positive_notes": 4,
+      "missing_notes": 0,
+      "precision": -0.00033858007042464333,
+      "recall": 0.0,
+      "f1": -0.00025808162906856835
+    },
+    "onset_offset": {
+      "estimated_notes": 3,
+      "matched_notes": 0,
+      "false_positive_notes": 3,
+      "missing_notes": 0,
+      "precision": -3.0805881869711005e-05,
+      "recall": 0.0,
+      "f1": -2.3281721345330686e-05
+    },
+    "retriggers": 0,
+    "diagnostics": {
+      "false_positive_notes": 4,
+      "missing_notes": 0,
+      "false_positive_without_active_reference": 4,
+      "same_pitch_during_reference": 0,
+      "harmonic_interval_false_positives": 0,
+      "fragmented_reference_notes": 0,
+      "excess_fragments": 0,
+      "maximum_fragments_for_one_reference": 0,
+      "matched_onset_timing": {
+        "median_ms": 0.0,
+        "p95_absolute_ms": 0.0
+      },
+      "matched_offset_timing": {
+        "median_ms": 0.0,
+        "p95_absolute_ms": 0.0
+      },
+      "false_positive_interval_counts": {
+        "-31": 0,
+        "-27": 0,
+        "-24": 0,
+        "-23": 0,
+        "-21": 0,
+        "-19": 0,
+        "-18": 0,
+        "-17": 0,
+        "-16": 0,
+        "-15": 0,
+        "-14": 0,
+        "-13": 0,
+        "-12": 0,
+        "-11": 0,
+        "-10": 0,
+        "-9": 0,
+        "-8": 0,
+        "-7": 0,
+        "-6": 0,
+        "-5": 0,
+        "-4": 0,
+        "-3": 0,
+        "-2": 0,
+        "-1": 0,
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "23": 0,
+        "25": 0
+      }
+    }
+  }
+}

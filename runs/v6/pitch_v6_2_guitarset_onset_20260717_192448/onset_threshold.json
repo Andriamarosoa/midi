@@ -1,0 +1,23 @@
+{
+  "threshold": 0.6246715784072876,
+  "selected_on": "validation",
+  "metrics": {
+    "count": 19284,
+    "positives": 2880,
+    "negatives": 16404,
+    "threshold": 0.6246715784072876,
+    "tp": 1485,
+    "fp": 3485,
+    "tn": 12919,
+    "fn": 1395,
+    "precision": 0.2987927565392354,
+    "recall": 0.515625,
+    "specificity": 0.7875518166300902,
+    "f1": 0.378343949044586,
+    "false_positive_rate": 0.21244818336990978,
+    "false_negative_rate": 0.484375,
+    "accuracy": 0.7469404687824103,
+    "average_precision": 0.30617289322864105,
+    "selection": "maximum_validation_f1_then_precision_then_threshold"
+  }
+}

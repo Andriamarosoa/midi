@@ -1,0 +1,49 @@
+{
+  "active": {
+    "count": 19779,
+    "positives": 13615,
+    "negatives": 6164,
+    "threshold": 0.19416169822216034,
+    "tp": 12888,
+    "fp": 759,
+    "tn": 5405,
+    "fn": 727,
+    "precision": 0.944383380962849,
+    "recall": 0.9466030113845024,
+    "specificity": 0.8768656716417911,
+    "f1": 0.9454918934781015,
+    "false_positive_rate": 0.12313432835820895,
+    "false_negative_rate": 0.05339698861549761,
+    "accuracy": 0.9248698114161484,
+    "average_precision": 0.988771886413403,
+    "threshold_source": "validation"
+  },
+  "pitch_on_true_active": {
+    "samples": 13615,
+    "top1": 0.9229526257803893,
+    "top3": 0.9658464928387808,
+    "mean_absolute_semitone_error": 0.2973191333088505,
+    "semitone_errors": 537,
+    "octave_errors": 33,
+    "evaluated_checkpoint": "best_pitch.keras"
+  },
+  "joint": {
+    "samples": 19779,
+    "joint_frame_accuracy": 0.8821477324435006,
+    "gated_correct_pitch_recall": 0.8845391112743298,
+    "conditional_pitch_top1": 0.9229526257803893,
+    "conditional_pitch_top3": 0.9658464928387808,
+    "evaluated_checkpoint": "best_pitch.keras"
+  },
+  "harmonics_on_true_active": {
+    "samples": 13615,
+    "harmonic_count": 20,
+    "valid_partial_values": 264044,
+    "amplitude_mae": 0.03215052166968384,
+    "zero_amplitude_baseline_mae": 0.10530729638100089,
+    "amplitude_improvement_over_zero": 0.07315677471131705,
+    "amplitude_weighted_offset_mae_cents": 4.718786273274513,
+    "zero_offset_baseline_mae_cents": 5.675399002946571,
+    "offset_improvement_over_zero_cents": 0.9566127296720577
+  }
+}

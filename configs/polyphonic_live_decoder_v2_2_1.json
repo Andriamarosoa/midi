@@ -1,0 +1,18 @@
+{
+  "midi_min": 40,
+  "midi_max": 76,
+  "frame_on_threshold": 0.5349999999999999,
+  "strong_frame_threshold": 0.8,
+  "frame_off_threshold": 0.32099999999999995,
+  "onset_threshold": 0.6649999999999999,
+  "activation_frames": 2,
+  "release_frames": 3,
+  "minimum_retrigger_frames": 14,
+  "silence_release_frames": 14,
+  "maximum_polyphony": 6,
+  "harmonic_suppression_strength": 0.25,
+  "harmonic_tolerance_cents": 35.0,
+  "audio_onset_lookback_frames": 10,
+  "unattacked_frame_threshold": 0.9,
+  "harmonic_support_threshold": 0.6
+}

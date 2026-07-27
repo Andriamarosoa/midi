@@ -83,6 +83,13 @@ class AdaptiveOnsetDetector:
         flux_sigma: float = 4.0,
         minimum_rms_dbfs: float = -72.0,
         trigger_score: float = 2.2,
+        require_joint_temporal_evidence: bool = False,
+        enable_peak_rearm: bool = False,
+        robust_rearm: bool = False,
+        rearm_stable_hops: int = 3,
+        rearm_attack_ratio: float = 1.20,
+        rearm_flux_ratio: float = 2.0,
+        rearm_growth_ratio: float = 8.0,
     ) -> None:
         if sample_rate <= 0 or hop_samples <= 0:
             raise ValueError("sample_rate and hop_samples must be > 0")
@@ -90,6 +97,14 @@ class AdaptiveOnsetDetector:
             raise ValueError("fft_size must be >= max(128, hop_samples)")
         if rearm_ratio <= 1.0:
             raise ValueError("rearm_ratio must be > 1")
+        if rearm_stable_hops < 1:
+            raise ValueError("rearm_stable_hops must be positive")
+        if rearm_attack_ratio <= 1.0:
+            raise ValueError("rearm_attack_ratio must be > 1")
+        if rearm_flux_ratio <= 1.0:
+            raise ValueError("rearm_flux_ratio must be > 1")
+        if rearm_growth_ratio <= 1.0:
+            raise ValueError("rearm_growth_ratio must be > 1")
 
         self.sample_rate = int(sample_rate)
         self.hop_samples = int(hop_samples)
@@ -106,6 +121,15 @@ class AdaptiveOnsetDetector:
         self.flux_sigma = float(flux_sigma)
         self.minimum_rms = 10.0 ** (float(minimum_rms_dbfs) / 20.0)
         self.trigger_score = float(trigger_score)
+        self.require_joint_temporal_evidence = bool(
+            require_joint_temporal_evidence
+        )
+        self.enable_peak_rearm = bool(enable_peak_rearm)
+        self.robust_rearm = bool(robust_rearm)
+        self.rearm_stable_hops = int(rearm_stable_hops)
+        self.rearm_attack_ratio = float(rearm_attack_ratio)
+        self.rearm_flux_ratio = float(rearm_flux_ratio)
+        self.rearm_growth_ratio = float(rearm_growth_ratio)
 
         self.rms_stats = RunningRobustStats(history_hops)
         self.growth_stats = RunningRobustStats(history_hops)
@@ -119,7 +143,13 @@ class AdaptiveOnsetDetector:
         self.tick_index = 0
         self.cooldown_remaining = 0
         self.armed = True
+        self.unarmed_peak_rms = 0.0
+        self.unarmed_peak_flux = 0.0
+        self.rearm_stable_count = 0
+        self.rearm_reference_rms = 0.0
+        self.last_rearmed_this_hop = False
         self._has_previous_spectrum = False
+        self._continuity_suppression_remaining = 0
 
     @property
     def calibrated(self) -> bool:
@@ -135,7 +165,30 @@ class AdaptiveOnsetDetector:
         self.tick_index = 0
         self.cooldown_remaining = 0
         self.armed = True
+        self.unarmed_peak_rms = 0.0
+        self.unarmed_peak_flux = 0.0
+        self.rearm_stable_count = 0
+        self.rearm_reference_rms = 0.0
+        self.last_rearmed_this_hop = False
         self._has_previous_spectrum = False
+        self._continuity_suppression_remaining = 0
+
+    def reset_continuity(self) -> None:
+        """Forget pre-gap temporal state without losing noise calibration."""
+        self.analysis_buffer.fill(0.0)
+        self.previous_spectrum.fill(0.0)
+        self.previous_rms = self.rms_stats.median(0.0)
+        self.cooldown_remaining = 0
+        self.armed = True
+        self.unarmed_peak_rms = 0.0
+        self.unarmed_peak_flux = 0.0
+        self.rearm_stable_count = 0
+        self.rearm_reference_rms = 0.0
+        self.last_rearmed_this_hop = False
+        self._has_previous_spectrum = False
+        self._continuity_suppression_remaining = int(np.ceil(
+            self.fft_size / float(self.hop_samples)
+        ))
 
     def _append_hop(self, hop: np.ndarray) -> np.ndarray:
         samples = np.asarray(hop, dtype=np.float64).reshape(-1)
@@ -192,8 +245,59 @@ class AdaptiveOnsetDetector:
         growth_threshold = growth_median + self.growth_sigma * growth_scale
         flux_threshold = flux_median + self.flux_sigma * flux_scale
 
-        if not self.armed and self.cooldown_remaining == 0 and rms <= rms_threshold * self.rearm_ratio:
-            self.armed = True
+        was_unarmed = not self.armed
+        rearmed_this_hop = False
+        calm_temporal_hop = False
+        if was_unarmed:
+            self.unarmed_peak_rms = max(self.unarmed_peak_rms, rms)
+            self.unarmed_peak_flux = max(
+                self.unarmed_peak_flux,
+                spectral_flux,
+            )
+            release_level = self.unarmed_peak_rms / self.rearm_ratio
+            calm_flux_threshold = max(
+                flux_threshold,
+                self.unarmed_peak_flux / self.rearm_flux_ratio,
+            )
+            calm_growth_threshold = max(
+                growth_threshold,
+                self.unarmed_peak_rms / self.rearm_growth_ratio,
+            )
+            calm_temporal_hop = (
+                rms_growth <= calm_growth_threshold
+                and spectral_flux <= calm_flux_threshold
+            )
+            if calm_temporal_hop:
+                self.rearm_stable_count += 1
+            else:
+                self.rearm_stable_count = 0
+            noise_floor_release = rms <= rms_threshold * self.rearm_ratio
+            peak_valley_release = (
+                self.enable_peak_rearm
+                and rms <= release_level
+                and rms <= self.previous_rms
+            )
+            stable_release = (
+                self.robust_rearm
+                and self.rearm_stable_count >= self.rearm_stable_hops
+            )
+            if self.cooldown_remaining == 0 and (
+                noise_floor_release
+                or peak_valley_release
+                or stable_release
+            ):
+                self.armed = True
+                self.unarmed_peak_rms = 0.0
+                self.unarmed_peak_flux = 0.0
+                self.rearm_stable_count = 0
+                self.rearm_reference_rms = rms
+                rearmed_this_hop = True
+        elif self.robust_rearm and self.rearm_reference_rms > 0.0:
+            self.rearm_reference_rms = min(
+                self.rearm_reference_rms,
+                rms,
+            )
+        self.last_rearmed_this_hop = rearmed_this_hop
 
         rms_excess = self._normalized_excess(rms, rms_threshold, rms_scale)
         growth_excess = self._normalized_excess(rms_growth, growth_threshold, growth_scale)
@@ -205,12 +309,29 @@ class AdaptiveOnsetDetector:
             + 0.85 * min(flux_excess, 6.0)
         )
 
-        temporal_evidence = growth_excess > 0.0 or flux_excess > 0.0
+        temporal_evidence = (
+            growth_excess > 0.0 and flux_excess > 0.0
+            if self.require_joint_temporal_evidence
+            else growth_excess > 0.0 or flux_excess > 0.0
+        )
+        suppress_discontinuous_onset = (
+            self._continuity_suppression_remaining > 0
+        )
+        if self._continuity_suppression_remaining > 0:
+            self._continuity_suppression_remaining -= 1
+        robust_attack_ready = (
+            not self.robust_rearm
+            or self.rearm_reference_rms <= EPSILON
+            or rms >= self.rearm_reference_rms * self.rearm_attack_ratio
+        )
         is_onset = (
-            self.calibrated
+            not suppress_discontinuous_onset
+            and not (self.robust_rearm and rearmed_this_hop)
+            and self.calibrated
             and self.armed
             and self.cooldown_remaining == 0
             and rms > rms_threshold
+            and robust_attack_ready
             and temporal_evidence
             and score >= self.trigger_score
         )
@@ -218,6 +339,10 @@ class AdaptiveOnsetDetector:
         if is_onset:
             self.cooldown_remaining = self.cooldown_hops
             self.armed = False
+            self.unarmed_peak_rms = rms
+            self.unarmed_peak_flux = spectral_flux
+            self.rearm_stable_count = 0
+            self.rearm_reference_rms = 0.0
         elif self.cooldown_remaining > 0:
             self.cooldown_remaining -= 1
 
@@ -233,7 +358,6 @@ class AdaptiveOnsetDetector:
             self.rms_stats.add(rms)
             self.growth_stats.add(rms_growth)
             self.flux_stats.add(spectral_flux)
-
         self.previous_rms = rms
         confidence = float(np.clip(score / max(self.trigger_score * 2.0, EPSILON), 0.0, 1.0))
         time_s = self.tick_index * self.hop_samples / float(self.sample_rate)

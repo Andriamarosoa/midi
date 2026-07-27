@@ -1,0 +1,20 @@
+{
+  "duration_requested_s": 30.0,
+  "calibrated_frames": 4960,
+  "skipped_inferences": 46,
+  "skip_percent": 0.9274193548387096,
+  "audio_hops_dropped": 0,
+  "inference_ms": {
+    "count": 4914,
+    "mean": 3.1046379934879647,
+    "p95": 5.07506999999876,
+    "max": 14.431599999998213
+  },
+  "pipeline_ms": {
+    "count": 4914,
+    "mean": 11.772219536019525,
+    "p95": 27.370974999998392,
+    "max": 82.05219999999969
+  },
+  "maximum_simultaneous_notes": 3
+}

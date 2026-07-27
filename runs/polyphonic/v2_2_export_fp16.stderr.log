@@ -1,0 +1,102 @@
+2026-07-22 06:19:17.440726: I tensorflow/core/util/port.cc:113] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+WARNING:tensorflow:From C:\Users\user\Desktop\midi\.venv\lib\site-packages\keras\src\losses.py:2976: The name tf.losses.sparse_softmax_cross_entropy is deprecated. Please use tf.compat.v1.losses.sparse_softmax_cross_entropy instead.
+
+WARNING:tensorflow:From C:\Users\user\Desktop\midi\.venv\lib\site-packages\keras\src\backend.py:1398: The name tf.executing_eagerly_outside_functions is deprecated. Please use tf.compat.v1.executing_eagerly_outside_functions instead.
+
+2026-07-22 06:19:21.076920: I tensorflow/core/platform/cpu_feature_guard.cc:182] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: SSE SSE2 SSE3 SSE4.1 SSE4.2 AVX2 AVX_VNNI FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+WARNING:tensorflow:From C:\Users\user\Desktop\midi\.venv\lib\site-packages\keras\src\layers\normalization\layer_normalization.py:328: The name tf.nn.fused_batch_norm is deprecated. Please use tf.compat.v1.nn.fused_batch_norm instead.
+
+2026-07-22 06:19:31.773489: W tensorflow/compiler/mlir/lite/python/tf_tfl_flatbuffer_helpers.cc:378] Ignored output_format.
+2026-07-22 06:19:31.774161: W tensorflow/compiler/mlir/lite/python/tf_tfl_flatbuffer_helpers.cc:381] Ignored drop_control_dependency.
+2026-07-22 06:19:31.775717: I tensorflow/cc/saved_model/reader.cc:83] Reading SavedModel from: C:\Users\user\AppData\Local\Temp\tmpcifmdd7o
+2026-07-22 06:19:31.785648: I tensorflow/cc/saved_model/reader.cc:51] Reading meta graph with tags { serve }
+2026-07-22 06:19:31.786247: I tensorflow/cc/saved_model/reader.cc:146] Reading SavedModel debug info (if present) from: C:\Users\user\AppData\Local\Temp\tmpcifmdd7o
+2026-07-22 06:19:31.811340: I tensorflow/compiler/mlir/mlir_graph_optimization_pass.cc:388] MLIR V1 optimization pass is not enabled
+2026-07-22 06:19:31.816350: I tensorflow/cc/saved_model/loader.cc:233] Restoring SavedModel bundle.
+2026-07-22 06:19:31.914635: I tensorflow/cc/saved_model/loader.cc:217] Running initialization op on SavedModel bundle at path: C:\Users\user\AppData\Local\Temp\tmpcifmdd7o
+2026-07-22 06:19:31.966273: I tensorflow/cc/saved_model/loader.cc:316] SavedModel load for tags { serve }; Status: success: OK. Took 190512 microseconds.
+2026-07-22 06:19:32.055058: I tensorflow/compiler/mlir/tensorflow/utils/dump_mlir_util.cc:269] disabling MLIR crash reproducer, set env var `MLIR_CRASH_REPRODUCER_DIRECTORY` to enable.
+Summary on the non-converted ops:
+---------------------------------
+ * Accepted dialects: tfl, builtin, func
+ * Non-Converted Ops: 89, Total Ops 363, % non-converted = 24.52 %
+ * 89 ARITH ops
+
+- arith.constant:   89 occurrences  (f16: 56, i32: 33)
+
+
+
+  (f32: 25)
+  (f32: 2)
+  (f32: 12)
+  (f32: 56)
+  (f32: 1)
+  (f32: 6)
+  (f32: 17)
+  (f32: 2)
+  (f32: 1)
+  (f32: 15)
+  (f32: 38)
+  (f32: 12)
+  (f32: 44)
+  (f32: 7)
+  (f32: 7)
+  (f32: 2)
+  (f32: 7)
+  (f32: 2)
+  (f32: 1)
+  (f32: 14)
+2026-07-22 06:19:32.220990: I tensorflow/compiler/mlir/lite/flatbuffer_export.cc:2989] Estimated count of arithmetic ops: 71.738 M  ops, equivalently 35.869 M  MACs
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+2026-07-22 06:30:16.721103: I tensorflow/core/util/port.cc:113] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+WARNING:tensorflow:From C:\Users\user\Desktop\midi\.venv\lib\site-packages\keras\src\losses.py:2976: The name tf.losses.sparse_softmax_cross_entropy is deprecated. Please use tf.compat.v1.losses.sparse_softmax_cross_entropy instead.
+
+WARNING:tensorflow:From C:\Users\user\Desktop\midi\.venv\lib\site-packages\keras\src\backend.py:1398: The name tf.executing_eagerly_outside_functions is deprecated. Please use tf.compat.v1.executing_eagerly_outside_functions instead.
+
+2026-07-22 06:30:20.872011: I tensorflow/core/platform/cpu_feature_guard.cc:182] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: SSE SSE2 SSE3 SSE4.1 SSE4.2 AVX2 AVX_VNNI FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+WARNING:tensorflow:From C:\Users\user\Desktop\midi\.venv\lib\site-packages\keras\src\layers\normalization\layer_normalization.py:328: The name tf.nn.fused_batch_norm is deprecated. Please use tf.compat.v1.nn.fused_batch_norm instead.
+
+2026-07-22 06:30:34.865563: W tensorflow/compiler/mlir/lite/python/tf_tfl_flatbuffer_helpers.cc:378] Ignored output_format.
+2026-07-22 06:30:34.866874: W tensorflow/compiler/mlir/lite/python/tf_tfl_flatbuffer_helpers.cc:381] Ignored drop_control_dependency.
+2026-07-22 06:30:34.868799: I tensorflow/cc/saved_model/reader.cc:83] Reading SavedModel from: C:\Users\user\AppData\Local\Temp\tmpyh7mrdw7
+2026-07-22 06:30:34.880406: I tensorflow/cc/saved_model/reader.cc:51] Reading meta graph with tags { serve }
+2026-07-22 06:30:34.880907: I tensorflow/cc/saved_model/reader.cc:146] Reading SavedModel debug info (if present) from: C:\Users\user\AppData\Local\Temp\tmpyh7mrdw7
+2026-07-22 06:30:34.914083: I tensorflow/compiler/mlir/mlir_graph_optimization_pass.cc:388] MLIR V1 optimization pass is not enabled
+2026-07-22 06:30:34.919916: I tensorflow/cc/saved_model/loader.cc:233] Restoring SavedModel bundle.
+2026-07-22 06:30:35.046387: I tensorflow/cc/saved_model/loader.cc:217] Running initialization op on SavedModel bundle at path: C:\Users\user\AppData\Local\Temp\tmpyh7mrdw7
+2026-07-22 06:30:35.142339: I tensorflow/cc/saved_model/loader.cc:316] SavedModel load for tags { serve }; Status: success: OK. Took 273530 microseconds.
+2026-07-22 06:30:35.268421: I tensorflow/compiler/mlir/tensorflow/utils/dump_mlir_util.cc:269] disabling MLIR crash reproducer, set env var `MLIR_CRASH_REPRODUCER_DIRECTORY` to enable.
+Summary on the non-converted ops:
+---------------------------------
+ * Accepted dialects: tfl, builtin, func
+ * Non-Converted Ops: 89, Total Ops 363, % non-converted = 24.52 %
+ * 89 ARITH ops
+
+- arith.constant:   89 occurrences  (f16: 56, i32: 33)
+
+
+
+  (f32: 25)
+  (f32: 2)
+  (f32: 12)
+  (f32: 56)
+  (f32: 1)
+  (f32: 6)
+  (f32: 17)
+  (f32: 2)
+  (f32: 1)
+  (f32: 15)
+  (f32: 38)
+  (f32: 12)
+  (f32: 44)
+  (f32: 7)
+  (f32: 7)
+  (f32: 2)
+  (f32: 7)
+  (f32: 2)
+  (f32: 1)
+  (f32: 14)
+2026-07-22 06:30:35.558119: I tensorflow/compiler/mlir/lite/flatbuffer_export.cc:2989] Estimated count of arithmetic ops: 71.738 M  ops, equivalently 35.869 M  MACs
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.

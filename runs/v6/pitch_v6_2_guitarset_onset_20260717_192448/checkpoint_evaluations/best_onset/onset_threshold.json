@@ -1,0 +1,24 @@
+{
+  "checkpoint": "best_onset.keras",
+  "threshold": 0.5849148631095886,
+  "selected_on": "validation",
+  "metrics": {
+    "count": 19284,
+    "positives": 2880,
+    "negatives": 16404,
+    "threshold": 0.5849148631095886,
+    "tp": 1642,
+    "fp": 2332,
+    "tn": 14072,
+    "fn": 1238,
+    "precision": 0.4131857070961248,
+    "recall": 0.5701388888888889,
+    "specificity": 0.8578395513289442,
+    "f1": 0.4791362707907791,
+    "false_positive_rate": 0.14216044867105584,
+    "false_negative_rate": 0.42986111111111114,
+    "accuracy": 0.8148724331051649,
+    "average_precision": 0.4292922970742778,
+    "selection": "maximum_validation_f1_then_precision_then_threshold"
+  }
+}

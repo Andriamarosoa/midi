@@ -1,0 +1,862 @@
+{
+  "purpose": "Validation-only A/B of the causal model-input leveler; this report selects preprocessing policy, never model weights or test-set parameters.",
+  "split": "validation",
+  "locked_test_used": false,
+  "run_dir": "C:\\Users\\user\\Desktop\\midi\\runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644",
+  "checkpoint": "C:\\Users\\user\\Desktop\\midi\\runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\selected.keras",
+  "runtime_kind": "tflite",
+  "automatic_input_level_candidate": {
+    "minimum_gain_db": 0.0,
+    "session_policy": "amplification_only",
+    "safety_attenuation_remains_enabled": true
+  },
+  "artifacts": "C:\\Users\\user\\Desktop\\midi\\artifacts\\guitar_midi_polyphonic_v2_2_0",
+  "decoder_config_path": "C:\\Users\\user\\Desktop\\midi\\configs\\polyphonic_live_decoder_v2_2_1.json",
+  "decoder": {
+    "midi_min": 40,
+    "midi_max": 76,
+    "frame_on_threshold": 0.5349999999999999,
+    "strong_frame_threshold": 0.8,
+    "frame_off_threshold": 0.32099999999999995,
+    "onset_threshold": 0.6649999999999999,
+    "activation_frames": 2,
+    "release_frames": 3,
+    "minimum_retrigger_frames": 14,
+    "silence_release_frames": 14,
+    "maximum_polyphony": 6,
+    "harmonic_suppression_strength": 0.25,
+    "harmonic_tolerance_cents": 35.0,
+    "audio_onset_lookback_frames": 10,
+    "unattacked_frame_threshold": 0.9,
+    "harmonic_support_threshold": 0.6
+  },
+  "fingerprints": {
+    "checkpoint_sha256": "b56316b0a9f353f71692c78612e020d9b9da1071e0411dfa3fb146422ca60651",
+    "decoder_config_sha256": "02e8606bc9f262fbb608ee72720ee122b4a6c2c037802f14e97d687d3946c180",
+    "tflite_sha256": "4a4df49d34c1fd359fab98c20bb598f37c7f42f22493c70923a2e829176df744"
+  },
+  "selection": {
+    "policy": "Deterministic dataset round-robin with globally least-used group_id first.",
+    "manifest_order_independent": true,
+    "maximum_recordings": 1,
+    "eligible_recordings": 182,
+    "selected_recordings": 1,
+    "dataset_count": 1,
+    "group_count": 1,
+    "source_count": 1,
+    "eligible_recordings_by_dataset": {
+      "gaps_poly_mix": 30,
+      "guitar_techs_poly_directinput": 46,
+      "guitar_techs_poly_micamp": 46,
+      "guitarset_poly_mix": 60
+    },
+    "selected_recordings_by_dataset": {
+      "gaps_poly_mix": 1
+    },
+    "selected_groups_by_dataset": {
+      "gaps_poly_mix": 1
+    },
+    "selected_sources_by_dataset": {
+      "gaps_poly_mix": 1
+    }
+  },
+  "recordings": 1,
+  "aggregate": {
+    "baseline": {
+      "onset": {
+        "reference_notes": 1107,
+        "estimated_notes": 1784,
+        "matched_notes": 270,
+        "false_positive_notes": 1514,
+        "missing_notes": 837,
+        "precision": 0.15134529147982062,
+        "recall": 0.24390243902439024,
+        "f1": 0.18678657903839502,
+        "onset_error_mean_ms": 30.804448704741205,
+        "onset_error_p95_absolute_ms": 49.26432914906975
+      },
+      "onset_offset": {
+        "reference_notes": 1089,
+        "estimated_notes": 1736,
+        "matched_notes": 31,
+        "false_positive_notes": 1705,
+        "missing_notes": 1058,
+        "precision": 0.017857142857142856,
+        "recall": 0.028466483011937556,
+        "f1": 0.021946902654867255,
+        "onset_error_mean_ms": 33.06469792010399,
+        "onset_error_p95_absolute_ms": 47.83611634961282
+      },
+      "diagnostics": {
+        "false_positive_notes": 1514,
+        "missing_notes": 837,
+        "false_positive_without_active_reference": 57,
+        "same_pitch_during_reference": 468,
+        "harmonic_interval_false_positives": 184,
+        "false_positive_interval_counts": {
+          "-31": 2,
+          "-27": 3,
+          "-24": 6,
+          "-23": 9,
+          "-21": 2,
+          "-19": 18,
+          "-18": 1,
+          "-17": 6,
+          "-16": 20,
+          "-15": 1,
+          "-14": 4,
+          "-13": 2,
+          "-12": 89,
+          "-11": 5,
+          "-10": 6,
+          "-9": 22,
+          "-8": 17,
+          "-7": 36,
+          "-6": 5,
+          "-5": 30,
+          "-4": 28,
+          "-3": 28,
+          "-2": 28,
+          "-1": 79,
+          "0": 468,
+          "1": 131,
+          "2": 24,
+          "3": 44,
+          "4": 27,
+          "5": 27,
+          "6": 17,
+          "7": 69,
+          "8": 9,
+          "9": 9,
+          "10": 5,
+          "11": 9,
+          "12": 102,
+          "13": 10,
+          "14": 1,
+          "15": 5,
+          "16": 27,
+          "17": 2,
+          "18": 4,
+          "19": 13,
+          "20": 1,
+          "23": 5,
+          "25": 1
+        },
+        "fragmented_reference_notes": 37,
+        "excess_fragments": 38,
+        "maximum_fragments_for_one_reference": 3,
+        "matched_onset_timing": {
+          "median_ms": 34.74269594464641,
+          "p95_absolute_ms": 49.26432914906975
+        },
+        "matched_offset_timing": {
+          "median_ms": 173.29632679080743,
+          "p95_absolute_ms": 814.9957440434654
+        }
+      },
+      "dataset_metrics": {
+        "aggregation": "Micro counts within each dataset; macro or configured-weight mean across dataset scores.",
+        "per_dataset": {
+          "gaps_poly_mix": {
+            "recordings": 1,
+            "onset": {
+              "reference_notes": 1107,
+              "estimated_notes": 1784,
+              "matched_notes": 270,
+              "false_positive_notes": 1514,
+              "missing_notes": 837,
+              "precision": 0.15134529147982062,
+              "recall": 0.24390243902439024,
+              "f1": 0.18678657903839502
+            },
+            "onset_offset": {
+              "reference_notes": 1089,
+              "estimated_notes": 1736,
+              "matched_notes": 31,
+              "false_positive_notes": 1705,
+              "missing_notes": 1058,
+              "precision": 0.017857142857142856,
+              "recall": 0.028466483011937556,
+              "f1": 0.021946902654867255
+            },
+            "retriggers": 10
+          }
+        },
+        "macro": {
+          "dataset_count": 1,
+          "onset": {
+            "precision": 0.15134529147982062,
+            "recall": 0.24390243902439024,
+            "f1": 0.18678657903839502
+          },
+          "onset_offset": {
+            "precision": 0.017857142857142856,
+            "recall": 0.028466483011937556,
+            "f1": 0.021946902654867255
+          }
+        },
+        "weighted": {
+          "source": "train.validation_dataset_fractions",
+          "available": false,
+          "configured_weights": {
+            "gaps_poly_mix": 0.35,
+            "guitar_techs_poly_directinput": 0.15,
+            "guitar_techs_poly_micamp": 0.05,
+            "guitarset_poly_mix": 0.45
+          },
+          "missing_selected_datasets": [],
+          "missing_configured_datasets": [
+            "guitar_techs_poly_directinput",
+            "guitar_techs_poly_micamp",
+            "guitarset_poly_mix"
+          ],
+          "unconfigured_selected_datasets": [],
+          "configured_weight_coverage": 0.35
+        }
+      },
+      "retriggers": 10
+    },
+    "automatic_input_level": {
+      "onset": {
+        "reference_notes": 1107,
+        "estimated_notes": 1788,
+        "matched_notes": 270,
+        "false_positive_notes": 1518,
+        "missing_notes": 837,
+        "precision": 0.15100671140939598,
+        "recall": 0.24390243902439024,
+        "f1": 0.18652849740932645,
+        "onset_error_mean_ms": 30.804448704741205,
+        "onset_error_p95_absolute_ms": 49.26432914906975
+      },
+      "onset_offset": {
+        "reference_notes": 1089,
+        "estimated_notes": 1739,
+        "matched_notes": 31,
+        "false_positive_notes": 1708,
+        "missing_notes": 1058,
+        "precision": 0.017826336975273145,
+        "recall": 0.028466483011937556,
+        "f1": 0.021923620933521924,
+        "onset_error_mean_ms": 33.06469792010399,
+        "onset_error_p95_absolute_ms": 47.83611634961282
+      },
+      "diagnostics": {
+        "false_positive_notes": 1518,
+        "missing_notes": 837,
+        "false_positive_without_active_reference": 61,
+        "same_pitch_during_reference": 468,
+        "harmonic_interval_false_positives": 184,
+        "false_positive_interval_counts": {
+          "-31": 2,
+          "-27": 3,
+          "-24": 6,
+          "-23": 9,
+          "-21": 2,
+          "-19": 18,
+          "-18": 1,
+          "-17": 6,
+          "-16": 20,
+          "-15": 1,
+          "-14": 4,
+          "-13": 2,
+          "-12": 89,
+          "-11": 5,
+          "-10": 6,
+          "-9": 22,
+          "-8": 17,
+          "-7": 36,
+          "-6": 5,
+          "-5": 30,
+          "-4": 28,
+          "-3": 28,
+          "-2": 28,
+          "-1": 79,
+          "0": 468,
+          "1": 131,
+          "2": 24,
+          "3": 44,
+          "4": 27,
+          "5": 27,
+          "6": 17,
+          "7": 69,
+          "8": 9,
+          "9": 9,
+          "10": 5,
+          "11": 9,
+          "12": 102,
+          "13": 10,
+          "14": 1,
+          "15": 5,
+          "16": 27,
+          "17": 2,
+          "18": 4,
+          "19": 13,
+          "20": 1,
+          "23": 5,
+          "25": 1
+        },
+        "fragmented_reference_notes": 37,
+        "excess_fragments": 38,
+        "maximum_fragments_for_one_reference": 3,
+        "matched_onset_timing": {
+          "median_ms": 34.74269594464641,
+          "p95_absolute_ms": 49.26432914906975
+        },
+        "matched_offset_timing": {
+          "median_ms": 173.29632679080743,
+          "p95_absolute_ms": 814.9957440434654
+        }
+      },
+      "dataset_metrics": {
+        "aggregation": "Micro counts within each dataset; macro or configured-weight mean across dataset scores.",
+        "per_dataset": {
+          "gaps_poly_mix": {
+            "recordings": 1,
+            "onset": {
+              "reference_notes": 1107,
+              "estimated_notes": 1788,
+              "matched_notes": 270,
+              "false_positive_notes": 1518,
+              "missing_notes": 837,
+              "precision": 0.15100671140939598,
+              "recall": 0.24390243902439024,
+              "f1": 0.18652849740932645
+            },
+            "onset_offset": {
+              "reference_notes": 1089,
+              "estimated_notes": 1739,
+              "matched_notes": 31,
+              "false_positive_notes": 1708,
+              "missing_notes": 1058,
+              "precision": 0.017826336975273145,
+              "recall": 0.028466483011937556,
+              "f1": 0.021923620933521924
+            },
+            "retriggers": 10
+          }
+        },
+        "macro": {
+          "dataset_count": 1,
+          "onset": {
+            "precision": 0.15100671140939598,
+            "recall": 0.24390243902439024,
+            "f1": 0.18652849740932645
+          },
+          "onset_offset": {
+            "precision": 0.017826336975273145,
+            "recall": 0.028466483011937556,
+            "f1": 0.021923620933521924
+          }
+        },
+        "weighted": {
+          "source": "train.validation_dataset_fractions",
+          "available": false,
+          "configured_weights": {
+            "gaps_poly_mix": 0.35,
+            "guitar_techs_poly_directinput": 0.15,
+            "guitar_techs_poly_micamp": 0.05,
+            "guitarset_poly_mix": 0.45
+          },
+          "missing_selected_datasets": [],
+          "missing_configured_datasets": [
+            "guitar_techs_poly_directinput",
+            "guitar_techs_poly_micamp",
+            "guitarset_poly_mix"
+          ],
+          "unconfigured_selected_datasets": [],
+          "configured_weight_coverage": 0.35
+        }
+      },
+      "retriggers": 10
+    }
+  },
+  "automatic_minus_baseline": {
+    "onset": {
+      "estimated_notes": 4,
+      "matched_notes": 0,
+      "false_positive_notes": 4,
+      "missing_notes": 0,
+      "precision": -0.00033858007042464333,
+      "recall": 0.0,
+      "f1": -0.00025808162906856835
+    },
+    "onset_offset": {
+      "estimated_notes": 3,
+      "matched_notes": 0,
+      "false_positive_notes": 3,
+      "missing_notes": 0,
+      "precision": -3.0805881869711005e-05,
+      "recall": 0.0,
+      "f1": -2.3281721345330686e-05
+    },
+    "retriggers": 0,
+    "diagnostics": {
+      "false_positive_notes": 4,
+      "missing_notes": 0,
+      "false_positive_without_active_reference": 4,
+      "same_pitch_during_reference": 0,
+      "harmonic_interval_false_positives": 0,
+      "fragmented_reference_notes": 0,
+      "excess_fragments": 0,
+      "maximum_fragments_for_one_reference": 0,
+      "matched_onset_timing": {
+        "median_ms": 0.0,
+        "p95_absolute_ms": 0.0
+      },
+      "matched_offset_timing": {
+        "median_ms": 0.0,
+        "p95_absolute_ms": 0.0
+      },
+      "false_positive_interval_counts": {
+        "-31": 0,
+        "-27": 0,
+        "-24": 0,
+        "-23": 0,
+        "-21": 0,
+        "-19": 0,
+        "-18": 0,
+        "-17": 0,
+        "-16": 0,
+        "-15": 0,
+        "-14": 0,
+        "-13": 0,
+        "-12": 0,
+        "-11": 0,
+        "-10": 0,
+        "-9": 0,
+        "-8": 0,
+        "-7": 0,
+        "-6": 0,
+        "-5": 0,
+        "-4": 0,
+        "-3": 0,
+        "-2": 0,
+        "-1": 0,
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "23": 0,
+        "25": 0
+      }
+    }
+  },
+  "inference": {
+    "meaning": "Exact deployed TFLite float16 batch-1 inference latency.",
+    "measurement_unit": "single_tflite_inference",
+    "measurements": 71712,
+    "combined_baseline_and_automatic_batches": 71712,
+    "batch_ms_mean": 1.6137902610441741,
+    "batch_ms_p95": 2.449445000003791,
+    "batch_ms_max": 58.84049999999519
+  },
+  "per_recording": [
+    {
+      "source_id": "336_-D1wc",
+      "dataset_id": "gaps_poly_mix",
+      "group_id": "-D1wc",
+      "capture_id": "gaps_mixed_downmix",
+      "audio_evidence": {
+        "calibrated": true,
+        "audio_hop_index": 35855,
+        "synthetic_priming_hops": 172,
+        "onset_detector_tick_index": 36028,
+        "onset_detector": {
+          "cooldown_hops": 14,
+          "rearm_ratio": 1.35,
+          "enable_peak_rearm": true,
+          "robust_rearm": true,
+          "rearm_stable_hops": 3,
+          "rearm_attack_ratio": 3.0,
+          "rearm_flux_ratio": 2.0,
+          "rearm_growth_ratio": 8.0,
+          "require_joint_temporal_evidence": true
+        },
+        "audio_activity_gate": {
+          "calibrated": true,
+          "calibration_stable": true,
+          "minimum_calibration_hops": 172,
+          "maximum_calibration_hops": 517,
+          "calibration_hops_seen": 172,
+          "calibration_extended_hops": 0,
+          "tail_hops": 69,
+          "tail_spread_db": 0.0,
+          "open_threshold_dbfs": -72.0,
+          "close_threshold_dbfs": -75.0,
+          "active": false
+        },
+        "policy": "shared_live_audio_evidence_with_synthetic_silence_priming",
+        "label_leakage": false,
+        "silent_priming_hops": 172,
+        "real_audio_hops": 35856,
+        "active_hops": 35846,
+        "inactive_hops": 10,
+        "onset_hops": 406
+      },
+      "automatic_input_level": {
+        "policy": "causal_session_peak_level_model_input_only",
+        "label_leakage": false,
+        "hops": 35856,
+        "active_hops": 35846,
+        "input_samples": 4096,
+        "window_hops": 16,
+        "gain_db": {
+          "minimum": -2.204730272293091,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 18.0
+        },
+        "baseline_model_window_peak": {
+          "minimum": 0.001230362569913268,
+          "median": 0.25559642910957336,
+          "p95": 0.457102507352829,
+          "maximum": 1.2631722688674927
+        },
+        "baseline_clipped_hops": 44,
+        "projected_model_window_peak": {
+          "minimum": 0.002779708243906498,
+          "median": 0.25559642910957336,
+          "p95": 0.457102507352829,
+          "maximum": 0.9800000190734863
+        },
+        "projected_clipped_hops": 0,
+        "controller": {
+          "enabled": true,
+          "initialized": true,
+          "audible_hops_seen": 35846,
+          "gain": 1.0,
+          "gain_db": 0.0,
+          "session_gain_db": 0.0,
+          "safety_gain_db": 50.94453756602274,
+          "minimum_applied_gain_db": -2.204730252557303,
+          "maximum_applied_gain_db": 18.0,
+          "target_capture_peak_dbfs": -12.0,
+          "input_samples": 4096,
+          "window_hops": 16,
+          "inactive_hops": 10,
+          "minimum_gain_db": 0.0,
+          "maximum_gain_db": 18.0,
+          "recovery_db_per_second": 1.0,
+          "model_headroom_peak": 0.98,
+          "model_normalization_gain": 1.4932045250002872
+        }
+      },
+      "modes": {
+        "baseline": {
+          "source_id": "336_-D1wc",
+          "dataset_id": "gaps_poly_mix",
+          "group_id": "-D1wc",
+          "capture_id": "gaps_mixed_downmix",
+          "onset": {
+            "reference_notes": 1107,
+            "estimated_notes": 1784,
+            "matched_notes": 270,
+            "false_positive_notes": 1514,
+            "missing_notes": 837,
+            "precision": 0.15134529147982062,
+            "recall": 0.24390243902439024,
+            "f1": 0.18678657903839502,
+            "onset_error_mean_ms": 30.804448704741205,
+            "onset_error_p95_absolute_ms": 49.26432914906975
+          },
+          "onset_offset": {
+            "reference_notes": 1089,
+            "estimated_notes": 1736,
+            "matched_notes": 31,
+            "false_positive_notes": 1705,
+            "missing_notes": 1058,
+            "precision": 0.017857142857142856,
+            "recall": 0.028466483011937556,
+            "f1": 0.021946902654867255,
+            "onset_error_mean_ms": 33.06469792010399,
+            "onset_error_p95_absolute_ms": 47.83611634961282
+          },
+          "retriggers": 10,
+          "diagnostics": {
+            "false_positive_notes": 1514,
+            "missing_notes": 837,
+            "false_positive_without_active_reference": 57,
+            "same_pitch_during_reference": 468,
+            "harmonic_interval_false_positives": 184,
+            "false_positive_interval_counts": {
+              "-31": 2,
+              "-27": 3,
+              "-24": 6,
+              "-23": 9,
+              "-21": 2,
+              "-19": 18,
+              "-18": 1,
+              "-17": 6,
+              "-16": 20,
+              "-15": 1,
+              "-14": 4,
+              "-13": 2,
+              "-12": 89,
+              "-11": 5,
+              "-10": 6,
+              "-9": 22,
+              "-8": 17,
+              "-7": 36,
+              "-6": 5,
+              "-5": 30,
+              "-4": 28,
+              "-3": 28,
+              "-2": 28,
+              "-1": 79,
+              "0": 468,
+              "1": 131,
+              "2": 24,
+              "3": 44,
+              "4": 27,
+              "5": 27,
+              "6": 17,
+              "7": 69,
+              "8": 9,
+              "9": 9,
+              "10": 5,
+              "11": 9,
+              "12": 102,
+              "13": 10,
+              "14": 1,
+              "15": 5,
+              "16": 27,
+              "17": 2,
+              "18": 4,
+              "19": 13,
+              "20": 1,
+              "23": 5,
+              "25": 1
+            },
+            "fragmented_reference_notes": 37,
+            "excess_fragments": 38,
+            "maximum_fragments_for_one_reference": 3,
+            "matched_onset_timing": {
+              "median_ms": 34.74269594464641,
+              "p95_absolute_ms": 49.26432914906975
+            },
+            "matched_offset_timing": {
+              "median_ms": 173.29632679080743,
+              "p95_absolute_ms": 814.9957440434654
+            }
+          },
+          "validity": {
+            "invalid_reference_onsets": 0,
+            "invalid_reference_offsets": 18,
+            "invalid_estimated_onsets": 237,
+            "invalid_estimated_offsets": 48
+          }
+        },
+        "automatic_input_level": {
+          "source_id": "336_-D1wc",
+          "dataset_id": "gaps_poly_mix",
+          "group_id": "-D1wc",
+          "capture_id": "gaps_mixed_downmix",
+          "onset": {
+            "reference_notes": 1107,
+            "estimated_notes": 1788,
+            "matched_notes": 270,
+            "false_positive_notes": 1518,
+            "missing_notes": 837,
+            "precision": 0.15100671140939598,
+            "recall": 0.24390243902439024,
+            "f1": 0.18652849740932645,
+            "onset_error_mean_ms": 30.804448704741205,
+            "onset_error_p95_absolute_ms": 49.26432914906975
+          },
+          "onset_offset": {
+            "reference_notes": 1089,
+            "estimated_notes": 1739,
+            "matched_notes": 31,
+            "false_positive_notes": 1708,
+            "missing_notes": 1058,
+            "precision": 0.017826336975273145,
+            "recall": 0.028466483011937556,
+            "f1": 0.021923620933521924,
+            "onset_error_mean_ms": 33.06469792010399,
+            "onset_error_p95_absolute_ms": 47.83611634961282
+          },
+          "retriggers": 10,
+          "diagnostics": {
+            "false_positive_notes": 1518,
+            "missing_notes": 837,
+            "false_positive_without_active_reference": 61,
+            "same_pitch_during_reference": 468,
+            "harmonic_interval_false_positives": 184,
+            "false_positive_interval_counts": {
+              "-31": 2,
+              "-27": 3,
+              "-24": 6,
+              "-23": 9,
+              "-21": 2,
+              "-19": 18,
+              "-18": 1,
+              "-17": 6,
+              "-16": 20,
+              "-15": 1,
+              "-14": 4,
+              "-13": 2,
+              "-12": 89,
+              "-11": 5,
+              "-10": 6,
+              "-9": 22,
+              "-8": 17,
+              "-7": 36,
+              "-6": 5,
+              "-5": 30,
+              "-4": 28,
+              "-3": 28,
+              "-2": 28,
+              "-1": 79,
+              "0": 468,
+              "1": 131,
+              "2": 24,
+              "3": 44,
+              "4": 27,
+              "5": 27,
+              "6": 17,
+              "7": 69,
+              "8": 9,
+              "9": 9,
+              "10": 5,
+              "11": 9,
+              "12": 102,
+              "13": 10,
+              "14": 1,
+              "15": 5,
+              "16": 27,
+              "17": 2,
+              "18": 4,
+              "19": 13,
+              "20": 1,
+              "23": 5,
+              "25": 1
+            },
+            "fragmented_reference_notes": 37,
+            "excess_fragments": 38,
+            "maximum_fragments_for_one_reference": 3,
+            "matched_onset_timing": {
+              "median_ms": 34.74269594464641,
+              "p95_absolute_ms": 49.26432914906975
+            },
+            "matched_offset_timing": {
+              "median_ms": 173.29632679080743,
+              "p95_absolute_ms": 814.9957440434654
+            }
+          },
+          "validity": {
+            "invalid_reference_onsets": 0,
+            "invalid_reference_offsets": 18,
+            "invalid_estimated_onsets": 237,
+            "invalid_estimated_offsets": 49
+          }
+        }
+      },
+      "automatic_minus_baseline": {
+        "onset": {
+          "estimated_notes": 4,
+          "matched_notes": 0,
+          "false_positive_notes": 4,
+          "missing_notes": 0,
+          "precision": -0.00033858007042464333,
+          "recall": 0.0,
+          "f1": -0.00025808162906856835
+        },
+        "onset_offset": {
+          "estimated_notes": 3,
+          "matched_notes": 0,
+          "false_positive_notes": 3,
+          "missing_notes": 0,
+          "precision": -3.0805881869711005e-05,
+          "recall": 0.0,
+          "f1": -2.3281721345330686e-05
+        },
+        "diagnostics": {
+          "false_positive_notes": 4,
+          "missing_notes": 0,
+          "false_positive_without_active_reference": 4,
+          "same_pitch_during_reference": 0,
+          "harmonic_interval_false_positives": 0,
+          "fragmented_reference_notes": 0,
+          "excess_fragments": 0,
+          "maximum_fragments_for_one_reference": 0,
+          "matched_onset_timing": {
+            "median_ms": 0.0,
+            "p95_absolute_ms": 0.0
+          },
+          "matched_offset_timing": {
+            "median_ms": 0.0,
+            "p95_absolute_ms": 0.0
+          },
+          "false_positive_interval_counts": {
+            "-31": 0,
+            "-27": 0,
+            "-24": 0,
+            "-23": 0,
+            "-21": 0,
+            "-19": 0,
+            "-18": 0,
+            "-17": 0,
+            "-16": 0,
+            "-15": 0,
+            "-14": 0,
+            "-13": 0,
+            "-12": 0,
+            "-11": 0,
+            "-10": 0,
+            "-9": 0,
+            "-8": 0,
+            "-7": 0,
+            "-6": 0,
+            "-5": 0,
+            "-4": 0,
+            "-3": 0,
+            "-2": 0,
+            "-1": 0,
+            "0": 0,
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0,
+            "7": 0,
+            "8": 0,
+            "9": 0,
+            "10": 0,
+            "11": 0,
+            "12": 0,
+            "13": 0,
+            "14": 0,
+            "15": 0,
+            "16": 0,
+            "17": 0,
+            "18": 0,
+            "19": 0,
+            "20": 0,
+            "23": 0,
+            "25": 0
+          }
+        }
+      }
+    }
+  ],
+  "output": "C:\\Users\\user\\Desktop\\midi\\runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\reports\\validation_live_input_level_v2_2_1_tflite_1_min0.json"
+}

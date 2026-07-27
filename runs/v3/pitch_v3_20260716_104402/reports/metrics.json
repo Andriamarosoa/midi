@@ -1,0 +1,8 @@
+{
+  "top1": 0.17763157894736842,
+  "top3": 0.4473684210526316,
+  "validation_examples": 152,
+  "best_epoch": 1,
+  "semitone_error_rate": 0.05263157894736842,
+  "octave_error_rate": 0.039473684210526314
+}

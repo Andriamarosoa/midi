@@ -1,0 +1,55 @@
+{
+  "accepted": true,
+  "format": "tflite_float16_weights_float32_io",
+  "selected_on": "validation",
+  "locked_test_used": false,
+  "thresholds_reselected": false,
+  "tflite_sha256": "4a4df49d34c1fd359fab98c20bb598f37c7f42f22493c70923a2e829176df744",
+  "frame_report_sha256": "093ad49edc415b02365af0d48fb6b91021b5b147525c7bf1d4db789f46ed8202",
+  "event_report_sha256": "a73ce2e22606584e082da214a5f358aa43a41cca9ac8abf19f827e62cefccc6f",
+  "frame_validation": {
+    "report": "validation_runtime_fp16_60k.json",
+    "examples": 60000,
+    "report_passed": false,
+    "musical_guardrails_passed": true,
+    "numerical_outlier_exception_reviewed": true,
+    "exception": {
+      "reason": "Two worst-case absolute errors slightly exceed the conservative 0.002 smoke limit, while frozen decisions, F1 and harmonic target metrics pass on all sources.",
+      "frame_maximum_absolute_error": 0.0022611021995544434,
+      "frame_original_limit": 0.002,
+      "harmonic_amplitude_maximum_absolute_error": 0.0020812153816223145,
+      "harmonic_amplitude_original_limit": 0.002
+    },
+    "frame_decision_agreement": 0.9999608108108108,
+    "onset_decision_agreement": 0.9999977477477477,
+    "frame_f1_delta_tflite_minus_keras": 0.000043622359250150566,
+    "onset_f1_delta_tflite_minus_keras": -0.000343192327439637,
+    "harmonic_amplitude_mae_delta_tflite_minus_keras": -0.0000006142103787937225,
+    "harmonic_offset_normalized_mae_delta_tflite_minus_keras": -0.0000010617144443059168
+  },
+  "event_validation": {
+    "report": "validation_runtime_events_fp16.json",
+    "recordings": 12,
+    "passed": true,
+    "onset_f1_delta_tflite_minus_keras": -0.0000640915468870795,
+    "onset_offset_f1_delta_tflite_minus_keras": -0.0000193181267548678,
+    "false_positive_note_delta": 5,
+    "missing_note_delta": 0,
+    "retrigger_delta": 1,
+    "excess_fragment_delta": 1
+  },
+  "latency_validation": {
+    "passed": true,
+    "hop_budget_ms": 5.804988662131519,
+    "recommended_desktop_threads": 3,
+    "recommended_desktop_p95_ms": 2.597485,
+    "recommended_android_threads": 1,
+    "algorithmic_delay_added_by_quantization_ms": 0.0
+  },
+  "onnx_validation": {
+    "passed": true,
+    "opset": 18
+  },
+  "decision_rationale": "Float16 is accepted because full validation shows negligible decision and event drift, unchanged harmonic quality, no additional algorithmic delay and robust live CPU headroom. The small numerical-max exception is retained explicitly rather than weakening or changing the original threshold.",
+  "next_required_gate": "Open the locked test once for final generalization and inverse validation; do not retune from its results."
+}

@@ -1,0 +1,2462 @@
+{
+  "run_dir": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644",
+  "artifact_dir": "artifacts\\guitar_midi_polyphonic_v2_2_0",
+  "split": "validation",
+  "locked_test_used": false,
+  "thresholds_reselected": false,
+  "selection_reused": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\reports\\validation_events_epoch-08.json",
+  "selected_sources": [
+    "336_-D1wc",
+    "gtech_p2_chords_drop3_7_directinput",
+    "gtech_p2_chords_drop3_m7_micamp",
+    "04_BN1-129-Eb_comp",
+    "365_4y1wc",
+    "gtech_p2_chords_drop3_m7b5_directinput",
+    "gtech_p2_chords_drop3_maj7_micamp",
+    "04_BN1-129-Eb_solo",
+    "327_6f1wc",
+    "gtech_p2_chords_set1_7_directinput",
+    "gtech_p2_chords_set1_aug_micamp",
+    "04_BN1-147-Gb_comp"
+  ],
+  "recordings": 12,
+  "tflite_sha256": "4a4df49d34c1fd359fab98c20bb598f37c7f42f22493c70923a2e829176df744",
+  "decoder": {
+    "midi_min": 40,
+    "midi_max": 76,
+    "frame_on_threshold": 0.5349999999999999,
+    "strong_frame_threshold": 0.8,
+    "frame_off_threshold": 0.32099999999999995,
+    "onset_threshold": 0.6649999999999999,
+    "activation_frames": 2,
+    "release_frames": 3,
+    "minimum_retrigger_frames": 14,
+    "silence_release_frames": 2,
+    "maximum_polyphony": 6,
+    "harmonic_suppression_strength": 0.25,
+    "harmonic_tolerance_cents": 35.0
+  },
+  "keras": {
+    "onset": {
+      "reference_notes": 3639,
+      "estimated_notes": 8333,
+      "matched_notes": 919,
+      "false_positive_notes": 7414,
+      "missing_notes": 2720,
+      "precision": 0.11028441137645506,
+      "recall": 0.2525419071173399,
+      "f1": 0.1535248914132977,
+      "onset_error_mean_ms": 26.72671306184489,
+      "onset_error_p95_absolute_ms": 47.87255696752481
+    },
+    "onset_offset": {
+      "reference_notes": 3639,
+      "estimated_notes": 8333,
+      "matched_notes": 277,
+      "false_positive_notes": 8056,
+      "missing_notes": 3362,
+      "precision": 0.03324132965318613,
+      "recall": 0.07611981313547678,
+      "f1": 0.04627464082860007,
+      "onset_error_mean_ms": 25.129595316541746,
+      "onset_error_p95_absolute_ms": 47.578017375303716
+    },
+    "dataset_metrics": {
+      "aggregation": "Micro counts within each dataset; macro or configured-weight mean across dataset scores.",
+      "per_dataset": {
+        "gaps_poly_mix": {
+          "recordings": 3,
+          "onset": {
+            "reference_notes": 2284,
+            "estimated_notes": 4569,
+            "matched_notes": 695,
+            "false_positive_notes": 3874,
+            "missing_notes": 1589,
+            "precision": 0.15211205953162618,
+            "recall": 0.3042907180385289,
+            "f1": 0.20283087698818034
+          },
+          "onset_offset": {
+            "reference_notes": 2284,
+            "estimated_notes": 4569,
+            "matched_notes": 146,
+            "false_positive_notes": 4423,
+            "missing_notes": 2138,
+            "precision": 0.03195447581527686,
+            "recall": 0.063922942206655,
+            "f1": 0.042609076316941476
+          },
+          "retriggers": 38
+        },
+        "guitar_techs_poly_directinput": {
+          "recordings": 3,
+          "onset": {
+            "reference_notes": 603,
+            "estimated_notes": 1766,
+            "matched_notes": 39,
+            "false_positive_notes": 1727,
+            "missing_notes": 564,
+            "precision": 0.022083805209513023,
+            "recall": 0.06467661691542288,
+            "f1": 0.03292528493035036
+          },
+          "onset_offset": {
+            "reference_notes": 603,
+            "estimated_notes": 1766,
+            "matched_notes": 14,
+            "false_positive_notes": 1752,
+            "missing_notes": 589,
+            "precision": 0.007927519818799546,
+            "recall": 0.02321724709784411,
+            "f1": 0.011819333051920641
+          },
+          "retriggers": 89
+        },
+        "guitar_techs_poly_micamp": {
+          "recordings": 3,
+          "onset": {
+            "reference_notes": 414,
+            "estimated_notes": 1451,
+            "matched_notes": 36,
+            "false_positive_notes": 1415,
+            "missing_notes": 378,
+            "precision": 0.024810475534114404,
+            "recall": 0.08695652173913043,
+            "f1": 0.0386058981233244
+          },
+          "onset_offset": {
+            "reference_notes": 414,
+            "estimated_notes": 1451,
+            "matched_notes": 11,
+            "false_positive_notes": 1440,
+            "missing_notes": 403,
+            "precision": 0.007580978635423846,
+            "recall": 0.026570048309178744,
+            "f1": 0.011796246648793566
+          },
+          "retriggers": 197
+        },
+        "guitarset_poly_mix": {
+          "recordings": 3,
+          "onset": {
+            "reference_notes": 338,
+            "estimated_notes": 547,
+            "matched_notes": 149,
+            "false_positive_notes": 398,
+            "missing_notes": 189,
+            "precision": 0.27239488117001825,
+            "recall": 0.4408284023668639,
+            "f1": 0.3367231638418079
+          },
+          "onset_offset": {
+            "reference_notes": 338,
+            "estimated_notes": 547,
+            "matched_notes": 106,
+            "false_positive_notes": 441,
+            "missing_notes": 232,
+            "precision": 0.19378427787934185,
+            "recall": 0.3136094674556213,
+            "f1": 0.23954802259887004
+          },
+          "retriggers": 58
+        }
+      },
+      "macro": {
+        "dataset_count": 4,
+        "onset": {
+          "precision": 0.11785030536131796,
+          "recall": 0.22418806476498654,
+          "f1": 0.15277130597091576
+        },
+        "onset_offset": {
+          "precision": 0.060311813037210525,
+          "recall": 0.10682992626732479,
+          "f1": 0.07644316965413143
+        }
+      },
+      "weighted": {
+        "source": "train.validation_dataset_fractions",
+        "available": true,
+        "configured_weights": {
+          "gaps_poly_mix": 0.35,
+          "guitar_techs_poly_directinput": 0.15,
+          "guitar_techs_poly_micamp": 0.05,
+          "guitarset_poly_mix": 0.45
+        },
+        "missing_selected_datasets": [],
+        "configured_weight_coverage": 1.0,
+        "effective_weights": {
+          "gaps_poly_mix": 0.35,
+          "guitar_techs_poly_directinput": 0.15,
+          "guitar_techs_poly_micamp": 0.05,
+          "guitarset_poly_mix": 0.45
+        },
+        "dataset_count": 4,
+        "onset": {
+          "precision": 0.18037001192071006,
+          "recall": 0.3189238510028438,
+          "f1": 0.22938531832039544
+        },
+        "onset_offset": {
+          "precision": 0.09995516848564186,
+          "recall": 0.1683083796074944,
+          "f1": 0.1250724991706488
+        }
+      }
+    },
+    "retriggers": 382,
+    "diagnostics": {
+      "false_positive_notes": 7414,
+      "missing_notes": 2720,
+      "false_positive_without_active_reference": 574,
+      "same_pitch_during_reference": 2311,
+      "harmonic_interval_false_positives": 587,
+      "false_positive_interval_counts": {
+        "-31": 2,
+        "-28": 1,
+        "-27": 3,
+        "-24": 6,
+        "-23": 10,
+        "-22": 1,
+        "-21": 3,
+        "-20": 5,
+        "-19": 28,
+        "-18": 4,
+        "-17": 12,
+        "-16": 26,
+        "-15": 10,
+        "-14": 9,
+        "-13": 14,
+        "-12": 154,
+        "-11": 18,
+        "-10": 26,
+        "-9": 44,
+        "-8": 50,
+        "-7": 90,
+        "-6": 24,
+        "-5": 102,
+        "-4": 195,
+        "-3": 292,
+        "-2": 304,
+        "-1": 741,
+        "0": 2311,
+        "1": 638,
+        "2": 213,
+        "3": 237,
+        "4": 215,
+        "5": 72,
+        "6": 39,
+        "7": 189,
+        "8": 79,
+        "9": 49,
+        "10": 30,
+        "11": 25,
+        "12": 303,
+        "13": 14,
+        "14": 8,
+        "15": 21,
+        "16": 52,
+        "17": 10,
+        "18": 12,
+        "19": 85,
+        "20": 13,
+        "21": 1,
+        "22": 10,
+        "23": 10,
+        "24": 10,
+        "25": 4,
+        "26": 1,
+        "27": 2,
+        "28": 11,
+        "29": 1,
+        "34": 1
+      },
+      "fragmented_reference_notes": 377,
+      "excess_fragments": 614,
+      "maximum_fragments_for_one_reference": 28,
+      "matched_onset_timing": {
+        "median_ms": 29.211443081521793,
+        "p95_absolute_ms": 47.87255696752481
+      },
+      "matched_offset_timing": {
+        "median_ms": 85.52280970980064,
+        "p95_absolute_ms": 1706.2791487852103
+      }
+    }
+  },
+  "tflite": {
+    "onset": {
+      "reference_notes": 3639,
+      "estimated_notes": 8338,
+      "matched_notes": 919,
+      "false_positive_notes": 7419,
+      "missing_notes": 2720,
+      "precision": 0.11021827776445191,
+      "recall": 0.2525419071173399,
+      "f1": 0.15346079986641062,
+      "onset_error_mean_ms": 26.720396425651057,
+      "onset_error_p95_absolute_ms": 47.87255696752481
+    },
+    "onset_offset": {
+      "reference_notes": 3639,
+      "estimated_notes": 8338,
+      "matched_notes": 277,
+      "false_positive_notes": 8061,
+      "missing_notes": 3362,
+      "precision": 0.03322139601822979,
+      "recall": 0.07611981313547678,
+      "f1": 0.0462553227018452,
+      "onset_error_mean_ms": 25.129595316541746,
+      "onset_error_p95_absolute_ms": 47.578017375303716
+    },
+    "dataset_metrics": {
+      "aggregation": "Micro counts within each dataset; macro or configured-weight mean across dataset scores.",
+      "per_dataset": {
+        "gaps_poly_mix": {
+          "recordings": 3,
+          "onset": {
+            "reference_notes": 2284,
+            "estimated_notes": 4570,
+            "matched_notes": 695,
+            "false_positive_notes": 3875,
+            "missing_notes": 1589,
+            "precision": 0.15207877461706784,
+            "recall": 0.3042907180385289,
+            "f1": 0.2028012839217975
+          },
+          "onset_offset": {
+            "reference_notes": 2284,
+            "estimated_notes": 4570,
+            "matched_notes": 146,
+            "false_positive_notes": 4424,
+            "missing_notes": 2138,
+            "precision": 0.03194748358862144,
+            "recall": 0.063922942206655,
+            "f1": 0.042602859644003496
+          },
+          "retriggers": 38
+        },
+        "guitar_techs_poly_directinput": {
+          "recordings": 3,
+          "onset": {
+            "reference_notes": 603,
+            "estimated_notes": 1768,
+            "matched_notes": 39,
+            "false_positive_notes": 1729,
+            "missing_notes": 564,
+            "precision": 0.022058823529411766,
+            "recall": 0.06467661691542288,
+            "f1": 0.03289751159848166
+          },
+          "onset_offset": {
+            "reference_notes": 603,
+            "estimated_notes": 1768,
+            "matched_notes": 14,
+            "false_positive_notes": 1754,
+            "missing_notes": 589,
+            "precision": 0.007918552036199095,
+            "recall": 0.02321724709784411,
+            "f1": 0.011809363137916489
+          },
+          "retriggers": 89
+        },
+        "guitar_techs_poly_micamp": {
+          "recordings": 3,
+          "onset": {
+            "reference_notes": 414,
+            "estimated_notes": 1453,
+            "matched_notes": 36,
+            "false_positive_notes": 1417,
+            "missing_notes": 378,
+            "precision": 0.02477632484514797,
+            "recall": 0.08695652173913043,
+            "f1": 0.0385645420460632
+          },
+          "onset_offset": {
+            "reference_notes": 414,
+            "estimated_notes": 1453,
+            "matched_notes": 11,
+            "false_positive_notes": 1442,
+            "missing_notes": 403,
+            "precision": 0.007570543702684102,
+            "recall": 0.026570048309178744,
+            "f1": 0.011783610069630423
+          },
+          "retriggers": 198
+        },
+        "guitarset_poly_mix": {
+          "recordings": 3,
+          "onset": {
+            "reference_notes": 338,
+            "estimated_notes": 547,
+            "matched_notes": 149,
+            "false_positive_notes": 398,
+            "missing_notes": 189,
+            "precision": 0.27239488117001825,
+            "recall": 0.4408284023668639,
+            "f1": 0.3367231638418079
+          },
+          "onset_offset": {
+            "reference_notes": 338,
+            "estimated_notes": 547,
+            "matched_notes": 106,
+            "false_positive_notes": 441,
+            "missing_notes": 232,
+            "precision": 0.19378427787934185,
+            "recall": 0.3136094674556213,
+            "f1": 0.23954802259887004
+          },
+          "retriggers": 58
+        }
+      },
+      "macro": {
+        "dataset_count": 4,
+        "onset": {
+          "precision": 0.11782720104041146,
+          "recall": 0.22418806476498654,
+          "f1": 0.15274662535203756
+        },
+        "onset_offset": {
+          "precision": 0.060305214301711624,
+          "recall": 0.10682992626732479,
+          "f1": 0.07643596386260511
+        }
+      },
+      "weighted": {
+        "source": "train.validation_dataset_fractions",
+        "available": true,
+        "configured_weights": {
+          "gaps_poly_mix": 0.35,
+          "guitar_techs_poly_directinput": 0.15,
+          "guitar_techs_poly_micamp": 0.05,
+          "guitarset_poly_mix": 0.45
+        },
+        "missing_selected_datasets": [],
+        "configured_weight_coverage": 1.0,
+        "effective_weights": {
+          "gaps_poly_mix": 0.35,
+          "guitar_techs_poly_directinput": 0.15,
+          "guitar_techs_poly_micamp": 0.05,
+          "guitarset_poly_mix": 0.45
+        },
+        "dataset_count": 4,
+        "onset": {
+          "precision": 0.1803529074141511,
+          "recall": 0.3189238510028438,
+          "f1": 0.2293687269435181
+        },
+        "onset_offset": {
+          "precision": 0.0999508542922854,
+          "recall": 0.1683083796074944,
+          "f1": 0.12506819601906174
+        }
+      }
+    },
+    "retriggers": 383,
+    "diagnostics": {
+      "false_positive_notes": 7419,
+      "missing_notes": 2720,
+      "false_positive_without_active_reference": 575,
+      "same_pitch_during_reference": 2312,
+      "harmonic_interval_false_positives": 588,
+      "false_positive_interval_counts": {
+        "-31": 2,
+        "-28": 1,
+        "-27": 3,
+        "-24": 6,
+        "-23": 10,
+        "-22": 1,
+        "-21": 3,
+        "-20": 5,
+        "-19": 28,
+        "-18": 4,
+        "-17": 13,
+        "-16": 26,
+        "-15": 10,
+        "-14": 9,
+        "-13": 14,
+        "-12": 153,
+        "-11": 18,
+        "-10": 26,
+        "-9": 44,
+        "-8": 50,
+        "-7": 90,
+        "-6": 24,
+        "-5": 101,
+        "-4": 196,
+        "-3": 293,
+        "-2": 303,
+        "-1": 741,
+        "0": 2312,
+        "1": 639,
+        "2": 213,
+        "3": 237,
+        "4": 215,
+        "5": 72,
+        "6": 39,
+        "7": 189,
+        "8": 80,
+        "9": 49,
+        "10": 30,
+        "11": 25,
+        "12": 305,
+        "13": 14,
+        "14": 8,
+        "15": 21,
+        "16": 52,
+        "17": 10,
+        "18": 12,
+        "19": 85,
+        "20": 13,
+        "21": 1,
+        "22": 10,
+        "23": 10,
+        "24": 9,
+        "25": 4,
+        "26": 1,
+        "27": 2,
+        "28": 11,
+        "29": 1,
+        "34": 1
+      },
+      "fragmented_reference_notes": 377,
+      "excess_fragments": 615,
+      "maximum_fragments_for_one_reference": 28,
+      "matched_onset_timing": {
+        "median_ms": 29.211443081521793,
+        "p95_absolute_ms": 47.87255696752481
+      },
+      "matched_offset_timing": {
+        "median_ms": 85.52280970980064,
+        "p95_absolute_ms": 1706.2791487852103
+      }
+    }
+  },
+  "delta": {
+    "onset_f1_tflite_minus_keras": -6.409154688707952e-05,
+    "onset_offset_f1_tflite_minus_keras": -1.9318126754867826e-05,
+    "false_positive_notes": 5,
+    "missing_notes": 0,
+    "retriggers": 1,
+    "excess_fragments": 1,
+    "exact_intervals_added": 69,
+    "exact_intervals_removed": 64,
+    "per_dataset": {
+      "gaps_poly_mix": {
+        "onset": {
+          "f1_tflite_minus_keras": -2.9593066382838096e-05
+        },
+        "onset_offset": {
+          "f1_tflite_minus_keras": -6.216672937979506e-06
+        }
+      },
+      "guitar_techs_poly_directinput": {
+        "onset": {
+          "f1_tflite_minus_keras": -2.7773331868700957e-05
+        },
+        "onset_offset": {
+          "f1_tflite_minus_keras": -9.969914004152175e-06
+        }
+      },
+      "guitar_techs_poly_micamp": {
+        "onset": {
+          "f1_tflite_minus_keras": -4.135607726119678e-05
+        },
+        "onset_offset": {
+          "f1_tflite_minus_keras": -1.2636579163142689e-05
+        }
+      },
+      "guitarset_poly_mix": {
+        "onset": {
+          "f1_tflite_minus_keras": 0.0
+        },
+        "onset_offset": {
+          "f1_tflite_minus_keras": 0.0
+        }
+      }
+    }
+  },
+  "policy": {
+    "maximum_event_f1_drop_global_and_per_dataset": 0.005,
+    "maximum_false_positive_missing_retrigger_fragment_increase": "max(1 note, ceil(1% of Keras baseline))"
+  },
+  "passed": true,
+  "per_recording": [
+    {
+      "source_id": "336_-D1wc",
+      "dataset_id": "gaps_poly_mix",
+      "keras": {
+        "source_id": "336_-D1wc",
+        "dataset_id": "gaps_poly_mix",
+        "group_id": "-D1wc",
+        "capture_id": "gaps_mixed_downmix",
+        "onset": {
+          "reference_notes": 1107,
+          "estimated_notes": 2088,
+          "matched_notes": 264,
+          "false_positive_notes": 1824,
+          "missing_notes": 843,
+          "precision": 0.12643678160919541,
+          "recall": 0.23848238482384823,
+          "f1": 0.1652582159624413,
+          "onset_error_mean_ms": 29.696269034930218,
+          "onset_error_p95_absolute_ms": 48.58763029137165
+        },
+        "onset_offset": {
+          "reference_notes": 1107,
+          "estimated_notes": 2088,
+          "matched_notes": 34,
+          "false_positive_notes": 2054,
+          "missing_notes": 1073,
+          "precision": 0.016283524904214558,
+          "recall": 0.03071364046973803,
+          "f1": 0.021283255086071987,
+          "onset_error_mean_ms": 32.56771165688372,
+          "onset_error_p95_absolute_ms": 47.32904431608648
+        },
+        "retriggers": 20,
+        "diagnostics": {
+          "false_positive_notes": 1824,
+          "missing_notes": 843,
+          "false_positive_without_active_reference": 281,
+          "same_pitch_during_reference": 493,
+          "harmonic_interval_false_positives": 211,
+          "false_positive_interval_counts": {
+            "-31": 2,
+            "-27": 3,
+            "-24": 6,
+            "-23": 9,
+            "-21": 2,
+            "-19": 19,
+            "-18": 1,
+            "-17": 6,
+            "-16": 20,
+            "-15": 1,
+            "-14": 7,
+            "-13": 2,
+            "-12": 86,
+            "-11": 5,
+            "-10": 6,
+            "-9": 23,
+            "-8": 18,
+            "-7": 37,
+            "-6": 5,
+            "-5": 34,
+            "-4": 27,
+            "-3": 32,
+            "-2": 32,
+            "-1": 80,
+            "0": 493,
+            "1": 133,
+            "2": 25,
+            "3": 47,
+            "4": 30,
+            "5": 28,
+            "6": 18,
+            "7": 68,
+            "8": 10,
+            "9": 9,
+            "10": 8,
+            "11": 10,
+            "12": 122,
+            "13": 7,
+            "14": 3,
+            "15": 5,
+            "16": 26,
+            "17": 1,
+            "18": 5,
+            "19": 19,
+            "20": 4,
+            "23": 5,
+            "24": 2,
+            "25": 1,
+            "28": 1
+          },
+          "fragmented_reference_notes": 38,
+          "excess_fragments": 39,
+          "maximum_fragments_for_one_reference": 3,
+          "matched_onset_timing": {
+            "median_ms": 34.19883174421301,
+            "p95_absolute_ms": 48.58763029137165
+          },
+          "matched_offset_timing": {
+            "median_ms": 151.33640142254734,
+            "p95_absolute_ms": 815.6607629685176
+          }
+        }
+      },
+      "tflite": {
+        "source_id": "336_-D1wc",
+        "dataset_id": "gaps_poly_mix",
+        "group_id": "-D1wc",
+        "capture_id": "gaps_mixed_downmix",
+        "onset": {
+          "reference_notes": 1107,
+          "estimated_notes": 2088,
+          "matched_notes": 264,
+          "false_positive_notes": 1824,
+          "missing_notes": 843,
+          "precision": 0.12643678160919541,
+          "recall": 0.23848238482384823,
+          "f1": 0.1652582159624413,
+          "onset_error_mean_ms": 29.696269034930218,
+          "onset_error_p95_absolute_ms": 48.58763029137165
+        },
+        "onset_offset": {
+          "reference_notes": 1107,
+          "estimated_notes": 2088,
+          "matched_notes": 34,
+          "false_positive_notes": 2054,
+          "missing_notes": 1073,
+          "precision": 0.016283524904214558,
+          "recall": 0.03071364046973803,
+          "f1": 0.021283255086071987,
+          "onset_error_mean_ms": 32.56771165688372,
+          "onset_error_p95_absolute_ms": 47.32904431608648
+        },
+        "retriggers": 20,
+        "diagnostics": {
+          "false_positive_notes": 1824,
+          "missing_notes": 843,
+          "false_positive_without_active_reference": 281,
+          "same_pitch_during_reference": 493,
+          "harmonic_interval_false_positives": 213,
+          "false_positive_interval_counts": {
+            "-31": 2,
+            "-27": 3,
+            "-24": 6,
+            "-23": 9,
+            "-21": 2,
+            "-19": 19,
+            "-18": 1,
+            "-17": 6,
+            "-16": 20,
+            "-15": 1,
+            "-14": 7,
+            "-13": 2,
+            "-12": 86,
+            "-11": 5,
+            "-10": 6,
+            "-9": 22,
+            "-8": 18,
+            "-7": 37,
+            "-6": 5,
+            "-5": 33,
+            "-4": 27,
+            "-3": 33,
+            "-2": 31,
+            "-1": 80,
+            "0": 493,
+            "1": 133,
+            "2": 25,
+            "3": 47,
+            "4": 30,
+            "5": 28,
+            "6": 18,
+            "7": 68,
+            "8": 10,
+            "9": 9,
+            "10": 8,
+            "11": 10,
+            "12": 124,
+            "13": 7,
+            "14": 3,
+            "15": 5,
+            "16": 26,
+            "17": 1,
+            "18": 5,
+            "19": 19,
+            "20": 4,
+            "23": 5,
+            "24": 2,
+            "25": 1,
+            "28": 1
+          },
+          "fragmented_reference_notes": 38,
+          "excess_fragments": 39,
+          "maximum_fragments_for_one_reference": 3,
+          "matched_onset_timing": {
+            "median_ms": 34.19883174421301,
+            "p95_absolute_ms": 48.58763029137165
+          },
+          "matched_offset_timing": {
+            "median_ms": 151.33640142254734,
+            "p95_absolute_ms": 815.6607629685176
+          }
+        }
+      }
+    },
+    {
+      "source_id": "gtech_p2_chords_drop3_7_directinput",
+      "dataset_id": "guitar_techs_poly_directinput",
+      "keras": {
+        "source_id": "gtech_p2_chords_drop3_7_directinput",
+        "dataset_id": "guitar_techs_poly_directinput",
+        "group_id": "gtech_p2_chords_drop3_7",
+        "capture_id": "directinput",
+        "onset": {
+          "reference_notes": 208,
+          "estimated_notes": 584,
+          "matched_notes": 17,
+          "false_positive_notes": 567,
+          "missing_notes": 191,
+          "precision": 0.02910958904109589,
+          "recall": 0.08173076923076923,
+          "f1": 0.042929292929292935,
+          "onset_error_mean_ms": 24.854920559565755,
+          "onset_error_p95_absolute_ms": 46.59365394920769
+        },
+        "onset_offset": {
+          "reference_notes": 208,
+          "estimated_notes": 584,
+          "matched_notes": 5,
+          "false_positive_notes": 579,
+          "missing_notes": 203,
+          "precision": 0.008561643835616438,
+          "recall": 0.02403846153846154,
+          "f1": 0.012626262626262624,
+          "onset_error_mean_ms": 21.911760594025154,
+          "onset_error_p95_absolute_ms": 43.03281463138262
+        },
+        "retriggers": 49,
+        "diagnostics": {
+          "false_positive_notes": 567,
+          "missing_notes": 191,
+          "false_positive_without_active_reference": 29,
+          "same_pitch_during_reference": 186,
+          "harmonic_interval_false_positives": 1,
+          "false_positive_interval_counts": {
+            "-22": 1,
+            "-18": 1,
+            "-17": 1,
+            "-13": 3,
+            "-12": 2,
+            "-11": 2,
+            "-10": 7,
+            "-9": 3,
+            "-8": 2,
+            "-7": 4,
+            "-5": 1,
+            "-4": 11,
+            "-3": 37,
+            "-2": 62,
+            "-1": 78,
+            "0": 186,
+            "1": 62,
+            "2": 43,
+            "3": 20,
+            "4": 8,
+            "5": 2,
+            "7": 1,
+            "9": 1
+          },
+          "fragmented_reference_notes": 21,
+          "excess_fragments": 49,
+          "maximum_fragments_for_one_reference": 19,
+          "matched_onset_timing": {
+            "median_ms": 23.264071579149004,
+            "p95_absolute_ms": 46.59365394920769
+          },
+          "matched_offset_timing": {
+            "median_ms": -1363.7719127975067,
+            "p95_absolute_ms": 3423.907712906129
+          }
+        }
+      },
+      "tflite": {
+        "source_id": "gtech_p2_chords_drop3_7_directinput",
+        "dataset_id": "guitar_techs_poly_directinput",
+        "group_id": "gtech_p2_chords_drop3_7",
+        "capture_id": "directinput",
+        "onset": {
+          "reference_notes": 208,
+          "estimated_notes": 585,
+          "matched_notes": 17,
+          "false_positive_notes": 568,
+          "missing_notes": 191,
+          "precision": 0.02905982905982906,
+          "recall": 0.08173076923076923,
+          "f1": 0.04287515762925599,
+          "onset_error_mean_ms": 24.854920559565755,
+          "onset_error_p95_absolute_ms": 46.59365394920769
+        },
+        "onset_offset": {
+          "reference_notes": 208,
+          "estimated_notes": 585,
+          "matched_notes": 5,
+          "false_positive_notes": 580,
+          "missing_notes": 203,
+          "precision": 0.008547008547008548,
+          "recall": 0.02403846153846154,
+          "f1": 0.01261034047919294,
+          "onset_error_mean_ms": 21.911760594025154,
+          "onset_error_p95_absolute_ms": 43.03281463138262
+        },
+        "retriggers": 49,
+        "diagnostics": {
+          "false_positive_notes": 568,
+          "missing_notes": 191,
+          "false_positive_without_active_reference": 30,
+          "same_pitch_during_reference": 186,
+          "harmonic_interval_false_positives": 1,
+          "false_positive_interval_counts": {
+            "-22": 1,
+            "-18": 1,
+            "-17": 1,
+            "-13": 3,
+            "-12": 2,
+            "-11": 2,
+            "-10": 7,
+            "-9": 3,
+            "-8": 2,
+            "-7": 4,
+            "-5": 1,
+            "-4": 11,
+            "-3": 37,
+            "-2": 62,
+            "-1": 78,
+            "0": 186,
+            "1": 62,
+            "2": 43,
+            "3": 20,
+            "4": 8,
+            "5": 2,
+            "7": 1,
+            "9": 1
+          },
+          "fragmented_reference_notes": 21,
+          "excess_fragments": 49,
+          "maximum_fragments_for_one_reference": 19,
+          "matched_onset_timing": {
+            "median_ms": 23.264071579149004,
+            "p95_absolute_ms": 46.59365394920769
+          },
+          "matched_offset_timing": {
+            "median_ms": -1363.7719127975067,
+            "p95_absolute_ms": 3423.907712906129
+          }
+        }
+      }
+    },
+    {
+      "source_id": "gtech_p2_chords_drop3_m7_micamp",
+      "dataset_id": "guitar_techs_poly_micamp",
+      "keras": {
+        "source_id": "gtech_p2_chords_drop3_m7_micamp",
+        "dataset_id": "guitar_techs_poly_micamp",
+        "group_id": "gtech_p2_chords_drop3_m7",
+        "capture_id": "micamp",
+        "onset": {
+          "reference_notes": 208,
+          "estimated_notes": 619,
+          "matched_notes": 11,
+          "false_positive_notes": 608,
+          "missing_notes": 197,
+          "precision": 0.017770597738287562,
+          "recall": 0.052884615384615384,
+          "f1": 0.02660217654171705,
+          "onset_error_mean_ms": 23.6300536053884,
+          "onset_error_p95_absolute_ms": 43.35720365567099
+        },
+        "onset_offset": {
+          "reference_notes": 208,
+          "estimated_notes": 619,
+          "matched_notes": 2,
+          "false_positive_notes": 617,
+          "missing_notes": 206,
+          "precision": 0.0032310177705977385,
+          "recall": 0.009615384615384616,
+          "f1": 0.004836759371221283,
+          "onset_error_mean_ms": 40.51790739690344,
+          "onset_error_p95_absolute_ms": 40.75969867943823
+        },
+        "retriggers": 48,
+        "diagnostics": {
+          "false_positive_notes": 608,
+          "missing_notes": 197,
+          "false_positive_without_active_reference": 35,
+          "same_pitch_during_reference": 209,
+          "harmonic_interval_false_positives": 6,
+          "false_positive_interval_counts": {
+            "-20": 1,
+            "-19": 2,
+            "-14": 1,
+            "-12": 4,
+            "-11": 6,
+            "-10": 1,
+            "-9": 3,
+            "-7": 3,
+            "-4": 18,
+            "-3": 32,
+            "-2": 70,
+            "-1": 82,
+            "0": 209,
+            "1": 56,
+            "2": 35,
+            "3": 28,
+            "4": 12,
+            "7": 6,
+            "8": 2,
+            "9": 1,
+            "16": 1
+          },
+          "fragmented_reference_notes": 34,
+          "excess_fragments": 61,
+          "maximum_fragments_for_one_reference": 12,
+          "matched_onset_timing": {
+            "median_ms": 28.922248200224487,
+            "p95_absolute_ms": 43.35720365567099
+          },
+          "matched_offset_timing": {
+            "median_ms": -2641.5352985269747,
+            "p95_absolute_ms": 3523.4707321547576
+          }
+        }
+      },
+      "tflite": {
+        "source_id": "gtech_p2_chords_drop3_m7_micamp",
+        "dataset_id": "guitar_techs_poly_micamp",
+        "group_id": "gtech_p2_chords_drop3_m7",
+        "capture_id": "micamp",
+        "onset": {
+          "reference_notes": 208,
+          "estimated_notes": 619,
+          "matched_notes": 11,
+          "false_positive_notes": 608,
+          "missing_notes": 197,
+          "precision": 0.017770597738287562,
+          "recall": 0.052884615384615384,
+          "f1": 0.02660217654171705,
+          "onset_error_mean_ms": 23.6300536053884,
+          "onset_error_p95_absolute_ms": 43.35720365567099
+        },
+        "onset_offset": {
+          "reference_notes": 208,
+          "estimated_notes": 619,
+          "matched_notes": 2,
+          "false_positive_notes": 617,
+          "missing_notes": 206,
+          "precision": 0.0032310177705977385,
+          "recall": 0.009615384615384616,
+          "f1": 0.004836759371221283,
+          "onset_error_mean_ms": 40.51790739690344,
+          "onset_error_p95_absolute_ms": 40.75969867943823
+        },
+        "retriggers": 48,
+        "diagnostics": {
+          "false_positive_notes": 608,
+          "missing_notes": 197,
+          "false_positive_without_active_reference": 35,
+          "same_pitch_during_reference": 209,
+          "harmonic_interval_false_positives": 6,
+          "false_positive_interval_counts": {
+            "-20": 1,
+            "-19": 2,
+            "-14": 1,
+            "-12": 3,
+            "-11": 6,
+            "-10": 1,
+            "-9": 4,
+            "-7": 3,
+            "-4": 18,
+            "-3": 32,
+            "-2": 70,
+            "-1": 82,
+            "0": 209,
+            "1": 56,
+            "2": 35,
+            "3": 28,
+            "4": 12,
+            "7": 6,
+            "8": 2,
+            "9": 1,
+            "16": 1
+          },
+          "fragmented_reference_notes": 34,
+          "excess_fragments": 61,
+          "maximum_fragments_for_one_reference": 12,
+          "matched_onset_timing": {
+            "median_ms": 28.922248200224487,
+            "p95_absolute_ms": 43.35720365567099
+          },
+          "matched_offset_timing": {
+            "median_ms": -2641.5352985269747,
+            "p95_absolute_ms": 3523.4707321547576
+          }
+        }
+      }
+    },
+    {
+      "source_id": "04_BN1-129-Eb_comp",
+      "dataset_id": "guitarset_poly_mix",
+      "keras": {
+        "source_id": "04_BN1-129-Eb_comp",
+        "dataset_id": "guitarset_poly_mix",
+        "group_id": "guitarset_04_BN1-129-Eb_comp",
+        "capture_id": "mono_pickup_mix",
+        "onset": {
+          "reference_notes": 127,
+          "estimated_notes": 216,
+          "matched_notes": 48,
+          "false_positive_notes": 168,
+          "missing_notes": 79,
+          "precision": 0.2222222222222222,
+          "recall": 0.3779527559055118,
+          "f1": 0.27988338192419826,
+          "onset_error_mean_ms": 17.111472724342082,
+          "onset_error_p95_absolute_ms": 41.31515050204707
+        },
+        "onset_offset": {
+          "reference_notes": 127,
+          "estimated_notes": 216,
+          "matched_notes": 39,
+          "false_positive_notes": 177,
+          "missing_notes": 88,
+          "precision": 0.18055555555555555,
+          "recall": 0.30708661417322836,
+          "f1": 0.22740524781341107,
+          "onset_error_mean_ms": 18.0747895540142,
+          "onset_error_p95_absolute_ms": 41.92747679656864
+        },
+        "retriggers": 5,
+        "diagnostics": {
+          "false_positive_notes": 168,
+          "missing_notes": 79,
+          "false_positive_without_active_reference": 7,
+          "same_pitch_during_reference": 39,
+          "harmonic_interval_false_positives": 4,
+          "false_positive_interval_counts": {
+            "-23": 1,
+            "-19": 1,
+            "-4": 22,
+            "-3": 4,
+            "-2": 2,
+            "-1": 31,
+            "0": 39,
+            "1": 23,
+            "2": 3,
+            "3": 8,
+            "4": 20,
+            "5": 2,
+            "7": 2,
+            "9": 1,
+            "12": 1,
+            "24": 1
+          },
+          "fragmented_reference_notes": 4,
+          "excess_fragments": 4,
+          "maximum_fragments_for_one_reference": 2,
+          "matched_onset_timing": {
+            "median_ms": 16.138533724137538,
+            "p95_absolute_ms": 41.31515050204707
+          },
+          "matched_offset_timing": {
+            "median_ms": 25.900106170550828,
+            "p95_absolute_ms": 281.98865608725697
+          }
+        }
+      },
+      "tflite": {
+        "source_id": "04_BN1-129-Eb_comp",
+        "dataset_id": "guitarset_poly_mix",
+        "group_id": "guitarset_04_BN1-129-Eb_comp",
+        "capture_id": "mono_pickup_mix",
+        "onset": {
+          "reference_notes": 127,
+          "estimated_notes": 216,
+          "matched_notes": 48,
+          "false_positive_notes": 168,
+          "missing_notes": 79,
+          "precision": 0.2222222222222222,
+          "recall": 0.3779527559055118,
+          "f1": 0.27988338192419826,
+          "onset_error_mean_ms": 17.111472724342082,
+          "onset_error_p95_absolute_ms": 41.31515050204707
+        },
+        "onset_offset": {
+          "reference_notes": 127,
+          "estimated_notes": 216,
+          "matched_notes": 39,
+          "false_positive_notes": 177,
+          "missing_notes": 88,
+          "precision": 0.18055555555555555,
+          "recall": 0.30708661417322836,
+          "f1": 0.22740524781341107,
+          "onset_error_mean_ms": 18.0747895540142,
+          "onset_error_p95_absolute_ms": 41.92747679656864
+        },
+        "retriggers": 5,
+        "diagnostics": {
+          "false_positive_notes": 168,
+          "missing_notes": 79,
+          "false_positive_without_active_reference": 7,
+          "same_pitch_during_reference": 39,
+          "harmonic_interval_false_positives": 4,
+          "false_positive_interval_counts": {
+            "-23": 1,
+            "-19": 1,
+            "-4": 22,
+            "-3": 4,
+            "-2": 2,
+            "-1": 31,
+            "0": 39,
+            "1": 23,
+            "2": 3,
+            "3": 8,
+            "4": 20,
+            "5": 2,
+            "7": 2,
+            "9": 1,
+            "12": 1,
+            "24": 1
+          },
+          "fragmented_reference_notes": 4,
+          "excess_fragments": 4,
+          "maximum_fragments_for_one_reference": 2,
+          "matched_onset_timing": {
+            "median_ms": 16.138533724137538,
+            "p95_absolute_ms": 41.31515050204707
+          },
+          "matched_offset_timing": {
+            "median_ms": 25.900106170550828,
+            "p95_absolute_ms": 281.98865608725697
+          }
+        }
+      }
+    },
+    {
+      "source_id": "365_4y1wc",
+      "dataset_id": "gaps_poly_mix",
+      "keras": {
+        "source_id": "365_4y1wc",
+        "dataset_id": "gaps_poly_mix",
+        "group_id": "4y1wc",
+        "capture_id": "gaps_mixed_downmix",
+        "onset": {
+          "reference_notes": 675,
+          "estimated_notes": 1486,
+          "matched_notes": 281,
+          "false_positive_notes": 1205,
+          "missing_notes": 394,
+          "precision": 0.18909825033647376,
+          "recall": 0.4162962962962963,
+          "f1": 0.26006478482184175,
+          "onset_error_mean_ms": 26.90197978625835,
+          "onset_error_p95_absolute_ms": 46.686032526615406
+        },
+        "onset_offset": {
+          "reference_notes": 675,
+          "estimated_notes": 1486,
+          "matched_notes": 106,
+          "false_positive_notes": 1380,
+          "missing_notes": 569,
+          "precision": 0.07133243606998654,
+          "recall": 0.15703703703703703,
+          "f1": 0.09810273021749191,
+          "onset_error_mean_ms": 27.501569397105687,
+          "onset_error_p95_absolute_ms": 47.70458645290887
+        },
+        "retriggers": 11,
+        "diagnostics": {
+          "false_positive_notes": 1205,
+          "missing_notes": 394,
+          "false_positive_without_active_reference": 15,
+          "same_pitch_during_reference": 413,
+          "harmonic_interval_false_positives": 184,
+          "false_positive_interval_counts": {
+            "-19": 2,
+            "-18": 1,
+            "-17": 3,
+            "-16": 4,
+            "-15": 1,
+            "-12": 7,
+            "-11": 1,
+            "-10": 2,
+            "-9": 4,
+            "-8": 8,
+            "-7": 9,
+            "-6": 5,
+            "-5": 33,
+            "-4": 29,
+            "-3": 46,
+            "-2": 25,
+            "-1": 78,
+            "0": 413,
+            "1": 93,
+            "2": 31,
+            "3": 48,
+            "4": 47,
+            "5": 17,
+            "6": 12,
+            "7": 72,
+            "8": 36,
+            "9": 7,
+            "10": 13,
+            "11": 8,
+            "12": 92,
+            "13": 3,
+            "15": 2,
+            "16": 3,
+            "17": 7,
+            "18": 3,
+            "19": 18,
+            "20": 3,
+            "23": 1,
+            "24": 2,
+            "27": 1
+          },
+          "fragmented_reference_notes": 92,
+          "excess_fragments": 148,
+          "maximum_fragments_for_one_reference": 5,
+          "matched_onset_timing": {
+            "median_ms": 29.162030209221257,
+            "p95_absolute_ms": 46.686032526615406
+          },
+          "matched_offset_timing": {
+            "median_ms": 72.3720323904331,
+            "p95_absolute_ms": 1311.4554490415956
+          }
+        }
+      },
+      "tflite": {
+        "source_id": "365_4y1wc",
+        "dataset_id": "gaps_poly_mix",
+        "group_id": "4y1wc",
+        "capture_id": "gaps_mixed_downmix",
+        "onset": {
+          "reference_notes": 675,
+          "estimated_notes": 1487,
+          "matched_notes": 281,
+          "false_positive_notes": 1206,
+          "missing_notes": 394,
+          "precision": 0.18897108271687962,
+          "recall": 0.4162962962962963,
+          "f1": 0.25994449583718776,
+          "onset_error_mean_ms": 26.88132146361733,
+          "onset_error_p95_absolute_ms": 46.686032526615406
+        },
+        "onset_offset": {
+          "reference_notes": 675,
+          "estimated_notes": 1487,
+          "matched_notes": 106,
+          "false_positive_notes": 1381,
+          "missing_notes": 569,
+          "precision": 0.07128446536650974,
+          "recall": 0.15703703703703703,
+          "f1": 0.09805735430157261,
+          "onset_error_mean_ms": 27.501569397105687,
+          "onset_error_p95_absolute_ms": 47.70458645290887
+        },
+        "retriggers": 11,
+        "diagnostics": {
+          "false_positive_notes": 1206,
+          "missing_notes": 394,
+          "false_positive_without_active_reference": 15,
+          "same_pitch_during_reference": 413,
+          "harmonic_interval_false_positives": 184,
+          "false_positive_interval_counts": {
+            "-19": 2,
+            "-18": 1,
+            "-17": 3,
+            "-16": 4,
+            "-15": 1,
+            "-12": 7,
+            "-11": 1,
+            "-10": 2,
+            "-9": 4,
+            "-8": 8,
+            "-7": 9,
+            "-6": 5,
+            "-5": 33,
+            "-4": 29,
+            "-3": 46,
+            "-2": 25,
+            "-1": 78,
+            "0": 413,
+            "1": 94,
+            "2": 31,
+            "3": 48,
+            "4": 47,
+            "5": 17,
+            "6": 12,
+            "7": 72,
+            "8": 36,
+            "9": 7,
+            "10": 13,
+            "11": 8,
+            "12": 92,
+            "13": 3,
+            "15": 2,
+            "16": 3,
+            "17": 7,
+            "18": 3,
+            "19": 18,
+            "20": 3,
+            "23": 1,
+            "24": 2,
+            "27": 1
+          },
+          "fragmented_reference_notes": 92,
+          "excess_fragments": 148,
+          "maximum_fragments_for_one_reference": 5,
+          "matched_onset_timing": {
+            "median_ms": 29.162030209221257,
+            "p95_absolute_ms": 46.686032526615406
+          },
+          "matched_offset_timing": {
+            "median_ms": 72.3720323904331,
+            "p95_absolute_ms": 1311.4554490415956
+          }
+        }
+      }
+    },
+    {
+      "source_id": "gtech_p2_chords_drop3_m7b5_directinput",
+      "dataset_id": "guitar_techs_poly_directinput",
+      "keras": {
+        "source_id": "gtech_p2_chords_drop3_m7b5_directinput",
+        "dataset_id": "guitar_techs_poly_directinput",
+        "group_id": "gtech_p2_chords_drop3_m7b5",
+        "capture_id": "directinput",
+        "onset": {
+          "reference_notes": 206,
+          "estimated_notes": 541,
+          "matched_notes": 11,
+          "false_positive_notes": 530,
+          "missing_notes": 195,
+          "precision": 0.02033271719038817,
+          "recall": 0.05339805825242718,
+          "f1": 0.029451137884872827,
+          "onset_error_mean_ms": 24.075369121299982,
+          "onset_error_p95_absolute_ms": 46.0300744850386
+        },
+        "onset_offset": {
+          "reference_notes": 206,
+          "estimated_notes": 541,
+          "matched_notes": 4,
+          "false_positive_notes": 537,
+          "missing_notes": 202,
+          "precision": 0.0073937153419593345,
+          "recall": 0.019417475728155338,
+          "f1": 0.010709504685408301,
+          "onset_error_mean_ms": 33.22901300291869,
+          "onset_error_p95_absolute_ms": 45.24100765132939
+        },
+        "retriggers": 32,
+        "diagnostics": {
+          "false_positive_notes": 530,
+          "missing_notes": 195,
+          "false_positive_without_active_reference": 20,
+          "same_pitch_during_reference": 180,
+          "harmonic_interval_false_positives": 2,
+          "false_positive_interval_counts": {
+            "-20": 1,
+            "-16": 1,
+            "-15": 1,
+            "-14": 1,
+            "-13": 2,
+            "-12": 4,
+            "-11": 1,
+            "-10": 4,
+            "-9": 1,
+            "-8": 1,
+            "-7": 2,
+            "-6": 2,
+            "-4": 17,
+            "-3": 25,
+            "-2": 61,
+            "-1": 91,
+            "0": 180,
+            "1": 42,
+            "2": 42,
+            "3": 19,
+            "4": 7,
+            "6": 2,
+            "7": 2,
+            "9": 1
+          },
+          "fragmented_reference_notes": 20,
+          "excess_fragments": 31,
+          "maximum_fragments_for_one_reference": 8,
+          "matched_onset_timing": {
+            "median_ms": 23.414099751686734,
+            "p95_absolute_ms": 46.0300744850386
+          },
+          "matched_offset_timing": {
+            "median_ms": -1689.2391628689154,
+            "p95_absolute_ms": 3111.6378888197173
+          }
+        }
+      },
+      "tflite": {
+        "source_id": "gtech_p2_chords_drop3_m7b5_directinput",
+        "dataset_id": "guitar_techs_poly_directinput",
+        "group_id": "gtech_p2_chords_drop3_m7b5",
+        "capture_id": "directinput",
+        "onset": {
+          "reference_notes": 206,
+          "estimated_notes": 542,
+          "matched_notes": 11,
+          "false_positive_notes": 531,
+          "missing_notes": 195,
+          "precision": 0.02029520295202952,
+          "recall": 0.05339805825242718,
+          "f1": 0.029411764705882353,
+          "onset_error_mean_ms": 24.075369121299982,
+          "onset_error_p95_absolute_ms": 46.0300744850386
+        },
+        "onset_offset": {
+          "reference_notes": 206,
+          "estimated_notes": 542,
+          "matched_notes": 4,
+          "false_positive_notes": 538,
+          "missing_notes": 202,
+          "precision": 0.007380073800738007,
+          "recall": 0.019417475728155338,
+          "f1": 0.010695187165775399,
+          "onset_error_mean_ms": 33.22901300291869,
+          "onset_error_p95_absolute_ms": 45.24100765132939
+        },
+        "retriggers": 32,
+        "diagnostics": {
+          "false_positive_notes": 531,
+          "missing_notes": 195,
+          "false_positive_without_active_reference": 20,
+          "same_pitch_during_reference": 180,
+          "harmonic_interval_false_positives": 2,
+          "false_positive_interval_counts": {
+            "-20": 1,
+            "-16": 1,
+            "-15": 1,
+            "-14": 1,
+            "-13": 2,
+            "-12": 4,
+            "-11": 1,
+            "-10": 4,
+            "-9": 1,
+            "-8": 1,
+            "-7": 2,
+            "-6": 2,
+            "-4": 18,
+            "-3": 25,
+            "-2": 61,
+            "-1": 91,
+            "0": 180,
+            "1": 42,
+            "2": 42,
+            "3": 19,
+            "4": 7,
+            "6": 2,
+            "7": 2,
+            "9": 1
+          },
+          "fragmented_reference_notes": 20,
+          "excess_fragments": 31,
+          "maximum_fragments_for_one_reference": 8,
+          "matched_onset_timing": {
+            "median_ms": 23.414099751686734,
+            "p95_absolute_ms": 46.0300744850386
+          },
+          "matched_offset_timing": {
+            "median_ms": -1689.2391628689154,
+            "p95_absolute_ms": 3111.6378888197173
+          }
+        }
+      }
+    },
+    {
+      "source_id": "gtech_p2_chords_drop3_maj7_micamp",
+      "dataset_id": "guitar_techs_poly_micamp",
+      "keras": {
+        "source_id": "gtech_p2_chords_drop3_maj7_micamp",
+        "dataset_id": "guitar_techs_poly_micamp",
+        "group_id": "gtech_p2_chords_drop3_maj7",
+        "capture_id": "micamp",
+        "onset": {
+          "reference_notes": 168,
+          "estimated_notes": 645,
+          "matched_notes": 18,
+          "false_positive_notes": 627,
+          "missing_notes": 150,
+          "precision": 0.027906976744186046,
+          "recall": 0.10714285714285714,
+          "f1": 0.04428044280442805,
+          "onset_error_mean_ms": 18.963797362809853,
+          "onset_error_p95_absolute_ms": 41.742135153875275
+        },
+        "onset_offset": {
+          "reference_notes": 168,
+          "estimated_notes": 645,
+          "matched_notes": 7,
+          "false_positive_notes": 638,
+          "missing_notes": 161,
+          "precision": 0.010852713178294573,
+          "recall": 0.041666666666666664,
+          "f1": 0.017220172201722016,
+          "onset_error_mean_ms": 11.240675298863339,
+          "onset_error_p95_absolute_ms": 40.455676158809695
+        },
+        "retriggers": 126,
+        "diagnostics": {
+          "false_positive_notes": 627,
+          "missing_notes": 150,
+          "false_positive_without_active_reference": 68,
+          "same_pitch_during_reference": 182,
+          "harmonic_interval_false_positives": 3,
+          "false_positive_interval_counts": {
+            "-28": 1,
+            "-20": 1,
+            "-19": 2,
+            "-18": 1,
+            "-17": 1,
+            "-15": 2,
+            "-13": 2,
+            "-12": 6,
+            "-11": 3,
+            "-10": 1,
+            "-9": 1,
+            "-8": 2,
+            "-7": 4,
+            "-5": 7,
+            "-4": 22,
+            "-3": 22,
+            "-2": 26,
+            "-1": 94,
+            "0": 182,
+            "1": 103,
+            "2": 7,
+            "3": 26,
+            "4": 21,
+            "5": 8,
+            "7": 3,
+            "8": 3,
+            "9": 7,
+            "16": 1
+          },
+          "fragmented_reference_notes": 26,
+          "excess_fragments": 68,
+          "maximum_fragments_for_one_reference": 28,
+          "matched_onset_timing": {
+            "median_ms": 17.884487575955177,
+            "p95_absolute_ms": 41.742135153875275
+          },
+          "matched_offset_timing": {
+            "median_ms": -1456.9870886078215,
+            "p95_absolute_ms": 3486.1889445159986
+          }
+        }
+      },
+      "tflite": {
+        "source_id": "gtech_p2_chords_drop3_maj7_micamp",
+        "dataset_id": "guitar_techs_poly_micamp",
+        "group_id": "gtech_p2_chords_drop3_maj7",
+        "capture_id": "micamp",
+        "onset": {
+          "reference_notes": 168,
+          "estimated_notes": 646,
+          "matched_notes": 18,
+          "false_positive_notes": 628,
+          "missing_notes": 150,
+          "precision": 0.02786377708978328,
+          "recall": 0.10714285714285714,
+          "f1": 0.04422604422604422,
+          "onset_error_mean_ms": 18.963797362809853,
+          "onset_error_p95_absolute_ms": 41.742135153875275
+        },
+        "onset_offset": {
+          "reference_notes": 168,
+          "estimated_notes": 646,
+          "matched_notes": 7,
+          "false_positive_notes": 639,
+          "missing_notes": 161,
+          "precision": 0.010835913312693499,
+          "recall": 0.041666666666666664,
+          "f1": 0.0171990171990172,
+          "onset_error_mean_ms": 11.240675298863339,
+          "onset_error_p95_absolute_ms": 40.455676158809695
+        },
+        "retriggers": 126,
+        "diagnostics": {
+          "false_positive_notes": 628,
+          "missing_notes": 150,
+          "false_positive_without_active_reference": 68,
+          "same_pitch_during_reference": 182,
+          "harmonic_interval_false_positives": 3,
+          "false_positive_interval_counts": {
+            "-28": 1,
+            "-20": 1,
+            "-19": 2,
+            "-18": 1,
+            "-17": 2,
+            "-15": 2,
+            "-13": 2,
+            "-12": 6,
+            "-11": 3,
+            "-10": 1,
+            "-9": 1,
+            "-8": 2,
+            "-7": 4,
+            "-5": 7,
+            "-4": 22,
+            "-3": 22,
+            "-2": 26,
+            "-1": 94,
+            "0": 182,
+            "1": 103,
+            "2": 7,
+            "3": 26,
+            "4": 21,
+            "5": 8,
+            "7": 3,
+            "8": 3,
+            "9": 7,
+            "16": 1
+          },
+          "fragmented_reference_notes": 26,
+          "excess_fragments": 68,
+          "maximum_fragments_for_one_reference": 28,
+          "matched_onset_timing": {
+            "median_ms": 17.884487575955177,
+            "p95_absolute_ms": 41.742135153875275
+          },
+          "matched_offset_timing": {
+            "median_ms": -1456.9870886078215,
+            "p95_absolute_ms": 3486.1889445159986
+          }
+        }
+      }
+    },
+    {
+      "source_id": "04_BN1-129-Eb_solo",
+      "dataset_id": "guitarset_poly_mix",
+      "keras": {
+        "source_id": "04_BN1-129-Eb_solo",
+        "dataset_id": "guitarset_poly_mix",
+        "group_id": "guitarset_04_BN1-129-Eb_solo",
+        "capture_id": "mono_pickup_mix",
+        "onset": {
+          "reference_notes": 42,
+          "estimated_notes": 72,
+          "matched_notes": 39,
+          "false_positive_notes": 33,
+          "missing_notes": 3,
+          "precision": 0.5416666666666666,
+          "recall": 0.9285714285714286,
+          "f1": 0.6842105263157894,
+          "onset_error_mean_ms": 8.945730890851568,
+          "onset_error_p95_absolute_ms": 37.31201429648171
+        },
+        "onset_offset": {
+          "reference_notes": 42,
+          "estimated_notes": 72,
+          "matched_notes": 27,
+          "false_positive_notes": 45,
+          "missing_notes": 15,
+          "precision": 0.375,
+          "recall": 0.6428571428571429,
+          "f1": 0.4736842105263159,
+          "onset_error_mean_ms": 9.12436717261579,
+          "onset_error_p95_absolute_ms": 42.07232386617132
+        },
+        "retriggers": 3,
+        "diagnostics": {
+          "false_positive_notes": 33,
+          "missing_notes": 3,
+          "false_positive_without_active_reference": 6,
+          "same_pitch_during_reference": 4,
+          "harmonic_interval_false_positives": 8,
+          "false_positive_interval_counts": {
+            "-1": 4,
+            "0": 4,
+            "1": 9,
+            "12": 8,
+            "13": 2
+          },
+          "fragmented_reference_notes": 2,
+          "excess_fragments": 2,
+          "maximum_fragments_for_one_reference": 2,
+          "matched_onset_timing": {
+            "median_ms": 6.648140559120108,
+            "p95_absolute_ms": 37.31201429648171
+          },
+          "matched_offset_timing": {
+            "median_ms": 30.435387682752335,
+            "p95_absolute_ms": 240.65315859009493
+          }
+        }
+      },
+      "tflite": {
+        "source_id": "04_BN1-129-Eb_solo",
+        "dataset_id": "guitarset_poly_mix",
+        "group_id": "guitarset_04_BN1-129-Eb_solo",
+        "capture_id": "mono_pickup_mix",
+        "onset": {
+          "reference_notes": 42,
+          "estimated_notes": 72,
+          "matched_notes": 39,
+          "false_positive_notes": 33,
+          "missing_notes": 3,
+          "precision": 0.5416666666666666,
+          "recall": 0.9285714285714286,
+          "f1": 0.6842105263157894,
+          "onset_error_mean_ms": 8.945730890851568,
+          "onset_error_p95_absolute_ms": 37.31201429648171
+        },
+        "onset_offset": {
+          "reference_notes": 42,
+          "estimated_notes": 72,
+          "matched_notes": 27,
+          "false_positive_notes": 45,
+          "missing_notes": 15,
+          "precision": 0.375,
+          "recall": 0.6428571428571429,
+          "f1": 0.4736842105263159,
+          "onset_error_mean_ms": 9.12436717261579,
+          "onset_error_p95_absolute_ms": 42.07232386617132
+        },
+        "retriggers": 3,
+        "diagnostics": {
+          "false_positive_notes": 33,
+          "missing_notes": 3,
+          "false_positive_without_active_reference": 6,
+          "same_pitch_during_reference": 4,
+          "harmonic_interval_false_positives": 8,
+          "false_positive_interval_counts": {
+            "-1": 4,
+            "0": 4,
+            "1": 9,
+            "12": 8,
+            "13": 2
+          },
+          "fragmented_reference_notes": 2,
+          "excess_fragments": 2,
+          "maximum_fragments_for_one_reference": 2,
+          "matched_onset_timing": {
+            "median_ms": 6.648140559120108,
+            "p95_absolute_ms": 37.31201429648171
+          },
+          "matched_offset_timing": {
+            "median_ms": 30.435387682752335,
+            "p95_absolute_ms": 240.65315859009493
+          }
+        }
+      }
+    },
+    {
+      "source_id": "327_6f1wc",
+      "dataset_id": "gaps_poly_mix",
+      "keras": {
+        "source_id": "327_6f1wc",
+        "dataset_id": "gaps_poly_mix",
+        "group_id": "6f1wc",
+        "capture_id": "gaps_mixed_downmix",
+        "onset": {
+          "reference_notes": 502,
+          "estimated_notes": 995,
+          "matched_notes": 150,
+          "false_positive_notes": 845,
+          "missing_notes": 352,
+          "precision": 0.1507537688442211,
+          "recall": 0.29880478087649404,
+          "f1": 0.20040080160320642,
+          "onset_error_mean_ms": 29.544702745439256,
+          "onset_error_p95_absolute_ms": 48.10961469879293
+        },
+        "onset_offset": {
+          "reference_notes": 502,
+          "estimated_notes": 995,
+          "matched_notes": 6,
+          "false_positive_notes": 989,
+          "missing_notes": 496,
+          "precision": 0.006030150753768844,
+          "recall": 0.01195219123505976,
+          "f1": 0.008016032064128258,
+          "onset_error_mean_ms": 29.682902496871222,
+          "onset_error_p95_absolute_ms": 40.311092973569274
+        },
+        "retriggers": 7,
+        "diagnostics": {
+          "false_positive_notes": 845,
+          "missing_notes": 352,
+          "false_positive_without_active_reference": 52,
+          "same_pitch_during_reference": 196,
+          "harmonic_interval_false_positives": 166,
+          "false_positive_interval_counts": {
+            "-19": 2,
+            "-16": 1,
+            "-15": 3,
+            "-13": 2,
+            "-12": 32,
+            "-10": 1,
+            "-9": 5,
+            "-8": 3,
+            "-7": 20,
+            "-6": 2,
+            "-5": 12,
+            "-4": 17,
+            "-3": 34,
+            "-2": 5,
+            "-1": 53,
+            "0": 196,
+            "1": 26,
+            "2": 4,
+            "3": 19,
+            "4": 29,
+            "5": 13,
+            "6": 4,
+            "7": 33,
+            "8": 21,
+            "9": 22,
+            "10": 9,
+            "11": 7,
+            "12": 80,
+            "13": 2,
+            "14": 5,
+            "15": 13,
+            "16": 21,
+            "17": 2,
+            "18": 4,
+            "19": 48,
+            "20": 6,
+            "21": 1,
+            "22": 10,
+            "23": 4,
+            "24": 5,
+            "25": 3,
+            "26": 1,
+            "27": 1,
+            "28": 10,
+            "29": 1,
+            "34": 1
+          },
+          "fragmented_reference_notes": 35,
+          "excess_fragments": 46,
+          "maximum_fragments_for_one_reference": 5,
+          "matched_onset_timing": {
+            "median_ms": 31.032954970726223,
+            "p95_absolute_ms": 48.10961469879293
+          },
+          "matched_offset_timing": {
+            "median_ms": 336.94081191843674,
+            "p95_absolute_ms": 1060.8179157975014
+          }
+        }
+      },
+      "tflite": {
+        "source_id": "327_6f1wc",
+        "dataset_id": "gaps_poly_mix",
+        "group_id": "6f1wc",
+        "capture_id": "gaps_mixed_downmix",
+        "onset": {
+          "reference_notes": 502,
+          "estimated_notes": 995,
+          "matched_notes": 150,
+          "false_positive_notes": 845,
+          "missing_notes": 352,
+          "precision": 0.1507537688442211,
+          "recall": 0.29880478087649404,
+          "f1": 0.20040080160320642,
+          "onset_error_mean_ms": 29.544702745439256,
+          "onset_error_p95_absolute_ms": 48.10961469879293
+        },
+        "onset_offset": {
+          "reference_notes": 502,
+          "estimated_notes": 995,
+          "matched_notes": 6,
+          "false_positive_notes": 989,
+          "missing_notes": 496,
+          "precision": 0.006030150753768844,
+          "recall": 0.01195219123505976,
+          "f1": 0.008016032064128258,
+          "onset_error_mean_ms": 29.682902496871222,
+          "onset_error_p95_absolute_ms": 40.311092973569274
+        },
+        "retriggers": 7,
+        "diagnostics": {
+          "false_positive_notes": 845,
+          "missing_notes": 352,
+          "false_positive_without_active_reference": 52,
+          "same_pitch_during_reference": 196,
+          "harmonic_interval_false_positives": 165,
+          "false_positive_interval_counts": {
+            "-19": 2,
+            "-16": 1,
+            "-15": 3,
+            "-13": 2,
+            "-12": 32,
+            "-10": 1,
+            "-9": 5,
+            "-8": 3,
+            "-7": 20,
+            "-6": 2,
+            "-5": 12,
+            "-4": 17,
+            "-3": 34,
+            "-2": 5,
+            "-1": 53,
+            "0": 196,
+            "1": 26,
+            "2": 4,
+            "3": 19,
+            "4": 29,
+            "5": 13,
+            "6": 4,
+            "7": 33,
+            "8": 22,
+            "9": 22,
+            "10": 9,
+            "11": 7,
+            "12": 80,
+            "13": 2,
+            "14": 5,
+            "15": 13,
+            "16": 21,
+            "17": 2,
+            "18": 4,
+            "19": 48,
+            "20": 6,
+            "21": 1,
+            "22": 10,
+            "23": 4,
+            "24": 4,
+            "25": 3,
+            "26": 1,
+            "27": 1,
+            "28": 10,
+            "29": 1,
+            "34": 1
+          },
+          "fragmented_reference_notes": 35,
+          "excess_fragments": 46,
+          "maximum_fragments_for_one_reference": 5,
+          "matched_onset_timing": {
+            "median_ms": 31.032954970726223,
+            "p95_absolute_ms": 48.10961469879293
+          },
+          "matched_offset_timing": {
+            "median_ms": 336.94081191843674,
+            "p95_absolute_ms": 1060.8179157975014
+          }
+        }
+      }
+    },
+    {
+      "source_id": "gtech_p2_chords_set1_7_directinput",
+      "dataset_id": "guitar_techs_poly_directinput",
+      "keras": {
+        "source_id": "gtech_p2_chords_set1_7_directinput",
+        "dataset_id": "guitar_techs_poly_directinput",
+        "group_id": "gtech_p2_chords_set1_7",
+        "capture_id": "directinput",
+        "onset": {
+          "reference_notes": 189,
+          "estimated_notes": 641,
+          "matched_notes": 11,
+          "false_positive_notes": 630,
+          "missing_notes": 178,
+          "precision": 0.0171606864274571,
+          "recall": 0.0582010582010582,
+          "f1": 0.026506024096385538,
+          "onset_error_mean_ms": 31.031117746938733,
+          "onset_error_p95_absolute_ms": 46.89516841689567
+        },
+        "onset_offset": {
+          "reference_notes": 189,
+          "estimated_notes": 641,
+          "matched_notes": 5,
+          "false_positive_notes": 636,
+          "missing_notes": 184,
+          "precision": 0.0078003120124804995,
+          "recall": 0.026455026455026454,
+          "f1": 0.012048192771084336,
+          "onset_error_mean_ms": 28.62906209033156,
+          "onset_error_p95_absolute_ms": 46.809283820954306
+        },
+        "retriggers": 8,
+        "diagnostics": {
+          "false_positive_notes": 630,
+          "missing_notes": 178,
+          "false_positive_without_active_reference": 45,
+          "same_pitch_during_reference": 249,
+          "harmonic_interval_false_positives": 1,
+          "false_positive_interval_counts": {
+            "-21": 1,
+            "-13": 3,
+            "-12": 6,
+            "-10": 4,
+            "-9": 4,
+            "-8": 1,
+            "-7": 10,
+            "-6": 10,
+            "-5": 10,
+            "-4": 9,
+            "-3": 59,
+            "-2": 21,
+            "-1": 86,
+            "0": 249,
+            "1": 57,
+            "2": 21,
+            "3": 16,
+            "4": 8,
+            "5": 1,
+            "6": 3,
+            "7": 1,
+            "8": 4,
+            "15": 1
+          },
+          "fragmented_reference_notes": 61,
+          "excess_fragments": 81,
+          "maximum_fragments_for_one_reference": 5,
+          "matched_onset_timing": {
+            "median_ms": 34.45069604990181,
+            "p95_absolute_ms": 46.89516841689567
+          },
+          "matched_offset_timing": {
+            "median_ms": -859.4323436365095,
+            "p95_absolute_ms": 1483.3483957649598
+          }
+        }
+      },
+      "tflite": {
+        "source_id": "gtech_p2_chords_set1_7_directinput",
+        "dataset_id": "guitar_techs_poly_directinput",
+        "group_id": "gtech_p2_chords_set1_7",
+        "capture_id": "directinput",
+        "onset": {
+          "reference_notes": 189,
+          "estimated_notes": 641,
+          "matched_notes": 11,
+          "false_positive_notes": 630,
+          "missing_notes": 178,
+          "precision": 0.0171606864274571,
+          "recall": 0.0582010582010582,
+          "f1": 0.026506024096385538,
+          "onset_error_mean_ms": 31.031117746938733,
+          "onset_error_p95_absolute_ms": 46.89516841689567
+        },
+        "onset_offset": {
+          "reference_notes": 189,
+          "estimated_notes": 641,
+          "matched_notes": 5,
+          "false_positive_notes": 636,
+          "missing_notes": 184,
+          "precision": 0.0078003120124804995,
+          "recall": 0.026455026455026454,
+          "f1": 0.012048192771084336,
+          "onset_error_mean_ms": 28.62906209033156,
+          "onset_error_p95_absolute_ms": 46.809283820954306
+        },
+        "retriggers": 8,
+        "diagnostics": {
+          "false_positive_notes": 630,
+          "missing_notes": 178,
+          "false_positive_without_active_reference": 45,
+          "same_pitch_during_reference": 249,
+          "harmonic_interval_false_positives": 1,
+          "false_positive_interval_counts": {
+            "-21": 1,
+            "-13": 3,
+            "-12": 6,
+            "-10": 4,
+            "-9": 4,
+            "-8": 1,
+            "-7": 10,
+            "-6": 10,
+            "-5": 10,
+            "-4": 9,
+            "-3": 59,
+            "-2": 21,
+            "-1": 86,
+            "0": 249,
+            "1": 57,
+            "2": 21,
+            "3": 16,
+            "4": 8,
+            "5": 1,
+            "6": 3,
+            "7": 1,
+            "8": 4,
+            "15": 1
+          },
+          "fragmented_reference_notes": 61,
+          "excess_fragments": 81,
+          "maximum_fragments_for_one_reference": 5,
+          "matched_onset_timing": {
+            "median_ms": 34.45069604990181,
+            "p95_absolute_ms": 46.89516841689567
+          },
+          "matched_offset_timing": {
+            "median_ms": -859.4323436365095,
+            "p95_absolute_ms": 1483.3483957649598
+          }
+        }
+      }
+    },
+    {
+      "source_id": "gtech_p2_chords_set1_aug_micamp",
+      "dataset_id": "guitar_techs_poly_micamp",
+      "keras": {
+        "source_id": "gtech_p2_chords_set1_aug_micamp",
+        "dataset_id": "guitar_techs_poly_micamp",
+        "group_id": "gtech_p2_chords_set1_aug",
+        "capture_id": "micamp",
+        "onset": {
+          "reference_notes": 38,
+          "estimated_notes": 187,
+          "matched_notes": 7,
+          "false_positive_notes": 180,
+          "missing_notes": 31,
+          "precision": 0.0374331550802139,
+          "recall": 0.18421052631578946,
+          "f1": 0.062222222222222213,
+          "onset_error_mean_ms": 25.168313135316616,
+          "onset_error_p95_absolute_ms": 46.87215442614274
+        },
+        "onset_offset": {
+          "reference_notes": 38,
+          "estimated_notes": 187,
+          "matched_notes": 2,
+          "false_positive_notes": 185,
+          "missing_notes": 36,
+          "precision": 0.0106951871657754,
+          "recall": 0.05263157894736842,
+          "f1": 0.017777777777777778,
+          "onset_error_mean_ms": 35.22152422777225,
+          "onset_error_p95_absolute_ms": 45.72692070093822
+        },
+        "retriggers": 23,
+        "diagnostics": {
+          "false_positive_notes": 180,
+          "missing_notes": 31,
+          "false_positive_without_active_reference": 5,
+          "same_pitch_during_reference": 82,
+          "harmonic_interval_false_positives": 0,
+          "false_positive_interval_counts": {
+            "-20": 2,
+            "-12": 5,
+            "-8": 15,
+            "-5": 3,
+            "-4": 16,
+            "-1": 21,
+            "0": 82,
+            "1": 15,
+            "3": 5,
+            "4": 9,
+            "5": 1,
+            "8": 1
+          },
+          "fragmented_reference_notes": 19,
+          "excess_fragments": 51,
+          "maximum_fragments_for_one_reference": 21,
+          "matched_onset_timing": {
+            "median_ms": 17.824546485257997,
+            "p95_absolute_ms": 46.87215442614274
+          },
+          "matched_offset_timing": {
+            "median_ms": -1985.5143445203094,
+            "p95_absolute_ms": 2628.8685956898735
+          }
+        }
+      },
+      "tflite": {
+        "source_id": "gtech_p2_chords_set1_aug_micamp",
+        "dataset_id": "guitar_techs_poly_micamp",
+        "group_id": "gtech_p2_chords_set1_aug",
+        "capture_id": "micamp",
+        "onset": {
+          "reference_notes": 38,
+          "estimated_notes": 188,
+          "matched_notes": 7,
+          "false_positive_notes": 181,
+          "missing_notes": 31,
+          "precision": 0.03723404255319149,
+          "recall": 0.18421052631578946,
+          "f1": 0.061946902654867256,
+          "onset_error_mean_ms": 25.168313135316616,
+          "onset_error_p95_absolute_ms": 46.87215442614274
+        },
+        "onset_offset": {
+          "reference_notes": 38,
+          "estimated_notes": 188,
+          "matched_notes": 2,
+          "false_positive_notes": 186,
+          "missing_notes": 36,
+          "precision": 0.010638297872340425,
+          "recall": 0.05263157894736842,
+          "f1": 0.017699115044247787,
+          "onset_error_mean_ms": 35.22152422777225,
+          "onset_error_p95_absolute_ms": 45.72692070093822
+        },
+        "retriggers": 24,
+        "diagnostics": {
+          "false_positive_notes": 181,
+          "missing_notes": 31,
+          "false_positive_without_active_reference": 5,
+          "same_pitch_during_reference": 83,
+          "harmonic_interval_false_positives": 0,
+          "false_positive_interval_counts": {
+            "-20": 2,
+            "-12": 5,
+            "-8": 15,
+            "-5": 3,
+            "-4": 16,
+            "-1": 21,
+            "0": 83,
+            "1": 15,
+            "3": 5,
+            "4": 9,
+            "5": 1,
+            "8": 1
+          },
+          "fragmented_reference_notes": 19,
+          "excess_fragments": 52,
+          "maximum_fragments_for_one_reference": 22,
+          "matched_onset_timing": {
+            "median_ms": 17.824546485257997,
+            "p95_absolute_ms": 46.87215442614274
+          },
+          "matched_offset_timing": {
+            "median_ms": -1985.5143445203094,
+            "p95_absolute_ms": 2628.8685956898735
+          }
+        }
+      }
+    },
+    {
+      "source_id": "04_BN1-147-Gb_comp",
+      "dataset_id": "guitarset_poly_mix",
+      "keras": {
+        "source_id": "04_BN1-147-Gb_comp",
+        "dataset_id": "guitarset_poly_mix",
+        "group_id": "guitarset_04_BN1-147-Gb_comp",
+        "capture_id": "mono_pickup_mix",
+        "onset": {
+          "reference_notes": 169,
+          "estimated_notes": 259,
+          "matched_notes": 62,
+          "false_positive_notes": 197,
+          "missing_notes": 107,
+          "precision": 0.23938223938223938,
+          "recall": 0.3668639053254438,
+          "f1": 0.2897196261682243,
+          "onset_error_mean_ms": 28.298003421748337,
+          "onset_error_p95_absolute_ms": 48.16412596583683
+        },
+        "onset_offset": {
+          "reference_notes": 169,
+          "estimated_notes": 259,
+          "matched_notes": 40,
+          "false_positive_notes": 219,
+          "missing_notes": 129,
+          "precision": 0.15444015444015444,
+          "recall": 0.23668639053254437,
+          "f1": 0.18691588785046725,
+          "onset_error_mean_ms": 29.831836830837364,
+          "onset_error_p95_absolute_ms": 48.20606392797746
+        },
+        "retriggers": 50,
+        "diagnostics": {
+          "false_positive_notes": 197,
+          "missing_notes": 107,
+          "false_positive_without_active_reference": 11,
+          "same_pitch_during_reference": 78,
+          "harmonic_interval_false_positives": 1,
+          "false_positive_interval_counts": {
+            "-17": 1,
+            "-15": 2,
+            "-12": 2,
+            "-7": 1,
+            "-5": 2,
+            "-4": 7,
+            "-3": 1,
+            "-1": 43,
+            "0": 78,
+            "1": 19,
+            "2": 2,
+            "3": 1,
+            "4": 24,
+            "7": 1,
+            "8": 2
+          },
+          "fragmented_reference_notes": 25,
+          "excess_fragments": 34,
+          "maximum_fragments_for_one_reference": 5,
+          "matched_onset_timing": {
+            "median_ms": 33.888112762076844,
+            "p95_absolute_ms": 48.16412596583683
+          },
+          "matched_offset_timing": {
+            "median_ms": 3.8425405549893377,
+            "p95_absolute_ms": 307.76964685435746
+          }
+        }
+      },
+      "tflite": {
+        "source_id": "04_BN1-147-Gb_comp",
+        "dataset_id": "guitarset_poly_mix",
+        "group_id": "guitarset_04_BN1-147-Gb_comp",
+        "capture_id": "mono_pickup_mix",
+        "onset": {
+          "reference_notes": 169,
+          "estimated_notes": 259,
+          "matched_notes": 62,
+          "false_positive_notes": 197,
+          "missing_notes": 107,
+          "precision": 0.23938223938223938,
+          "recall": 0.3668639053254438,
+          "f1": 0.2897196261682243,
+          "onset_error_mean_ms": 28.298003421748337,
+          "onset_error_p95_absolute_ms": 48.16412596583683
+        },
+        "onset_offset": {
+          "reference_notes": 169,
+          "estimated_notes": 259,
+          "matched_notes": 40,
+          "false_positive_notes": 219,
+          "missing_notes": 129,
+          "precision": 0.15444015444015444,
+          "recall": 0.23668639053254437,
+          "f1": 0.18691588785046725,
+          "onset_error_mean_ms": 29.831836830837364,
+          "onset_error_p95_absolute_ms": 48.20606392797746
+        },
+        "retriggers": 50,
+        "diagnostics": {
+          "false_positive_notes": 197,
+          "missing_notes": 107,
+          "false_positive_without_active_reference": 11,
+          "same_pitch_during_reference": 78,
+          "harmonic_interval_false_positives": 1,
+          "false_positive_interval_counts": {
+            "-17": 1,
+            "-15": 2,
+            "-12": 2,
+            "-7": 1,
+            "-5": 2,
+            "-4": 7,
+            "-3": 1,
+            "-1": 43,
+            "0": 78,
+            "1": 19,
+            "2": 2,
+            "3": 1,
+            "4": 24,
+            "7": 1,
+            "8": 2
+          },
+          "fragmented_reference_notes": 25,
+          "excess_fragments": 34,
+          "maximum_fragments_for_one_reference": 5,
+          "matched_onset_timing": {
+            "median_ms": 33.888112762076844,
+            "p95_absolute_ms": 48.16412596583683
+          },
+          "matched_offset_timing": {
+            "median_ms": 3.8425405549893377,
+            "p95_absolute_ms": 307.76964685435746
+          }
+        }
+      }
+    }
+  ]
+}

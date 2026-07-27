@@ -1,0 +1,3074 @@
+{
+  "artifacts": "artifacts\\guitar_midi_polyphonic_v2_2_0",
+  "manifest": "data\\dataset\\polyphonic_v2_2_combined\\manifest.csv",
+  "dataset_id": null,
+  "split": "test",
+  "locked_test_opened_after_selection": true,
+  "recordings": 12,
+  "selection_policy": "Dataset-balanced round-robin; highest valid polyphonic-frame counts first; distinct groups; contaminated groups excluded.",
+  "excluded_group_ids": [
+    "1M1wc",
+    "1w1wc",
+    "441wc",
+    "4w1wc",
+    "5N1wc",
+    "BSswc",
+    "GD1wc",
+    "Jw1wc",
+    "Lf1wc",
+    "Ny1wc",
+    "VD1wc",
+    "Vpswc",
+    "W41wc",
+    "XD1wc",
+    "Zpswc",
+    "bc1wc",
+    "c41wc",
+    "cw1wc",
+    "gk1wc",
+    "gtech_p3_music_02",
+    "gtech_p3_music_03",
+    "gtech_p3_music_05",
+    "gtech_p3_music_06",
+    "gtech_p3_music_08",
+    "gtech_p3_music_09",
+    "gtech_p3_music_10",
+    "gtech_p3_music_11",
+    "gtech_p3_music_12",
+    "guitarset_05_BN3-119-G_solo",
+    "guitarset_05_Funk1-114-Ab_comp",
+    "guitarset_05_Funk1-97-C_comp",
+    "guitarset_05_Funk2-119-G_solo",
+    "guitarset_05_Funk3-112-C#_solo",
+    "guitarset_05_Jazz2-110-Bb_comp",
+    "guitarset_05_Jazz2-187-F#_solo",
+    "guitarset_05_Jazz3-137-Eb_comp",
+    "guitarset_05_Rock2-85-F_comp",
+    "guitarset_05_SS1-68-E_comp",
+    "guitarset_05_SS2-107-Ab_comp",
+    "guitarset_05_SS2-88-F_comp",
+    "guitarset_05_SS2-88-F_solo",
+    "mf1wc",
+    "pM1wc",
+    "rc1wc",
+    "sy1wc",
+    "vpswc",
+    "xf1wc",
+    "y41wc"
+  ],
+  "wav_to_midi_ghost_check": {
+    "reference_notes": 4916,
+    "estimated_notes": 8485,
+    "matched_notes": 1623,
+    "false_positive_notes": 6862,
+    "missing_notes": 3293,
+    "precision": 0.19127872716558633,
+    "recall": 0.33014646053702196,
+    "f1": 0.24222072979628384,
+    "onset_error_mean_ms": 24.361026489963013,
+    "onset_error_p95_absolute_ms": 47.822240193668364
+  },
+  "midi_to_wav_missing_check": {
+    "reference_notes": 4916,
+    "estimated_notes": 8485,
+    "matched_notes": 1623,
+    "false_positive_notes": 6862,
+    "missing_notes": 3293,
+    "precision": 0.19127872716558633,
+    "recall": 0.33014646053702196,
+    "f1": 0.24222072979628384,
+    "onset_error_mean_ms": 24.361026489963013,
+    "onset_error_p95_absolute_ms": 47.822240193668364,
+    "interpretation": "Reference WAV annotations not recovered by generated MIDI."
+  },
+  "onset_offset": {
+    "reference_notes": 4916,
+    "estimated_notes": 8485,
+    "matched_notes": 462,
+    "false_positive_notes": 8023,
+    "missing_notes": 4454,
+    "precision": 0.054449027695934,
+    "recall": 0.09397884458909683,
+    "f1": 0.06895007835236176,
+    "onset_error_mean_ms": 22.333975098916568,
+    "onset_error_p95_absolute_ms": 47.25173791246107
+  },
+  "spectral_inverse": {
+    "generated_to_wav": {
+      "class_counts": {
+        "annotation_supported": 1623,
+        "harmonic_suspect": 17,
+        "spectrally_supported_unmatched": 5499,
+        "unsupported": 712,
+        "weak": 634
+      },
+      "spectral_ratio": {
+        "count": 8485,
+        "mean": 0.6930832127891117,
+        "median": 0.8440021502280025,
+        "p10": 0.11638265223358504
+      }
+    },
+    "wav_to_generated": {
+      "missing_annotation_notes": 3293,
+      "spectrally_strong_missing": 1932,
+      "spectral_ratio": {
+        "count": 3293,
+        "mean": 0.4450212517799551,
+        "median": 0.33216956587859503,
+        "p10": 0.0570617249964524
+      }
+    },
+    "latency_impact": "Offline diagnostic only; zero added live algorithmic latency."
+  },
+  "per_recording": [
+    {
+      "source_id": "111_hf1wc",
+      "dataset_id": "gaps_poly_mix",
+      "group_id": "hf1wc",
+      "split": "test",
+      "source_audio": "data\\dataset\\polyphonic_v2_1_gaps\\audio_44100_mono_int16\\111_hf1wc.npy",
+      "source_audio_member": "",
+      "generated_midi": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\reports\\test_inverse_v2_2\\111_hf1wc.mid",
+      "product": {
+        "input_wav": "data\\dataset\\polyphonic_v2_1_gaps\\audio_44100_mono_int16\\111_hf1wc.npy",
+        "output_midi": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\reports\\test_inverse_v2_2\\111_hf1wc.mid",
+        "duration_s": 250.2995238095238,
+        "events": 4154,
+        "note_on_events": 2077,
+        "silent_priming_hops": 172,
+        "audio_evidence": {
+          "calibrated": true,
+          "audio_hop_index": 43118,
+          "synthetic_priming_hops": 172,
+          "onset_detector_tick_index": 43291,
+          "audio_activity_gate": {
+            "calibrated": true,
+            "calibration_stable": true,
+            "minimum_calibration_hops": 172,
+            "maximum_calibration_hops": 517,
+            "calibration_hops_seen": 172,
+            "calibration_extended_hops": 0,
+            "tail_hops": 69,
+            "tail_spread_db": 0.0,
+            "open_threshold_dbfs": -72.0,
+            "close_threshold_dbfs": -75.0,
+            "active": false
+          }
+        },
+        "inference_ms": {
+          "mean": 4.081891753055589,
+          "p95": 8.761919999986384,
+          "max": 358.2584000000111
+        },
+        "input_audio_member": "",
+        "validation_pcm_reencode": "FLOAT"
+      },
+      "wav_to_midi_ghost_check": {
+        "reference_notes": 850,
+        "estimated_notes": 2077,
+        "matched_notes": 338,
+        "false_positive_notes": 1739,
+        "missing_notes": 512,
+        "precision": 0.16273471352912855,
+        "recall": 0.3976470588235294,
+        "f1": 0.23095319439699352,
+        "onset_error_mean_ms": 32.86634577801982,
+        "onset_error_p95_absolute_ms": 48.514148394267906
+      },
+      "midi_to_wav_missing_check": {
+        "reference_notes": 850,
+        "estimated_notes": 2077,
+        "matched_notes": 338,
+        "false_positive_notes": 1739,
+        "missing_notes": 512,
+        "precision": 0.16273471352912855,
+        "recall": 0.3976470588235294,
+        "f1": 0.23095319439699352,
+        "onset_error_mean_ms": 32.86634577801982,
+        "onset_error_p95_absolute_ms": 48.514148394267906,
+        "interpretation": "Reference WAV annotations not recovered by generated MIDI."
+      },
+      "onset_offset": {
+        "reference_notes": 850,
+        "estimated_notes": 2077,
+        "matched_notes": 69,
+        "false_positive_notes": 2008,
+        "missing_notes": 781,
+        "precision": 0.03322099181511796,
+        "recall": 0.0811764705882353,
+        "f1": 0.047147249743764955,
+        "onset_error_mean_ms": 32.28697154832944,
+        "onset_error_p95_absolute_ms": 49.429931640621305
+      },
+      "spectral_inverse": {
+        "policy": "Aligned annotations are primary; causal 4096-sample FFT probes at 0/1/2/4 hops after onset are an independent diagnostic.",
+        "generated_to_wav": {
+          "notes": 2077,
+          "class_counts": {
+            "annotation_supported": 338,
+            "harmonic_suspect": 5,
+            "spectrally_supported_unmatched": 1308,
+            "unsupported": 209,
+            "weak": 217
+          },
+          "spectral_ratio": {
+            "count": 2077,
+            "mean": 0.6539479916945946,
+            "median": 0.7650714817878352,
+            "p10": 0.0946739967196581
+          },
+          "suspect_examples": [
+            {
+              "pitch": 54,
+              "start_s": 3.553125,
+              "duration_ms": 203.125,
+              "spectral_support_ratio": 0.050039626470667516,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 60,
+              "start_s": 3.7677083333333337,
+              "duration_ms": 383.3333333333324,
+              "spectral_support_ratio": 0.020851827395626507,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 59,
+              "start_s": 4.864583333333333,
+              "duration_ms": 185.4166666666668,
+              "spectral_support_ratio": 0.034308589470345145,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 52,
+              "start_s": 8.521875,
+              "duration_ms": 394.7916666666664,
+              "spectral_support_ratio": 0.03489905674238687,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 41,
+              "start_s": 10.234375,
+              "duration_ms": 92.70833333333428,
+              "spectral_support_ratio": 0.04467721712000014,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 45,
+              "start_s": 10.367708333333335,
+              "duration_ms": 237.49999999999892,
+              "spectral_support_ratio": 0.04907067893484933,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 41,
+              "start_s": 10.884375,
+              "duration_ms": 173.9583333333332,
+              "spectral_support_ratio": 0.03905611338687591,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 62,
+              "start_s": 11.830208333333333,
+              "duration_ms": 325.0000000000011,
+              "spectral_support_ratio": 0.034663154049570495,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 53,
+              "start_s": 12.0625,
+              "duration_ms": 69.79166666666536,
+              "spectral_support_ratio": 0.023436744684909454,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 55,
+              "start_s": 12.190625,
+              "duration_ms": 371.8749999999993,
+              "spectral_support_ratio": 0.0994591919284182,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 55,
+              "start_s": 12.701041666666667,
+              "duration_ms": 191.66666666666643,
+              "spectral_support_ratio": 0.07858675539952663,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 53,
+              "start_s": 12.991666666666665,
+              "duration_ms": 81.25000000000071,
+              "spectral_support_ratio": 0.0183251945187601,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 60,
+              "start_s": 15.069791666666665,
+              "duration_ms": 266.66666666666924,
+              "spectral_support_ratio": 0.060825675338647904,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 60,
+              "start_s": 15.522916666666665,
+              "duration_ms": 138.54166666666856,
+              "spectral_support_ratio": 0.058038012286865226,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 40,
+              "start_s": 16.834375,
+              "duration_ms": 307.2916666666679,
+              "spectral_support_ratio": 0.08496945565263957,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 62,
+              "start_s": 16.944791666666667,
+              "duration_ms": 226.0416666666636,
+              "spectral_support_ratio": 0.009989696376408794,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 63,
+              "start_s": 18.442708333333332,
+              "duration_ms": 121.87499999999929,
+              "spectral_support_ratio": 0.07403180705523238,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 40,
+              "start_s": 19.121875,
+              "duration_ms": 661.4583333333321,
+              "spectral_support_ratio": 0.0782267697020685,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 40,
+              "start_s": 19.957291666666666,
+              "duration_ms": 232.291666666665,
+              "spectral_support_ratio": 0.057006981506056896,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 40,
+              "start_s": 20.520833333333332,
+              "duration_ms": 74.99999999999929,
+              "spectral_support_ratio": 0.0725143357716065,
+              "classification": "unsupported"
+            }
+          ]
+        },
+        "wav_to_generated": {
+          "missing_annotation_notes": 512,
+          "spectrally_strong_missing": 200,
+          "spectral_ratio": {
+            "count": 512,
+            "mean": 0.3026406017333602,
+            "median": 0.17208607498814232,
+            "p10": 0.039963452610204224
+          }
+        },
+        "latency_impact": "Offline diagnostic only; zero added live algorithmic latency."
+      }
+    },
+    {
+      "source_id": "gtech_p3_music_01_directinput",
+      "dataset_id": "guitar_techs_poly_directinput",
+      "group_id": "gtech_p3_music_01",
+      "split": "test",
+      "source_audio": "data\\dataset\\polyphonic_v2_2_guitar_techs\\audio_44100_mono_int16\\gtech_p3_music_01_directinput.npy",
+      "source_audio_member": "",
+      "generated_midi": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\reports\\test_inverse_v2_2\\gtech_p3_music_01_directinput.mid",
+      "product": {
+        "input_wav": "data\\dataset\\polyphonic_v2_2_guitar_techs\\audio_44100_mono_int16\\gtech_p3_music_01_directinput.npy",
+        "output_midi": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\reports\\test_inverse_v2_2\\gtech_p3_music_01_directinput.mid",
+        "duration_s": 72.5,
+        "events": 794,
+        "note_on_events": 397,
+        "silent_priming_hops": 172,
+        "audio_evidence": {
+          "calibrated": true,
+          "audio_hop_index": 12489,
+          "synthetic_priming_hops": 172,
+          "onset_detector_tick_index": 12662,
+          "audio_activity_gate": {
+            "calibrated": true,
+            "calibration_stable": true,
+            "minimum_calibration_hops": 172,
+            "maximum_calibration_hops": 517,
+            "calibration_hops_seen": 172,
+            "calibration_extended_hops": 0,
+            "tail_hops": 69,
+            "tail_spread_db": 0.0,
+            "open_threshold_dbfs": -72.0,
+            "close_threshold_dbfs": -75.0,
+            "active": true
+          }
+        },
+        "inference_ms": {
+          "mean": 1.8040650120091863,
+          "p95": 4.475780000026929,
+          "max": 91.36369999998806
+        },
+        "input_audio_member": "",
+        "validation_pcm_reencode": "FLOAT"
+      },
+      "wav_to_midi_ghost_check": {
+        "reference_notes": 181,
+        "estimated_notes": 397,
+        "matched_notes": 76,
+        "false_positive_notes": 321,
+        "missing_notes": 105,
+        "precision": 0.19143576826196473,
+        "recall": 0.4198895027624309,
+        "f1": 0.2629757785467128,
+        "onset_error_mean_ms": 17.370043990708464,
+        "onset_error_p95_absolute_ms": 46.366882324219816
+      },
+      "midi_to_wav_missing_check": {
+        "reference_notes": 181,
+        "estimated_notes": 397,
+        "matched_notes": 76,
+        "false_positive_notes": 321,
+        "missing_notes": 105,
+        "precision": 0.19143576826196473,
+        "recall": 0.4198895027624309,
+        "f1": 0.2629757785467128,
+        "onset_error_mean_ms": 17.370043990708464,
+        "onset_error_p95_absolute_ms": 46.366882324219816,
+        "interpretation": "Reference WAV annotations not recovered by generated MIDI."
+      },
+      "onset_offset": {
+        "reference_notes": 181,
+        "estimated_notes": 397,
+        "matched_notes": 49,
+        "false_positive_notes": 348,
+        "missing_notes": 132,
+        "precision": 0.12342569269521411,
+        "recall": 0.27071823204419887,
+        "f1": 0.16955017301038064,
+        "onset_error_mean_ms": 17.39189617943979,
+        "onset_error_p95_absolute_ms": 46.36866251627794
+      },
+      "spectral_inverse": {
+        "policy": "Aligned annotations are primary; causal 4096-sample FFT probes at 0/1/2/4 hops after onset are an independent diagnostic.",
+        "generated_to_wav": {
+          "notes": 397,
+          "class_counts": {
+            "annotation_supported": 76,
+            "spectrally_supported_unmatched": 269,
+            "unsupported": 45,
+            "weak": 7
+          },
+          "spectral_ratio": {
+            "count": 397,
+            "mean": 0.7987354720211765,
+            "median": 1.0,
+            "p10": 0.07307444293581968
+          },
+          "suspect_examples": [
+            {
+              "pitch": 50,
+              "start_s": 0.7197916666666666,
+              "duration_ms": 162.49999999999997,
+              "spectral_support_ratio": 0.004800497227505983,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 49,
+              "start_s": 1.7125,
+              "duration_ms": 359.375,
+              "spectral_support_ratio": 0.040929616728224504,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 51,
+              "start_s": 2.078125,
+              "duration_ms": 69.7916666666667,
+              "spectral_support_ratio": 0.012835981088244389,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 50,
+              "start_s": 3.2333333333333334,
+              "duration_ms": 319.7916666666667,
+              "spectral_support_ratio": 0.004106224550800629,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 50,
+              "start_s": 4.011458333333334,
+              "duration_ms": 69.79166666666626,
+              "spectral_support_ratio": 0.003701182886230258,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 51,
+              "start_s": 5.688541666666667,
+              "duration_ms": 186.4583333333334,
+              "spectral_support_ratio": 0.004992978151505379,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 50,
+              "start_s": 5.776041666666667,
+              "duration_ms": 104.16666666666607,
+              "spectral_support_ratio": 0.002761648184258063,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 49,
+              "start_s": 6.669791666666667,
+              "duration_ms": 354.16666666666606,
+              "spectral_support_ratio": 0.060145485981469356,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 50,
+              "start_s": 7.215625,
+              "duration_ms": 144.79166666666643,
+              "spectral_support_ratio": 0.0015456367187354225,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 51,
+              "start_s": 11.964583333333334,
+              "duration_ms": 57.291666666666075,
+              "spectral_support_ratio": 0.010440631085062387,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 50,
+              "start_s": 15.708333333333334,
+              "duration_ms": 209.37499999999966,
+              "spectral_support_ratio": 0.003937268456603243,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 49,
+              "start_s": 16.660416666666666,
+              "duration_ms": 400.00000000000216,
+              "spectral_support_ratio": 0.04871481161349453,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 50,
+              "start_s": 18.18125,
+              "duration_ms": 185.41666666666856,
+              "spectral_support_ratio": 0.00757118380461063,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 52,
+              "start_s": 24.20104166666667,
+              "duration_ms": 104.1666666666643,
+              "spectral_support_ratio": 0.09075221430564342,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 51,
+              "start_s": 36.05520833333333,
+              "duration_ms": 400.0000000000057,
+              "spectral_support_ratio": 0.01399899946791236,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 50,
+              "start_s": 37.697916666666664,
+              "duration_ms": 325.00000000000284,
+              "spectral_support_ratio": 0.01650729257118887,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 53,
+              "start_s": 40.05416666666667,
+              "duration_ms": 64.58333333333144,
+              "spectral_support_ratio": 0.006714529205325401,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 54,
+              "start_s": 41.56979166666667,
+              "duration_ms": 63.54166666666572,
+              "spectral_support_ratio": 0.07512413670374354,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 54,
+              "start_s": 41.72604166666667,
+              "duration_ms": 679.1666666666672,
+              "spectral_support_ratio": 0.06535784366071899,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 54,
+              "start_s": 42.95104166666666,
+              "duration_ms": 232.29166666667567,
+              "spectral_support_ratio": 0.07578187050687621,
+              "classification": "unsupported"
+            }
+          ]
+        },
+        "wav_to_generated": {
+          "missing_annotation_notes": 105,
+          "spectrally_strong_missing": 82,
+          "spectral_ratio": {
+            "count": 105,
+            "mean": 0.5474343322611309,
+            "median": 0.47288621171475337,
+            "p10": 0.16039977689208507
+          }
+        },
+        "latency_impact": "Offline diagnostic only; zero added live algorithmic latency."
+      }
+    },
+    {
+      "source_id": "gtech_p3_music_04_micamp",
+      "dataset_id": "guitar_techs_poly_micamp",
+      "group_id": "gtech_p3_music_04",
+      "split": "test",
+      "source_audio": "data\\dataset\\polyphonic_v2_2_guitar_techs\\audio_44100_mono_int16\\gtech_p3_music_04_micamp.npy",
+      "source_audio_member": "",
+      "generated_midi": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\reports\\test_inverse_v2_2\\gtech_p3_music_04_micamp.mid",
+      "product": {
+        "input_wav": "data\\dataset\\polyphonic_v2_2_guitar_techs\\audio_44100_mono_int16\\gtech_p3_music_04_micamp.npy",
+        "output_midi": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\reports\\test_inverse_v2_2\\gtech_p3_music_04_micamp.mid",
+        "duration_s": 37.08473922902494,
+        "events": 524,
+        "note_on_events": 262,
+        "silent_priming_hops": 172,
+        "audio_evidence": {
+          "calibrated": true,
+          "audio_hop_index": 6388,
+          "synthetic_priming_hops": 172,
+          "onset_detector_tick_index": 6561,
+          "audio_activity_gate": {
+            "calibrated": true,
+            "calibration_stable": true,
+            "minimum_calibration_hops": 172,
+            "maximum_calibration_hops": 517,
+            "calibration_hops_seen": 172,
+            "calibration_extended_hops": 0,
+            "tail_hops": 69,
+            "tail_spread_db": 0.0,
+            "open_threshold_dbfs": -72.0,
+            "close_threshold_dbfs": -75.0,
+            "active": true
+          }
+        },
+        "inference_ms": {
+          "mean": 1.5540955392076132,
+          "p95": 2.2939400000268493,
+          "max": 14.619600000003175
+        },
+        "input_audio_member": "",
+        "validation_pcm_reencode": "FLOAT"
+      },
+      "wav_to_midi_ghost_check": {
+        "reference_notes": 157,
+        "estimated_notes": 262,
+        "matched_notes": 69,
+        "false_positive_notes": 193,
+        "missing_notes": 88,
+        "precision": 0.2633587786259542,
+        "recall": 0.4394904458598726,
+        "f1": 0.32935560859188545,
+        "onset_error_mean_ms": 16.449746392343403,
+        "onset_error_p95_absolute_ms": 44.39547220865873
+      },
+      "midi_to_wav_missing_check": {
+        "reference_notes": 157,
+        "estimated_notes": 262,
+        "matched_notes": 69,
+        "false_positive_notes": 193,
+        "missing_notes": 88,
+        "precision": 0.2633587786259542,
+        "recall": 0.4394904458598726,
+        "f1": 0.32935560859188545,
+        "onset_error_mean_ms": 16.449746392343403,
+        "onset_error_p95_absolute_ms": 44.39547220865873,
+        "interpretation": "Reference WAV annotations not recovered by generated MIDI."
+      },
+      "onset_offset": {
+        "reference_notes": 157,
+        "estimated_notes": 262,
+        "matched_notes": 29,
+        "false_positive_notes": 233,
+        "missing_notes": 128,
+        "precision": 0.11068702290076336,
+        "recall": 0.18471337579617833,
+        "f1": 0.13842482100238665,
+        "onset_error_mean_ms": 17.109240608654016,
+        "onset_error_p95_absolute_ms": 40.494435628254166
+      },
+      "spectral_inverse": {
+        "policy": "Aligned annotations are primary; causal 4096-sample FFT probes at 0/1/2/4 hops after onset are an independent diagnostic.",
+        "generated_to_wav": {
+          "notes": 262,
+          "class_counts": {
+            "annotation_supported": 69,
+            "harmonic_suspect": 5,
+            "spectrally_supported_unmatched": 127,
+            "unsupported": 38,
+            "weak": 23
+          },
+          "spectral_ratio": {
+            "count": 262,
+            "mean": 0.6234823195891024,
+            "median": 0.7452729091971486,
+            "p10": 0.0400899196383782
+          },
+          "suspect_examples": [
+            {
+              "pitch": 40,
+              "start_s": 2.066666666666667,
+              "duration_ms": 87.49999999999946,
+              "spectral_support_ratio": 0.0947751702904076,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 69,
+              "start_s": 2.6875,
+              "duration_ms": 76.04166666666634,
+              "spectral_support_ratio": 0.006031924818712029,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 53,
+              "start_s": 3.2041666666666666,
+              "duration_ms": 98.95833333333348,
+              "spectral_support_ratio": 0.027536807779696124,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 69,
+              "start_s": 3.2395833333333335,
+              "duration_ms": 63.54166666666661,
+              "spectral_support_ratio": 0.00301473550712726,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 57,
+              "start_s": 3.4135416666666667,
+              "duration_ms": 92.7083333333334,
+              "spectral_support_ratio": 0.03016923969204885,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 40,
+              "start_s": 5.904166666666667,
+              "duration_ms": 156.25,
+              "spectral_support_ratio": 0.020664383329103222,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 40,
+              "start_s": 9.8625,
+              "duration_ms": 139.58333333333252,
+              "spectral_support_ratio": 0.013840077590533323,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 57,
+              "start_s": 11.25625,
+              "duration_ms": 196.87500000000034,
+              "spectral_support_ratio": 0.0917142958397275,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 69,
+              "start_s": 12.335416666666665,
+              "duration_ms": 162.50000000000142,
+              "spectral_support_ratio": 0.0043298332491207596,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 40,
+              "start_s": 13.171875,
+              "duration_ms": 144.79166666666643,
+              "spectral_support_ratio": 0.02681309925494349,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 40,
+              "start_s": 13.896875,
+              "duration_ms": 963.5416666666661,
+              "spectral_support_ratio": 0.025710373657755164,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 40,
+              "start_s": 15.110416666666666,
+              "duration_ms": 690.6250000000007,
+              "spectral_support_ratio": 0.03544425410937926,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 47,
+              "start_s": 15.539583333333335,
+              "duration_ms": 534.374999999999,
+              "spectral_support_ratio": 0.05607250763220094,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 48,
+              "start_s": 16.30625,
+              "duration_ms": 336.45833333333644,
+              "spectral_support_ratio": 0.025782384851829467,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 48,
+              "start_s": 16.927083333333332,
+              "duration_ms": 615.6250000000014,
+              "spectral_support_ratio": 0.024612552120284285,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 48,
+              "start_s": 18.0125,
+              "duration_ms": 76.04166666666856,
+              "spectral_support_ratio": 0.029425185392733148,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 52,
+              "start_s": 18.082291666666666,
+              "duration_ms": 726.0416666666672,
+              "spectral_support_ratio": 0.04776315146959838,
+              "classification": "harmonic_suspect"
+            },
+            {
+              "pitch": 47,
+              "start_s": 19.557291666666668,
+              "duration_ms": 92.70833333333073,
+              "spectral_support_ratio": 0.0347794728383065,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 48,
+              "start_s": 19.614583333333332,
+              "duration_ms": 285.4166666666664,
+              "spectral_support_ratio": 0.03743755681103989,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 48,
+              "start_s": 20.160416666666666,
+              "duration_ms": 116.66666666666714,
+              "spectral_support_ratio": 0.006479144465856113,
+              "classification": "unsupported"
+            }
+          ]
+        },
+        "wav_to_generated": {
+          "missing_annotation_notes": 88,
+          "spectrally_strong_missing": 66,
+          "spectral_ratio": {
+            "count": 88,
+            "mean": 0.5889333605766232,
+            "median": 0.5950576082829346,
+            "p10": 0.11261257639371439
+          }
+        },
+        "latency_impact": "Offline diagnostic only; zero added live algorithmic latency."
+      }
+    },
+    {
+      "source_id": "05_SS3-98-C_comp",
+      "dataset_id": "guitarset_poly_mix",
+      "group_id": "guitarset_05_SS3-98-C_comp",
+      "split": "test",
+      "source_audio": "data\\GuitarSet\\audio_mono-pickup_mix.zip",
+      "source_audio_member": "05_SS3-98-C_comp_mix.wav",
+      "generated_midi": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\reports\\test_inverse_v2_2\\05_SS3-98-C_comp.mid",
+      "product": {
+        "input_wav": "data\\GuitarSet\\audio_mono-pickup_mix.zip",
+        "output_midi": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\reports\\test_inverse_v2_2\\05_SS3-98-C_comp.mid",
+        "duration_s": 39.17879818594104,
+        "events": 738,
+        "note_on_events": 369,
+        "silent_priming_hops": 172,
+        "audio_evidence": {
+          "calibrated": true,
+          "audio_hop_index": 6749,
+          "synthetic_priming_hops": 172,
+          "onset_detector_tick_index": 6922,
+          "audio_activity_gate": {
+            "calibrated": true,
+            "calibration_stable": true,
+            "minimum_calibration_hops": 172,
+            "maximum_calibration_hops": 517,
+            "calibration_hops_seen": 172,
+            "calibration_extended_hops": 0,
+            "tail_hops": 69,
+            "tail_spread_db": 0.0,
+            "open_threshold_dbfs": -72.0,
+            "close_threshold_dbfs": -75.0,
+            "active": true
+          }
+        },
+        "inference_ms": {
+          "mean": 2.826042740740478,
+          "p95": 5.995529999995593,
+          "max": 48.34390000002031
+        },
+        "input_audio_member": "05_SS3-98-C_comp_mix.wav",
+        "validation_pcm_reencode": "FLOAT"
+      },
+      "wav_to_midi_ghost_check": {
+        "reference_notes": 199,
+        "estimated_notes": 369,
+        "matched_notes": 87,
+        "false_positive_notes": 282,
+        "missing_notes": 112,
+        "precision": 0.23577235772357724,
+        "recall": 0.4371859296482412,
+        "f1": 0.30633802816901406,
+        "onset_error_mean_ms": 23.429999048768476,
+        "onset_error_p95_absolute_ms": 47.17922051747548
+      },
+      "midi_to_wav_missing_check": {
+        "reference_notes": 199,
+        "estimated_notes": 369,
+        "matched_notes": 87,
+        "false_positive_notes": 282,
+        "missing_notes": 112,
+        "precision": 0.23577235772357724,
+        "recall": 0.4371859296482412,
+        "f1": 0.30633802816901406,
+        "onset_error_mean_ms": 23.429999048768476,
+        "onset_error_p95_absolute_ms": 47.17922051747548,
+        "interpretation": "Reference WAV annotations not recovered by generated MIDI."
+      },
+      "onset_offset": {
+        "reference_notes": 199,
+        "estimated_notes": 369,
+        "matched_notes": 24,
+        "false_positive_notes": 345,
+        "missing_notes": 175,
+        "precision": 0.06504065040650407,
+        "recall": 0.12060301507537688,
+        "f1": 0.08450704225352114,
+        "onset_error_mean_ms": 25.484618213442406,
+        "onset_error_p95_absolute_ms": 47.33673652013037
+      },
+      "spectral_inverse": {
+        "policy": "Aligned annotations are primary; causal 4096-sample FFT probes at 0/1/2/4 hops after onset are an independent diagnostic.",
+        "generated_to_wav": {
+          "notes": 369,
+          "class_counts": {
+            "annotation_supported": 87,
+            "spectrally_supported_unmatched": 250,
+            "unsupported": 18,
+            "weak": 14
+          },
+          "spectral_ratio": {
+            "count": 369,
+            "mean": 0.7768683835996697,
+            "median": 0.9639882283379559,
+            "p10": 0.28164759207092055
+          },
+          "suspect_examples": [
+            {
+              "pitch": 55,
+              "start_s": 1.3114583333333332,
+              "duration_ms": 232.2916666666668,
+              "spectral_support_ratio": 0.05197964198213576,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 52,
+              "start_s": 5.020833333333333,
+              "duration_ms": 830.208333333334,
+              "spectral_support_ratio": 0.03218841937547697,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 40,
+              "start_s": 5.985416666666667,
+              "duration_ms": 185.4166666666668,
+              "spectral_support_ratio": 0.09076763923694535,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 55,
+              "start_s": 12.428125,
+              "duration_ms": 534.3750000000007,
+              "spectral_support_ratio": 0.007211852725597599,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 55,
+              "start_s": 13.623958333333334,
+              "duration_ms": 552.0833333333321,
+              "spectral_support_ratio": 0.050084181378917354,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 41,
+              "start_s": 15.371875,
+              "duration_ms": 325.0000000000011,
+              "spectral_support_ratio": 0.0368317293970663,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 57,
+              "start_s": 15.401041666666666,
+              "duration_ms": 597.9166666666682,
+              "spectral_support_ratio": 0.06890649512797412,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 48,
+              "start_s": 15.453125,
+              "duration_ms": 69.79166666666536,
+              "spectral_support_ratio": 0.05379140040870381,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 41,
+              "start_s": 15.73125,
+              "duration_ms": 87.50000000000036,
+              "spectral_support_ratio": 0.07805367199272781,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 41,
+              "start_s": 16.202083333333334,
+              "duration_ms": 34.37500000000071,
+              "spectral_support_ratio": 0.014515818251914656,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 41,
+              "start_s": 16.335416666666667,
+              "duration_ms": 115.62499999999787,
+              "spectral_support_ratio": 0.040110908980574594,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 50,
+              "start_s": 17.269791666666666,
+              "duration_ms": 818.7500000000014,
+              "spectral_support_ratio": 0.015277301953015859,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 55,
+              "start_s": 20.20104166666667,
+              "duration_ms": 64.58333333333144,
+              "spectral_support_ratio": 0.0597790097863647,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 52,
+              "start_s": 24.584375,
+              "duration_ms": 2229.166666666668,
+              "spectral_support_ratio": 0.056965171401516926,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 61,
+              "start_s": 24.694791666666667,
+              "duration_ms": 45.83333333333428,
+              "spectral_support_ratio": 0.09641783655487823,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 61,
+              "start_s": 24.96770833333333,
+              "duration_ms": 185.41666666666856,
+              "spectral_support_ratio": 0.019248065487120648,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 41,
+              "start_s": 26.42395833333333,
+              "duration_ms": 58.33333333333712,
+              "spectral_support_ratio": 0.09055759901587583,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 41,
+              "start_s": 35.572916666666664,
+              "duration_ms": 313.5416666666728,
+              "spectral_support_ratio": 0.019288858816230117,
+              "classification": "unsupported"
+            }
+          ]
+        },
+        "wav_to_generated": {
+          "missing_annotation_notes": 112,
+          "spectrally_strong_missing": 66,
+          "spectral_ratio": {
+            "count": 112,
+            "mean": 0.39980297354081484,
+            "median": 0.3175008276060634,
+            "p10": 0.11403955779485811
+          }
+        },
+        "latency_impact": "Offline diagnostic only; zero added live algorithmic latency."
+      }
+    },
+    {
+      "source_id": "063_bV1wc",
+      "dataset_id": "gaps_poly_mix",
+      "group_id": "bV1wc",
+      "split": "test",
+      "source_audio": "data\\dataset\\polyphonic_v2_1_gaps\\audio_44100_mono_int16\\063_bV1wc.npy",
+      "source_audio_member": "",
+      "generated_midi": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\reports\\test_inverse_v2_2\\063_bV1wc.mid",
+      "product": {
+        "input_wav": "data\\dataset\\polyphonic_v2_1_gaps\\audio_44100_mono_int16\\063_bV1wc.npy",
+        "output_midi": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\reports\\test_inverse_v2_2\\063_bV1wc.mid",
+        "duration_s": 181.49879818594104,
+        "events": 2902,
+        "note_on_events": 1451,
+        "silent_priming_hops": 172,
+        "audio_evidence": {
+          "calibrated": true,
+          "audio_hop_index": 31266,
+          "synthetic_priming_hops": 172,
+          "onset_detector_tick_index": 31439,
+          "audio_activity_gate": {
+            "calibrated": true,
+            "calibration_stable": true,
+            "minimum_calibration_hops": 172,
+            "maximum_calibration_hops": 517,
+            "calibration_hops_seen": 172,
+            "calibration_extended_hops": 0,
+            "tail_hops": 69,
+            "tail_spread_db": 0.0,
+            "open_threshold_dbfs": -72.0,
+            "close_threshold_dbfs": -75.0,
+            "active": false
+          }
+        },
+        "inference_ms": {
+          "mean": 6.814291905203256,
+          "p95": 17.65610000001627,
+          "max": 637.1311000000333
+        },
+        "input_audio_member": "",
+        "validation_pcm_reencode": "FLOAT"
+      },
+      "wav_to_midi_ghost_check": {
+        "reference_notes": 841,
+        "estimated_notes": 1451,
+        "matched_notes": 264,
+        "false_positive_notes": 1187,
+        "missing_notes": 577,
+        "precision": 0.1819434872501723,
+        "recall": 0.31391200951248516,
+        "f1": 0.23036649214659685,
+        "onset_error_mean_ms": 31.228215465642734,
+        "onset_error_p95_absolute_ms": 47.77985890706508
+      },
+      "midi_to_wav_missing_check": {
+        "reference_notes": 841,
+        "estimated_notes": 1451,
+        "matched_notes": 264,
+        "false_positive_notes": 1187,
+        "missing_notes": 577,
+        "precision": 0.1819434872501723,
+        "recall": 0.31391200951248516,
+        "f1": 0.23036649214659685,
+        "onset_error_mean_ms": 31.228215465642734,
+        "onset_error_p95_absolute_ms": 47.77985890706508,
+        "interpretation": "Reference WAV annotations not recovered by generated MIDI."
+      },
+      "onset_offset": {
+        "reference_notes": 841,
+        "estimated_notes": 1451,
+        "matched_notes": 46,
+        "false_positive_notes": 1405,
+        "missing_notes": 795,
+        "precision": 0.03170227429359063,
+        "recall": 0.054696789536266346,
+        "f1": 0.04013961605584642,
+        "onset_error_mean_ms": 33.248818784520324,
+        "onset_error_p95_absolute_ms": 47.01728820800888
+      },
+      "spectral_inverse": {
+        "policy": "Aligned annotations are primary; causal 4096-sample FFT probes at 0/1/2/4 hops after onset are an independent diagnostic.",
+        "generated_to_wav": {
+          "notes": 1451,
+          "class_counts": {
+            "annotation_supported": 264,
+            "harmonic_suspect": 2,
+            "spectrally_supported_unmatched": 934,
+            "unsupported": 143,
+            "weak": 108
+          },
+          "spectral_ratio": {
+            "count": 1451,
+            "mean": 0.687993388408985,
+            "median": 0.8692821806269106,
+            "p10": 0.09840059592167284
+          },
+          "suspect_examples": [
+            {
+              "pitch": 40,
+              "start_s": 3.9708333333333337,
+              "duration_ms": 1033.3333333333337,
+              "spectral_support_ratio": 0.005238823784492835,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 51,
+              "start_s": 5.746875,
+              "duration_ms": 238.54166666666643,
+              "spectral_support_ratio": 0.08634316089309746,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 40,
+              "start_s": 7.227083333333333,
+              "duration_ms": 151.04166666666697,
+              "spectral_support_ratio": 0.010408163833173454,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 40,
+              "start_s": 7.615625,
+              "duration_ms": 778.125000000001,
+              "spectral_support_ratio": 0.010261911422709442,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 40,
+              "start_s": 11.836458333333335,
+              "duration_ms": 168.7499999999993,
+              "spectral_support_ratio": 0.004011132287834427,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 51,
+              "start_s": 13.090625,
+              "duration_ms": 458.33333333333394,
+              "spectral_support_ratio": 0.07231234676057681,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 54,
+              "start_s": 13.113541666666666,
+              "duration_ms": 464.5833333333336,
+              "spectral_support_ratio": 0.04377992163758278,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 57,
+              "start_s": 17.64166666666667,
+              "duration_ms": 57.2916666666643,
+              "spectral_support_ratio": 0.08891039765708479,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 54,
+              "start_s": 18.10625,
+              "duration_ms": 237.5000000000007,
+              "spectral_support_ratio": 0.006830515603901586,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 56,
+              "start_s": 18.332291666666666,
+              "duration_ms": 226.04166666666714,
+              "spectral_support_ratio": 0.041520640961703305,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 40,
+              "start_s": 21.147916666666667,
+              "duration_ms": 214.58333333333357,
+              "spectral_support_ratio": 0.0028471709949333475,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 54,
+              "start_s": 24.2125,
+              "duration_ms": 69.7916666666707,
+              "spectral_support_ratio": 0.009027121571425507,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 51,
+              "start_s": 26.07604166666667,
+              "duration_ms": 40.62499999999858,
+              "spectral_support_ratio": 0.0971564678949434,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 40,
+              "start_s": 27.492708333333333,
+              "duration_ms": 679.1666666666672,
+              "spectral_support_ratio": 0.005220804710053239,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 57,
+              "start_s": 27.590625,
+              "duration_ms": 423.95833333333144,
+              "spectral_support_ratio": 0.08527452668301638,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 56,
+              "start_s": 28.13125,
+              "duration_ms": 266.6666666666657,
+              "spectral_support_ratio": 0.03264109135370354,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 63,
+              "start_s": 28.461458333333333,
+              "duration_ms": 418.7499999999993,
+              "spectral_support_ratio": 0.042748922357855865,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 54,
+              "start_s": 28.653125,
+              "duration_ms": 168.7499999999993,
+              "spectral_support_ratio": 0.06625665447342541,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 40,
+              "start_s": 29.4375,
+              "duration_ms": 74.99999999999929,
+              "spectral_support_ratio": 0.00808299824446539,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 40,
+              "start_s": 29.634375,
+              "duration_ms": 406.25,
+              "spectral_support_ratio": 0.012943566050188154,
+              "classification": "unsupported"
+            }
+          ]
+        },
+        "wav_to_generated": {
+          "missing_annotation_notes": 577,
+          "spectrally_strong_missing": 248,
+          "spectral_ratio": {
+            "count": 577,
+            "mean": 0.3362444851809652,
+            "median": 0.20278839824369324,
+            "p10": 0.038770663634180566
+          }
+        },
+        "latency_impact": "Offline diagnostic only; zero added live algorithmic latency."
+      }
+    },
+    {
+      "source_id": "gtech_p3_music_07_directinput",
+      "dataset_id": "guitar_techs_poly_directinput",
+      "group_id": "gtech_p3_music_07",
+      "split": "test",
+      "source_audio": "data\\dataset\\polyphonic_v2_2_guitar_techs\\audio_44100_mono_int16\\gtech_p3_music_07_directinput.npy",
+      "source_audio_member": "",
+      "generated_midi": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\reports\\test_inverse_v2_2\\gtech_p3_music_07_directinput.mid",
+      "product": {
+        "input_wav": "data\\dataset\\polyphonic_v2_2_guitar_techs\\audio_44100_mono_int16\\gtech_p3_music_07_directinput.npy",
+        "output_midi": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\reports\\test_inverse_v2_2\\gtech_p3_music_07_directinput.mid",
+        "duration_s": 37.0,
+        "events": 902,
+        "note_on_events": 451,
+        "silent_priming_hops": 172,
+        "audio_evidence": {
+          "calibrated": true,
+          "audio_hop_index": 6373,
+          "synthetic_priming_hops": 172,
+          "onset_detector_tick_index": 6546,
+          "audio_activity_gate": {
+            "calibrated": true,
+            "calibration_stable": true,
+            "minimum_calibration_hops": 172,
+            "maximum_calibration_hops": 517,
+            "calibration_hops_seen": 172,
+            "calibration_extended_hops": 0,
+            "tail_hops": 69,
+            "tail_spread_db": 0.0,
+            "open_threshold_dbfs": -72.0,
+            "close_threshold_dbfs": -75.0,
+            "active": true
+          }
+        },
+        "inference_ms": {
+          "mean": 2.9570469877627024,
+          "p95": 5.017760000004045,
+          "max": 75.24339999997665
+        },
+        "input_audio_member": "",
+        "validation_pcm_reencode": "FLOAT"
+      },
+      "wav_to_midi_ghost_check": {
+        "reference_notes": 142,
+        "estimated_notes": 451,
+        "matched_notes": 62,
+        "false_positive_notes": 389,
+        "missing_notes": 80,
+        "precision": 0.13747228381374724,
+        "recall": 0.43661971830985913,
+        "f1": 0.20910623946037102,
+        "onset_error_mean_ms": 3.2303663190972225,
+        "onset_error_p95_absolute_ms": 35.797017415365225
+      },
+      "midi_to_wav_missing_check": {
+        "reference_notes": 142,
+        "estimated_notes": 451,
+        "matched_notes": 62,
+        "false_positive_notes": 389,
+        "missing_notes": 80,
+        "precision": 0.13747228381374724,
+        "recall": 0.43661971830985913,
+        "f1": 0.20910623946037102,
+        "onset_error_mean_ms": 3.2303663190972225,
+        "onset_error_p95_absolute_ms": 35.797017415365225,
+        "interpretation": "Reference WAV annotations not recovered by generated MIDI."
+      },
+      "onset_offset": {
+        "reference_notes": 142,
+        "estimated_notes": 451,
+        "matched_notes": 41,
+        "false_positive_notes": 410,
+        "missing_notes": 101,
+        "precision": 0.09090909090909091,
+        "recall": 0.2887323943661972,
+        "f1": 0.13827993254637438,
+        "onset_error_mean_ms": 3.1484580621482814,
+        "onset_error_p95_absolute_ms": 35.05579630533795
+      },
+      "spectral_inverse": {
+        "policy": "Aligned annotations are primary; causal 4096-sample FFT probes at 0/1/2/4 hops after onset are an independent diagnostic.",
+        "generated_to_wav": {
+          "notes": 451,
+          "class_counts": {
+            "annotation_supported": 62,
+            "harmonic_suspect": 3,
+            "spectrally_supported_unmatched": 309,
+            "unsupported": 50,
+            "weak": 27
+          },
+          "spectral_ratio": {
+            "count": 451,
+            "mean": 0.7418614707070962,
+            "median": 1.0,
+            "p10": 0.08048553455993923
+          },
+          "suspect_examples": [
+            {
+              "pitch": 49,
+              "start_s": 0.24375,
+              "duration_ms": 755.2083333333334,
+              "spectral_support_ratio": 0.01487518217567129,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 50,
+              "start_s": 0.9989583333333334,
+              "duration_ms": 74.99999999999996,
+              "spectral_support_ratio": 0.031355032288329907,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 51,
+              "start_s": 1.015625,
+              "duration_ms": 58.33333333333335,
+              "spectral_support_ratio": 0.04751226572107062,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 53,
+              "start_s": 1.103125,
+              "duration_ms": 52.08333333333326,
+              "spectral_support_ratio": 0.09906929350024296,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 40,
+              "start_s": 1.5208333333333333,
+              "duration_ms": 87.49999999999991,
+              "spectral_support_ratio": 0.0020129190564092438,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 56,
+              "start_s": 2.6645833333333333,
+              "duration_ms": 98.95833333333303,
+              "spectral_support_ratio": 0.09634915107091634,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 55,
+              "start_s": 3.709375,
+              "duration_ms": 121.87499999999973,
+              "spectral_support_ratio": 0.018109774511444108,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 48,
+              "start_s": 4.463541666666667,
+              "duration_ms": 534.3749999999998,
+              "spectral_support_ratio": 0.0835596859136074,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 45,
+              "start_s": 5.428125,
+              "duration_ms": 707.2916666666673,
+              "spectral_support_ratio": 0.08048553455993923,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 48,
+              "start_s": 6.164583333333333,
+              "duration_ms": 511.45833333333445,
+              "spectral_support_ratio": 0.022435909114400108,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 44,
+              "start_s": 6.797916666666667,
+              "duration_ms": 75.00000000000017,
+              "spectral_support_ratio": 0.08813673055980345,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 45,
+              "start_s": 6.902083333333333,
+              "duration_ms": 104.16666666666697,
+              "spectral_support_ratio": 0.09028763433800777,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 55,
+              "start_s": 7.175,
+              "duration_ms": 75.00000000000017,
+              "spectral_support_ratio": 0.017990814067038577,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 48,
+              "start_s": 7.25,
+              "duration_ms": 128.12499999999983,
+              "spectral_support_ratio": 0.01693096574105175,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 55,
+              "start_s": 7.563541666666667,
+              "duration_ms": 186.4583333333334,
+              "spectral_support_ratio": 0.010166794541521359,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 45,
+              "start_s": 7.917708333333333,
+              "duration_ms": 46.875,
+              "spectral_support_ratio": 0.06182796829617942,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 40,
+              "start_s": 8.551041666666666,
+              "duration_ms": 92.70833333333428,
+              "spectral_support_ratio": 0.016608453587031956,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 40,
+              "start_s": 9.503125,
+              "duration_ms": 81.24999999999893,
+              "spectral_support_ratio": 0.002024538127796731,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 55,
+              "start_s": 10.76875,
+              "duration_ms": 97.91666666666465,
+              "spectral_support_ratio": 0.048021792404856586,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 60,
+              "start_s": 12.725,
+              "duration_ms": 45.83333333333428,
+              "spectral_support_ratio": 0.08565660873386889,
+              "classification": "unsupported"
+            }
+          ]
+        },
+        "wav_to_generated": {
+          "missing_annotation_notes": 80,
+          "spectrally_strong_missing": 43,
+          "spectral_ratio": {
+            "count": 80,
+            "mean": 0.432973611825906,
+            "median": 0.2770676722241536,
+            "p10": 0.057171845517746935
+          }
+        },
+        "latency_impact": "Offline diagnostic only; zero added live algorithmic latency."
+      }
+    },
+    {
+      "source_id": "05_Rock1-90-C#_comp",
+      "dataset_id": "guitarset_poly_mix",
+      "group_id": "guitarset_05_Rock1-90-C#_comp",
+      "split": "test",
+      "source_audio": "data\\GuitarSet\\audio_mono-pickup_mix.zip",
+      "source_audio_member": "05_Rock1-90-C#_comp_mix.wav",
+      "generated_midi": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\reports\\test_inverse_v2_2\\05_Rock1-90-C#_comp.mid",
+      "product": {
+        "input_wav": "data\\GuitarSet\\audio_mono-pickup_mix.zip",
+        "output_midi": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\reports\\test_inverse_v2_2\\05_Rock1-90-C#_comp.mid",
+        "duration_s": 32.0,
+        "events": 404,
+        "note_on_events": 202,
+        "silent_priming_hops": 172,
+        "audio_evidence": {
+          "calibrated": true,
+          "audio_hop_index": 5512,
+          "synthetic_priming_hops": 172,
+          "onset_detector_tick_index": 5685,
+          "audio_activity_gate": {
+            "calibrated": true,
+            "calibration_stable": true,
+            "minimum_calibration_hops": 172,
+            "maximum_calibration_hops": 517,
+            "calibration_hops_seen": 172,
+            "calibration_extended_hops": 0,
+            "tail_hops": 69,
+            "tail_spread_db": 0.0,
+            "open_threshold_dbfs": -72.0,
+            "close_threshold_dbfs": -75.0,
+            "active": true
+          }
+        },
+        "inference_ms": {
+          "mean": 1.6810329947397449,
+          "p95": 2.3623399999905805,
+          "max": 15.876100000014048
+        },
+        "input_audio_member": "05_Rock1-90-C#_comp_mix.wav",
+        "validation_pcm_reencode": "FLOAT"
+      },
+      "wav_to_midi_ghost_check": {
+        "reference_notes": 277,
+        "estimated_notes": 202,
+        "matched_notes": 62,
+        "false_positive_notes": 140,
+        "missing_notes": 215,
+        "precision": 0.3069306930693069,
+        "recall": 0.22382671480144403,
+        "f1": 0.2588726513569937,
+        "onset_error_mean_ms": 13.563378127692342,
+        "onset_error_p95_absolute_ms": 45.7717672983807
+      },
+      "midi_to_wav_missing_check": {
+        "reference_notes": 277,
+        "estimated_notes": 202,
+        "matched_notes": 62,
+        "false_positive_notes": 140,
+        "missing_notes": 215,
+        "precision": 0.3069306930693069,
+        "recall": 0.22382671480144403,
+        "f1": 0.2588726513569937,
+        "onset_error_mean_ms": 13.563378127692342,
+        "onset_error_p95_absolute_ms": 45.7717672983807,
+        "interpretation": "Reference WAV annotations not recovered by generated MIDI."
+      },
+      "onset_offset": {
+        "reference_notes": 277,
+        "estimated_notes": 202,
+        "matched_notes": 12,
+        "false_positive_notes": 190,
+        "missing_notes": 265,
+        "precision": 0.0594059405940594,
+        "recall": 0.04332129963898917,
+        "f1": 0.050104384133611686,
+        "onset_error_mean_ms": 0.8456789784958841,
+        "onset_error_p95_absolute_ms": 36.6285332043971
+      },
+      "spectral_inverse": {
+        "policy": "Aligned annotations are primary; causal 4096-sample FFT probes at 0/1/2/4 hops after onset are an independent diagnostic.",
+        "generated_to_wav": {
+          "notes": 202,
+          "class_counts": {
+            "annotation_supported": 62,
+            "spectrally_supported_unmatched": 115,
+            "unsupported": 19,
+            "weak": 6
+          },
+          "spectral_ratio": {
+            "count": 202,
+            "mean": 0.6563021451120677,
+            "median": 0.67617210251363,
+            "p10": 0.13824646370434585
+          },
+          "suspect_examples": [
+            {
+              "pitch": 65,
+              "start_s": 0.1625,
+              "duration_ms": 778.1250000000001,
+              "spectral_support_ratio": 0.0766049188688628,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 65,
+              "start_s": 1.0802083333333332,
+              "duration_ms": 243.75000000000014,
+              "spectral_support_ratio": 0.05637860669741804,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 53,
+              "start_s": 6.420833333333333,
+              "duration_ms": 208.33333333333394,
+              "spectral_support_ratio": 0.019837665314789792,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 53,
+              "start_s": 8.747916666666667,
+              "duration_ms": 255.20833333333394,
+              "spectral_support_ratio": 0.02032497154859357,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 53,
+              "start_s": 9.119791666666666,
+              "duration_ms": 551.0416666666682,
+              "spectral_support_ratio": 0.013417141929010525,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 44,
+              "start_s": 9.909375,
+              "duration_ms": 104.16666666666607,
+              "spectral_support_ratio": 0.03456399894472492,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 53,
+              "start_s": 10.083333333333334,
+              "duration_ms": 162.49999999999966,
+              "spectral_support_ratio": 0.009631542744001586,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 65,
+              "start_s": 12.120833333333334,
+              "duration_ms": 180.20833333333286,
+              "spectral_support_ratio": 0.01869470344126138,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 56,
+              "start_s": 13.119791666666666,
+              "duration_ms": 243.75000000000034,
+              "spectral_support_ratio": 0.0480630049634615,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 65,
+              "start_s": 14.065625,
+              "duration_ms": 453.125,
+              "spectral_support_ratio": 0.03864765046766561,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 56,
+              "start_s": 14.530208333333334,
+              "duration_ms": 63.54166666666572,
+              "spectral_support_ratio": 0.0175256236097792,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 65,
+              "start_s": 15.441666666666666,
+              "duration_ms": 208.33333333333394,
+              "spectral_support_ratio": 0.049746534300944736,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 53,
+              "start_s": 16.753125,
+              "duration_ms": 795.8333333333308,
+              "spectral_support_ratio": 0.053288344498719706,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 53,
+              "start_s": 17.85625,
+              "duration_ms": 121.87499999999929,
+              "spectral_support_ratio": 0.02084285498907293,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 53,
+              "start_s": 18.402083333333334,
+              "duration_ms": 957.2916666666664,
+              "spectral_support_ratio": 0.0744110598301503,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 53,
+              "start_s": 19.67291666666667,
+              "duration_ms": 394.7916666666629,
+              "spectral_support_ratio": 0.0730827175479037,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 53,
+              "start_s": 27.213541666666668,
+              "duration_ms": 46.875,
+              "spectral_support_ratio": 0.02082456344215004,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 53,
+              "start_s": 28.066666666666666,
+              "duration_ms": 575.0000000000028,
+              "spectral_support_ratio": 0.029704155562369848,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 53,
+              "start_s": 30.0875,
+              "duration_ms": 139.58333333333428,
+              "spectral_support_ratio": 0.02592208356192648,
+              "classification": "unsupported"
+            }
+          ]
+        },
+        "wav_to_generated": {
+          "missing_annotation_notes": 215,
+          "spectrally_strong_missing": 186,
+          "spectral_ratio": {
+            "count": 215,
+            "mean": 0.6038445788719993,
+            "median": 0.5483964565073018,
+            "p10": 0.22781243966731243
+          }
+        },
+        "latency_impact": "Offline diagnostic only; zero added live algorithmic latency."
+      }
+    },
+    {
+      "source_id": "291_3Sswc",
+      "dataset_id": "gaps_poly_mix",
+      "group_id": "3Sswc",
+      "split": "test",
+      "source_audio": "data\\dataset\\polyphonic_v2_1_gaps\\audio_44100_mono_int16\\291_3Sswc.npy",
+      "source_audio_member": "",
+      "generated_midi": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\reports\\test_inverse_v2_2\\291_3Sswc.mid",
+      "product": {
+        "input_wav": "data\\dataset\\polyphonic_v2_1_gaps\\audio_44100_mono_int16\\291_3Sswc.npy",
+        "output_midi": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\reports\\test_inverse_v2_2\\291_3Sswc.mid",
+        "duration_s": 134.94278911564626,
+        "events": 2438,
+        "note_on_events": 1219,
+        "silent_priming_hops": 172,
+        "audio_evidence": {
+          "calibrated": true,
+          "audio_hop_index": 23246,
+          "synthetic_priming_hops": 172,
+          "onset_detector_tick_index": 23419,
+          "audio_activity_gate": {
+            "calibrated": true,
+            "calibration_stable": true,
+            "minimum_calibration_hops": 172,
+            "maximum_calibration_hops": 517,
+            "calibration_hops_seen": 172,
+            "calibration_extended_hops": 0,
+            "tail_hops": 69,
+            "tail_spread_db": 0.0,
+            "open_threshold_dbfs": -72.0,
+            "close_threshold_dbfs": -75.0,
+            "active": false
+          }
+        },
+        "inference_ms": {
+          "mean": 5.459039648126923,
+          "p95": 12.348679999990969,
+          "max": 573.5085000000026
+        },
+        "input_audio_member": "",
+        "validation_pcm_reencode": "FLOAT"
+      },
+      "wav_to_midi_ghost_check": {
+        "reference_notes": 923,
+        "estimated_notes": 1219,
+        "matched_notes": 278,
+        "false_positive_notes": 941,
+        "missing_notes": 645,
+        "precision": 0.2280557834290402,
+        "recall": 0.30119176598049835,
+        "f1": 0.25957049486461253,
+        "onset_error_mean_ms": 25.55322589920018,
+        "onset_error_p95_absolute_ms": 48.199888865150164
+      },
+      "midi_to_wav_missing_check": {
+        "reference_notes": 923,
+        "estimated_notes": 1219,
+        "matched_notes": 278,
+        "false_positive_notes": 941,
+        "missing_notes": 645,
+        "precision": 0.2280557834290402,
+        "recall": 0.30119176598049835,
+        "f1": 0.25957049486461253,
+        "onset_error_mean_ms": 25.55322589920018,
+        "onset_error_p95_absolute_ms": 48.199888865150164,
+        "interpretation": "Reference WAV annotations not recovered by generated MIDI."
+      },
+      "onset_offset": {
+        "reference_notes": 923,
+        "estimated_notes": 1219,
+        "matched_notes": 70,
+        "false_positive_notes": 1149,
+        "missing_notes": 853,
+        "precision": 0.05742411812961444,
+        "recall": 0.07583965330444203,
+        "f1": 0.065359477124183,
+        "onset_error_mean_ms": 26.937381653558962,
+        "onset_error_p95_absolute_ms": 47.1163558959935
+      },
+      "spectral_inverse": {
+        "policy": "Aligned annotations are primary; causal 4096-sample FFT probes at 0/1/2/4 hops after onset are an independent diagnostic.",
+        "generated_to_wav": {
+          "notes": 1219,
+          "class_counts": {
+            "annotation_supported": 278,
+            "harmonic_suspect": 1,
+            "spectrally_supported_unmatched": 734,
+            "unsupported": 73,
+            "weak": 133
+          },
+          "spectral_ratio": {
+            "count": 1219,
+            "mean": 0.6701556773614744,
+            "median": 0.7710255113853568,
+            "p10": 0.1356822834729776
+          },
+          "suspect_examples": [
+            {
+              "pitch": 61,
+              "start_s": 6.890625,
+              "duration_ms": 180.20833333333286,
+              "spectral_support_ratio": 0.027127778807025472,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 45,
+              "start_s": 10.715625,
+              "duration_ms": 69.79166666666714,
+              "spectral_support_ratio": 0.018996685192561653,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 52,
+              "start_s": 11.604166666666666,
+              "duration_ms": 87.50000000000036,
+              "spectral_support_ratio": 0.021137031295239868,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 54,
+              "start_s": 16.166666666666664,
+              "duration_ms": 255.2083333333357,
+              "spectral_support_ratio": 0.09702059976852437,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 49,
+              "start_s": 16.475,
+              "duration_ms": 115.62499999999787,
+              "spectral_support_ratio": 0.013534637953193871,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 49,
+              "start_s": 16.7125,
+              "duration_ms": 87.50000000000213,
+              "spectral_support_ratio": 0.019740056136188504,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 49,
+              "start_s": 16.886458333333334,
+              "duration_ms": 110.41666666666572,
+              "spectral_support_ratio": 0.05326853752936093,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 61,
+              "start_s": 20.961458333333333,
+              "duration_ms": 186.45833333333428,
+              "spectral_support_ratio": 0.027415023347583257,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 45,
+              "start_s": 24.479166666666668,
+              "duration_ms": 151.0416666666643,
+              "spectral_support_ratio": 0.08404280128721238,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 45,
+              "start_s": 24.68854166666667,
+              "duration_ms": 81.24999999999716,
+              "spectral_support_ratio": 0.042520581294656724,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 40,
+              "start_s": 26.40729166666667,
+              "duration_ms": 57.2916666666643,
+              "spectral_support_ratio": 0.027732957844374177,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 49,
+              "start_s": 30.458333333333332,
+              "duration_ms": 342.7083333333343,
+              "spectral_support_ratio": 0.036016019908889654,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 49,
+              "start_s": 30.917708333333334,
+              "duration_ms": 69.79166666666714,
+              "spectral_support_ratio": 0.01641459105338127,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 59,
+              "start_s": 31.195833333333333,
+              "duration_ms": 110.41666666666572,
+              "spectral_support_ratio": 0.055677623883928745,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 40,
+              "start_s": 32.391666666666666,
+              "duration_ms": 319.79166666666714,
+              "spectral_support_ratio": 0.08638426673494809,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 62,
+              "start_s": 34.104166666666664,
+              "duration_ms": 209.37500000000142,
+              "spectral_support_ratio": 0.05246742394881732,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 40,
+              "start_s": 35.21875,
+              "duration_ms": 81.24999999999716,
+              "spectral_support_ratio": 0.05868133449724547,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 40,
+              "start_s": 37.059375,
+              "duration_ms": 435.41666666666146,
+              "spectral_support_ratio": 0.08209166334144193,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 56,
+              "start_s": 37.63333333333333,
+              "duration_ms": 81.25000000000426,
+              "spectral_support_ratio": 0.05974647538031126,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 40,
+              "start_s": 37.88333333333333,
+              "duration_ms": 115.62500000000142,
+              "spectral_support_ratio": 0.04898333040500906,
+              "classification": "unsupported"
+            }
+          ]
+        },
+        "wav_to_generated": {
+          "missing_annotation_notes": 645,
+          "spectrally_strong_missing": 382,
+          "spectral_ratio": {
+            "count": 645,
+            "mean": 0.44508870825005986,
+            "median": 0.3387517082036829,
+            "p10": 0.07089037470190668
+          }
+        },
+        "latency_impact": "Offline diagnostic only; zero added live algorithmic latency."
+      }
+    },
+    {
+      "source_id": "05_Rock3-117-Bb_comp",
+      "dataset_id": "guitarset_poly_mix",
+      "group_id": "guitarset_05_Rock3-117-Bb_comp",
+      "split": "test",
+      "source_audio": "data\\GuitarSet\\audio_mono-pickup_mix.zip",
+      "source_audio_member": "05_Rock3-117-Bb_comp_mix.wav",
+      "generated_midi": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\reports\\test_inverse_v2_2\\05_Rock3-117-Bb_comp.mid",
+      "product": {
+        "input_wav": "data\\GuitarSet\\audio_mono-pickup_mix.zip",
+        "output_midi": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\reports\\test_inverse_v2_2\\05_Rock3-117-Bb_comp.mid",
+        "duration_s": 32.81639455782313,
+        "events": 652,
+        "note_on_events": 326,
+        "silent_priming_hops": 172,
+        "audio_evidence": {
+          "calibrated": true,
+          "audio_hop_index": 5653,
+          "synthetic_priming_hops": 172,
+          "onset_detector_tick_index": 5826,
+          "audio_activity_gate": {
+            "calibrated": true,
+            "calibration_stable": true,
+            "minimum_calibration_hops": 172,
+            "maximum_calibration_hops": 517,
+            "calibration_hops_seen": 172,
+            "calibration_extended_hops": 0,
+            "tail_hops": 69,
+            "tail_spread_db": 0.0,
+            "open_threshold_dbfs": -72.0,
+            "close_threshold_dbfs": -75.0,
+            "active": false
+          }
+        },
+        "inference_ms": {
+          "mean": 4.873323169437532,
+          "p95": 9.354575000025978,
+          "max": 58.27039999996941
+        },
+        "input_audio_member": "05_Rock3-117-Bb_comp_mix.wav",
+        "validation_pcm_reencode": "FLOAT"
+      },
+      "wav_to_midi_ghost_check": {
+        "reference_notes": 397,
+        "estimated_notes": 326,
+        "matched_notes": 89,
+        "false_positive_notes": 237,
+        "missing_notes": 308,
+        "precision": 0.27300613496932513,
+        "recall": 0.22418136020151133,
+        "f1": 0.24619640387275238,
+        "onset_error_mean_ms": 15.530851346611405,
+        "onset_error_p95_absolute_ms": 47.081654866537534
+      },
+      "midi_to_wav_missing_check": {
+        "reference_notes": 397,
+        "estimated_notes": 326,
+        "matched_notes": 89,
+        "false_positive_notes": 237,
+        "missing_notes": 308,
+        "precision": 0.27300613496932513,
+        "recall": 0.22418136020151133,
+        "f1": 0.24619640387275238,
+        "onset_error_mean_ms": 15.530851346611405,
+        "onset_error_p95_absolute_ms": 47.081654866537534,
+        "interpretation": "Reference WAV annotations not recovered by generated MIDI."
+      },
+      "onset_offset": {
+        "reference_notes": 397,
+        "estimated_notes": 326,
+        "matched_notes": 23,
+        "false_positive_notes": 303,
+        "missing_notes": 374,
+        "precision": 0.0705521472392638,
+        "recall": 0.05793450881612091,
+        "f1": 0.0636237897648686,
+        "onset_error_mean_ms": 22.54741368950261,
+        "onset_error_p95_absolute_ms": 44.40222422281885
+      },
+      "spectral_inverse": {
+        "policy": "Aligned annotations are primary; causal 4096-sample FFT probes at 0/1/2/4 hops after onset are an independent diagnostic.",
+        "generated_to_wav": {
+          "notes": 326,
+          "class_counts": {
+            "annotation_supported": 89,
+            "spectrally_supported_unmatched": 201,
+            "unsupported": 19,
+            "weak": 17
+          },
+          "spectral_ratio": {
+            "count": 326,
+            "mean": 0.7210537658950323,
+            "median": 0.8383649750127496,
+            "p10": 0.20217037608075997
+          },
+          "suspect_examples": [
+            {
+              "pitch": 41,
+              "start_s": 2.4666666666666663,
+              "duration_ms": 447.91666666666697,
+              "spectral_support_ratio": 0.002057318330981676,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 57,
+              "start_s": 3.6510416666666665,
+              "duration_ms": 116.66666666666714,
+              "spectral_support_ratio": 0.09874672743650845,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 55,
+              "start_s": 9.816666666666666,
+              "duration_ms": 115.62499999999964,
+              "spectral_support_ratio": 0.0678902040657141,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 67,
+              "start_s": 12.991666666666665,
+              "duration_ms": 133.33333333333462,
+              "spectral_support_ratio": 0.004951353341316003,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 67,
+              "start_s": 13.264583333333334,
+              "duration_ms": 173.95833333333144,
+              "spectral_support_ratio": 0.004117741526309468,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 41,
+              "start_s": 14.396875,
+              "duration_ms": 219.79166666666572,
+              "spectral_support_ratio": 0.020961372553190104,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 41,
+              "start_s": 14.930208333333335,
+              "duration_ms": 1137.5000000000011,
+              "spectral_support_ratio": 0.021417523801338535,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 57,
+              "start_s": 14.947916666666666,
+              "duration_ms": 510.4166666666679,
+              "spectral_support_ratio": 0.009342560532008113,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 42,
+              "start_s": 15.441666666666666,
+              "duration_ms": 40.625000000000355,
+              "spectral_support_ratio": 0.09981258528689134,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 57,
+              "start_s": 15.940625,
+              "duration_ms": 162.49999999999787,
+              "spectral_support_ratio": 0.04223930352671198,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 40,
+              "start_s": 16.103125,
+              "duration_ms": 214.58333333333712,
+              "spectral_support_ratio": 0.07135301468130519,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 41,
+              "start_s": 16.71875,
+              "duration_ms": 97.91666666666643,
+              "spectral_support_ratio": 0.03123222189733,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 41,
+              "start_s": 18.77916666666667,
+              "duration_ms": 1410.4166666666629,
+              "spectral_support_ratio": 0.0743511158097375,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 57,
+              "start_s": 19.278125,
+              "duration_ms": 952.0833333333343,
+              "spectral_support_ratio": 0.0792830722042864,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 50,
+              "start_s": 20.84583333333333,
+              "duration_ms": 1683.3333333333371,
+              "spectral_support_ratio": 0.04573646690304412,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 55,
+              "start_s": 30.38958333333333,
+              "duration_ms": 28.125000000002842,
+              "spectral_support_ratio": 0.024693187028545376,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 41,
+              "start_s": 30.958333333333332,
+              "duration_ms": 1126.0416666666692,
+              "spectral_support_ratio": 0.0024093138355158806,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 57,
+              "start_s": 30.975,
+              "duration_ms": 121.87499999999929,
+              "spectral_support_ratio": 0.012218360996898969,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 41,
+              "start_s": 32.165625,
+              "duration_ms": 411.4583333333357,
+              "spectral_support_ratio": 0.005119506262329273,
+              "classification": "unsupported"
+            }
+          ]
+        },
+        "wav_to_generated": {
+          "missing_annotation_notes": 308,
+          "spectrally_strong_missing": 274,
+          "spectral_ratio": {
+            "count": 308,
+            "mean": 0.6840052308577418,
+            "median": 0.7511410676721189,
+            "p10": 0.21986010643404558
+          }
+        },
+        "latency_impact": "Offline diagnostic only; zero added live algorithmic latency."
+      }
+    },
+    {
+      "source_id": "354_-k1wc",
+      "dataset_id": "gaps_poly_mix",
+      "group_id": "-k1wc",
+      "split": "test",
+      "source_audio": "data\\dataset\\polyphonic_v2_1_gaps\\audio_44100_mono_int16\\354_-k1wc.npy",
+      "source_audio_member": "",
+      "generated_midi": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\reports\\test_inverse_v2_2\\354_-k1wc.mid",
+      "product": {
+        "input_wav": "data\\dataset\\polyphonic_v2_1_gaps\\audio_44100_mono_int16\\354_-k1wc.npy",
+        "output_midi": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\reports\\test_inverse_v2_2\\354_-k1wc.mid",
+        "duration_s": 127.1408843537415,
+        "events": 1922,
+        "note_on_events": 961,
+        "silent_priming_hops": 172,
+        "audio_evidence": {
+          "calibrated": true,
+          "audio_hop_index": 21902,
+          "synthetic_priming_hops": 172,
+          "onset_detector_tick_index": 22075,
+          "audio_activity_gate": {
+            "calibrated": true,
+            "calibration_stable": true,
+            "minimum_calibration_hops": 172,
+            "maximum_calibration_hops": 517,
+            "calibration_hops_seen": 172,
+            "calibration_extended_hops": 0,
+            "tail_hops": 69,
+            "tail_spread_db": 0.0,
+            "open_threshold_dbfs": -72.0,
+            "close_threshold_dbfs": -75.0,
+            "active": false
+          }
+        },
+        "inference_ms": {
+          "mean": 7.491437077111186,
+          "p95": 18.105400000138143,
+          "max": 835.0656999998591
+        },
+        "input_audio_member": "",
+        "validation_pcm_reencode": "FLOAT"
+      },
+      "wav_to_midi_ghost_check": {
+        "reference_notes": 636,
+        "estimated_notes": 961,
+        "matched_notes": 137,
+        "false_positive_notes": 824,
+        "missing_notes": 499,
+        "precision": 0.1425598335067638,
+        "recall": 0.21540880503144655,
+        "f1": 0.17157169693174704,
+        "onset_error_mean_ms": 22.465099325435197,
+        "onset_error_p95_absolute_ms": 48.21889241535899
+      },
+      "midi_to_wav_missing_check": {
+        "reference_notes": 636,
+        "estimated_notes": 961,
+        "matched_notes": 137,
+        "false_positive_notes": 824,
+        "missing_notes": 499,
+        "precision": 0.1425598335067638,
+        "recall": 0.21540880503144655,
+        "f1": 0.17157169693174704,
+        "onset_error_mean_ms": 22.465099325435197,
+        "onset_error_p95_absolute_ms": 48.21889241535899,
+        "interpretation": "Reference WAV annotations not recovered by generated MIDI."
+      },
+      "onset_offset": {
+        "reference_notes": 636,
+        "estimated_notes": 961,
+        "matched_notes": 21,
+        "false_positive_notes": 940,
+        "missing_notes": 615,
+        "precision": 0.021852237252861603,
+        "recall": 0.0330188679245283,
+        "f1": 0.02629931120851597,
+        "onset_error_mean_ms": 18.4883965386286,
+        "onset_error_p95_absolute_ms": 44.69579060872775
+      },
+      "spectral_inverse": {
+        "policy": "Aligned annotations are primary; causal 4096-sample FFT probes at 0/1/2/4 hops after onset are an independent diagnostic.",
+        "generated_to_wav": {
+          "notes": 961,
+          "class_counts": {
+            "annotation_supported": 137,
+            "spectrally_supported_unmatched": 709,
+            "unsupported": 58,
+            "weak": 57
+          },
+          "spectral_ratio": {
+            "count": 961,
+            "mean": 0.700911794876251,
+            "median": 0.7981043588364991,
+            "p10": 0.20893234149118256
+          },
+          "suspect_examples": [
+            {
+              "pitch": 45,
+              "start_s": 13.659375,
+              "duration_ms": 69.79166666666536,
+              "spectral_support_ratio": 0.0057517337908045965,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 54,
+              "start_s": 20.828125,
+              "duration_ms": 185.41666666666856,
+              "spectral_support_ratio": 0.056728281775703306,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 53,
+              "start_s": 23.01666666666667,
+              "duration_ms": 121.87499999999929,
+              "spectral_support_ratio": 0.08654752726663968,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 45,
+              "start_s": 24.96770833333333,
+              "duration_ms": 226.0416666666707,
+              "spectral_support_ratio": 0.06807133961050696,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 53,
+              "start_s": 26.92395833333333,
+              "duration_ms": 289.58333333333644,
+              "spectral_support_ratio": 0.056836183849694626,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 54,
+              "start_s": 30.040625,
+              "duration_ms": 52.08333333333215,
+              "spectral_support_ratio": 0.09324322281440084,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 54,
+              "start_s": 30.1625,
+              "duration_ms": 191.66666666666643,
+              "spectral_support_ratio": 0.05748809096051201,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 54,
+              "start_s": 30.597916666666666,
+              "duration_ms": 144.79166666666643,
+              "spectral_support_ratio": 0.047984423758615,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 54,
+              "start_s": 30.853125,
+              "duration_ms": 755.2083333333321,
+              "spectral_support_ratio": 0.06485323523574223,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 61,
+              "start_s": 33.053125,
+              "duration_ms": 81.24999999999716,
+              "spectral_support_ratio": 0.048217899908143326,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 54,
+              "start_s": 34.78958333333333,
+              "duration_ms": 75.00000000000284,
+              "spectral_support_ratio": 0.016042290695452644,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 56,
+              "start_s": 35.89270833333334,
+              "duration_ms": 121.87499999999574,
+              "spectral_support_ratio": 0.0910968680559648,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 53,
+              "start_s": 36.83229166666666,
+              "duration_ms": 238.54166666666998,
+              "spectral_support_ratio": 0.07838003089119201,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 54,
+              "start_s": 40.471875,
+              "duration_ms": 122.91666666666856,
+              "spectral_support_ratio": 0.03160256909321647,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 45,
+              "start_s": 40.947916666666664,
+              "duration_ms": 76.04166666666856,
+              "spectral_support_ratio": 0.05116411756289937,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 45,
+              "start_s": 42.921875,
+              "duration_ms": 255.2083333333357,
+              "spectral_support_ratio": 0.051325174342388966,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 53,
+              "start_s": 44.895833333333336,
+              "duration_ms": 284.37499999999716,
+              "spectral_support_ratio": 0.02435889402752517,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 45,
+              "start_s": 46.48645833333334,
+              "duration_ms": 92.70833333332718,
+              "spectral_support_ratio": 0.0354249903997523,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 45,
+              "start_s": 51.234375,
+              "duration_ms": 308.3333333333371,
+              "spectral_support_ratio": 0.01705275283039728,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 63,
+              "start_s": 53.109375,
+              "duration_ms": 128.12499999999716,
+              "spectral_support_ratio": 0.0611710981175599,
+              "classification": "unsupported"
+            }
+          ]
+        },
+        "wav_to_generated": {
+          "missing_annotation_notes": 499,
+          "spectrally_strong_missing": 282,
+          "spectral_ratio": {
+            "count": 499,
+            "mean": 0.45207169498413,
+            "median": 0.3248589407482134,
+            "p10": 0.013933987076316205
+          }
+        },
+        "latency_impact": "Offline diagnostic only; zero added live algorithmic latency."
+      }
+    },
+    {
+      "source_id": "05_SS3-84-Bb_comp",
+      "dataset_id": "guitarset_poly_mix",
+      "group_id": "guitarset_05_SS3-84-Bb_comp",
+      "split": "test",
+      "source_audio": "data\\GuitarSet\\audio_mono-pickup_mix.zip",
+      "source_audio_member": "05_SS3-84-Bb_comp_mix.wav",
+      "generated_midi": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\reports\\test_inverse_v2_2\\05_SS3-84-Bb_comp.mid",
+      "product": {
+        "input_wav": "data\\GuitarSet\\audio_mono-pickup_mix.zip",
+        "output_midi": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\reports\\test_inverse_v2_2\\05_SS3-84-Bb_comp.mid",
+        "duration_s": 45.70759637188208,
+        "events": 1150,
+        "note_on_events": 575,
+        "silent_priming_hops": 172,
+        "audio_evidence": {
+          "calibrated": true,
+          "audio_hop_index": 7873,
+          "synthetic_priming_hops": 172,
+          "onset_detector_tick_index": 8046,
+          "audio_activity_gate": {
+            "calibrated": true,
+            "calibration_stable": true,
+            "minimum_calibration_hops": 172,
+            "maximum_calibration_hops": 517,
+            "calibration_hops_seen": 172,
+            "calibration_extended_hops": 0,
+            "tail_hops": 69,
+            "tail_spread_db": 0.0,
+            "open_threshold_dbfs": -72.0,
+            "close_threshold_dbfs": -75.0,
+            "active": true
+          }
+        },
+        "inference_ms": {
+          "mean": 4.8258354838689845,
+          "p95": 9.595554999998503,
+          "max": 37.0812000001024
+        },
+        "input_audio_member": "05_SS3-84-Bb_comp_mix.wav",
+        "validation_pcm_reencode": "FLOAT"
+      },
+      "wav_to_midi_ghost_check": {
+        "reference_notes": 211,
+        "estimated_notes": 575,
+        "matched_notes": 103,
+        "false_positive_notes": 472,
+        "missing_notes": 108,
+        "precision": 0.1791304347826087,
+        "recall": 0.4881516587677725,
+        "f1": 0.262086513994911,
+        "onset_error_mean_ms": 18.20974243883194,
+        "onset_error_p95_absolute_ms": 46.73060099283717
+      },
+      "midi_to_wav_missing_check": {
+        "reference_notes": 211,
+        "estimated_notes": 575,
+        "matched_notes": 103,
+        "false_positive_notes": 472,
+        "missing_notes": 108,
+        "precision": 0.1791304347826087,
+        "recall": 0.4881516587677725,
+        "f1": 0.262086513994911,
+        "onset_error_mean_ms": 18.20974243883194,
+        "onset_error_p95_absolute_ms": 46.73060099283717,
+        "interpretation": "Reference WAV annotations not recovered by generated MIDI."
+      },
+      "onset_offset": {
+        "reference_notes": 211,
+        "estimated_notes": 575,
+        "matched_notes": 56,
+        "false_positive_notes": 519,
+        "missing_notes": 155,
+        "precision": 0.09739130434782609,
+        "recall": 0.26540284360189575,
+        "f1": 0.14249363867684478,
+        "onset_error_mean_ms": 21.0232862404417,
+        "onset_error_p95_absolute_ms": 47.12146917979143
+      },
+      "spectral_inverse": {
+        "policy": "Aligned annotations are primary; causal 4096-sample FFT probes at 0/1/2/4 hops after onset are an independent diagnostic.",
+        "generated_to_wav": {
+          "notes": 575,
+          "class_counts": {
+            "annotation_supported": 103,
+            "spectrally_supported_unmatched": 424,
+            "unsupported": 27,
+            "weak": 21
+          },
+          "spectral_ratio": {
+            "count": 575,
+            "mean": 0.7431546036241222,
+            "median": 0.8780800920644989,
+            "p10": 0.2607155686558706
+          },
+          "suspect_examples": [
+            {
+              "pitch": 53,
+              "start_s": 0.10416666666666667,
+              "duration_ms": 279.16666666666663,
+              "spectral_support_ratio": 0.021325170325837608,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 62,
+              "start_s": 0.196875,
+              "duration_ms": 1376.0416666666667,
+              "spectral_support_ratio": 0.003668871059097501,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 50,
+              "start_s": 5.990625,
+              "duration_ms": 539.5833333333337,
+              "spectral_support_ratio": 0.004476922973991937,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 58,
+              "start_s": 11.534375,
+              "duration_ms": 104.16666666666607,
+              "spectral_support_ratio": 0.015554128442587354,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 55,
+              "start_s": 12.614583333333334,
+              "duration_ms": 289.58333333333286,
+              "spectral_support_ratio": 0.04626213003441112,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 60,
+              "start_s": 13.479166666666666,
+              "duration_ms": 92.70833333333428,
+              "spectral_support_ratio": 0.029582573651249805,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 55,
+              "start_s": 13.623958333333334,
+              "duration_ms": 64.58333333333144,
+              "spectral_support_ratio": 0.056696882322408736,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 55,
+              "start_s": 14.047916666666666,
+              "duration_ms": 243.75000000000034,
+              "spectral_support_ratio": 0.02818253707772302,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 53,
+              "start_s": 14.413541666666665,
+              "duration_ms": 279.16666666666856,
+              "spectral_support_ratio": 0.05182553347757245,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 62,
+              "start_s": 14.425,
+              "duration_ms": 1382.2916666666654,
+              "spectral_support_ratio": 0.013452155731669073,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 58,
+              "start_s": 17.472916666666666,
+              "duration_ms": 760.4166666666642,
+              "spectral_support_ratio": 0.03189223712848073,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 55,
+              "start_s": 18.285416666666666,
+              "duration_ms": 459.3750000000014,
+              "spectral_support_ratio": 0.04633107467005202,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 62,
+              "start_s": 22.976041666666667,
+              "duration_ms": 1405.2083333333344,
+              "spectral_support_ratio": 0.01677497308731454,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 48,
+              "start_s": 26.00625,
+              "duration_ms": 92.70833333333073,
+              "spectral_support_ratio": 0.017091116452829746,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 50,
+              "start_s": 28.79895833333333,
+              "duration_ms": 150.00000000000213,
+              "spectral_support_ratio": 0.009563185215095504,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 53,
+              "start_s": 32.96041666666667,
+              "duration_ms": 121.87500000000284,
+              "spectral_support_ratio": 0.011053444222056539,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 50,
+              "start_s": 34.092708333333334,
+              "duration_ms": 115.62500000000142,
+              "spectral_support_ratio": 0.010601645868379663,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 58,
+              "start_s": 34.4,
+              "duration_ms": 110.41666666666572,
+              "spectral_support_ratio": 0.0159953611657205,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 58,
+              "start_s": 34.62083333333334,
+              "duration_ms": 1288.5416666666601,
+              "spectral_support_ratio": 0.010954182617482522,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 55,
+              "start_s": 36.229166666666664,
+              "duration_ms": 302.0833333333357,
+              "spectral_support_ratio": 0.03025298400998459,
+              "classification": "unsupported"
+            }
+          ]
+        },
+        "wav_to_generated": {
+          "missing_annotation_notes": 108,
+          "spectrally_strong_missing": 88,
+          "spectral_ratio": {
+            "count": 108,
+            "mean": 0.5450580542424481,
+            "median": 0.44604843400982747,
+            "p10": 0.20373499202071516
+          }
+        },
+        "latency_impact": "Offline diagnostic only; zero added live algorithmic latency."
+      }
+    },
+    {
+      "source_id": "05_SS1-100-C#_comp",
+      "dataset_id": "guitarset_poly_mix",
+      "group_id": "guitarset_05_SS1-100-C#_comp",
+      "split": "test",
+      "source_audio": "data\\GuitarSet\\audio_mono-pickup_mix.zip",
+      "source_audio_member": "05_SS1-100-C#_comp_mix.wav",
+      "generated_midi": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\reports\\test_inverse_v2_2\\05_SS1-100-C#_comp.mid",
+      "product": {
+        "input_wav": "data\\GuitarSet\\audio_mono-pickup_mix.zip",
+        "output_midi": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\reports\\test_inverse_v2_2\\05_SS1-100-C#_comp.mid",
+        "duration_s": 28.8,
+        "events": 390,
+        "note_on_events": 195,
+        "silent_priming_hops": 172,
+        "audio_evidence": {
+          "calibrated": true,
+          "audio_hop_index": 4961,
+          "synthetic_priming_hops": 172,
+          "onset_detector_tick_index": 5134,
+          "audio_activity_gate": {
+            "calibrated": true,
+            "calibration_stable": true,
+            "minimum_calibration_hops": 172,
+            "maximum_calibration_hops": 517,
+            "calibration_hops_seen": 172,
+            "calibration_extended_hops": 0,
+            "tail_hops": 69,
+            "tail_spread_db": 0.0,
+            "open_threshold_dbfs": -72.0,
+            "close_threshold_dbfs": -75.0,
+            "active": true
+          }
+        },
+        "inference_ms": {
+          "mean": 4.462226944780805,
+          "p95": 8.378044999938083,
+          "max": 165.84949999992205
+        },
+        "input_audio_member": "05_SS1-100-C#_comp_mix.wav",
+        "validation_pcm_reencode": "FLOAT"
+      },
+      "wav_to_midi_ghost_check": {
+        "reference_notes": 102,
+        "estimated_notes": 195,
+        "matched_notes": 58,
+        "false_positive_notes": 137,
+        "missing_notes": 44,
+        "precision": 0.29743589743589743,
+        "recall": 0.5686274509803921,
+        "f1": 0.3905723905723905,
+        "onset_error_mean_ms": 20.87464950679017,
+        "onset_error_p95_absolute_ms": 41.18247926235213
+      },
+      "midi_to_wav_missing_check": {
+        "reference_notes": 102,
+        "estimated_notes": 195,
+        "matched_notes": 58,
+        "false_positive_notes": 137,
+        "missing_notes": 44,
+        "precision": 0.29743589743589743,
+        "recall": 0.5686274509803921,
+        "f1": 0.3905723905723905,
+        "onset_error_mean_ms": 20.87464950679017,
+        "onset_error_p95_absolute_ms": 41.18247926235213,
+        "interpretation": "Reference WAV annotations not recovered by generated MIDI."
+      },
+      "onset_offset": {
+        "reference_notes": 102,
+        "estimated_notes": 195,
+        "matched_notes": 22,
+        "false_positive_notes": 173,
+        "missing_notes": 80,
+        "precision": 0.11282051282051282,
+        "recall": 0.21568627450980393,
+        "f1": 0.14814814814814814,
+        "onset_error_mean_ms": 22.3657068881122,
+        "onset_error_p95_absolute_ms": 40.26948928833009
+      },
+      "spectral_inverse": {
+        "policy": "Aligned annotations are primary; causal 4096-sample FFT probes at 0/1/2/4 hops after onset are an independent diagnostic.",
+        "generated_to_wav": {
+          "notes": 195,
+          "class_counts": {
+            "annotation_supported": 58,
+            "harmonic_suspect": 1,
+            "spectrally_supported_unmatched": 119,
+            "unsupported": 13,
+            "weak": 4
+          },
+          "spectral_ratio": {
+            "count": 195,
+            "mean": 0.7032918182798408,
+            "median": 0.7762264250569112,
+            "p10": 0.18415130621756035
+          },
+          "suspect_examples": [
+            {
+              "pitch": 65,
+              "start_s": 1.4572916666666667,
+              "duration_ms": 708.3333333333333,
+              "spectral_support_ratio": 0.05873090665530648,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 56,
+              "start_s": 8.271875,
+              "duration_ms": 203.125,
+              "spectral_support_ratio": 0.07737428964934528,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 40,
+              "start_s": 9.194791666666665,
+              "duration_ms": 64.58333333333499,
+              "spectral_support_ratio": 0.023468279312914897,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 42,
+              "start_s": 10.176041666666666,
+              "duration_ms": 331.2499999999989,
+              "spectral_support_ratio": 0.047255120723712296,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 54,
+              "start_s": 11.227083333333335,
+              "duration_ms": 2222.9166666666647,
+              "spectral_support_ratio": 0.030234359520914092,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 42,
+              "start_s": 11.319791666666665,
+              "duration_ms": 75.00000000000107,
+              "spectral_support_ratio": 0.0158130888018188,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 42,
+              "start_s": 12.608333333333334,
+              "duration_ms": 354.16666666666606,
+              "spectral_support_ratio": 0.07767821413054592,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 58,
+              "start_s": 19.742708333333333,
+              "duration_ms": 63.54166666666572,
+              "spectral_support_ratio": 0.04011624359718868,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 56,
+              "start_s": 20.027083333333334,
+              "duration_ms": 87.49999999999858,
+              "spectral_support_ratio": 0.09207450187001591,
+              "classification": "harmonic_suspect"
+            },
+            {
+              "pitch": 48,
+              "start_s": 20.23645833333333,
+              "duration_ms": 237.5000000000007,
+              "spectral_support_ratio": 0.09150434104497526,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 44,
+              "start_s": 21.130208333333332,
+              "duration_ms": 412.5000000000014,
+              "spectral_support_ratio": 0.06542319370089723,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 54,
+              "start_s": 23.04583333333333,
+              "duration_ms": 318.7500000000014,
+              "spectral_support_ratio": 0.039913877787892516,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 42,
+              "start_s": 23.788541666666667,
+              "duration_ms": 209.37500000000142,
+              "spectral_support_ratio": 0.01795637839733421,
+              "classification": "unsupported"
+            },
+            {
+              "pitch": 56,
+              "start_s": 24.410416666666666,
+              "duration_ms": 3250.0,
+              "spectral_support_ratio": 0.036419919023179675,
+              "classification": "unsupported"
+            }
+          ]
+        },
+        "wav_to_generated": {
+          "missing_annotation_notes": 44,
+          "spectrally_strong_missing": 15,
+          "spectral_ratio": {
+            "count": 44,
+            "mean": 0.3576114871698017,
+            "median": 0.20474593757013107,
+            "p10": 0.12084724865372379
+          }
+        },
+        "latency_impact": "Offline diagnostic only; zero added live algorithmic latency."
+      }
+    }
+  ]
+}

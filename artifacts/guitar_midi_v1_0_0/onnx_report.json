@@ -1,0 +1,83 @@
+{
+  "opset": 18,
+  "pitch_examples": 96,
+  "gate_examples": 512,
+  "pitch": {
+    "active": {
+      "onnx_output": "StatefulPartitionedCall:0",
+      "max_absolute_error": 2.384185791015625e-07,
+      "mean_absolute_error": 2.991873770952225e-08
+    },
+    "pitch": {
+      "onnx_output": "StatefulPartitionedCall:3",
+      "max_absolute_error": 5.364418029785156e-07,
+      "mean_absolute_error": 9.323662730764681e-09
+    },
+    "harmonic_amplitude": {
+      "onnx_output": "StatefulPartitionedCall:1",
+      "max_absolute_error": 2.086162567138672e-07,
+      "mean_absolute_error": 2.7685603143368098e-08
+    },
+    "harmonic_offset_cents": {
+      "onnx_output": "StatefulPartitionedCall:2",
+      "max_absolute_error": 1.52587890625e-05,
+      "mean_absolute_error": 1.546632688587124e-06
+    },
+    "pitch_argmax_agreement": 1.0,
+    "active_decision_agreement": 1.0
+  },
+  "transition_gate": {
+    "max_absolute_error": 3.5762786865234375e-07,
+    "mean_absolute_error": 6.573463906534016e-08,
+    "decision_agreement": 1.0
+  },
+  "latency": {
+    "pitch_onnx": {
+      "threads": {
+        "1": {
+          "mean_ms": 2.3725643332970017,
+          "p50_ms": 2.0369499980006367,
+          "p95_ms": 4.214574983052444,
+          "max_ms": 5.74259998393245
+        },
+        "2": {
+          "mean_ms": 2.714724666438997,
+          "p50_ms": 2.367749999393709,
+          "p95_ms": 4.858740001509433,
+          "max_ms": 8.765599981416017
+        },
+        "4": {
+          "mean_ms": 4.6779833335313015,
+          "p50_ms": 4.440700009581633,
+          "p95_ms": 6.818534988269677,
+          "max_ms": 12.255099980393425
+        }
+      },
+      "recommended_threads": 1
+    },
+    "transition_gate_onnx": {
+      "threads": {
+        "1": {
+          "mean_ms": 0.02868800045689568,
+          "p50_ms": 0.02510000194888562,
+          "p95_ms": 0.048405017878394574,
+          "max_ms": 0.1604999997653067
+        },
+        "2": {
+          "mean_ms": 0.03490799950668588,
+          "p50_ms": 0.032449999707750976,
+          "p95_ms": 0.06601000786758959,
+          "max_ms": 0.0950000248849392
+        },
+        "4": {
+          "mean_ms": 0.0779470000998117,
+          "p50_ms": 0.062000006437301636,
+          "p95_ms": 0.11813499731943014,
+          "max_ms": 0.9732999897096306
+        }
+      },
+      "recommended_threads": 1
+    }
+  },
+  "passed": true
+}

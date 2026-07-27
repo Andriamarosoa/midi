@@ -1,0 +1,11 @@
+{
+  "samples": 47263,
+  "classes": 49,
+  "min_pitch": 40,
+  "max_pitch": 88,
+  "top1": 0.04703467828957112,
+  "top3": 0.13704166049552505,
+  "mean_absolute_semitone_error": 6.500708799695322,
+  "semitone_errors": 4130,
+  "octave_errors": 1584
+}

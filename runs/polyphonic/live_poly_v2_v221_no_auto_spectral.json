@@ -1,0 +1,122 @@
+{
+  "purpose": "Annotation-free generated-MIDI to source-WAV spectral audit. This diagnoses unsupported events but cannot measure missing notes.",
+  "inputs": {
+    "wav": "runs\\polyphonic\\live_poly_v2.wav",
+    "midi": "runs\\polyphonic\\live_poly_v2_v221_no_auto.mid"
+  },
+  "contract": {
+    "sample_rate": 44100,
+    "hop_samples": 256,
+    "duration_s": 59.791383219954646,
+    "aligned_annotations_available": false,
+    "locked_test_used": false
+  },
+  "midi": {
+    "notes": 261,
+    "notes_per_minute": 261.91064927184465,
+    "unique_pitches": 31,
+    "pitch_counts": {
+      "42": 2,
+      "43": 10,
+      "44": 3,
+      "45": 6,
+      "46": 9,
+      "47": 3,
+      "48": 5,
+      "49": 4,
+      "50": 8,
+      "51": 5,
+      "52": 4,
+      "53": 9,
+      "54": 3,
+      "55": 6,
+      "56": 5,
+      "57": 13,
+      "58": 33,
+      "59": 2,
+      "60": 1,
+      "61": 13,
+      "62": 23,
+      "63": 21,
+      "64": 14,
+      "65": 22,
+      "66": 3,
+      "67": 13,
+      "68": 8,
+      "69": 1,
+      "70": 7,
+      "71": 3,
+      "72": 2
+    },
+    "maximum_polyphony": 6,
+    "duration_ms": {
+      "median": 301.0416666666664,
+      "p10": 58.33333333333712,
+      "shorter_than_50_ms": 20
+    }
+  },
+  "spectral_inverse": {
+    "policy": "Aligned annotations are primary; causal 4096-sample FFT probes at 0/1/2/4 hops after onset are an independent diagnostic.",
+    "generated_to_wav": {
+      "notes": 261,
+      "class_counts": {
+        "spectrally_supported_unmatched": 245,
+        "unsupported": 4,
+        "weak": 12
+      },
+      "spectral_ratio": {
+        "count": 261,
+        "mean": 0.8230595280885695,
+        "median": 1.0,
+        "p10": 0.3781398893852023
+      },
+      "suspect_examples": [
+        {
+          "pitch": 54,
+          "start_s": 22.215625,
+          "duration_ms": 1132.2916666666672,
+          "spectral_support_ratio": 0.005845123640480224,
+          "classification": "unsupported"
+        },
+        {
+          "pitch": 55,
+          "start_s": 30.238541666666666,
+          "duration_ms": 69.79166666666714,
+          "spectral_support_ratio": 0.03412835979361714,
+          "classification": "unsupported"
+        },
+        {
+          "pitch": 57,
+          "start_s": 39.967708333333334,
+          "duration_ms": 1108.3333333333271,
+          "spectral_support_ratio": 0.030128261031943097,
+          "classification": "unsupported"
+        },
+        {
+          "pitch": 61,
+          "start_s": 41.77291666666667,
+          "duration_ms": 801.0416666666699,
+          "spectral_support_ratio": 0.06408517319621096,
+          "classification": "unsupported"
+        }
+      ]
+    },
+    "wav_to_generated": {
+      "missing_annotation_notes": 0,
+      "spectrally_strong_missing": 0,
+      "spectral_ratio": {
+        "count": 0,
+        "mean": 0.0,
+        "median": 0.0,
+        "p10": 0.0
+      }
+    },
+    "latency_impact": "Offline diagnostic only; zero added live algorithmic latency."
+  },
+  "decision_support": {
+    "spectrally_supported_ratio_ge_0_25": 245,
+    "weak_ratio_0_10_to_0_25": 12,
+    "unsupported_ratio_lt_0_10": 4,
+    "recall_is_not_claimed_without_aligned_annotations": true
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "train": {
+    "examples": 305336,
+    "positive": 71703,
+    "negative": 233633,
+    "phase_counts": {
+      "onset": 71703,
+      "pre_attack": 27810,
+      "decay": 53310,
+      "sustain": 50269,
+      "release": 43802,
+      "silence": 6608,
+      "harmonic_tail": 51834
+    }
+  },
+  "validation": {
+    "examples": 72617,
+    "positive": 16387,
+    "negative": 56230,
+    "phase_counts": {
+      "onset": 16387,
+      "pre_attack": 6545,
+      "decay": 12915,
+      "sustain": 10575,
+      "release": 11631,
+      "silence": 1710,
+      "harmonic_tail": 12854
+    }
+  },
+  "test": {
+    "examples": 64203,
+    "positive": 13895,
+    "negative": 50308,
+    "phase_counts": {
+      "onset": 13895,
+      "pre_attack": 5278,
+      "decay": 10902,
+      "sustain": 10487,
+      "release": 10678,
+      "silence": 1719,
+      "harmonic_tail": 11244
+    }
+  }
+}

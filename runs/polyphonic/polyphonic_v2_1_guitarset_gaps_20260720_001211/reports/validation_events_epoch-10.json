@@ -1,0 +1,391 @@
+{
+  "run_dir": "runs\\polyphonic\\polyphonic_v2_1_guitarset_gaps_20260720_001211",
+  "checkpoint": "runs\\polyphonic\\polyphonic_v2_1_guitarset_gaps_20260720_001211\\epochs\\epoch-10.keras",
+  "split": "validation",
+  "dataset_id": null,
+  "recordings": 12,
+  "decoder": {
+    "midi_min": 40,
+    "midi_max": 76,
+    "frame_on_threshold": 0.7999999999999999,
+    "strong_frame_threshold": 0.95,
+    "frame_off_threshold": 0.4799999999999999,
+    "onset_threshold": 0.7949999999999999,
+    "activation_frames": 2,
+    "release_frames": 3,
+    "minimum_retrigger_frames": 14,
+    "silence_release_frames": 2,
+    "maximum_polyphony": 6,
+    "harmonic_suppression_strength": 0.25,
+    "harmonic_tolerance_cents": 35.0
+  },
+  "latency": {
+    "hop_ms": 5.804988662131519,
+    "direct_onset_added_hops": 0,
+    "frame_fallback_added_hops": 1,
+    "release_added_hops": 3
+  },
+  "onset": {
+    "reference_notes": 15745,
+    "estimated_notes": 19604,
+    "matched_notes": 3008,
+    "false_positive_notes": 16596,
+    "missing_notes": 12737,
+    "precision": 0.15343807386247704,
+    "recall": 0.191044776119403,
+    "f1": 0.17018868992050692,
+    "onset_error_mean_ms": 28.19204617370212,
+    "onset_error_p95_absolute_ms": 48.611343245534044
+  },
+  "onset_offset": {
+    "reference_notes": 15745,
+    "estimated_notes": 19604,
+    "matched_notes": 570,
+    "false_positive_notes": 19034,
+    "missing_notes": 15175,
+    "precision": 0.029075698836972048,
+    "recall": 0.03620196887900921,
+    "f1": 0.032249851480947125,
+    "onset_error_mean_ms": 28.38956204804966,
+    "onset_error_p95_absolute_ms": 48.48204026681059
+  },
+  "retriggers": 614,
+  "per_recording": [
+    {
+      "source_id": "048_Qc1wc",
+      "onset": {
+        "reference_notes": 1128,
+        "estimated_notes": 955,
+        "matched_notes": 163,
+        "false_positive_notes": 792,
+        "missing_notes": 965,
+        "precision": 0.1706806282722513,
+        "recall": 0.14450354609929078,
+        "f1": 0.15650504080652902,
+        "onset_error_mean_ms": 22.188534206283922,
+        "onset_error_p95_absolute_ms": 47.97280087978493
+      },
+      "onset_offset": {
+        "reference_notes": 1128,
+        "estimated_notes": 955,
+        "matched_notes": 24,
+        "false_positive_notes": 931,
+        "missing_notes": 1104,
+        "precision": 0.025130890052356022,
+        "recall": 0.02127659574468085,
+        "f1": 0.023043686989918384,
+        "onset_error_mean_ms": 31.15241889420251,
+        "onset_error_p95_absolute_ms": 49.66077262204038
+      },
+      "retriggers": 13
+    },
+    {
+      "source_id": "049_Fc1wc",
+      "onset": {
+        "reference_notes": 2564,
+        "estimated_notes": 3067,
+        "matched_notes": 677,
+        "false_positive_notes": 2390,
+        "missing_notes": 1887,
+        "precision": 0.22073687642647538,
+        "recall": 0.2640405616224649,
+        "f1": 0.24045462617652283,
+        "onset_error_mean_ms": 27.122364128014606,
+        "onset_error_p95_absolute_ms": 48.134031265493604
+      },
+      "onset_offset": {
+        "reference_notes": 2564,
+        "estimated_notes": 3067,
+        "matched_notes": 153,
+        "false_positive_notes": 2914,
+        "missing_notes": 2411,
+        "precision": 0.049885881969351155,
+        "recall": 0.05967238689547582,
+        "f1": 0.05434203516249334,
+        "onset_error_mean_ms": 26.713967239274748,
+        "onset_error_p95_absolute_ms": 47.98799558885776
+      },
+      "retriggers": 210
+    },
+    {
+      "source_id": "058_lV1wc",
+      "onset": {
+        "reference_notes": 253,
+        "estimated_notes": 356,
+        "matched_notes": 53,
+        "false_positive_notes": 303,
+        "missing_notes": 200,
+        "precision": 0.14887640449438203,
+        "recall": 0.20948616600790515,
+        "f1": 0.17405582922824303,
+        "onset_error_mean_ms": 33.01660591497284,
+        "onset_error_p95_absolute_ms": 48.65222084927581
+      },
+      "onset_offset": {
+        "reference_notes": 253,
+        "estimated_notes": 356,
+        "matched_notes": 3,
+        "false_positive_notes": 353,
+        "missing_notes": 250,
+        "precision": 0.008426966292134831,
+        "recall": 0.011857707509881422,
+        "f1": 0.009852216748768471,
+        "onset_error_mean_ms": 30.989547392137478,
+        "onset_error_p95_absolute_ms": 34.705635607106174
+      },
+      "retriggers": 1
+    },
+    {
+      "source_id": "064_sV1wc",
+      "onset": {
+        "reference_notes": 451,
+        "estimated_notes": 1202,
+        "matched_notes": 157,
+        "false_positive_notes": 1045,
+        "missing_notes": 294,
+        "precision": 0.13061564059900166,
+        "recall": 0.34811529933481156,
+        "f1": 0.1899576527525711,
+        "onset_error_mean_ms": 31.584954310746575,
+        "onset_error_p95_absolute_ms": 48.749881389724685
+      },
+      "onset_offset": {
+        "reference_notes": 451,
+        "estimated_notes": 1202,
+        "matched_notes": 51,
+        "false_positive_notes": 1151,
+        "missing_notes": 400,
+        "precision": 0.042429284525790346,
+        "recall": 0.1130820399113082,
+        "f1": 0.0617059891107078,
+        "onset_error_mean_ms": 32.57494607713159,
+        "onset_error_p95_absolute_ms": 48.3622530636616
+      },
+      "retriggers": 69
+    },
+    {
+      "source_id": "083_ff1wc",
+      "onset": {
+        "reference_notes": 481,
+        "estimated_notes": 557,
+        "matched_notes": 73,
+        "false_positive_notes": 484,
+        "missing_notes": 408,
+        "precision": 0.1310592459605027,
+        "recall": 0.15176715176715178,
+        "f1": 0.14065510597302502,
+        "onset_error_mean_ms": 31.211214008377596,
+        "onset_error_p95_absolute_ms": 49.573034169719676
+      },
+      "onset_offset": {
+        "reference_notes": 481,
+        "estimated_notes": 557,
+        "matched_notes": 8,
+        "false_positive_notes": 549,
+        "missing_notes": 473,
+        "precision": 0.01436265709156194,
+        "recall": 0.016632016632016633,
+        "f1": 0.015414258188824664,
+        "onset_error_mean_ms": 22.206406155409695,
+        "onset_error_p95_absolute_ms": 46.399269086703036
+      },
+      "retriggers": 8
+    },
+    {
+      "source_id": "103_Kf1wc",
+      "onset": {
+        "reference_notes": 1146,
+        "estimated_notes": 1536,
+        "matched_notes": 269,
+        "false_positive_notes": 1267,
+        "missing_notes": 877,
+        "precision": 0.17513020833333334,
+        "recall": 0.23472949389179756,
+        "f1": 0.2005965697240865,
+        "onset_error_mean_ms": 26.269892123065922,
+        "onset_error_p95_absolute_ms": 48.734867710108176
+      },
+      "onset_offset": {
+        "reference_notes": 1146,
+        "estimated_notes": 1536,
+        "matched_notes": 33,
+        "false_positive_notes": 1503,
+        "missing_notes": 1113,
+        "precision": 0.021484375,
+        "recall": 0.028795811518324606,
+        "f1": 0.02460850111856823,
+        "onset_error_mean_ms": 25.22016374677974,
+        "onset_error_p95_absolute_ms": 47.084463521730406
+      },
+      "retriggers": 41
+    },
+    {
+      "source_id": "117_cD1wc",
+      "onset": {
+        "reference_notes": 553,
+        "estimated_notes": 988,
+        "matched_notes": 157,
+        "false_positive_notes": 831,
+        "missing_notes": 396,
+        "precision": 0.15890688259109312,
+        "recall": 0.28390596745027125,
+        "f1": 0.20376378974691758,
+        "onset_error_mean_ms": 31.411646895256382,
+        "onset_error_p95_absolute_ms": 48.792506384473455
+      },
+      "onset_offset": {
+        "reference_notes": 553,
+        "estimated_notes": 988,
+        "matched_notes": 75,
+        "false_positive_notes": 913,
+        "missing_notes": 478,
+        "precision": 0.07591093117408906,
+        "recall": 0.13562386980108498,
+        "f1": 0.09733939000648928,
+        "onset_error_mean_ms": 33.407912005642615,
+        "onset_error_p95_absolute_ms": 48.992855668881674
+      },
+      "retriggers": 71
+    },
+    {
+      "source_id": "150_kM1wc",
+      "onset": {
+        "reference_notes": 863,
+        "estimated_notes": 690,
+        "matched_notes": 110,
+        "false_positive_notes": 580,
+        "missing_notes": 753,
+        "precision": 0.15942028985507245,
+        "recall": 0.12746234067207415,
+        "f1": 0.1416613007083065,
+        "onset_error_mean_ms": 18.423290048228015,
+        "onset_error_p95_absolute_ms": 48.20450884414598
+      },
+      "onset_offset": {
+        "reference_notes": 863,
+        "estimated_notes": 690,
+        "matched_notes": 8,
+        "false_positive_notes": 682,
+        "missing_notes": 855,
+        "precision": 0.011594202898550725,
+        "recall": 0.009269988412514484,
+        "f1": 0.0103026400515132,
+        "onset_error_mean_ms": 7.498280531693435,
+        "onset_error_p95_absolute_ms": 44.77827957049633
+      },
+      "retriggers": 5
+    },
+    {
+      "source_id": "157_XM1wc",
+      "onset": {
+        "reference_notes": 1022,
+        "estimated_notes": 1563,
+        "matched_notes": 170,
+        "false_positive_notes": 1393,
+        "missing_notes": 852,
+        "precision": 0.10876519513755598,
+        "recall": 0.16634050880626222,
+        "f1": 0.13152804642166346,
+        "onset_error_mean_ms": 26.359596147113365,
+        "onset_error_p95_absolute_ms": 48.33308303383603
+      },
+      "onset_offset": {
+        "reference_notes": 1022,
+        "estimated_notes": 1563,
+        "matched_notes": 57,
+        "false_positive_notes": 1506,
+        "missing_notes": 965,
+        "precision": 0.036468330134357005,
+        "recall": 0.05577299412915851,
+        "f1": 0.044100580270793034,
+        "onset_error_mean_ms": 27.833105227578713,
+        "onset_error_p95_absolute_ms": 46.50354481392469
+      },
+      "retriggers": 85
+    },
+    {
+      "source_id": "159_TM1wc",
+      "onset": {
+        "reference_notes": 3705,
+        "estimated_notes": 3388,
+        "matched_notes": 525,
+        "false_positive_notes": 2863,
+        "missing_notes": 3180,
+        "precision": 0.15495867768595042,
+        "recall": 0.1417004048582996,
+        "f1": 0.14803327224023688,
+        "onset_error_mean_ms": 25.458886280478417,
+        "onset_error_p95_absolute_ms": 48.26173812623438
+      },
+      "onset_offset": {
+        "reference_notes": 3705,
+        "estimated_notes": 3388,
+        "matched_notes": 94,
+        "false_positive_notes": 3294,
+        "missing_notes": 3611,
+        "precision": 0.027744982290436836,
+        "recall": 0.025371120107962213,
+        "f1": 0.026505004934442408,
+        "onset_error_mean_ms": 25.46399190732165,
+        "onset_error_p95_absolute_ms": 48.16766288221288
+      },
+      "retriggers": 61
+    },
+    {
+      "source_id": "186_lk1wc",
+      "onset": {
+        "reference_notes": 2936,
+        "estimated_notes": 4100,
+        "matched_notes": 519,
+        "false_positive_notes": 3581,
+        "missing_notes": 2417,
+        "precision": 0.12658536585365854,
+        "recall": 0.17677111716621252,
+        "f1": 0.1475270039795338,
+        "onset_error_mean_ms": 33.74547633678293,
+        "onset_error_p95_absolute_ms": 48.85643873842156
+      },
+      "onset_offset": {
+        "reference_notes": 2936,
+        "estimated_notes": 4100,
+        "matched_notes": 52,
+        "false_positive_notes": 4048,
+        "missing_notes": 2884,
+        "precision": 0.012682926829268294,
+        "recall": 0.017711171662125342,
+        "f1": 0.014781125639567936,
+        "onset_error_mean_ms": 31.355664096701414,
+        "onset_error_p95_absolute_ms": 48.75823123438039
+      },
+      "retriggers": 41
+    },
+    {
+      "source_id": "197_jk1wc",
+      "onset": {
+        "reference_notes": 643,
+        "estimated_notes": 1202,
+        "matched_notes": 135,
+        "false_positive_notes": 1067,
+        "missing_notes": 508,
+        "precision": 0.11231281198003328,
+        "recall": 0.2099533437013997,
+        "f1": 0.14634146341463414,
+        "onset_error_mean_ms": 32.96464020208508,
+        "onset_error_p95_absolute_ms": 48.891043734390394
+      },
+      "onset_offset": {
+        "reference_notes": 643,
+        "estimated_notes": 1202,
+        "matched_notes": 12,
+        "false_positive_notes": 1190,
+        "missing_notes": 631,
+        "precision": 0.009983361064891847,
+        "recall": 0.01866251944012442,
+        "f1": 0.013008130081300813,
+        "onset_error_mean_ms": 33.897613862745,
+        "onset_error_p95_absolute_ms": 49.177378137637625
+      },
+      "retriggers": 9
+    }
+  ]
+}

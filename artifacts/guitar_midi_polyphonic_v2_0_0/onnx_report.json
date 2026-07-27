@@ -1,0 +1,55 @@
+{
+  "opset": 18,
+  "examples": 96,
+  "outputs": {
+    "frame": {
+      "onnx_output": "frame",
+      "maximum_absolute_error": 1.1622905731201172e-06,
+      "mean_absolute_error": 7.736404228353422e-08
+    },
+    "onset": {
+      "onnx_output": "onset",
+      "maximum_absolute_error": 5.662441253662109e-07,
+      "mean_absolute_error": 5.465851060648674e-08
+    },
+    "harmonic_amplitude": {
+      "onnx_output": "harmonic_amplitude",
+      "maximum_absolute_error": 8.642673492431641e-07,
+      "mean_absolute_error": 3.7452220880140885e-08
+    },
+    "harmonic_offset_cents": {
+      "onnx_output": "harmonic_offset_cents",
+      "maximum_absolute_error": 5.53131103515625e-05,
+      "mean_absolute_error": 2.3624972982361214e-06
+    },
+    "frame_decision_agreement": 1.0,
+    "onset_decision_agreement": 1.0
+  },
+  "latency": {
+    "threads": {
+      "1": {
+        "mean_ms": 1.5644026666753537,
+        "p50_ms": 1.3268500006233808,
+        "p95_ms": 2.863125001385925,
+        "max_ms": 5.701900001440663
+      },
+      "2": {
+        "mean_ms": 1.08988199965097,
+        "p50_ms": 0.9847499968600459,
+        "p95_ms": 1.494804998219479,
+        "max_ms": 2.27910000103293
+      },
+      "4": {
+        "mean_ms": 1.4920513330434915,
+        "p50_ms": 1.3264500012155622,
+        "p95_ms": 2.2279700002400205,
+        "max_ms": 4.058599995914847
+      }
+    },
+    "recommended_threads": 2,
+    "recommended_p95_ms": 1.494804998219479,
+    "hop_budget_ms": 5.804988662131519,
+    "meets_hop_budget_p95": true
+  },
+  "passed": true
+}

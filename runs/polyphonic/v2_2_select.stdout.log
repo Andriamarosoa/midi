@@ -1,0 +1,438 @@
+{
+  "selected_on": "validation_note_events",
+  "selection_metric_source": "dataset_weighted",
+  "locked_test_used": false,
+  "maximum_recordings": 12,
+  "candidate_count": 1,
+  "selection_order": [
+    "dataset_weighted_onset_f1_or_macro_or_global",
+    "same_scope_onset_offset_f1",
+    "same_scope_onset_precision",
+    "same_scope_onset_recall",
+    "global_onset_error_p95_absolute_ms"
+  ],
+  "selected_checkpoint": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\selected.keras",
+  "source_checkpoint": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\epochs\\epoch-08.keras",
+  "thresholds": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\thresholds.json",
+  "decoder_config": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\decoder_config.json",
+  "selected_metrics": {
+    "checkpoint": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\epochs\\epoch-08.keras",
+    "thresholds": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\checkpoint_thresholds\\epoch-08.json",
+    "decoder_config": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\checkpoint_thresholds\\epoch-08_decoder.json",
+    "recordings": 12,
+    "selection": {
+      "policy": "Deterministic dataset round-robin with globally least-used group_id first.",
+      "manifest_order_independent": true,
+      "maximum_recordings": 12,
+      "eligible_recordings": 182,
+      "selected_recordings": 12,
+      "dataset_count": 4,
+      "group_count": 12,
+      "source_count": 12,
+      "eligible_recordings_by_dataset": {
+        "gaps_poly_mix": 30,
+        "guitar_techs_poly_directinput": 46,
+        "guitar_techs_poly_micamp": 46,
+        "guitarset_poly_mix": 60
+      },
+      "selected_recordings_by_dataset": {
+        "gaps_poly_mix": 3,
+        "guitar_techs_poly_directinput": 3,
+        "guitar_techs_poly_micamp": 3,
+        "guitarset_poly_mix": 3
+      },
+      "selected_groups_by_dataset": {
+        "gaps_poly_mix": 3,
+        "guitar_techs_poly_directinput": 3,
+        "guitar_techs_poly_micamp": 3,
+        "guitarset_poly_mix": 3
+      },
+      "selected_sources_by_dataset": {
+        "gaps_poly_mix": 3,
+        "guitar_techs_poly_directinput": 3,
+        "guitar_techs_poly_micamp": 3,
+        "guitarset_poly_mix": 3
+      }
+    },
+    "onset": {
+      "reference_notes": 3639,
+      "estimated_notes": 8333,
+      "matched_notes": 919,
+      "false_positive_notes": 7414,
+      "missing_notes": 2720,
+      "precision": 0.11028441137645506,
+      "recall": 0.2525419071173399,
+      "f1": 0.1535248914132977,
+      "onset_error_mean_ms": 26.726713061844446,
+      "onset_error_p95_absolute_ms": 47.87255696752481
+    },
+    "onset_offset": {
+      "reference_notes": 3639,
+      "estimated_notes": 8333,
+      "matched_notes": 277,
+      "false_positive_notes": 8056,
+      "missing_notes": 3362,
+      "precision": 0.03324132965318613,
+      "recall": 0.07611981313547678,
+      "f1": 0.04627464082860007,
+      "onset_error_mean_ms": 25.129595316541078,
+      "onset_error_p95_absolute_ms": 47.578017375303716
+    },
+    "dataset_metrics": {
+      "aggregation": "Micro counts within each dataset; macro or configured-weight mean across dataset scores.",
+      "per_dataset": {
+        "gaps_poly_mix": {
+          "recordings": 3,
+          "onset": {
+            "reference_notes": 2284,
+            "estimated_notes": 4569,
+            "matched_notes": 695,
+            "false_positive_notes": 3874,
+            "missing_notes": 1589,
+            "precision": 0.15211205953162618,
+            "recall": 0.3042907180385289,
+            "f1": 0.20283087698818034
+          },
+          "onset_offset": {
+            "reference_notes": 2284,
+            "estimated_notes": 4569,
+            "matched_notes": 146,
+            "false_positive_notes": 4423,
+            "missing_notes": 2138,
+            "precision": 0.03195447581527686,
+            "recall": 0.063922942206655,
+            "f1": 0.042609076316941476
+          },
+          "retriggers": 38
+        },
+        "guitar_techs_poly_directinput": {
+          "recordings": 3,
+          "onset": {
+            "reference_notes": 603,
+            "estimated_notes": 1766,
+            "matched_notes": 39,
+            "false_positive_notes": 1727,
+            "missing_notes": 564,
+            "precision": 0.022083805209513023,
+            "recall": 0.06467661691542288,
+            "f1": 0.03292528493035036
+          },
+          "onset_offset": {
+            "reference_notes": 603,
+            "estimated_notes": 1766,
+            "matched_notes": 14,
+            "false_positive_notes": 1752,
+            "missing_notes": 589,
+            "precision": 0.007927519818799546,
+            "recall": 0.02321724709784411,
+            "f1": 0.011819333051920641
+          },
+          "retriggers": 89
+        },
+        "guitar_techs_poly_micamp": {
+          "recordings": 3,
+          "onset": {
+            "reference_notes": 414,
+            "estimated_notes": 1451,
+            "matched_notes": 36,
+            "false_positive_notes": 1415,
+            "missing_notes": 378,
+            "precision": 0.024810475534114404,
+            "recall": 0.08695652173913043,
+            "f1": 0.0386058981233244
+          },
+          "onset_offset": {
+            "reference_notes": 414,
+            "estimated_notes": 1451,
+            "matched_notes": 11,
+            "false_positive_notes": 1440,
+            "missing_notes": 403,
+            "precision": 0.007580978635423846,
+            "recall": 0.026570048309178744,
+            "f1": 0.011796246648793566
+          },
+          "retriggers": 197
+        },
+        "guitarset_poly_mix": {
+          "recordings": 3,
+          "onset": {
+            "reference_notes": 338,
+            "estimated_notes": 547,
+            "matched_notes": 149,
+            "false_positive_notes": 398,
+            "missing_notes": 189,
+            "precision": 0.27239488117001825,
+            "recall": 0.4408284023668639,
+            "f1": 0.3367231638418079
+          },
+          "onset_offset": {
+            "reference_notes": 338,
+            "estimated_notes": 547,
+            "matched_notes": 106,
+            "false_positive_notes": 441,
+            "missing_notes": 232,
+            "precision": 0.19378427787934185,
+            "recall": 0.3136094674556213,
+            "f1": 0.23954802259887004
+          },
+          "retriggers": 58
+        }
+      },
+      "macro": {
+        "dataset_count": 4,
+        "onset": {
+          "precision": 0.11785030536131796,
+          "recall": 0.22418806476498654,
+          "f1": 0.15277130597091576
+        },
+        "onset_offset": {
+          "precision": 0.060311813037210525,
+          "recall": 0.10682992626732479,
+          "f1": 0.07644316965413143
+        }
+      },
+      "weighted": {
+        "source": "train.validation_dataset_fractions",
+        "available": true,
+        "configured_weights": {
+          "gaps_poly_mix": 0.35,
+          "guitar_techs_poly_directinput": 0.15,
+          "guitar_techs_poly_micamp": 0.05,
+          "guitarset_poly_mix": 0.45
+        },
+        "missing_selected_datasets": [],
+        "configured_weight_coverage": 1.0,
+        "effective_weights": {
+          "gaps_poly_mix": 0.35,
+          "guitar_techs_poly_directinput": 0.15,
+          "guitar_techs_poly_micamp": 0.05,
+          "guitarset_poly_mix": 0.45
+        },
+        "dataset_count": 4,
+        "onset": {
+          "precision": 0.18037001192071006,
+          "recall": 0.3189238510028438,
+          "f1": 0.22938531832039544
+        },
+        "onset_offset": {
+          "precision": 0.09995516848564186,
+          "recall": 0.1683083796074944,
+          "f1": 0.1250724991706488
+        }
+      }
+    },
+    "retriggers": 382,
+    "selection_metric_source": "dataset_weighted"
+  },
+  "candidates": [
+    {
+      "checkpoint": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\epochs\\epoch-08.keras",
+      "thresholds": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\checkpoint_thresholds\\epoch-08.json",
+      "decoder_config": "runs\\polyphonic\\polyphonic_v2_2_guitarset_gaps_guitar_techs_20260722_024644\\checkpoint_thresholds\\epoch-08_decoder.json",
+      "recordings": 12,
+      "selection": {
+        "policy": "Deterministic dataset round-robin with globally least-used group_id first.",
+        "manifest_order_independent": true,
+        "maximum_recordings": 12,
+        "eligible_recordings": 182,
+        "selected_recordings": 12,
+        "dataset_count": 4,
+        "group_count": 12,
+        "source_count": 12,
+        "eligible_recordings_by_dataset": {
+          "gaps_poly_mix": 30,
+          "guitar_techs_poly_directinput": 46,
+          "guitar_techs_poly_micamp": 46,
+          "guitarset_poly_mix": 60
+        },
+        "selected_recordings_by_dataset": {
+          "gaps_poly_mix": 3,
+          "guitar_techs_poly_directinput": 3,
+          "guitar_techs_poly_micamp": 3,
+          "guitarset_poly_mix": 3
+        },
+        "selected_groups_by_dataset": {
+          "gaps_poly_mix": 3,
+          "guitar_techs_poly_directinput": 3,
+          "guitar_techs_poly_micamp": 3,
+          "guitarset_poly_mix": 3
+        },
+        "selected_sources_by_dataset": {
+          "gaps_poly_mix": 3,
+          "guitar_techs_poly_directinput": 3,
+          "guitar_techs_poly_micamp": 3,
+          "guitarset_poly_mix": 3
+        }
+      },
+      "onset": {
+        "reference_notes": 3639,
+        "estimated_notes": 8333,
+        "matched_notes": 919,
+        "false_positive_notes": 7414,
+        "missing_notes": 2720,
+        "precision": 0.11028441137645506,
+        "recall": 0.2525419071173399,
+        "f1": 0.1535248914132977,
+        "onset_error_mean_ms": 26.726713061844446,
+        "onset_error_p95_absolute_ms": 47.87255696752481
+      },
+      "onset_offset": {
+        "reference_notes": 3639,
+        "estimated_notes": 8333,
+        "matched_notes": 277,
+        "false_positive_notes": 8056,
+        "missing_notes": 3362,
+        "precision": 0.03324132965318613,
+        "recall": 0.07611981313547678,
+        "f1": 0.04627464082860007,
+        "onset_error_mean_ms": 25.129595316541078,
+        "onset_error_p95_absolute_ms": 47.578017375303716
+      },
+      "dataset_metrics": {
+        "aggregation": "Micro counts within each dataset; macro or configured-weight mean across dataset scores.",
+        "per_dataset": {
+          "gaps_poly_mix": {
+            "recordings": 3,
+            "onset": {
+              "reference_notes": 2284,
+              "estimated_notes": 4569,
+              "matched_notes": 695,
+              "false_positive_notes": 3874,
+              "missing_notes": 1589,
+              "precision": 0.15211205953162618,
+              "recall": 0.3042907180385289,
+              "f1": 0.20283087698818034
+            },
+            "onset_offset": {
+              "reference_notes": 2284,
+              "estimated_notes": 4569,
+              "matched_notes": 146,
+              "false_positive_notes": 4423,
+              "missing_notes": 2138,
+              "precision": 0.03195447581527686,
+              "recall": 0.063922942206655,
+              "f1": 0.042609076316941476
+            },
+            "retriggers": 38
+          },
+          "guitar_techs_poly_directinput": {
+            "recordings": 3,
+            "onset": {
+              "reference_notes": 603,
+              "estimated_notes": 1766,
+              "matched_notes": 39,
+              "false_positive_notes": 1727,
+              "missing_notes": 564,
+              "precision": 0.022083805209513023,
+              "recall": 0.06467661691542288,
+              "f1": 0.03292528493035036
+            },
+            "onset_offset": {
+              "reference_notes": 603,
+              "estimated_notes": 1766,
+              "matched_notes": 14,
+              "false_positive_notes": 1752,
+              "missing_notes": 589,
+              "precision": 0.007927519818799546,
+              "recall": 0.02321724709784411,
+              "f1": 0.011819333051920641
+            },
+            "retriggers": 89
+          },
+          "guitar_techs_poly_micamp": {
+            "recordings": 3,
+            "onset": {
+              "reference_notes": 414,
+              "estimated_notes": 1451,
+              "matched_notes": 36,
+              "false_positive_notes": 1415,
+              "missing_notes": 378,
+              "precision": 0.024810475534114404,
+              "recall": 0.08695652173913043,
+              "f1": 0.0386058981233244
+            },
+            "onset_offset": {
+              "reference_notes": 414,
+              "estimated_notes": 1451,
+              "matched_notes": 11,
+              "false_positive_notes": 1440,
+              "missing_notes": 403,
+              "precision": 0.007580978635423846,
+              "recall": 0.026570048309178744,
+              "f1": 0.011796246648793566
+            },
+            "retriggers": 197
+          },
+          "guitarset_poly_mix": {
+            "recordings": 3,
+            "onset": {
+              "reference_notes": 338,
+              "estimated_notes": 547,
+              "matched_notes": 149,
+              "false_positive_notes": 398,
+              "missing_notes": 189,
+              "precision": 0.27239488117001825,
+              "recall": 0.4408284023668639,
+              "f1": 0.3367231638418079
+            },
+            "onset_offset": {
+              "reference_notes": 338,
+              "estimated_notes": 547,
+              "matched_notes": 106,
+              "false_positive_notes": 441,
+              "missing_notes": 232,
+              "precision": 0.19378427787934185,
+              "recall": 0.3136094674556213,
+              "f1": 0.23954802259887004
+            },
+            "retriggers": 58
+          }
+        },
+        "macro": {
+          "dataset_count": 4,
+          "onset": {
+            "precision": 0.11785030536131796,
+            "recall": 0.22418806476498654,
+            "f1": 0.15277130597091576
+          },
+          "onset_offset": {
+            "precision": 0.060311813037210525,
+            "recall": 0.10682992626732479,
+            "f1": 0.07644316965413143
+          }
+        },
+        "weighted": {
+          "source": "train.validation_dataset_fractions",
+          "available": true,
+          "configured_weights": {
+            "gaps_poly_mix": 0.35,
+            "guitar_techs_poly_directinput": 0.15,
+            "guitar_techs_poly_micamp": 0.05,
+            "guitarset_poly_mix": 0.45
+          },
+          "missing_selected_datasets": [],
+          "configured_weight_coverage": 1.0,
+          "effective_weights": {
+            "gaps_poly_mix": 0.35,
+            "guitar_techs_poly_directinput": 0.15,
+            "guitar_techs_poly_micamp": 0.05,
+            "guitarset_poly_mix": 0.45
+          },
+          "dataset_count": 4,
+          "onset": {
+            "precision": 0.18037001192071006,
+            "recall": 0.3189238510028438,
+            "f1": 0.22938531832039544
+          },
+          "onset_offset": {
+            "precision": 0.09995516848564186,
+            "recall": 0.1683083796074944,
+            "f1": 0.1250724991706488
+          }
+        }
+      },
+      "retriggers": 382,
+      "selection_metric_source": "dataset_weighted"
+    }
+  ]
+}

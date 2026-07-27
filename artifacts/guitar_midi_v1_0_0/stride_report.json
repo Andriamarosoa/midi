@@ -1,0 +1,108 @@
+{
+  "selection_basis": "player_04_four_solos_only",
+  "validation_tolerance_absolute": 0.002,
+  "validation": {
+    "1": {
+      "duration_s": 103.47959183673468,
+      "active_f1": 0.9178406582380092,
+      "joint_frame_accuracy": 0.8292596318873173,
+      "gated_correct_pitch_recall": 0.8366363995262535,
+      "ghost_events_per_minute": 61.4613943398087,
+      "events": 400,
+      "missing": 11,
+      "covered_majority": 207,
+      "reference_notes": 232,
+      "unsupported_retriggers": 40,
+      "controlled_retriggers": 47,
+      "transition_decisions": 177,
+      "transition_vetoes": 18,
+      "harmonic_evidence_vetoes": 0,
+      "feasible": true
+    },
+    "2": {
+      "duration_s": 103.47959183673468,
+      "active_f1": 0.9135327806480036,
+      "joint_frame_accuracy": 0.8186660353908978,
+      "gated_correct_pitch_recall": 0.8290564547966838,
+      "ghost_events_per_minute": 45.226309042500745,
+      "events": 338,
+      "missing": 13,
+      "covered_majority": 200,
+      "reference_notes": 232,
+      "unsupported_retriggers": 34,
+      "controlled_retriggers": 43,
+      "transition_decisions": 148,
+      "transition_vetoes": 7,
+      "harmonic_evidence_vetoes": 0,
+      "feasible": false
+    },
+    "3": {
+      "duration_s": 103.47959183673468,
+      "active_f1": 0.9072890025575447,
+      "joint_frame_accuracy": 0.7964727466414157,
+      "gated_correct_pitch_recall": 0.8079747335175681,
+      "ghost_events_per_minute": 36.528941918942905,
+      "events": 312,
+      "missing": 16,
+      "covered_majority": 195,
+      "reference_notes": 232,
+      "unsupported_retriggers": 34,
+      "controlled_retriggers": 41,
+      "transition_decisions": 142,
+      "transition_vetoes": 5,
+      "harmonic_evidence_vetoes": 0,
+      "feasible": false
+    }
+  },
+  "selected_stride": 1,
+  "additional_max_note_on_delay_ms": 0.0,
+  "test_sources_locked": [
+    "gsmono_05_bn1_129_eb_solo",
+    "gsmono_05_bn1_147_gb_solo",
+    "gsmono_05_bn2_131_b_solo",
+    "gsmono_05_bn3_119_g_solo"
+  ],
+  "test": {
+    "stride_1_reference": {
+      "duration_s": 103.47959183673468,
+      "active_f1": 0.848726191047354,
+      "joint_frame_accuracy": 0.795251888453456,
+      "gated_correct_pitch_recall": 0.7583807716635041,
+      "ghost_events_per_minute": 51.0245537915393,
+      "events": 366,
+      "missing": 5,
+      "covered_majority": 168,
+      "reference_notes": 199,
+      "unsupported_retriggers": 15,
+      "controlled_retriggers": 18,
+      "transition_decisions": 78,
+      "transition_vetoes": 4,
+      "harmonic_evidence_vetoes": 0
+    },
+    "stride_1_locked": {
+      "duration_s": 103.47959183673468,
+      "active_f1": 0.848726191047354,
+      "joint_frame_accuracy": 0.795251888453456,
+      "gated_correct_pitch_recall": 0.7583807716635041,
+      "ghost_events_per_minute": 51.0245537915393,
+      "events": 366,
+      "missing": 5,
+      "covered_majority": 168,
+      "reference_notes": 199,
+      "unsupported_retriggers": 15,
+      "controlled_retriggers": 18,
+      "transition_decisions": 78,
+      "transition_vetoes": 4,
+      "harmonic_evidence_vetoes": 0
+    }
+  },
+  "test_acceptance": {
+    "missing_not_worse": true,
+    "ghosts_not_worse": true,
+    "unsupported_retriggers_not_worse": true,
+    "joint_within_validation_tolerance": true,
+    "active_f1_within_validation_tolerance": true
+  },
+  "accepted_for_product": true,
+  "product_stride": 1
+}

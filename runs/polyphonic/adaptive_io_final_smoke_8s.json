@@ -1,0 +1,73 @@
+{
+  "duration_requested_s": 8.0,
+  "calibrated_frames": 1102,
+  "skipped_inferences": 6,
+  "skip_percent": 0.5444646098003629,
+  "audio_hops_dropped": 0,
+  "audio_status_events": 0,
+  "invalid_audio_blocks": 0,
+  "queue_overflow_drops": 0,
+  "backlog_discarded_hops": 0,
+  "overload_recoveries": 0,
+  "overload_recovery_events": [],
+  "stop_reason": "duration",
+  "inference_ms": {
+    "count": 1096,
+    "mean": 2.2511127737226246,
+    "p95": 4.795199999999333,
+    "max": 13.992099999999397
+  },
+  "pipeline_ms": {
+    "count": 1096,
+    "mean": 6.846672536496352,
+    "p95": 16.199950000000296,
+    "max": 30.540699999999532
+  },
+  "maximum_simultaneous_notes": 0,
+  "recorded_wav": null,
+  "recorded_samples": 0,
+  "debug_npz": null,
+  "audio_input": {
+    "direction": "input",
+    "device_index": 1,
+    "device_name": "External Microphone (Realtek(R)",
+    "host_api": "MME",
+    "native_sample_rate": 44100,
+    "target_sample_rate": 44100,
+    "block_size": 256,
+    "latency_ms": 17.414965986394556,
+    "wasapi_shared": false,
+    "automatic_selection": true,
+    "conversion_active": false
+  },
+  "audio_outputs": [
+    {
+      "backend": "fluidsynth",
+      "soundfont": "C:\\Users\\user\\Downloads\\FluidR3 GM.sf2",
+      "output_status_events": 0,
+      "consecutive_output_status_events": 0,
+      "render_errors": 0,
+      "consecutive_render_errors": 0,
+      "last_render_error": null,
+      "command_delay_ms": {
+        "count": 0,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      "direction": "output",
+      "device_index": 12,
+      "device_name": "Headphones (Realtek(R) Audio)",
+      "host_api": "Windows WASAPI",
+      "native_sample_rate": 48000,
+      "target_sample_rate": 44100,
+      "block_size": 256,
+      "latency_ms": 23.49206349206349,
+      "wasapi_shared": true,
+      "automatic_selection": true,
+      "conversion_active": true
+    }
+  ],
+  "negotiated_audio_io_ms": 40.90702947845804,
+  "output_health_error": null
+}

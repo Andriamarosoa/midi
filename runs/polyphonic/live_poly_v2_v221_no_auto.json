@@ -1,0 +1,71 @@
+{
+  "input_wav": "runs\\polyphonic\\live_poly_v2.wav",
+  "output_midi": "runs\\polyphonic\\live_poly_v2_v221_no_auto.mid",
+  "duration_s": 59.791383219954646,
+  "events": 522,
+  "note_on_events": 261,
+  "capture_gain": 1.0,
+  "gain_induced_clipped_samples": 0,
+  "silent_priming_hops": 172,
+  "audio_active_hops": 10214,
+  "physical_onset_hops": 64,
+  "event_reason_counts": {
+    "frame_attack": 57,
+    "frame_fallback": 186,
+    "harmonic_strong_frame": 4,
+    "model_onset": 14,
+    "panic": 1,
+    "release": 260
+  },
+  "note_on_reason_counts": {
+    "frame_attack": 57,
+    "frame_fallback": 186,
+    "harmonic_strong_frame": 4,
+    "model_onset": 14
+  },
+  "audio_evidence": {
+    "calibrated": true,
+    "audio_hop_index": 10299,
+    "synthetic_priming_hops": 172,
+    "onset_detector_tick_index": 10472,
+    "onset_detector": {
+      "cooldown_hops": 14,
+      "rearm_ratio": 1.35,
+      "enable_peak_rearm": true,
+      "robust_rearm": true,
+      "rearm_stable_hops": 3,
+      "rearm_attack_ratio": 3.0,
+      "rearm_flux_ratio": 2.0,
+      "rearm_growth_ratio": 8.0,
+      "require_joint_temporal_evidence": true
+    },
+    "audio_activity_gate": {
+      "calibrated": true,
+      "calibration_stable": true,
+      "minimum_calibration_hops": 172,
+      "maximum_calibration_hops": 517,
+      "calibration_hops_seen": 172,
+      "calibration_extended_hops": 0,
+      "tail_hops": 69,
+      "tail_spread_db": 0.0,
+      "open_threshold_dbfs": -72.0,
+      "close_threshold_dbfs": -75.0,
+      "active": true
+    }
+  },
+  "automatic_model_input_level": {
+    "enabled": false
+  },
+  "inference_ms": {
+    "mean": 1.2884481165048574,
+    "p95": 1.9230999999990672,
+    "max": 8.481500000000253
+  },
+  "pipeline_ms": {
+    "mean": 1.778531378640769,
+    "p95": 2.7859100000001025,
+    "max": 16.675900000000077,
+    "hop_budget_ms": 5.804988662131519,
+    "meets_hop_budget_p95": true
+  }
+}

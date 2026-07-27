@@ -1,0 +1,19 @@
+{
+  "threshold": 0.7708742520392692,
+  "selection_basis": "continuous_player_04_only",
+  "selection": {
+    "threshold": 0.7708742520392692,
+    "tp": 2948,
+    "fp": 2040,
+    "fn": 6049,
+    "precision": 0.591018444266239,
+    "recall": 0.3276647771479382,
+    "f1": 0.4215945656060064,
+    "false_events_per_minute": 66.95576171903832,
+    "latency_mean_ms": 6.773007258081885,
+    "latency_p95_ms": 25.350340136054427,
+    "recordings": 60,
+    "audio_duration_s": 1828.0726984126977,
+    "selection": "max_validation_event_f1_then_precision_then_threshold"
+  }
+}

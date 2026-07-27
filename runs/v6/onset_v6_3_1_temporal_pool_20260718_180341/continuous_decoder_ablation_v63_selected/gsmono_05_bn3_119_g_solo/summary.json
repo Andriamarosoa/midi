@@ -1,0 +1,132 @@
+{
+  "source_id": "gsmono_05_bn3_119_g_solo",
+  "duration_s": 32.26319727891156,
+  "frames": 5557,
+  "onset_threshold_validation_only": 0.049921965086460116,
+  "onset_frame_metrics": {
+    "count": 5557,
+    "positives": 124,
+    "negatives": 5433,
+    "threshold": 0.049921965086460116,
+    "tp": 124,
+    "fp": 3207,
+    "tn": 2226,
+    "fn": 0,
+    "precision": 0.037226058240768536,
+    "recall": 1.0,
+    "specificity": 0.409718387631143,
+    "f1": 0.07178002894356005,
+    "false_positive_rate": 0.590281612368857,
+    "false_negative_rate": 0.0,
+    "accuracy": 0.4228900485873673,
+    "average_precision": 0.22280210854294036
+  },
+  "onset_event_metrics": {
+    "threshold": 0.049921965086460116,
+    "tp": 0,
+    "fp": 165,
+    "fn": 62,
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "false_events_per_minute": 306.85117517695653,
+    "latency_mean_ms": null,
+    "latency_p95_ms": null,
+    "recordings": 1,
+    "audio_duration_s": 32.26319727891156
+  },
+  "offline_inference": {
+    "v6_0_seconds": 13.5909805,
+    "v6_3_onset_seconds": 1.2528245000000027
+  },
+  "latency_contract": {
+    "algorithmic_lookahead_ms": 0.0,
+    "hop_ms": 5.804988662131519,
+    "maximum_stability_delay_ms": 5.804988662131519,
+    "onset_past_context_ms": 11.609977324263038
+  },
+  "variants": {
+    "v6_0_baseline": {
+      "active": {
+        "count": 5454,
+        "positives": 3515,
+        "negatives": 1939,
+        "threshold": 0.5,
+        "tp": 3019,
+        "fp": 485,
+        "tn": 1454,
+        "fn": 496,
+        "precision": 0.8615867579908676,
+        "recall": 0.8588904694167852,
+        "specificity": 0.7498710675605983,
+        "f1": 0.8602365009260579,
+        "false_positive_rate": 0.25012893243940176,
+        "false_negative_rate": 0.1411095305832148,
+        "accuracy": 0.8201320132013201
+      },
+      "joint_frame_accuracy": 0.7931793179317932,
+      "gated_correct_pitch_recall": 0.8170697012802276,
+      "active_audio_ticks_with_no_active_prediction": 496,
+      "events": {
+        "generated": 123,
+        "supported": 87,
+        "weak": 5,
+        "harmonic_suspect": 1,
+        "unsupported": 30,
+        "ghost_events_per_minute": 57.6508268514282,
+        "controlled_same_midi_retriggers": 13,
+        "unsupported_same_midi_retriggers": 11,
+        "harmonic_veto_frames": 0
+      },
+      "reference_notes": {
+        "evaluable": 60,
+        "covered_any": 59,
+        "covered_majority": 50,
+        "missing": 1,
+        "onset_latency_mean_ms": 29.67964948695181,
+        "onset_latency_p95_ms": 82.36553287991693
+      }
+    },
+    "v6_3_onset_gate": {
+      "active": {
+        "count": 5454,
+        "positives": 3515,
+        "negatives": 1939,
+        "threshold": 0.5,
+        "tp": 3019,
+        "fp": 485,
+        "tn": 1454,
+        "fn": 496,
+        "precision": 0.8615867579908676,
+        "recall": 0.8588904694167852,
+        "specificity": 0.7498710675605983,
+        "f1": 0.8602365009260579,
+        "false_positive_rate": 0.25012893243940176,
+        "false_negative_rate": 0.1411095305832148,
+        "accuracy": 0.8201320132013201
+      },
+      "joint_frame_accuracy": 0.7924459112577924,
+      "gated_correct_pitch_recall": 0.8159317211948791,
+      "active_audio_ticks_with_no_active_prediction": 496,
+      "events": {
+        "generated": 286,
+        "supported": 233,
+        "weak": 6,
+        "harmonic_suspect": 1,
+        "unsupported": 46,
+        "ghost_events_per_minute": 87.40609232313308,
+        "controlled_same_midi_retriggers": 179,
+        "unsupported_same_midi_retriggers": 164,
+        "harmonic_veto_frames": 0
+      },
+      "reference_notes": {
+        "evaluable": 60,
+        "covered_any": 59,
+        "covered_majority": 50,
+        "missing": 1,
+        "onset_latency_mean_ms": 29.67964948695181,
+        "onset_latency_p95_ms": 82.36553287991693
+      }
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "python": "3.9.13",
+  "tensorflow": "2.15.1",
+  "numpy": "1.26.4",
+  "git_commit": "ada1f8ec06e1956f4ddbea804a0403b4357d70a8",
+  "cache_gib": {
+    "train": 1.2983155120164156,
+    "validation": 0.34532554261386395,
+    "test": 0.3084165947511792
+  }
+}
