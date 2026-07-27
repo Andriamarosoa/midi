@@ -5,7 +5,7 @@ dataset:
   normalization_gain: 1.4932045250002872
 
 train:
-  run_name: polyphonic_v2_2_guitarset_gaps_guitar_techs
+  run_name: polyphonic_multisource
   output_root: runs/polyphonic
   epochs: 8
   batch_size: 64

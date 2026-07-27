@@ -3,7 +3,7 @@ name = "midi"
 version = "1.0.0"
 description = "Causal guitar audio-to-MIDI desktop product"
 readme = "readme/README.md"
-requires-python = ">=3.9,<3.10"
+requires-python = ">=3.9,<3.12"
 
 dependencies = [
     "numpy>=1.23,<2.0",

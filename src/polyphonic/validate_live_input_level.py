@@ -735,7 +735,7 @@ def main() -> int:
     parser.add_argument(
         "--decoder-config",
         type=Path,
-        default=Path("configs/polyphonic_live_decoder_v2_2_1.json"),
+        default=Path("configs/polyphonic_live_decoder.json"),
     )
     parser.add_argument("--maximum-recordings", type=int, default=12)
     parser.add_argument("--output", type=Path)
