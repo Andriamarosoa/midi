@@ -14,6 +14,7 @@ from scripts.cloud.prepare_kaggle_datasets import (
 )
 from scripts.cloud.package_kaggle_outputs import package_outputs
 from scripts.cloud.publish_kaggle import _task_notebook
+from scripts.cloud.supervise_kaggle import STATUS_PATTERN
 
 
 class KaggleCloudPipelineTests(unittest.TestCase):
@@ -156,6 +157,15 @@ class KaggleCloudPipelineTests(unittest.TestCase):
             self.assertIn("readme/results/result.md", names)
             self.assertFalse(any(name.startswith("data/") for name in names))
             self.assertFalse(manifest["locked_test_used"])
+
+    def test_kaggle_kernel_status_is_parsed(self) -> None:
+        output = (
+            'tinahandriamarosoa/guitar-midi-polyphonic-smoke '
+            'has status "complete"'
+        )
+        match = STATUS_PATTERN.search(output)
+        self.assertIsNotNone(match)
+        self.assertEqual(match.group(1), "complete")
 
 
 if __name__ == "__main__":
