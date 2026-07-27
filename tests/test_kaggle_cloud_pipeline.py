@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import json
 import tempfile
 import tarfile
 import unittest
@@ -11,6 +12,7 @@ from scripts.cloud.prepare_kaggle_datasets import (
     prepare_training,
     prepare_training_archive,
 )
+from scripts.cloud.package_kaggle_outputs import package_outputs
 from scripts.cloud.publish_kaggle import _task_notebook
 
 
@@ -116,6 +118,44 @@ class KaggleCloudPipelineTests(unittest.TestCase):
         ]
         self.assertEqual(len(task_lines), 1)
         self.assertIn('"rebuild"', task_lines[0])
+
+    def test_training_outputs_are_packaged_without_data(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            run = root / "runs/polyphonic/run-1"
+            run.mkdir(parents=True)
+            (run / "best.keras").write_bytes(b"model")
+            artifact = root / "artifacts/generated/run-1"
+            artifact.mkdir(parents=True)
+            (artifact / "model.tflite").write_bytes(b"tflite")
+            result = root / "readme/results/result.md"
+            result.parent.mkdir(parents=True)
+            result.write_text("# result\n", encoding="utf-8")
+            data = root / "data/processed"
+            data.mkdir(parents=True)
+            (data / "must-not-be-packaged.npz").write_bytes(b"private")
+            pipeline = {
+                "run_dir": str(run),
+                "artifact_dir": str(artifact),
+                "result_readme": str(result),
+                "locked_test_used": False,
+            }
+            (run / "cloud_pipeline.json").write_text(
+                json.dumps(pipeline), encoding="utf-8"
+            )
+
+            output = root / "output"
+            manifest = package_outputs(
+                task="train", output_dir=output, root=root
+            )
+            with tarfile.open(output / manifest["archive"], "r") as archive:
+                names = set(archive.getnames())
+
+            self.assertIn("run/run-1/best.keras", names)
+            self.assertIn("artifacts/run-1/model.tflite", names)
+            self.assertIn("readme/results/result.md", names)
+            self.assertFalse(any(name.startswith("data/") for name in names))
+            self.assertFalse(manifest["locked_test_used"])
 
 
 if __name__ == "__main__":
