@@ -22,6 +22,7 @@ import csv
 import json
 import os
 import shutil
+import tarfile
 from collections import Counter, defaultdict
 from pathlib import Path
 from zipfile import ZipFile
@@ -282,6 +283,35 @@ def prepare_raw(*, root: Path, output_path: Path) -> dict[str, object]:
     return report
 
 
+def prepare_training_archive(
+    *, package_path: Path, output_path: Path
+) -> dict[str, object]:
+    package = package_path.resolve()
+    report_path = package / "package_report.json"
+    if not report_path.is_file():
+        raise FileNotFoundError(report_path)
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    if (
+        report.get("passed") is not True
+        or report.get("locked_test_included") is not False
+        or report.get("kind") != "polyphonic_train_validation"
+    ):
+        raise ValueError("Training package is not safe for Kaggle upload.")
+    output = _new_output(output_path)
+    archive_path = output / "polyphonic_train_validation.tar"
+    with tarfile.open(archive_path, "w", format=tarfile.PAX_FORMAT) as archive:
+        archive.add(package / "data", arcname="data", recursive=True)
+    shutil.copy2(report_path, output / "package_report.json")
+    upload_report = {
+        **report,
+        "upload_files": 2,
+        "archive": archive_path.name,
+        "archive_bytes": archive_path.stat().st_size,
+    }
+    _write_json(output / "package_report.json", upload_report)
+    return upload_report
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="kind", required=True)
@@ -305,6 +335,18 @@ def main() -> int:
         default=Path("tmp/kaggle/polyphonic-raw-sources"),
     )
 
+    archive = subparsers.add_parser("archive-training")
+    archive.add_argument(
+        "--package",
+        type=Path,
+        default=Path("tmp/kaggle/polyphonic-train-validation"),
+    )
+    archive.add_argument(
+        "--output",
+        type=Path,
+        default=Path("tmp/kaggle/polyphonic-train-validation-upload"),
+    )
+
     args = parser.parse_args()
     os.chdir(ROOT)
     if args.kind == "training":
@@ -313,9 +355,14 @@ def main() -> int:
             manifest_path=args.manifest.resolve(),
             output_path=args.output,
         )
-    else:
+    elif args.kind == "raw":
         report = prepare_raw(
             root=args.root.resolve(), output_path=args.output
+        )
+    else:
+        report = prepare_training_archive(
+            package_path=args.package,
+            output_path=args.output,
         )
     print(json.dumps(report, indent=2, ensure_ascii=False))
     return 0

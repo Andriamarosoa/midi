@@ -2,11 +2,15 @@ from __future__ import annotations
 
 import csv
 import tempfile
+import tarfile
 import unittest
 from pathlib import Path
 from zipfile import ZipFile
 
-from scripts.cloud.prepare_kaggle_datasets import prepare_training
+from scripts.cloud.prepare_kaggle_datasets import (
+    prepare_training,
+    prepare_training_archive,
+)
 from scripts.cloud.publish_kaggle import _task_notebook
 
 
@@ -84,6 +88,23 @@ class KaggleCloudPipelineTests(unittest.TestCase):
                 (output / "data/processed/labels/test.npz").exists()
             )
             self.assertFalse(report["locked_test_included"])
+
+            upload = root / "upload"
+            upload_report = prepare_training_archive(
+                package_path=output,
+                output_path=upload,
+            )
+            with tarfile.open(
+                upload / "polyphonic_train_validation.tar", "r"
+            ) as archive:
+                archived = set(archive.getnames())
+            self.assertEqual(upload_report["upload_files"], 2)
+            self.assertIn(
+                "data/processed/labels/train.npz", archived
+            )
+            self.assertNotIn(
+                "data/processed/labels/test.npz", archived
+            )
 
     def test_kernel_notebook_task_is_generated_without_other_edits(self) -> None:
         notebook = _task_notebook("rebuild")

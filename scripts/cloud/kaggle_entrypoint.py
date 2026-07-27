@@ -13,6 +13,7 @@ import json
 import os
 import subprocess
 import sys
+import tarfile
 from collections import Counter, defaultdict
 from pathlib import Path
 from zipfile import ZipFile
@@ -58,6 +59,36 @@ def find_training_data_root(input_root: Path) -> Path:
             f"found {len(candidates)}."
         )
     return _data_root_from_manifest(candidates[0])
+
+
+def materialize_training_archive(input_root: Path) -> Path:
+    archives = sorted(
+        input_root.rglob("polyphonic_train_validation.tar")
+    )
+    if not archives:
+        return input_root
+    if len(archives) != 1:
+        raise ValueError(
+            "Expected at most one attached training archive, "
+            f"found {len(archives)}."
+        )
+    destination = Path("/kaggle/working/guitar-midi-input")
+    if destination.exists():
+        raise FileExistsError(destination)
+    destination.mkdir(parents=True)
+    with tarfile.open(archives[0], "r") as archive:
+        resolved_destination = destination.resolve()
+        for member in archive.getmembers():
+            target = (destination / member.name).resolve()
+            if (
+                target != resolved_destination
+                and resolved_destination not in target.parents
+            ):
+                raise ValueError(
+                    f"Archive member escapes destination: {member.name}"
+                )
+        archive.extractall(destination)
+    return destination
 
 
 def find_raw_data_root(input_root: Path) -> Path:
@@ -203,7 +234,8 @@ def main() -> int:
             "locked_test_used_for_model_selection": False,
         }
     else:
-        data_root = find_training_data_root(args.input_root)
+        materialized_input = materialize_training_archive(args.input_root)
+        data_root = find_training_data_root(materialized_input)
         manifest = stage_training_data(data_root)
         validation = validate_training_manifest(manifest)
         command = [
