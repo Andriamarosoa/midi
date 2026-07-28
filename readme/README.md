@@ -15,14 +15,14 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T14:54:08.271126+00:00`
-- Étape : `kaggle_tpu_probe_resolver_error`
+- Mise à jour : `2026-07-28T17:26:47.384920+00:00`
+- Étape : `kaggle_smoke_keras3_compatibility_fix`
 - Statut : `anomalie`
-- Détail : Le probe TPU privé est terminé en ERROR avant initialisation du TPU. Erreur exacte : TPUClusterResolver() sans argument lève ValueError 'Please provide a TPU Name to connect to.' Ce résultat ne prouve pas que le worker TPU est indisponible ; il montre que le probe utilise le mode Cloud TPU générique au lieu du mode TPU VM local attendu sur Kaggle. Aucun dataset, entraînement complet ou test verrouillé utilisé.
+- Détail : premier smoke du compte vérifié terminé en `ERROR` après montage correct des 16 datasets et création du GPU P100 (15511 MiB). Cause exacte : Keras 3 / TensorFlow 2.20 refuse `reduction="auto"` dans les trois pertes personnalisées. Correction locale appliquée vers `sum_over_batch_size`, sans changement de formule, et 15 tests unitaires/cloud passent. Aucun retry ni train cloud complet n'a encore été lancé. Train local parallèle actif : époques 4 à 6 finalisées ; meilleure validation à l'époque 6 avec val_frame_micro_f1=0.489716, val_onset_micro_f1=0.083311 et val_loss=0.360086. Époque 7 au batch 2813/3750 à 21:26 +04:00, stderr sans erreur. Test verrouillé exclu.
 
 ## Étapes suivantes
 
-1. Corriger le probe avec TPUClusterResolver(tpu='local'), puis seulement après autorisation de reprise lancer une version unique du probe. Si l'initialisation locale réussit, adapter validation cloud, TPUStrategy et tf.data avant un smoke multi-source ; aucun train complet avant validation.
+1. Publier un snapshot source contenant la correction Keras 3, puis lancer un seul retry privé du smoke. Valider ensuite l'assemblage des 16 shards, `locked_test_used=false`, les métriques et les sorties. Ne lancer aucun train cloud complet avant ce verdict. Auditer séparément les droits de redistribution des corpus désormais publics.
 <!-- CURRENT_STATUS_END -->
 
 ## État technique consolidé
@@ -76,7 +76,7 @@ fondamentale contre harmonique/résonance.
 - 2026-07-28 — **terminé** — préparation du pipeline Kaggle privé :
   packaging sans test, smoke/train P100, reprise, supervision et récupération.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:START -->
-- 2026-07-28 — **anomalie** — `kaggle_training_dataset_upload` : Le probe TPU privé est terminé en ERROR avant initialisation du TPU. Erreur exacte : TPUClusterResolver() sans argument lève ValueError 'Please provide a TPU Name to connect to.' Ce résultat ne prouve pas que le worker TPU est indisponible ; il montre que le probe utilise le mode Cloud TPU générique au lieu du mode TPU VM local attendu sur Kaggle. Aucun dataset, entraînement complet ou test verrouillé utilisé.
+- 2026-07-28 — **anomalie** — `kaggle_training_dataset_upload` : premier smoke du compte vérifié terminé en `ERROR` après montage correct des 16 datasets et création du GPU P100 (15511 MiB). Cause exacte : Keras 3 / TensorFlow 2.20 refuse `reduction="auto"` dans les trois pertes personnalisées. Correction locale appliquée vers `sum_over_batch_size`, sans changement de formule, et 15 tests unitaires/cloud passent. Aucun retry ni train cloud complet n'a encore été lancé. Train local parallèle actif : époques 4 à 6 finalisées ; meilleure validation à l'époque 6 avec val_frame_micro_f1=0.489716, val_onset_micro_f1=0.083311 et val_loss=0.360086. Époque 7 au batch 2813/3750 à 21:26 +04:00, stderr sans erreur. Test verrouillé exclu.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
 <!-- PROJECT_TASK:skill_project_contract:START -->
 - 2026-07-28 — **terminé** — `skill_project_contract` : skill

@@ -83,6 +83,18 @@ class PolyphonicModelTests(unittest.TestCase):
         )
         self.assertAlmostEqual(float(metric.result()), 1.0)
 
+    def test_custom_losses_use_keras3_compatible_reduction(self) -> None:
+        losses = (
+            ClassWeightedBinaryCrossentropy([1.0, 2.0]),
+            PolyphonicMaskedHarmonicAmplitudeLoss(2),
+            PolyphonicHarmonicOffsetLoss(2),
+        )
+        for loss in losses:
+            self.assertEqual(loss.reduction, "sum_over_batch_size")
+            self.assertEqual(
+                loss.get_config()["reduction"], "sum_over_batch_size"
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

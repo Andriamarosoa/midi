@@ -16,7 +16,7 @@ class ClassWeightedBinaryCrossentropy(tf.keras.losses.Loss):
     def __init__(
         self,
         positive_weights: list[float] | tuple[float, ...],
-        reduction: str = tf.keras.losses.Reduction.AUTO,
+        reduction: str = "sum_over_batch_size",
         name: str = "class_weighted_binary_crossentropy",
     ) -> None:
         super().__init__(reduction=reduction, name=name)
@@ -49,7 +49,7 @@ class PolyphonicMaskedHarmonicAmplitudeLoss(tf.keras.losses.Loss):
     def __init__(
         self,
         harmonic_count: int = 20,
-        reduction: str = tf.keras.losses.Reduction.AUTO,
+        reduction: str = "sum_over_batch_size",
         name: str = "polyphonic_masked_harmonic_amplitude_loss",
     ) -> None:
         super().__init__(reduction=reduction, name=name)
@@ -75,7 +75,7 @@ class PolyphonicHarmonicOffsetLoss(tf.keras.losses.Loss):
         self,
         harmonic_count: int = 20,
         scale_cents: float = 35.0,
-        reduction: str = tf.keras.losses.Reduction.AUTO,
+        reduction: str = "sum_over_batch_size",
         name: str = "polyphonic_harmonic_offset_loss",
     ) -> None:
         super().__init__(reduction=reduction, name=name)
