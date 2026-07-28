@@ -6,9 +6,15 @@ import tempfile
 import tarfile
 import unittest
 from datetime import datetime, timezone
+from email.message import Message
 from pathlib import Path
 from zipfile import ZipFile
 
+from scripts.cloud.kaggle_upload_progress import (
+    query_upload_progress,
+    upload_info_path,
+    uploaded_bytes_from_range,
+)
 from scripts.cloud.prepare_kaggle_datasets import (
     prepare_training,
     prepare_training_archive,
@@ -20,6 +26,53 @@ from scripts.project_summary import update_project_summary
 
 
 class KaggleCloudPipelineTests(unittest.TestCase):
+    def test_kaggle_upload_progress_uses_server_acknowledged_range(self) -> None:
+        class Response:
+            code = 308
+
+            def __init__(self) -> None:
+                self.headers = Message()
+                self.headers["Range"] = "bytes=0-1048575"
+
+            def close(self) -> None:
+                return None
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            upload = root / "payload.tar"
+            upload.write_bytes(b"x" * 2_097_152)
+            sidecars = root / "uploads"
+            sidecars.mkdir()
+            sidecar = upload_info_path(
+                upload, upload_info_dir=sidecars
+            )
+            sidecar.write_text(
+                json.dumps({
+                    "path": str(upload.resolve()),
+                    "start_blob_upload_request": {
+                        "contentLength": upload.stat().st_size,
+                    },
+                    "start_blob_upload_response": {
+                        "createUrl": "https://upload.example/session-secret",
+                    },
+                }),
+                encoding="utf-8",
+            )
+
+            result = query_upload_progress(
+                upload,
+                upload_info_dir=sidecars,
+                opener=lambda request, timeout: Response(),
+            )
+
+            self.assertEqual(result["status"], "uploading")
+            self.assertEqual(result["bytes_uploaded"], 1_048_576)
+            self.assertEqual(result["remaining_bytes"], 1_048_576)
+            self.assertEqual(result["percent"], 50.0)
+            self.assertEqual(
+                uploaded_bytes_from_range("bytes=0-0"), 1
+            )
+
     def test_training_package_excludes_locked_test_rows_and_audio(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

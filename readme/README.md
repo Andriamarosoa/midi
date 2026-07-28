@@ -16,10 +16,11 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T00:21:26.399039+00:00`
+- Mise à jour : `2026-07-28T00:40:06.033757+00:00`
 - Étape : `waiting_training_dataset`
 - Statut : `en cours`
-- Détail : upload privé actif : 5,01 Go sur 7,84 Go (64 %), sans anomalie
+- Détail : upload privé actif : 7 350 255 616 octets confirmés sur
+  8 418 068 480 (87,32 %), sans anomalie
 
 ## Étapes suivantes
 
@@ -87,10 +88,17 @@ fondamentale contre harmonique/résonance.
 - 2026-07-28 — **terminé** — préparation du pipeline Kaggle privé :
   packaging sans test, smoke/train P100, reprise, supervision et récupération.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:START -->
-- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : upload privé actif : 5,01 Go sur 7,84 Go (64 %), sans anomalie
+- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : upload privé
+  actif ; 7 350 255 616 octets confirmés sur 8 418 068 480 (87,32 %) à
+  `2026-07-28T00:40:06.033757+00:00`, sans anomalie
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
 <!-- PROJECT_TASK:skill_project_contract:START -->
-- 2026-07-28 — **terminé** — `skill_project_contract` : skill guitar-audio-midi-researcher enrichi avec le contrat permanent du projet et validé
+- 2026-07-28 — **terminé** — `skill_project_contract` : skill
+  guitar-audio-midi-researcher enrichi avec le contrat permanent du projet,
+  puis rendu autonome : lecture complète obligatoire de `readme/README.md`,
+  vérification Git/artifacts avant toute action, interrogation des compteurs
+  réels à chaque demande de progression sans extrapolation, puis mise à jour
+  de la même entrée de journal en fin d’étape ; validation réussie
 <!-- PROJECT_TASK:skill_project_contract:END -->
 <!-- JOURNAL_END -->
 
