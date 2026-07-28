@@ -15,14 +15,14 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T14:48:23.501014+00:00`
-- Étape : `kaggle_tpu_probe_running`
-- Statut : `en cours`
-- Détail : Après confirmation que le worker GPU Kaggle ne démarre pas, un fallback TPU est étudié. Le train actuel n'est pas directement TPU-compatible : validation cloud GPU-only, absence de TPUStrategy et alimentation par PolyphonicSequence Python. Avant toute adaptation, le probe privé minimal tinahandriamarosoa/guitar-midi-tpu-probe-20260728 a été soumis avec l'accélérateur Tpu1VmV38. Il initialise TPUClusterResolver/TPUStrategy et exécute un produit matriciel ; statut réel Kaggle : RUNNING. Aucun dataset, entraînement complet ou test verrouillé utilisé.
+- Mise à jour : `2026-07-28T14:54:08.271126+00:00`
+- Étape : `kaggle_tpu_probe_resolver_error`
+- Statut : `anomalie`
+- Détail : Le probe TPU privé est terminé en ERROR avant initialisation du TPU. Erreur exacte : TPUClusterResolver() sans argument lève ValueError 'Please provide a TPU Name to connect to.' Ce résultat ne prouve pas que le worker TPU est indisponible ; il montre que le probe utilise le mode Cloud TPU générique au lieu du mode TPU VM local attendu sur Kaggle. Aucun dataset, entraînement complet ou test verrouillé utilisé.
 
 ## Étapes suivantes
 
-1. Lire les métriques exactes du probe TPU. S'il réussit, ajouter une voie TPU contrôlée et un tf.data.Dataset à formes fixes, puis exécuter uniquement le smoke multi-source. S'il échoue au provisionnement du worker, arrêter Kaggle et basculer vers Colab GPU.
+1. Corriger le probe avec TPUClusterResolver(tpu='local'), puis seulement après autorisation de reprise lancer une version unique du probe. Si l'initialisation locale réussit, adapter validation cloud, TPUStrategy et tf.data avant un smoke multi-source ; aucun train complet avant validation.
 <!-- CURRENT_STATUS_END -->
 
 ## État technique consolidé
@@ -76,7 +76,7 @@ fondamentale contre harmonique/résonance.
 - 2026-07-28 — **terminé** — préparation du pipeline Kaggle privé :
   packaging sans test, smoke/train P100, reprise, supervision et récupération.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:START -->
-- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : Après confirmation que le worker GPU Kaggle ne démarre pas, un fallback TPU est étudié. Le train actuel n'est pas directement TPU-compatible : validation cloud GPU-only, absence de TPUStrategy et alimentation par PolyphonicSequence Python. Avant toute adaptation, le probe privé minimal tinahandriamarosoa/guitar-midi-tpu-probe-20260728 a été soumis avec l'accélérateur Tpu1VmV38. Il initialise TPUClusterResolver/TPUStrategy et exécute un produit matriciel ; statut réel Kaggle : RUNNING. Aucun dataset, entraînement complet ou test verrouillé utilisé.
+- 2026-07-28 — **anomalie** — `kaggle_training_dataset_upload` : Le probe TPU privé est terminé en ERROR avant initialisation du TPU. Erreur exacte : TPUClusterResolver() sans argument lève ValueError 'Please provide a TPU Name to connect to.' Ce résultat ne prouve pas que le worker TPU est indisponible ; il montre que le probe utilise le mode Cloud TPU générique au lieu du mode TPU VM local attendu sur Kaggle. Aucun dataset, entraînement complet ou test verrouillé utilisé.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
 <!-- PROJECT_TASK:skill_project_contract:START -->
 - 2026-07-28 — **terminé** — `skill_project_contract` : skill
