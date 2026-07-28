@@ -15,14 +15,14 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T19:56:04.171466+00:00`
-- Étape : `keras2_windows_h5_path_fix_validated`
+- Mise à jour : `2026-07-28T20:01:09.585978+00:00`
+- Étape : `kaggle_validation_only_rank_60k`
 - Statut : `en cours`
-- Détail : Premier probe Keras 3 sur 128 exemples terminé ERROR sans relance. Trace exacte à 44.221 s : Keras 3 trouve model.weights.h5 mais 25 couches reçoivent 0 variable. Inspection confirmée : les checkpoints Keras 2 créés sous Windows stockent des groupes HDF5 tels que layers\\conv1d/vars/0, incompatibles avec les chemins Linux. Correction ajoutée : copie temporaire des poids avec normalisation backslash vers slash, conservation des attributs, reconstruction fraîche après échec partiel. Checkpoints originaux inchangés. 20 tests passent.
+- Détail : Compatibilité Keras 2 Windows vers Keras 3 Linux validée au commit d8ce139 : reconstruction architecture, normalisation temporaire des chemins HDF5 et poids originaux inchangés. Probe P100 128 COMPLETE : 8/8 checkpoints, split validation, locked_test_used=false, checkpoint_ranking.json et 8 seuils présents ; archive 47083520 octets, SHA-256 95bb99f97db3e1533ce7610cda784c7f85fab2e248e9682569d017acdb5e0630 conforme. Classement complet unique miranacareneandrisoa/guitar-midi-poly-rank-full-d8ce-20260728 lancé sur 60000 exemples ; statut vérifié RUNNING.
 
 ## Étapes suivantes
 
-1. Committer/pousser la normalisation HDF5, publier le nouveau snapshot privé et relancer un unique probe 128 sous un nouveau slug. Lancer rank 60000 seulement si le rapport probe passe avec locked_test_used=false.
+1. Surveiller le kernel sans relance. À COMPLETE, télécharger seulement les résultats et valider manifeste, SHA-256, examples=60000, 8 checkpoints et locked_test_used=false ; ensuite poursuivre la sélection musicale validation-only. À ERROR, récupérer kernels logs avant toute correction.
 <!-- CURRENT_STATUS_END -->
 
 ## État technique consolidé
@@ -79,7 +79,7 @@ fondamentale contre harmonique/résonance.
 - 2026-07-28 — **terminé** — `kaggle_training_dataset_upload` : pipeline Kaggle P100 validé avec succès sur le compte `miranacareneandrisoa`, commit `8bccadc6`, TensorFlow 2.20/Keras 3. Le smoke attache les 16 shards, charge les NPY tronqués, entraîne une époque de 256 exemples, valide sur 128 exemples et produit `best.keras`, `last.keras`, `final.keras`, l'archive et le rapport. Archive 17111040 octets, SHA-256 `830aa93d81d814a2f3109b9a62e26612348d90f53c3e4000078c6bcd95070117` conforme ; `locked_test_used=false`. Les quatre corpus sont présents dans les pools. Les métriques smoke (val_frame_micro_f1=0.061205, val_onset_micro_f1=0.002302) vérifient l'exécution, pas la qualité.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
 <!-- PROJECT_TASK:checkpoint_validation_selection:START -->
-- 2026-07-28 — **en cours** — `checkpoint_validation_selection` : Premier probe Keras 3 sur 128 exemples terminé ERROR sans relance. Trace exacte à 44.221 s : Keras 3 trouve model.weights.h5 mais 25 couches reçoivent 0 variable. Inspection confirmée : les checkpoints Keras 2 créés sous Windows stockent des groupes HDF5 tels que layers\\conv1d/vars/0, incompatibles avec les chemins Linux. Correction ajoutée : copie temporaire des poids avec normalisation backslash vers slash, conservation des attributs, reconstruction fraîche après échec partiel. Checkpoints originaux inchangés. 20 tests passent.
+- 2026-07-28 — **en cours** — `checkpoint_validation_selection` : Compatibilité Keras 2 Windows vers Keras 3 Linux validée au commit d8ce139 : reconstruction architecture, normalisation temporaire des chemins HDF5 et poids originaux inchangés. Probe P100 128 COMPLETE : 8/8 checkpoints, split validation, locked_test_used=false, checkpoint_ranking.json et 8 seuils présents ; archive 47083520 octets, SHA-256 95bb99f97db3e1533ce7610cda784c7f85fab2e248e9682569d017acdb5e0630 conforme. Classement complet unique miranacareneandrisoa/guitar-midi-poly-rank-full-d8ce-20260728 lancé sur 60000 exemples ; statut vérifié RUNNING.
 <!-- PROJECT_TASK:checkpoint_validation_selection:END -->
 <!-- PROJECT_TASK:skill_project_contract:START -->
 - 2026-07-28 — **terminé** — `skill_project_contract` : skill
