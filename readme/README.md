@@ -16,18 +16,20 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T00:40:06.033757+00:00`
-- Étape : `waiting_training_dataset`
-- Statut : `en cours`
-- Détail : upload privé actif : 7 350 255 616 octets confirmés sur
-  8 418 068 480 (87,32 %), sans anomalie
+- Mise à jour : `2026-07-28T00:59:35.8793528Z`
+- Étape : `kaggle_dataset_publication_unconfirmed`
+- Statut : `anomalie`
+- Détail : compte Kaggle confirmé connecté comme `tinahandriamarosoa` ; après
+  l’envoi local, l’API renvoie encore HTTP 403 et le dataset privé n’apparaît
+  pas dans la liste du compte, donc sa publication reste non confirmée
 
 ## Étapes suivantes
 
-1. Finaliser et vérifier le dataset privé train/validation.
-2. Démarrer l’upload privé des sources brutes.
-3. Exécuter le smoke test sur GPU P100.
-4. Valider le résultat avant tout train complet.
+1. Vérifier la publication du dataset privé train/validation sur Kaggle.
+2. Ne pas relancer l’upload sans déterminer si Kaggle a conservé ou rejeté la
+   création du dataset.
+3. Dès que le dataset est lisible, reprendre automatiquement l’upload brut,
+   le smoke P100 puis le train.
 <!-- CURRENT_STATUS_END -->
 
 ## État technique consolidé
@@ -88,9 +90,10 @@ fondamentale contre harmonique/résonance.
 - 2026-07-28 — **terminé** — préparation du pipeline Kaggle privé :
   packaging sans test, smoke/train P100, reprise, supervision et récupération.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:START -->
-- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : upload privé
-  actif ; 7 350 255 616 octets confirmés sur 8 418 068 480 (87,32 %) à
-  `2026-07-28T00:40:06.033757+00:00`, sans anomalie
+- 2026-07-28 — **anomalie** — `kaggle_training_dataset_upload` : upload privé
+  local terminé ; compte Kaggle confirmé connecté, mais API HTTP 403 et
+  dataset absent de la liste du compte à `2026-07-28T00:59:35.8793528Z` ; la
+  publication du dataset est non confirmée et bloque les étapes suivantes
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
 <!-- PROJECT_TASK:skill_project_contract:START -->
 - 2026-07-28 — **terminé** — `skill_project_contract` : skill
