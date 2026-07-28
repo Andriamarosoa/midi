@@ -46,6 +46,7 @@ class PolyphonicAudioEvidencePolicy:
         calibration_s: float = 1.0,
         onset_cooldown_ms: float = 80.0,
         onset_rearm_ratio: float = 1.35,
+        onset_adapt_temporal_background: bool = False,
         onset_rearm_stable_hops: int = 3,
         onset_rearm_attack_ratio: float = 3.0,
         onset_rearm_flux_ratio: float = 2.0,
@@ -64,6 +65,7 @@ class PolyphonicAudioEvidencePolicy:
             rearm_ratio=onset_rearm_ratio,
             enable_peak_rearm=True,
             robust_rearm=True,
+            adapt_temporal_background=onset_adapt_temporal_background,
             rearm_stable_hops=onset_rearm_stable_hops,
             rearm_attack_ratio=onset_rearm_attack_ratio,
             rearm_flux_ratio=onset_rearm_flux_ratio,
@@ -99,6 +101,12 @@ class PolyphonicAudioEvidencePolicy:
             ),
             onset_rearm_ratio=float(
                 values.get("onset_rearm_ratio", 1.35)
+            ),
+            onset_adapt_temporal_background=bool(
+                values.get(
+                    "onset_adapt_temporal_background",
+                    False,
+                )
             ),
             onset_rearm_stable_hops=int(
                 values.get("onset_rearm_stable_hops", 3)
@@ -194,6 +202,9 @@ class PolyphonicAudioEvidencePolicy:
                 "rearm_ratio": self.onset_detector.rearm_ratio,
                 "enable_peak_rearm": self.onset_detector.enable_peak_rearm,
                 "robust_rearm": self.onset_detector.robust_rearm,
+                "adapt_temporal_background": (
+                    self.onset_detector.adapt_temporal_background
+                ),
                 "rearm_stable_hops": (
                     self.onset_detector.rearm_stable_hops
                 ),
@@ -221,6 +232,7 @@ def offline_audio_evidence_masks(
     *,
     frame_count: int | None = None,
     calibration_s: float = 1.0,
+    metadata: Mapping[str, object] | None = None,
 ) -> tuple[np.ndarray, np.ndarray, dict[str, object]]:
     """Replay live activity and attack evidence without consulting labels.
 
@@ -240,8 +252,10 @@ def offline_audio_evidence_masks(
             f"({complete_frames} complete, {padded_frames} with tail padding)."
         )
 
-    policy = PolyphonicAudioEvidencePolicy(
-        sample_rate, hop_samples, fft_size=512,
+    policy = PolyphonicAudioEvidencePolicy.from_metadata(
+        sample_rate,
+        hop_samples,
+        metadata or {},
         calibration_s=calibration_s,
     )
     priming_hops = policy.prime_silence()

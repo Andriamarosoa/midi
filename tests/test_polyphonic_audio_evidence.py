@@ -11,6 +11,7 @@ import numpy as np
 from src.polyphonic.audio_evidence import (
     PolyphonicAudioEvidencePolicy,
     offline_audio_activity_mask,
+    offline_audio_evidence_masks,
 )
 from src.polyphonic.decoder import PolyphonicMidiEvent
 from src.polyphonic.transcribe import transcribe
@@ -50,6 +51,32 @@ class PolyphonicAudioEvidencePolicyTests(unittest.TestCase):
         )
         self.assertEqual(len(complete_only), 2)
 
+    def test_offline_masks_accept_an_explicit_evidence_candidate(
+        self,
+    ) -> None:
+        waveform = np.concatenate((
+            np.full(self.hop_samples, 0.5, np.float32),
+            np.zeros(self.hop_samples, np.float32),
+        ))
+
+        _, _, report = offline_audio_evidence_masks(
+            waveform,
+            sample_rate=self.sample_rate,
+            hop_samples=self.hop_samples,
+            frame_count=2,
+            calibration_s=0.04,
+            metadata={
+                "audio_evidence": {
+                    "fft_size": 128,
+                    "onset_adapt_temporal_background": True,
+                }
+            },
+        )
+
+        self.assertTrue(
+            report["onset_detector"]["adapt_temporal_background"]
+        )
+
     def _policy(self) -> PolyphonicAudioEvidencePolicy:
         return PolyphonicAudioEvidencePolicy(
             self.sample_rate,
@@ -74,6 +101,7 @@ class PolyphonicAudioEvidencePolicyTests(unittest.TestCase):
                     "fft_size": 128,
                     "onset_cooldown_ms": 40.0,
                     "onset_rearm_attack_ratio": 2.5,
+                    "onset_adapt_temporal_background": True,
                 }
             },
             calibration_s=0.04,
@@ -83,6 +111,9 @@ class PolyphonicAudioEvidencePolicyTests(unittest.TestCase):
         self.assertEqual(
             policy.onset_detector.rearm_attack_ratio,
             2.5,
+        )
+        self.assertTrue(
+            policy.onset_detector.adapt_temporal_background
         )
 
     def test_matches_the_previous_live_detector_and_gate_policy(self) -> None:

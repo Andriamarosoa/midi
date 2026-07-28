@@ -120,6 +120,38 @@ class AdaptiveOnsetDetectorTests(unittest.TestCase):
 
         self.assertEqual(onset_indices, [0, len(envelope) - 2])
 
+    def test_temporal_background_can_adapt_without_raising_noise_floor(
+        self,
+    ) -> None:
+        sample_rate = 44100
+        hop = 256
+        detector = AdaptiveOnsetDetector(
+            sample_rate=sample_rate,
+            hop_samples=hop,
+            calibration_s=0.05,
+            enable_peak_rearm=True,
+            robust_rearm=True,
+            adapt_temporal_background=True,
+            rearm_attack_ratio=3.0,
+            require_joint_temporal_evidence=True,
+        )
+        silence = np.zeros(hop, dtype=np.float32)
+        for _ in range(detector.calibration_hops):
+            detector.process(silence)
+        noise_floor_count = detector.rms_stats.count
+
+        phase = np.arange(hop * 220, dtype=np.float32)
+        tone = (
+            0.2
+            * np.sin(2.0 * np.pi * 220.0 * phase / sample_rate)
+        ).astype(np.float32)
+        for start in range(0, len(tone), hop):
+            detector.process(tone[start:start + hop])
+
+        self.assertEqual(detector.rms_stats.count, noise_floor_count)
+        self.assertGreater(detector.flux_stats.median(), 0.0)
+        self.assertGreater(detector.growth_stats.count, noise_floor_count)
+
 
 if __name__ == "__main__":
     unittest.main()

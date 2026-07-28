@@ -86,6 +86,7 @@ class AdaptiveOnsetDetector:
         require_joint_temporal_evidence: bool = False,
         enable_peak_rearm: bool = False,
         robust_rearm: bool = False,
+        adapt_temporal_background: bool = False,
         rearm_stable_hops: int = 3,
         rearm_attack_ratio: float = 1.20,
         rearm_flux_ratio: float = 2.0,
@@ -126,6 +127,9 @@ class AdaptiveOnsetDetector:
         )
         self.enable_peak_rearm = bool(enable_peak_rearm)
         self.robust_rearm = bool(robust_rearm)
+        self.adapt_temporal_background = bool(
+            adapt_temporal_background
+        )
         self.rearm_stable_hops = int(rearm_stable_hops)
         self.rearm_attack_ratio = float(rearm_attack_ratio)
         self.rearm_flux_ratio = float(rearm_flux_ratio)
@@ -346,7 +350,7 @@ class AdaptiveOnsetDetector:
         elif self.cooldown_remaining > 0:
             self.cooldown_remaining -= 1
 
-        update_background = not is_onset and (
+        update_noise_background = not is_onset and (
             not self.calibrated
             or (
                 self.armed
@@ -354,8 +358,22 @@ class AdaptiveOnsetDetector:
                 and spectral_flux <= flux_threshold * 1.25
             )
         )
-        if update_background:
+        if update_noise_background:
             self.rms_stats.add(rms)
+        update_temporal_background = (
+            update_noise_background
+            or (
+                self.adapt_temporal_background
+                and self.calibrated
+                and self.robust_rearm
+                and self.armed
+                and self.cooldown_remaining == 0
+                and not is_onset
+                and not rearmed_this_hop
+                and not robust_attack_ready
+            )
+        )
+        if update_temporal_background:
             self.growth_stats.add(rms_growth)
             self.flux_stats.add(spectral_flux)
         self.previous_rms = rms

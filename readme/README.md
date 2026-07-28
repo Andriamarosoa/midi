@@ -1,6 +1,6 @@
 # Résumé unique — Guitar MIDI AI
 
-> Dernière mise à jour manuelle : 2026-07-28
+> Dernière mise à jour manuelle : 2026-07-29
 >
 > Branche active : `codex/cleanup-cloud-training-docs`
 >
@@ -15,14 +15,14 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T20:41:15.128866+00:00`
-- Étape : `desktop_export_parity_latency_ab_complete`
+- Mise à jour : `2026-07-29T01:13:26.1207352+04:00`
+- Étape : `adaptive_attack_validation_complete`
 - Statut : `terminé`
-- Détail : Checkpoint Kaggle epoch-08 installé localement et exporté : parité TFLite/ONNX 100 % sur 96 exemples, ONNX p95 3,25 ms. Le TFLite est bit à bit identique au bundle stable (SHA-256 4a4df49d...), donc les poids sont reproduits ; seuls les seuils diffèrent. Deux benchmarks TFLite stricts restent instables malgré des p95 sous 5,80 ms. A/B validation : Guitar-TECHS F1 onset 0,0370 vers 0,0357 et faux positifs 21 vers 23 ; GuitarSet F1 onset 0,2966 vers 0,3025 mais onset+offset 0,2542 vers 0,2437 et fragmentation 2 vers 4. Candidat non promu ; bundle v2_2_0 conservé. Runtime corrigé : fallback à 1 thread si la recommandation benchmark est absente. Test verrouillé non utilisé.
+- Détail : Audit WAV Guitar-TECHS corrigé : l'ancien extrait était écrêté à 99,94 % par une conversion int16 incorrecte dans un script temporaire ; train et évaluations officielles non affectés. Ablation validation-only sur les 12 enregistrements exacts : faux NoteOn causaux 2118 vers 1389 (-34,4 %), erreurs d'octave 444 vers 310, F1 onset pondéré 0,2332 vers 0,2409 et Guitar-TECHS direct 0,0398 vers 0,0459. Régression : rappel causal 0,4636 vers 0,3968, F1 GAPS 0,2124 vers 0,1824 et F1 global 0,1733 vers 0,1604. Pipeline p95 3,30 à 4,17 ms sous le hop 5,80 ms, sans délai algorithmique. Candidat installé séparément, bundle stable inchangé, test verrouillé non utilisé.
 
 ## Étapes suivantes
 
-1. Expérience suivante à changement unique : adapter causalement la détection d'attaque au domaine Guitar-TECHS, où 1 attaque physique seulement est détectée pour 64 onsets annotés sur l'extrait audité ; revalider les mêmes WAV avant tout changement de seuil ou nouveau train.
+1. Effectuer un test live A/B à périphérique et niveau identiques entre le bundle stable et artifacts/guitar_midi_polyphonic_adaptive_attack_candidate. Ne promouvoir qu'après écoute confirmant que la baisse des notes fantômes compense la perte de rappel, notamment sur jeu dense type GAPS.
 <!-- CURRENT_STATUS_END -->
 
 ## État technique consolidé
@@ -90,8 +90,11 @@ fondamentale contre harmonique/résonance.
   de la même entrée de journal en fin d’étape ; validation réussie
 <!-- PROJECT_TASK:skill_project_contract:END -->
 <!-- PROJECT_TASK:desktop_candidate_validation:START -->
-- 2026-07-29 — **terminé** — `desktop_candidate_validation` : Checkpoint Kaggle epoch-08 installé localement et exporté : parité TFLite/ONNX 100 % sur 96 exemples, ONNX p95 3,25 ms. Le TFLite est bit à bit identique au bundle stable (SHA-256 4a4df49d...), donc les poids sont reproduits ; seuls les seuils diffèrent. Deux benchmarks TFLite stricts restent instables malgré des p95 sous 5,80 ms. A/B validation : Guitar-TECHS F1 onset 0,0370 vers 0,0357 et faux positifs 21 vers 23 ; GuitarSet F1 onset 0,2966 vers 0,3025 mais onset+offset 0,2542 vers 0,2437 et fragmentation 2 vers 4. Candidat non promu ; bundle v2_2_0 conservé. Runtime corrigé : fallback à 1 thread si la recommandation benchmark est absente. Test verrouillé non utilisé.
+- 2026-07-29 — **terminé** — `desktop_candidate_validation` : Checkpoint Kaggle epoch-08 installé localement et exporté : parité TFLite/ONNX 100 % sur 96 exemples, ONNX p95 3,25 ms. Le TFLite est bit à bit identique au bundle stable (SHA-256 4a4df49d...), donc les poids sont reproduits ; seuls les seuils diffèrent. Deux benchmarks TFLite stricts restent instables malgré des p95 sous 5,80 ms. Après correction d’un WAV Guitar-TECHS temporaire écrêté, l’A/B donne F1 onset 0,0882 vers 0,0870 et faux positifs 33 vers 34 ; GuitarSet donne 0,2966 vers 0,3025 mais onset+offset 0,2542 vers 0,2437 et fragmentation 2 vers 4. Candidat non promu ; bundle v2_2_0 conservé. Runtime corrigé : fallback à 1 thread si la recommandation benchmark est absente. Test verrouillé non utilisé.
 <!-- PROJECT_TASK:desktop_candidate_validation:END -->
+<!-- PROJECT_TASK:adaptive_attack_validation:START -->
+- 2026-07-29 — **terminé** — `adaptive_attack_validation` : Audit WAV Guitar-TECHS corrigé : l'ancien extrait était écrêté à 99,94 % par une conversion int16 incorrecte dans un script temporaire ; train et évaluations officielles non affectés. Ablation validation-only sur les 12 enregistrements exacts : faux NoteOn causaux 2118 vers 1389 (-34,4 %), erreurs d'octave 444 vers 310, F1 onset pondéré 0,2332 vers 0,2409 et Guitar-TECHS direct 0,0398 vers 0,0459. Régression : rappel causal 0,4636 vers 0,3968, F1 GAPS 0,2124 vers 0,1824 et F1 global 0,1733 vers 0,1604. Pipeline p95 3,30 à 4,17 ms sous le hop 5,80 ms, sans délai algorithmique. Candidat installé séparément, bundle stable inchangé, test verrouillé non utilisé.
+<!-- PROJECT_TASK:adaptive_attack_validation:END -->
 <!-- JOURNAL_END -->
 ## Rapports détaillés
 
@@ -101,6 +104,7 @@ fondamentale contre harmonique/résonance.
 - [2026-07-28 — reconstruction de `data/processed`](results/2026-07-28_processed-reconstruction.md)
 - [2026-07-28 — incident de publication Kaggle](results/2026-07-28_kaggle-upload-incident.md)
 - [2026-07-29 — validation du candidat desktop sélectionné](results/2026-07-29_desktop-candidate-validation.md)
+- [2026-07-29 — validation de l’attaque causale adaptative](results/2026-07-29_adaptive-attack-validation.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.

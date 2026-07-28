@@ -7,6 +7,15 @@ La sélection Kaggle `epoch-08` du run
 exportée en TFLite float16 et ONNX. Tous les contrôles utilisent uniquement le
 split validation. Le test verrouillé n’a pas été ouvert.
 
+> Correction du 29 juillet : la première génération du WAV d’audit
+> Guitar-TECHS convertissait un tableau `int16` en `float32` sans division par
+> 32768. Le WAV obtenu contenait 99,94 % d’échantillons écrêtés. Les métriques
+> Guitar-TECHS et les diagnostics spectraux de cette première passe ont été
+> invalidés puis recalculés avec un WAV correctement normalisé. Les
+> entraînements, la sélection Kaggle et l’évaluation événementielle 12
+> enregistrements n’étaient pas concernés : leurs chargeurs normalisent déjà
+> les tableaux entiers.
+
 ## Reproductibilité et parité
 
 - SHA-256 de `selected.keras` :
@@ -38,11 +47,12 @@ Lors de la seconde passe :
 - 3 threads : p95 3,37 ms, mais 0,33 % d’inférences au-dessus du hop ;
 - résultat du garde-fou strict : échec.
 
-Le pipeline WAV réel reste sous le budget p95 : 4,62 ms sur Guitar-TECHS et
-4,76 ms sur GuitarSet. Le candidat demeure utilisable pour diagnostic, mais
-ne mérite pas une promotion automatique. Le runtime retombe désormais sur un
-thread si aucune recommandation stricte n’existe, au lieu de planter sur une
-valeur `null`.
+Après correction du WAV, le pipeline reste sous le budget p95 : 3,66 ms sur
+Guitar-TECHS et 4,23 ms sur GuitarSet avec le bundle stable ; 3,14 ms et
+3,28 ms avec les nouveaux seuils. Le candidat demeure utilisable pour
+diagnostic, mais ne mérite pas une promotion automatique. Le runtime retombe
+désormais sur un thread si aucune recommandation stricte n’existe, au lieu de
+planter sur une valeur `null`.
 
 ## Comparaison alignée WAV/MIDI
 
@@ -52,16 +62,16 @@ avec le bundle stable et avec les nouveaux seuils.
 ### Guitar-TECHS direct input, 30 s
 
 - 32 notes de référence ;
-- baseline : F1 onset 0,0370, 21 faux positifs, 31 notes manquantes ;
-- candidat : F1 onset 0,0357, 23 faux positifs, 31 notes manquantes ;
-- seulement une attaque physique détectée pour 64 onsets annotés dans
-  l’extrait ;
-- 22 notes du candidat sur 24 sont soutenues spectralement, contre 20 sur 22
-  pour le baseline.
+- baseline : F1 onset 0,0882, 33 faux positifs, 29 notes manquantes ;
+- candidat : F1 onset 0,0870, 34 faux positifs, 29 notes manquantes ;
+- 24 attaques physiques détectées dans les deux cas ;
+- l’annotation contient 32 notes, 64 bits onset positifs répartis sur 58
+  trames, soit 29 groupes temporels continus : ces quantités ne doivent pas
+  être confondues.
 
-Les hauteurs émises peuvent donc être plausibles spectralement, mais leur
-timing et leur attribution aux attaques sont largement incorrects. Le domaine
-Guitar-TECHS reste le principal échec.
+Les anciens comptes de soutien spectral provenaient du WAV écrêté et sont
+explicitement exclus. Le domaine Guitar-TECHS reste faible après correction,
+mais le diagnostic exact n’est plus « une seule attaque détectée ».
 
 ### GuitarSet, 22,32 s
 

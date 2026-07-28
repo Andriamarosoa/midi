@@ -538,7 +538,19 @@ def evaluate_events(
     thresholds_path: Path | None = None,
     decoder_config_path: Path | None = None,
     causal_gate: CausalMetricGate | None = None,
+    audio_evidence_metadata: Mapping[str, object] | None = None,
+    report_suffix: str | None = None,
 ) -> dict[str, object]:
+    if report_suffix is not None and (
+        not report_suffix
+        or any(
+            not (character.isalnum() or character in "_-")
+            for character in report_suffix
+        )
+    ):
+        raise ValueError(
+            "report_suffix must contain only letters, digits, '_' or '-'."
+        )
     config = json.loads((run_dir / "config.json").read_text(encoding="utf-8"))
     thresholds = json.loads(
         (thresholds_path or (run_dir / "thresholds.json")).read_text(
@@ -622,6 +634,7 @@ def evaluate_events(
                 offline_audio_evidence_masks(
                 audio, corpus.sample_rate, corpus.hop_size,
                 frame_count=len(prediction["frame"]),
+                metadata=audio_evidence_metadata,
                 )
             )
             estimated, retriggers = decode_probabilities(
@@ -710,6 +723,7 @@ def evaluate_events(
         "audio_evidence_policy": (
             "shared_live_audio_evidence_with_synthetic_silence_priming"
         ),
+        "audio_evidence_metadata": dict(audio_evidence_metadata or {}),
         "audio_evidence_label_leakage": False,
         "diagnostics": diagnose_note_errors(
             all_reference, all_estimated, onset_matches,
@@ -721,9 +735,11 @@ def evaluate_events(
     checkpoint_suffix = (
         f"_{checkpoint.stem}" if checkpoint_path is not None else ""
     )
+    variant_suffix = f"_{report_suffix}" if report_suffix else ""
     report_name = (
-        f"{split}_{dataset_id}_events{checkpoint_suffix}.json" if dataset_id
-        else f"{split}_events{checkpoint_suffix}.json"
+        f"{split}_{dataset_id}_events{checkpoint_suffix}{variant_suffix}.json"
+        if dataset_id
+        else f"{split}_events{checkpoint_suffix}{variant_suffix}.json"
     )
     (reports_root / report_name).write_text(
         json.dumps(report, indent=2), encoding="utf-8"
@@ -740,6 +756,18 @@ def main() -> None:
     parser.add_argument("--checkpoint", type=Path)
     parser.add_argument("--thresholds", type=Path)
     parser.add_argument("--decoder-config", type=Path)
+    parser.add_argument(
+        "--audio-evidence-config",
+        type=Path,
+        help=(
+            "JSON contenant uniquement les paramètres audio_evidence "
+            "à tester sur le split demandé."
+        ),
+    )
+    parser.add_argument(
+        "--report-suffix",
+        help="Suffixe sûr ajouté au rapport pour éviter tout écrasement.",
+    )
     parser.add_argument(
         "--causal-gate",
         type=Path,
@@ -761,10 +789,20 @@ def main() -> None:
         and causal_gate.configured_check_count() == 0
     ):
         parser.error("--causal-gate doit contenir au moins un seuil.")
+    audio_evidence_metadata = None
+    if args.audio_evidence_config is not None:
+        audio_evidence_values = json.loads(
+            args.audio_evidence_config.read_text(encoding="utf-8")
+        )
+        if not isinstance(audio_evidence_values, dict):
+            parser.error("--audio-evidence-config doit contenir un objet JSON.")
+        audio_evidence_metadata = {
+            "audio_evidence": audio_evidence_values,
+        }
     report = evaluate_events(
         args.run_dir, args.split, args.maximum_recordings, args.dataset_id,
         args.checkpoint, args.thresholds, args.decoder_config,
-        causal_gate,
+        causal_gate, audio_evidence_metadata, args.report_suffix,
     )
     print(json.dumps({
         "split": report["split"],
