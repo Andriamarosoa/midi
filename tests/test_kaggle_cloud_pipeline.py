@@ -237,11 +237,9 @@ class KaggleCloudPipelineTests(unittest.TestCase):
             with tarfile.open(output / "midi_source.tar.gz", "r:gz") as archive:
                 names = set(archive.getnames())
             self.assertIn("scripts/cloud/kaggle_entrypoint.py", names)
-            self.assertFalse(any(
-                name.startswith("data/processed/")
-                and name != "data/processed/.gitkeep"
-                for name in names
-            ))
+            self.assertFalse(any(name.startswith("data/") for name in names))
+            self.assertFalse(any(name.startswith("artifacts/") for name in names))
+            self.assertFalse(any(name.startswith("runs/") for name in names))
 
     def test_training_outputs_are_packaged_without_data(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

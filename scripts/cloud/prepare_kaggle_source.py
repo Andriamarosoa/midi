@@ -9,6 +9,15 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
+SOURCE_PATHS = (
+    "configs",
+    "kaggle",
+    "pyproject.toml",
+    "readme/README.md",
+    "requirements",
+    "scripts",
+    "src",
+)
 
 
 def _git(*arguments: str) -> str:
@@ -43,6 +52,7 @@ def prepare_source_dataset(
             "--format=tar.gz",
             f"--output={archive}",
             commit,
+            *SOURCE_PATHS,
         ),
         cwd=ROOT,
         check=True,
@@ -53,6 +63,7 @@ def prepare_source_dataset(
         "commit": commit,
         "archive": archive.name,
         "archive_bytes": archive.stat().st_size,
+        "source_paths": list(SOURCE_PATHS),
         "datasets_included": False,
         "locked_test_included": False,
     }
