@@ -182,6 +182,7 @@ def publish_kernel(
     task: str,
     output_dir: Path,
     kernel_slug: str | None = None,
+    accelerator: str = "NvidiaTeslaP100",
 ) -> str:
     if "/" in owner or not owner:
         raise ValueError("Owner must be a Kaggle username.")
@@ -238,7 +239,7 @@ def publish_kernel(
     _run([
         _kaggle(), "kernels", "push",
         "-p", str(output_dir),
-        "--accelerator", "NvidiaTeslaP100",
+        "--accelerator", accelerator,
     ])
     return str(metadata["id"])
 
@@ -275,6 +276,12 @@ def main() -> int:
     kernel.add_argument(
         "--output-dir", type=Path, default=Path("tmp/kaggle/kernel")
     )
+    kernel.add_argument(
+        "--accelerator",
+        choices=("NvidiaTeslaP100", "NvidiaTeslaT4"),
+        default="NvidiaTeslaP100",
+        help="Kaggle GPU shape; P100 remains the default.",
+    )
 
     args = parser.parse_args()
     if args.command == "dataset":
@@ -292,6 +299,7 @@ def main() -> int:
             task=args.task,
             output_dir=args.output_dir,
             kernel_slug=args.kernel_slug,
+            accelerator=args.accelerator,
         )
         print(json.dumps({"kernel": kernel_id, "task": args.task}, indent=2))
     return 0

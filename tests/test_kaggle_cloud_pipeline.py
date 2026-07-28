@@ -213,7 +213,9 @@ class KaggleCloudPipelineTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             output = Path(temporary) / "kernel"
             with (
-                mock.patch("scripts.cloud.publish_kaggle._run"),
+                mock.patch(
+                    "scripts.cloud.publish_kaggle._run"
+                ) as run_mock,
                 mock.patch(
                     "scripts.cloud.publish_kaggle._kaggle",
                     return_value="kaggle",
@@ -229,6 +231,7 @@ class KaggleCloudPipelineTests(unittest.TestCase):
                     task="smoke",
                     output_dir=output,
                     kernel_slug="smoke-shards",
+                    accelerator="NvidiaTeslaT4",
                 )
             metadata = json.loads(
                 (output / "kernel-metadata.json").read_text(encoding="utf-8")
@@ -257,6 +260,10 @@ class KaggleCloudPipelineTests(unittest.TestCase):
                 'SOURCE_DATASET_SLUG = '
                 '"guitar-midi-polyphonic-code-6ce57898"',
                 source,
+            )
+            self.assertEqual(
+                run_mock.call_args.args[0][-2:],
+                ["--accelerator", "NvidiaTeslaT4"],
             )
 
     def test_source_dataset_contains_only_tracked_source_snapshot(self) -> None:
