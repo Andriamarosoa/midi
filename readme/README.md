@@ -15,16 +15,16 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T13:52:37.460590+00:00`
-- Étape : `kaggle_smoke_mount_alias_fix_ready`
-- Statut : `anomalie`
-- Détail : Deux smokes se sont arrêtés avant toute donnée ou entraînement. 1) pathfix : erreur à 155,5 s, car l'archive source créée via l'interface Kaggle a été décompressée à la racine et le notebook a repris l'ancien git clone ; github.com était non résolvable. 2) offline-root : erreur à 12,24 s, car le dataset source n'était pas monté sous le chemin dérivé de son slug. La métadonnée serveur du kernel confirme pourtant les 17 sources attachées, dont les 16 parts et guitar-midi-polyphonic-code-6ce57898. Correction supplémentaire versionnée au commit 55e9e57 : découverte de l'unique racine montée contenant pyproject.toml, src et scripts/cloud/kaggle_entrypoint.py, journalisation des montages réels, aucun fallback réseau. Validation : simulation avec un alias de montage fournisseur réussie, workspace et commit 6ce57898 détectés ; notebook JSON valide, 9 tests cloud réussis et git diff --check réussi. Aucun troisième smoke lancé, aucun train complet lancé, test verrouillé exclu.
+- Mise à jour : `2026-07-28T13:56:13.413951+00:00`
+- Étape : `kaggle_smoke_mount_scan_running`
+- Statut : `en cours`
+- Détail : Autorisation explicite reçue pour une seule troisième tentative. Le smoke privé tinahandriamarosoa/guitar-midi-polyphonic-smoke-mount-scan-20260728 a été soumis une seule fois avec les 16 datasets et le snapshot source privé 6ce57898. Il utilise la correction 55e9e57 : découverte de l'unique racine montée par pyproject.toml, src et scripts/cloud/kaggle_entrypoint.py, journalisation de mounted_inputs/source_candidates et aucun fallback GitHub. Statut Kaggle vérifié : RUNNING ; aucun log d'exécution encore disponible au premier contrôle. Validation préalable : simulation d'un alias fournisseur réussie, notebook JSON valide, 9 tests cloud réussis. Aucun train complet lancé, test verrouillé exclu.
 
 ## Étapes suivantes
 
-1. Après accord, lancer une seule troisième tentative du smoke privé avec la correction 55e9e57 déjà poussée.
-2. Sur le prochain run, vérifier d'abord dans le log mounted_inputs et source_candidates, puis l'assemblage des 16 datasets.
-3. Ne lancer aucun train complet avant un output_manifest.json valide avec locked_test_used=false.
+1. Surveiller le statut et attendre les premières valeurs mounted_inputs/source_candidates sans relancer le kernel.
+2. En cas de réussite, télécharger et valider output_manifest.json, l'archive, locked_test_used=false, l'assemblage des 16 datasets et les métriques.
+3. Présenter le résultat avant toute décision de train complet.
 <!-- CURRENT_STATUS_END -->
 
 ## État technique consolidé
@@ -78,7 +78,7 @@ fondamentale contre harmonique/résonance.
 - 2026-07-28 — **terminé** — préparation du pipeline Kaggle privé :
   packaging sans test, smoke/train P100, reprise, supervision et récupération.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:START -->
-- 2026-07-28 — **anomalie** — `kaggle_training_dataset_upload` : Deux smokes se sont arrêtés avant toute donnée ou entraînement. 1) pathfix : erreur à 155,5 s, car l'archive source créée via l'interface Kaggle a été décompressée à la racine et le notebook a repris l'ancien git clone ; github.com était non résolvable. 2) offline-root : erreur à 12,24 s, car le dataset source n'était pas monté sous le chemin dérivé de son slug. La métadonnée serveur du kernel confirme pourtant les 17 sources attachées, dont les 16 parts et guitar-midi-polyphonic-code-6ce57898. Correction supplémentaire versionnée au commit 55e9e57 : découverte de l'unique racine montée contenant pyproject.toml, src et scripts/cloud/kaggle_entrypoint.py, journalisation des montages réels, aucun fallback réseau. Validation : simulation avec un alias de montage fournisseur réussie, workspace et commit 6ce57898 détectés ; notebook JSON valide, 9 tests cloud réussis et git diff --check réussi. Aucun troisième smoke lancé, aucun train complet lancé, test verrouillé exclu.
+- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : Autorisation explicite reçue pour une seule troisième tentative. Le smoke privé tinahandriamarosoa/guitar-midi-polyphonic-smoke-mount-scan-20260728 a été soumis une seule fois avec les 16 datasets et le snapshot source privé 6ce57898. Il utilise la correction 55e9e57 : découverte de l'unique racine montée par pyproject.toml, src et scripts/cloud/kaggle_entrypoint.py, journalisation de mounted_inputs/source_candidates et aucun fallback GitHub. Statut Kaggle vérifié : RUNNING ; aucun log d'exécution encore disponible au premier contrôle. Validation préalable : simulation d'un alias fournisseur réussie, notebook JSON valide, 9 tests cloud réussis. Aucun train complet lancé, test verrouillé exclu.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
 <!-- PROJECT_TASK:skill_project_contract:START -->
 - 2026-07-28 — **terminé** — `skill_project_contract` : skill
