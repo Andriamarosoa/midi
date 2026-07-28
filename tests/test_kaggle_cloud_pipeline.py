@@ -205,6 +205,8 @@ class KaggleCloudPipelineTests(unittest.TestCase):
             source,
         )
         self.assertIn("MAXIMUM_EXAMPLES = 60000", source)
+        self.assertIn("MAXIMUM_RECORDINGS = 12", source)
+        self.assertIn("MAXIMUM_CANDIDATES = 8", source)
         self.assertIn(
             '"--maximum-examples", str(MAXIMUM_EXAMPLES)',
             source,
@@ -227,6 +229,22 @@ class KaggleCloudPipelineTests(unittest.TestCase):
             for line in cell.get("source", [])
         )
         self.assertIn("MAXIMUM_EXAMPLES = 128", source)
+
+    def test_select_injects_event_evaluation_limits(self) -> None:
+        notebook = _task_notebook(
+            "select",
+            source_dataset_slug="guitar-midi-polyphonic-code-select",
+            maximum_recordings=12,
+            maximum_candidates=8,
+        )
+        source = "".join(
+            line
+            for cell in notebook["cells"]
+            for line in cell.get("source", [])
+        )
+        self.assertIn('TASK = "select"', source)
+        self.assertIn("MAXIMUM_RECORDINGS = 12", source)
+        self.assertIn("MAXIMUM_CANDIDATES = 8", source)
 
     def test_kernel_accepts_multiple_unique_dataset_sources(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -431,6 +449,42 @@ class KaggleCloudPipelineTests(unittest.TestCase):
                     "run/run-1/checkpoint_ranking.json",
                     archive.getnames(),
                 )
+
+    def test_select_outputs_include_final_validation_selection(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            run = root / "runs/polyphonic/run-1"
+            run.mkdir(parents=True)
+            for name in (
+                "selection.json",
+                "selected.keras",
+                "thresholds.json",
+                "decoder_config.json",
+            ):
+                (run / name).write_bytes(b"validated")
+            (run / "cloud_pipeline.json").write_text(
+                json.dumps({
+                    "task": "select",
+                    "run_dir": str(run),
+                    "artifact_dir": None,
+                    "result_readme": None,
+                    "locked_test_used": False,
+                }),
+                encoding="utf-8",
+            )
+
+            output = root / "output"
+            manifest = package_outputs(
+                task="select", output_dir=output, root=root
+            )
+
+            self.assertFalse(manifest["locked_test_used"])
+            with tarfile.open(output / manifest["archive"]) as archive:
+                names = set(archive.getnames())
+            self.assertIn("run/run-1/selection.json", names)
+            self.assertIn("run/run-1/selected.keras", names)
+            self.assertIn("run/run-1/thresholds.json", names)
+            self.assertIn("run/run-1/decoder_config.json", names)
 
     def test_kaggle_kernel_status_is_parsed(self) -> None:
         output = (

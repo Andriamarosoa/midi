@@ -121,7 +121,7 @@ def package_outputs(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--task", choices=("smoke", "train", "rank", "rebuild"),
+        "--task", choices=("smoke", "train", "rank", "select", "rebuild"),
         required=True,
     )
     parser.add_argument(

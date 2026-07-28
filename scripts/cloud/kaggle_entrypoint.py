@@ -399,7 +399,7 @@ def validate_training_manifest(manifest: Path) -> dict[str, object]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--task", choices=("smoke", "train", "rank", "rebuild"),
+        "--task", choices=("smoke", "train", "rank", "select", "rebuild"),
         required=True,
     )
     parser.add_argument(
@@ -407,6 +407,8 @@ def main() -> int:
     )
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--maximum-examples", type=int, default=60_000)
+    parser.add_argument("--maximum-recordings", type=int, default=12)
+    parser.add_argument("--maximum-candidates", type=int, default=8)
     parser.add_argument("--resume-run", type=Path)
     args = parser.parse_args()
     os.chdir(ROOT)
@@ -438,22 +440,35 @@ def main() -> int:
             data_root = find_training_data_root(materialized_input)
             manifest = stage_training_data(data_root)
         validation = validate_training_manifest(manifest)
-        if args.task == "rank":
+        if args.task in {"rank", "select"}:
             source_run = find_checkpoint_run(args.input_root)
             run_dir = ROOT / "runs/polyphonic" / source_run.name
             run_dir.parent.mkdir(parents=True, exist_ok=True)
             shutil.copytree(source_run, run_dir)
-            _run([
-                sys.executable,
-                "-m",
-                "src.polyphonic.rank_checkpoints",
-                "--run-dir",
-                str(run_dir),
-                "--maximum-examples",
-                str(args.maximum_examples),
-            ])
+            if args.task == "rank":
+                _run([
+                    sys.executable,
+                    "-m",
+                    "src.polyphonic.rank_checkpoints",
+                    "--run-dir",
+                    str(run_dir),
+                    "--maximum-examples",
+                    str(args.maximum_examples),
+                ])
+            else:
+                _run([
+                    sys.executable,
+                    "-m",
+                    "src.polyphonic.select_final_checkpoint",
+                    "--run-dir",
+                    str(run_dir),
+                    "--maximum-recordings",
+                    str(args.maximum_recordings),
+                    "--maximum-candidates",
+                    str(args.maximum_candidates),
+                ])
             pipeline = {
-                "task": "rank",
+                "task": args.task,
                 "run_dir": str(run_dir),
                 "artifact_dir": None,
                 "result_readme": None,
@@ -478,9 +493,13 @@ def main() -> int:
             "manifest": str(manifest),
             "validation": validation,
         }
-        if args.task == "rank":
+        if args.task in {"rank", "select"}:
             report["run_dir"] = str(run_dir)
-            report["maximum_examples"] = args.maximum_examples
+            if args.task == "rank":
+                report["maximum_examples"] = args.maximum_examples
+            else:
+                report["maximum_recordings"] = args.maximum_recordings
+                report["maximum_candidates"] = args.maximum_candidates
     print(json.dumps(report, indent=2))
     return 0
 

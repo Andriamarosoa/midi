@@ -149,13 +149,21 @@ def _task_notebook(
     *,
     source_dataset_slug: str = "",
     maximum_examples: int = 60_000,
+    maximum_recordings: int = 12,
+    maximum_candidates: int = 8,
 ) -> dict[str, Any]:
     if maximum_examples < 1:
         raise ValueError("maximum_examples must be positive.")
+    if maximum_recordings < 1:
+        raise ValueError("maximum_recordings must be positive.")
+    if maximum_candidates < 1:
+        raise ValueError("maximum_candidates must be positive.")
     notebook = json.loads(NOTEBOOK.read_text(encoding="utf-8"))
     task_replaced = False
     source_replaced = False
     maximum_replaced = False
+    recordings_replaced = False
+    candidates_replaced = False
     for cell in notebook["cells"]:
         if cell.get("cell_type") != "code":
             continue
@@ -163,7 +171,7 @@ def _task_notebook(
         for index, line in enumerate(source):
             if line.startswith("TASK = "):
                 source[index] = (
-                    f'TASK = "{task}"  # smoke, train, rank ou rebuild\n'
+                    f'TASK = "{task}"  # smoke, train, rank, select ou rebuild\n'
                 )
                 task_replaced = True
             elif line.startswith("SOURCE_DATASET_SLUG = "):
@@ -177,6 +185,16 @@ def _task_notebook(
                     f"MAXIMUM_EXAMPLES = {int(maximum_examples)}\n"
                 )
                 maximum_replaced = True
+            elif line.startswith("MAXIMUM_RECORDINGS = "):
+                source[index] = (
+                    f"MAXIMUM_RECORDINGS = {int(maximum_recordings)}\n"
+                )
+                recordings_replaced = True
+            elif line.startswith("MAXIMUM_CANDIDATES = "):
+                source[index] = (
+                    f"MAXIMUM_CANDIDATES = {int(maximum_candidates)}\n"
+                )
+                candidates_replaced = True
     if not task_replaced:
         raise ValueError("TASK cell not found in Kaggle notebook.")
     if not source_replaced:
@@ -186,6 +204,14 @@ def _task_notebook(
     if not maximum_replaced:
         raise ValueError(
             "MAXIMUM_EXAMPLES cell not found in Kaggle notebook."
+        )
+    if not recordings_replaced:
+        raise ValueError(
+            "MAXIMUM_RECORDINGS cell not found in Kaggle notebook."
+        )
+    if not candidates_replaced:
+        raise ValueError(
+            "MAXIMUM_CANDIDATES cell not found in Kaggle notebook."
         )
     return notebook
 
@@ -199,6 +225,8 @@ def publish_kernel(
     kernel_slug: str | None = None,
     accelerator: str = "NvidiaTeslaP100",
     maximum_examples: int = 60_000,
+    maximum_recordings: int = 12,
+    maximum_candidates: int = 8,
 ) -> str:
     if "/" in owner or not owner:
         raise ValueError("Owner must be a Kaggle username.")
@@ -232,6 +260,8 @@ def publish_kernel(
                 task,
                 source_dataset_slug=source_dataset_slug,
                 maximum_examples=maximum_examples,
+                maximum_recordings=maximum_recordings,
+                maximum_candidates=maximum_candidates,
             ),
             indent=1,
             ensure_ascii=False,
@@ -289,7 +319,7 @@ def main() -> int:
         help="Optional unique Kaggle kernel slug; defaults to the task name.",
     )
     kernel.add_argument(
-        "--task", choices=("smoke", "train", "rank", "rebuild"),
+        "--task", choices=("smoke", "train", "rank", "select", "rebuild"),
         required=True,
     )
     kernel.add_argument(
@@ -306,6 +336,18 @@ def main() -> int:
         type=int,
         default=60_000,
         help="Maximum validation examples for rank; defaults to 60000.",
+    )
+    kernel.add_argument(
+        "--maximum-recordings",
+        type=int,
+        default=12,
+        help="Maximum validation recordings for select; defaults to 12.",
+    )
+    kernel.add_argument(
+        "--maximum-candidates",
+        type=int,
+        default=8,
+        help="Maximum ranked candidates for select; defaults to 8.",
     )
 
     args = parser.parse_args()
@@ -326,6 +368,8 @@ def main() -> int:
             kernel_slug=args.kernel_slug,
             accelerator=args.accelerator,
             maximum_examples=args.maximum_examples,
+            maximum_recordings=args.maximum_recordings,
+            maximum_candidates=args.maximum_candidates,
         )
         print(json.dumps({"kernel": kernel_id, "task": args.task}, indent=2))
     return 0
