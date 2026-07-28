@@ -200,7 +200,9 @@ class KaggleCloudPipelineTests(unittest.TestCase):
             'SOURCE_DATASET_SLUG = "guitar-midi-polyphonic-code-6ce57898"',
             source,
         )
-        self.assertIn('source_root / "pyproject.toml"', source)
+        self.assertIn("mounted_roots", source)
+        self.assertIn('path / "pyproject.toml"', source)
+        self.assertIn('"mounted_inputs"', source)
         self.assertIn("shutil.copytree(source_snapshot, workspace)", source)
         self.assertNotIn('"pip", "install"', source)
 

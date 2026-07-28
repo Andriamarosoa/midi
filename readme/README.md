@@ -15,16 +15,16 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T13:47:54.463449+00:00`
-- Étape : `kaggle_smoke_offline_source_root_running`
-- Statut : `en cours`
-- Détail : Le smoke pathfix a échoué avant toute donnée ou entraînement à 155,5 s : Kaggle avait décompressé midi_source.tar.gz directement à la racine du dataset, sans dossier midi_source ni source_metadata.json ; le notebook ne reconnaissait donc pas le snapshot et lançait son ancien fallback git clone, qui a échoué car github.com est non résolvable dans le runtime. Correction commit 98d15cc : montage déterministe par slug du dataset source attaché, reconnaissance de la racine décompressée, suppression complète du fallback réseau et refus immédiat si le snapshot manque. Validation locale : notebook JSON valide, compileall réussi, git diff --check réussi et 9 tests cloud réussis. Le nouveau smoke privé tinahandriamarosoa/guitar-midi-polyphonic-smoke-offline-root-20260728 a été soumis une seule fois avec les 16 datasets plus le snapshot 6ce57898 ; statut Kaggle vérifié : RUNNING. Le notebook soumis contient le slug source injecté et aucune référence GitHub/git clone. Test verrouillé exclu ; aucun train complet lancé.
+- Mise à jour : `2026-07-28T13:51:41.105487+00:00`
+- Étape : `kaggle_smoke_mount_alias_fix_ready`
+- Statut : `anomalie`
+- Détail : Deux smokes se sont arrêtés avant toute donnée ou entraînement. 1) pathfix : erreur à 155,5 s, car l'archive source créée via l'interface Kaggle a été décompressée à la racine et le notebook a repris l'ancien git clone ; github.com était non résolvable. 2) offline-root : erreur à 12,24 s, car le dataset source n'était pas monté sous le chemin dérivé de son slug. La métadonnée serveur du kernel confirme pourtant les 17 sources attachées, dont les 16 parts et guitar-midi-polyphonic-code-6ce57898. Correction locale supplémentaire prête : découverte de l'unique racine montée contenant pyproject.toml, src et scripts/cloud/kaggle_entrypoint.py, journalisation des montages réels, aucun fallback réseau. Validation : simulation avec un alias de montage fournisseur réussie, workspace et commit 6ce57898 détectés ; notebook JSON valide, 9 tests cloud réussis et git diff --check réussi. Aucun troisième smoke lancé, aucun train complet lancé, test verrouillé exclu.
 
 ## Étapes suivantes
 
-1. Surveiller le nouveau smoke hors ligne sans le relancer.
-2. En cas d'erreur, récupérer le log exact avant toute correction ; en cas de réussite, télécharger et valider output_manifest.json, l'archive, locked_test_used=false, l'assemblage des 16 datasets et les métriques.
-3. Présenter le résultat avant toute décision de train complet.
+1. Après accord, versionner la correction de détection d'alias puis lancer une seule troisième tentative du smoke privé.
+2. Sur le prochain run, vérifier d'abord dans le log mounted_inputs et source_candidates, puis l'assemblage des 16 datasets.
+3. Ne lancer aucun train complet avant un output_manifest.json valide avec locked_test_used=false.
 <!-- CURRENT_STATUS_END -->
 
 ## État technique consolidé
@@ -78,7 +78,7 @@ fondamentale contre harmonique/résonance.
 - 2026-07-28 — **terminé** — préparation du pipeline Kaggle privé :
   packaging sans test, smoke/train P100, reprise, supervision et récupération.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:START -->
-- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : Le smoke pathfix a échoué avant toute donnée ou entraînement à 155,5 s : Kaggle avait décompressé midi_source.tar.gz directement à la racine du dataset, sans dossier midi_source ni source_metadata.json ; le notebook ne reconnaissait donc pas le snapshot et lançait son ancien fallback git clone, qui a échoué car github.com est non résolvable dans le runtime. Correction commit 98d15cc : montage déterministe par slug du dataset source attaché, reconnaissance de la racine décompressée, suppression complète du fallback réseau et refus immédiat si le snapshot manque. Validation locale : notebook JSON valide, compileall réussi, git diff --check réussi et 9 tests cloud réussis. Le nouveau smoke privé tinahandriamarosoa/guitar-midi-polyphonic-smoke-offline-root-20260728 a été soumis une seule fois avec les 16 datasets plus le snapshot 6ce57898 ; statut Kaggle vérifié : RUNNING. Le notebook soumis contient le slug source injecté et aucune référence GitHub/git clone. Test verrouillé exclu ; aucun train complet lancé.
+- 2026-07-28 — **anomalie** — `kaggle_training_dataset_upload` : Deux smokes se sont arrêtés avant toute donnée ou entraînement. 1) pathfix : erreur à 155,5 s, car l'archive source créée via l'interface Kaggle a été décompressée à la racine et le notebook a repris l'ancien git clone ; github.com était non résolvable. 2) offline-root : erreur à 12,24 s, car le dataset source n'était pas monté sous le chemin dérivé de son slug. La métadonnée serveur du kernel confirme pourtant les 17 sources attachées, dont les 16 parts et guitar-midi-polyphonic-code-6ce57898. Correction locale supplémentaire prête : découverte de l'unique racine montée contenant pyproject.toml, src et scripts/cloud/kaggle_entrypoint.py, journalisation des montages réels, aucun fallback réseau. Validation : simulation avec un alias de montage fournisseur réussie, workspace et commit 6ce57898 détectés ; notebook JSON valide, 9 tests cloud réussis et git diff --check réussi. Aucun troisième smoke lancé, aucun train complet lancé, test verrouillé exclu.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
 <!-- PROJECT_TASK:skill_project_contract:START -->
 - 2026-07-28 — **terminé** — `skill_project_contract` : skill
