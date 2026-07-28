@@ -15,14 +15,14 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T18:41:48.341543+00:00`
-- Étape : `kaggle_keras3_fit_options_fix_ready`
+- Mise à jour : `2026-07-28T18:55:49.519164+00:00`
+- Étape : `validation_checkpoint_ranking_preparation`
 - Statut : `en cours`
-- Détail : le smoke `f4b978e3` confirme que la reconnaissance NPY sans extension fonctionne et atteint `model.fit()`. Nouvelle incompatibilité Keras 3 exacte : `TensorFlowTrainer.fit()` refuse l'ancien argument `workers`. Les options de file `workers`, `use_multiprocessing` et `max_queue_size` sont désormais transmises uniquement si la signature Keras installée les accepte ; Keras 2 local conserve donc son comportement, Keras 3 les omet. Test de régression ajouté ; 24 tests data/modèle/cloud passent. Aucun changement du modèle, des données ou du live. Train local terminé avec 8/8 checkpoints ; aucun train cloud complet lancé, test verrouillé exclu.
+- Détail : pipeline Kaggle P100 validé avec succès sur le compte `miranacareneandrisoa`, commit `8bccadc6`, TensorFlow 2.20/Keras 3. Smoke complet, archive et SHA-256 validés, `locked_test_used=false`, quatre corpus présents. Le pipeline cloud accepte désormais une tâche `rank`, découvre exactement un run attaché, monte les 16 shards, classe sur validation et empaquette le rapport sans exiger de README de train. Les appels `predict()` sont compatibles Keras 2/3. Package privé local prêt : 8 checkpoints, 17 fichiers, 47014385 octets, aucune donnée ni test verrouillé. 27 tests data/modèle/cloud passent. Aucun train cloud complet lancé.
 
 ## Étapes suivantes
 
-1. Commiter et publier la compatibilité `model.fit()` Keras 2/3, créer un nouveau snapshot source privé, puis exécuter un seul smoke. S'il passe, valider ses sorties et classer les 8 checkpoints locaux sur validation uniquement. Ne lancer aucun train cloud complet et ne pas ouvrir le test verrouillé avant un smoke valide.
+1. Préparer un package privé des 8 checkpoints locaux sans données ni test, exécuter le classement des checkpoints sur validation uniquement, puis la sélection musicale validation-only. Ne pas lancer de train cloud complet en doublon et ne pas ouvrir le test verrouillé avant la sélection finale.
 <!-- CURRENT_STATUS_END -->
 
 ## État technique consolidé
@@ -76,8 +76,11 @@ fondamentale contre harmonique/résonance.
 - 2026-07-28 — **terminé** — préparation du pipeline Kaggle privé :
   packaging sans test, smoke/train P100, reprise, supervision et récupération.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:START -->
-- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : le smoke `f4b978e3` confirme que la reconnaissance NPY sans extension fonctionne et atteint `model.fit()`. Nouvelle incompatibilité Keras 3 exacte : `TensorFlowTrainer.fit()` refuse l'ancien argument `workers`. Les options de file `workers`, `use_multiprocessing` et `max_queue_size` sont désormais transmises uniquement si la signature Keras installée les accepte ; Keras 2 local conserve donc son comportement, Keras 3 les omet. Test de régression ajouté ; 24 tests data/modèle/cloud passent. Aucun changement du modèle, des données ou du live. Train local terminé avec 8/8 checkpoints ; aucun train cloud complet lancé, test verrouillé exclu.
+- 2026-07-28 — **terminé** — `kaggle_training_dataset_upload` : pipeline Kaggle P100 validé avec succès sur le compte `miranacareneandrisoa`, commit `8bccadc6`, TensorFlow 2.20/Keras 3. Le smoke attache les 16 shards, charge les NPY tronqués, entraîne une époque de 256 exemples, valide sur 128 exemples et produit `best.keras`, `last.keras`, `final.keras`, l'archive et le rapport. Archive 17111040 octets, SHA-256 `830aa93d81d814a2f3109b9a62e26612348d90f53c3e4000078c6bcd95070117` conforme ; `locked_test_used=false`. Les quatre corpus sont présents dans les pools. Les métriques smoke (val_frame_micro_f1=0.061205, val_onset_micro_f1=0.002302) vérifient l'exécution, pas la qualité.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
+<!-- PROJECT_TASK:checkpoint_validation_selection:START -->
+- 2026-07-28 — **en cours** — `checkpoint_validation_selection` : train local de 8 époques terminé. Pipeline cloud `rank` et compatibilité `predict()` Keras 2/3 validés par 27 tests. Package privé prêt : 8 checkpoints, 17 fichiers, 47014385 octets, aucune donnée ni test verrouillé. Prochaine action : publier ce package et lancer le classement P100 sur 60000 exemples de validation. Meilleur historique brut actuel : frame F1=0.536721 à l'époque 8 ; onset F1=0.084643 à l'époque 7.
+<!-- PROJECT_TASK:checkpoint_validation_selection:END -->
 <!-- PROJECT_TASK:skill_project_contract:START -->
 - 2026-07-28 — **terminé** — `skill_project_contract` : skill
   guitar-audio-midi-researcher enrichi avec le contrat permanent du projet,

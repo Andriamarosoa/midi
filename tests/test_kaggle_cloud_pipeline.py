@@ -17,6 +17,7 @@ from scripts.cloud.kaggle_upload_progress import (
     uploaded_bytes_from_range,
 )
 from scripts.cloud.kaggle_entrypoint import (
+    find_checkpoint_run,
     _resolve_visible_audio_location,
     _resolve_visible_shard_path,
 )
@@ -305,6 +306,18 @@ class KaggleCloudPipelineTests(unittest.TestCase):
                 "gtech_long_directin",
             )
 
+    def test_checkpoint_run_discovery_requires_one_complete_run(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            run = root / "attached/run-1"
+            epochs = run / "epochs"
+            epochs.mkdir(parents=True)
+            (run / "history.csv").write_text("epoch\n", encoding="utf-8")
+            (run / "config.json").write_text("{}", encoding="utf-8")
+            (epochs / "epoch-01.keras").write_bytes(b"model")
+
+            self.assertEqual(find_checkpoint_run(root), run)
+
     def test_kaggle_auto_extracted_zip_member_is_resolved(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             data_root = Path(temporary) / "data"
@@ -364,6 +377,37 @@ class KaggleCloudPipelineTests(unittest.TestCase):
             self.assertIn("readme/results/result.md", names)
             self.assertFalse(any(name.startswith("data/") for name in names))
             self.assertFalse(manifest["locked_test_used"])
+
+    def test_rank_outputs_do_not_require_a_result_readme(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            run = root / "runs/polyphonic/run-1"
+            run.mkdir(parents=True)
+            (run / "checkpoint_ranking.json").write_text(
+                '{"locked_test_used": false}', encoding="utf-8"
+            )
+            (run / "cloud_pipeline.json").write_text(
+                json.dumps({
+                    "task": "rank",
+                    "run_dir": str(run),
+                    "artifact_dir": None,
+                    "result_readme": None,
+                    "locked_test_used": False,
+                }),
+                encoding="utf-8",
+            )
+
+            output = root / "output"
+            manifest = package_outputs(
+                task="rank", output_dir=output, root=root
+            )
+
+            self.assertFalse(manifest["locked_test_used"])
+            with tarfile.open(output / manifest["archive"]) as archive:
+                self.assertIn(
+                    "run/run-1/checkpoint_ranking.json",
+                    archive.getnames(),
+                )
 
     def test_kaggle_kernel_status_is_parsed(self) -> None:
         output = (

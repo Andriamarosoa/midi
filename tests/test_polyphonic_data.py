@@ -19,10 +19,40 @@ from src.polyphonic.data import (
     load_manifest,
     sampler_effective_class_counts,
 )
+from src.polyphonic.keras_compat import predict_compat
 from src.polyphonic.train import _fit_queue_options, _weights
 
 
 class PolyphonicDataTests(unittest.TestCase):
+    def test_predict_compat_omits_workers_for_keras3(self) -> None:
+        calls = []
+
+        class Legacy:
+            def predict(self, inputs, verbose=0, workers=1):
+                calls.append(("legacy", inputs, verbose, workers))
+                return inputs
+
+        class Keras3:
+            def predict(self, inputs, verbose=0):
+                calls.append(("keras3", inputs, verbose))
+                return inputs
+
+        self.assertEqual(
+            predict_compat(Legacy(), "legacy-input", verbose=1, workers=4),
+            "legacy-input",
+        )
+        self.assertEqual(
+            predict_compat(Keras3(), "keras3-input", verbose=1, workers=4),
+            "keras3-input",
+        )
+        self.assertEqual(
+            calls,
+            [
+                ("legacy", "legacy-input", 1, 4),
+                ("keras3", "keras3-input", 1),
+            ],
+        )
+
     def test_fit_queue_options_follow_installed_keras_signature(self) -> None:
         def legacy_fit(
             sequence,

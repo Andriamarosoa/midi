@@ -16,6 +16,7 @@ from src.polyphonic.data import (
     load_manifest,
     natural_validation_refs,
 )
+from src.polyphonic.keras_compat import predict_compat
 from src.polyphonic import model as _registered_model_types  # noqa: F401
 
 
@@ -171,7 +172,9 @@ def evaluate(
     )
     corpus.preload_audio()
     try:
-        predictions = inference_model.predict(sequence, verbose=1, workers=1)
+        predictions = predict_compat(
+            inference_model, sequence, verbose=1, workers=1
+        )
         frame_truth, onset_truth = _targets(sequence)
     finally:
         corpus.close()

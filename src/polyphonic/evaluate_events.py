@@ -29,6 +29,7 @@ from src.polyphonic.data import (
     PolyphonicSequence,
     load_manifest,
 )
+from src.polyphonic.keras_compat import predict_compat
 from src.polyphonic.decoder import (
     PolyphonicDecoder,
     PolyphonicDecoderConfig,
@@ -611,7 +612,9 @@ def evaluate_events(
             shuffle=False,
         )
         try:
-            prediction = inference_model.predict(sequence, verbose=0, workers=1)
+            prediction = predict_compat(
+                inference_model, sequence, verbose=0, workers=1
+            )
             audio = corpus.audio(0)
             audio_duration_s = _audio_duration_s(audio, corpus.sample_rate)
             activity_mask, onset_mask, audio_evidence_report = (

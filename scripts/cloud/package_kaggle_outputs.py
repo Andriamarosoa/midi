@@ -49,8 +49,10 @@ def _training_members(root: Path) -> tuple[list[tuple[Path, str]], dict[str, Any
         artifact_dir = _inside_root(Path(artifact_value), root)
         members.append((artifact_dir, f"artifacts/{artifact_dir.name}"))
 
-    result_path = _inside_root(Path(pipeline["result_readme"]), root)
-    members.append((result_path, f"readme/results/{result_path.name}"))
+    result_value = pipeline.get("result_readme")
+    if result_value:
+        result_path = _inside_root(Path(result_value), root)
+        members.append((result_path, f"readme/results/{result_path.name}"))
     return members, {
         "pipeline": pipeline,
         "pipeline_file": str(pipeline_path.relative_to(root)),
@@ -119,7 +121,8 @@ def package_outputs(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--task", choices=("smoke", "train", "rebuild"), required=True
+        "--task", choices=("smoke", "train", "rank", "rebuild"),
+        required=True,
     )
     parser.add_argument(
         "--output-dir",

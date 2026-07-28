@@ -74,6 +74,25 @@ def find_training_shard_manifests(input_root: Path) -> list[Path]:
     ]
 
 
+def find_checkpoint_run(input_root: Path) -> Path:
+    """Find one attached checkpoint run without consulting generated outputs."""
+    candidates = []
+    for history in input_root.rglob("history.csv"):
+        run_dir = history.parent
+        if (
+            (run_dir / "config.json").is_file()
+            and (run_dir / "epochs").is_dir()
+            and list((run_dir / "epochs").glob("epoch-*.keras"))
+        ):
+            candidates.append(run_dir)
+    if len(candidates) != 1:
+        raise ValueError(
+            "Expected exactly one attached checkpoint run, "
+            f"found {len(candidates)}."
+        )
+    return candidates[0]
+
+
 def materialize_training_archive(input_root: Path) -> Path:
     index_paths = sorted(input_root.rglob("training_archive_index.json"))
     if index_paths:
@@ -380,12 +399,14 @@ def validate_training_manifest(manifest: Path) -> dict[str, object]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--task", choices=("smoke", "train", "rebuild"), required=True
+        "--task", choices=("smoke", "train", "rank", "rebuild"),
+        required=True,
     )
     parser.add_argument(
         "--input-root", type=Path, default=Path("/kaggle/input")
     )
     parser.add_argument("--workers", type=int, default=4)
+    parser.add_argument("--maximum-examples", type=int, default=60_000)
     parser.add_argument("--resume-run", type=Path)
     args = parser.parse_args()
     os.chdir(ROOT)
@@ -417,21 +438,49 @@ def main() -> int:
             data_root = find_training_data_root(materialized_input)
             manifest = stage_training_data(data_root)
         validation = validate_training_manifest(manifest)
-        command = [
-            sys.executable,
-            "scripts/cloud/train_polyphonic.py",
-        ]
-        if args.task == "smoke":
-            command.append("--smoke-test")
-        if args.resume_run is not None:
-            command.extend(["--resume-run", str(args.resume_run)])
-        _run(command)
+        if args.task == "rank":
+            source_run = find_checkpoint_run(args.input_root)
+            run_dir = ROOT / "runs/polyphonic" / source_run.name
+            run_dir.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copytree(source_run, run_dir)
+            _run([
+                sys.executable,
+                "-m",
+                "src.polyphonic.rank_checkpoints",
+                "--run-dir",
+                str(run_dir),
+                "--maximum-examples",
+                str(args.maximum_examples),
+            ])
+            pipeline = {
+                "task": "rank",
+                "run_dir": str(run_dir),
+                "artifact_dir": None,
+                "result_readme": None,
+                "locked_test_used": False,
+            }
+            (run_dir / "cloud_pipeline.json").write_text(
+                json.dumps(pipeline, indent=2) + "\n", encoding="utf-8"
+            )
+        else:
+            command = [
+                sys.executable,
+                "scripts/cloud/train_polyphonic.py",
+            ]
+            if args.task == "smoke":
+                command.append("--smoke-test")
+            if args.resume_run is not None:
+                command.extend(["--resume-run", str(args.resume_run)])
+            _run(command)
         report = {
             "task": args.task,
             "data_root": str(data_root),
             "manifest": str(manifest),
             "validation": validation,
         }
+        if args.task == "rank":
+            report["run_dir"] = str(run_dir)
+            report["maximum_examples"] = args.maximum_examples
     print(json.dumps(report, indent=2))
     return 0
 

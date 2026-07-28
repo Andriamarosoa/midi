@@ -19,6 +19,7 @@ from src.polyphonic.data import (
     natural_validation_refs,
 )
 from src.polyphonic.evaluate_frames import binary_metrics, select_threshold
+from src.polyphonic.keras_compat import predict_compat
 
 
 def pareto_candidates(rows: list[dict[str, object]]) -> list[str]:
@@ -146,7 +147,9 @@ def rank(
                     ).output,
                 },
             )
-            prediction = inference.predict(sequence, verbose=0, workers=1)
+            prediction = predict_compat(
+                inference, sequence, verbose=0, workers=1
+            )
             frame_threshold, frame_metrics = select_threshold(
                 targets["frame"], prediction["frame"]
             )

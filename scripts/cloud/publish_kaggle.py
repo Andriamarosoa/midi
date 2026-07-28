@@ -157,7 +157,7 @@ def _task_notebook(
         for index, line in enumerate(source):
             if line.startswith("TASK = "):
                 source[index] = (
-                    f'TASK = "{task}"  # "smoke", "train" ou "rebuild"\n'
+                    f'TASK = "{task}"  # smoke, train, rank ou rebuild\n'
                 )
                 task_replaced = True
             elif line.startswith("SOURCE_DATASET_SLUG = "):
@@ -271,7 +271,8 @@ def main() -> int:
         help="Optional unique Kaggle kernel slug; defaults to the task name.",
     )
     kernel.add_argument(
-        "--task", choices=("smoke", "train", "rebuild"), required=True
+        "--task", choices=("smoke", "train", "rank", "rebuild"),
+        required=True,
     )
     kernel.add_argument(
         "--output-dir", type=Path, default=Path("tmp/kaggle/kernel")
