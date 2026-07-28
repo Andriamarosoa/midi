@@ -15,16 +15,16 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T06:09:31.857742+00:00`
-- Étape : `kaggle_visible_data_shards_ready`
+- Mise à jour : `2026-07-28T06:29:30.909432+00:00`
+- Étape : `kaggle_visible_data_shards_uploading`
 - Statut : `en cours`
-- Détail : les 16 datasets réels ont été construits et validés : 754 enregistrements, 572 train, 182 validation, 8 415 871 294 octets au total ; chaque part contient train et validation, avec locked_test_included=false. Le processus de construction est terminé sans erreur.
+- Détail : part 01 est publiée et lisible dans Kaggle : data.tar (601 MiB) et package_report.json, avec de vrais fichiers audio et labels visibles. La publication séquentielle des 15 parts restantes commence ; chaque part reste privée et sans test verrouillé.
 
 ## Étapes suivantes
 
-1. Valider l’assemblage multi-datasets dans l’entrée Kaggle.
-2. Publier chaque dataset privé séparément et confirmer sa visibilité dans Kaggle.
-3. Lancer le smoke P100 après confirmation de tous les shards.
+1. Publier et vérifier successivement les parts 02 à 16.
+2. Assembler les 16 datasets dans Kaggle et exécuter le smoke P100.
+3. Ne lancer le train complet qu’après smoke validé.
 <!-- CURRENT_STATUS_END -->
 
 ## État technique consolidé
@@ -78,7 +78,7 @@ fondamentale contre harmonique/résonance.
 - 2026-07-28 — **terminé** — préparation du pipeline Kaggle privé :
   packaging sans test, smoke/train P100, reprise, supervision et récupération.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:START -->
-- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : les 16 datasets réels ont été construits et validés : 754 enregistrements, 572 train, 182 validation, 8 415 871 294 octets au total ; chaque part contient train et validation, avec locked_test_included=false. Le processus de construction est terminé sans erreur.
+- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : part 01 est publiée et lisible dans Kaggle : data.tar (601 MiB) et package_report.json, avec de vrais fichiers audio et labels visibles. La publication séquentielle des 15 parts restantes commence ; chaque part reste privée et sans test verrouillé.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
 <!-- PROJECT_TASK:skill_project_contract:START -->
 - 2026-07-28 — **terminé** — `skill_project_contract` : skill
