@@ -25,7 +25,7 @@ ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.cloud.publish_kaggle import KAGGLE_CONFIG, _kaggle
+from scripts.cloud.publish_kaggle import _kaggle
 from scripts.project_summary import update_project_summary
 
 
@@ -39,9 +39,7 @@ STATUS_PATTERN = re.compile(r'status\s+"([^"]+)"', re.IGNORECASE)
 
 
 def _environment() -> dict[str, str]:
-    environment = dict(os.environ)
-    environment["KAGGLE_CONFIG_DIR"] = str(KAGGLE_CONFIG)
-    return environment
+    return dict(os.environ)
 
 
 def _command(
