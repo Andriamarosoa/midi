@@ -6,8 +6,12 @@ from pathlib import Path
 
 import numpy as np
 import tensorflow as tf
+import h5py
 
-from src.polyphonic.keras_compat import load_polyphonic_checkpoint
+from src.polyphonic.keras_compat import (
+    _normalize_h5_paths,
+    load_polyphonic_checkpoint,
+)
 from src.polyphonic.model import (
     ClassWeightedBinaryCrossentropy,
     MicroF1,
@@ -129,6 +133,23 @@ class PolyphonicModelTests(unittest.TestCase):
                 rtol=1e-6,
                 atol=1e-6,
             )
+
+    def test_windows_h5_paths_are_normalized_for_linux(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            source = Path(temporary) / "source.weights.h5"
+            destination = Path(temporary) / "normalized.weights.h5"
+            with h5py.File(source, "w") as weights:
+                weights.create_dataset(
+                    r"layers\conv1d/vars/0",
+                    data=np.ones((2, 3), np.float32),
+                )
+            self.assertTrue(_normalize_h5_paths(source, destination))
+            with h5py.File(destination, "r") as weights:
+                self.assertIn("layers/conv1d/vars/0", weights)
+                np.testing.assert_array_equal(
+                    weights["layers/conv1d/vars/0"][()],
+                    np.ones((2, 3), np.float32),
+                )
 
 
 if __name__ == "__main__":

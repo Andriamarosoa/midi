@@ -57,6 +57,36 @@ def _legacy_polyphonic_spec(config: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _normalize_h5_paths(source: Path, destination: Path) -> bool:
+    """Rewrite Windows-created Keras 2 HDF5 paths for Linux/Keras 3."""
+    import h5py
+
+    changed = False
+    with h5py.File(source, "r") as input_file, h5py.File(
+        destination, "w"
+    ) as output_file:
+        for key, value in input_file.attrs.items():
+            output_file.attrs[key] = value
+
+        def copy_item(name: str, item: Any) -> None:
+            nonlocal changed
+            normalized = name.replace("\\", "/")
+            changed = changed or normalized != name
+            if isinstance(item, h5py.Group):
+                target = output_file.require_group(normalized)
+            elif isinstance(item, h5py.Dataset):
+                target = output_file.create_dataset(
+                    normalized, data=item[()]
+                )
+            else:
+                return
+            for key, value in item.attrs.items():
+                target.attrs[key] = value
+
+        input_file.visititems(copy_item)
+    return changed
+
+
 def load_polyphonic_checkpoint(path: str | Path) -> Any:
     """Load Keras 2 or Keras 3 polyphonic checkpoints without recompiling.
 
@@ -91,7 +121,18 @@ def load_polyphonic_checkpoint(path: str | Path) -> Any:
             from src.polyphonic.model import build_polyphonic_model
 
             model = build_polyphonic_model(**spec)
-            model.load_weights(weights_path)
+            try:
+                model.load_weights(weights_path)
+            except ValueError:
+                normalized_path = Path(temporary) / "normalized.weights.h5"
+                if not _normalize_h5_paths(
+                    weights_path, normalized_path
+                ):
+                    raise
+                # A failed Keras load can partially assign variables. Rebuild
+                # before retrying against the normalized HDF5 hierarchy.
+                model = build_polyphonic_model(**spec)
+                model.load_weights(normalized_path)
     return model
 
 
