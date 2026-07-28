@@ -21,7 +21,6 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[2]
 NOTEBOOK = ROOT / "kaggle/polyphonic_pipeline.ipynb"
 KERNEL_TEMPLATE = ROOT / "kaggle/kernel-metadata.template.json"
-KAGGLE_CONFIG = ROOT / "tmp/kaggle/config"
 
 
 def _kaggle() -> str:
@@ -43,11 +42,8 @@ def _kaggle() -> str:
 
 def _run(command: list[str]) -> None:
     print("+ " + " ".join(command), flush=True)
-    KAGGLE_CONFIG.mkdir(parents=True, exist_ok=True)
-    environment = dict(os.environ)
-    environment["KAGGLE_CONFIG_DIR"] = str(KAGGLE_CONFIG)
     subprocess.run(
-        command, cwd=ROOT, env=environment, check=True
+        command, cwd=ROOT, check=True
     )
 
 
@@ -142,7 +138,10 @@ def publish_dataset(
         ])
     else:
         # Kaggle datasets are private by default; --public is not used.
-        _run([_kaggle(), "datasets", "create", "-p", str(dataset_dir)])
+        _run([
+            _kaggle(), "datasets", "create", "-p", str(dataset_dir),
+            "--dir-mode", "tar",
+        ])
 
 
 def _task_notebook(task: str) -> dict[str, Any]:
