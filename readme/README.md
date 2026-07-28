@@ -15,14 +15,14 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T20:22:54.426899+00:00`
-- Étape : `kaggle_musical_selection_retry_12_recordings`
-- Statut : `en cours`
-- Détail : Premier kernel ERROR après 31 s sur ModuleNotFoundError scripts ; correction sys.path/cwd validée par 16 tests. Relance privée unique miranacareneandrisoa/guitar-midi-poly-select-events-retry-20260729 : statut réel RUNNING vérifié le 2026-07-28T20:22:27Z. Elle réutilise le classement validation-only 60000, évalue l'unique candidate epoch-08 sur 12 enregistrements de validation et exclut le test verrouillé.
+- Mise à jour : `2026-07-28T20:26:10.479596+00:00`
+- Étape : `kaggle_validation_selection_complete`
+- Statut : `terminé`
+- Détail : Sélection musicale Kaggle validation-only terminée et validée sur 12 enregistrements équilibrés (3 par corpus), candidate unique epoch-08. Archive 51548160 octets, SHA-256 ec9725179092a10d43af2dbbef9b61cc69f632c6038bc1b567041f3c120f7d28 conforme ; selection.json, selected.keras, thresholds.json et decoder_config.json présents ; selected.keras identique à epoch-08 ; locked_test_used=false. Métriques : F1 onset global 0,173294, F1 onset pondéré 0,233170, F1 onset+offset pondéré 0,127564. Limites réelles : 3160 faux positifs, 2994 notes manquantes, 71,44 faux NoteOn/min ; F1 onset Guitar-TECHS direct 0,039755 et micro 0,052980, contre GuitarSet 0,333844 et GAPS 0,212366. Latence causale NoteOn p50 65,63 ms, p90 164,74 ms.
 
 ## Étapes suivantes
 
-1. Surveiller sans relance. À COMPLETE, télécharger uniquement les outputs et valider SHA-256, selection.json, selected.keras, thresholds.json, decoder_config.json, maximum_recordings=12, candidate_count=1 et locked_test_used=false. À ERROR, récupérer le log exact avant toute décision.
+1. Conserver epoch-08 et ses seuils comme sélection validation-only. Avant tout test verrouillé, poursuivre export/parité/benchmark desktop puis diagnostiquer les notes fantômes, octaves et le faible domaine Guitar-TECHS sur validation et WAV uniquement.
 <!-- CURRENT_STATUS_END -->
 
 ## État technique consolidé
@@ -79,7 +79,7 @@ fondamentale contre harmonique/résonance.
 - 2026-07-28 — **terminé** — `kaggle_training_dataset_upload` : pipeline Kaggle P100 validé avec succès sur le compte `miranacareneandrisoa`, commit `8bccadc6`, TensorFlow 2.20/Keras 3. Le smoke attache les 16 shards, charge les NPY tronqués, entraîne une époque de 256 exemples, valide sur 128 exemples et produit `best.keras`, `last.keras`, `final.keras`, l'archive et le rapport. Archive 17111040 octets, SHA-256 `830aa93d81d814a2f3109b9a62e26612348d90f53c3e4000078c6bcd95070117` conforme ; `locked_test_used=false`. Les quatre corpus sont présents dans les pools. Les métriques smoke (val_frame_micro_f1=0.061205, val_onset_micro_f1=0.002302) vérifient l'exécution, pas la qualité.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
 <!-- PROJECT_TASK:checkpoint_validation_selection:START -->
-- 2026-07-28 — **en cours** — `checkpoint_validation_selection` : Premier kernel ERROR après 31 s sur ModuleNotFoundError scripts ; correction sys.path/cwd validée par 16 tests. Relance privée unique miranacareneandrisoa/guitar-midi-poly-select-events-retry-20260729 : statut réel RUNNING vérifié le 2026-07-28T20:22:27Z. Elle réutilise le classement validation-only 60000, évalue l'unique candidate epoch-08 sur 12 enregistrements de validation et exclut le test verrouillé.
+- 2026-07-28 — **terminé** — `checkpoint_validation_selection` : Sélection musicale Kaggle validation-only terminée et validée sur 12 enregistrements équilibrés (3 par corpus), candidate unique epoch-08. Archive 51548160 octets, SHA-256 ec9725179092a10d43af2dbbef9b61cc69f632c6038bc1b567041f3c120f7d28 conforme ; selection.json, selected.keras, thresholds.json et decoder_config.json présents ; selected.keras identique à epoch-08 ; locked_test_used=false. Métriques : F1 onset global 0,173294, F1 onset pondéré 0,233170, F1 onset+offset pondéré 0,127564. Limites réelles : 3160 faux positifs, 2994 notes manquantes, 71,44 faux NoteOn/min ; F1 onset Guitar-TECHS direct 0,039755 et micro 0,052980, contre GuitarSet 0,333844 et GAPS 0,212366. Latence causale NoteOn p50 65,63 ms, p90 164,74 ms.
 <!-- PROJECT_TASK:checkpoint_validation_selection:END -->
 <!-- PROJECT_TASK:skill_project_contract:START -->
 - 2026-07-28 — **terminé** — `skill_project_contract` : skill
