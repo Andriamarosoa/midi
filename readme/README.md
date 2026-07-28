@@ -15,14 +15,14 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T14:17:17.846519+00:00`
-- Étape : `kaggle_smoke_t4_running`
-- Statut : `en cours`
-- Détail : Le retry P100 a reproduit exactement CUDA cuInit error 303 avant entraînement, malgré enable_gpu=true et machine_shape=Gpu : deux provisionnements P100 consécutifs sont donc défaillants côté Kaggle. Le publisher accepte désormais explicitement le fallback NvidiaTeslaT4 via le commit 69f8480 ; 10 tests cloud et compileall passent. Le smoke privé unique tinahandriamarosoa/guitar-midi-poly-smoke-t4-20260728 a été soumis avec les 16 parts et le snapshot b01af4a2 ; statut Kaggle vérifié : RUNNING. Aucun modèle, seuil, décodeur ou donnée modifié. Aucun train complet lancé ; test verrouillé exclu.
+- Mise à jour : `2026-07-28T14:20:26.193205+00:00`
+- Étape : `kaggle_gpu_runtime_unavailable`
+- Statut : `anomalie`
+- Détail : Le smoke T4 tinahandriamarosoa/guitar-midi-poly-smoke-t4-20260728 est terminé en ERROR à 2026-07-28 14:17:54 UTC, avant entraînement. Le log reproduit CUDA cuInit error 303 et TensorFlow ne détecte aucun GPU. Les métadonnées serveur confirment enable_gpu=true et machine_shape=NvidiaTeslaT4. Avec les deux P100 précédents, trois runtimes GPU consécutifs correctement demandés ont donc échoué de la même manière. La source b01af4a2, les paquets, les 16 datasets et le staging audio sont atteints ; aucun défaut du modèle ou des données n'est montré par cet échec. Aucun train complet lancé ; test verrouillé exclu.
 
 ## Étapes suivantes
 
-1. Surveiller ce seul smoke T4. Vérifier d'abord la détection TensorFlow du GPU, puis l'assemblage des 16 parts, l'exécution smoke et les outputs. En cas de réussite, valider output_manifest.json, l'archive, locked_test_used=false et les métriques puis présenter le bilan avant tout train complet.
+1. Ne plus enchaîner de retry identique. Vérifier le provisionnement GPU du compte/runtime Kaggle avec un probe minimal ou l'interface Kaggle après rétablissement ; si CUDA reste indisponible, préparer le même smoke privé sur Colab. Reprendre le smoke complet uniquement après une détection GPU positive.
 <!-- CURRENT_STATUS_END -->
 
 ## État technique consolidé
@@ -76,7 +76,7 @@ fondamentale contre harmonique/résonance.
 - 2026-07-28 — **terminé** — préparation du pipeline Kaggle privé :
   packaging sans test, smoke/train P100, reprise, supervision et récupération.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:START -->
-- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : Le retry P100 a reproduit exactement CUDA cuInit error 303 avant entraînement, malgré enable_gpu=true et machine_shape=Gpu : deux provisionnements P100 consécutifs sont donc défaillants côté Kaggle. Le publisher accepte désormais explicitement le fallback NvidiaTeslaT4 via le commit 69f8480 ; 10 tests cloud et compileall passent. Le smoke privé unique tinahandriamarosoa/guitar-midi-poly-smoke-t4-20260728 a été soumis avec les 16 parts et le snapshot b01af4a2 ; statut Kaggle vérifié : RUNNING. Aucun modèle, seuil, décodeur ou donnée modifié. Aucun train complet lancé ; test verrouillé exclu.
+- 2026-07-28 — **anomalie** — `kaggle_training_dataset_upload` : Le smoke T4 tinahandriamarosoa/guitar-midi-poly-smoke-t4-20260728 est terminé en ERROR à 2026-07-28 14:17:54 UTC, avant entraînement. Le log reproduit CUDA cuInit error 303 et TensorFlow ne détecte aucun GPU. Les métadonnées serveur confirment enable_gpu=true et machine_shape=NvidiaTeslaT4. Avec les deux P100 précédents, trois runtimes GPU consécutifs correctement demandés ont donc échoué de la même manière. La source b01af4a2, les paquets, les 16 datasets et le staging audio sont atteints ; aucun défaut du modèle ou des données n'est montré par cet échec. Aucun train complet lancé ; test verrouillé exclu.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
 <!-- PROJECT_TASK:skill_project_contract:START -->
 - 2026-07-28 — **terminé** — `skill_project_contract` : skill
