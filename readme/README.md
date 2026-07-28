@@ -15,16 +15,16 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T08:31:47.868139+00:00`
-- Étape : `kaggle_smoke_running`
-- Statut : `en cours`
-- Détail : 16/16 datasets privés lisibles et assemblage validé (754 enregistrements : 572 train, 182 validation ; test verrouillé exclu). Le smoke Python 3.12 a échoué avant traitement car Kaggle n’a pas résolu github.com. Le log confirme une panne DNS externe, sans défaut des datasets. Une reprise limitée du clonage (3 essais) a été ajoutée et testée. Nouvelle tentative privée active : tinahandriamarosoa/guitar-midi-polyphonic-smoke-retry-20260728.
+- Mise à jour : `2026-07-28T08:46:57.255982+00:00`
+- Étape : `kaggle_smoke_blocked_source_upload`
+- Statut : `anomalie`
+- Détail : Le smoke avec 3 reprises a confirmé une panne DNS persistante vers github.com. Un mode hors ligne a été implémenté et testé. Le snapshot source privé minimal est prêt : 283383 octets, commit f3fe5dc0, uniquement configs/kaggle/readme/requirements/scripts/src ; aucun dataset, test verrouillé, run ni artefact. Son upload Kaggle a été bloqué car une autorisation explicite de ce payload source est requise. Aucun nouveau smoke ni train n’a été lancé.
 
 ## Étapes suivantes
 
-1. Surveiller ce kernel sans le relancer tant qu’il est actif.
-2. Télécharger et valider son paquet de résultats à la fin.
-3. Signaler le résultat avant tout train complet.
+1. Obtenir l’autorisation explicite d’uploader ce snapshot source privé vers Kaggle.
+2. Après autorisation, publier le dataset source privé et vérifier sa lisibilité.
+3. Relancer une fois le smoke hors ligne avec les 16 datasets plus le snapshot source ; aucun train complet avant résultat.
 <!-- CURRENT_STATUS_END -->
 
 ## État technique consolidé
@@ -78,7 +78,7 @@ fondamentale contre harmonique/résonance.
 - 2026-07-28 — **terminé** — préparation du pipeline Kaggle privé :
   packaging sans test, smoke/train P100, reprise, supervision et récupération.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:START -->
-- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : 16/16 datasets privés lisibles et assemblage validé (754 enregistrements : 572 train, 182 validation ; test verrouillé exclu). Le smoke Python 3.12 a échoué avant traitement car Kaggle n’a pas résolu github.com. Le log confirme une panne DNS externe, sans défaut des datasets. Une reprise limitée du clonage (3 essais) a été ajoutée et testée. Nouvelle tentative privée active : tinahandriamarosoa/guitar-midi-polyphonic-smoke-retry-20260728.
+- 2026-07-28 — **anomalie** — `kaggle_training_dataset_upload` : Le smoke avec 3 reprises a confirmé une panne DNS persistante vers github.com. Un mode hors ligne a été implémenté et testé. Le snapshot source privé minimal est prêt : 283383 octets, commit f3fe5dc0, uniquement configs/kaggle/readme/requirements/scripts/src ; aucun dataset, test verrouillé, run ni artefact. Son upload Kaggle a été bloqué car une autorisation explicite de ce payload source est requise. Aucun nouveau smoke ni train n’a été lancé.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
 <!-- PROJECT_TASK:skill_project_contract:START -->
 - 2026-07-28 — **terminé** — `skill_project_contract` : skill
