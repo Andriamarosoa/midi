@@ -15,14 +15,14 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T17:26:47.384920+00:00`
-- Étape : `kaggle_smoke_keras3_compatibility_fix`
-- Statut : `anomalie`
-- Détail : premier smoke du compte vérifié terminé en `ERROR` après montage correct des 16 datasets et création du GPU P100 (15511 MiB). Cause exacte : Keras 3 / TensorFlow 2.20 refuse `reduction="auto"` dans les trois pertes personnalisées. Correction locale appliquée vers `sum_over_batch_size`, sans changement de formule, et 15 tests unitaires/cloud passent. Aucun retry ni train cloud complet n'a encore été lancé. Train local parallèle actif : époques 4 à 6 finalisées ; meilleure validation à l'époque 6 avec val_frame_micro_f1=0.489716, val_onset_micro_f1=0.083311 et val_loss=0.360086. Époque 7 au batch 2813/3750 à 21:26 +04:00, stderr sans erreur. Test verrouillé exclu.
+- Mise à jour : `2026-07-28T18:36:13.165633+00:00`
+- Étape : `kaggle_truncated_numpy_fix_ready`
+- Statut : `en cours`
+- Détail : cause du second smoke confirmée : Kaggle tronque certains noms `.npy`, ce qui supprimait l'information de format. Le chargeur reconnaît désormais un tableau NumPy par sa signature binaire même sans extension et ferme aussi les mappings mémoire à la fermeture du corpus. Test de régression extensionless ajouté ; 23 tests data/modèle/cloud passent. Aucun changement du modèle, des pertes ou du chemin live et aucun coût d'inférence. Le train local reste terminé proprement avec 8/8 checkpoints ; meilleur frame validation à l'époque 8=0.536721 et meilleur onset validation à l'époque 7=0.084643. Aucun train cloud complet lancé, test verrouillé exclu.
 
 ## Étapes suivantes
 
-1. Publier un snapshot source contenant la correction Keras 3, puis lancer un seul retry privé du smoke. Valider ensuite l'assemblage des 16 shards, `locked_test_used=false`, les métriques et les sorties. Ne lancer aucun train cloud complet avant ce verdict. Auditer séparément les droits de redistribution des corpus désormais publics.
+1. Commiter et publier le correctif de reconnaissance NPY, créer un snapshot source privé, puis exécuter un seul nouveau smoke. S'il passe, valider ses sorties et classer les 8 checkpoints locaux sur validation uniquement. Ne lancer aucun train cloud complet et ne pas ouvrir le test verrouillé avant un smoke valide.
 <!-- CURRENT_STATUS_END -->
 
 ## État technique consolidé
@@ -76,7 +76,7 @@ fondamentale contre harmonique/résonance.
 - 2026-07-28 — **terminé** — préparation du pipeline Kaggle privé :
   packaging sans test, smoke/train P100, reprise, supervision et récupération.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:START -->
-- 2026-07-28 — **anomalie** — `kaggle_training_dataset_upload` : premier smoke du compte vérifié terminé en `ERROR` après montage correct des 16 datasets et création du GPU P100 (15511 MiB). Cause exacte : Keras 3 / TensorFlow 2.20 refuse `reduction="auto"` dans les trois pertes personnalisées. Correction locale appliquée vers `sum_over_batch_size`, sans changement de formule, et 15 tests unitaires/cloud passent. Aucun retry ni train cloud complet n'a encore été lancé. Train local parallèle actif : époques 4 à 6 finalisées ; meilleure validation à l'époque 6 avec val_frame_micro_f1=0.489716, val_onset_micro_f1=0.083311 et val_loss=0.360086. Époque 7 au batch 2813/3750 à 21:26 +04:00, stderr sans erreur. Test verrouillé exclu.
+- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : cause du second smoke confirmée : Kaggle tronque certains noms `.npy`, ce qui supprimait l'information de format. Le chargeur reconnaît désormais un tableau NumPy par sa signature binaire même sans extension et ferme aussi les mappings mémoire à la fermeture du corpus. Test de régression extensionless ajouté ; 23 tests data/modèle/cloud passent. Aucun changement du modèle, des pertes ou du chemin live et aucun coût d'inférence. Le train local reste terminé proprement avec 8/8 checkpoints ; meilleur frame validation à l'époque 8=0.536721 et meilleur onset validation à l'époque 7=0.084643. Aucun train cloud complet lancé, test verrouillé exclu.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
 <!-- PROJECT_TASK:skill_project_contract:START -->
 - 2026-07-28 — **terminé** — `skill_project_contract` : skill

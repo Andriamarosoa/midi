@@ -23,6 +23,63 @@ from src.polyphonic.train import _weights
 
 
 class PolyphonicDataTests(unittest.TestCase):
+    def test_extensionless_numpy_audio_is_loaded_by_magic_signature(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            original = root / "audio.npy"
+            waveform = np.linspace(-1.0, 1.0, 16, dtype=np.float32)
+            np.save(original, waveform, allow_pickle=False)
+            truncated = root / "audio_truncated"
+            original.replace(truncated)
+
+            labels_path = root / "labels.npz"
+            np.savez_compressed(
+                labels_path,
+                active_bits=np.asarray([0], np.uint64),
+                onset_bits=np.asarray([0], np.uint64),
+                polyphony=np.asarray([0], np.uint8),
+                valid=np.ones(1, np.uint8),
+                slot_pitch=np.asarray([[-1]], np.int8),
+                slot_note_id=np.asarray([[-1]], np.int32),
+                note_harmonic_present=np.ones((1, 1), np.uint8),
+                note_harmonic_amplitude=np.ones((1, 1), np.float16),
+                note_harmonic_offset_cents=np.zeros((1, 1), np.float16),
+                note_harmonic_valid=np.ones(1, np.uint8),
+                sample_rate=np.int32(8),
+                hop_size=np.int32(4),
+                audio_frames=np.int64(len(waveform)),
+                midi_min=np.int16(40),
+                midi_max=np.int16(40),
+            )
+            manifest_path = root / "manifest.csv"
+            fields = [
+                "source_id", "dataset_id", "player_id", "group_id", "split",
+                "audio_path", "audio_member", "labels_path", "capture_id",
+                "license_id",
+            ]
+            with manifest_path.open(
+                "w", newline="", encoding="utf-8"
+            ) as handle:
+                writer = csv.DictWriter(handle, fieldnames=fields)
+                writer.writeheader()
+                writer.writerow({
+                    "source_id": "truncated",
+                    "dataset_id": "unit",
+                    "player_id": "p",
+                    "group_id": "g",
+                    "split": "train",
+                    "audio_path": truncated,
+                    "audio_member": "",
+                    "labels_path": labels_path,
+                    "capture_id": "clean",
+                    "license_id": "unit",
+                })
+
+            with PolyphonicCorpus(load_manifest(manifest_path)) as corpus:
+                loaded = corpus.audio(0).copy()
+
+            np.testing.assert_array_equal(loaded, waveform)
+
     def test_manifest_paths_are_portable_between_windows_and_linux(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             manifest_path = Path(temporary) / "manifest.csv"

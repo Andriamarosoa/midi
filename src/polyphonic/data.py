@@ -15,6 +15,9 @@ import soundfile as sf
 import tensorflow as tf
 
 
+NUMPY_MAGIC = b"\x93NUMPY"
+
+
 @dataclass(frozen=True)
 class ManifestItem:
     source_id: str
@@ -38,6 +41,14 @@ class CachedLabels:
 def _manifest_path(value: str) -> Path:
     """Load manifests produced on Windows or POSIX on either platform."""
     return Path(value.replace("\\", "/"))
+
+
+def _is_numpy_audio(path: Path) -> bool:
+    """Recognize NPY audio even when Kaggle truncates the file extension."""
+    if path.suffix.lower() == ".npy":
+        return True
+    with path.open("rb") as handle:
+        return handle.read(len(NUMPY_MAGIC)) == NUMPY_MAGIC
 
 
 def load_manifest(path: Path) -> list[ManifestItem]:
@@ -126,6 +137,11 @@ class PolyphonicCorpus:
         for archive in self._archives.values():
             archive.close()
         self._archives.clear()
+        for waveform in self._audio.values():
+            mapping = getattr(waveform, "_mmap", None)
+            if mapping is not None:
+                mapping.close()
+        self._audio.clear()
 
     def __enter__(self) -> "PolyphonicCorpus":
         return self
@@ -143,7 +159,7 @@ class PolyphonicCorpus:
         if cached is not None:
             return cached
         item = self.items[recording_index]
-        if item.audio_path.suffix.lower() == ".npy":
+        if not item.audio_member and _is_numpy_audio(item.audio_path):
             waveform = np.load(item.audio_path, mmap_mode="r", allow_pickle=False)
             rate = self.sample_rate
             if waveform.ndim == 1:
