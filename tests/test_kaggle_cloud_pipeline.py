@@ -191,6 +191,8 @@ class KaggleCloudPipelineTests(unittest.TestCase):
         self.assertIn("< (3, 13)", source)
         self.assertIn("for attempt in range(1, 4)", source)
         self.assertIn('rglob("midi_source.tar.gz")', source)
+        self.assertIn('rglob("midi_source")', source)
+        self.assertIn("shutil.copytree(source_snapshot, workspace)", source)
         self.assertNotIn('"pip", "install"', source)
 
     def test_kernel_accepts_multiple_unique_dataset_sources(self) -> None:
