@@ -14,7 +14,11 @@ import sys
 import time
 from pathlib import Path
 
-from scripts.cloud.publish_kaggle import ROOT, _kaggle
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from scripts.cloud.publish_kaggle import _kaggle
 
 
 def _handle(owner: str, part: int) -> str:
