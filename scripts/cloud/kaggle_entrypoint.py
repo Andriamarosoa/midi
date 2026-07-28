@@ -209,6 +209,30 @@ def _rebase_shard_path(value: str, shard_name: str) -> str:
     return (Path("data") / "shards" / shard_name / Path(*relative.parts[1:])).as_posix()
 
 
+def _resolve_visible_shard_path(data_root: Path, value: str) -> str:
+    """Resolve Kaggle's 105-character path truncation deterministically."""
+    relative = _portable_path(value)
+    if relative.parts[:1] != ("data",):
+        raise ValueError(f"Shard path must start with data/: {value}")
+    expected = data_root / Path(*relative.parts[1:])
+    if expected.is_file():
+        return relative.as_posix()
+    if not expected.parent.is_dir():
+        raise FileNotFoundError(expected)
+    candidates = [
+        path
+        for path in expected.parent.iterdir()
+        if path.is_file() and expected.name.startswith(path.name)
+    ]
+    if len(candidates) != 1:
+        raise FileNotFoundError(
+            f"Cannot resolve Kaggle-truncated path {expected}; "
+            f"matching candidates={candidates}"
+        )
+    resolved = candidates[0].relative_to(data_root)
+    return (Path("data") / resolved).as_posix()
+
+
 def stage_training_shards(manifests: list[Path]) -> Path:
     """Symlink each attached dataset and write one combined training manifest."""
     if len(manifests) < 2:
@@ -236,8 +260,14 @@ def stage_training_shards(manifests: list[Path]) -> Path:
             if source_id in seen_sources:
                 raise ValueError(f"Duplicate source across shards: {source_id}")
             seen_sources.add(source_id)
-            row["audio_path"] = _rebase_shard_path(row["audio_path"], shard_name)
-            row["labels_path"] = _rebase_shard_path(row["labels_path"], shard_name)
+            audio_path = _resolve_visible_shard_path(
+                data_root, row["audio_path"]
+            )
+            labels_path = _resolve_visible_shard_path(
+                data_root, row["labels_path"]
+            )
+            row["audio_path"] = _rebase_shard_path(audio_path, shard_name)
+            row["labels_path"] = _rebase_shard_path(labels_path, shard_name)
             combined_rows.append(row)
     if not fieldnames:
         raise ValueError("No shard manifest rows found.")

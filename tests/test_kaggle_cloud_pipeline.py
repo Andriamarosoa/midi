@@ -16,6 +16,7 @@ from scripts.cloud.kaggle_upload_progress import (
     upload_info_path,
     uploaded_bytes_from_range,
 )
+from scripts.cloud.kaggle_entrypoint import _resolve_visible_shard_path
 from scripts.cloud.prepare_kaggle_datasets import (
     prepare_training,
     prepare_training_archive,
@@ -242,6 +243,27 @@ class KaggleCloudPipelineTests(unittest.TestCase):
             self.assertFalse(any(name.startswith("data/") for name in names))
             self.assertFalse(any(name.startswith("artifacts/") for name in names))
             self.assertFalse(any(name.startswith("runs/") for name in names))
+
+    def test_kaggle_truncated_shard_path_is_resolved_uniquely(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            data_root = Path(temporary) / "data"
+            directory = (
+                data_root
+                / "processed/polyphonic_v2_2_guitar_techs/audio"
+            )
+            directory.mkdir(parents=True)
+            truncated = directory / "gtech_long_directin"
+            truncated.write_bytes(b"audio")
+            resolved = _resolve_visible_shard_path(
+                data_root,
+                "data/processed/polyphonic_v2_2_guitar_techs/audio/"
+                "gtech_long_directinput.npy",
+            )
+            self.assertEqual(
+                resolved,
+                "data/processed/polyphonic_v2_2_guitar_techs/audio/"
+                "gtech_long_directin",
+            )
 
     def test_training_outputs_are_packaged_without_data(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
