@@ -188,6 +188,7 @@ class KaggleCloudPipelineTests(unittest.TestCase):
             for line in cell.get("source", [])
         )
         self.assertIn("< (3, 13)", source)
+        self.assertIn("for attempt in range(1, 4)", source)
 
     def test_kernel_accepts_multiple_unique_dataset_sources(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
