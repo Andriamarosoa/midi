@@ -185,6 +185,8 @@ class KaggleCloudPipelineTests(unittest.TestCase):
         notebook = _task_notebook(
             "rebuild",
             source_dataset_slug="guitar-midi-polyphonic-code-6ce57898",
+            config_path="configs/polyphonic_dual_stream_bass.yaml",
+            initial_checkpoint_name="epoch-08.keras",
         )
         task_lines = [
             line
@@ -208,6 +210,16 @@ class KaggleCloudPipelineTests(unittest.TestCase):
             source,
         )
         self.assertIn("MAXIMUM_EXAMPLES = 60000", source)
+        self.assertIn(
+            'CONFIG_PATH = "configs/polyphonic_dual_stream_bass.yaml"',
+            source,
+        )
+        self.assertIn('"--config", CONFIG_PATH', source)
+        self.assertIn(
+            'INITIAL_CHECKPOINT_NAME = "epoch-08.keras"',
+            source,
+        )
+        self.assertIn('"--initial-checkpoint-name"', source)
         self.assertIn("MAXIMUM_RECORDINGS = 12", source)
         self.assertIn("MAXIMUM_CANDIDATES = 8", source)
         self.assertIn(

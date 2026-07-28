@@ -36,6 +36,9 @@ class PolyphonicDecoderConfig:
     audio_onset_lookback_frames: int = 10
     unattacked_frame_threshold: float = 0.90
     harmonic_support_threshold: float = 0.60
+    recovery_release_grace_frames: int = 4
+    chord_release_grace_frames: int = 6
+    chord_formation_frames: int = 0
 
     def __post_init__(self) -> None:
         if self.midi_max < self.midi_min:
@@ -50,6 +53,12 @@ class PolyphonicDecoderConfig:
             self.audio_onset_lookback_frames,
         ) < 1:
             raise ValueError("Decoder frame counts must be positive.")
+        if min(
+            self.recovery_release_grace_frames,
+            self.chord_release_grace_frames,
+            self.chord_formation_frames,
+        ) < 0:
+            raise ValueError("Decoder grace frame counts cannot be negative.")
         for name, value in (
             ("frame_on_threshold", self.frame_on_threshold),
             ("strong_frame_threshold", self.strong_frame_threshold),
@@ -108,6 +117,11 @@ class PolyphonicDecoder:
         self.activation_count = np.zeros(self.classes, dtype=np.int16)
         self.release_count = np.zeros(self.classes, dtype=np.int16)
         self.last_note_on = np.full(self.classes, -10**9, dtype=np.int64)
+        self.chord_release_grace = np.zeros(self.classes, dtype=np.int16)
+        self.attack_activation_pending = np.zeros(
+            self.classes, dtype=np.bool_
+        )
+        self.recovery_release_grace = 0
         self.frame_index = -1
         self.silence_count = 0
         self.audio_onset_available = False
@@ -167,6 +181,14 @@ class PolyphonicDecoder:
             <= self.config.audio_onset_lookback_frames
         )
 
+    def _recent_chord_formation(self) -> bool:
+        return bool(
+            self.config.chord_formation_frames > 0
+            and self.audio_onset_available
+            and self.frame_index - self.last_audio_onset
+            <= self.config.chord_formation_frames
+        )
+
     @property
     def recent_audio_onset(self) -> bool:
         """Whether a causal physical attack is still inside the lookback."""
@@ -190,6 +212,29 @@ class PolyphonicDecoder:
         return min(
             self.config.strong_frame_threshold,
             threshold + self.config.harmonic_suppression_strength * support,
+        )
+
+    def reset_observation_continuity(self) -> tuple[int, ...]:
+        """Forget evidence across a recoverable gap without cutting MIDI.
+
+        The live runtime calls this only while it keeps receiving audio but
+        must discard stale queued hops. A real input/output failure still uses
+        :meth:`panic`, so preserved notes cannot remain stuck indefinitely.
+        """
+        self.activation_count[:] = 0
+        self.attack_activation_pending[:] = False
+        self.release_count[:] = 0
+        self.silence_count = 0
+        self.audio_onset_available = False
+        self.last_audio_onset = -10**9
+        self.recovery_release_grace = (
+            self.config.recovery_release_grace_frames
+            if bool(np.any(self.active))
+            else 0
+        )
+        return tuple(
+            self.config.midi_min + int(index)
+            for index in np.flatnonzero(self.active)
         )
 
     def step(
@@ -248,6 +293,7 @@ class PolyphonicDecoder:
             # consecutive frame/audio evidence.  Active notes and their last
             # NoteOn clock deliberately survive the gap.
             self.activation_count[:] = 0
+            self.attack_activation_pending[:] = False
             self.release_count[:] = 0
         frame = np.asarray(frame_probability, dtype=np.float32)
         onset = np.asarray(onset_probability, dtype=np.float32)
@@ -265,6 +311,7 @@ class PolyphonicDecoder:
             # a pre-silence vote can turn one post-silence frame into a ghost
             # NoteOn.
             self.activation_count[:] = 0
+            self.attack_activation_pending[:] = False
             self.silence_count += 1
             if self.silence_count >= self.config.silence_release_frames:
                 return self.panic(reason="silence")
@@ -280,14 +327,22 @@ class PolyphonicDecoder:
         for class_index in np.flatnonzero(self.active):
             class_index = int(class_index)
             pitch = self.config.midi_min + class_index
+            release_protected = bool(
+                self.recovery_release_grace > 0
+                or self.chord_release_grace[class_index] > 0
+            )
             if frame[class_index] < self.config.frame_off_threshold:
-                self.release_count[class_index] += 1
+                if release_protected:
+                    self.release_count[class_index] = 0
+                else:
+                    self.release_count[class_index] += 1
             else:
                 self.release_count[class_index] = 0
             if self.release_count[class_index] >= self.config.release_frames:
                 self.active[class_index] = False
                 self.release_count[class_index] = 0
                 self.activation_count[class_index] = 0
+                self.attack_activation_pending[class_index] = False
                 events.append(PolyphonicMidiEvent(
                     "note_off", pitch, 0, self.frame_index, "release"
                 ))
@@ -313,8 +368,15 @@ class PolyphonicDecoder:
                 ))
                 self.last_note_on[class_index] = self.frame_index
 
+        if self.recovery_release_grace > 0:
+            self.recovery_release_grace -= 1
+        protected = self.chord_release_grace > 0
+        self.chord_release_grace[protected] -= 1
+
         available = self.config.maximum_polyphony - int(np.sum(self.active))
         if available <= 0:
+            self.activation_count[~self.active] = 0
+            self.attack_activation_pending[~self.active] = False
             return events
         if not self.audio_onset_available:
             legacy_candidates: list[tuple[float, int]] = []
@@ -352,7 +414,9 @@ class PolyphonicDecoder:
                 )
                 self.active[class_index] = True
                 self.activation_count[class_index] = 0
+                self.attack_activation_pending[class_index] = False
                 self.release_count[class_index] = 0
+                self.chord_release_grace[class_index] = 0
                 self.last_note_on[class_index] = self.frame_index
                 events.append(PolyphonicMidiEvent(
                     "note_on", pitch, velocity, self.frame_index, "legacy"
@@ -367,15 +431,24 @@ class PolyphonicDecoder:
                 and frame[class_index] >= self.config.frame_on_threshold
             )
             recent_audio_onset = self._recent_audio_onset()
-            stable_threshold = (
-                self.config.frame_on_threshold
-                if recent_audio_onset
-                else self.config.unattacked_frame_threshold
+            pending_attack_completion = bool(
+                self.attack_activation_pending[class_index]
+                and self._recent_chord_formation()
             )
+            recent_chord_formation = self._recent_chord_formation()
+            if recent_audio_onset or pending_attack_completion:
+                stable_threshold = self.config.frame_on_threshold
+            elif recent_chord_formation:
+                stable_threshold = self.config.strong_frame_threshold
+            else:
+                stable_threshold = self.config.unattacked_frame_threshold
             if frame[class_index] >= stable_threshold:
                 self.activation_count[class_index] += 1
+                if recent_audio_onset:
+                    self.attack_activation_pending[class_index] = True
             else:
                 self.activation_count[class_index] = 0
+                self.attack_activation_pending[class_index] = False
             stable_frame = (
                 self.activation_count[class_index] >= self.config.activation_frames
                 and frame[class_index] >= stable_threshold
@@ -388,7 +461,11 @@ class PolyphonicDecoder:
                     else (
                         "frame_attack"
                         if recent_audio_onset
-                        else "frame_fallback"
+                        else (
+                            "chord_completion"
+                            if recent_chord_formation
+                            else "frame_fallback"
+                        )
                     )
                 )
                 provisional.append((score, class_index, direct_onset, reason))
@@ -401,7 +478,7 @@ class PolyphonicDecoder:
         base_mask = self.active.copy()
         for _, class_index, _, _ in provisional:
             base_mask[class_index] = True
-        candidates: list[tuple[float, int, str]] = []
+        candidates: list[tuple[float, int, str, bool]] = []
         for score, class_index, direct_onset, reason in provisional:
             support = self._harmonic_support(
                 class_index, harmonic_amplitude, base_mask
@@ -428,15 +505,26 @@ class PolyphonicDecoder:
                     continue
                 score -= self.config.harmonic_suppression_strength * support
                 reason = "harmonic_strong_frame"
-            candidates.append((score, class_index, reason))
+            candidates.append((score, class_index, reason, direct_onset))
 
         ranked = sorted(candidates, key=lambda item: (-item[0], item[1]))
-        for _, class_index, reason in ranked[:max(0, available)]:
+        selected = ranked[:max(0, available)]
+        protected_chord = bool(
+            self._recent_audio_onset()
+            and sum(bool(item[3]) for item in selected) >= 2
+        )
+        for _, class_index, reason, direct_onset in selected:
             pitch = self.config.midi_min + class_index
             velocity = self._velocity(frame[class_index], onset[class_index])
             self.active[class_index] = True
             self.activation_count[class_index] = 0
+            self.attack_activation_pending[class_index] = False
             self.release_count[class_index] = 0
+            self.chord_release_grace[class_index] = (
+                self.config.chord_release_grace_frames
+                if protected_chord and direct_onset
+                else 0
+            )
             self.last_note_on[class_index] = self.frame_index
             events.append(PolyphonicMidiEvent(
                 "note_on", pitch, velocity, self.frame_index, reason
@@ -453,7 +541,10 @@ class PolyphonicDecoder:
         ]
         self.active[:] = False
         self.activation_count[:] = 0
+        self.attack_activation_pending[:] = False
         self.release_count[:] = 0
+        self.chord_release_grace[:] = 0
+        self.recovery_release_grace = 0
         self.silence_count = 0
         self.audio_onset_available = False
         self.last_audio_onset = -10**9

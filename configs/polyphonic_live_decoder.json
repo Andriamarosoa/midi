@@ -14,5 +14,8 @@
   "harmonic_tolerance_cents": 35.0,
   "audio_onset_lookback_frames": 10,
   "unattacked_frame_threshold": 0.9,
-  "harmonic_support_threshold": 0.6
+  "harmonic_support_threshold": 0.6,
+  "recovery_release_grace_frames": 4,
+  "chord_release_grace_frames": 6,
+  "chord_formation_frames": 21
 }

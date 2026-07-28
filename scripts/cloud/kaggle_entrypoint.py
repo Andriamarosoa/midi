@@ -405,6 +405,16 @@ def main() -> int:
     parser.add_argument(
         "--input-root", type=Path, default=Path("/kaggle/input")
     )
+    parser.add_argument(
+        "--config",
+        type=Path,
+        default=Path("configs/polyphonic_train.yaml"),
+    )
+    parser.add_argument(
+        "--initial-checkpoint-name",
+        default="",
+        help="Unique checkpoint basename mounted under /kaggle/input.",
+    )
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--maximum-examples", type=int, default=60_000)
     parser.add_argument("--maximum-recordings", type=int, default=12)
@@ -481,9 +491,25 @@ def main() -> int:
             command = [
                 sys.executable,
                 "scripts/cloud/train_polyphonic.py",
+                "--config",
+                str(args.config),
             ]
             if args.task == "smoke":
                 command.append("--smoke-test")
+            if args.initial_checkpoint_name:
+                checkpoint_candidates = sorted(
+                    args.input_root.rglob(args.initial_checkpoint_name)
+                )
+                if len(checkpoint_candidates) != 1:
+                    raise RuntimeError(
+                        "Expected exactly one initial checkpoint named "
+                        f"{args.initial_checkpoint_name!r}, got "
+                        f"{checkpoint_candidates}"
+                    )
+                command.extend([
+                    "--initial-checkpoint",
+                    str(checkpoint_candidates[0]),
+                ])
             if args.resume_run is not None:
                 command.extend(["--resume-run", str(args.resume_run)])
             _run(command)

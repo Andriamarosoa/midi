@@ -41,8 +41,10 @@ def _legacy_polyphonic_spec(config: dict[str, Any]) -> dict[str, Any]:
     }
     if tcn_indices != set(range(len(tcn_indices))):
         raise ValueError("Legacy checkpoint has a non-contiguous TCN layout.")
-    return {
-        "pitch_classes": int(layer_config("frame")["units"]),
+    compressed_bass_branch = "bass_input_compress" in layers
+    frame_layer = "frame_main_logits" if compressed_bass_branch else "frame"
+    spec = {
+        "pitch_classes": int(layer_config(frame_layer)["units"]),
         "input_samples": int(audio_shape[1]),
         "channels": int(layer_config("frontend_conv_1")["filters"]),
         "tcn_blocks": len(tcn_indices),
@@ -55,6 +57,19 @@ def _legacy_polyphonic_spec(config: dict[str, Any]) -> dict[str, Any]:
             layer_config("harmonic_offset_scaled")["scale"]
         ),
     }
+    if compressed_bass_branch:
+        spec.update(
+            {
+                "normal_window_samples": int(audio_shape[1]) // 2,
+                "compressed_bass_branch": True,
+                "bass_channels": int(layer_config("bass_conv_1")["filters"]),
+                "bass_dense_units": int(layer_config("bass_dense")["units"]),
+                "bass_pitch_classes": int(
+                    layer_config("frame_bass_logits")["units"]
+                ),
+            }
+        )
+    return spec
 
 
 def _normalize_h5_paths(source: Path, destination: Path) -> bool:

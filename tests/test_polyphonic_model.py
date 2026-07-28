@@ -18,6 +18,7 @@ from src.polyphonic.model import (
     PolyphonicHarmonicOffsetLoss,
     PolyphonicMaskedHarmonicAmplitudeLoss,
     build_polyphonic_model,
+    transfer_compatible_weights,
 )
 
 
@@ -64,6 +65,97 @@ class PolyphonicModelTests(unittest.TestCase):
         self.assertEqual(outputs["onset"].shape, (2, 3))
         self.assertEqual(outputs["harmonic_amplitude"].shape, (2, 3, 2))
         self.assertEqual(outputs["harmonic_offset_cents"].shape, (2, 3, 2))
+
+    def test_dual_stream_model_has_normal_and_compressed_causal_inputs(self) -> None:
+        model = build_polyphonic_model(
+            pitch_classes=6,
+            input_samples=1024,
+            normal_window_samples=512,
+            compressed_bass_branch=True,
+            bass_channels=2,
+            bass_dense_units=4,
+            bass_pitch_classes=3,
+            channels=4,
+            tcn_blocks=1,
+            dropout=0.0,
+            dense_units=8,
+            harmonic_count=2,
+        )
+        outputs = model(
+            {
+                "audio": np.zeros((2, 1024, 1), np.float32),
+                "time_mask": np.ones((2, 1024), np.float32),
+            },
+            training=False,
+        )
+
+        self.assertEqual(model.get_layer("normal_recent_audio").output.shape[1], 512)
+        self.assertEqual(model.get_layer("bass_input_compress").output.shape[1], 512)
+        self.assertEqual(outputs["frame"].shape, (2, 6))
+        self.assertEqual(outputs["onset"].shape, (2, 6))
+
+    def test_dual_stream_zero_residual_preserves_transferred_model(self) -> None:
+        tf.keras.utils.set_random_seed(456)
+        source = build_polyphonic_model(
+            pitch_classes=6,
+            input_samples=512,
+            channels=4,
+            tcn_blocks=1,
+            dropout=0.0,
+            dense_units=8,
+            harmonic_count=2,
+        )
+        target = build_polyphonic_model(
+            pitch_classes=6,
+            input_samples=1024,
+            normal_window_samples=512,
+            compressed_bass_branch=True,
+            bass_channels=2,
+            bass_dense_units=4,
+            bass_pitch_classes=3,
+            channels=4,
+            tcn_blocks=1,
+            dropout=0.0,
+            dense_units=8,
+            harmonic_count=2,
+        )
+        recent = np.linspace(-0.5, 0.5, 512, dtype=np.float32)
+        source_inputs = {
+            "audio": recent[None, :, None],
+            "time_mask": np.ones((1, 512), np.float32),
+        }
+        target_inputs = {
+            "audio": np.concatenate(
+                [np.zeros(512, np.float32), recent]
+            )[None, :, None],
+            "time_mask": np.concatenate(
+                [np.zeros(512, np.float32), np.ones(512, np.float32)]
+            )[None, :],
+        }
+        with tempfile.TemporaryDirectory() as temporary:
+            checkpoint = Path(temporary) / "source.keras"
+            source.save(checkpoint)
+            report = transfer_compatible_weights(target, checkpoint)
+
+        self.assertIn("frame_main_logits", report["transferred"])
+        self.assertIn("onset_main_logits", report["transferred"])
+        expected = source(source_inputs, training=False)
+        actual = target(target_inputs, training=False)
+        for name in expected:
+            np.testing.assert_allclose(
+                expected[name].numpy(),
+                actual[name].numpy(),
+                rtol=1e-6,
+                atol=1e-6,
+            )
+
+    def test_dual_stream_requires_double_length_input(self) -> None:
+        with self.assertRaisesRegex(ValueError, "twice"):
+            build_polyphonic_model(
+                input_samples=768,
+                normal_window_samples=512,
+                compressed_bass_branch=True,
+            )
 
     def test_masked_harmonic_losses_ignore_unlabelled_pitch_classes(self) -> None:
         amplitude_true = tf.constant([[[1.0, 0.5, 1.0, 1.0], [0, 0, 0, 0]]])

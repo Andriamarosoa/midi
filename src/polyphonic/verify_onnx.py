@@ -67,9 +67,18 @@ def _mapping(
 def _feed(session, audio: np.ndarray, mask: np.ndarray) -> dict[str, np.ndarray]:
     feed = {}
     for item in session.get_inputs():
-        if list(item.shape) == [1, 4096, 1]:
+        shape = list(item.shape)
+        if len(shape) == 3 and shape[0] == 1 and shape[-1] == 1:
+            if shape[1] != audio.shape[1]:
+                raise ValueError(
+                    f"ONNX audio length {shape[1]} != {audio.shape[1]}"
+                )
             feed[item.name] = audio
-        elif list(item.shape) == [1, 4096]:
+        elif len(shape) == 2 and shape[0] == 1:
+            if shape[1] != mask.shape[1]:
+                raise ValueError(
+                    f"ONNX mask length {shape[1]} != {mask.shape[1]}"
+                )
             feed[item.name] = mask
         else:
             raise ValueError(f"Unexpected ONNX input: {item.name} {item.shape}")

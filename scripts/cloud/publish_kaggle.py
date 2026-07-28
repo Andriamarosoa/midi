@@ -148,6 +148,8 @@ def _task_notebook(
     task: str,
     *,
     source_dataset_slug: str = "",
+    config_path: str = "configs/polyphonic_train.yaml",
+    initial_checkpoint_name: str = "",
     maximum_examples: int = 60_000,
     maximum_recordings: int = 12,
     maximum_candidates: int = 8,
@@ -161,6 +163,8 @@ def _task_notebook(
     notebook = json.loads(NOTEBOOK.read_text(encoding="utf-8"))
     task_replaced = False
     source_replaced = False
+    config_replaced = False
+    checkpoint_replaced = False
     maximum_replaced = False
     recordings_replaced = False
     candidates_replaced = False
@@ -180,6 +184,17 @@ def _task_notebook(
                     "# injecté par le publisher Kaggle\n"
                 )
                 source_replaced = True
+            elif line.startswith("CONFIG_PATH = "):
+                source[index] = (
+                    f"CONFIG_PATH = {json.dumps(config_path)}\n"
+                )
+                config_replaced = True
+            elif line.startswith("INITIAL_CHECKPOINT_NAME = "):
+                source[index] = (
+                    "INITIAL_CHECKPOINT_NAME = "
+                    f"{json.dumps(initial_checkpoint_name)}\n"
+                )
+                checkpoint_replaced = True
             elif line.startswith("MAXIMUM_EXAMPLES = "):
                 source[index] = (
                     f"MAXIMUM_EXAMPLES = {int(maximum_examples)}\n"
@@ -200,6 +215,12 @@ def _task_notebook(
     if not source_replaced:
         raise ValueError(
             "SOURCE_DATASET_SLUG cell not found in Kaggle notebook."
+        )
+    if not config_replaced:
+        raise ValueError("CONFIG_PATH cell not found in Kaggle notebook.")
+    if not checkpoint_replaced:
+        raise ValueError(
+            "INITIAL_CHECKPOINT_NAME cell not found in Kaggle notebook."
         )
     if not maximum_replaced:
         raise ValueError(
@@ -224,6 +245,8 @@ def publish_kernel(
     output_dir: Path,
     kernel_slug: str | None = None,
     accelerator: str = "NvidiaTeslaP100",
+    config_path: str = "configs/polyphonic_train.yaml",
+    initial_checkpoint_name: str = "",
     maximum_examples: int = 60_000,
     maximum_recordings: int = 12,
     maximum_candidates: int = 8,
@@ -259,6 +282,8 @@ def publish_kernel(
             _task_notebook(
                 task,
                 source_dataset_slug=source_dataset_slug,
+                config_path=config_path,
+                initial_checkpoint_name=initial_checkpoint_name,
                 maximum_examples=maximum_examples,
                 maximum_recordings=maximum_recordings,
                 maximum_candidates=maximum_candidates,
@@ -323,6 +348,16 @@ def main() -> int:
         required=True,
     )
     kernel.add_argument(
+        "--config",
+        default="configs/polyphonic_train.yaml",
+        help="Training config inside the source snapshot.",
+    )
+    kernel.add_argument(
+        "--initial-checkpoint-name",
+        default="",
+        help="Unique checkpoint basename from an attached dataset.",
+    )
+    kernel.add_argument(
         "--output-dir", type=Path, default=Path("tmp/kaggle/kernel")
     )
     kernel.add_argument(
@@ -367,6 +402,8 @@ def main() -> int:
             output_dir=args.output_dir,
             kernel_slug=args.kernel_slug,
             accelerator=args.accelerator,
+            config_path=args.config,
+            initial_checkpoint_name=args.initial_checkpoint_name,
             maximum_examples=args.maximum_examples,
             maximum_recordings=args.maximum_recordings,
             maximum_candidates=args.maximum_candidates,

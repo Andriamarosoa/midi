@@ -24,6 +24,9 @@ from src.product.midi_file import write_midi
 from src.stream.ring_buffer import MonoRingBuffer
 
 
+OCTAVE_SEMITONES = 12
+
+
 def _audio(path: Path, target_rate: int) -> np.ndarray:
     waveform, rate = sf.read(path, dtype="float32", always_2d=True)
     mono = np.mean(waveform, axis=1, dtype=np.float32)
@@ -35,6 +38,55 @@ def _audio(path: Path, target_rate: int) -> np.ndarray:
     return mono
 
 
+def _octave_up_model_window(
+    source_window: np.ndarray,
+    model_window_size: int,
+) -> np.ndarray:
+    """Compress 2x past audio into one causal model window.
+
+    Pair averaging is a minimal anti-alias filter. The latest input sample is
+    preserved in the latest pair, so the transform uses no future audio and
+    adds no steady-state lookahead.
+    """
+    source = np.asarray(source_window, np.float32).reshape(-1)
+    expected = 2 * int(model_window_size)
+    if source.shape != (expected,):
+        raise ValueError(
+            f"Octave-up input requires {expected} source samples."
+        )
+    return np.asarray(
+        0.5 * (source[0::2] + source[1::2]),
+        np.float32,
+    )
+
+
+def _remap_octave_up_outputs(
+    frame_probability: np.ndarray,
+    onset_probability: np.ndarray,
+    harmonic_amplitude: np.ndarray,
+    semitones: int = OCTAVE_SEMITONES,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Move model probabilities down after octave-up input transposition."""
+    frame = np.asarray(frame_probability, np.float32).reshape(-1)
+    onset = np.asarray(onset_probability, np.float32).reshape(-1)
+    harmonic = np.asarray(harmonic_amplitude, np.float32)
+    if onset.shape != frame.shape:
+        raise ValueError("Frame and onset outputs must share the pitch axis.")
+    if harmonic.ndim != 2 or harmonic.shape[0] != len(frame):
+        raise ValueError("Harmonic outputs must share the pitch axis.")
+    shift = int(semitones)
+    if not 1 <= shift < len(frame):
+        raise ValueError("Output transposition must fit inside the pitch axis.")
+    mapped_frame = np.zeros_like(frame)
+    mapped_onset = np.zeros_like(onset)
+    mapped_harmonic = np.zeros_like(harmonic)
+    retained = len(frame) - shift
+    mapped_frame[:retained] = frame[shift:]
+    mapped_onset[:retained] = onset[shift:]
+    mapped_harmonic[:retained] = harmonic[shift:]
+    return mapped_frame, mapped_onset, mapped_harmonic
+
+
 def transcribe(
     input_wav: Path,
     output_midi: Path,
@@ -43,6 +95,7 @@ def transcribe(
     program: int,
     auto_level: bool | None = None,
     audio_gain: float = 1.0,
+    input_octave_up: bool = False,
 ) -> dict[str, object]:
     audio_gain = validate_manual_audio_gain(audio_gain)
     bundle = PolyphonicBundle(artifacts)
@@ -65,12 +118,16 @@ def transcribe(
     sample_rate = int(bundle.metadata["sample_rate"])
     hop = int(bundle.metadata["hop_samples"])
     window_size = int(bundle.metadata["max_window_samples"])
+    minimum_pitch = int(bundle.metadata.get("min_pitch", 40))
+    maximum_pitch = int(bundle.metadata.get("max_pitch", minimum_pitch + 36))
     warmup_window = np.zeros(window_size, np.float32)
     for _ in range(20):
         runtime.infer(warmup_window, window_size)
     waveform = _audio(input_wav, sample_rate)
-    ring = MonoRingBuffer(window_size)
-    window = np.zeros(window_size, np.float32)
+    source_window_size = window_size * (2 if input_octave_up else 1)
+    ring = MonoRingBuffer(source_window_size)
+    source_window = np.zeros(source_window_size, np.float32)
+    model_window = np.zeros(window_size, np.float32)
     audio_evidence_policy = PolyphonicAudioEvidencePolicy.from_metadata(
         sample_rate,
         hop,
@@ -87,7 +144,7 @@ def transcribe(
     silent_priming_hops = audio_evidence_policy.prime_silence()
     # Live calibration has already filled the causal window with captured
     # silence before the first playable hop.
-    ring.write(np.zeros(window_size, dtype=np.float32))
+    ring.write(np.zeros(source_window_size, dtype=np.float32))
     events: list[dict[str, object]] = []
     inference_ms: list[float] = []
     pipeline_ms: list[float] = []
@@ -101,6 +158,7 @@ def transcribe(
     active_midi: set[int] = set()
     event_reason_counts: Counter[str] = Counter()
     note_on_reason_counts: Counter[str] = Counter()
+    input_transform_ms: list[float] = []
     for start in range(0, len(waveform), hop):
         pipeline_started = time.perf_counter()
         values = np.zeros(hop, np.float32)
@@ -119,15 +177,39 @@ def transcribe(
             capture_values,
             audio_active=bool(audio_evidence.activity.active),
         )
-        ring.copy_latest_into(window)
+        ring.copy_latest_into(source_window)
+        transform_started = time.perf_counter()
+        if input_octave_up:
+            model_window[:] = _octave_up_model_window(
+                source_window,
+                window_size,
+            )
+        else:
+            model_window[:] = source_window
+        input_transform_ms.append(
+            (time.perf_counter() - transform_started) * 1000.0
+        )
         if auto_level_enabled and level.gain != 1.0:
-            window *= level.gain
-        prediction = runtime.infer(window, ring.available)
+            model_window *= level.gain
+        prediction = runtime.infer(model_window, window_size)
         inference_ms.append(prediction.inference_ms)
+        frame_probability = prediction.frame_probability
+        onset_probability = prediction.onset_probability
+        harmonic_amplitude = prediction.harmonic_amplitude
+        if input_octave_up:
+            (
+                frame_probability,
+                onset_probability,
+                harmonic_amplitude,
+            ) = _remap_octave_up_outputs(
+                frame_probability,
+                onset_probability,
+                harmonic_amplitude,
+            )
         decoded_events = decoder.step(
-            prediction.frame_probability,
-            prediction.onset_probability,
-            prediction.harmonic_amplitude,
+            frame_probability,
+            onset_probability,
+            harmonic_amplitude,
             audio_active=audio_evidence.activity.active,
             audio_hop_index=audio_evidence.audio_hop_index,
             audio_onset=bool(audio_evidence.onset.is_onset),
@@ -184,6 +266,7 @@ def transcribe(
     write_midi(output_midi, events, channel=channel, program=program)
     values = np.asarray(inference_ms, np.float64)
     pipeline_values = np.asarray(pipeline_ms, np.float64)
+    transform_values = np.asarray(input_transform_ms, np.float64)
     return {
         "input_wav": str(input_wav),
         "output_midi": str(output_midi),
@@ -192,6 +275,32 @@ def transcribe(
         "note_on_events": sum(event["kind"] == "note_on" for event in events),
         "capture_gain": audio_gain,
         "gain_induced_clipped_samples": gain_induced_clipped_samples,
+        "input_pitch_transposition": {
+            "enabled": bool(input_octave_up),
+            "semitones": OCTAVE_SEMITONES if input_octave_up else 0,
+            "method": (
+                "causal_pair_average_decimation_2x"
+                if input_octave_up else "none"
+            ),
+            "source_window_samples": source_window_size,
+            "model_window_samples": window_size,
+            "mapped_original_midi_range": (
+                [minimum_pitch, maximum_pitch - OCTAVE_SEMITONES]
+                if input_octave_up else
+                [minimum_pitch, maximum_pitch]
+            ),
+            "unavailable_original_midi_range": (
+                [maximum_pitch - OCTAVE_SEMITONES + 1, maximum_pitch]
+                if input_octave_up else None
+            ),
+            "transform_ms": {
+                "mean": float(np.mean(transform_values)),
+                "p95": float(np.percentile(transform_values, 95)),
+                "max": float(np.max(transform_values)),
+            },
+            "diagnostic_only": True,
+            "locked_test_used": False,
+        },
         "silent_priming_hops": silent_priming_hops,
         "audio_active_hops": audio_active_hops,
         "audio_active_note_coverage": {
@@ -270,6 +379,14 @@ def main() -> None:
             "un WAV deja enregistre par le live."
         ),
     )
+    parser.add_argument(
+        "--input-octave-up",
+        action="store_true",
+        help=(
+            "Diagnostic: transpose causalement l'entree d'une octave vers "
+            "l'aigu, puis remapper les sorties MIDI de -12."
+        ),
+    )
     args = parser.parse_args()
     try:
         validate_manual_audio_gain(args.audio_gain)
@@ -280,6 +397,7 @@ def main() -> None:
         args.midi_channel - 1, args.program,
         auto_level=args.auto_level,
         audio_gain=args.audio_gain,
+        input_octave_up=args.input_octave_up,
     )
     if args.report_json:
         args.report_json.parent.mkdir(parents=True, exist_ok=True)

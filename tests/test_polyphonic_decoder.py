@@ -53,6 +53,114 @@ class PolyphonicDecoderTests(unittest.TestCase):
             event.kind == "note_on" and event.pitch == 72 for event in events
         ))
 
+    def test_recoverable_gap_preserves_notes_and_clears_weak_votes(self) -> None:
+        config = PolyphonicDecoderConfig(
+            midi_min=60,
+            midi_max=61,
+            release_frames=2,
+            recovery_release_grace_frames=2,
+            maximum_polyphony=2,
+        )
+        decoder = PolyphonicDecoder(config)
+        frame = np.asarray([0.9, 0.0], np.float32)
+        onset = frame.copy()
+        decoder.step(
+            frame, onset, audio_hop_index=0, audio_onset=True
+        )
+        low = np.zeros(2, np.float32)
+        decoder.step(low, low, audio_hop_index=1, audio_onset=False)
+        self.assertEqual(int(decoder.release_count[0]), 1)
+
+        preserved = decoder.reset_observation_continuity()
+
+        self.assertEqual(preserved, (60,))
+        self.assertTrue(bool(decoder.active[0]))
+        self.assertEqual(int(decoder.release_count[0]), 0)
+        self.assertFalse(decoder.recent_audio_onset)
+        self.assertEqual(
+            decoder.step(low, low, audio_hop_index=5, audio_onset=False),
+            [],
+        )
+        self.assertEqual(
+            decoder.step(low, low, audio_hop_index=6, audio_onset=False),
+            [],
+        )
+        self.assertEqual(
+            decoder.step(low, low, audio_hop_index=7, audio_onset=False),
+            [],
+        )
+        released = decoder.step(
+            low, low, audio_hop_index=8, audio_onset=False
+        )
+        self.assertEqual(
+            [(event.kind, event.pitch) for event in released],
+            [("note_off", 60)],
+        )
+
+    def test_simultaneous_independent_onsets_receive_short_release_grace(
+        self,
+    ) -> None:
+        config = PolyphonicDecoderConfig(
+            midi_min=60,
+            midi_max=64,
+            release_frames=1,
+            chord_release_grace_frames=2,
+            maximum_polyphony=5,
+        )
+        decoder = PolyphonicDecoder(config)
+        frame = np.zeros(5, np.float32)
+        onset = np.zeros(5, np.float32)
+        frame[[0, 4]] = 0.9
+        onset[[0, 4]] = 0.9
+        decoder.step(
+            frame, onset, audio_hop_index=0, audio_onset=True
+        )
+        low = np.zeros(5, np.float32)
+
+        self.assertEqual(
+            decoder.step(
+                low, low, audio_hop_index=1, audio_onset=False
+            ),
+            [],
+        )
+        self.assertEqual(
+            decoder.step(
+                low, low, audio_hop_index=2, audio_onset=False
+            ),
+            [],
+        )
+        released = decoder.step(
+            low, low, audio_hop_index=3, audio_onset=False
+        )
+        self.assertEqual(
+            {(event.kind, event.pitch) for event in released},
+            {("note_off", 60), ("note_off", 64)},
+        )
+
+    def test_single_onset_does_not_receive_chord_release_grace(self) -> None:
+        config = PolyphonicDecoderConfig(
+            midi_min=60,
+            midi_max=60,
+            release_frames=1,
+            chord_release_grace_frames=6,
+            maximum_polyphony=1,
+        )
+        decoder = PolyphonicDecoder(config)
+        frame = np.asarray([0.9], np.float32)
+        decoder.step(
+            frame, frame, audio_hop_index=0, audio_onset=True
+        )
+        low = np.zeros(1, np.float32)
+
+        released = decoder.step(
+            low, low, audio_hop_index=1, audio_onset=False
+        )
+
+        self.assertEqual(
+            [(event.kind, event.pitch) for event in released],
+            [("note_off", 60)],
+        )
+
     def test_release_and_retrigger_are_global_per_pitch(self) -> None:
         decoder = PolyphonicDecoder(self.config)
         frame = np.zeros(13, np.float32)
@@ -273,6 +381,146 @@ class PolyphonicDecoderTests(unittest.TestCase):
             [(event.pitch, event.reason) for event in events],
             [(60, "frame_attack")],
         )
+
+    def test_chord_formation_finishes_a_vote_started_during_attack(self) -> None:
+        config = PolyphonicDecoderConfig(
+            midi_min=60,
+            midi_max=64,
+            frame_on_threshold=0.5,
+            strong_frame_threshold=0.8,
+            onset_threshold=0.5,
+            activation_frames=2,
+            audio_onset_lookback_frames=1,
+            chord_formation_frames=4,
+            unattacked_frame_threshold=0.9,
+            maximum_polyphony=5,
+        )
+        decoder = PolyphonicDecoder(config)
+        frame = np.zeros(5, np.float32)
+        onset = np.zeros(5, np.float32)
+        frame[0] = onset[0] = 0.9
+        decoder.step(
+            frame, onset, audio_hop_index=0, audio_onset=True
+        )
+
+        chord_tone = np.zeros(5, np.float32)
+        chord_tone[4] = 0.65
+        self.assertEqual(
+            decoder.step(
+                chord_tone,
+                np.zeros(5, np.float32),
+                audio_hop_index=1,
+                audio_onset=False,
+            ),
+            [],
+        )
+        completed = decoder.step(
+            chord_tone,
+            np.zeros(5, np.float32),
+            audio_hop_index=2,
+            audio_onset=False,
+        )
+
+        self.assertEqual(
+            [(event.kind, event.pitch, event.reason) for event in completed],
+            [("note_on", 64, "chord_completion")],
+        )
+
+    def test_new_late_chord_tone_requires_strong_frame_evidence(self) -> None:
+        config = PolyphonicDecoderConfig(
+            midi_min=60,
+            midi_max=64,
+            frame_on_threshold=0.5,
+            strong_frame_threshold=0.8,
+            onset_threshold=0.5,
+            activation_frames=2,
+            audio_onset_lookback_frames=1,
+            chord_formation_frames=6,
+            unattacked_frame_threshold=0.9,
+            maximum_polyphony=5,
+        )
+        decoder = PolyphonicDecoder(config)
+        root = np.zeros(5, np.float32)
+        root[0] = 0.9
+        decoder.step(
+            root, root, audio_hop_index=0, audio_onset=True
+        )
+        weak = np.zeros(5, np.float32)
+        weak[0] = 0.9
+        weak[4] = 0.7
+        self.assertEqual(
+            decoder.step(
+                weak, np.zeros(5, np.float32),
+                audio_hop_index=2, audio_onset=False,
+            ),
+            [],
+        )
+        self.assertEqual(
+            decoder.step(
+                weak, np.zeros(5, np.float32),
+                audio_hop_index=3, audio_onset=False,
+            ),
+            [],
+        )
+
+        strong = np.zeros(5, np.float32)
+        strong[0] = 0.9
+        strong[4] = 0.82
+        self.assertEqual(
+            decoder.step(
+                strong, np.zeros(5, np.float32),
+                audio_hop_index=4, audio_onset=False,
+            ),
+            [],
+        )
+        completed = decoder.step(
+            strong,
+            np.zeros(5, np.float32),
+            audio_hop_index=5,
+            audio_onset=False,
+        )
+        self.assertEqual(
+            [(event.kind, event.pitch, event.reason) for event in completed],
+            [("note_on", 64, "chord_completion")],
+        )
+
+    def test_chord_formation_memory_expires_before_resonance_tail(self) -> None:
+        config = PolyphonicDecoderConfig(
+            midi_min=60,
+            midi_max=64,
+            frame_on_threshold=0.5,
+            strong_frame_threshold=0.8,
+            onset_threshold=0.5,
+            activation_frames=2,
+            audio_onset_lookback_frames=1,
+            chord_formation_frames=2,
+            unattacked_frame_threshold=0.9,
+            maximum_polyphony=5,
+        )
+        decoder = PolyphonicDecoder(config)
+        root = np.zeros(5, np.float32)
+        root[0] = 0.9
+        decoder.step(
+            root, root, audio_hop_index=0, audio_onset=True
+        )
+        tail = np.zeros(5, np.float32)
+        tail[4] = 0.85
+
+        self.assertEqual(
+            decoder.step(
+                tail, np.zeros(5, np.float32),
+                audio_hop_index=3, audio_onset=False,
+            ),
+            [],
+        )
+        self.assertEqual(
+            decoder.step(
+                tail, np.zeros(5, np.float32),
+                audio_hop_index=4, audio_onset=False,
+            ),
+            [],
+        )
+        self.assertFalse(bool(decoder.active[4]))
 
     def test_simultaneous_frame_only_octave_partial_is_suppressed(self) -> None:
         config = PolyphonicDecoderConfig(

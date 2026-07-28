@@ -2,7 +2,7 @@
 
 > Dernière mise à jour manuelle : 2026-07-29
 >
-> Branche active : `codex/cleanup-cloud-training-docs`
+> Branche active : `codex/dual-stream-bass`
 >
 > Règle : ce fichier est le résumé chronologique unique du projet. Chaque
 > étape terminée, active, suivante ou en anomalie doit y être inscrite.
@@ -15,14 +15,19 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-29T01:13:26.1207352+04:00`
-- Étape : `adaptive_attack_validation_complete`
-- Statut : `terminé`
-- Détail : Audit WAV Guitar-TECHS corrigé : l'ancien extrait était écrêté à 99,94 % par une conversion int16 incorrecte dans un script temporaire ; train et évaluations officielles non affectés. Ablation validation-only sur les 12 enregistrements exacts : faux NoteOn causaux 2118 vers 1389 (-34,4 %), erreurs d'octave 444 vers 310, F1 onset pondéré 0,2332 vers 0,2409 et Guitar-TECHS direct 0,0398 vers 0,0459. Régression : rappel causal 0,4636 vers 0,3968, F1 GAPS 0,2124 vers 0,1824 et F1 global 0,1733 vers 0,1604. Pipeline p95 3,30 à 4,17 ms sous le hop 5,80 ms, sans délai algorithmique. Candidat installé séparément, bundle stable inchangé, test verrouillé non utilisé.
+- Mise à jour : `2026-07-29T03:49:55.3570249+04:00`
+- Étape : `dual_stream_bass_candidate`
+- Statut : `en cours`
+- Détail : Le candidat causal à deux représentations est implémenté sur la branche dédiée `codex/dual-stream-bass`. Une seule entrée de 8192 échantillons alimente simultanément le chemin normal limité aux 4096 échantillons récents et une petite branche 8192→4096 compressée par deux, spécialisée MIDI 40–64. La fusion se fait par résidus appris sur les logits frame/onset ; ces résidus sont initialisés à zéro. Après transfert des poids V2.2, les quatre sorties sont donc identiques à V2.2 avant apprentissage, ce que le test automatique confirme. Le candidat ajoute 5 730 paramètres (+1,7 %, 342 996 au total). Le TFLite float16 local mesure 2,81 ms p95 à 1 thread, 2,13 ms à 2 threads et 2,31 ms à 3 threads, tous sous le hop de 5,80 ms ; deux modèles complets restent rejetés à 7,07 ms p95. L'entraînement, l'export, ONNX et le runtime ne supposent plus une fenêtre fixe de 4096. Le rééquilibrage des onsets graves et l'objectif explicite fondamentale/résonance restent des expériences distinctes à ne pas mélanger à ce premier changement d'architecture. Test verrouillé non utilisé.
 
 ## Étapes suivantes
 
-1. Effectuer un test live A/B à périphérique et niveau identiques entre le bundle stable et artifacts/guitar_midi_polyphonic_adaptive_attack_candidate. Ne promouvoir qu'après écoute confirmant que la baisse des notes fantômes compense la perte de rappel, notamment sur jeu dense type GAPS.
+1. Capturer la même suite live sans puis avec capodastre, au même niveau et avec WAV/trace complète : cordes graves isolées, accords ouverts/barrés, strums lents/rapides, octaves et harmoniques. Comparer énergie fondamentale/partiels, probabilités par hauteur, erreurs d'octave et notes manquantes. Cette capture servira au diagnostic, pas au test verrouillé.
+2. Conserver le remplacement par transposition +12/−12 uniquement comme diagnostic offline désactivé ; ne pas confondre ce test négatif avec la future architecture à deux flux.
+3. Valider le candidat causal à deux représentations par le smoke Kaggle, sans entraîner localement et sans utiliser le test verrouillé.
+4. Si le smoke passe, entraîner ce seul changement d'architecture sur Kaggle, initialisé depuis V2.2, puis comparer sur validation les graves MIDI 40–51, les erreurs d'octave, les accords et chaque corpus.
+5. Dans une expérience suivante seulement, corriger le contrat des masques harmoniques, sur-échantillonner les onsets/accords MIDI 40–51 sans réduire le reste et ajouter un objectif fondamentale/résonance fondé sur `note_id` et les colonnes harmoniques existantes.
+6. Ouvrir le test verrouillé une seule fois après la sélection finale, puis produire le lanceur desktop stable et ses limites documentées.
 <!-- CURRENT_STATUS_END -->
 
 ## État technique consolidé
@@ -34,6 +39,8 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 - Limite : une sortie softmax unique ne transcrit pas les accords.
 ### Produit polyphonique V2.2
 - Entrée causale : 4096 échantillons à 44,1 kHz, hop 256.
+- Le V2.2 n'a pas trois branches de fenêtres explicites : contexte principal
+  4096 et branche onset limitée aux 512 derniers échantillons seulement.
 - Sorties : notes actives, onsets, amplitudes harmoniques et offsets en cents.
 - Ancien train : 8 époques, 240 000 exemples par époque.
 - Checkpoint sélectionné : époque 8.
@@ -60,7 +67,12 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 `note_harmonic_present` sert actuellement principalement de masque : les
 harmoniques absentes ne constituent pas suffisamment d’exemples négatifs.
 Le modèle ne possède donc pas encore de classification explicite
-fondamentale contre harmonique/résonance.
+fondamentale contre harmonique/résonance. Lorsqu'une fréquence supérieure est
+à la fois un partiel d'une fondamentale plus grave et une note volontairement
+jouée, le décodeur ne peut l'identifier que partiellement : il la conserve si
+elle possède un onset propre suffisamment fort, mais peut la supprimer lorsque
+cet onset est faible. Une protection d'accord sans preuve indépendante serait
+également dangereuse, car elle transformerait des résonances en notes fantômes.
 ## Journal des étapes
 <!-- JOURNAL_START -->
 - 2026-07-22 — **terminé** — entraînement polyphonique multi-source V2.2 sur
@@ -95,6 +107,9 @@ fondamentale contre harmonique/résonance.
 <!-- PROJECT_TASK:adaptive_attack_validation:START -->
 - 2026-07-29 — **terminé** — `adaptive_attack_validation` : Audit WAV Guitar-TECHS corrigé : l'ancien extrait était écrêté à 99,94 % par une conversion int16 incorrecte dans un script temporaire ; train et évaluations officielles non affectés. Ablation validation-only sur les 12 enregistrements exacts : faux NoteOn causaux 2118 vers 1389 (-34,4 %), erreurs d'octave 444 vers 310, F1 onset pondéré 0,2332 vers 0,2409 et Guitar-TECHS direct 0,0398 vers 0,0459. Régression : rappel causal 0,4636 vers 0,3968, F1 GAPS 0,2124 vers 0,1824 et F1 global 0,1733 vers 0,1604. Pipeline p95 3,30 à 4,17 ms sous le hop 5,80 ms, sans délai algorithmique. Candidat installé séparément, bundle stable inchangé, test verrouillé non utilisé.
 <!-- PROJECT_TASK:adaptive_attack_validation:END -->
+<!-- PROJECT_TASK:live_ab_adaptive_attack:START -->
+- 2026-07-29 — **en cours** — `live_ab_adaptive_attack` : Mémoire d'accord insuffisante ; rendu global rejeté. Le remplacement de l'entrée par une version compressée est rejeté sur 319 notes graves annotées (F1 0,335→0,238), mais deux représentations simultanées sont maintenant implémentées dans un modèle unique : chemin normal 4096 et petite branche grave compressée 8192→4096, fusion résiduelle MIDI 40–64. Initialisation V2.2 strictement neutre confirmée, +5 730 paramètres (+1,7 %). TFLite float16 : p95 2,81/2,13/2,31 ms à 1/2/3 threads, sous le hop 5,80 ms. Prochaine étape : tests de non-régression puis smoke Kaggle de ce seul changement ; aucun train local et test verrouillé non utilisé.
+<!-- PROJECT_TASK:live_ab_adaptive_attack:END -->
 <!-- JOURNAL_END -->
 ## Rapports détaillés
 

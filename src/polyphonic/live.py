@@ -36,6 +36,7 @@ NOTE_ON_REASON_CODES = {
     "harmonic_strong_frame": 4,
     "retrigger": 5,
     "legacy": 6,
+    "chord_completion": 7,
 }
 
 
@@ -83,6 +84,11 @@ def run(args) -> int:
         hop_samples,
         bundle.metadata,
         calibration_s=args.calibration_s,
+    )
+    synthetic_priming_hops = (
+        audio_evidence_policy.prime_silence()
+        if args.synthetic_calibration
+        else 0
     )
     input_leveler = CausalModelInputLeveler.from_metadata(
         sample_rate,
@@ -253,7 +259,9 @@ def run(args) -> int:
     maximum_simultaneous_notes = 0
     processed_overflow = 0
     recoveries = 0
-    recovery_events: list[dict[str, float | int | str]] = []
+    recovery_events: list[
+        dict[str, float | int | str | list[int]]
+    ] = []
     decoder_reset_before = False
     pending_audio_onset_hop: int | None = None
     event_reason_counts: Counter[str] = Counter()
@@ -270,7 +278,13 @@ def run(args) -> int:
         f"hop={hop_samples / sample_rate * 1000.0:.2f} ms | "
         f"max_notes={bundle.metadata['maximum_polyphony']}"
     )
-    print("Reste silencieux pendant la calibration. Ctrl+C pour arreter.")
+    if synthetic_priming_hops:
+        print(
+            "Calibration silencieuse deterministe terminee "
+            f"({synthetic_priming_hops} hops)."
+        )
+    else:
+        print("Reste silencieux pendant la calibration. Ctrl+C pour arreter.")
     try:
         with managed_input_stream(
             preferred_device=parse_device(args.audio_device),
@@ -321,9 +335,7 @@ def run(args) -> int:
                         discarded = discard_queued_hops()
                         backlog_discarded_hops += discarded
                         processed_overflow = overflow
-                        for event in decoder.panic():
-                            sink.send(event)
-                        sink.panic()
+                        preserved_notes = decoder.reset_observation_continuity()
                         ring.reset()
                         audio_evidence_policy.reset_continuity()
                         pending_audio_onset_hop = None
@@ -341,19 +353,19 @@ def run(args) -> int:
                             "total_dropped_hops": (
                                 overflow + backlog_discarded_hops
                             ),
+                            "preserved_active_notes": list(preserved_notes),
                         })
                         print(
-                            "Incident audio sans nouveau bloc: panic et "
-                            "contexte causal reinitialise."
+                            "Incident audio sans nouveau bloc: contexte causal "
+                            "reinitialise, notes actives conservees "
+                            f"{list(preserved_notes)}."
                         )
                     continue
                 if overflow != processed_overflow:
                     discarded = 1 + discard_queued_hops()
                     backlog_discarded_hops += discarded
                     processed_overflow = overflow
-                    for event in decoder.panic():
-                        sink.send(event)
-                    sink.panic()
+                    preserved_notes = decoder.reset_observation_continuity()
                     ring.reset()
                     audio_evidence_policy.reset_continuity()
                     pending_audio_onset_hop = None
@@ -371,10 +383,12 @@ def run(args) -> int:
                         "total_dropped_hops": (
                             overflow + backlog_discarded_hops
                         ),
+                        "preserved_active_notes": list(preserved_notes),
                     })
                     print(
                         "Surcharge audio recuperee: contexte causal reinitialise "
-                        f"(dropped={overflow + backlog_discarded_hops})."
+                        f"(dropped={overflow + backlog_discarded_hops}), "
+                        f"notes actives conservees {list(preserved_notes)}."
                     )
                     continue
                 input_peak_absolute = max(
@@ -471,9 +485,7 @@ def run(args) -> int:
                     # response. Discard it and resume from a clean context.
                     discarded = 1 + discard_queued_hops()
                     backlog_discarded_hops += discarded
-                    for event in decoder.panic():
-                        sink.send(event)
-                    sink.panic()
+                    preserved_notes = decoder.reset_observation_continuity()
                     ring.reset()
                     audio_evidence_policy.reset_continuity()
                     pending_audio_onset_hop = None
@@ -491,10 +503,12 @@ def run(args) -> int:
                         "total_dropped_hops": (
                             overflow + backlog_discarded_hops
                         ),
+                        "preserved_active_notes": list(preserved_notes),
                     })
                     print(
                         "Backlog audio recupere: blocs perimes abandonnes "
-                        f"(dropped={overflow + backlog_discarded_hops})."
+                        f"(dropped={overflow + backlog_discarded_hops}), "
+                        f"notes actives conservees {list(preserved_notes)}."
                     )
                     continue
                 if skip_inference:
@@ -889,6 +903,8 @@ def run(args) -> int:
             "audio_activity_gate": (
                 audio_evidence_policy.activity_diagnostics()
             ),
+            "audio_evidence": audio_evidence_policy.diagnostics(),
+            "synthetic_calibration": bool(args.synthetic_calibration),
             "audio_active_frames": audio_active_frames,
             "audio_active_note_coverage": {
                 "with_active_notes_frames": audio_active_with_notes_frames,
@@ -1010,6 +1026,15 @@ def main() -> int:
         help="Desactive le nivellement causal (comportement par defaut).",
     )
     parser.add_argument("--calibration-s", type=float, default=1.0)
+    parser.add_argument(
+        "--synthetic-calibration",
+        action="store_true",
+        help=(
+            "Calibre causalement onset/gate sur un silence synthetique avant "
+            "l'ouverture du jeu; candidat utile quand le bruit du rig "
+            "contamine la calibration micro."
+        ),
+    )
     parser.add_argument("--threads", type=int, choices=(1, 2, 3, 4))
     parser.add_argument("--debug-csv", type=Path)
     parser.add_argument("--debug-npz", type=Path)

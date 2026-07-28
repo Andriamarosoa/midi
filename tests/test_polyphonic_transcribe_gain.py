@@ -8,10 +8,36 @@ from unittest.mock import patch
 
 import numpy as np
 
-from src.polyphonic.transcribe import transcribe
+from src.polyphonic.transcribe import (
+    _octave_up_model_window,
+    _remap_octave_up_outputs,
+    transcribe,
+)
 
 
 class PolyphonicTranscribeGainTests(unittest.TestCase):
+    def test_octave_up_window_is_causal_pair_decimation(self) -> None:
+        source = np.arange(16, dtype=np.float32)
+        transformed = _octave_up_model_window(source, 8)
+        np.testing.assert_allclose(
+            transformed,
+            np.arange(0.5, 16.0, 2.0, dtype=np.float32),
+        )
+
+    def test_octave_up_outputs_are_remapped_down_twelve_classes(self) -> None:
+        frame = np.arange(37, dtype=np.float32)
+        onset = frame + 100.0
+        harmonic = np.repeat(frame[:, None], 2, axis=1)
+        mapped_frame, mapped_onset, mapped_harmonic = (
+            _remap_octave_up_outputs(frame, onset, harmonic)
+        )
+        np.testing.assert_allclose(mapped_frame[:25], frame[12:])
+        np.testing.assert_allclose(mapped_onset[:25], onset[12:])
+        np.testing.assert_allclose(mapped_harmonic[:25], harmonic[12:])
+        np.testing.assert_allclose(mapped_frame[25:], 0.0)
+        np.testing.assert_allclose(mapped_onset[25:], 0.0)
+        np.testing.assert_allclose(mapped_harmonic[25:], 0.0)
+
     def test_manual_gain_precedes_evidence_ring_and_runtime(self) -> None:
         waveform = np.asarray([0.1, -0.2, 0.3, -0.4], np.float32)
         evidence_hops: list[np.ndarray] = []

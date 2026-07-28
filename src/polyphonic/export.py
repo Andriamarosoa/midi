@@ -236,9 +236,13 @@ def export(run_dir: Path, output_dir: Path, examples: int = 96) -> dict[str, obj
             "audio_onset_lookback_frames": 10,
             "unattacked_frame_threshold": 0.90,
             "harmonic_support_threshold": 0.60,
+            "recovery_release_grace_frames": 4,
+            "chord_release_grace_frames": 6,
+            "chord_formation_frames": 21,
         }
     )
     model = load_polyphonic_checkpoint(checkpoint)
+    input_samples = int(config["dataset"]["input_samples"])
 
     class ExportModule(tf.Module):
         def __init__(self, keras_model):
@@ -246,8 +250,8 @@ def export(run_dir: Path, output_dir: Path, examples: int = 96) -> dict[str, obj
             self.keras_model = keras_model
 
         @tf.function(input_signature=[
-            tf.TensorSpec((1, 4096, 1), tf.float32, name="audio"),
-            tf.TensorSpec((1, 4096), tf.float32, name="time_mask"),
+            tf.TensorSpec((1, input_samples, 1), tf.float32, name="audio"),
+            tf.TensorSpec((1, input_samples), tf.float32, name="time_mask"),
         ])
         def infer(self, audio, time_mask):
             values = self.keras_model(
@@ -343,12 +347,26 @@ def export(run_dir: Path, output_dir: Path, examples: int = 96) -> dict[str, obj
         "tflite": tflite_latency,
         "passed": bool(tflite_latency["meets_hop_budget_p95"]),
     }
+    dual_stream = bool(
+        config.get("model", {}).get("compressed_bass_branch", False)
+    )
     metadata = {
         "product_version": "2.2.1",
-        "model_stack": "causal polyphonic frame+onset+20-partial harmonics",
+        "model_stack": (
+            "causal polyphonic dual-stream frame+onset+20-partial harmonics"
+            if dual_stream
+            else "causal polyphonic frame+onset+20-partial harmonics"
+        ),
         "sample_rate": 44_100,
         "hop_samples": 256,
-        "max_window_samples": 4096,
+        "max_window_samples": input_samples,
+        "normal_window_samples": int(
+            config.get("model", {}).get(
+                "normal_window_samples",
+                input_samples,
+            )
+        ),
+        "compressed_bass_branch": dual_stream,
         "normalization_gain": float(config["dataset"]["normalization_gain"]),
         "min_pitch": 40,
         "max_pitch": 76,

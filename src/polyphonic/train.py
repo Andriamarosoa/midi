@@ -337,6 +337,23 @@ def main() -> int:
             harmonic_offset_scale_cents=float(
                 model_config["harmonic_offset_scale_cents"]
             ),
+            normal_window_samples=int(
+                model_config.get(
+                    "normal_window_samples",
+                    config["dataset"]["input_samples"],
+                )
+            ),
+            compressed_bass_branch=bool(
+                model_config.get("compressed_bass_branch", False)
+            ),
+            bass_channels=int(model_config.get("bass_channels", 8)),
+            bass_dense_units=int(model_config.get("bass_dense_units", 32)),
+            bass_pitch_classes=int(
+                model_config.get(
+                    "bass_pitch_classes",
+                    train_corpus.pitch_classes,
+                )
+            ),
         )
         initialization = config.get("initialization", {})
         source_model = (

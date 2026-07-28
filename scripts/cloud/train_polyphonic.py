@@ -226,6 +226,7 @@ def main() -> int:
     parser.add_argument("--prepare-data", action="store_true")
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--resume-run", type=Path)
+    parser.add_argument("--initial-checkpoint", type=Path)
     parser.add_argument("--smoke-test", action="store_true")
     parser.add_argument(
         "--skip-post-train",
@@ -275,6 +276,11 @@ def main() -> int:
         train_command.extend((
             "--resume-run",
             str(args.resume_run.resolve()),
+        ))
+    if args.initial_checkpoint is not None:
+        train_command.extend((
+            "--initial-checkpoint",
+            str(args.initial_checkpoint.resolve()),
         ))
     if args.smoke_test:
         train_command.append("--smoke-test")

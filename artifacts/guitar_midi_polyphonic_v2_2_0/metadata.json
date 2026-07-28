@@ -27,7 +27,10 @@
     "harmonic_tolerance_cents": 35.0,
     "audio_onset_lookback_frames": 10,
     "unattacked_frame_threshold": 0.9,
-    "harmonic_support_threshold": 0.6
+    "harmonic_support_threshold": 0.6,
+    "recovery_release_grace_frames": 4,
+    "chord_release_grace_frames": 6,
+    "chord_formation_frames": 21
   },
   "outputs": [
     "frame",
@@ -55,6 +58,13 @@
     "locked_test_used": false,
     "validation_report": "validation_decoder_unattacked_threshold.json",
     "acceptance_report": "decoder_acceptance.json"
+  },
+  "live_continuity_policy": {
+    "recoverable_overload_preserves_active_notes": true,
+    "independent_chord_onsets_receive_release_grace": true,
+    "causal_chord_formation_memory": true,
+    "locked_test_used": false,
+    "decision": "candidate_pending_live_validation"
   },
   "audio_evidence": {
     "fft_size": 512,

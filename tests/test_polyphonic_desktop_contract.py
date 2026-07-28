@@ -22,6 +22,13 @@ class PolyphonicDesktopContractTests(unittest.TestCase):
         source = (ROOT / "src/polyphonic/live.py").read_text(encoding="utf-8")
         self.assertIn("choices=(1, 2, 3, 4)", source)
 
+    def test_live_exposes_explicit_synthetic_calibration_candidate(self) -> None:
+        source = (ROOT / "src/polyphonic/live.py").read_text(encoding="utf-8")
+
+        self.assertIn('"--synthetic-calibration"', source)
+        self.assertIn("audio_evidence_policy.prime_silence()", source)
+        self.assertIn('"synthetic_calibration": bool(', source)
+
     def test_batch_launcher_targets_the_polyphonic_live_module(self) -> None:
         launcher = (ROOT / "START_LIVE_POLYPHONIC.bat").read_text(
             encoding="utf-8"
@@ -67,6 +74,34 @@ class PolyphonicDesktopContractTests(unittest.TestCase):
             ],
             0,
         )
+
+    def test_recoverable_overload_preserves_active_polyphonic_notes(self) -> None:
+        source = (ROOT / "src/polyphonic/live.py").read_text(encoding="utf-8")
+
+        self.assertEqual(source.count("decoder.reset_observation_continuity()"), 3)
+        self.assertIn('"preserved_active_notes": list(preserved_notes)', source)
+        self.assertIn("decoder.panic()", source)
+
+    def test_stable_bundle_declares_bounded_release_graces(self) -> None:
+        metadata = json.loads((
+            ROOT
+            / "artifacts"
+            / "guitar_midi_polyphonic_v2_2_0"
+            / "metadata.json"
+        ).read_text(encoding="utf-8"))
+        decoder = metadata["decoder"]
+        policy = metadata["live_continuity_policy"]
+
+        self.assertEqual(decoder["recovery_release_grace_frames"], 4)
+        self.assertEqual(decoder["chord_release_grace_frames"], 6)
+        self.assertEqual(decoder["chord_formation_frames"], 21)
+        self.assertTrue(policy["recoverable_overload_preserves_active_notes"])
+        self.assertTrue(
+            policy["independent_chord_onsets_receive_release_grace"]
+        )
+        self.assertTrue(policy["causal_chord_formation_memory"])
+        self.assertEqual(policy["decision"], "candidate_pending_live_validation")
+        self.assertFalse(policy["locked_test_used"])
 
 
 if __name__ == "__main__":

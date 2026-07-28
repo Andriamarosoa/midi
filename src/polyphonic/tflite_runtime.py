@@ -71,14 +71,26 @@ class TFLitePolyphonicModel:
         self.interpreter.allocate_tensors()
         self.runner = self.interpreter.get_signature_runner("serving_default")
         self.gain = float(bundle.metadata["normalization_gain"])
-        self.audio = np.zeros((1, 4096, 1), np.float32)
-        self.mask = np.zeros((1, 4096), np.float32)
+        self.input_samples = int(bundle.metadata["max_window_samples"])
+        if self.input_samples < 1:
+            raise ValueError("max_window_samples must be positive.")
+        self.audio = np.zeros((1, self.input_samples, 1), np.float32)
+        self.mask = np.zeros((1, self.input_samples), np.float32)
 
-    def infer(self, waveform: np.ndarray, visible_window: int = 4096) -> PolyphonicPrediction:
+    def infer(
+        self,
+        waveform: np.ndarray,
+        visible_window: int | None = None,
+    ) -> PolyphonicPrediction:
         values = np.asarray(waveform, np.float32).reshape(-1)
-        if values.shape != (4096,):
-            raise ValueError("A mono 4096-sample window is required.")
-        visible = int(np.clip(visible_window, 1, 4096))
+        if values.shape != (self.input_samples,):
+            raise ValueError(
+                f"A mono {self.input_samples}-sample window is required."
+            )
+        requested_visible = (
+            self.input_samples if visible_window is None else int(visible_window)
+        )
+        visible = int(np.clip(requested_visible, 1, self.input_samples))
         self.audio.fill(0.0)
         self.mask.fill(0.0)
         self.audio[0, -visible:, 0] = values[-visible:] * self.gain
