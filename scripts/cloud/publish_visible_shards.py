@@ -36,6 +36,12 @@ def _ready(handle: str) -> bool:
     return result.returncode == 0
 
 
+def _wait_ready(handle: str, interval_seconds: int) -> None:
+    while not _ready(handle):
+        logging.info("Waiting for Kaggle indexing: %s", handle)
+        time.sleep(interval_seconds)
+
+
 def _write_metadata(directory: Path, owner: str, part: int) -> None:
     (directory / "dataset-metadata.json").write_text(
         json.dumps({
@@ -59,9 +65,7 @@ def main() -> int:
     if args.start_part < 1 or args.end_part < args.start_part:
         raise ValueError("Invalid part range.")
     if args.wait_for_handle:
-        while not _ready(args.wait_for_handle):
-            logging.info("Waiting for visible dataset: %s", args.wait_for_handle)
-            time.sleep(args.interval_seconds)
+        _wait_ready(args.wait_for_handle, args.interval_seconds)
     for part in range(args.start_part, args.end_part + 1):
         handle = _handle(args.owner, part)
         if _ready(handle):
@@ -80,8 +84,7 @@ def main() -> int:
             raise RuntimeError(
                 f"Publication failed for {handle}:\n{result.stdout}\n{result.stderr}"
             )
-        if not _ready(handle):
-            raise RuntimeError(f"Published but not readable: {handle}")
+        _wait_ready(handle, args.interval_seconds)
         logging.info("Published and verified: %s", handle)
     return 0
 
