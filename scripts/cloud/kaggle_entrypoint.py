@@ -11,6 +11,7 @@ import argparse
 import csv
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tarfile
@@ -62,6 +63,56 @@ def find_training_data_root(input_root: Path) -> Path:
 
 
 def materialize_training_archive(input_root: Path) -> Path:
+    index_paths = sorted(input_root.rglob("training_archive_index.json"))
+    if index_paths:
+        if len(index_paths) != 1:
+            raise ValueError("Expected exactly one training archive index.")
+        index_path = index_paths[0]
+        index = json.loads(index_path.read_text(encoding="utf-8"))
+        if index.get("format") != "kaggle_chunked_tar_v1":
+            raise ValueError("Unsupported training archive index format.")
+        destination = Path("/kaggle/working/guitar-midi-input")
+        if destination.exists():
+            raise FileExistsError(destination)
+        parts_root = destination / ".parts"
+        parts_root.mkdir(parents=True)
+        declared_archives = {item["name"] for item in index.get("archives", [])}
+        if not declared_archives:
+            raise ValueError("Training archive index contains no archives.")
+        for archive_name in sorted(declared_archives):
+            archive_path = index_path.parent / archive_name
+            if not archive_path.is_file():
+                raise FileNotFoundError(archive_path)
+            with tarfile.open(archive_path, "r") as archive:
+                for member in archive.getmembers():
+                    if not member.isfile() or not member.name.startswith("parts/"):
+                        raise ValueError(f"Unsafe archive member: {member.name}")
+                    target = (parts_root / member.name).resolve()
+                    if parts_root.resolve() not in target.parents:
+                        raise ValueError(f"Archive member escapes parts: {member.name}")
+                archive.extractall(parts_root)
+        for item in index.get("files", []):
+            relative = _portable_path(str(item["path"]))
+            target = (destination / relative).resolve()
+            if destination.resolve() not in target.parents:
+                raise ValueError(f"Indexed path escapes destination: {relative}")
+            target.parent.mkdir(parents=True, exist_ok=True)
+            written = 0
+            with target.open("wb") as output:
+                for part in item.get("parts", []):
+                    source = parts_root / str(part["member"])
+                    if not source.is_file():
+                        raise FileNotFoundError(source)
+                    expected = int(part["bytes"])
+                    if source.stat().st_size != expected:
+                        raise ValueError(f"Invalid part length: {source}")
+                    with source.open("rb") as input_file:
+                        shutil.copyfileobj(input_file, output, length=1024 * 1024)
+                    written += expected
+            if written != int(item["bytes"]):
+                raise ValueError(f"Reconstructed file length mismatch: {relative}")
+        shutil.rmtree(parts_root)
+        return destination
     archives = sorted(
         input_root.rglob("polyphonic_train_validation.tar")
     )

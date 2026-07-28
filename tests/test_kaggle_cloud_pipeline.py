@@ -82,11 +82,12 @@ class KaggleCloudPipelineTests(unittest.TestCase):
             archive_path = data / "GuitarSet/audio.zip"
             archive_path.parent.mkdir(parents=True)
             with ZipFile(archive_path, "w") as archive:
-                archive.writestr("train.wav", b"train")
+                archive.writestr("train#.wav", b"train")
                 archive.writestr("validation.wav", b"validation")
                 archive.writestr("test.wav", b"test")
             for split in ("train", "validation", "test"):
-                (labels / f"{split}.npz").write_bytes(split.encode())
+                suffix = "#" if split == "train" else ""
+                (labels / f"{split}{suffix}.npz").write_bytes(split.encode())
 
             manifest = (
                 data / "processed/polyphonic_v2_2_combined/manifest.csv"
@@ -104,6 +105,7 @@ class KaggleCloudPipelineTests(unittest.TestCase):
                 writer = csv.DictWriter(handle, fieldnames=fields)
                 writer.writeheader()
                 for split in ("train", "validation", "test"):
+                    suffix = "#" if split == "train" else ""
                     writer.writerow({
                         "source_id": split,
                         "dataset_id": "unit",
@@ -111,9 +113,9 @@ class KaggleCloudPipelineTests(unittest.TestCase):
                         "group_id": split,
                         "split": split,
                         "audio_path": r"data\GuitarSet\audio.zip",
-                        "audio_member": f"{split}.wav",
+                        "audio_member": f"{split}{suffix}.wav",
                         "labels_path": (
-                            rf"data\processed\labels\{split}.npz"
+                            rf"data\processed\labels\{split}{suffix}.npz"
                         ),
                         "annotation_path": f"raw/{split}.mid",
                         "harmonic_csv_path": f"raw/{split}.csv",
@@ -141,7 +143,7 @@ class KaggleCloudPipelineTests(unittest.TestCase):
             self.assertEqual(
                 {row["split"] for row in rows}, {"train", "validation"}
             )
-            self.assertEqual(members, {"train.wav", "validation.wav"})
+            self.assertEqual(members, {"train#.wav", "validation.wav"})
             self.assertFalse(
                 (output / "data/processed/labels/test.npz").exists()
             )
@@ -149,20 +151,20 @@ class KaggleCloudPipelineTests(unittest.TestCase):
 
             upload = root / "upload"
             upload_report = prepare_training_archive(
-                package_path=output,
-                output_path=upload,
+                package_path=output, output_path=upload,
+                part_bytes=16 * 1024 * 1024,
             )
-            with tarfile.open(
-                upload / "polyphonic_train_validation.tar", "r"
-            ) as archive:
-                archived = set(archive.getnames())
-            self.assertEqual(upload_report["upload_files"], 2)
-            self.assertIn(
-                "data/processed/labels/train.npz", archived
-            )
-            self.assertNotIn(
-                "data/processed/labels/test.npz", archived
-            )
+            index = json.loads((upload / "training_archive_index.json").read_text())
+            indexed_paths = {item["path"] for item in index["files"]}
+            self.assertEqual(upload_report["archive_format"], "kaggle_chunked_tar_v1")
+            self.assertIn("data/processed/labels/train#.npz", indexed_paths)
+            self.assertNotIn("data/processed/labels/test.npz", indexed_paths)
+            for archive_info in index["archives"]:
+                with tarfile.open(upload / archive_info["name"], "r") as archive:
+                    self.assertTrue(all(
+                        name.startswith("parts/") for name in archive.getnames()
+                    ))
+                    self.assertFalse(any("#" in name for name in archive.getnames()))
 
     def test_kernel_notebook_task_is_generated_without_other_edits(self) -> None:
         notebook = _task_notebook("rebuild")

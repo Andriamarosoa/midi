@@ -25,6 +25,7 @@ import shutil
 import tarfile
 from collections import Counter, defaultdict
 from pathlib import Path
+from typing import BinaryIO
 from zipfile import ZipFile
 
 
@@ -33,6 +34,7 @@ DEFAULT_MANIFEST = Path(
     "data/processed/polyphonic_v2_2_combined/manifest.csv"
 )
 TRAINING_SPLITS = frozenset({"train", "validation"})
+DEFAULT_ARCHIVE_PART_BYTES = 512 * 1024 * 1024
 
 
 def _portable_path(value: str) -> Path:
@@ -283,8 +285,123 @@ def prepare_raw(*, root: Path, output_path: Path) -> dict[str, object]:
     return report
 
 
+class _FileSlice:
+    """Expose one bounded slice of a file to ``tarfile`` without staging it."""
+
+    def __init__(self, source: Path, offset: int, size: int) -> None:
+        self._handle: BinaryIO = source.open("rb")
+        self._handle.seek(offset)
+        self._remaining = size
+
+    def read(self, size: int = -1) -> bytes:
+        if self._remaining <= 0:
+            return b""
+        if size < 0 or size > self._remaining:
+            size = self._remaining
+        value = self._handle.read(size)
+        self._remaining -= len(value)
+        return value
+
+    def close(self) -> None:
+        self._handle.close()
+
+
+def _package_files(package: Path) -> list[Path]:
+    return sorted(
+        (path for path in (package / "data").rglob("*") if path.is_file()),
+        key=lambda path: path.relative_to(package).as_posix(),
+    )
+
+
+def _write_chunked_archives(
+    *, package: Path, output: Path, part_bytes: int
+) -> dict[str, object]:
+    """Write bounded TARs whose members have only neutral generated names.
+
+    Kaggle validates uploaded member paths.  The source dataset contains valid
+    musical names such as ``C#`` that Kaggle rejects, so original paths must
+    not be visible in upload TAR headers.  A small index restores every file
+    byte-for-byte inside the Kaggle working directory.
+    """
+    if part_bytes < 16 * 1024 * 1024:
+        raise ValueError("Archive part size must be at least 16 MiB.")
+    files = _package_files(package)
+    if not files:
+        raise ValueError("Training package contains no data files.")
+
+    index_files: list[dict[str, object]] = []
+    archives: list[dict[str, object]] = []
+    archive: tarfile.TarFile | None = None
+    archive_bytes = 0
+    archive_parts = 0
+
+    def open_archive() -> tarfile.TarFile:
+        nonlocal archive_bytes, archive_parts
+        name = f"training_data_{len(archives):03d}.tar"
+        archives.append({"name": name, "payload_bytes": 0, "parts": 0})
+        archive_bytes = 0
+        archive_parts = 0
+        return tarfile.open(output / name, "w", format=tarfile.PAX_FORMAT)
+
+    try:
+        for file_index, source in enumerate(files):
+            relative = source.relative_to(package).as_posix()
+            file_size = source.stat().st_size
+            offset = 0
+            parts: list[dict[str, object]] = []
+            while offset < file_size or (file_size == 0 and not parts):
+                remaining_space = part_bytes - archive_bytes
+                if archive is None or remaining_space <= 0:
+                    if archive is not None:
+                        archive.close()
+                    archive = open_archive()
+                    remaining_space = part_bytes
+                size = min(remaining_space, file_size - offset)
+                if file_size == 0:
+                    size = 0
+                member = f"parts/{file_index:06d}_{len(parts):06d}.bin"
+                info = tarfile.TarInfo(member)
+                info.size = size
+                info.mode = 0o600
+                info.mtime = 0
+                reader = _FileSlice(source, offset, size)
+                try:
+                    archive.addfile(info, reader)
+                finally:
+                    reader.close()
+                part = {
+                    "archive": archives[-1]["name"],
+                    "member": member,
+                    "bytes": size,
+                }
+                parts.append(part)
+                archives[-1]["payload_bytes"] = int(
+                    archives[-1]["payload_bytes"]
+                ) + size
+                archives[-1]["parts"] = int(archives[-1]["parts"]) + 1
+                archive_bytes += size
+                archive_parts += 1
+                offset += size
+                if file_size == 0:
+                    break
+            index_files.append({"path": relative, "bytes": file_size, "parts": parts})
+    finally:
+        if archive is not None:
+            archive.close()
+
+    index = {
+        "schema_version": 1,
+        "format": "kaggle_chunked_tar_v1",
+        "files": index_files,
+        "archives": archives,
+    }
+    _write_json(output / "training_archive_index.json", index)
+    return index
+
+
 def prepare_training_archive(
-    *, package_path: Path, output_path: Path
+    *, package_path: Path, output_path: Path,
+    part_bytes: int = DEFAULT_ARCHIVE_PART_BYTES,
 ) -> dict[str, object]:
     package = package_path.resolve()
     report_path = package / "package_report.json"
@@ -298,15 +415,20 @@ def prepare_training_archive(
     ):
         raise ValueError("Training package is not safe for Kaggle upload.")
     output = _new_output(output_path)
-    archive_path = output / "polyphonic_train_validation.tar"
-    with tarfile.open(archive_path, "w", format=tarfile.PAX_FORMAT) as archive:
-        archive.add(package / "data", arcname="data", recursive=True)
+    index = _write_chunked_archives(
+        package=package, output=output, part_bytes=part_bytes
+    )
     shutil.copy2(report_path, output / "package_report.json")
     upload_report = {
         **report,
-        "upload_files": 2,
-        "archive": archive_path.name,
-        "archive_bytes": archive_path.stat().st_size,
+        "upload_files": len(index["archives"]) + 2,
+        "archive_format": index["format"],
+        "archive_index": "training_archive_index.json",
+        "archive_part_payload_bytes": part_bytes,
+        "archives": index["archives"],
+        "archive_payload_bytes": sum(
+            int(item["payload_bytes"]) for item in index["archives"]
+        ),
     }
     _write_json(output / "package_report.json", upload_report)
     return upload_report
@@ -346,6 +468,10 @@ def main() -> int:
         type=Path,
         default=Path("tmp/kaggle/polyphonic-train-validation-upload"),
     )
+    archive.add_argument(
+        "--part-mib", type=int, default=512,
+        help="Maximum payload per upload TAR (minimum 16 MiB).",
+    )
 
     args = parser.parse_args()
     os.chdir(ROOT)
@@ -361,8 +487,8 @@ def main() -> int:
         )
     else:
         report = prepare_training_archive(
-            package_path=args.package,
-            output_path=args.output,
+            package_path=args.package, output_path=args.output,
+            part_bytes=args.part_mib * 1024 * 1024,
         )
     print(json.dumps(report, indent=2, ensure_ascii=False))
     return 0

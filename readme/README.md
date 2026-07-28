@@ -14,26 +14,17 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 
 <!-- CURRENT_STATUS_START -->
 ## État courant
-- Mise à jour : `2026-07-28`
-- Étape : `kaggle_dataset_filename_sanitization`
-- Statut : `anomalie_identifiee`
-- Détail : les permissions Kaggle ont été validées avec un petit dataset de
-  test ; l’archive de train/validation a atteint 100 % de transfert, mais sa
-  création a échoué pendant la validation Kaggle à cause de noms internes
-  contenant `#`. Le scan local a trouvé 120 signalements dans les labels, le
-  ZIP GuitarSet et le TAR. L’ancien TAR doit être remplacé par un paquet
-  reconstruit avec des noms sûrs et un manifest cohérent.
+
+- Mise à jour : `2026-07-28T05:42:20.937838+00:00`
+- Étape : `kaggle_chunked_upload_ready`
+- Statut : `en cours`
+- Détail : le publieur produit désormais des TAR fragmentés de 512 MiB aux noms internes neutres, reconstitués dans Kaggle avant le train ; les anciens noms C# restent confinés dans les fragments et ne figurent plus dans les en-têtes TAR. Les tests de package passent ; la reconstruction des 8 Go et tout nouvel upload restent volontairement non lancés.
+
 ## Étapes suivantes
 
-1. Renommer dans les sources destinées à Kaggle les noms contenant `#`, par
-   exemple `C#` en `Csharp`, et mettre à jour `audio_member` et `labels_path`
-   dans le manifest.
-2. Reconstruire un nouveau paquet et un nouveau TAR sous un chemin distinct.
-3. Vérifier localement qu’aucun nom invalide ne subsiste dans le paquet, les
-   ZIP imbriqués ou le TAR.
-4. Publier le nouveau TAR comme dataset privé et confirmer que le dataset et
-   ses fichiers sont visibles côté Kaggle.
-5. Dès que le dataset est lisible, reprendre le smoke P100 puis le train.
+1. Reconstruire le package train/validation depuis data/processed quand les données locales seront restaurées.
+2. Vérifier localement l’index, la reconstruction et l’absence de # dans les en-têtes avant un unique nouvel upload privé.
+3. Créer le smoke P100 seulement après confirmation de publication du dataset.
 <!-- CURRENT_STATUS_END -->
 
 ## État technique consolidé
@@ -87,14 +78,7 @@ fondamentale contre harmonique/résonance.
 - 2026-07-28 — **terminé** — préparation du pipeline Kaggle privé :
   packaging sans test, smoke/train P100, reprise, supervision et récupération.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:START -->
-- 2026-07-28 — **anomalie identifiée** —
-  `kaggle_training_dataset_upload` : permissions de création validées avec un
-  petit dataset de test ; l’archive train/validation de 8 418 068 480 octets a
-  atteint 100 % de transfert, puis la création a échoué. Le journal Kaggle
-  signale un nom de fichier ou dossier invalide et le scan local identifie
-  `#` dans 40 labels, 40 membres du ZIP GuitarSet et les entrées
-  correspondantes du TAR. L’ancien TAR est rejeté ; les sources, le manifest
-  et l’archive doivent être reconstruits avant une nouvelle publication.
+- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : le publieur produit désormais des TAR fragmentés de 512 MiB aux noms internes neutres, reconstitués dans Kaggle avant le train ; les anciens noms C# restent confinés dans les fragments et ne figurent plus dans les en-têtes TAR. Les tests de package passent ; la reconstruction des 8 Go et tout nouvel upload restent volontairement non lancés.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
 <!-- PROJECT_TASK:skill_project_contract:START -->
 - 2026-07-28 — **terminé** — `skill_project_contract` : skill
