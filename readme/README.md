@@ -15,14 +15,14 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T20:18:46.076782+00:00`
+- Mise à jour : `2026-07-28T20:22:54.426899+00:00`
 - Étape : `kaggle_musical_selection_retry_12_recordings`
 - Statut : `en cours`
-- Détail : Premier kernel de sélection ERROR après 31 s : ModuleNotFoundError scripts, car le workspace monté n'était pas ajouté à sys.path. Correction minimale validée par 16 tests : insertion explicite du workspace dans sys.path et cwd. Relance privée unique miranacareneandrisoa/guitar-midi-poly-select-events-retry-20260729 publiée ; statut réel QUEUED. Même sortie de classement 60000, mêmes 12 enregistrements de validation, test verrouillé exclu.
+- Détail : Premier kernel ERROR après 31 s sur ModuleNotFoundError scripts ; correction sys.path/cwd validée par 16 tests. Relance privée unique miranacareneandrisoa/guitar-midi-poly-select-events-retry-20260729 : statut réel RUNNING vérifié le 2026-07-28T20:22:27Z. Elle réutilise le classement validation-only 60000, évalue l'unique candidate epoch-08 sur 12 enregistrements de validation et exclut le test verrouillé.
 
 ## Étapes suivantes
 
-1. Surveiller la relance sans duplication. À COMPLETE, télécharger uniquement les outputs et valider SHA-256, selection.json, selected.keras, thresholds.json, decoder_config.json, maximum_recordings=12, candidate_count=1 et locked_test_used=false. À ERROR, récupérer le log exact avant toute décision.
+1. Surveiller sans relance. À COMPLETE, télécharger uniquement les outputs et valider SHA-256, selection.json, selected.keras, thresholds.json, decoder_config.json, maximum_recordings=12, candidate_count=1 et locked_test_used=false. À ERROR, récupérer le log exact avant toute décision.
 <!-- CURRENT_STATUS_END -->
 
 ## État technique consolidé
@@ -79,7 +79,7 @@ fondamentale contre harmonique/résonance.
 - 2026-07-28 — **terminé** — `kaggle_training_dataset_upload` : pipeline Kaggle P100 validé avec succès sur le compte `miranacareneandrisoa`, commit `8bccadc6`, TensorFlow 2.20/Keras 3. Le smoke attache les 16 shards, charge les NPY tronqués, entraîne une époque de 256 exemples, valide sur 128 exemples et produit `best.keras`, `last.keras`, `final.keras`, l'archive et le rapport. Archive 17111040 octets, SHA-256 `830aa93d81d814a2f3109b9a62e26612348d90f53c3e4000078c6bcd95070117` conforme ; `locked_test_used=false`. Les quatre corpus sont présents dans les pools. Les métriques smoke (val_frame_micro_f1=0.061205, val_onset_micro_f1=0.002302) vérifient l'exécution, pas la qualité.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
 <!-- PROJECT_TASK:checkpoint_validation_selection:START -->
-- 2026-07-28 — **en cours** — `checkpoint_validation_selection` : Premier kernel de sélection ERROR après 31 s : ModuleNotFoundError scripts, car le workspace monté n'était pas ajouté à sys.path. Correction minimale validée par 16 tests : insertion explicite du workspace dans sys.path et cwd. Relance privée unique miranacareneandrisoa/guitar-midi-poly-select-events-retry-20260729 publiée ; statut réel QUEUED. Même sortie de classement 60000, mêmes 12 enregistrements de validation, test verrouillé exclu.
+- 2026-07-28 — **en cours** — `checkpoint_validation_selection` : Premier kernel ERROR après 31 s sur ModuleNotFoundError scripts ; correction sys.path/cwd validée par 16 tests. Relance privée unique miranacareneandrisoa/guitar-midi-poly-select-events-retry-20260729 : statut réel RUNNING vérifié le 2026-07-28T20:22:27Z. Elle réutilise le classement validation-only 60000, évalue l'unique candidate epoch-08 sur 12 enregistrements de validation et exclut le test verrouillé.
 <!-- PROJECT_TASK:checkpoint_validation_selection:END -->
 <!-- PROJECT_TASK:skill_project_contract:START -->
 - 2026-07-28 — **terminé** — `skill_project_contract` : skill
