@@ -15,14 +15,14 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T14:09:38.680362+00:00`
-- Étape : `kaggle_smoke_extracted_audio_running`
+- Mise à jour : `2026-07-28T14:12:45.040830+00:00`
+- Étape : `kaggle_smoke_gpu_retry_running`
 - Statut : `en cours`
-- Détail : Le smoke nested-input s'est arrêté avant entraînement : Kaggle avait décompressé audio_mono-pickup_mix.zip en répertoire WAV, alors que le manifest conservait le couple ZIP/audio_member. La correction b01af4a2 résout désormais soit l'archive conservée, soit le WAV auto-extrait et vide audio_member ; 10 tests cloud passent. Le snapshot privé code-b01af4a2 est ready et lisible. Un premier push a été refusé avant création car le slug dépassait 50 caractères ; après diagnostic, le smoke privé unique tinahandriamarosoa/guitar-midi-poly-smoke-extracted-20260728 a été soumis et son statut réel est RUNNING. Quota GPU réel : 30.00 h restantes. Aucun train complet lancé ; test verrouillé exclu.
+- Détail : Le smoke extracted-audio a dépassé les étapes source, paquets et staging audio, puis s'est arrêté avant entraînement car TensorFlow n'a détecté aucun GPU : CUDA cuInit error 303. Les métadonnées serveur vérifiées indiquent pourtant enable_gpu=true et machine_shape=Gpu ; le quota réel reste 30.00 h. Cause classée comme défaut de provisionnement du runtime Kaggle, sans modification du modèle, des seuils ni des données. Le retry privé unique tinahandriamarosoa/guitar-midi-poly-smoke-gpu-retry-20260728 a été soumis avec le même snapshot b01af4a2 et son statut réel est RUNNING. Aucun train complet lancé ; test verrouillé exclu.
 
 ## Étapes suivantes
 
-1. Surveiller ce seul kernel jusqu'à fin ou anomalie ; en cas d'erreur, télécharger le log exact et diagnostiquer avant tout retry. En cas de réussite, télécharger les outputs et valider output_manifest.json, l'archive, locked_test_used=false, l'assemblage des 16 parts et les métriques. Présenter le bilan avant tout train complet.
+1. Surveiller ce seul retry. Vérifier dans les logs que TensorFlow voit le GPU, puis l'assemblage des 16 parts et le smoke. En cas d'erreur, diagnostiquer avant toute autre soumission. En cas de réussite, télécharger et valider les outputs, locked_test_used=false et les métriques, puis présenter le bilan avant tout train complet.
 <!-- CURRENT_STATUS_END -->
 
 ## État technique consolidé
@@ -76,7 +76,7 @@ fondamentale contre harmonique/résonance.
 - 2026-07-28 — **terminé** — préparation du pipeline Kaggle privé :
   packaging sans test, smoke/train P100, reprise, supervision et récupération.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:START -->
-- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : Le smoke nested-input s'est arrêté avant entraînement : Kaggle avait décompressé audio_mono-pickup_mix.zip en répertoire WAV, alors que le manifest conservait le couple ZIP/audio_member. La correction b01af4a2 résout désormais soit l'archive conservée, soit le WAV auto-extrait et vide audio_member ; 10 tests cloud passent. Le snapshot privé code-b01af4a2 est ready et lisible. Un premier push a été refusé avant création car le slug dépassait 50 caractères ; après diagnostic, le smoke privé unique tinahandriamarosoa/guitar-midi-poly-smoke-extracted-20260728 a été soumis et son statut réel est RUNNING. Quota GPU réel : 30.00 h restantes. Aucun train complet lancé ; test verrouillé exclu.
+- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : Le smoke extracted-audio a dépassé les étapes source, paquets et staging audio, puis s'est arrêté avant entraînement car TensorFlow n'a détecté aucun GPU : CUDA cuInit error 303. Les métadonnées serveur vérifiées indiquent pourtant enable_gpu=true et machine_shape=Gpu ; le quota réel reste 30.00 h. Cause classée comme défaut de provisionnement du runtime Kaggle, sans modification du modèle, des seuils ni des données. Le retry privé unique tinahandriamarosoa/guitar-midi-poly-smoke-gpu-retry-20260728 a été soumis avec le même snapshot b01af4a2 et son statut réel est RUNNING. Aucun train complet lancé ; test verrouillé exclu.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
 <!-- PROJECT_TASK:skill_project_contract:START -->
 - 2026-07-28 — **terminé** — `skill_project_contract` : skill
