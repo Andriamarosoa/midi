@@ -16,10 +16,10 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T00:10:04.424682+00:00`
+- Mise à jour : `2026-07-28T00:15:22.978497+00:00`
 - Étape : `waiting_training_dataset`
 - Statut : `en cours`
-- Détail : upload privé du dataset train/validation Kaggle ; le superviseur attend sa finalisation
+- Détail : upload privé actif : 4,34 Go sur 7,84 Go (55 %), sans anomalie
 
 ## Étapes suivantes
 
@@ -86,10 +86,9 @@ fondamentale contre harmonique/résonance.
   `data/processed`, sans fuite entre train, validation et test.
 - 2026-07-28 — **terminé** — préparation du pipeline Kaggle privé :
   packaging sans test, smoke/train P100, reprise, supervision et récupération.
-- 2026-07-28 — **en cours** — upload privé du dataset train/validation Kaggle
-  de 7,84 Go ; upload brut et smoke test en attente.
-- 2026-07-28 — **en cours** — `waiting_training_dataset` : upload privé du dataset train/validation Kaggle ; le superviseur attend sa finalisation
-  <!-- project-event:74e07df4cc2663ee -->
+<!-- PROJECT_TASK:kaggle_training_dataset_upload:START -->
+- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : upload privé actif : 4,34 Go sur 7,84 Go (55 %), sans anomalie
+<!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
 <!-- JOURNAL_END -->
 
 ## Rapports détaillés

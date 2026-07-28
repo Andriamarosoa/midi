@@ -8,7 +8,7 @@ recorded in ``readme/README.md``.
 from __future__ import annotations
 
 import argparse
-import hashlib
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Sequence
@@ -20,6 +20,7 @@ CURRENT_START = "<!-- CURRENT_STATUS_START -->"
 CURRENT_END = "<!-- CURRENT_STATUS_END -->"
 JOURNAL_START = "<!-- JOURNAL_START -->"
 JOURNAL_END = "<!-- JOURNAL_END -->"
+TASK_ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 
 
 def _replace_between(
@@ -34,6 +35,7 @@ def _replace_between(
 
 def update_project_summary(
     *,
+    task_id: str,
     phase: str,
     status: str,
     detail: str,
@@ -41,7 +43,11 @@ def update_project_summary(
     summary_path: Path = DEFAULT_SUMMARY,
     timestamp: datetime | None = None,
 ) -> bool:
-    """Update current status and append one deduplicated journal event."""
+    """Update current status and upsert one journal row per logical task."""
+    if not TASK_ID_PATTERN.fullmatch(task_id):
+        raise ValueError(
+            "task_id must contain lowercase letters, digits, '_' or '-'."
+        )
     summary_path = summary_path.resolve()
     text = summary_path.read_text(encoding="utf-8")
     moment = timestamp or datetime.now(timezone.utc)
@@ -68,29 +74,37 @@ def update_project_summary(
         text, CURRENT_START, CURRENT_END, "\n".join(current_lines)
     )
 
-    event_payload = "\0".join((phase, status, detail))
-    event_id = hashlib.sha256(event_payload.encode("utf-8")).hexdigest()[:16]
-    event_marker = f"<!-- project-event:{event_id} -->"
-    appended = event_marker not in text
-    if appended:
-        date_text = moment.date().isoformat()
-        journal_entry = (
-            f"- {date_text} — **{status}** — `{phase}` : {detail}\n"
-            f"  {event_marker}"
-        )
+    task_start = f"<!-- PROJECT_TASK:{task_id}:START -->"
+    task_end = f"<!-- PROJECT_TASK:{task_id}:END -->"
+    date_text = moment.date().isoformat()
+    task_block = (
+        f"{task_start}\n"
+        f"- {date_text} — **{status}** — `{task_id}` : {detail}\n"
+        f"{task_end}"
+    )
+    created = task_start not in text
+    if created:
         before, remainder = text.split(JOURNAL_START, 1)
         journal, after = remainder.split(JOURNAL_END, 1)
-        journal = journal.rstrip() + "\n" + journal_entry + "\n"
+        journal = journal.rstrip() + "\n" + task_block + "\n"
         text = before + JOURNAL_START + journal + JOURNAL_END + after
+    else:
+        text = _replace_between(
+            text,
+            task_start,
+            task_end,
+            f"- {date_text} — **{status}** — `{task_id}` : {detail}",
+        )
 
     temporary = summary_path.with_suffix(".tmp")
     temporary.write_text(text, encoding="utf-8")
     temporary.replace(summary_path)
-    return appended
+    return created
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--task-id", required=True)
     parser.add_argument("--phase", required=True)
     parser.add_argument("--status", required=True)
     parser.add_argument("--detail", required=True)
@@ -98,13 +112,14 @@ def main() -> int:
     parser.add_argument("--summary", type=Path, default=DEFAULT_SUMMARY)
     args = parser.parse_args()
     appended = update_project_summary(
+        task_id=args.task_id,
         phase=args.phase,
         status=args.status,
         detail=args.detail,
         next_steps=args.next,
         summary_path=args.summary,
     )
-    print("journal_appended=" + str(appended).lower())
+    print("task_created=" + str(appended).lower())
     return 0
 
 

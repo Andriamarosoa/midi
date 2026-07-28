@@ -106,12 +106,14 @@ def _write_state(path: Path, **values: Any) -> None:
 def _record_summary(
     path: Path,
     *,
+    task_id: str,
     phase: str,
     status: str,
     detail: str,
     next_steps: Sequence[str],
 ) -> None:
     update_project_summary(
+        task_id=task_id,
         phase=phase,
         status=status,
         detail=detail,
@@ -280,6 +282,7 @@ def main() -> int:
     _write_state(state, phase="waiting_training_dataset")
     _record_summary(
         summary,
+        task_id="kaggle_training_dataset_upload",
         phase="waiting_training_dataset",
         status="en cours",
         detail=(
@@ -301,6 +304,7 @@ def main() -> int:
     _write_state(state, phase="training_dataset_ready")
     _record_summary(
         summary,
+        task_id="kaggle_training_dataset_upload",
         phase="training_dataset_ready",
         status="terminé",
         detail="dataset privé train/validation finalisé et lisible sur Kaggle",
@@ -323,6 +327,22 @@ def main() -> int:
     )
     _record_summary(
         summary,
+        task_id="kaggle_raw_dataset_upload",
+        phase="raw_dataset_upload",
+        status=("terminé" if raw_process is None else "en cours"),
+        detail=(
+            "dataset privé des sources brutes déjà disponible"
+            if raw_process is None
+            else "upload privé du dataset des sources brutes actif"
+        ),
+        next_steps=(
+            "Finaliser l’upload brut.",
+            "Exécuter le smoke test GPU en parallèle.",
+        ),
+    )
+    _record_summary(
+        summary,
+        task_id="kaggle_smoke",
         phase="smoke_submitting",
         status="en cours",
         detail=(
@@ -342,6 +362,7 @@ def main() -> int:
     _write_state(state, phase="smoke_running", smoke_kernel=smoke)
     _record_summary(
         summary,
+        task_id="kaggle_smoke",
         phase="smoke_running",
         status="en cours",
         detail=f"smoke test Kaggle actif : `{smoke}`",
@@ -362,6 +383,7 @@ def main() -> int:
     _write_state(state, phase="smoke_passed")
     _record_summary(
         summary,
+        task_id="kaggle_smoke",
         phase="smoke_passed",
         status="terminé",
         detail="smoke test P100 réussi et paquet de sortie validé localement",
@@ -379,6 +401,7 @@ def main() -> int:
     _write_state(state, phase="train_running", train_kernel=train)
     _record_summary(
         summary,
+        task_id="kaggle_full_train",
         phase="train_running",
         status="en cours",
         detail=f"train polyphonique complet actif : `{train}`",
@@ -399,6 +422,7 @@ def main() -> int:
     _write_state(state, phase="train_passed")
     _record_summary(
         summary,
+        task_id="kaggle_full_train",
         phase="train_passed",
         status="terminé",
         detail="train Kaggle terminé et paquet de résultats validé localement",
@@ -420,9 +444,20 @@ def main() -> int:
         interval_seconds=args.interval_seconds,
         timeout_seconds=int(args.dataset_timeout_hours * 3600),
     )
+    _record_summary(
+        summary,
+        task_id="kaggle_raw_dataset_upload",
+        phase="raw_dataset_ready",
+        status="terminé",
+        detail="dataset privé des sources brutes finalisé et lisible sur Kaggle",
+        next_steps=(
+            "Comparer le nouveau résultat au V2.2 précédent.",
+        ),
+    )
     _write_state(state, phase="complete", raw_dataset_ready=True)
     _record_summary(
         summary,
+        task_id="kaggle_pipeline",
         phase="complete",
         status="terminé",
         detail=(

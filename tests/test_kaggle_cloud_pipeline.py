@@ -182,6 +182,7 @@ class KaggleCloudPipelineTests(unittest.TestCase):
             )
             moment = datetime(2026, 7, 28, tzinfo=timezone.utc)
             first = update_project_summary(
+                task_id="kaggle_smoke",
                 phase="smoke_running",
                 status="en cours",
                 detail="smoke actif",
@@ -190,10 +191,11 @@ class KaggleCloudPipelineTests(unittest.TestCase):
                 timestamp=moment,
             )
             second = update_project_summary(
-                phase="smoke_running",
-                status="en cours",
-                detail="smoke actif",
-                next_steps=("attendre",),
+                task_id="kaggle_smoke",
+                phase="smoke_passed",
+                status="terminé",
+                detail="smoke réussi",
+                next_steps=("comparer",),
                 summary_path=summary,
                 timestamp=moment,
             )
@@ -201,9 +203,13 @@ class KaggleCloudPipelineTests(unittest.TestCase):
 
             self.assertTrue(first)
             self.assertFalse(second)
-            self.assertIn("- Étape : `smoke_running`", text)
-            self.assertIn("1. attendre", text)
-            self.assertEqual(text.count("smoke actif"), 2)
+            self.assertIn("- Étape : `smoke_passed`", text)
+            self.assertIn("1. comparer", text)
+            self.assertNotIn("smoke actif", text)
+            self.assertEqual(text.count("smoke réussi"), 2)
+            self.assertEqual(
+                text.count("PROJECT_TASK:kaggle_smoke:START"), 1
+            )
 
 
 if __name__ == "__main__":
