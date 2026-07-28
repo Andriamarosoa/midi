@@ -15,16 +15,16 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T13:19:27.692417+00:00`
-- Étape : `kaggle_smoke_blocked_corrected_source_upload`
-- Statut : `anomalie`
-- Détail : Le smoke hors ligne a atteint Python 3.12/TensorFlow 2.20 et le manifest, puis a échoué avant entraînement : Kaggle tronque les chemins de fichiers à 105 caractères. Correction implémentée et testée ; audit des 16 packages : 0 collision de chemin tronqué, 9 tests cloud réussis. Snapshot source corrigé prêt : commit 6ce57898, 283809 octets, code/config uniquement, sans données, test verrouillé, runs ni artefacts. Son upload privé a été refusé car une autorisation explicite est requise pour ce nouveau payload corrigé. Aucun train complet lancé.
+- Mise à jour : `2026-07-28T13:39:20.774193+00:00`
+- Étape : `kaggle_smoke_pathfix_running`
+- Statut : `en cours`
+- Détail : Autorisation explicite reçue. Le snapshot source corrigé 6ce57898 a été publié dans le dataset privé tinahandriamarosoa/guitar-midi-polyphonic-code-6ce57898 et vérifié : Private, version 1, 161 fichiers, 1,32 Mo décompressés ; archive locale 283809 octets, SHA256 3BF59663F10A964763F48883FDAE3540480706BF45ACF20A8E7835124F1B23EB. Le smoke privé tinahandriamarosoa/guitar-midi-polyphonic-smoke-pathfix-20260728 a été soumis une seule fois avec les 16 datasets et ce snapshot ; statut Kaggle vérifié : RUNNING. Correction des chemins Kaggle tronqués à 105 caractères active, audit 0 collision et 9 tests cloud réussis. Test verrouillé exclu ; aucun train complet lancé.
 
 ## Étapes suivantes
 
-1. Obtenir l’autorisation explicite d’uploader le snapshot source corrigé 6ce57898 vers Kaggle.
-2. Après autorisation, publier et vérifier ce snapshot privé.
-3. Lancer une seule tentative du smoke corrigé avec les 16 datasets ; aucun train complet avant résultat.
+1. Surveiller le statut réel et les logs du smoke sans le relancer.
+2. À la fin, télécharger et valider output_manifest.json, l'archive, locked_test_used=false, l'assemblage des 16 datasets et les métriques.
+3. Présenter le résultat avant toute décision de train complet.
 <!-- CURRENT_STATUS_END -->
 
 ## État technique consolidé
@@ -78,7 +78,7 @@ fondamentale contre harmonique/résonance.
 - 2026-07-28 — **terminé** — préparation du pipeline Kaggle privé :
   packaging sans test, smoke/train P100, reprise, supervision et récupération.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:START -->
-- 2026-07-28 — **anomalie** — `kaggle_training_dataset_upload` : Le smoke hors ligne a atteint Python 3.12/TensorFlow 2.20 et le manifest, puis a échoué avant entraînement : Kaggle tronque les chemins de fichiers à 105 caractères. Correction implémentée et testée ; audit des 16 packages : 0 collision de chemin tronqué, 9 tests cloud réussis. Snapshot source corrigé prêt : commit 6ce57898, 283809 octets, code/config uniquement, sans données, test verrouillé, runs ni artefacts. Son upload privé a été refusé car une autorisation explicite est requise pour ce nouveau payload corrigé. Aucun train complet lancé.
+- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : Autorisation explicite reçue. Le snapshot source corrigé 6ce57898 a été publié dans le dataset privé tinahandriamarosoa/guitar-midi-polyphonic-code-6ce57898 et vérifié : Private, version 1, 161 fichiers, 1,32 Mo décompressés ; archive locale 283809 octets, SHA256 3BF59663F10A964763F48883FDAE3540480706BF45ACF20A8E7835124F1B23EB. Le smoke privé tinahandriamarosoa/guitar-midi-polyphonic-smoke-pathfix-20260728 a été soumis une seule fois avec les 16 datasets et ce snapshot ; statut Kaggle vérifié : RUNNING. Correction des chemins Kaggle tronqués à 105 caractères active, audit 0 collision et 9 tests cloud réussis. Test verrouillé exclu ; aucun train complet lancé.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
 <!-- PROJECT_TASK:skill_project_contract:START -->
 - 2026-07-28 — **terminé** — `skill_project_contract` : skill
