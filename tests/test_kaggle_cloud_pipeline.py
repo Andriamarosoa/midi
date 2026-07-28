@@ -207,6 +207,7 @@ class KaggleCloudPipelineTests(unittest.TestCase):
                 (output / "kernel-metadata.json").read_text(encoding="utf-8")
             )
             self.assertEqual(kernel, "owner/smoke-shards")
+            self.assertEqual(metadata["title"], "smoke shards")
             self.assertEqual(
                 metadata["dataset_sources"],
                 ["owner/data-part-01", "owner/data-part-02"],

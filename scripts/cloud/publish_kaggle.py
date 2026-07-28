@@ -195,7 +195,9 @@ def publish_kernel(
         raise ValueError("Kernel slug must not be empty or contain '/'.")
     metadata.update({
         "id": f"{owner}/{slug}",
-        "title": f"Guitar MIDI polyphonic {task}",
+        # Kaggle derives the actual URL slug from the title. Keep both aligned
+        # so status/output commands use the identifier returned here.
+        "title": slug.replace("-", " "),
         "code_file": notebook_name,
         "dataset_sources": dataset_handles,
     })

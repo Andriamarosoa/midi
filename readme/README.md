@@ -15,16 +15,16 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T08:21:36.879489+00:00`
-- Étape : `kaggle_smoke_submitting`
+- Mise à jour : `2026-07-28T08:23:26.268716+00:00`
+- Étape : `kaggle_smoke_running`
 - Statut : `en cours`
-- Détail : 16/16 datasets privés publiés et lisibles. Assemblage multi-source validé localement : 16 manifests, 754 enregistrements (572 train, 182 validation), 0 source_id dupliqué, 0 split interdit, 0 audio ou label manquant, test verrouillé exclu. Préparation du smoke P100 avec les 16 sources attachées.
+- Détail : 16/16 datasets privés publiés et lisibles. Assemblage validé : 754 enregistrements (572 train, 182 validation), aucun doublon, split interdit ou fichier manquant, test verrouillé exclu. Smoke P100 soumis une seule fois et actif sous tinahandriamarosoa/guitar-midi-polyphonic-smoke ; la soumission a attaché les 16 datasets. Le décalage initial titre/id Kaggle est corrigé dans le générateur pour les prochaines soumissions.
 
 ## Étapes suivantes
 
-1. Pousser le support reproductible des 16 sources Kaggle.
-2. Soumettre une seule fois le smoke P100 privé.
-3. Télécharger et valider le résultat avant tout train complet.
+1. Surveiller le statut du smoke P100 sans le relancer.
+2. Télécharger puis valider le paquet de résultats à la fin.
+3. Signaler le résultat avant tout train complet.
 <!-- CURRENT_STATUS_END -->
 
 ## État technique consolidé
@@ -78,7 +78,7 @@ fondamentale contre harmonique/résonance.
 - 2026-07-28 — **terminé** — préparation du pipeline Kaggle privé :
   packaging sans test, smoke/train P100, reprise, supervision et récupération.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:START -->
-- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : 16/16 datasets privés publiés et lisibles. Assemblage multi-source validé localement : 16 manifests, 754 enregistrements (572 train, 182 validation), 0 source_id dupliqué, 0 split interdit, 0 audio ou label manquant, test verrouillé exclu. Préparation du smoke P100 avec les 16 sources attachées.
+- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : 16/16 datasets privés publiés et lisibles. Assemblage validé : 754 enregistrements (572 train, 182 validation), aucun doublon, split interdit ou fichier manquant, test verrouillé exclu. Smoke P100 soumis une seule fois et actif sous tinahandriamarosoa/guitar-midi-polyphonic-smoke ; la soumission a attaché les 16 datasets. Le décalage initial titre/id Kaggle est corrigé dans le générateur pour les prochaines soumissions.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
 <!-- PROJECT_TASK:skill_project_contract:START -->
 - 2026-07-28 — **terminé** — `skill_project_contract` : skill
