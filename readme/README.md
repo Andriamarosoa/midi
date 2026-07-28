@@ -15,15 +15,15 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T08:23:26.268716+00:00`
+- Mise à jour : `2026-07-28T08:27:21.101760+00:00`
 - Étape : `kaggle_smoke_running`
 - Statut : `en cours`
-- Détail : 16/16 datasets privés publiés et lisibles. Assemblage validé : 754 enregistrements (572 train, 182 validation), aucun doublon, split interdit ou fichier manquant, test verrouillé exclu. Smoke P100 soumis une seule fois et actif sous tinahandriamarosoa/guitar-midi-polyphonic-smoke ; la soumission a attaché les 16 datasets. Le décalage initial titre/id Kaggle est corrigé dans le générateur pour les prochaines soumissions.
+- Détail : 16/16 datasets privés lisibles et assemblage validé (754 enregistrements : 572 train, 182 validation ; test verrouillé exclu). Le premier smoke a échoué avant tout traitement à cause de Python 3.12.13 rejeté par le notebook. Correction appliquée et testée : support Python 3.12 avec TensorFlow 2.18 dédié. Relance privée contrôlée active : tinahandriamarosoa/guitar-midi-polyphonic-smoke-py312-20260728.
 
 ## Étapes suivantes
 
-1. Surveiller le statut du smoke P100 sans le relancer.
-2. Télécharger puis valider le paquet de résultats à la fin.
+1. Surveiller ce kernel corrigé sans le relancer.
+2. Télécharger et valider le paquet de résultats à la fin.
 3. Signaler le résultat avant tout train complet.
 <!-- CURRENT_STATUS_END -->
 
@@ -78,7 +78,7 @@ fondamentale contre harmonique/résonance.
 - 2026-07-28 — **terminé** — préparation du pipeline Kaggle privé :
   packaging sans test, smoke/train P100, reprise, supervision et récupération.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:START -->
-- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : 16/16 datasets privés publiés et lisibles. Assemblage validé : 754 enregistrements (572 train, 182 validation), aucun doublon, split interdit ou fichier manquant, test verrouillé exclu. Smoke P100 soumis une seule fois et actif sous tinahandriamarosoa/guitar-midi-polyphonic-smoke ; la soumission a attaché les 16 datasets. Le décalage initial titre/id Kaggle est corrigé dans le générateur pour les prochaines soumissions.
+- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : 16/16 datasets privés lisibles et assemblage validé (754 enregistrements : 572 train, 182 validation ; test verrouillé exclu). Le premier smoke a échoué avant tout traitement à cause de Python 3.12.13 rejeté par le notebook. Correction appliquée et testée : support Python 3.12 avec TensorFlow 2.18 dédié. Relance privée contrôlée active : tinahandriamarosoa/guitar-midi-polyphonic-smoke-py312-20260728.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
 <!-- PROJECT_TASK:skill_project_contract:START -->
 - 2026-07-28 — **terminé** — `skill_project_contract` : skill
