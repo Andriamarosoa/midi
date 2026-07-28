@@ -165,14 +165,19 @@ def _task_notebook(task: str) -> dict[str, Any]:
 def publish_kernel(
     *,
     owner: str,
-    dataset_handle: str,
+    dataset_handles: list[str],
     task: str,
     output_dir: Path,
+    kernel_slug: str | None = None,
 ) -> str:
     if "/" in owner or not owner:
         raise ValueError("Owner must be a Kaggle username.")
-    if dataset_handle.count("/") != 1:
-        raise ValueError("Dataset handle must be USERNAME/SLUG.")
+    if not dataset_handles:
+        raise ValueError("At least one dataset handle is required.")
+    if any(handle.count("/") != 1 for handle in dataset_handles):
+        raise ValueError("Dataset handles must be USERNAME/SLUG.")
+    if len(set(dataset_handles)) != len(dataset_handles):
+        raise ValueError("Dataset handles must be unique.")
     output_dir = output_dir.resolve()
     if output_dir.exists():
         raise FileExistsError(
@@ -185,12 +190,14 @@ def publish_kernel(
         encoding="utf-8",
     )
     metadata = json.loads(KERNEL_TEMPLATE.read_text(encoding="utf-8"))
-    slug = f"guitar-midi-polyphonic-{task}"
+    slug = kernel_slug or f"guitar-midi-polyphonic-{task}"
+    if "/" in slug or not slug:
+        raise ValueError("Kernel slug must not be empty or contain '/'.")
     metadata.update({
         "id": f"{owner}/{slug}",
         "title": f"Guitar MIDI polyphonic {task}",
         "code_file": notebook_name,
-        "dataset_sources": [dataset_handle],
+        "dataset_sources": dataset_handles,
     })
     (output_dir / "kernel-metadata.json").write_text(
         json.dumps(metadata, indent=2) + "\n", encoding="utf-8"
@@ -218,7 +225,17 @@ def main() -> int:
 
     kernel = subparsers.add_parser("kernel")
     kernel.add_argument("--owner", required=True)
-    kernel.add_argument("--dataset-handle", required=True)
+    kernel.add_argument(
+        "--dataset-handle",
+        action="append",
+        dest="dataset_handles",
+        required=True,
+        help="Attach one private dataset. Repeat for multi-shard inputs.",
+    )
+    kernel.add_argument(
+        "--kernel-slug",
+        help="Optional unique Kaggle kernel slug; defaults to the task name.",
+    )
     kernel.add_argument(
         "--task", choices=("smoke", "train", "rebuild"), required=True
     )
@@ -238,9 +255,10 @@ def main() -> int:
     else:
         kernel_id = publish_kernel(
             owner=args.owner,
-            dataset_handle=args.dataset_handle,
+            dataset_handles=args.dataset_handles,
             task=args.task,
             output_dir=args.output_dir,
+            kernel_slug=args.kernel_slug,
         )
         print(json.dumps({"kernel": kernel_id, "task": args.task}, indent=2))
     return 0

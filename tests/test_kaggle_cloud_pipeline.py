@@ -5,6 +5,7 @@ import json
 import tempfile
 import tarfile
 import unittest
+from unittest import mock
 from datetime import datetime, timezone
 from email.message import Message
 from pathlib import Path
@@ -20,7 +21,11 @@ from scripts.cloud.prepare_kaggle_datasets import (
     prepare_training_archive,
 )
 from scripts.cloud.package_kaggle_outputs import package_outputs
-from scripts.cloud.publish_kaggle import _read_package_report, _task_notebook
+from scripts.cloud.publish_kaggle import (
+    _read_package_report,
+    _task_notebook,
+    publish_kernel,
+)
 from scripts.cloud.supervise_kaggle import STATUS_PATTERN
 from scripts.project_summary import update_project_summary
 
@@ -177,6 +182,35 @@ class KaggleCloudPipelineTests(unittest.TestCase):
         ]
         self.assertEqual(len(task_lines), 1)
         self.assertIn('"rebuild"', task_lines[0])
+
+    def test_kernel_accepts_multiple_unique_dataset_sources(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary) / "kernel"
+            with (
+                mock.patch("scripts.cloud.publish_kaggle._run"),
+                mock.patch(
+                    "scripts.cloud.publish_kaggle._kaggle",
+                    return_value="kaggle",
+                ),
+            ):
+                kernel = publish_kernel(
+                    owner="owner",
+                    dataset_handles=[
+                        "owner/data-part-01",
+                        "owner/data-part-02",
+                    ],
+                    task="smoke",
+                    output_dir=output,
+                    kernel_slug="smoke-shards",
+                )
+            metadata = json.loads(
+                (output / "kernel-metadata.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(kernel, "owner/smoke-shards")
+            self.assertEqual(
+                metadata["dataset_sources"],
+                ["owner/data-part-01", "owner/data-part-02"],
+            )
 
     def test_training_outputs_are_packaged_without_data(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

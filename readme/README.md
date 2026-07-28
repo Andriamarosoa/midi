@@ -15,16 +15,16 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T06:29:30.909432+00:00`
-- Étape : `kaggle_visible_data_shards_uploading`
+- Mise à jour : `2026-07-28T08:21:36.879489+00:00`
+- Étape : `kaggle_smoke_submitting`
 - Statut : `en cours`
-- Détail : part 01 est publiée et lisible dans Kaggle : data.tar (601 MiB) et package_report.json, avec de vrais fichiers audio et labels visibles. La publication séquentielle des 15 parts restantes commence ; chaque part reste privée et sans test verrouillé.
+- Détail : 16/16 datasets privés publiés et lisibles. Assemblage multi-source validé localement : 16 manifests, 754 enregistrements (572 train, 182 validation), 0 source_id dupliqué, 0 split interdit, 0 audio ou label manquant, test verrouillé exclu. Préparation du smoke P100 avec les 16 sources attachées.
 
 ## Étapes suivantes
 
-1. Publier et vérifier successivement les parts 02 à 16.
-2. Assembler les 16 datasets dans Kaggle et exécuter le smoke P100.
-3. Ne lancer le train complet qu’après smoke validé.
+1. Pousser le support reproductible des 16 sources Kaggle.
+2. Soumettre une seule fois le smoke P100 privé.
+3. Télécharger et valider le résultat avant tout train complet.
 <!-- CURRENT_STATUS_END -->
 
 ## État technique consolidé
@@ -78,7 +78,7 @@ fondamentale contre harmonique/résonance.
 - 2026-07-28 — **terminé** — préparation du pipeline Kaggle privé :
   packaging sans test, smoke/train P100, reprise, supervision et récupération.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:START -->
-- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : part 01 est publiée et lisible dans Kaggle : data.tar (601 MiB) et package_report.json, avec de vrais fichiers audio et labels visibles. La publication séquentielle des 15 parts restantes commence ; chaque part reste privée et sans test verrouillé.
+- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : 16/16 datasets privés publiés et lisibles. Assemblage multi-source validé localement : 16 manifests, 754 enregistrements (572 train, 182 validation), 0 source_id dupliqué, 0 split interdit, 0 audio ou label manquant, test verrouillé exclu. Préparation du smoke P100 avec les 16 sources attachées.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
 <!-- PROJECT_TASK:skill_project_contract:START -->
 - 2026-07-28 — **terminé** — `skill_project_contract` : skill
