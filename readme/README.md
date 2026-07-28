@@ -15,14 +15,14 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T14:29:17.386188+00:00`
-- Étape : `kaggle_gpu_runtime_confirmed_unavailable`
+- Mise à jour : `2026-07-28T14:32:51.319530+00:00`
+- Étape : `kaggle_gpu_worker_fatal_confirmed_ui`
 - Statut : `anomalie`
-- Détail : Le probe GPU minimal v2 est terminé en ERROR. Preuves exactes à 2026-07-28 14:28:07 UTC : nvidia-smi introuvable, TensorFlow 2.20.0 retourne gpus=[], puis CUDA cuInit error 303. Ce probe n'utilisait ni code projet, ni dataset, ni entraînement ; il confirme donc une indisponibilité du GPU dans le runtime Kaggle, malgré une demande serveur NvidiaTeslaT4. Après deux P100, un T4 complet et ce probe minimal, aucun nouveau retry Kaggle identique ne doit être lancé. Aucun train complet lancé ; test verrouillé exclu.
+- Détail : Vérification manuelle effectuée dans l'éditeur Kaggle connecté : Settings > Accelerator montre GPU T4 x2 déjà sélectionné, tandis que GPU T4 x2 et GPU P100 sont désactivés. Le lancement direct de la cellule de probe fait passer Draft Session de Starting à Fatal ; l'interface affiche 'An error occurred starting the worker' puis 'Oops something went wrong'. Cela confirme le constat CLI du probe v2 (nvidia-smi absent, TensorFlow gpus=[], CUDA 303) : le réglage GPU est demandé correctement, mais Kaggle ne provisionne pas le worker. Aucun nouveau retry Kaggle identique, aucun train complet et aucun test verrouillé.
 
 ## Étapes suivantes
 
-1. Préparer et exécuter le même smoke privé sur Google Colab GPU, avec les 16 datasets ou une source de stockage privée, sans modifier le modèle. Reprendre un train complet uniquement après smoke Colab validé et présentation du bilan.
+1. Utiliser le même probe sur un runtime Google Colab configuré en T4. Après détection positive via nvidia-smi et tf.config.list_physical_devices('GPU'), exécuter le smoke privé équivalent ; ne lancer le train complet qu'après validation du smoke et bilan.
 <!-- CURRENT_STATUS_END -->
 
 ## État technique consolidé
@@ -76,7 +76,7 @@ fondamentale contre harmonique/résonance.
 - 2026-07-28 — **terminé** — préparation du pipeline Kaggle privé :
   packaging sans test, smoke/train P100, reprise, supervision et récupération.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:START -->
-- 2026-07-28 — **anomalie** — `kaggle_training_dataset_upload` : Le probe GPU minimal v2 est terminé en ERROR. Preuves exactes à 2026-07-28 14:28:07 UTC : nvidia-smi introuvable, TensorFlow 2.20.0 retourne gpus=[], puis CUDA cuInit error 303. Ce probe n'utilisait ni code projet, ni dataset, ni entraînement ; il confirme donc une indisponibilité du GPU dans le runtime Kaggle, malgré une demande serveur NvidiaTeslaT4. Après deux P100, un T4 complet et ce probe minimal, aucun nouveau retry Kaggle identique ne doit être lancé. Aucun train complet lancé ; test verrouillé exclu.
+- 2026-07-28 — **anomalie** — `kaggle_training_dataset_upload` : Vérification manuelle effectuée dans l'éditeur Kaggle connecté : Settings > Accelerator montre GPU T4 x2 déjà sélectionné, tandis que GPU T4 x2 et GPU P100 sont désactivés. Le lancement direct de la cellule de probe fait passer Draft Session de Starting à Fatal ; l'interface affiche 'An error occurred starting the worker' puis 'Oops something went wrong'. Cela confirme le constat CLI du probe v2 (nvidia-smi absent, TensorFlow gpus=[], CUDA 303) : le réglage GPU est demandé correctement, mais Kaggle ne provisionne pas le worker. Aucun nouveau retry Kaggle identique, aucun train complet et aucun test verrouillé.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
 <!-- PROJECT_TASK:skill_project_contract:START -->
 - 2026-07-28 — **terminé** — `skill_project_contract` : skill
