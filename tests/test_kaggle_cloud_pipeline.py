@@ -278,6 +278,11 @@ class KaggleCloudPipelineTests(unittest.TestCase):
             self.assertTrue((output / "midi_source.tar.gz").is_file())
             self.assertFalse(report["datasets_included"])
             self.assertFalse(report["locked_test_included"])
+            package_report = _read_package_report(output)
+            self.assertTrue(package_report["passed"])
+            self.assertEqual(package_report["kind"], "source_snapshot")
+            self.assertFalse(package_report["datasets_included"])
+            self.assertFalse(package_report["locked_test_included"])
             with tarfile.open(output / "midi_source.tar.gz", "r:gz") as archive:
                 names = set(archive.getnames())
             self.assertIn("scripts/cloud/kaggle_entrypoint.py", names)

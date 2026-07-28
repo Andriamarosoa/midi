@@ -70,6 +70,17 @@ def prepare_source_dataset(
     (output_dir / "source_metadata.json").write_text(
         json.dumps(source_metadata, indent=2) + "\n", encoding="utf-8"
     )
+    package_report = {
+        "passed": True,
+        "kind": "source_snapshot",
+        "archive": archive.name,
+        "archive_bytes": archive.stat().st_size,
+        "datasets_included": False,
+        "locked_test_included": False,
+    }
+    (output_dir / "package_report.json").write_text(
+        json.dumps(package_report, indent=2) + "\n", encoding="utf-8"
+    )
     (output_dir / "dataset-metadata.json").write_text(
         json.dumps(
             {

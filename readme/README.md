@@ -15,14 +15,14 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T18:55:49.519164+00:00`
-- Étape : `validation_checkpoint_ranking_preparation`
+- Mise à jour : `2026-07-28T19:26:08.008858+00:00`
+- Étape : `checkpoint_uploaded_source_snapshot_fix_validated`
 - Statut : `en cours`
-- Détail : pipeline Kaggle P100 validé avec succès sur le compte `miranacareneandrisoa`, commit `8bccadc6`, TensorFlow 2.20/Keras 3. Smoke complet, archive et SHA-256 validés, `locked_test_used=false`, quatre corpus présents. Le pipeline cloud accepte désormais une tâche `rank`, découvre exactement un run attaché, monte les 16 shards, classe sur validation et empaquette le rapport sans exiger de README de train. Les appels `predict()` sont compatibles Keras 2/3. Package privé local prêt : 8 checkpoints, 17 fichiers, 47014385 octets, aucune donnée ni test verrouillé. 27 tests data/modèle/cloud passent. Aucun train cloud complet lancé.
+- Détail : Autorisation explicite reçue. Dataset privé miranacareneandrisoa/guitar-midi-polyphonic-local-run-20260728 créé et indexé : 8 checkpoints epoch, best.keras, last.keras, final.keras et métadonnées ; package_report passé, 47014385 octets utiles, aucune donnée, aucun audio, aucun test verrouillé. Une incompatibilité pré-upload du snapshot source a été corrigée : prepare_kaggle_source.py génère maintenant le package_report.json exigé par le publisher ; 12 tests cloud passent.
 
 ## Étapes suivantes
 
-1. Préparer un package privé des 8 checkpoints locaux sans données ni test, exécuter le classement des checkpoints sur validation uniquement, puis la sélection musicale validation-only. Ne pas lancer de train cloud complet en doublon et ne pas ouvrir le test verrouillé avant la sélection finale.
+1. Committer et pousser la correction, publier le snapshot source privé exact, lancer une seule fois le kernel P100 rank sur validation uniquement, vérifier checkpoint_ranking.json puis poursuivre la sélection musicale sans ouvrir le test verrouillé.
 <!-- CURRENT_STATUS_END -->
 
 ## État technique consolidé
@@ -79,7 +79,7 @@ fondamentale contre harmonique/résonance.
 - 2026-07-28 — **terminé** — `kaggle_training_dataset_upload` : pipeline Kaggle P100 validé avec succès sur le compte `miranacareneandrisoa`, commit `8bccadc6`, TensorFlow 2.20/Keras 3. Le smoke attache les 16 shards, charge les NPY tronqués, entraîne une époque de 256 exemples, valide sur 128 exemples et produit `best.keras`, `last.keras`, `final.keras`, l'archive et le rapport. Archive 17111040 octets, SHA-256 `830aa93d81d814a2f3109b9a62e26612348d90f53c3e4000078c6bcd95070117` conforme ; `locked_test_used=false`. Les quatre corpus sont présents dans les pools. Les métriques smoke (val_frame_micro_f1=0.061205, val_onset_micro_f1=0.002302) vérifient l'exécution, pas la qualité.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
 <!-- PROJECT_TASK:checkpoint_validation_selection:START -->
-- 2026-07-28 — **en cours** — `checkpoint_validation_selection` : train local de 8 époques terminé. Pipeline cloud `rank` et compatibilité `predict()` Keras 2/3 validés par 27 tests. Package privé prêt : 8 checkpoints, 17 fichiers, 47014385 octets, aucune donnée ni test verrouillé. Prochaine action : publier ce package et lancer le classement P100 sur 60000 exemples de validation. Meilleur historique brut actuel : frame F1=0.536721 à l'époque 8 ; onset F1=0.084643 à l'époque 7.
+- 2026-07-28 — **en cours** — `checkpoint_validation_selection` : Autorisation explicite reçue. Dataset privé miranacareneandrisoa/guitar-midi-polyphonic-local-run-20260728 créé et indexé : 8 checkpoints epoch, best.keras, last.keras, final.keras et métadonnées ; package_report passé, 47014385 octets utiles, aucune donnée, aucun audio, aucun test verrouillé. Une incompatibilité pré-upload du snapshot source a été corrigée : prepare_kaggle_source.py génère maintenant le package_report.json exigé par le publisher ; 12 tests cloud passent.
 <!-- PROJECT_TASK:checkpoint_validation_selection:END -->
 <!-- PROJECT_TASK:skill_project_contract:START -->
 - 2026-07-28 — **terminé** — `skill_project_contract` : skill
