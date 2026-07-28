@@ -16,7 +16,10 @@ from scripts.cloud.kaggle_upload_progress import (
     upload_info_path,
     uploaded_bytes_from_range,
 )
-from scripts.cloud.kaggle_entrypoint import _resolve_visible_shard_path
+from scripts.cloud.kaggle_entrypoint import (
+    _resolve_visible_audio_location,
+    _resolve_visible_shard_path,
+)
 from scripts.cloud.prepare_kaggle_datasets import (
     prepare_training,
     prepare_training_archive,
@@ -294,6 +297,28 @@ class KaggleCloudPipelineTests(unittest.TestCase):
                 "data/processed/polyphonic_v2_2_guitar_techs/audio/"
                 "gtech_long_directin",
             )
+
+    def test_kaggle_auto_extracted_zip_member_is_resolved(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            data_root = Path(temporary) / "data"
+            audio = (
+                data_root
+                / "GuitarSet/audio_mono-pickup_mix/00_example.wav"
+            )
+            audio.parent.mkdir(parents=True)
+            audio.write_bytes(b"wav")
+
+            resolved, member = _resolve_visible_audio_location(
+                data_root,
+                "data/GuitarSet/audio_mono-pickup_mix.zip",
+                "00_example.wav",
+            )
+
+            self.assertEqual(
+                resolved,
+                "data/GuitarSet/audio_mono-pickup_mix/00_example.wav",
+            )
+            self.assertEqual(member, "")
 
     def test_training_outputs_are_packaged_without_data(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

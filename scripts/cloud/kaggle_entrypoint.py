@@ -233,6 +233,36 @@ def _resolve_visible_shard_path(data_root: Path, value: str) -> str:
     return (Path("data") / resolved).as_posix()
 
 
+def _resolve_visible_audio_location(
+    data_root: Path, audio_path: str, audio_member: str
+) -> tuple[str, str]:
+    """Resolve either a retained ZIP or Kaggle's auto-extracted member."""
+    try:
+        return (
+            _resolve_visible_shard_path(data_root, audio_path),
+            audio_member,
+        )
+    except FileNotFoundError as archive_error:
+        relative = _portable_path(audio_path)
+        if not audio_member or relative.suffix.lower() != ".zip":
+            raise
+        extracted = relative.with_suffix("") / audio_member
+        try:
+            return (
+                _resolve_visible_shard_path(
+                    data_root, extracted.as_posix()
+                ),
+                "",
+            )
+        except FileNotFoundError as extracted_error:
+            raise FileNotFoundError(
+                f"Cannot resolve retained archive {audio_path} or "
+                f"auto-extracted member {extracted}: "
+                f"archive_error={archive_error}; "
+                f"member_error={extracted_error}"
+            ) from extracted_error
+
+
 def stage_training_shards(manifests: list[Path]) -> Path:
     """Symlink each attached dataset and write one combined training manifest."""
     if len(manifests) < 2:
@@ -260,13 +290,16 @@ def stage_training_shards(manifests: list[Path]) -> Path:
             if source_id in seen_sources:
                 raise ValueError(f"Duplicate source across shards: {source_id}")
             seen_sources.add(source_id)
-            audio_path = _resolve_visible_shard_path(
-                data_root, row["audio_path"]
+            audio_path, audio_member = _resolve_visible_audio_location(
+                data_root,
+                row["audio_path"],
+                row.get("audio_member", ""),
             )
             labels_path = _resolve_visible_shard_path(
                 data_root, row["labels_path"]
             )
             row["audio_path"] = _rebase_shard_path(audio_path, shard_name)
+            row["audio_member"] = audio_member
             row["labels_path"] = _rebase_shard_path(labels_path, shard_name)
             combined_rows.append(row)
     if not fieldnames:
