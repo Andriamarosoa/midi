@@ -15,14 +15,14 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T14:12:45.040830+00:00`
-- Étape : `kaggle_smoke_gpu_retry_running`
+- Mise à jour : `2026-07-28T14:17:17.846519+00:00`
+- Étape : `kaggle_smoke_t4_running`
 - Statut : `en cours`
-- Détail : Le smoke extracted-audio a dépassé les étapes source, paquets et staging audio, puis s'est arrêté avant entraînement car TensorFlow n'a détecté aucun GPU : CUDA cuInit error 303. Les métadonnées serveur vérifiées indiquent pourtant enable_gpu=true et machine_shape=Gpu ; le quota réel reste 30.00 h. Cause classée comme défaut de provisionnement du runtime Kaggle, sans modification du modèle, des seuils ni des données. Le retry privé unique tinahandriamarosoa/guitar-midi-poly-smoke-gpu-retry-20260728 a été soumis avec le même snapshot b01af4a2 et son statut réel est RUNNING. Aucun train complet lancé ; test verrouillé exclu.
+- Détail : Le retry P100 a reproduit exactement CUDA cuInit error 303 avant entraînement, malgré enable_gpu=true et machine_shape=Gpu : deux provisionnements P100 consécutifs sont donc défaillants côté Kaggle. Le publisher accepte désormais explicitement le fallback NvidiaTeslaT4 via le commit 69f8480 ; 10 tests cloud et compileall passent. Le smoke privé unique tinahandriamarosoa/guitar-midi-poly-smoke-t4-20260728 a été soumis avec les 16 parts et le snapshot b01af4a2 ; statut Kaggle vérifié : RUNNING. Aucun modèle, seuil, décodeur ou donnée modifié. Aucun train complet lancé ; test verrouillé exclu.
 
 ## Étapes suivantes
 
-1. Surveiller ce seul retry. Vérifier dans les logs que TensorFlow voit le GPU, puis l'assemblage des 16 parts et le smoke. En cas d'erreur, diagnostiquer avant toute autre soumission. En cas de réussite, télécharger et valider les outputs, locked_test_used=false et les métriques, puis présenter le bilan avant tout train complet.
+1. Surveiller ce seul smoke T4. Vérifier d'abord la détection TensorFlow du GPU, puis l'assemblage des 16 parts, l'exécution smoke et les outputs. En cas de réussite, valider output_manifest.json, l'archive, locked_test_used=false et les métriques puis présenter le bilan avant tout train complet.
 <!-- CURRENT_STATUS_END -->
 
 ## État technique consolidé
@@ -76,7 +76,7 @@ fondamentale contre harmonique/résonance.
 - 2026-07-28 — **terminé** — préparation du pipeline Kaggle privé :
   packaging sans test, smoke/train P100, reprise, supervision et récupération.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:START -->
-- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : Le smoke extracted-audio a dépassé les étapes source, paquets et staging audio, puis s'est arrêté avant entraînement car TensorFlow n'a détecté aucun GPU : CUDA cuInit error 303. Les métadonnées serveur vérifiées indiquent pourtant enable_gpu=true et machine_shape=Gpu ; le quota réel reste 30.00 h. Cause classée comme défaut de provisionnement du runtime Kaggle, sans modification du modèle, des seuils ni des données. Le retry privé unique tinahandriamarosoa/guitar-midi-poly-smoke-gpu-retry-20260728 a été soumis avec le même snapshot b01af4a2 et son statut réel est RUNNING. Aucun train complet lancé ; test verrouillé exclu.
+- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : Le retry P100 a reproduit exactement CUDA cuInit error 303 avant entraînement, malgré enable_gpu=true et machine_shape=Gpu : deux provisionnements P100 consécutifs sont donc défaillants côté Kaggle. Le publisher accepte désormais explicitement le fallback NvidiaTeslaT4 via le commit 69f8480 ; 10 tests cloud et compileall passent. Le smoke privé unique tinahandriamarosoa/guitar-midi-poly-smoke-t4-20260728 a été soumis avec les 16 parts et le snapshot b01af4a2 ; statut Kaggle vérifié : RUNNING. Aucun modèle, seuil, décodeur ou donnée modifié. Aucun train complet lancé ; test verrouillé exclu.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
 <!-- PROJECT_TASK:skill_project_contract:START -->
 - 2026-07-28 — **terminé** — `skill_project_contract` : skill
