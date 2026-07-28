@@ -277,6 +277,7 @@ class KaggleCloudPipelineTests(unittest.TestCase):
             self.assertEqual(metadata["kernel_sources"], ["owner/rank-full"])
             self.assertNotIn("owner/local-checkpoints", metadata["dataset_sources"])
             self.assertIn("guitar-midi-rank-results.tar", source)
+            self.assertIn("sys.path.insert(0, str(workspace))", source)
             self.assertIn('"src.polyphonic.select_final_checkpoint"', source)
             self.assertIn('task="select"', source)
 

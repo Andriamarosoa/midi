@@ -17,6 +17,10 @@ from scripts.cloud.publish_kaggle import (
 
 
 SELECTION_CELL = """\
+if str(workspace) not in sys.path:
+    sys.path.insert(0, str(workspace))
+os.chdir(workspace)
+
 from scripts.cloud.kaggle_entrypoint import (
     find_checkpoint_run,
     find_training_shard_manifests,
