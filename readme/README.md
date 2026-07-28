@@ -15,16 +15,16 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T13:58:25.378562+00:00`
-- Étape : `kaggle_smoke_nested_mount_fix_ready`
-- Statut : `anomalie`
-- Détail : La troisième tentative explicitement autorisée tinahandriamarosoa/guitar-midi-polyphonic-smoke-mount-scan-20260728 s'est arrêtée à 19,4 s, avant toute donnée ou entraînement. Le log d'observabilité a identifié le montage réel Kaggle : mounted_inputs=[datasets] et source_candidates=[] ; les 17 sources sont placées sous /kaggle/input/datasets/... et non directement sous /kaggle/input. Correction versionnée au commit a09c257 : recherche récursive de pyproject.toml sous toute l'arborescence puis validation des marqueurs src et scripts/cloud/kaggle_entrypoint.py. Validation exacte avec une simulation /input/datasets/tinahandriamarosoa/provider-generated-mount-alias réussie : racine source, workspace et commit 6ce57898 détectés ; notebook JSON valide, 9 tests cloud réussis et git diff --check réussi. Aucun quatrième smoke lancé, aucun train complet lancé, test verrouillé exclu.
+- Mise à jour : `2026-07-28T14:00:21.955004+00:00`
+- Étape : `kaggle_smoke_nested_input_running`
+- Statut : `en cours`
+- Détail : Autorisation permanente reçue pour les corrections et retries nécessaires du smoke, avec une seule exécution active à la fois et diagnostic avant retry. Le quatrième smoke privé tinahandriamarosoa/guitar-midi-polyphonic-smoke-nested-input-20260728 a été soumis une seule fois avec les 16 datasets et le snapshot source privé 6ce57898. Il utilise la correction a09c257, validée sur une arborescence simulée /input/datasets/tinahandriamarosoa/provider-generated-mount-alias. Statut Kaggle vérifié : RUNNING ; aucun log encore disponible au premier contrôle. Aucun train complet lancé, test verrouillé exclu.
 
 ## Étapes suivantes
 
-1. Demander un nouvel accord avant toute quatrième tentative avec la correction a09c257 déjà poussée.
-2. Si une nouvelle tentative est autorisée, vérifier source_candidates puis l'assemblage des 16 datasets avant toute autre étape.
-3. Ne lancer aucun train complet avant un output_manifest.json valide avec locked_test_used=false.
+1. Surveiller le kernel et vérifier source_candidates dès le premier log, sans exécution concurrente.
+2. En cas d'erreur, diagnostiquer puis corriger avant un retry autorisé ; en cas de réussite, télécharger et valider output_manifest.json, l'archive, locked_test_used=false, les 16 datasets et les métriques.
+3. Ne lancer aucun train complet avant un smoke validé et un bilan présenté.
 <!-- CURRENT_STATUS_END -->
 
 ## État technique consolidé
@@ -78,7 +78,7 @@ fondamentale contre harmonique/résonance.
 - 2026-07-28 — **terminé** — préparation du pipeline Kaggle privé :
   packaging sans test, smoke/train P100, reprise, supervision et récupération.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:START -->
-- 2026-07-28 — **anomalie** — `kaggle_training_dataset_upload` : La troisième tentative explicitement autorisée tinahandriamarosoa/guitar-midi-polyphonic-smoke-mount-scan-20260728 s'est arrêtée à 19,4 s, avant toute donnée ou entraînement. Le log d'observabilité a identifié le montage réel Kaggle : mounted_inputs=[datasets] et source_candidates=[] ; les 17 sources sont placées sous /kaggle/input/datasets/... et non directement sous /kaggle/input. Correction versionnée au commit a09c257 : recherche récursive de pyproject.toml sous toute l'arborescence puis validation des marqueurs src et scripts/cloud/kaggle_entrypoint.py. Validation exacte avec une simulation /input/datasets/tinahandriamarosoa/provider-generated-mount-alias réussie : racine source, workspace et commit 6ce57898 détectés ; notebook JSON valide, 9 tests cloud réussis et git diff --check réussi. Aucun quatrième smoke lancé, aucun train complet lancé, test verrouillé exclu.
+- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : Autorisation permanente reçue pour les corrections et retries nécessaires du smoke, avec une seule exécution active à la fois et diagnostic avant retry. Le quatrième smoke privé tinahandriamarosoa/guitar-midi-polyphonic-smoke-nested-input-20260728 a été soumis une seule fois avec les 16 datasets et le snapshot source privé 6ce57898. Il utilise la correction a09c257, validée sur une arborescence simulée /input/datasets/tinahandriamarosoa/provider-generated-mount-alias. Statut Kaggle vérifié : RUNNING ; aucun log encore disponible au premier contrôle. Aucun train complet lancé, test verrouillé exclu.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
 <!-- PROJECT_TASK:skill_project_contract:START -->
 - 2026-07-28 — **terminé** — `skill_project_contract` : skill
