@@ -15,14 +15,14 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T19:26:08.008858+00:00`
-- Étape : `checkpoint_uploaded_source_snapshot_fix_validated`
+- Mise à jour : `2026-07-28T19:28:39.884279+00:00`
+- Étape : `kaggle_validation_only_checkpoint_ranking`
 - Statut : `en cours`
-- Détail : Autorisation explicite reçue. Dataset privé miranacareneandrisoa/guitar-midi-polyphonic-local-run-20260728 créé et indexé : 8 checkpoints epoch, best.keras, last.keras, final.keras et métadonnées ; package_report passé, 47014385 octets utiles, aucune donnée, aucun audio, aucun test verrouillé. Une incompatibilité pré-upload du snapshot source a été corrigée : prepare_kaggle_source.py génère maintenant le package_report.json exigé par le publisher ; 12 tests cloud passent.
+- Détail : Autorisation explicite appliquée. Dataset privé des checkpoints indexé et snapshot source privé ec207a66 publié après correction testée du package_report (12 tests cloud passent). Commit ec207a6 poussé. Kernel P100 unique miranacareneandrisoa/guitar-midi-poly-rank-local8-20260728 soumis avec les 16 shards, le snapshot source et le run privé ; statut Kaggle vérifié RUNNING. Tâche rank limitée à 60000 exemples de validation ; test verrouillé exclu.
 
 ## Étapes suivantes
 
-1. Committer et pousser la correction, publier le snapshot source privé exact, lancer une seule fois le kernel P100 rank sur validation uniquement, vérifier checkpoint_ranking.json puis poursuivre la sélection musicale sans ouvrir le test verrouillé.
+1. Surveiller ce kernel sans relance. À COMPLETE, télécharger et valider output_manifest.json, checkpoint_ranking.json et l’archive ; ensuite lancer la sélection musicale validation-only. En cas d’ERROR, télécharger le log exact et diagnostiquer avant tout retry.
 <!-- CURRENT_STATUS_END -->
 
 ## État technique consolidé
@@ -79,7 +79,7 @@ fondamentale contre harmonique/résonance.
 - 2026-07-28 — **terminé** — `kaggle_training_dataset_upload` : pipeline Kaggle P100 validé avec succès sur le compte `miranacareneandrisoa`, commit `8bccadc6`, TensorFlow 2.20/Keras 3. Le smoke attache les 16 shards, charge les NPY tronqués, entraîne une époque de 256 exemples, valide sur 128 exemples et produit `best.keras`, `last.keras`, `final.keras`, l'archive et le rapport. Archive 17111040 octets, SHA-256 `830aa93d81d814a2f3109b9a62e26612348d90f53c3e4000078c6bcd95070117` conforme ; `locked_test_used=false`. Les quatre corpus sont présents dans les pools. Les métriques smoke (val_frame_micro_f1=0.061205, val_onset_micro_f1=0.002302) vérifient l'exécution, pas la qualité.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
 <!-- PROJECT_TASK:checkpoint_validation_selection:START -->
-- 2026-07-28 — **en cours** — `checkpoint_validation_selection` : Autorisation explicite reçue. Dataset privé miranacareneandrisoa/guitar-midi-polyphonic-local-run-20260728 créé et indexé : 8 checkpoints epoch, best.keras, last.keras, final.keras et métadonnées ; package_report passé, 47014385 octets utiles, aucune donnée, aucun audio, aucun test verrouillé. Une incompatibilité pré-upload du snapshot source a été corrigée : prepare_kaggle_source.py génère maintenant le package_report.json exigé par le publisher ; 12 tests cloud passent.
+- 2026-07-28 — **en cours** — `checkpoint_validation_selection` : Autorisation explicite appliquée. Dataset privé des checkpoints indexé et snapshot source privé ec207a66 publié après correction testée du package_report (12 tests cloud passent). Commit ec207a6 poussé. Kernel P100 unique miranacareneandrisoa/guitar-midi-poly-rank-local8-20260728 soumis avec les 16 shards, le snapshot source et le run privé ; statut Kaggle vérifié RUNNING. Tâche rank limitée à 60000 exemples de validation ; test verrouillé exclu.
 <!-- PROJECT_TASK:checkpoint_validation_selection:END -->
 <!-- PROJECT_TASK:skill_project_contract:START -->
 - 2026-07-28 — **terminé** — `skill_project_contract` : skill
