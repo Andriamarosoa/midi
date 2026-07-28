@@ -15,14 +15,14 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T19:28:39.884279+00:00`
-- Étape : `kaggle_validation_only_checkpoint_ranking`
-- Statut : `en cours`
-- Détail : Autorisation explicite appliquée. Dataset privé des checkpoints indexé et snapshot source privé ec207a66 publié après correction testée du package_report (12 tests cloud passent). Commit ec207a6 poussé. Kernel P100 unique miranacareneandrisoa/guitar-midi-poly-rank-local8-20260728 soumis avec les 16 shards, le snapshot source et le run privé ; statut Kaggle vérifié RUNNING. Tâche rank limitée à 60000 exemples de validation ; test verrouillé exclu.
+- Mise à jour : `2026-07-28T19:39:07.040216+00:00`
+- Étape : `kaggle_rank_error_oauth_reauthentication_required`
+- Statut : `anomalie`
+- Détail : Le kernel P100 unique miranacareneandrisoa/guitar-midi-poly-rank-local8-20260728 est passé de RUNNING à ERROR. Aucune relance effectuée. La récupération générale des outputs a commencé à recopier le workspace intermédiaire et a été arrêtée localement ; aucun checkpoint_ranking.json n'existe. La commande ciblée kernels logs est ensuite refusée et kernels list indique Authentication required : le jeton OAuth Kaggle du compte miranacareneandrisoa a expiré. La cause applicative exacte du kernel reste donc non vérifiée. Test verrouillé exclu.
 
 ## Étapes suivantes
 
-1. Surveiller ce kernel sans relance. À COMPLETE, télécharger et valider output_manifest.json, checkpoint_ranking.json et l’archive ; ensuite lancer la sélection musicale validation-only. En cas d’ERROR, télécharger le log exact et diagnostiquer avant tout retry.
+1. Réauthentifier le CLI avec KAGGLE_CONFIG_DIR=tmp/kaggle/config et kaggle auth login --force. Après confirmation, télécharger le log exact de la version 1, diagnostiquer et corriger avant un éventuel retry sous un nouveau slug ; ne jamais relancer à l'aveugle.
 <!-- CURRENT_STATUS_END -->
 
 ## État technique consolidé
@@ -79,7 +79,7 @@ fondamentale contre harmonique/résonance.
 - 2026-07-28 — **terminé** — `kaggle_training_dataset_upload` : pipeline Kaggle P100 validé avec succès sur le compte `miranacareneandrisoa`, commit `8bccadc6`, TensorFlow 2.20/Keras 3. Le smoke attache les 16 shards, charge les NPY tronqués, entraîne une époque de 256 exemples, valide sur 128 exemples et produit `best.keras`, `last.keras`, `final.keras`, l'archive et le rapport. Archive 17111040 octets, SHA-256 `830aa93d81d814a2f3109b9a62e26612348d90f53c3e4000078c6bcd95070117` conforme ; `locked_test_used=false`. Les quatre corpus sont présents dans les pools. Les métriques smoke (val_frame_micro_f1=0.061205, val_onset_micro_f1=0.002302) vérifient l'exécution, pas la qualité.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
 <!-- PROJECT_TASK:checkpoint_validation_selection:START -->
-- 2026-07-28 — **en cours** — `checkpoint_validation_selection` : Autorisation explicite appliquée. Dataset privé des checkpoints indexé et snapshot source privé ec207a66 publié après correction testée du package_report (12 tests cloud passent). Commit ec207a6 poussé. Kernel P100 unique miranacareneandrisoa/guitar-midi-poly-rank-local8-20260728 soumis avec les 16 shards, le snapshot source et le run privé ; statut Kaggle vérifié RUNNING. Tâche rank limitée à 60000 exemples de validation ; test verrouillé exclu.
+- 2026-07-28 — **anomalie** — `checkpoint_validation_selection` : Le kernel P100 unique miranacareneandrisoa/guitar-midi-poly-rank-local8-20260728 est passé de RUNNING à ERROR. Aucune relance effectuée. La récupération générale des outputs a commencé à recopier le workspace intermédiaire et a été arrêtée localement ; aucun checkpoint_ranking.json n'existe. La commande ciblée kernels logs est ensuite refusée et kernels list indique Authentication required : le jeton OAuth Kaggle du compte miranacareneandrisoa a expiré. La cause applicative exacte du kernel reste donc non vérifiée. Test verrouillé exclu.
 <!-- PROJECT_TASK:checkpoint_validation_selection:END -->
 <!-- PROJECT_TASK:skill_project_contract:START -->
 - 2026-07-28 — **terminé** — `skill_project_contract` : skill
