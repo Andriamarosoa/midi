@@ -26,6 +26,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from scripts.cloud.publish_kaggle import KAGGLE_CONFIG, _kaggle
+from scripts.project_summary import update_project_summary
 
 
 TERMINAL_FAILURES = {
@@ -100,6 +101,23 @@ def _write_state(path: Path, **values: Any) -> None:
         json.dumps(existing, indent=2) + "\n", encoding="utf-8"
     )
     temporary.replace(path)
+
+
+def _record_summary(
+    path: Path,
+    *,
+    phase: str,
+    status: str,
+    detail: str,
+    next_steps: Sequence[str],
+) -> None:
+    update_project_summary(
+        phase=phase,
+        status=status,
+        detail=detail,
+        next_steps=next_steps,
+        summary_path=path,
+    )
 
 
 def wait_for_dataset(
@@ -234,6 +252,9 @@ def main() -> int:
         "--state", type=Path,
         default=Path("tmp/kaggle/supervisor_state.json"),
     )
+    parser.add_argument(
+        "--summary", type=Path, default=Path("readme/README.md")
+    )
     parser.add_argument("--interval-seconds", type=int, default=60)
     parser.add_argument("--dataset-timeout-hours", type=float, default=6.0)
     parser.add_argument("--smoke-timeout-hours", type=float, default=1.0)
@@ -245,13 +266,39 @@ def main() -> int:
         format="%(asctime)s %(levelname)s %(message)s",
     )
     state = args.state.resolve()
+    summary = args.summary.resolve()
     _write_state(state, phase="waiting_training_dataset")
+    _record_summary(
+        summary,
+        phase="waiting_training_dataset",
+        status="en cours",
+        detail=(
+            "upload privé du dataset train/validation Kaggle ; "
+            "le superviseur attend sa finalisation"
+        ),
+        next_steps=(
+            "Finaliser et vérifier le dataset privé train/validation.",
+            "Démarrer l’upload privé des sources brutes.",
+            "Exécuter le smoke test sur GPU P100.",
+            "Valider le résultat avant tout train complet.",
+        ),
+    )
     wait_for_dataset(
         args.training_dataset,
         interval_seconds=args.interval_seconds,
         timeout_seconds=int(args.dataset_timeout_hours * 3600),
     )
     _write_state(state, phase="training_dataset_ready")
+    _record_summary(
+        summary,
+        phase="training_dataset_ready",
+        status="terminé",
+        detail="dataset privé train/validation finalisé et lisible sur Kaggle",
+        next_steps=(
+            "Démarrer l’upload privé des sources brutes.",
+            "Soumettre le smoke test GPU P100.",
+        ),
+    )
 
     raw_process = _start_raw_upload(
         raw_dir=args.raw_dir.resolve(),
@@ -264,6 +311,18 @@ def main() -> int:
         phase="smoke_submitting",
         raw_upload_pid=None if raw_process is None else raw_process.pid,
     )
+    _record_summary(
+        summary,
+        phase="smoke_submitting",
+        status="en cours",
+        detail=(
+            "upload brut lancé ou déjà présent ; soumission du smoke test P100"
+        ),
+        next_steps=(
+            "Attendre la fin du smoke test.",
+            "Télécharger et valider son paquet de résultats.",
+        ),
+    )
 
     smoke = _launch_kernel(
         owner=args.owner,
@@ -271,6 +330,16 @@ def main() -> int:
         task="smoke",
     )
     _write_state(state, phase="smoke_running", smoke_kernel=smoke)
+    _record_summary(
+        summary,
+        phase="smoke_running",
+        status="en cours",
+        detail=f"smoke test Kaggle actif : `{smoke}`",
+        next_steps=(
+            "Vérifier le statut Kaggle.",
+            "Télécharger et valider le paquet de sortie.",
+        ),
+    )
     _wait_for_kernel(
         smoke,
         interval_seconds=args.interval_seconds,
@@ -281,6 +350,16 @@ def main() -> int:
         kernel=smoke, task="smoke", output_dir=smoke_output
     )
     _write_state(state, phase="smoke_passed")
+    _record_summary(
+        summary,
+        phase="smoke_passed",
+        status="terminé",
+        detail="smoke test P100 réussi et paquet de sortie validé localement",
+        next_steps=(
+            "Décider si le train inchangé doit être évité comme doublon.",
+            "Sinon soumettre le train complet.",
+        ),
+    )
 
     train = _launch_kernel(
         owner=args.owner,
@@ -288,6 +367,16 @@ def main() -> int:
         task="train",
     )
     _write_state(state, phase="train_running", train_kernel=train)
+    _record_summary(
+        summary,
+        phase="train_running",
+        status="en cours",
+        detail=f"train polyphonique complet actif : `{train}`",
+        next_steps=(
+            "Surveiller les époques et l’early stopping.",
+            "Télécharger puis valider les checkpoints et rapports.",
+        ),
+    )
     _wait_for_kernel(
         train,
         interval_seconds=args.interval_seconds,
@@ -298,6 +387,16 @@ def main() -> int:
         kernel=train, task="train", output_dir=train_output
     )
     _write_state(state, phase="train_passed")
+    _record_summary(
+        summary,
+        phase="train_passed",
+        status="terminé",
+        detail="train Kaggle terminé et paquet de résultats validé localement",
+        next_steps=(
+            "Finaliser l’upload brut s’il est encore actif.",
+            "Comparer le résultat au V2.2 précédent sans ouvrir le test.",
+        ),
+    )
 
     if raw_process is not None:
         logging.info("Waiting for raw dataset upload (PID %s).", raw_process.pid)
@@ -312,6 +411,19 @@ def main() -> int:
         timeout_seconds=int(args.dataset_timeout_hours * 3600),
     )
     _write_state(state, phase="complete", raw_dataset_ready=True)
+    _record_summary(
+        summary,
+        phase="complete",
+        status="terminé",
+        detail=(
+            "datasets privés disponibles, smoke et train terminés, "
+            "résultats téléchargés et validés"
+        ),
+        next_steps=(
+            "Comparer les résultats validation-only.",
+            "Documenter les limites et décider du prochain changement unique.",
+        ),
+    )
     logging.info("Kaggle pipeline completed successfully.")
     return 0
 

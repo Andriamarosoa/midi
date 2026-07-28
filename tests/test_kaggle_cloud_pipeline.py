@@ -5,6 +5,7 @@ import json
 import tempfile
 import tarfile
 import unittest
+from datetime import datetime, timezone
 from pathlib import Path
 from zipfile import ZipFile
 
@@ -15,6 +16,7 @@ from scripts.cloud.prepare_kaggle_datasets import (
 from scripts.cloud.package_kaggle_outputs import package_outputs
 from scripts.cloud.publish_kaggle import _task_notebook
 from scripts.cloud.supervise_kaggle import STATUS_PATTERN
+from scripts.project_summary import update_project_summary
 
 
 class KaggleCloudPipelineTests(unittest.TestCase):
@@ -166,6 +168,42 @@ class KaggleCloudPipelineTests(unittest.TestCase):
         match = STATUS_PATTERN.search(output)
         self.assertIsNotNone(match)
         self.assertEqual(match.group(1), "complete")
+
+    def test_project_summary_updates_status_and_deduplicates_events(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            summary = Path(temporary) / "README.md"
+            summary.write_text(
+                "# Summary\n\n"
+                "<!-- CURRENT_STATUS_START -->\nold\n"
+                "<!-- CURRENT_STATUS_END -->\n\n"
+                "<!-- JOURNAL_START -->\n"
+                "<!-- JOURNAL_END -->\n",
+                encoding="utf-8",
+            )
+            moment = datetime(2026, 7, 28, tzinfo=timezone.utc)
+            first = update_project_summary(
+                phase="smoke_running",
+                status="en cours",
+                detail="smoke actif",
+                next_steps=("attendre",),
+                summary_path=summary,
+                timestamp=moment,
+            )
+            second = update_project_summary(
+                phase="smoke_running",
+                status="en cours",
+                detail="smoke actif",
+                next_steps=("attendre",),
+                summary_path=summary,
+                timestamp=moment,
+            )
+            text = summary.read_text(encoding="utf-8")
+
+            self.assertTrue(first)
+            self.assertFalse(second)
+            self.assertIn("- Étape : `smoke_running`", text)
+            self.assertIn("1. attendre", text)
+            self.assertEqual(text.count("smoke actif"), 2)
 
 
 if __name__ == "__main__":
