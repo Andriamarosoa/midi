@@ -255,15 +255,25 @@ def main() -> int:
     parser.add_argument(
         "--summary", type=Path, default=Path("readme/README.md")
     )
+    parser.add_argument(
+        "--log-file", type=Path,
+        default=Path("tmp/kaggle/supervisor.stderr.log"),
+    )
     parser.add_argument("--interval-seconds", type=int, default=60)
     parser.add_argument("--dataset-timeout-hours", type=float, default=6.0)
     parser.add_argument("--smoke-timeout-hours", type=float, default=1.0)
     parser.add_argument("--train-timeout-hours", type=float, default=12.0)
     args = parser.parse_args()
 
+    log_file = args.log_file.resolve()
+    log_file.parent.mkdir(parents=True, exist_ok=True)
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s %(levelname)s %(message)s",
+        handlers=(
+            logging.StreamHandler(),
+            logging.FileHandler(log_file, mode="a", encoding="utf-8"),
+        ),
     )
     state = args.state.resolve()
     summary = args.summary.resolve()
