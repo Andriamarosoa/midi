@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import inspect
 import json
 import platform
 from datetime import datetime
@@ -33,6 +34,20 @@ from src.polyphonic.model import (
     transfer_compatible_weights,
 )
 from src.v5.train import git_commit
+
+
+def _fit_queue_options(fit, workers: int) -> dict[str, object]:
+    """Return only queue options supported by the installed Keras version."""
+    supported = inspect.signature(fit).parameters
+    candidates: dict[str, object] = {
+        "workers": int(workers),
+        "use_multiprocessing": False,
+        "max_queue_size": 2,
+    }
+    return {
+        name: value for name, value in candidates.items()
+        if name in supported
+    }
 
 
 def _weights(
@@ -427,9 +442,9 @@ def main() -> int:
             initial_epoch=initial_epoch,
             epochs=epochs,
             callbacks=callbacks,
-            workers=int(training.get("workers", 1)),
-            use_multiprocessing=False,
-            max_queue_size=2,
+            **_fit_queue_options(
+                model.fit, int(training.get("workers", 1))
+            ),
         )
         model.save(run_dir / "final.keras")
     finally:

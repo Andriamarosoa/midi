@@ -15,14 +15,14 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T18:36:13.165633+00:00`
-- Étape : `kaggle_truncated_numpy_fix_ready`
+- Mise à jour : `2026-07-28T18:41:48.341543+00:00`
+- Étape : `kaggle_keras3_fit_options_fix_ready`
 - Statut : `en cours`
-- Détail : cause du second smoke confirmée : Kaggle tronque certains noms `.npy`, ce qui supprimait l'information de format. Le chargeur reconnaît désormais un tableau NumPy par sa signature binaire même sans extension et ferme aussi les mappings mémoire à la fermeture du corpus. Test de régression extensionless ajouté ; 23 tests data/modèle/cloud passent. Aucun changement du modèle, des pertes ou du chemin live et aucun coût d'inférence. Le train local reste terminé proprement avec 8/8 checkpoints ; meilleur frame validation à l'époque 8=0.536721 et meilleur onset validation à l'époque 7=0.084643. Aucun train cloud complet lancé, test verrouillé exclu.
+- Détail : le smoke `f4b978e3` confirme que la reconnaissance NPY sans extension fonctionne et atteint `model.fit()`. Nouvelle incompatibilité Keras 3 exacte : `TensorFlowTrainer.fit()` refuse l'ancien argument `workers`. Les options de file `workers`, `use_multiprocessing` et `max_queue_size` sont désormais transmises uniquement si la signature Keras installée les accepte ; Keras 2 local conserve donc son comportement, Keras 3 les omet. Test de régression ajouté ; 24 tests data/modèle/cloud passent. Aucun changement du modèle, des données ou du live. Train local terminé avec 8/8 checkpoints ; aucun train cloud complet lancé, test verrouillé exclu.
 
 ## Étapes suivantes
 
-1. Commiter et publier le correctif de reconnaissance NPY, créer un snapshot source privé, puis exécuter un seul nouveau smoke. S'il passe, valider ses sorties et classer les 8 checkpoints locaux sur validation uniquement. Ne lancer aucun train cloud complet et ne pas ouvrir le test verrouillé avant un smoke valide.
+1. Commiter et publier la compatibilité `model.fit()` Keras 2/3, créer un nouveau snapshot source privé, puis exécuter un seul smoke. S'il passe, valider ses sorties et classer les 8 checkpoints locaux sur validation uniquement. Ne lancer aucun train cloud complet et ne pas ouvrir le test verrouillé avant un smoke valide.
 <!-- CURRENT_STATUS_END -->
 
 ## État technique consolidé
@@ -76,7 +76,7 @@ fondamentale contre harmonique/résonance.
 - 2026-07-28 — **terminé** — préparation du pipeline Kaggle privé :
   packaging sans test, smoke/train P100, reprise, supervision et récupération.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:START -->
-- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : cause du second smoke confirmée : Kaggle tronque certains noms `.npy`, ce qui supprimait l'information de format. Le chargeur reconnaît désormais un tableau NumPy par sa signature binaire même sans extension et ferme aussi les mappings mémoire à la fermeture du corpus. Test de régression extensionless ajouté ; 23 tests data/modèle/cloud passent. Aucun changement du modèle, des pertes ou du chemin live et aucun coût d'inférence. Le train local reste terminé proprement avec 8/8 checkpoints ; meilleur frame validation à l'époque 8=0.536721 et meilleur onset validation à l'époque 7=0.084643. Aucun train cloud complet lancé, test verrouillé exclu.
+- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : le smoke `f4b978e3` confirme que la reconnaissance NPY sans extension fonctionne et atteint `model.fit()`. Nouvelle incompatibilité Keras 3 exacte : `TensorFlowTrainer.fit()` refuse l'ancien argument `workers`. Les options de file `workers`, `use_multiprocessing` et `max_queue_size` sont désormais transmises uniquement si la signature Keras installée les accepte ; Keras 2 local conserve donc son comportement, Keras 3 les omet. Test de régression ajouté ; 24 tests data/modèle/cloud passent. Aucun changement du modèle, des données ou du live. Train local terminé avec 8/8 checkpoints ; aucun train cloud complet lancé, test verrouillé exclu.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
 <!-- PROJECT_TASK:skill_project_contract:START -->
 - 2026-07-28 — **terminé** — `skill_project_contract` : skill

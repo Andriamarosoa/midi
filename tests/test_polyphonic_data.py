@@ -19,10 +19,32 @@ from src.polyphonic.data import (
     load_manifest,
     sampler_effective_class_counts,
 )
-from src.polyphonic.train import _weights
+from src.polyphonic.train import _fit_queue_options, _weights
 
 
 class PolyphonicDataTests(unittest.TestCase):
+    def test_fit_queue_options_follow_installed_keras_signature(self) -> None:
+        def legacy_fit(
+            sequence,
+            workers=1,
+            use_multiprocessing=False,
+            max_queue_size=10,
+        ):
+            return sequence
+
+        def keras3_fit(sequence, epochs=1):
+            return sequence, epochs
+
+        self.assertEqual(
+            _fit_queue_options(legacy_fit, workers=4),
+            {
+                "workers": 4,
+                "use_multiprocessing": False,
+                "max_queue_size": 2,
+            },
+        )
+        self.assertEqual(_fit_queue_options(keras3_fit, workers=4), {})
+
     def test_extensionless_numpy_audio_is_loaded_by_magic_signature(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
