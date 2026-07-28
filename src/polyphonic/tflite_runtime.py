@@ -41,13 +41,29 @@ class PolyphonicBundle:
             raise ValueError("Invalid polyphonic model SHA256.")
 
 
+def resolve_tflite_threads(
+    metadata: dict[str, object],
+    requested_threads: int | None,
+) -> int:
+    """Choose a safe runtime thread count when benchmarking found no winner."""
+    configured = (
+        metadata.get("recommended_tflite_threads")
+        if requested_threads is None
+        else requested_threads
+    )
+    threads = 1 if configured is None else int(configured)
+    if threads < 1:
+        raise ValueError("TFLite threads must be positive.")
+    return threads
+
+
 class TFLitePolyphonicModel:
     def __init__(self, bundle: PolyphonicBundle, threads: int | None = None) -> None:
         import tensorflow as tf
 
-        threads = int(
-            bundle.metadata["recommended_tflite_threads"]
-            if threads is None else threads
+        threads = resolve_tflite_threads(
+            bundle.metadata,
+            threads,
         )
         self.interpreter = tf.lite.Interpreter(
             model_path=str(bundle.model_path), num_threads=threads

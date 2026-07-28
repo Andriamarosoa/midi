@@ -15,14 +15,14 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T20:26:10.479596+00:00`
-- Étape : `kaggle_validation_selection_complete`
+- Mise à jour : `2026-07-28T20:41:15.128866+00:00`
+- Étape : `desktop_export_parity_latency_ab_complete`
 - Statut : `terminé`
-- Détail : Sélection musicale Kaggle validation-only terminée et validée sur 12 enregistrements équilibrés (3 par corpus), candidate unique epoch-08. Archive 51548160 octets, SHA-256 ec9725179092a10d43af2dbbef9b61cc69f632c6038bc1b567041f3c120f7d28 conforme ; selection.json, selected.keras, thresholds.json et decoder_config.json présents ; selected.keras identique à epoch-08 ; locked_test_used=false. Métriques : F1 onset global 0,173294, F1 onset pondéré 0,233170, F1 onset+offset pondéré 0,127564. Limites réelles : 3160 faux positifs, 2994 notes manquantes, 71,44 faux NoteOn/min ; F1 onset Guitar-TECHS direct 0,039755 et micro 0,052980, contre GuitarSet 0,333844 et GAPS 0,212366. Latence causale NoteOn p50 65,63 ms, p90 164,74 ms.
+- Détail : Checkpoint Kaggle epoch-08 installé localement et exporté : parité TFLite/ONNX 100 % sur 96 exemples, ONNX p95 3,25 ms. Le TFLite est bit à bit identique au bundle stable (SHA-256 4a4df49d...), donc les poids sont reproduits ; seuls les seuils diffèrent. Deux benchmarks TFLite stricts restent instables malgré des p95 sous 5,80 ms. A/B validation : Guitar-TECHS F1 onset 0,0370 vers 0,0357 et faux positifs 21 vers 23 ; GuitarSet F1 onset 0,2966 vers 0,3025 mais onset+offset 0,2542 vers 0,2437 et fragmentation 2 vers 4. Candidat non promu ; bundle v2_2_0 conservé. Runtime corrigé : fallback à 1 thread si la recommandation benchmark est absente. Test verrouillé non utilisé.
 
 ## Étapes suivantes
 
-1. Conserver epoch-08 et ses seuils comme sélection validation-only. Avant tout test verrouillé, poursuivre export/parité/benchmark desktop puis diagnostiquer les notes fantômes, octaves et le faible domaine Guitar-TECHS sur validation et WAV uniquement.
+1. Expérience suivante à changement unique : adapter causalement la détection d'attaque au domaine Guitar-TECHS, où 1 attaque physique seulement est détectée pour 64 onsets annotés sur l'extrait audité ; revalider les mêmes WAV avant tout changement de seuil ou nouveau train.
 <!-- CURRENT_STATUS_END -->
 
 ## État technique consolidé
@@ -89,6 +89,9 @@ fondamentale contre harmonique/résonance.
   réels à chaque demande de progression sans extrapolation, puis mise à jour
   de la même entrée de journal en fin d’étape ; validation réussie
 <!-- PROJECT_TASK:skill_project_contract:END -->
+<!-- PROJECT_TASK:desktop_candidate_validation:START -->
+- 2026-07-29 — **terminé** — `desktop_candidate_validation` : Checkpoint Kaggle epoch-08 installé localement et exporté : parité TFLite/ONNX 100 % sur 96 exemples, ONNX p95 3,25 ms. Le TFLite est bit à bit identique au bundle stable (SHA-256 4a4df49d...), donc les poids sont reproduits ; seuls les seuils diffèrent. Deux benchmarks TFLite stricts restent instables malgré des p95 sous 5,80 ms. A/B validation : Guitar-TECHS F1 onset 0,0370 vers 0,0357 et faux positifs 21 vers 23 ; GuitarSet F1 onset 0,2966 vers 0,3025 mais onset+offset 0,2542 vers 0,2437 et fragmentation 2 vers 4. Candidat non promu ; bundle v2_2_0 conservé. Runtime corrigé : fallback à 1 thread si la recommandation benchmark est absente. Test verrouillé non utilisé.
+<!-- PROJECT_TASK:desktop_candidate_validation:END -->
 <!-- JOURNAL_END -->
 ## Rapports détaillés
 
@@ -97,6 +100,7 @@ fondamentale contre harmonique/résonance.
 - [2026-07-28 — état du produit desktop monophonique](results/2026-07-28_mono-desktop-release.md)
 - [2026-07-28 — reconstruction de `data/processed`](results/2026-07-28_processed-reconstruction.md)
 - [2026-07-28 — incident de publication Kaggle](results/2026-07-28_kaggle-upload-incident.md)
+- [2026-07-29 — validation du candidat desktop sélectionné](results/2026-07-29_desktop-candidate-validation.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.
