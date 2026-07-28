@@ -20,7 +20,7 @@ from scripts.cloud.prepare_kaggle_datasets import (
     prepare_training_archive,
 )
 from scripts.cloud.package_kaggle_outputs import package_outputs
-from scripts.cloud.publish_kaggle import _task_notebook
+from scripts.cloud.publish_kaggle import _read_package_report, _task_notebook
 from scripts.cloud.supervise_kaggle import STATUS_PATTERN
 from scripts.project_summary import update_project_summary
 
@@ -165,6 +165,7 @@ class KaggleCloudPipelineTests(unittest.TestCase):
                         name.startswith("parts/") for name in archive.getnames()
                     ))
                     self.assertFalse(any("#" in name for name in archive.getnames()))
+            self.assertEqual(_read_package_report(upload)["archive_format"], "kaggle_chunked_tar_v1")
 
     def test_kernel_notebook_task_is_generated_without_other_edits(self) -> None:
         notebook = _task_notebook("rebuild")

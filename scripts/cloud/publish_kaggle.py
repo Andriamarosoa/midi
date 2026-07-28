@@ -12,6 +12,7 @@ import os
 import shutil
 import subprocess
 import sys
+import tarfile
 from pathlib import Path
 from typing import Any
 
@@ -61,6 +62,39 @@ def _read_package_report(dataset_dir: Path) -> dict[str, Any]:
         and report.get("locked_test_included") is not False
     ):
         raise ValueError("The locked test must not enter the training dataset.")
+    if report.get("kind") == "polyphonic_train_validation":
+        if report.get("archive_format") != "kaggle_chunked_tar_v1":
+            raise ValueError(
+                "Refusing legacy single-TAR training upload; rebuild chunked archives."
+            )
+        index_name = report.get("archive_index")
+        if not isinstance(index_name, str):
+            raise ValueError("Chunked training package has no archive index.")
+        index_path = dataset_dir / index_name
+        if not index_path.is_file():
+            raise FileNotFoundError(index_path)
+        index = json.loads(index_path.read_text(encoding="utf-8"))
+        if index.get("format") != "kaggle_chunked_tar_v1":
+            raise ValueError("Unsupported chunked training archive format.")
+        archives = index.get("archives")
+        if not isinstance(archives, list) or not archives:
+            raise ValueError("Chunked training package contains no TAR files.")
+        for item in archives:
+            archive_name = item.get("name")
+            if not isinstance(archive_name, str) or "/" in archive_name:
+                raise ValueError("Invalid chunked archive name.")
+            archive_path = dataset_dir / archive_name
+            if not archive_path.is_file():
+                raise FileNotFoundError(archive_path)
+            with tarfile.open(archive_path, "r") as archive:
+                names = archive.getnames()
+            if not names or any(
+                "#" in name or not name.startswith("parts/")
+                for name in names
+            ):
+                raise ValueError(
+                    f"Unsafe member name in chunked archive: {archive_name}"
+                )
     return report
 
 
