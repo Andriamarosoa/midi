@@ -15,14 +15,14 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T14:32:51.319530+00:00`
-- Étape : `kaggle_gpu_worker_fatal_confirmed_ui`
-- Statut : `anomalie`
-- Détail : Vérification manuelle effectuée dans l'éditeur Kaggle connecté : Settings > Accelerator montre GPU T4 x2 déjà sélectionné, tandis que GPU T4 x2 et GPU P100 sont désactivés. Le lancement direct de la cellule de probe fait passer Draft Session de Starting à Fatal ; l'interface affiche 'An error occurred starting the worker' puis 'Oops something went wrong'. Cela confirme le constat CLI du probe v2 (nvidia-smi absent, TensorFlow gpus=[], CUDA 303) : le réglage GPU est demandé correctement, mais Kaggle ne provisionne pas le worker. Aucun nouveau retry Kaggle identique, aucun train complet et aucun test verrouillé.
+- Mise à jour : `2026-07-28T14:48:23.501014+00:00`
+- Étape : `kaggle_tpu_probe_running`
+- Statut : `en cours`
+- Détail : Après confirmation que le worker GPU Kaggle ne démarre pas, un fallback TPU est étudié. Le train actuel n'est pas directement TPU-compatible : validation cloud GPU-only, absence de TPUStrategy et alimentation par PolyphonicSequence Python. Avant toute adaptation, le probe privé minimal tinahandriamarosoa/guitar-midi-tpu-probe-20260728 a été soumis avec l'accélérateur Tpu1VmV38. Il initialise TPUClusterResolver/TPUStrategy et exécute un produit matriciel ; statut réel Kaggle : RUNNING. Aucun dataset, entraînement complet ou test verrouillé utilisé.
 
 ## Étapes suivantes
 
-1. Utiliser le même probe sur un runtime Google Colab configuré en T4. Après détection positive via nvidia-smi et tf.config.list_physical_devices('GPU'), exécuter le smoke privé équivalent ; ne lancer le train complet qu'après validation du smoke et bilan.
+1. Lire les métriques exactes du probe TPU. S'il réussit, ajouter une voie TPU contrôlée et un tf.data.Dataset à formes fixes, puis exécuter uniquement le smoke multi-source. S'il échoue au provisionnement du worker, arrêter Kaggle et basculer vers Colab GPU.
 <!-- CURRENT_STATUS_END -->
 
 ## État technique consolidé
@@ -76,7 +76,7 @@ fondamentale contre harmonique/résonance.
 - 2026-07-28 — **terminé** — préparation du pipeline Kaggle privé :
   packaging sans test, smoke/train P100, reprise, supervision et récupération.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:START -->
-- 2026-07-28 — **anomalie** — `kaggle_training_dataset_upload` : Vérification manuelle effectuée dans l'éditeur Kaggle connecté : Settings > Accelerator montre GPU T4 x2 déjà sélectionné, tandis que GPU T4 x2 et GPU P100 sont désactivés. Le lancement direct de la cellule de probe fait passer Draft Session de Starting à Fatal ; l'interface affiche 'An error occurred starting the worker' puis 'Oops something went wrong'. Cela confirme le constat CLI du probe v2 (nvidia-smi absent, TensorFlow gpus=[], CUDA 303) : le réglage GPU est demandé correctement, mais Kaggle ne provisionne pas le worker. Aucun nouveau retry Kaggle identique, aucun train complet et aucun test verrouillé.
+- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : Après confirmation que le worker GPU Kaggle ne démarre pas, un fallback TPU est étudié. Le train actuel n'est pas directement TPU-compatible : validation cloud GPU-only, absence de TPUStrategy et alimentation par PolyphonicSequence Python. Avant toute adaptation, le probe privé minimal tinahandriamarosoa/guitar-midi-tpu-probe-20260728 a été soumis avec l'accélérateur Tpu1VmV38. Il initialise TPUClusterResolver/TPUStrategy et exécute un produit matriciel ; statut réel Kaggle : RUNNING. Aucun dataset, entraînement complet ou test verrouillé utilisé.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
 <!-- PROJECT_TASK:skill_project_contract:START -->
 - 2026-07-28 — **terminé** — `skill_project_contract` : skill
