@@ -15,16 +15,14 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T14:00:21.955004+00:00`
-- Étape : `kaggle_smoke_nested_input_running`
+- Mise à jour : `2026-07-28T14:09:38.680362+00:00`
+- Étape : `kaggle_smoke_extracted_audio_running`
 - Statut : `en cours`
-- Détail : Autorisation permanente reçue pour les corrections et retries nécessaires du smoke, avec une seule exécution active à la fois et diagnostic avant retry. Le quatrième smoke privé tinahandriamarosoa/guitar-midi-polyphonic-smoke-nested-input-20260728 a été soumis une seule fois avec les 16 datasets et le snapshot source privé 6ce57898. Il utilise la correction a09c257, validée sur une arborescence simulée /input/datasets/tinahandriamarosoa/provider-generated-mount-alias. Statut Kaggle vérifié : RUNNING ; aucun log encore disponible au premier contrôle. Aucun train complet lancé, test verrouillé exclu.
+- Détail : Le smoke nested-input s'est arrêté avant entraînement : Kaggle avait décompressé audio_mono-pickup_mix.zip en répertoire WAV, alors que le manifest conservait le couple ZIP/audio_member. La correction b01af4a2 résout désormais soit l'archive conservée, soit le WAV auto-extrait et vide audio_member ; 10 tests cloud passent. Le snapshot privé code-b01af4a2 est ready et lisible. Un premier push a été refusé avant création car le slug dépassait 50 caractères ; après diagnostic, le smoke privé unique tinahandriamarosoa/guitar-midi-poly-smoke-extracted-20260728 a été soumis et son statut réel est RUNNING. Quota GPU réel : 30.00 h restantes. Aucun train complet lancé ; test verrouillé exclu.
 
 ## Étapes suivantes
 
-1. Surveiller le kernel et vérifier source_candidates dès le premier log, sans exécution concurrente.
-2. En cas d'erreur, diagnostiquer puis corriger avant un retry autorisé ; en cas de réussite, télécharger et valider output_manifest.json, l'archive, locked_test_used=false, les 16 datasets et les métriques.
-3. Ne lancer aucun train complet avant un smoke validé et un bilan présenté.
+1. Surveiller ce seul kernel jusqu'à fin ou anomalie ; en cas d'erreur, télécharger le log exact et diagnostiquer avant tout retry. En cas de réussite, télécharger les outputs et valider output_manifest.json, l'archive, locked_test_used=false, l'assemblage des 16 parts et les métriques. Présenter le bilan avant tout train complet.
 <!-- CURRENT_STATUS_END -->
 
 ## État technique consolidé
@@ -78,7 +76,7 @@ fondamentale contre harmonique/résonance.
 - 2026-07-28 — **terminé** — préparation du pipeline Kaggle privé :
   packaging sans test, smoke/train P100, reprise, supervision et récupération.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:START -->
-- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : Autorisation permanente reçue pour les corrections et retries nécessaires du smoke, avec une seule exécution active à la fois et diagnostic avant retry. Le quatrième smoke privé tinahandriamarosoa/guitar-midi-polyphonic-smoke-nested-input-20260728 a été soumis une seule fois avec les 16 datasets et le snapshot source privé 6ce57898. Il utilise la correction a09c257, validée sur une arborescence simulée /input/datasets/tinahandriamarosoa/provider-generated-mount-alias. Statut Kaggle vérifié : RUNNING ; aucun log encore disponible au premier contrôle. Aucun train complet lancé, test verrouillé exclu.
+- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : Le smoke nested-input s'est arrêté avant entraînement : Kaggle avait décompressé audio_mono-pickup_mix.zip en répertoire WAV, alors que le manifest conservait le couple ZIP/audio_member. La correction b01af4a2 résout désormais soit l'archive conservée, soit le WAV auto-extrait et vide audio_member ; 10 tests cloud passent. Le snapshot privé code-b01af4a2 est ready et lisible. Un premier push a été refusé avant création car le slug dépassait 50 caractères ; après diagnostic, le smoke privé unique tinahandriamarosoa/guitar-midi-poly-smoke-extracted-20260728 a été soumis et son statut réel est RUNNING. Quota GPU réel : 30.00 h restantes. Aucun train complet lancé ; test verrouillé exclu.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
 <!-- PROJECT_TASK:skill_project_contract:START -->
 - 2026-07-28 — **terminé** — `skill_project_contract` : skill
