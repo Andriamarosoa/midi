@@ -6,7 +6,6 @@
 >
 > Règle : ce fichier est le résumé chronologique unique du projet. Chaque
 > étape terminée, active, suivante ou en anomalie doit y être inscrite.
-
 ## Objectif
 
 Produire sur desktop un moteur causal audio de guitare vers MIDI, monophonique
@@ -15,34 +14,36 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 
 <!-- CURRENT_STATUS_START -->
 ## État courant
-
-- Mise à jour : `2026-07-28T00:59:35.8793528Z`
-- Étape : `kaggle_dataset_publication_unconfirmed`
-- Statut : `anomalie`
-- Détail : compte Kaggle confirmé connecté comme `tinahandriamarosoa` ; après
-  l’envoi local, l’API renvoie encore HTTP 403 et le dataset privé n’apparaît
-  pas dans la liste du compte, donc sa publication reste non confirmée
-
+- Mise à jour : `2026-07-28`
+- Étape : `kaggle_dataset_filename_sanitization`
+- Statut : `anomalie_identifiee`
+- Détail : les permissions Kaggle ont été validées avec un petit dataset de
+  test ; l’archive de train/validation a atteint 100 % de transfert, mais sa
+  création a échoué pendant la validation Kaggle à cause de noms internes
+  contenant `#`. Le scan local a trouvé 120 signalements dans les labels, le
+  ZIP GuitarSet et le TAR. L’ancien TAR doit être remplacé par un paquet
+  reconstruit avec des noms sûrs et un manifest cohérent.
 ## Étapes suivantes
 
-1. Vérifier la publication du dataset privé train/validation sur Kaggle.
-2. Ne pas relancer l’upload sans déterminer si Kaggle a conservé ou rejeté la
-   création du dataset.
-3. Dès que le dataset est lisible, reprendre automatiquement l’upload brut,
-   le smoke P100 puis le train.
+1. Renommer dans les sources destinées à Kaggle les noms contenant `#`, par
+   exemple `C#` en `Csharp`, et mettre à jour `audio_member` et `labels_path`
+   dans le manifest.
+2. Reconstruire un nouveau paquet et un nouveau TAR sous un chemin distinct.
+3. Vérifier localement qu’aucun nom invalide ne subsiste dans le paquet, les
+   ZIP imbriqués ou le TAR.
+4. Publier le nouveau TAR comme dataset privé et confirmer que le dataset et
+   ses fichiers sont visibles côté Kaggle.
+5. Dès que le dataset est lisible, reprendre le smoke P100 puis le train.
 <!-- CURRENT_STATUS_END -->
 
 ## État technique consolidé
-
 ### Produit monophonique
 
 - Périmètre accepté : guitare propre monophonique, MIDI 40–76.
 - Parité TFLite et ONNX validée.
 - Inférence compatible avec le live.
 - Limite : une sortie softmax unique ne transcrit pas les accords.
-
 ### Produit polyphonique V2.2
-
 - Entrée causale : 4096 échantillons à 44,1 kHz, hop 256.
 - Sorties : notes actives, onsets, amplitudes harmoniques et offsets en cents.
 - Ancien train : 8 époques, 240 000 exemples par époque.
@@ -54,7 +55,6 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 - Le décodeur desktop a amélioré le F1 onset global de 0,1535 à 0,1751, au
   prix d’un rappel plus faible.
 - TFLite float16 batch 1 : p95 de 2,17 ms, hors latence audio matérielle.
-
 ### Données reconstruites
 
 - Toutes les données dérivées sont sous `data/processed`.
@@ -65,7 +65,6 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
   train polyphonique actuel.
 - 62 476 notes disposent d’une supervision harmonique.
 - Aucune fuite de groupe détectée entre les splits.
-
 ### Limite harmonique à corriger
 
 `note_id` relie les notes aux mesures harmoniques. Cependant,
@@ -73,9 +72,7 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 harmoniques absentes ne constituent pas suffisamment d’exemples négatifs.
 Le modèle ne possède donc pas encore de classification explicite
 fondamentale contre harmonique/résonance.
-
 ## Journal des étapes
-
 <!-- JOURNAL_START -->
 - 2026-07-22 — **terminé** — entraînement polyphonique multi-source V2.2 sur
   GuitarSet, GAPS et Guitar-TECHS ; époque 8 sélectionnée, test verrouillé.
@@ -90,10 +87,14 @@ fondamentale contre harmonique/résonance.
 - 2026-07-28 — **terminé** — préparation du pipeline Kaggle privé :
   packaging sans test, smoke/train P100, reprise, supervision et récupération.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:START -->
-- 2026-07-28 — **anomalie** — `kaggle_training_dataset_upload` : upload privé
-  local terminé ; compte Kaggle confirmé connecté, mais API HTTP 403 et
-  dataset absent de la liste du compte à `2026-07-28T00:59:35.8793528Z` ; la
-  publication du dataset est non confirmée et bloque les étapes suivantes
+- 2026-07-28 — **anomalie identifiée** —
+  `kaggle_training_dataset_upload` : permissions de création validées avec un
+  petit dataset de test ; l’archive train/validation de 8 418 068 480 octets a
+  atteint 100 % de transfert, puis la création a échoué. Le journal Kaggle
+  signale un nom de fichier ou dossier invalide et le scan local identifie
+  `#` dans 40 labels, 40 membres du ZIP GuitarSet et les entrées
+  correspondantes du TAR. L’ancien TAR est rejeté ; les sources, le manifest
+  et l’archive doivent être reconstruits avant une nouvelle publication.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
 <!-- PROJECT_TASK:skill_project_contract:START -->
 - 2026-07-28 — **terminé** — `skill_project_contract` : skill
@@ -104,13 +105,13 @@ fondamentale contre harmonique/résonance.
   de la même entrée de journal en fin d’étape ; validation réussie
 <!-- PROJECT_TASK:skill_project_contract:END -->
 <!-- JOURNAL_END -->
-
 ## Rapports détaillés
 
 - [2026-07-22 — entraînement polyphonique multi-source](results/2026-07-22_polyphonic-training.md)
 - [2026-07-27 — validation du décodeur desktop polyphonique](results/2026-07-27_polyphonic-desktop-validation.md)
 - [2026-07-28 — état du produit desktop monophonique](results/2026-07-28_mono-desktop-release.md)
 - [2026-07-28 — reconstruction de `data/processed`](results/2026-07-28_processed-reconstruction.md)
+- [2026-07-28 — incident de publication Kaggle](results/2026-07-28_kaggle-upload-incident.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.
