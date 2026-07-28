@@ -14,6 +14,7 @@ from typing import Any, Mapping
 import numpy as np
 import tensorflow as tf
 
+from src.polyphonic.keras_compat import load_polyphonic_checkpoint
 from src.polyphonic import model as _registered_model_types  # noqa: F401
 from src.polyphonic.audio_evidence import offline_audio_evidence_masks
 from src.polyphonic.data import PolyphonicCorpus, PolyphonicSequence, load_manifest
@@ -141,7 +142,7 @@ def compare(
     if current_sources != baseline_sources:
         raise ValueError("Validation recording selection no longer matches selection.")
 
-    model = tf.keras.models.load_model(run_dir / "selected.keras", compile=False)
+    model = load_polyphonic_checkpoint(run_dir / "selected.keras")
     inference = tf.keras.Model(
         model.inputs,
         {name: model.get_layer(name).output for name in OUTPUT_NAMES},

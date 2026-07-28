@@ -19,7 +19,10 @@ from src.polyphonic.data import (
     natural_validation_refs,
 )
 from src.polyphonic.evaluate_frames import binary_metrics, select_threshold
-from src.polyphonic.keras_compat import predict_compat
+from src.polyphonic.keras_compat import (
+    load_polyphonic_checkpoint,
+    predict_compat,
+)
 
 
 def pareto_candidates(rows: list[dict[str, object]]) -> list[str]:
@@ -133,7 +136,7 @@ def rank(
     try:
         targets = _targets(sequence)
         for checkpoint in checkpoints:
-            model = tf.keras.models.load_model(checkpoint, compile=False)
+            model = load_polyphonic_checkpoint(checkpoint)
             inference = tf.keras.Model(
                 model.inputs,
                 {

@@ -13,6 +13,7 @@ import numpy as np
 import tensorflow as tf
 
 from src.polyphonic import model as _registered_model_types  # noqa: F401
+from src.polyphonic.keras_compat import load_polyphonic_checkpoint
 from src.polyphonic.audio_evidence import offline_audio_evidence_masks
 from src.polyphonic.causal_event_metrics import (
     CausalMetricGate,
@@ -561,7 +562,7 @@ def evaluate_events(
     checkpoint = checkpoint_path or default_checkpoint
     if not checkpoint.is_file():
         raise FileNotFoundError(checkpoint)
-    model = tf.keras.models.load_model(checkpoint, compile=False)
+    model = load_polyphonic_checkpoint(checkpoint)
     inference_model = tf.keras.Model(
         model.inputs,
         {

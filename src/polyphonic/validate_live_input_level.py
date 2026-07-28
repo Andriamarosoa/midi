@@ -13,6 +13,7 @@ from typing import Any
 import numpy as np
 import tensorflow as tf
 
+from src.polyphonic.keras_compat import load_polyphonic_checkpoint
 from src.polyphonic import model as _registered_model_types  # noqa: F401
 from src.polyphonic.audio_evidence import offline_audio_evidence_masks
 from src.polyphonic.data import (
@@ -303,7 +304,7 @@ def validate(
     runtime = None
     bundle = None
     if runtime_kind == "keras":
-        model = tf.keras.models.load_model(checkpoint, compile=False)
+        model = load_polyphonic_checkpoint(checkpoint)
         inference_model = tf.keras.Model(
             model.inputs,
             {

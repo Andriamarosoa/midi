@@ -16,7 +16,10 @@ from src.polyphonic.data import (
     load_manifest,
     natural_validation_refs,
 )
-from src.polyphonic.keras_compat import predict_compat
+from src.polyphonic.keras_compat import (
+    load_polyphonic_checkpoint,
+    predict_compat,
+)
 from src.polyphonic import model as _registered_model_types  # noqa: F401
 
 
@@ -162,7 +165,7 @@ def evaluate(
     checkpoint = checkpoint_path or default_checkpoint
     if not checkpoint.is_file():
         raise FileNotFoundError(checkpoint)
-    model = tf.keras.models.load_model(checkpoint, compile=False)
+    model = load_polyphonic_checkpoint(checkpoint)
     inference_model = tf.keras.Model(
         model.inputs,
         {

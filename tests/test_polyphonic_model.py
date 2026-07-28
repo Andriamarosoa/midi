@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import unittest
+import tempfile
+from pathlib import Path
 
 import numpy as np
 import tensorflow as tf
 
+from src.polyphonic.keras_compat import load_polyphonic_checkpoint
 from src.polyphonic.model import (
     ClassWeightedBinaryCrossentropy,
     MicroF1,
@@ -93,6 +96,38 @@ class PolyphonicModelTests(unittest.TestCase):
             self.assertEqual(loss.reduction, "sum_over_batch_size")
             self.assertEqual(
                 loss.get_config()["reduction"], "sum_over_batch_size"
+            )
+
+    def test_keras2_archive_rebuild_preserves_predictions(self) -> None:
+        tf.keras.utils.set_random_seed(123)
+        model = build_polyphonic_model(
+            pitch_classes=3,
+            input_samples=512,
+            channels=8,
+            tcn_blocks=1,
+            dropout=0.0,
+            dense_units=16,
+            harmonic_count=2,
+            harmonic_offset_scale_cents=20.0,
+        )
+        inputs = {
+            "audio": np.linspace(
+                -0.5, 0.5, 512, dtype=np.float32
+            )[None, :, None],
+            "time_mask": np.ones((1, 512), np.float32),
+        }
+        expected = model(inputs, training=False)
+        with tempfile.TemporaryDirectory() as temporary:
+            checkpoint = Path(temporary) / "legacy.keras"
+            model.save(checkpoint)
+            restored = load_polyphonic_checkpoint(checkpoint)
+            actual = restored(inputs, training=False)
+        for name in expected:
+            np.testing.assert_allclose(
+                expected[name].numpy(),
+                actual[name].numpy(),
+                rtol=1e-6,
+                atol=1e-6,
             )
 
 

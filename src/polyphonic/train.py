@@ -25,6 +25,7 @@ from src.polyphonic.data import (
     natural_validation_refs,
     sampler_effective_class_counts,
 )
+from src.polyphonic.keras_compat import load_polyphonic_checkpoint
 from src.polyphonic.model import (
     ClassWeightedBinaryCrossentropy,
     MicroF1,
@@ -319,9 +320,7 @@ def main() -> int:
 
     model_config = config["model"]
     if args.resume_run:
-        model = tf.keras.models.load_model(
-            run_dir / "last.keras", compile=False
-        )
+        model = load_polyphonic_checkpoint(run_dir / "last.keras")
         transfer = {
             "source": str(run_dir / "last.keras"),
             "resumed_at_epoch": initial_epoch,

@@ -204,11 +204,29 @@ class KaggleCloudPipelineTests(unittest.TestCase):
             'SOURCE_DATASET_SLUG = "guitar-midi-polyphonic-code-6ce57898"',
             source,
         )
+        self.assertIn("MAXIMUM_EXAMPLES = 60000", source)
+        self.assertIn(
+            '"--maximum-examples", str(MAXIMUM_EXAMPLES)',
+            source,
+        )
         self.assertIn("mounted_roots", source)
         self.assertIn('input_root.rglob("pyproject.toml")', source)
         self.assertIn('"mounted_inputs"', source)
         self.assertIn("shutil.copytree(source_snapshot, workspace)", source)
         self.assertNotIn('"pip", "install"', source)
+
+    def test_rank_probe_injects_validation_example_limit(self) -> None:
+        notebook = _task_notebook(
+            "rank",
+            source_dataset_slug="guitar-midi-polyphonic-code-probe",
+            maximum_examples=128,
+        )
+        source = "".join(
+            line
+            for cell in notebook["cells"]
+            for line in cell.get("source", [])
+        )
+        self.assertIn("MAXIMUM_EXAMPLES = 128", source)
 
     def test_kernel_accepts_multiple_unique_dataset_sources(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

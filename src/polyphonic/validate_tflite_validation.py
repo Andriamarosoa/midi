@@ -15,6 +15,7 @@ from typing import Any
 import numpy as np
 import tensorflow as tf
 
+from src.polyphonic.keras_compat import load_polyphonic_checkpoint
 from src.polyphonic import model as _registered_model_types  # noqa: F401
 from src.polyphonic.data import (
     PolyphonicCorpus,
@@ -263,7 +264,7 @@ def validate(
         shuffle=False,
     )
 
-    model = tf.keras.models.load_model(checkpoint, compile=False)
+    model = load_polyphonic_checkpoint(checkpoint)
     inference = tf.keras.Model(
         model.inputs,
         {name: model.get_layer(name).output for name in OUTPUT_NAMES},

@@ -145,11 +145,17 @@ def publish_dataset(
 
 
 def _task_notebook(
-    task: str, *, source_dataset_slug: str = ""
+    task: str,
+    *,
+    source_dataset_slug: str = "",
+    maximum_examples: int = 60_000,
 ) -> dict[str, Any]:
+    if maximum_examples < 1:
+        raise ValueError("maximum_examples must be positive.")
     notebook = json.loads(NOTEBOOK.read_text(encoding="utf-8"))
     task_replaced = False
     source_replaced = False
+    maximum_replaced = False
     for cell in notebook["cells"]:
         if cell.get("cell_type") != "code":
             continue
@@ -166,11 +172,20 @@ def _task_notebook(
                     "# injecté par le publisher Kaggle\n"
                 )
                 source_replaced = True
+            elif line.startswith("MAXIMUM_EXAMPLES = "):
+                source[index] = (
+                    f"MAXIMUM_EXAMPLES = {int(maximum_examples)}\n"
+                )
+                maximum_replaced = True
     if not task_replaced:
         raise ValueError("TASK cell not found in Kaggle notebook.")
     if not source_replaced:
         raise ValueError(
             "SOURCE_DATASET_SLUG cell not found in Kaggle notebook."
+        )
+    if not maximum_replaced:
+        raise ValueError(
+            "MAXIMUM_EXAMPLES cell not found in Kaggle notebook."
         )
     return notebook
 
@@ -183,6 +198,7 @@ def publish_kernel(
     output_dir: Path,
     kernel_slug: str | None = None,
     accelerator: str = "NvidiaTeslaP100",
+    maximum_examples: int = 60_000,
 ) -> str:
     if "/" in owner or not owner:
         raise ValueError("Owner must be a Kaggle username.")
@@ -213,7 +229,9 @@ def publish_kernel(
     (output_dir / notebook_name).write_text(
         json.dumps(
             _task_notebook(
-                task, source_dataset_slug=source_dataset_slug
+                task,
+                source_dataset_slug=source_dataset_slug,
+                maximum_examples=maximum_examples,
             ),
             indent=1,
             ensure_ascii=False,
@@ -283,6 +301,12 @@ def main() -> int:
         default="NvidiaTeslaP100",
         help="Kaggle GPU shape; P100 remains the default.",
     )
+    kernel.add_argument(
+        "--maximum-examples",
+        type=int,
+        default=60_000,
+        help="Maximum validation examples for rank; defaults to 60000.",
+    )
 
     args = parser.parse_args()
     if args.command == "dataset":
@@ -301,6 +325,7 @@ def main() -> int:
             output_dir=args.output_dir,
             kernel_slug=args.kernel_slug,
             accelerator=args.accelerator,
+            maximum_examples=args.maximum_examples,
         )
         print(json.dumps({"kernel": kernel_id, "task": args.task}, indent=2))
     return 0

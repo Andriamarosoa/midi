@@ -13,6 +13,7 @@ import numpy as np
 import tensorflow as tf
 
 from src.polyphonic import model as _registered_model_types  # noqa: F401
+from src.polyphonic.keras_compat import load_polyphonic_checkpoint
 from src.polyphonic.data import (
     PolyphonicCorpus,
     PolyphonicSequence,
@@ -237,7 +238,7 @@ def export(run_dir: Path, output_dir: Path, examples: int = 96) -> dict[str, obj
             "harmonic_support_threshold": 0.60,
         }
     )
-    model = tf.keras.models.load_model(checkpoint, compile=False)
+    model = load_polyphonic_checkpoint(checkpoint)
 
     class ExportModule(tf.Module):
         def __init__(self, keras_model):

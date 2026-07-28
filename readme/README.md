@@ -15,14 +15,14 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T19:39:07.040216+00:00`
-- Étape : `kaggle_rank_error_oauth_reauthentication_required`
-- Statut : `anomalie`
-- Détail : Le kernel P100 unique miranacareneandrisoa/guitar-midi-poly-rank-local8-20260728 est passé de RUNNING à ERROR. Aucune relance effectuée. La récupération générale des outputs a commencé à recopier le workspace intermédiaire et a été arrêtée localement ; aucun checkpoint_ranking.json n'existe. La commande ciblée kernels logs est ensuite refusée et kernels list indique Authentication required : le jeton OAuth Kaggle du compte miranacareneandrisoa a expiré. La cause applicative exacte du kernel reste donc non vérifiée. Test verrouillé exclu.
+- Mise à jour : `2026-07-28T19:50:13.679747+00:00`
+- Étape : `keras2_checkpoint_compatibility_fix_validated`
+- Statut : `en cours`
+- Détail : OAuth Kaggle rétabli et log exact de la version 1 récupéré. Échec à 81.48 s au premier checkpoint : TensorFlow 2.20/Keras 3 ne peut pas importer keras.src.engine.functional enregistré par Keras 2. Correction : détection des archives Keras 2, reconstruction de l'architecture causale depuis config.json et chargement de model.weights.h5 ; appliquée au classement et aux étapes polyphoniques aval. Parité sur epoch-01 : écart maximal 0.0 pour frame, onset, amplitude harmonique et offset. 19 tests passent. Le publisher peut maintenant limiter maximum_examples pour un probe validation-only.
 
 ## Étapes suivantes
 
-1. Réauthentifier le CLI avec KAGGLE_CONFIG_DIR=tmp/kaggle/config et kaggle auth login --force. Après confirmation, télécharger le log exact de la version 1, diagnostiquer et corriger avant un éventuel retry sous un nouveau slug ; ne jamais relancer à l'aveugle.
+1. Committer/pousser, publier un snapshot source privé, lancer un probe P100 rank sur 128 exemples avec un slug unique. Si le probe Keras 3 passe et locked_test_used=false, lancer le classement 60000 sans autre changement. Ne pas ouvrir le test verrouillé.
 <!-- CURRENT_STATUS_END -->
 
 ## État technique consolidé
@@ -79,7 +79,7 @@ fondamentale contre harmonique/résonance.
 - 2026-07-28 — **terminé** — `kaggle_training_dataset_upload` : pipeline Kaggle P100 validé avec succès sur le compte `miranacareneandrisoa`, commit `8bccadc6`, TensorFlow 2.20/Keras 3. Le smoke attache les 16 shards, charge les NPY tronqués, entraîne une époque de 256 exemples, valide sur 128 exemples et produit `best.keras`, `last.keras`, `final.keras`, l'archive et le rapport. Archive 17111040 octets, SHA-256 `830aa93d81d814a2f3109b9a62e26612348d90f53c3e4000078c6bcd95070117` conforme ; `locked_test_used=false`. Les quatre corpus sont présents dans les pools. Les métriques smoke (val_frame_micro_f1=0.061205, val_onset_micro_f1=0.002302) vérifient l'exécution, pas la qualité.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
 <!-- PROJECT_TASK:checkpoint_validation_selection:START -->
-- 2026-07-28 — **anomalie** — `checkpoint_validation_selection` : Le kernel P100 unique miranacareneandrisoa/guitar-midi-poly-rank-local8-20260728 est passé de RUNNING à ERROR. Aucune relance effectuée. La récupération générale des outputs a commencé à recopier le workspace intermédiaire et a été arrêtée localement ; aucun checkpoint_ranking.json n'existe. La commande ciblée kernels logs est ensuite refusée et kernels list indique Authentication required : le jeton OAuth Kaggle du compte miranacareneandrisoa a expiré. La cause applicative exacte du kernel reste donc non vérifiée. Test verrouillé exclu.
+- 2026-07-28 — **en cours** — `checkpoint_validation_selection` : OAuth Kaggle rétabli et log exact de la version 1 récupéré. Échec à 81.48 s au premier checkpoint : TensorFlow 2.20/Keras 3 ne peut pas importer keras.src.engine.functional enregistré par Keras 2. Correction : détection des archives Keras 2, reconstruction de l'architecture causale depuis config.json et chargement de model.weights.h5 ; appliquée au classement et aux étapes polyphoniques aval. Parité sur epoch-01 : écart maximal 0.0 pour frame, onset, amplitude harmonique et offset. 19 tests passent. Le publisher peut maintenant limiter maximum_examples pour un probe validation-only.
 <!-- PROJECT_TASK:checkpoint_validation_selection:END -->
 <!-- PROJECT_TASK:skill_project_contract:START -->
 - 2026-07-28 — **terminé** — `skill_project_contract` : skill
