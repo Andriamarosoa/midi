@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import os
 import shutil
@@ -156,6 +157,7 @@ def prepare_training(
     root: Path,
     manifest_path: Path,
     output_path: Path,
+    source_ids: set[str] | None = None,
 ) -> dict[str, object]:
     output = _new_output(output_path)
     with manifest_path.open(
@@ -166,6 +168,7 @@ def prepare_training(
         rows = [
             dict(row) for row in reader
             if row.get("split") in TRAINING_SPLITS
+            and (source_ids is None or row.get("source_id") in source_ids)
         ]
     if not rows:
         raise ValueError("No train/validation rows found.")
@@ -233,6 +236,67 @@ def prepare_training(
     })
     _write_json(output / "package_report.json", report)
     return report
+
+
+def prepare_training_shards(
+    *, root: Path, manifest_path: Path, output_path: Path, shard_count: int
+) -> dict[str, object]:
+    """Create visible Kaggle datasets containing real recordings, not byteslices.
+
+    A source recording is assigned deterministically by SHA-256.  Shards are
+    checked to contain both train and validation examples without ever
+    duplicating a recording or the locked test.
+    """
+    if shard_count < 2:
+        raise ValueError("At least two visible data shards are required.")
+    with manifest_path.open("r", encoding="utf-8-sig", newline="") as handle:
+        rows = [
+            dict(row) for row in csv.DictReader(handle)
+            if row.get("split") in TRAINING_SPLITS
+        ]
+    groups: dict[int, set[str]] = {index: set() for index in range(shard_count)}
+    for row in rows:
+        key = row["source_id"].encode("utf-8")
+        groups[int.from_bytes(hashlib.sha256(key).digest()[:8], "big") % shard_count].add(
+            row["source_id"]
+        )
+    output = _new_output(output_path)
+    shards: list[dict[str, object]] = []
+    for index in range(shard_count):
+        destination = output / f"part-{index + 1:02d}"
+        report = prepare_training(
+            root=root,
+            manifest_path=manifest_path,
+            output_path=destination,
+            source_ids=groups[index],
+        )
+        if set(report["splits"]) != set(TRAINING_SPLITS):
+            raise ValueError(f"Shard {index + 1} is missing a split.")
+        report.update({
+            "kaggle_visible_shard": True,
+            "shard_part": index + 1,
+            "shard_count": shard_count,
+        })
+        _write_json(destination / "package_report.json", report)
+        shards.append({
+            "part": index + 1,
+            "directory": destination.name,
+            "recordings": report["recordings"],
+            "bytes": report["bytes"],
+            "splits": report["splits"],
+            "locked_test_included": False,
+        })
+    result = {
+        "schema_version": 1,
+        "kind": "polyphonic_training_data_shards",
+        "shard_count": shard_count,
+        "recordings": sum(int(item["recordings"]) for item in shards),
+        "bytes": sum(int(item["bytes"]) for item in shards),
+        "locked_test_included": False,
+        "shards": shards,
+    }
+    _write_json(output / "shards_report.json", result)
+    return result
 
 
 def prepare_raw(*, root: Path, output_path: Path) -> dict[str, object]:
@@ -463,6 +527,14 @@ def main() -> int:
         type=Path,
         default=Path("tmp/kaggle/polyphonic-train-validation"),
     )
+    shards = subparsers.add_parser("training-shards")
+    shards.add_argument("--root", type=Path, default=ROOT)
+    shards.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
+    shards.add_argument(
+        "--output", type=Path,
+        default=Path("tmp/kaggle/polyphonic-training-data-shards"),
+    )
+    shards.add_argument("--count", type=int, default=16)
     archive.add_argument(
         "--output",
         type=Path,
@@ -485,10 +557,15 @@ def main() -> int:
         report = prepare_raw(
             root=args.root.resolve(), output_path=args.output
         )
-    else:
+    elif args.kind == "archive-training":
         report = prepare_training_archive(
             package_path=args.package, output_path=args.output,
             part_bytes=args.part_mib * 1024 * 1024,
+        )
+    else:
+        report = prepare_training_shards(
+            root=args.root.resolve(), manifest_path=args.manifest.resolve(),
+            output_path=args.output, shard_count=args.count,
         )
     print(json.dumps(report, indent=2, ensure_ascii=False))
     return 0

@@ -62,6 +62,18 @@ def find_training_data_root(input_root: Path) -> Path:
     return _data_root_from_manifest(candidates[0])
 
 
+def find_training_shard_manifests(input_root: Path) -> list[Path]:
+    """Find the real-data manifests from individually published shards."""
+    candidates = sorted(input_root.rglob("manifest_kaggle_safe.csv"))
+    return [
+        path for path in candidates
+        if _data_root_from_manifest(path)
+        and path.as_posix().endswith(
+            "data/processed/polyphonic_v2_2_combined/manifest_kaggle_safe.csv"
+        )
+    ]
+
+
 def materialize_training_archive(input_root: Path) -> Path:
     index_paths = sorted(input_root.rglob("training_archive_index.json"))
     if index_paths:
@@ -190,6 +202,54 @@ def stage_training_data(source: Path) -> Path:
     return destination / MANIFEST_SUFFIX.relative_to("data")
 
 
+def _rebase_shard_path(value: str, shard_name: str) -> str:
+    relative = _portable_path(value)
+    if relative.parts[:1] != ("data",):
+        raise ValueError(f"Shard path must start with data/: {value}")
+    return (Path("data") / "shards" / shard_name / Path(*relative.parts[1:])).as_posix()
+
+
+def stage_training_shards(manifests: list[Path]) -> Path:
+    """Symlink each attached dataset and write one combined training manifest."""
+    if len(manifests) < 2:
+        raise ValueError("Expected at least two visible Kaggle data shards.")
+    destination = ROOT / "data"
+    _clear_tracked_data_placeholder(destination)
+    shards_root = destination / "shards"
+    shards_root.mkdir(parents=True)
+    combined_rows: list[dict[str, str]] = []
+    fieldnames: list[str] | None = None
+    seen_sources: set[str] = set()
+    for index, manifest in enumerate(manifests, start=1):
+        data_root = _data_root_from_manifest(manifest)
+        shard_name = f"part-{index:02d}"
+        os.symlink(data_root, shards_root / shard_name, target_is_directory=True)
+        with manifest.open("r", encoding="utf-8-sig", newline="") as handle:
+            reader = csv.DictReader(handle)
+            rows = [dict(row) for row in reader]
+            if fieldnames is None:
+                fieldnames = list(reader.fieldnames or [])
+        for row in rows:
+            if row.get("split") not in {"train", "validation"}:
+                raise ValueError("Locked test row found in visible data shard.")
+            source_id = row.get("source_id", "")
+            if source_id in seen_sources:
+                raise ValueError(f"Duplicate source across shards: {source_id}")
+            seen_sources.add(source_id)
+            row["audio_path"] = _rebase_shard_path(row["audio_path"], shard_name)
+            row["labels_path"] = _rebase_shard_path(row["labels_path"], shard_name)
+            combined_rows.append(row)
+    if not fieldnames:
+        raise ValueError("No shard manifest rows found.")
+    combined = destination / MANIFEST_SUFFIX.relative_to("data")
+    combined.parent.mkdir(parents=True)
+    with combined.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(combined_rows)
+    return combined
+
+
 def _symlink_file(source: Path, destination: Path) -> None:
     destination.parent.mkdir(parents=True, exist_ok=True)
     os.symlink(source, destination)
@@ -285,9 +345,14 @@ def main() -> int:
             "locked_test_used_for_model_selection": False,
         }
     else:
-        materialized_input = materialize_training_archive(args.input_root)
-        data_root = find_training_data_root(materialized_input)
-        manifest = stage_training_data(data_root)
+        shard_manifests = find_training_shard_manifests(args.input_root)
+        if shard_manifests:
+            manifest = stage_training_shards(shard_manifests)
+            data_root = ROOT / "data"
+        else:
+            materialized_input = materialize_training_archive(args.input_root)
+            data_root = find_training_data_root(materialized_input)
+            manifest = stage_training_data(data_root)
         validation = validate_training_manifest(manifest)
         command = [
             sys.executable,

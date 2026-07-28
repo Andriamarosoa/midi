@@ -13,6 +13,7 @@ import shutil
 import subprocess
 import sys
 import tarfile
+import re
 from pathlib import Path
 from typing import Any
 
@@ -63,10 +64,26 @@ def _read_package_report(dataset_dir: Path) -> dict[str, Any]:
     ):
         raise ValueError("The locked test must not enter the training dataset.")
     if report.get("kind") == "polyphonic_train_validation":
-        if report.get("archive_format") != "kaggle_chunked_tar_v1":
+        visible_shard = (
+            report.get("kaggle_visible_shard") is True
+            or re.fullmatch(r"part-\d{2}", dataset_dir.name) is not None
+        )
+        if visible_shard:
+            unsafe_paths = [
+                path.relative_to(dataset_dir).as_posix()
+                for path in dataset_dir.rglob("*")
+                if "#" in path.name
+            ]
+            if unsafe_paths:
+                raise ValueError(
+                    "Unsafe path in visible data shard: " + unsafe_paths[0]
+                )
+        elif report.get("archive_format") != "kaggle_chunked_tar_v1":
             raise ValueError(
                 "Refusing legacy single-TAR training upload; rebuild chunked archives."
             )
+        if visible_shard:
+            return report
         index_name = report.get("archive_index")
         if not isinstance(index_name, str):
             raise ValueError("Chunked training package has no archive index.")

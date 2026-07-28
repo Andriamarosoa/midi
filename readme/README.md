@@ -15,16 +15,16 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T05:42:20.937838+00:00`
-- Étape : `kaggle_chunked_upload_ready`
+- Mise à jour : `2026-07-28T06:09:31.857742+00:00`
+- Étape : `kaggle_visible_data_shards_ready`
 - Statut : `en cours`
-- Détail : le publieur produit désormais des TAR fragmentés de 512 MiB aux noms internes neutres, reconstitués dans Kaggle avant le train ; les anciens noms C# restent confinés dans les fragments et ne figurent plus dans les en-têtes TAR. Les tests de package passent ; la reconstruction des 8 Go et tout nouvel upload restent volontairement non lancés.
+- Détail : les 16 datasets réels ont été construits et validés : 754 enregistrements, 572 train, 182 validation, 8 415 871 294 octets au total ; chaque part contient train et validation, avec locked_test_included=false. Le processus de construction est terminé sans erreur.
 
 ## Étapes suivantes
 
-1. Reconstruire le package train/validation depuis data/processed quand les données locales seront restaurées.
-2. Vérifier localement l’index, la reconstruction et l’absence de # dans les en-têtes avant un unique nouvel upload privé.
-3. Créer le smoke P100 seulement après confirmation de publication du dataset.
+1. Valider l’assemblage multi-datasets dans l’entrée Kaggle.
+2. Publier chaque dataset privé séparément et confirmer sa visibilité dans Kaggle.
+3. Lancer le smoke P100 après confirmation de tous les shards.
 <!-- CURRENT_STATUS_END -->
 
 ## État technique consolidé
@@ -78,7 +78,7 @@ fondamentale contre harmonique/résonance.
 - 2026-07-28 — **terminé** — préparation du pipeline Kaggle privé :
   packaging sans test, smoke/train P100, reprise, supervision et récupération.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:START -->
-- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : le publieur produit désormais des TAR fragmentés de 512 MiB aux noms internes neutres, reconstitués dans Kaggle avant le train ; les anciens noms C# restent confinés dans les fragments et ne figurent plus dans les en-têtes TAR. Les tests de package passent ; la reconstruction des 8 Go et tout nouvel upload restent volontairement non lancés.
+- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : les 16 datasets réels ont été construits et validés : 754 enregistrements, 572 train, 182 validation, 8 415 871 294 octets au total ; chaque part contient train et validation, avec locked_test_included=false. Le processus de construction est terminé sans erreur.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
 <!-- PROJECT_TASK:skill_project_contract:START -->
 - 2026-07-28 — **terminé** — `skill_project_contract` : skill
