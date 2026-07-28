@@ -201,7 +201,7 @@ class KaggleCloudPipelineTests(unittest.TestCase):
             source,
         )
         self.assertIn("mounted_roots", source)
-        self.assertIn('path / "pyproject.toml"', source)
+        self.assertIn('input_root.rglob("pyproject.toml")', source)
         self.assertIn('"mounted_inputs"', source)
         self.assertIn("shutil.copytree(source_snapshot, workspace)", source)
         self.assertNotIn('"pip", "install"', source)
