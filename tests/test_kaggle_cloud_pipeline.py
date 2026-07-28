@@ -175,7 +175,10 @@ class KaggleCloudPipelineTests(unittest.TestCase):
             self.assertEqual(_read_package_report(upload)["archive_format"], "kaggle_chunked_tar_v1")
 
     def test_kernel_notebook_task_is_generated_without_other_edits(self) -> None:
-        notebook = _task_notebook("rebuild")
+        notebook = _task_notebook(
+            "rebuild",
+            source_dataset_slug="guitar-midi-polyphonic-code-6ce57898",
+        )
         task_lines = [
             line
             for cell in notebook["cells"]
@@ -190,9 +193,14 @@ class KaggleCloudPipelineTests(unittest.TestCase):
             for line in cell.get("source", [])
         )
         self.assertIn("< (3, 13)", source)
-        self.assertIn("for attempt in range(1, 4)", source)
+        self.assertNotIn('"git", "clone"', source)
         self.assertIn('rglob("midi_source.tar.gz")', source)
         self.assertIn('rglob("midi_source")', source)
+        self.assertIn(
+            'SOURCE_DATASET_SLUG = "guitar-midi-polyphonic-code-6ce57898"',
+            source,
+        )
+        self.assertIn('source_root / "pyproject.toml"', source)
         self.assertIn("shutil.copytree(source_snapshot, workspace)", source)
         self.assertNotIn('"pip", "install"', source)
 
@@ -211,6 +219,7 @@ class KaggleCloudPipelineTests(unittest.TestCase):
                     dataset_handles=[
                         "owner/data-part-01",
                         "owner/data-part-02",
+                        "owner/guitar-midi-polyphonic-code-6ce57898",
                     ],
                     task="smoke",
                     output_dir=output,
@@ -223,7 +232,26 @@ class KaggleCloudPipelineTests(unittest.TestCase):
             self.assertEqual(metadata["title"], "smoke shards")
             self.assertEqual(
                 metadata["dataset_sources"],
-                ["owner/data-part-01", "owner/data-part-02"],
+                [
+                    "owner/data-part-01",
+                    "owner/data-part-02",
+                    "owner/guitar-midi-polyphonic-code-6ce57898",
+                ],
+            )
+            notebook = json.loads(
+                (output / "polyphonic_smoke.ipynb").read_text(
+                    encoding="utf-8"
+                )
+            )
+            source = "".join(
+                line
+                for cell in notebook["cells"]
+                for line in cell.get("source", [])
+            )
+            self.assertIn(
+                'SOURCE_DATASET_SLUG = '
+                '"guitar-midi-polyphonic-code-6ce57898"',
+                source,
             )
 
     def test_source_dataset_contains_only_tracked_source_snapshot(self) -> None:

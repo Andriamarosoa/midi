@@ -144,9 +144,12 @@ def publish_dataset(
         ])
 
 
-def _task_notebook(task: str) -> dict[str, Any]:
+def _task_notebook(
+    task: str, *, source_dataset_slug: str = ""
+) -> dict[str, Any]:
     notebook = json.loads(NOTEBOOK.read_text(encoding="utf-8"))
-    replaced = False
+    task_replaced = False
+    source_replaced = False
     for cell in notebook["cells"]:
         if cell.get("cell_type") != "code":
             continue
@@ -156,9 +159,19 @@ def _task_notebook(task: str) -> dict[str, Any]:
                 source[index] = (
                     f'TASK = "{task}"  # "smoke", "train" ou "rebuild"\n'
                 )
-                replaced = True
-    if not replaced:
+                task_replaced = True
+            elif line.startswith("SOURCE_DATASET_SLUG = "):
+                source[index] = (
+                    f"SOURCE_DATASET_SLUG = {json.dumps(source_dataset_slug)} "
+                    "# injecté par le publisher Kaggle\n"
+                )
+                source_replaced = True
+    if not task_replaced:
         raise ValueError("TASK cell not found in Kaggle notebook.")
+    if not source_replaced:
+        raise ValueError(
+            "SOURCE_DATASET_SLUG cell not found in Kaggle notebook."
+        )
     return notebook
 
 
@@ -178,6 +191,17 @@ def publish_kernel(
         raise ValueError("Dataset handles must be USERNAME/SLUG.")
     if len(set(dataset_handles)) != len(dataset_handles):
         raise ValueError("Dataset handles must be unique.")
+    source_handles = [
+        handle
+        for handle in dataset_handles
+        if "/guitar-midi-polyphonic-code-" in handle
+    ]
+    if len(source_handles) != 1:
+        raise ValueError(
+            "Exactly one guitar-midi-polyphonic-code source dataset "
+            "must be attached."
+        )
+    source_dataset_slug = source_handles[0].split("/", 1)[1]
     output_dir = output_dir.resolve()
     if output_dir.exists():
         raise FileExistsError(
@@ -186,7 +210,14 @@ def publish_kernel(
     output_dir.mkdir(parents=True)
     notebook_name = f"polyphonic_{task}.ipynb"
     (output_dir / notebook_name).write_text(
-        json.dumps(_task_notebook(task), indent=1, ensure_ascii=False) + "\n",
+        json.dumps(
+            _task_notebook(
+                task, source_dataset_slug=source_dataset_slug
+            ),
+            indent=1,
+            ensure_ascii=False,
+        )
+        + "\n",
         encoding="utf-8",
     )
     metadata = json.loads(KERNEL_TEMPLATE.read_text(encoding="utf-8"))
