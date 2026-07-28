@@ -3,7 +3,7 @@ name = "midi"
 version = "1.0.0"
 description = "Causal guitar audio-to-MIDI desktop product"
 readme = "readme/README.md"
-requires-python = ">=3.9,<3.12"
+requires-python = ">=3.9,<3.13"
 
 dependencies = [
     "numpy>=1.23,<2.0",
@@ -16,7 +16,8 @@ dependencies = [
     "tqdm>=4.64,<5",
     "sounddevice>=0.4.6,<0.6",
     "pyfluidsynth>=1.3.6,<2",
-    "tensorflow>=2.15,<2.16",
+    "tensorflow>=2.15,<2.16; python_version < '3.12'",
+    "tensorflow>=2.18,<2.19; python_version >= '3.12'",
     "PyYAML>=6,<7",
 ]
 

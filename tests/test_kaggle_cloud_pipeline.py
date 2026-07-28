@@ -182,6 +182,12 @@ class KaggleCloudPipelineTests(unittest.TestCase):
         ]
         self.assertEqual(len(task_lines), 1)
         self.assertIn('"rebuild"', task_lines[0])
+        source = "".join(
+            line
+            for cell in notebook["cells"]
+            for line in cell.get("source", [])
+        )
+        self.assertIn("< (3, 13)", source)
 
     def test_kernel_accepts_multiple_unique_dataset_sources(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
