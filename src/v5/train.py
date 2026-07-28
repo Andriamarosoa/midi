@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import platform
 import subprocess
 from collections import Counter
@@ -94,6 +95,9 @@ def cache_statistics_by_dataset(
 
 
 def git_commit() -> str | None:
+    packaged = os.environ.get("GUITAR_MIDI_SOURCE_COMMIT")
+    if packaged:
+        return packaged
     try:
         result = subprocess.run(
             ["git", "rev-parse", "HEAD"],

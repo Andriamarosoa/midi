@@ -20,6 +20,7 @@ from scripts.cloud.prepare_kaggle_datasets import (
     prepare_training,
     prepare_training_archive,
 )
+from scripts.cloud.prepare_kaggle_source import prepare_source_dataset
 from scripts.cloud.package_kaggle_outputs import package_outputs
 from scripts.cloud.publish_kaggle import (
     _read_package_report,
@@ -189,6 +190,8 @@ class KaggleCloudPipelineTests(unittest.TestCase):
         )
         self.assertIn("< (3, 13)", source)
         self.assertIn("for attempt in range(1, 4)", source)
+        self.assertIn('rglob("midi_source.tar.gz")', source)
+        self.assertNotIn('"pip", "install"', source)
 
     def test_kernel_accepts_multiple_unique_dataset_sources(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -219,6 +222,26 @@ class KaggleCloudPipelineTests(unittest.TestCase):
                 metadata["dataset_sources"],
                 ["owner/data-part-01", "owner/data-part-02"],
             )
+
+    def test_source_dataset_contains_only_tracked_source_snapshot(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary) / "source"
+            report = prepare_source_dataset(
+                output_dir=output,
+                handle="owner/source",
+                title="Source",
+            )
+            self.assertTrue((output / "midi_source.tar.gz").is_file())
+            self.assertFalse(report["datasets_included"])
+            self.assertFalse(report["locked_test_included"])
+            with tarfile.open(output / "midi_source.tar.gz", "r:gz") as archive:
+                names = set(archive.getnames())
+            self.assertIn("scripts/cloud/kaggle_entrypoint.py", names)
+            self.assertFalse(any(
+                name.startswith("data/processed/")
+                and name != "data/processed/.gitkeep"
+                for name in names
+            ))
 
     def test_training_outputs_are_packaged_without_data(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

@@ -62,10 +62,16 @@ def _git_value(*arguments: str) -> str:
 
 
 def _branch() -> str:
+    packaged = os.environ.get("GUITAR_MIDI_SOURCE_BRANCH")
+    if packaged:
+        return packaged
     return _git_value("branch", "--show-current")
 
 
 def _commit() -> str:
+    packaged = os.environ.get("GUITAR_MIDI_SOURCE_COMMIT")
+    if packaged:
+        return packaged
     return _git_value("rev-parse", "HEAD")
 
 
