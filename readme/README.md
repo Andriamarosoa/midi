@@ -16,10 +16,10 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T00:15:22.978497+00:00`
+- Mise à jour : `2026-07-28T00:21:26.399039+00:00`
 - Étape : `waiting_training_dataset`
 - Statut : `en cours`
-- Détail : upload privé actif : 4,34 Go sur 7,84 Go (55 %), sans anomalie
+- Détail : upload privé actif : 5,01 Go sur 7,84 Go (64 %), sans anomalie
 
 ## Étapes suivantes
 
@@ -87,8 +87,11 @@ fondamentale contre harmonique/résonance.
 - 2026-07-28 — **terminé** — préparation du pipeline Kaggle privé :
   packaging sans test, smoke/train P100, reprise, supervision et récupération.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:START -->
-- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : upload privé actif : 4,34 Go sur 7,84 Go (55 %), sans anomalie
+- 2026-07-28 — **en cours** — `kaggle_training_dataset_upload` : upload privé actif : 5,01 Go sur 7,84 Go (64 %), sans anomalie
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
+<!-- PROJECT_TASK:skill_project_contract:START -->
+- 2026-07-28 — **terminé** — `skill_project_contract` : skill guitar-audio-midi-researcher enrichi avec le contrat permanent du projet et validé
+<!-- PROJECT_TASK:skill_project_contract:END -->
 <!-- JOURNAL_END -->
 
 ## Rapports détaillés
