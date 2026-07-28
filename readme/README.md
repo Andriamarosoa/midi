@@ -15,14 +15,14 @@ live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-28T20:11:40.421763+00:00`
-- Étape : `kaggle_musical_selection_preparation`
+- Mise à jour : `2026-07-28T20:16:00.067279+00:00`
+- Étape : `kaggle_musical_selection_12_recordings`
 - Statut : `en cours`
-- Détail : Classement Kaggle validation-only sur exactement 60000 exemples terminé et validé : archive 47083520 octets, SHA-256 04007ad3fe4e5bd5c49e55dad802c4df0cb86779d621ac7c02d04288f718e82a conforme, 8/8 checkpoints et 8 seuils, locked_test_used=false. L'époque 8 domine les quatre critères (frame F1 0,538069 ; onset F1 0,104517 ; MAE amplitude harmonique 0,043955 ; MAE offset harmonique normalisé 0,153479) et constitue l'unique candidate Pareto. Préparation de la sélection musicale événementielle sur 12 enregistrements de validation.
+- Détail : Classement 60000 validation-only validé : époque 8 unique Pareto (frame F1 0,538069 ; onset F1 0,104517 ; erreurs harmoniques minimales). Kernel privé unique miranacareneandrisoa/guitar-midi-poly-select-events-20260729 lancé et statut réel RUNNING. Il attache directement la sortie privée du classement comme kernel source, évalue l'unique candidate sur 12 enregistrements de validation et n'utilise pas le test verrouillé.
 
 ## Étapes suivantes
 
-1. Publier le run classé privé, lancer une seule sélection Kaggle validation-only, puis valider selection.json, selected.keras, thresholds.json et decoder_config.json sans ouvrir le test verrouillé.
+1. Surveiller sans relance. À COMPLETE, télécharger uniquement les outputs et valider SHA-256, selection.json, selected.keras, thresholds.json, decoder_config.json, maximum_recordings=12, candidate_count=1 et locked_test_used=false.
 <!-- CURRENT_STATUS_END -->
 
 ## État technique consolidé
@@ -79,7 +79,7 @@ fondamentale contre harmonique/résonance.
 - 2026-07-28 — **terminé** — `kaggle_training_dataset_upload` : pipeline Kaggle P100 validé avec succès sur le compte `miranacareneandrisoa`, commit `8bccadc6`, TensorFlow 2.20/Keras 3. Le smoke attache les 16 shards, charge les NPY tronqués, entraîne une époque de 256 exemples, valide sur 128 exemples et produit `best.keras`, `last.keras`, `final.keras`, l'archive et le rapport. Archive 17111040 octets, SHA-256 `830aa93d81d814a2f3109b9a62e26612348d90f53c3e4000078c6bcd95070117` conforme ; `locked_test_used=false`. Les quatre corpus sont présents dans les pools. Les métriques smoke (val_frame_micro_f1=0.061205, val_onset_micro_f1=0.002302) vérifient l'exécution, pas la qualité.
 <!-- PROJECT_TASK:kaggle_training_dataset_upload:END -->
 <!-- PROJECT_TASK:checkpoint_validation_selection:START -->
-- 2026-07-28 — **en cours** — `checkpoint_validation_selection` : Classement Kaggle validation-only sur exactement 60000 exemples terminé et validé : archive 47083520 octets, SHA-256 04007ad3fe4e5bd5c49e55dad802c4df0cb86779d621ac7c02d04288f718e82a conforme, 8/8 checkpoints et 8 seuils, locked_test_used=false. L'époque 8 domine les quatre critères (frame F1 0,538069 ; onset F1 0,104517 ; MAE amplitude harmonique 0,043955 ; MAE offset harmonique normalisé 0,153479) et constitue l'unique candidate Pareto. Préparation de la sélection musicale événementielle sur 12 enregistrements de validation.
+- 2026-07-28 — **en cours** — `checkpoint_validation_selection` : Classement 60000 validation-only validé : époque 8 unique Pareto (frame F1 0,538069 ; onset F1 0,104517 ; erreurs harmoniques minimales). Kernel privé unique miranacareneandrisoa/guitar-midi-poly-select-events-20260729 lancé et statut réel RUNNING. Il attache directement la sortie privée du classement comme kernel source, évalue l'unique candidate sur 12 enregistrements de validation et n'utilise pas le test verrouillé.
 <!-- PROJECT_TASK:checkpoint_validation_selection:END -->
 <!-- PROJECT_TASK:skill_project_contract:START -->
 - 2026-07-28 — **terminé** — `skill_project_contract` : skill

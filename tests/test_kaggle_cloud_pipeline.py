@@ -26,6 +26,9 @@ from scripts.cloud.prepare_kaggle_datasets import (
     prepare_training_archive,
 )
 from scripts.cloud.prepare_kaggle_source import prepare_source_dataset
+from scripts.cloud.prepare_kaggle_selection import (
+    prepare_selection_kernel,
+)
 from scripts.cloud.package_kaggle_outputs import package_outputs
 from scripts.cloud.publish_kaggle import (
     _read_package_report,
@@ -245,6 +248,37 @@ class KaggleCloudPipelineTests(unittest.TestCase):
         self.assertIn('TASK = "select"', source)
         self.assertIn("MAXIMUM_RECORDINGS = 12", source)
         self.assertIn("MAXIMUM_CANDIDATES = 8", source)
+
+    def test_selection_kernel_reuses_private_rank_output(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary) / "selection"
+            kernel = prepare_selection_kernel(
+                output_dir=output,
+                owner="owner",
+                kernel_slug="validation-selection",
+                source_dataset="owner/guitar-midi-polyphonic-code-d8ce1392",
+                data_datasets=["data/part-01", "data/part-02"],
+                rank_kernel="owner/rank-full",
+            )
+            metadata = json.loads(
+                (output / "kernel-metadata.json").read_text(encoding="utf-8")
+            )
+            notebook = json.loads(
+                (output / "polyphonic_select.ipynb").read_text(
+                    encoding="utf-8"
+                )
+            )
+            source = "".join(
+                line
+                for cell in notebook["cells"]
+                for line in cell.get("source", [])
+            )
+            self.assertEqual(kernel, "owner/validation-selection")
+            self.assertEqual(metadata["kernel_sources"], ["owner/rank-full"])
+            self.assertNotIn("owner/local-checkpoints", metadata["dataset_sources"])
+            self.assertIn("guitar-midi-rank-results.tar", source)
+            self.assertIn('"src.polyphonic.select_final_checkpoint"', source)
+            self.assertIn('task="select"', source)
 
     def test_kernel_accepts_multiple_unique_dataset_sources(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
