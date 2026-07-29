@@ -51,11 +51,70 @@ DEFAULT_LOG_EVERY_BATCHES = 25
 DEFAULT_RECOVERY_CHUNK_BATCHES = 250
 DEFAULT_SMOKE_RUNTIME_MINUTES = 30.0
 DEFAULT_TRAIN_RUNTIME_MINUTES = 600.0
+PROCESS_RUNTIME_GRACE_MINUTES = 8.0
 
 
-def _run(command: Sequence[str]) -> None:
+def _run(
+    command: Sequence[str], *, timeout_seconds: float | None = None
+) -> None:
     print("+ " + " ".join(command), flush=True)
-    subprocess.run(command, cwd=ROOT, check=True)
+    if timeout_seconds is not None:
+        print(
+            "PROCESS_WATCHDOG "
+            + json.dumps(
+                {
+                    "timeout_seconds": float(timeout_seconds),
+                    "command": list(command),
+                },
+                separators=(",", ":"),
+            ),
+            flush=True,
+        )
+    try:
+        subprocess.run(
+            command,
+            cwd=ROOT,
+            check=True,
+            timeout=timeout_seconds,
+        )
+    except subprocess.TimeoutExpired:
+        print(
+            "PROCESS_TIMEOUT "
+            + json.dumps(
+                {
+                    "timeout_seconds": timeout_seconds,
+                    "command": list(command),
+                },
+                separators=(",", ":"),
+            ),
+            flush=True,
+        )
+        raise
+
+
+def _effective_training_runtime_minutes(
+    *, smoke_test: bool, maximum_runtime_minutes: float | None
+) -> float:
+    runtime_minutes = (
+        maximum_runtime_minutes
+        if maximum_runtime_minutes is not None
+        else (
+            DEFAULT_SMOKE_RUNTIME_MINUTES
+            if smoke_test
+            else DEFAULT_TRAIN_RUNTIME_MINUTES
+        )
+    )
+    if runtime_minutes <= 0:
+        raise ValueError("maximum_runtime_minutes must be positive.")
+    return float(runtime_minutes)
+
+
+def _training_process_timeout_seconds(runtime_minutes: float) -> float:
+    if runtime_minutes <= 0:
+        raise ValueError("runtime_minutes must be positive.")
+    return float(
+        (runtime_minutes + PROCESS_RUNTIME_GRACE_MINUTES) * 60.0
+    )
 
 
 def _recovery_roundtrip_command(run_dir: Path) -> tuple[str, ...]:
@@ -92,17 +151,10 @@ def _src_training_arguments(
         raise ValueError("recovery_chunk_batches must be positive.")
     if representative_smoke and not smoke_test:
         raise ValueError("--representative-smoke requires --smoke-test.")
-    runtime_minutes = (
-        maximum_runtime_minutes
-        if maximum_runtime_minutes is not None
-        else (
-            DEFAULT_SMOKE_RUNTIME_MINUTES
-            if smoke_test
-            else DEFAULT_TRAIN_RUNTIME_MINUTES
-        )
+    runtime_minutes = _effective_training_runtime_minutes(
+        smoke_test=smoke_test,
+        maximum_runtime_minutes=maximum_runtime_minutes,
     )
-    if runtime_minutes <= 0:
-        raise ValueError("maximum_runtime_minutes must be positive.")
 
     arguments = [
         "--workers",
@@ -456,6 +508,10 @@ def main() -> int:
             "--initial-checkpoint",
             str(args.initial_checkpoint.resolve()),
         ))
+    training_runtime_minutes = _effective_training_runtime_minutes(
+        smoke_test=args.smoke_test,
+        maximum_runtime_minutes=args.maximum_runtime_minutes,
+    )
     train_command.extend(_src_training_arguments(
         workers=args.workers,
         smoke_test=args.smoke_test,
@@ -464,9 +520,14 @@ def main() -> int:
         smoke_validation_examples=args.smoke_validation_examples,
         log_every_batches=args.log_every_batches,
         recovery_chunk_batches=args.recovery_chunk_batches,
-        maximum_runtime_minutes=args.maximum_runtime_minutes,
+        maximum_runtime_minutes=training_runtime_minutes,
     ))
-    _run(train_command)
+    _run(
+        train_command,
+        timeout_seconds=_training_process_timeout_seconds(
+            training_runtime_minutes
+        ),
+    )
     run_dir = (
         resume_run
         if resume_run is not None

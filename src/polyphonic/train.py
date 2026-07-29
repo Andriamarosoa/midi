@@ -1282,8 +1282,11 @@ def run_recoverable_training(
     ):
         raise ValueError("Maximum runtime must be positive.")
 
+    print("RECOVERY_PREFLIGHT finite_check_begin", flush=True)
     _assert_model_finite(model)
+    print("RECOVERY_PREFLIGHT finite_check_complete", flush=True)
     if recovery_snapshot is None:
+        print("RECOVERY_PREFLIGHT initial_checkpoint_begin", flush=True)
         callback_state = _initial_callback_state(policy)
         recovery_snapshot = save_recovery_checkpoint(
             recovery_dir,
@@ -1292,6 +1295,14 @@ def run_recoverable_training(
             next_batch=0,
             signatures=signatures,
             callback_state=callback_state,
+        )
+        print(
+            "RECOVERY_PREFLIGHT initial_checkpoint_complete "
+            f"generation={recovery_snapshot.state['generation']} "
+            f"slot={recovery_snapshot.state['slot']} "
+            f"optimizer_iterations="
+            f"{recovery_snapshot.state['optimizer_iterations']}",
+            flush=True,
         )
     else:
         if recovery_snapshot.model is not model:
