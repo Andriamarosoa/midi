@@ -21,6 +21,12 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[2]
 NOTEBOOK = ROOT / "kaggle/polyphonic_pipeline.ipynb"
 KERNEL_TEMPLATE = ROOT / "kaggle/kernel-metadata.template.json"
+DEFAULT_WORKERS = 4
+DEFAULT_SMOKE_EXAMPLES = 8192
+DEFAULT_SMOKE_VALIDATION_EXAMPLES = 2048
+DEFAULT_LOG_EVERY_BATCHES = 25
+DEFAULT_SMOKE_RUNTIME_MINUTES = 30.0
+DEFAULT_TRAIN_RUNTIME_MINUTES = 600.0
 
 
 def _kaggle() -> str:
@@ -153,6 +159,11 @@ def _task_notebook(
     maximum_examples: int = 60_000,
     maximum_recordings: int = 12,
     maximum_candidates: int = 8,
+    workers: int = DEFAULT_WORKERS,
+    smoke_examples: int = DEFAULT_SMOKE_EXAMPLES,
+    smoke_validation_examples: int = DEFAULT_SMOKE_VALIDATION_EXAMPLES,
+    log_every_batches: int = DEFAULT_LOG_EVERY_BATCHES,
+    maximum_runtime_minutes: float | None = None,
 ) -> dict[str, Any]:
     if maximum_examples < 1:
         raise ValueError("maximum_examples must be positive.")
@@ -160,6 +171,23 @@ def _task_notebook(
         raise ValueError("maximum_recordings must be positive.")
     if maximum_candidates < 1:
         raise ValueError("maximum_candidates must be positive.")
+    if workers < 1:
+        raise ValueError("workers must be positive.")
+    if smoke_examples < 1 or smoke_validation_examples < 1:
+        raise ValueError("Smoke example counts must be positive.")
+    if log_every_batches < 1:
+        raise ValueError("log_every_batches must be positive.")
+    runtime_minutes = (
+        maximum_runtime_minutes
+        if maximum_runtime_minutes is not None
+        else (
+            DEFAULT_SMOKE_RUNTIME_MINUTES
+            if task == "smoke"
+            else DEFAULT_TRAIN_RUNTIME_MINUTES
+        )
+    )
+    if runtime_minutes <= 0:
+        raise ValueError("maximum_runtime_minutes must be positive.")
     notebook = json.loads(NOTEBOOK.read_text(encoding="utf-8"))
     task_replaced = False
     source_replaced = False
@@ -168,6 +196,11 @@ def _task_notebook(
     maximum_replaced = False
     recordings_replaced = False
     candidates_replaced = False
+    workers_replaced = False
+    smoke_examples_replaced = False
+    smoke_validation_replaced = False
+    log_batches_replaced = False
+    runtime_replaced = False
     for cell in notebook["cells"]:
         if cell.get("cell_type") != "code":
             continue
@@ -210,6 +243,30 @@ def _task_notebook(
                     f"MAXIMUM_CANDIDATES = {int(maximum_candidates)}\n"
                 )
                 candidates_replaced = True
+            elif line.startswith("WORKERS = "):
+                source[index] = f"WORKERS = {int(workers)}\n"
+                workers_replaced = True
+            elif line.startswith("SMOKE_EXAMPLES = "):
+                source[index] = (
+                    f"SMOKE_EXAMPLES = {int(smoke_examples)}\n"
+                )
+                smoke_examples_replaced = True
+            elif line.startswith("SMOKE_VALIDATION_EXAMPLES = "):
+                source[index] = (
+                    "SMOKE_VALIDATION_EXAMPLES = "
+                    f"{int(smoke_validation_examples)}\n"
+                )
+                smoke_validation_replaced = True
+            elif line.startswith("LOG_EVERY_BATCHES = "):
+                source[index] = (
+                    f"LOG_EVERY_BATCHES = {int(log_every_batches)}\n"
+                )
+                log_batches_replaced = True
+            elif line.startswith("MAXIMUM_RUNTIME_MINUTES = "):
+                source[index] = (
+                    f"MAXIMUM_RUNTIME_MINUTES = {float(runtime_minutes)!r}\n"
+                )
+                runtime_replaced = True
     if not task_replaced:
         raise ValueError("TASK cell not found in Kaggle notebook.")
     if not source_replaced:
@@ -234,6 +291,22 @@ def _task_notebook(
         raise ValueError(
             "MAXIMUM_CANDIDATES cell not found in Kaggle notebook."
         )
+    if not workers_replaced:
+        raise ValueError("WORKERS cell not found in Kaggle notebook.")
+    if not smoke_examples_replaced:
+        raise ValueError("SMOKE_EXAMPLES cell not found in Kaggle notebook.")
+    if not smoke_validation_replaced:
+        raise ValueError(
+            "SMOKE_VALIDATION_EXAMPLES cell not found in Kaggle notebook."
+        )
+    if not log_batches_replaced:
+        raise ValueError(
+            "LOG_EVERY_BATCHES cell not found in Kaggle notebook."
+        )
+    if not runtime_replaced:
+        raise ValueError(
+            "MAXIMUM_RUNTIME_MINUTES cell not found in Kaggle notebook."
+        )
     return notebook
 
 
@@ -250,6 +323,11 @@ def publish_kernel(
     maximum_examples: int = 60_000,
     maximum_recordings: int = 12,
     maximum_candidates: int = 8,
+    workers: int = DEFAULT_WORKERS,
+    smoke_examples: int = DEFAULT_SMOKE_EXAMPLES,
+    smoke_validation_examples: int = DEFAULT_SMOKE_VALIDATION_EXAMPLES,
+    log_every_batches: int = DEFAULT_LOG_EVERY_BATCHES,
+    maximum_runtime_minutes: float | None = None,
 ) -> str:
     if "/" in owner or not owner:
         raise ValueError("Owner must be a Kaggle username.")
@@ -287,6 +365,11 @@ def publish_kernel(
                 maximum_examples=maximum_examples,
                 maximum_recordings=maximum_recordings,
                 maximum_candidates=maximum_candidates,
+                workers=workers,
+                smoke_examples=smoke_examples,
+                smoke_validation_examples=smoke_validation_examples,
+                log_every_batches=log_every_batches,
+                maximum_runtime_minutes=maximum_runtime_minutes,
             ),
             indent=1,
             ensure_ascii=False,
@@ -384,6 +467,33 @@ def main() -> int:
         default=8,
         help="Maximum ranked candidates for select; defaults to 8.",
     )
+    kernel.add_argument("--workers", type=int, default=DEFAULT_WORKERS)
+    kernel.add_argument(
+        "--smoke-examples",
+        type=int,
+        default=DEFAULT_SMOKE_EXAMPLES,
+        help="Representative smoke train examples; defaults to 8192.",
+    )
+    kernel.add_argument(
+        "--smoke-validation-examples",
+        type=int,
+        default=DEFAULT_SMOKE_VALIDATION_EXAMPLES,
+        help="Representative smoke validation examples; defaults to 2048.",
+    )
+    kernel.add_argument(
+        "--log-every-batches",
+        type=int,
+        default=DEFAULT_LOG_EVERY_BATCHES,
+        help="Emit and persist progress every N train batches.",
+    )
+    kernel.add_argument(
+        "--maximum-runtime-minutes",
+        type=float,
+        help=(
+            "Hard runtime budget; defaults to 30 minutes for smoke and "
+            "600 minutes for train."
+        ),
+    )
 
     args = parser.parse_args()
     if args.command == "dataset":
@@ -407,6 +517,11 @@ def main() -> int:
             maximum_examples=args.maximum_examples,
             maximum_recordings=args.maximum_recordings,
             maximum_candidates=args.maximum_candidates,
+            workers=args.workers,
+            smoke_examples=args.smoke_examples,
+            smoke_validation_examples=args.smoke_validation_examples,
+            log_every_batches=args.log_every_batches,
+            maximum_runtime_minutes=args.maximum_runtime_minutes,
         )
         print(json.dumps({"kernel": kernel_id, "task": args.task}, indent=2))
     return 0

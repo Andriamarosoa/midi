@@ -489,8 +489,26 @@ class PolyphonicSequence(tf.keras.utils.Sequence):
         input_gain_by_frame: Sequence[np.ndarray] | None = None,
         full_context_from_start: bool = False,
         shuffle: bool = False,
+        workers: int = 1,
+        max_queue_size: int = 2,
     ) -> None:
-        super().__init__()
+        # Keras 3 removed the queue options from ``Model.fit``. They now
+        # belong to ``PyDataset``/``Sequence`` itself. Keep multiprocessing
+        # disabled because each process would duplicate the multi-gigabyte
+        # audio cache.
+        try:
+            super().__init__(
+                workers=int(workers),
+                use_multiprocessing=False,
+                max_queue_size=int(max_queue_size),
+            )
+        except TypeError as error:
+            # TensorFlow/Keras 2 exposes ``Sequence`` as a legacy base whose
+            # initializer is effectively ``object.__init__``. Its queue
+            # options are still passed to ``Model.fit`` by train.py.
+            if "object.__init__()" not in str(error):
+                raise
+            super().__init__()
         self.corpus = corpus
         self.batch_size = int(batch_size)
         self.input_samples = int(input_samples)
@@ -517,7 +535,14 @@ class PolyphonicSequence(tf.keras.utils.Sequence):
             )
         )
         self.full_context_from_start = bool(full_context_from_start)
-        if self.batch_size < 1 or self.input_samples < 1:
+        self.workers = int(workers)
+        self.max_queue_size = int(max_queue_size)
+        if (
+            self.batch_size < 1
+            or self.input_samples < 1
+            or self.workers < 1
+            or self.max_queue_size < 1
+        ):
             raise ValueError("Invalid sequence dimensions.")
         if pools is None and self.dataset_pools is None and refs is None:
             raise ValueError("Either fixed refs or balanced pools are required.")
@@ -553,41 +578,55 @@ class PolyphonicSequence(tf.keras.utils.Sequence):
                         "Per-frame input gains must be finite and positive."
                     )
         self.fixed_refs = None if refs is None else np.asarray(refs, np.int32)
-        self.order = self._next_order()
+        self.order, self.augmentation_gains = self._next_plan()
 
-    def _next_order(self) -> np.ndarray:
+    def _next_plan(self) -> tuple[np.ndarray, np.ndarray]:
         if self.pools is None and self.dataset_pools is None:
             assert self.fixed_refs is not None
             order = self.fixed_refs.copy()
             if self.shuffle:
                 self.rng.shuffle(order)
-            return order
-        assert self.examples_per_epoch is not None
-        if self.dataset_pools is not None:
-            assert self.dataset_fractions is not None
-            dataset_parts: list[np.ndarray] = []
-            assigned = 0
-            datasets = list(self.dataset_fractions)
-            for index, dataset_id in enumerate(datasets):
-                count = (
-                    self.examples_per_epoch - assigned
-                    if index == len(datasets) - 1
-                    else int(round(
-                        self.examples_per_epoch
-                        * float(self.dataset_fractions[dataset_id])
+        else:
+            assert self.examples_per_epoch is not None
+            if self.dataset_pools is not None:
+                assert self.dataset_fractions is not None
+                dataset_parts: list[np.ndarray] = []
+                assigned = 0
+                datasets = list(self.dataset_fractions)
+                for index, dataset_id in enumerate(datasets):
+                    count = (
+                        self.examples_per_epoch - assigned
+                        if index == len(datasets) - 1
+                        else int(round(
+                            self.examples_per_epoch
+                            * float(self.dataset_fractions[dataset_id])
+                        ))
+                    )
+                    dataset_parts.append(self._sample_pools(
+                        self.dataset_pools[dataset_id], count
                     ))
+                    assigned += count
+                order = np.concatenate(dataset_parts, axis=0)
+            else:
+                assert self.pools is not None
+                order = self._sample_pools(
+                    self.pools, self.examples_per_epoch
                 )
-                dataset_parts.append(self._sample_pools(
-                    self.dataset_pools[dataset_id], count
-                ))
-                assigned += count
-            order = np.concatenate(dataset_parts, axis=0)
             self.rng.shuffle(order)
-            return order
-        assert self.pools is not None
-        order = self._sample_pools(self.pools, self.examples_per_epoch)
-        self.rng.shuffle(order)
-        return order
+
+        if self.augmentation_gain_db > 0.0:
+            gains = np.power(
+                np.float32(10.0),
+                self.rng.uniform(
+                    -self.augmentation_gain_db,
+                    self.augmentation_gain_db,
+                    size=len(order),
+                ).astype(np.float32)
+                / np.float32(20.0),
+            ).astype(np.float32)
+        else:
+            gains = np.ones(len(order), dtype=np.float32)
+        return order, gains
 
     def _sample_pools(self, pools: FramePools, total: int) -> np.ndarray:
         sampled: list[np.ndarray] = []
@@ -612,9 +651,10 @@ class PolyphonicSequence(tf.keras.utils.Sequence):
         return max(1, math.ceil(len(self.order) / self.batch_size))
 
     def __getitem__(self, batch_index: int):
-        selected = self.order[
-            batch_index * self.batch_size:(batch_index + 1) * self.batch_size
-        ]
+        start = batch_index * self.batch_size
+        end = (batch_index + 1) * self.batch_size
+        selected = self.order[start:end]
+        selected_augmentation_gains = self.augmentation_gains[start:end]
         if len(selected) == 0:
             raise IndexError(batch_index)
         size = len(selected)
@@ -651,12 +691,7 @@ class PolyphonicSequence(tf.keras.utils.Sequence):
                 gain *= float(
                     self.input_gain_by_frame[recording_index][frame_index]
                 )
-            if self.augmentation_gain_db > 0.0:
-                gain *= 10.0 ** (
-                    self.rng.uniform(
-                        -self.augmentation_gain_db, self.augmentation_gain_db
-                    ) / 20.0
-                )
+            gain *= float(selected_augmentation_gains[row])
             audio[row, :, 0] *= gain
             np.clip(audio[row, :, 0], -1.0, 1.0, out=audio[row, :, 0])
             if self.full_context_from_start:
@@ -704,4 +739,4 @@ class PolyphonicSequence(tf.keras.utils.Sequence):
         return inputs, targets
 
     def on_epoch_end(self) -> None:
-        self.order = self._next_order()
+        self.order, self.augmentation_gains = self._next_plan()

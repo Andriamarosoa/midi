@@ -20,6 +20,8 @@ from scripts.cloud.kaggle_entrypoint import (
     find_checkpoint_run,
     _resolve_visible_audio_location,
     _resolve_visible_shard_path,
+    _training_control_arguments,
+    stage_training_shards,
 )
 from scripts.cloud.prepare_kaggle_datasets import (
     prepare_training,
@@ -36,10 +38,61 @@ from scripts.cloud.publish_kaggle import (
     publish_kernel,
 )
 from scripts.cloud.supervise_kaggle import STATUS_PATTERN
+from scripts.cloud.train_polyphonic import _src_training_arguments
 from scripts.project_summary import update_project_summary
 
 
 class KaggleCloudPipelineTests(unittest.TestCase):
+    @staticmethod
+    def _write_visible_shard(
+        root: Path,
+        *,
+        source_id: str,
+        split: str,
+        audio_path: str,
+        audio_member: str,
+        labels_path: str,
+        actual_audio_path: str,
+        actual_labels_path: str,
+    ) -> Path:
+        data_root = root / "data"
+        audio = data_root / Path(actual_audio_path).relative_to("data")
+        labels = data_root / Path(actual_labels_path).relative_to("data")
+        audio.parent.mkdir(parents=True, exist_ok=True)
+        labels.parent.mkdir(parents=True, exist_ok=True)
+        audio.write_bytes(f"audio-{source_id}".encode())
+        labels.write_bytes(f"labels-{source_id}".encode())
+        manifest = (
+            data_root
+            / "processed/polyphonic_v2_2_combined/"
+            "manifest_kaggle_safe.csv"
+        )
+        manifest.parent.mkdir(parents=True, exist_ok=True)
+        fieldnames = [
+            "source_id", "dataset_id", "player_id", "group_id", "split",
+            "audio_path", "audio_member", "labels_path",
+            "annotation_path", "harmonic_csv_path", "capture_id",
+            "license_id",
+        ]
+        with manifest.open("w", encoding="utf-8", newline="") as handle:
+            writer = csv.DictWriter(handle, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerow({
+                "source_id": source_id,
+                "dataset_id": "unit",
+                "player_id": source_id,
+                "group_id": source_id,
+                "split": split,
+                "audio_path": audio_path,
+                "audio_member": audio_member,
+                "labels_path": labels_path,
+                "annotation_path": "",
+                "harmonic_csv_path": "",
+                "capture_id": "clean",
+                "license_id": "CC-BY-4.0",
+            })
+        return manifest
+
     def test_kaggle_upload_progress_uses_server_acknowledged_range(self) -> None:
         class Response:
             code = 308
@@ -222,10 +275,34 @@ class KaggleCloudPipelineTests(unittest.TestCase):
         self.assertIn('"--initial-checkpoint-name"', source)
         self.assertIn("MAXIMUM_RECORDINGS = 12", source)
         self.assertIn("MAXIMUM_CANDIDATES = 8", source)
+        self.assertIn("WORKERS = 4", source)
+        self.assertIn("SMOKE_EXAMPLES = 8192", source)
+        self.assertIn("SMOKE_VALIDATION_EXAMPLES = 2048", source)
+        self.assertIn("LOG_EVERY_BATCHES = 25", source)
+        self.assertIn("MAXIMUM_RUNTIME_MINUTES = 600.0", source)
         self.assertIn(
             '"--maximum-examples", str(MAXIMUM_EXAMPLES)',
             source,
         )
+        self.assertIn('"--workers", str(WORKERS)', source)
+        self.assertIn('"--smoke-examples", str(SMOKE_EXAMPLES)', source)
+        self.assertIn(
+            '"--smoke-validation-examples", '
+            "str(SMOKE_VALIDATION_EXAMPLES)",
+            source,
+        )
+        self.assertIn(
+            '"--log-every-batches", str(LOG_EVERY_BATCHES)', source
+        )
+        self.assertIn(
+            '"--maximum-runtime-minutes", '
+            "str(MAXIMUM_RUNTIME_MINUTES)",
+            source,
+        )
+        self.assertIn('"keras"', source)
+        self.assertIn('subprocess.run(["nvidia-smi"]', source)
+        self.assertIn('"PYTHONUNBUFFERED"', source)
+        self.assertIn("write_through=True", source)
         self.assertIn("mounted_roots", source)
         self.assertIn('input_root.rglob("pyproject.toml")', source)
         self.assertIn('"mounted_inputs"', source)
@@ -244,6 +321,73 @@ class KaggleCloudPipelineTests(unittest.TestCase):
             for line in cell.get("source", [])
         )
         self.assertIn("MAXIMUM_EXAMPLES = 128", source)
+
+    def test_smoke_kernel_injects_representative_runtime_controls(self) -> None:
+        notebook = _task_notebook(
+            "smoke",
+            source_dataset_slug="guitar-midi-polyphonic-code-smoke",
+            workers=3,
+            smoke_examples=4096,
+            smoke_validation_examples=1024,
+            log_every_batches=10,
+            maximum_runtime_minutes=27.5,
+        )
+        source = "".join(
+            line
+            for cell in notebook["cells"]
+            for line in cell.get("source", [])
+        )
+        self.assertIn("WORKERS = 3", source)
+        self.assertIn("SMOKE_EXAMPLES = 4096", source)
+        self.assertIn("SMOKE_VALIDATION_EXAMPLES = 1024", source)
+        self.assertIn("LOG_EVERY_BATCHES = 10", source)
+        self.assertIn("MAXIMUM_RUNTIME_MINUTES = 27.5", source)
+
+    def test_entrypoint_separates_smoke_and_train_controls(self) -> None:
+        smoke = _training_control_arguments(
+            task="smoke",
+            workers=3,
+            smoke_examples=8192,
+            smoke_validation_examples=2048,
+            log_every_batches=25,
+            maximum_runtime_minutes=None,
+        )
+        train = _training_control_arguments(
+            task="train",
+            workers=2,
+            smoke_examples=8192,
+            smoke_validation_examples=2048,
+            log_every_batches=25,
+            maximum_runtime_minutes=None,
+        )
+        self.assertIn("--representative-smoke", smoke)
+        self.assertIn("--smoke-test", smoke)
+        self.assertEqual(
+            smoke[smoke.index("--maximum-runtime-minutes") + 1], "30.0"
+        )
+        self.assertNotIn("--skip-post-train", smoke)
+        self.assertIn("--skip-post-train", train)
+        self.assertNotIn("--smoke-test", train)
+        self.assertEqual(
+            train[train.index("--maximum-runtime-minutes") + 1], "600.0"
+        )
+
+    def test_cloud_orchestrator_forwards_workers_to_src_trainer(self) -> None:
+        arguments = _src_training_arguments(
+            workers=3,
+            smoke_test=True,
+            representative_smoke=True,
+            smoke_examples=8192,
+            smoke_validation_examples=2048,
+            log_every_batches=25,
+            maximum_runtime_minutes=None,
+        )
+        self.assertEqual(arguments[arguments.index("--workers") + 1], "3")
+        self.assertIn("--representative-smoke", arguments)
+        self.assertEqual(
+            arguments[arguments.index("--maximum-runtime-minutes") + 1],
+            "30.0",
+        )
 
     def test_select_injects_event_evaluation_limits(self) -> None:
         notebook = _task_notebook(
@@ -427,6 +571,176 @@ class KaggleCloudPipelineTests(unittest.TestCase):
                 "data/GuitarSet/audio_mono-pickup_mix/00_example.wav",
             )
             self.assertEqual(member, "")
+
+    def test_training_shards_are_materialized_with_logical_extensions(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            temporary_root = Path(temporary)
+            project = temporary_root / "workspace"
+            (project / "data/processed").mkdir(parents=True)
+            (project / "data/processed/.gitkeep").touch()
+            train_manifest = self._write_visible_shard(
+                temporary_root / "part-01",
+                source_id="train-recording",
+                split="train",
+                audio_path="data/processed/audio/train-recording.npy",
+                audio_member="",
+                labels_path="data/processed/labels/train-recording.npz",
+                actual_audio_path="data/processed/audio/train-recording.np",
+                actual_labels_path="data/processed/labels/train-recording.np",
+            )
+            validation_manifest = self._write_visible_shard(
+                temporary_root / "part-02",
+                source_id="validation-recording",
+                split="validation",
+                audio_path="data/GuitarSet/audio.zip",
+                audio_member="validation.wav",
+                labels_path="data/processed/labels/validation-recording.npz",
+                actual_audio_path=(
+                    "data/GuitarSet/audio/validation.wav"
+                ),
+                actual_labels_path=(
+                    "data/processed/labels/validation-recording.npz"
+                ),
+            )
+
+            with mock.patch(
+                "scripts.cloud.kaggle_entrypoint.ROOT", project
+            ):
+                combined = stage_training_shards(
+                    [train_manifest, validation_manifest],
+                    minimum_free_bytes=0,
+                )
+
+            with combined.open(
+                "r", encoding="utf-8", newline=""
+            ) as handle:
+                rows = {
+                    row["source_id"]: row for row in csv.DictReader(handle)
+                }
+            train = rows["train-recording"]
+            validation = rows["validation-recording"]
+            self.assertEqual(
+                train["audio_path"],
+                "data/shards/part-01/processed/audio/train-recording.npy",
+            )
+            self.assertEqual(
+                train["labels_path"],
+                "data/shards/part-01/processed/labels/train-recording.npz",
+            )
+            self.assertEqual(
+                validation["audio_path"],
+                "data/shards/part-02/GuitarSet/audio/validation.wav",
+            )
+            self.assertEqual(validation["audio_member"], "")
+            self.assertEqual(
+                {row["split"] for row in rows.values()},
+                {"train", "validation"},
+            )
+            self.assertFalse((project / "data/shards/part-01").is_symlink())
+            self.assertEqual(
+                (project / train["audio_path"]).read_bytes(),
+                b"audio-train-recording",
+            )
+            self.assertEqual(
+                (project / validation["audio_path"]).read_bytes(),
+                b"audio-validation-recording",
+            )
+
+    def test_training_shard_space_guard_runs_before_materialization(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            temporary_root = Path(temporary)
+            project = temporary_root / "workspace"
+            (project / "data/processed").mkdir(parents=True)
+            (project / "data/processed/.gitkeep").touch()
+            train_manifest = self._write_visible_shard(
+                temporary_root / "part-01",
+                source_id="train-recording",
+                split="train",
+                audio_path="data/audio/train.npy",
+                audio_member="",
+                labels_path="data/labels/train.npz",
+                actual_audio_path="data/audio/train.npy",
+                actual_labels_path="data/labels/train.npz",
+            )
+            validation_manifest = self._write_visible_shard(
+                temporary_root / "part-02",
+                source_id="validation-recording",
+                split="validation",
+                audio_path="data/audio/validation.npy",
+                audio_member="",
+                labels_path="data/labels/validation.npz",
+                actual_audio_path="data/audio/validation.npy",
+                actual_labels_path="data/labels/validation.npz",
+            )
+
+            with (
+                mock.patch(
+                    "scripts.cloud.kaggle_entrypoint.ROOT", project
+                ),
+                mock.patch(
+                    "scripts.cloud.kaggle_entrypoint.shutil.disk_usage",
+                    return_value=mock.Mock(free=1),
+                ),
+            ):
+                with self.assertRaisesRegex(
+                    OSError, "Insufficient writable Kaggle disk"
+                ):
+                    stage_training_shards(
+                        [train_manifest, validation_manifest],
+                        minimum_free_bytes=1,
+                    )
+
+            self.assertTrue((project / "data/processed/.gitkeep").is_file())
+            self.assertFalse(
+                (project / ".kaggle-training-data-staging").exists()
+            )
+
+    def test_training_shard_rejects_test_before_resolving_files(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            temporary_root = Path(temporary)
+            project = temporary_root / "workspace"
+            (project / "data/processed").mkdir(parents=True)
+            (project / "data/processed/.gitkeep").touch()
+            train_manifest = self._write_visible_shard(
+                temporary_root / "part-01",
+                source_id="train-recording",
+                split="train",
+                audio_path="data/audio/train.npy",
+                audio_member="",
+                labels_path="data/labels/train.npz",
+                actual_audio_path="data/audio/train.npy",
+                actual_labels_path="data/labels/train.npz",
+            )
+            test_manifest = self._write_visible_shard(
+                temporary_root / "part-02",
+                source_id="locked-test-recording",
+                split="test",
+                audio_path="data/audio/test.npy",
+                audio_member="",
+                labels_path="data/labels/test.npz",
+                actual_audio_path="data/audio/test.npy",
+                actual_labels_path="data/labels/test.npz",
+            )
+
+            with (
+                mock.patch(
+                    "scripts.cloud.kaggle_entrypoint.ROOT", project
+                ),
+                mock.patch(
+                    "scripts.cloud.kaggle_entrypoint."
+                    "_resolve_visible_audio_location"
+                ) as resolver,
+            ):
+                with self.assertRaisesRegex(
+                    ValueError, "Locked test row"
+                ):
+                    stage_training_shards(
+                        [train_manifest, test_manifest],
+                        minimum_free_bytes=0,
+                    )
+
+            resolver.assert_not_called()
+            self.assertTrue((project / "data/processed/.gitkeep").is_file())
 
     def test_training_outputs_are_packaged_without_data(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

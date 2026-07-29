@@ -30,6 +30,12 @@ REQUIRED_RAW = (
     Path("GuitarSet/audio_mono-pickup_mix.zip"),
     Path("GAPS/gaps_metadata_with_splits.csv"),
 )
+DEFAULT_STAGING_FREE_RESERVE_BYTES = 2 * 1024**3
+DEFAULT_SMOKE_EXAMPLES = 8192
+DEFAULT_SMOKE_VALIDATION_EXAMPLES = 2048
+DEFAULT_LOG_EVERY_BATCHES = 25
+DEFAULT_SMOKE_RUNTIME_MINUTES = 30.0
+DEFAULT_TRAIN_RUNTIME_MINUTES = 600.0
 
 
 def _portable_path(value: str) -> Path:
@@ -282,21 +288,83 @@ def _resolve_visible_audio_location(
             ) from extracted_error
 
 
-def stage_training_shards(manifests: list[Path]) -> Path:
-    """Symlink each attached dataset and write one combined training manifest."""
+def _visible_shard_source(data_root: Path, value: str) -> Path:
+    relative = _portable_path(value)
+    if relative.parts[:1] != ("data",):
+        raise ValueError(f"Shard path must start with data/: {value}")
+    source = data_root / Path(*relative.parts[1:])
+    if not source.is_file():
+        raise FileNotFoundError(source)
+    return source
+
+
+def _plan_staged_file(
+    planned_files: dict[Path, Path],
+    *,
+    source: Path,
+    destination: Path,
+) -> None:
+    existing = planned_files.get(destination)
+    if existing is not None and existing != source:
+        raise ValueError(
+            f"Conflicting shard files for {destination}: "
+            f"{existing} and {source}"
+        )
+    planned_files[destination] = source
+
+
+def _check_staging_disk_space(
+    *,
+    required_bytes: int,
+    minimum_free_bytes: int,
+) -> None:
+    if minimum_free_bytes < 0:
+        raise ValueError("minimum_free_bytes must be non-negative.")
+    available_bytes = int(shutil.disk_usage(ROOT).free)
+    remaining_bytes = available_bytes - required_bytes
+    print(
+        "Kaggle shard materialization: "
+        f"required={required_bytes} bytes, "
+        f"available={available_bytes} bytes, "
+        f"reserved={minimum_free_bytes} bytes.",
+        flush=True,
+    )
+    if remaining_bytes < minimum_free_bytes:
+        raise OSError(
+            "Insufficient writable Kaggle disk for shard materialization: "
+            f"required={required_bytes}, available={available_bytes}, "
+            f"required_free_after_copy={minimum_free_bytes}."
+        )
+
+
+def stage_training_shards(
+    manifests: list[Path],
+    *,
+    minimum_free_bytes: int = DEFAULT_STAGING_FREE_RESERVE_BYTES,
+) -> Path:
+    """Materialize attached shard files and write one safe combined manifest.
+
+    Kaggle datasets are mounted under ``/kaggle/input``.  Reading labels and
+    waveforms there repeatedly is substantially slower than reading the local
+    writable filesystem, so only the train/validation files referenced by the
+    shard manifests are copied below ``ROOT/data``.  Logical filenames are
+    restored when Kaggle truncated a visible filename, and auto-extracted ZIP
+    members remain ordinary audio files with an empty ``audio_member`` field.
+    """
     if len(manifests) < 2:
         raise ValueError("Expected at least two visible Kaggle data shards.")
-    destination = ROOT / "data"
-    _clear_tracked_data_placeholder(destination)
-    shards_root = destination / "shards"
-    shards_root.mkdir(parents=True)
+
     combined_rows: list[dict[str, str]] = []
     fieldnames: list[str] | None = None
     seen_sources: set[str] = set()
+    parsed_shards: list[tuple[str, Path, list[dict[str, str]]]] = []
+
+    # Validate the complete split contract before resolving or opening any
+    # referenced audio/label file.  A contaminated manifest therefore cannot
+    # cause even a partial staging of locked-test material.
     for index, manifest in enumerate(manifests, start=1):
         data_root = _data_root_from_manifest(manifest)
         shard_name = f"part-{index:02d}"
-        os.symlink(data_root, shards_root / shard_name, target_is_directory=True)
         with manifest.open("r", encoding="utf-8-sig", newline="") as handle:
             reader = csv.DictReader(handle)
             rows = [dict(row) for row in reader]
@@ -309,27 +377,116 @@ def stage_training_shards(manifests: list[Path]) -> Path:
             if source_id in seen_sources:
                 raise ValueError(f"Duplicate source across shards: {source_id}")
             seen_sources.add(source_id)
+        parsed_shards.append((shard_name, data_root, rows))
+
+    if not fieldnames:
+        raise ValueError("No shard manifest rows found.")
+    splits = {
+        row["split"]
+        for _shard_name, _data_root, rows in parsed_shards
+        for row in rows
+    }
+    if splits != {"train", "validation"}:
+        raise ValueError(
+            "Combined shard manifest must contain train and validation only; "
+            f"got {sorted(splits)}."
+        )
+
+    planned_files: dict[Path, Path] = {}
+    for shard_name, data_root, rows in parsed_shards:
+        for row in rows:
+            original_audio_path = row["audio_path"]
+            original_audio_member = row.get("audio_member", "")
             audio_path, audio_member = _resolve_visible_audio_location(
                 data_root,
-                row["audio_path"],
-                row.get("audio_member", ""),
+                original_audio_path,
+                original_audio_member,
             )
             labels_path = _resolve_visible_shard_path(
                 data_root, row["labels_path"]
             )
-            row["audio_path"] = _rebase_shard_path(audio_path, shard_name)
+
+            if audio_member:
+                logical_audio_path = _portable_path(original_audio_path).as_posix()
+            else:
+                original = _portable_path(original_audio_path)
+                logical_audio_path = (
+                    (original.with_suffix("") / original_audio_member).as_posix()
+                    if original_audio_member
+                    else original.as_posix()
+                )
+
+            staged_audio_path = _rebase_shard_path(
+                logical_audio_path, shard_name
+            )
+            staged_labels_path = _rebase_shard_path(
+                row["labels_path"], shard_name
+            )
+            _plan_staged_file(
+                planned_files,
+                source=_visible_shard_source(data_root, audio_path),
+                destination=_portable_path(staged_audio_path),
+            )
+            _plan_staged_file(
+                planned_files,
+                source=_visible_shard_source(data_root, labels_path),
+                destination=_portable_path(staged_labels_path),
+            )
+            row["audio_path"] = staged_audio_path
             row["audio_member"] = audio_member
-            row["labels_path"] = _rebase_shard_path(labels_path, shard_name)
+            row["labels_path"] = staged_labels_path
             combined_rows.append(row)
-    if not fieldnames:
-        raise ValueError("No shard manifest rows found.")
-    combined = destination / MANIFEST_SUFFIX.relative_to("data")
-    combined.parent.mkdir(parents=True)
-    with combined.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fieldnames)
-        writer.writeheader()
-        writer.writerows(combined_rows)
-    return combined
+
+    required_bytes = sum(
+        source.stat().st_size for source in planned_files.values()
+    )
+    _check_staging_disk_space(
+        required_bytes=required_bytes,
+        minimum_free_bytes=minimum_free_bytes,
+    )
+
+    destination = ROOT / "data"
+    staging = ROOT / ".kaggle-training-data-staging"
+    if staging.exists():
+        raise FileExistsError(staging)
+    staging.mkdir()
+    try:
+        file_count = len(planned_files)
+        copied_bytes = 0
+        for file_index, (relative, source) in enumerate(
+            sorted(planned_files.items(), key=lambda item: item[0].as_posix()),
+            start=1,
+        ):
+            target = staging / Path(*relative.parts[1:])
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, target)
+            source_bytes = source.stat().st_size
+            if target.stat().st_size != source_bytes:
+                raise OSError(
+                    f"Staged file length mismatch: {source} -> {target}"
+                )
+            copied_bytes += source_bytes
+            print(
+                "Kaggle shard materialization: "
+                f"file={file_index}/{file_count}, "
+                f"bytes={copied_bytes}/{required_bytes}.",
+                flush=True,
+            )
+
+        combined = staging / MANIFEST_SUFFIX.relative_to("data")
+        combined.parent.mkdir(parents=True)
+        with combined.open("w", encoding="utf-8", newline="") as handle:
+            writer = csv.DictWriter(handle, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(combined_rows)
+
+        _clear_tracked_data_placeholder(destination)
+        staging.replace(destination)
+    except BaseException:
+        if staging.exists():
+            shutil.rmtree(staging)
+        raise
+    return destination / MANIFEST_SUFFIX.relative_to("data")
 
 
 def _symlink_file(source: Path, destination: Path) -> None:
@@ -396,6 +553,60 @@ def validate_training_manifest(manifest: Path) -> dict[str, object]:
     }
 
 
+def _training_control_arguments(
+    *,
+    task: str,
+    workers: int,
+    smoke_examples: int,
+    smoke_validation_examples: int,
+    log_every_batches: int,
+    maximum_runtime_minutes: float | None,
+) -> list[str]:
+    """Return the cloud controls forwarded to ``train_polyphonic.py``."""
+    if task not in {"smoke", "train"}:
+        raise ValueError(f"Unsupported training task: {task}")
+    if workers < 1:
+        raise ValueError("workers must be positive.")
+    if smoke_examples < 1 or smoke_validation_examples < 1:
+        raise ValueError("Smoke example counts must be positive.")
+    if log_every_batches < 1:
+        raise ValueError("log_every_batches must be positive.")
+    runtime_minutes = (
+        maximum_runtime_minutes
+        if maximum_runtime_minutes is not None
+        else (
+            DEFAULT_SMOKE_RUNTIME_MINUTES
+            if task == "smoke"
+            else DEFAULT_TRAIN_RUNTIME_MINUTES
+        )
+    )
+    if runtime_minutes <= 0:
+        raise ValueError("maximum_runtime_minutes must be positive.")
+
+    arguments = [
+        "--workers",
+        str(workers),
+        "--log-every-batches",
+        str(log_every_batches),
+        "--maximum-runtime-minutes",
+        str(float(runtime_minutes)),
+    ]
+    if task == "smoke":
+        arguments.extend([
+            "--smoke-test",
+            "--representative-smoke",
+            "--smoke-examples",
+            str(smoke_examples),
+            "--smoke-validation-examples",
+            str(smoke_validation_examples),
+        ])
+    else:
+        # Ranking, musical selection and export are intentionally separate
+        # validation-only kernels after the bounded training kernel completes.
+        arguments.append("--skip-post-train")
+    return arguments
+
+
 def main() -> int:
     os.environ.setdefault("PYTHONUNBUFFERED", "1")
     parser = argparse.ArgumentParser(description=__doc__)
@@ -420,6 +631,20 @@ def main() -> int:
     parser.add_argument("--maximum-examples", type=int, default=60_000)
     parser.add_argument("--maximum-recordings", type=int, default=12)
     parser.add_argument("--maximum-candidates", type=int, default=8)
+    parser.add_argument(
+        "--smoke-examples", type=int, default=DEFAULT_SMOKE_EXAMPLES
+    )
+    parser.add_argument(
+        "--smoke-validation-examples",
+        type=int,
+        default=DEFAULT_SMOKE_VALIDATION_EXAMPLES,
+    )
+    parser.add_argument(
+        "--log-every-batches",
+        type=int,
+        default=DEFAULT_LOG_EVERY_BATCHES,
+    )
+    parser.add_argument("--maximum-runtime-minutes", type=float)
     parser.add_argument("--resume-run", type=Path)
     args = parser.parse_args()
     os.chdir(ROOT)
@@ -495,8 +720,14 @@ def main() -> int:
                 "--config",
                 str(args.config),
             ]
-            if args.task == "smoke":
-                command.append("--smoke-test")
+            command.extend(_training_control_arguments(
+                task=args.task,
+                workers=args.workers,
+                smoke_examples=args.smoke_examples,
+                smoke_validation_examples=args.smoke_validation_examples,
+                log_every_batches=args.log_every_batches,
+                maximum_runtime_minutes=args.maximum_runtime_minutes,
+            ))
             if args.initial_checkpoint_name:
                 checkpoint_candidates = sorted(
                     args.input_root.rglob(args.initial_checkpoint_name)

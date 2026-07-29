@@ -401,6 +401,28 @@ class PolyphonicDataTests(unittest.TestCase):
                 refs=np.asarray([[0, 0]], np.int32),
                 full_context_from_start=True,
             )[0][0]
+            augmented_forward = PolyphonicSequence(
+                corpus,
+                batch_size=1,
+                input_samples=8,
+                normalization_gain=1.0,
+                seed=17,
+                refs=np.asarray([[0, 1], [0, 2]], np.int32),
+                augmentation_gain_db=6.0,
+            )
+            augmented_reverse = PolyphonicSequence(
+                corpus,
+                batch_size=1,
+                input_samples=8,
+                normalization_gain=1.0,
+                seed=17,
+                refs=np.asarray([[0, 1], [0, 2]], np.int32),
+                augmentation_gain_db=6.0,
+            )
+            reverse_second = augmented_reverse[1][0]["audio"].copy()
+            reverse_first = augmented_reverse[0][0]["audio"].copy()
+            forward_first = augmented_forward[0][0]["audio"].copy()
+            forward_second = augmented_forward[1][0]["audio"].copy()
             with self.assertRaisesRegex(ValueError, "one value per frame"):
                 PolyphonicSequence(
                     corpus,
@@ -429,6 +451,8 @@ class PolyphonicDataTests(unittest.TestCase):
         )
         self.assertEqual(partial_start["time_mask"].sum(), 4.0)
         self.assertEqual(full_start["time_mask"].sum(), 8.0)
+        np.testing.assert_allclose(forward_first, reverse_first)
+        np.testing.assert_allclose(forward_second, reverse_second)
         self.assertEqual(positives.tolist(), [3, 2])
         self.assertEqual(total, 5)
 

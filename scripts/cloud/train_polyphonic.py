@@ -43,11 +43,69 @@ RAW_SOURCES = (
     Path("data/Guitar-TECHS"),
 )
 MINIMUM_FREE_GIB = 16.0
+MINIMUM_STAGED_TRAIN_FREE_GIB = 2.0
+DEFAULT_SMOKE_EXAMPLES = 8192
+DEFAULT_SMOKE_VALIDATION_EXAMPLES = 2048
+DEFAULT_LOG_EVERY_BATCHES = 25
+DEFAULT_SMOKE_RUNTIME_MINUTES = 30.0
+DEFAULT_TRAIN_RUNTIME_MINUTES = 600.0
 
 
 def _run(command: Sequence[str]) -> None:
     print("+ " + " ".join(command), flush=True)
     subprocess.run(command, cwd=ROOT, check=True)
+
+
+def _src_training_arguments(
+    *,
+    workers: int,
+    smoke_test: bool,
+    representative_smoke: bool,
+    smoke_examples: int,
+    smoke_validation_examples: int,
+    log_every_batches: int,
+    maximum_runtime_minutes: float | None,
+) -> list[str]:
+    """Build the bounded, observable arguments passed to the trainer."""
+    if workers < 1:
+        raise ValueError("workers must be positive.")
+    if smoke_examples < 1 or smoke_validation_examples < 1:
+        raise ValueError("Smoke example counts must be positive.")
+    if log_every_batches < 1:
+        raise ValueError("log_every_batches must be positive.")
+    if representative_smoke and not smoke_test:
+        raise ValueError("--representative-smoke requires --smoke-test.")
+    runtime_minutes = (
+        maximum_runtime_minutes
+        if maximum_runtime_minutes is not None
+        else (
+            DEFAULT_SMOKE_RUNTIME_MINUTES
+            if smoke_test
+            else DEFAULT_TRAIN_RUNTIME_MINUTES
+        )
+    )
+    if runtime_minutes <= 0:
+        raise ValueError("maximum_runtime_minutes must be positive.")
+
+    arguments = [
+        "--workers",
+        str(workers),
+        "--log-every-batches",
+        str(log_every_batches),
+        "--maximum-runtime-minutes",
+        str(float(runtime_minutes)),
+    ]
+    if smoke_test:
+        arguments.extend([
+            "--smoke-test",
+            "--smoke-examples",
+            str(smoke_examples),
+            "--smoke-validation-examples",
+            str(smoke_validation_examples),
+        ])
+        if representative_smoke:
+            arguments.append("--representative-smoke")
+    return arguments
 
 
 def _git_value(*arguments: str) -> str:
@@ -81,6 +139,7 @@ def validate_cloud_context(
     branch: str,
     gpu_names: Sequence[str],
     free_gib: float,
+    minimum_free_gib: float = MINIMUM_FREE_GIB,
 ) -> None:
     """Reject contexts that violate the cloud-training contract."""
     if platform_name == "nt":
@@ -95,10 +154,10 @@ def validate_cloud_context(
         raise RuntimeError(
             "Aucun GPU TensorFlow détecté dans le runtime cloud."
         )
-    if free_gib < MINIMUM_FREE_GIB:
+    if free_gib < minimum_free_gib:
         raise RuntimeError(
             f"Espace libre insuffisant : {free_gib:.1f} Gio, "
-            f"{MINIMUM_FREE_GIB:.1f} Gio requis."
+            f"{minimum_free_gib:.1f} Gio requis."
         )
 
 
@@ -230,6 +289,32 @@ def main() -> int:
     parser.add_argument("--initial-checkpoint", type=Path)
     parser.add_argument("--smoke-test", action="store_true")
     parser.add_argument(
+        "--representative-smoke",
+        action="store_true",
+        help="Exercise every train/validation recording during the smoke.",
+    )
+    parser.add_argument(
+        "--smoke-examples", type=int, default=DEFAULT_SMOKE_EXAMPLES
+    )
+    parser.add_argument(
+        "--smoke-validation-examples",
+        type=int,
+        default=DEFAULT_SMOKE_VALIDATION_EXAMPLES,
+    )
+    parser.add_argument(
+        "--log-every-batches",
+        type=int,
+        default=DEFAULT_LOG_EVERY_BATCHES,
+    )
+    parser.add_argument(
+        "--maximum-runtime-minutes",
+        type=float,
+        help=(
+            "Hard training budget. Defaults to 30 minutes for a smoke and "
+            "600 minutes for a full train."
+        ),
+    )
+    parser.add_argument(
         "--skip-post-train",
         action="store_true",
         help="Skip validation ranking, musical selection and TFLite export.",
@@ -248,6 +333,11 @@ def main() -> int:
         branch=branch,
         gpu_names=gpu_names,
         free_gib=free_gib,
+        minimum_free_gib=(
+            MINIMUM_FREE_GIB
+            if args.prepare_data
+            else MINIMUM_STAGED_TRAIN_FREE_GIB
+        ),
     )
     print(json.dumps({
         "branch": branch,
@@ -283,8 +373,15 @@ def main() -> int:
             "--initial-checkpoint",
             str(args.initial_checkpoint.resolve()),
         ))
-    if args.smoke_test:
-        train_command.append("--smoke-test")
+    train_command.extend(_src_training_arguments(
+        workers=args.workers,
+        smoke_test=args.smoke_test,
+        representative_smoke=args.representative_smoke,
+        smoke_examples=args.smoke_examples,
+        smoke_validation_examples=args.smoke_validation_examples,
+        log_every_batches=args.log_every_batches,
+        maximum_runtime_minutes=args.maximum_runtime_minutes,
+    ))
     _run(train_command)
     run_dir = (
         args.resume_run.resolve()
