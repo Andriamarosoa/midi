@@ -9,14 +9,17 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
 import tarfile
+import tempfile
 from collections import Counter, defaultdict
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from zipfile import ZipFile
 
 
@@ -34,8 +37,11 @@ DEFAULT_STAGING_FREE_RESERVE_BYTES = 2 * 1024**3
 DEFAULT_SMOKE_EXAMPLES = 8192
 DEFAULT_SMOKE_VALIDATION_EXAMPLES = 2048
 DEFAULT_LOG_EVERY_BATCHES = 25
+DEFAULT_RECOVERY_CHUNK_BATCHES = 250
 DEFAULT_SMOKE_RUNTIME_MINUTES = 30.0
 DEFAULT_TRAIN_RUNTIME_MINUTES = 600.0
+RESUME_IMPORT_MARKER = ".cloud_resume_source.json"
+SHA256_PATTERN = re.compile(r"[0-9a-f]{64}")
 
 
 def _portable_path(value: str) -> Path:
@@ -97,6 +103,303 @@ def find_checkpoint_run(input_root: Path) -> Path:
             f"found {len(candidates)}."
         )
     return candidates[0]
+
+
+def _file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for block in iter(lambda: handle.read(8 * 1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def _inside(candidate: Path, root: Path) -> bool:
+    resolved = candidate.resolve()
+    resolved_root = root.resolve()
+    return (
+        resolved == resolved_root
+        or resolved_root in resolved.parents
+    )
+
+
+def _load_resume_output(input_root: Path) -> tuple[Path, Path, dict[str, object]]:
+    manifests = sorted(input_root.rglob("output_manifest.json"))
+    if len(manifests) != 1:
+        raise ValueError(
+            "Expected exactly one attached resume output_manifest.json, "
+            f"found {len(manifests)}."
+        )
+    manifest_path = manifests[0]
+    if not _inside(manifest_path, input_root):
+        raise ValueError("Resume output manifest escapes the input root.")
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        raise ValueError(
+            f"Invalid resume output manifest: {manifest_path}"
+        ) from error
+    if not isinstance(manifest, dict):
+        raise ValueError("Resume output manifest must be a JSON object.")
+    if manifest.get("task") != "train":
+        raise ValueError("Only a previous train output can be resumed.")
+    if manifest.get("locked_test_used") is not False:
+        raise ValueError("Resume output did not keep the locked test excluded.")
+    pipeline = manifest.get("pipeline")
+    if (
+        not isinstance(pipeline, dict)
+        or pipeline.get("locked_test_used") is not False
+    ):
+        raise ValueError(
+            "Resume output pipeline did not keep the locked test excluded."
+        )
+
+    archive_name = manifest.get("archive")
+    if (
+        not isinstance(archive_name, str)
+        or not archive_name
+        or Path(archive_name).name != archive_name
+        or "\\" in archive_name
+    ):
+        raise ValueError("Resume output archive must be a plain filename.")
+    archive_path = manifest_path.parent / archive_name
+    if not archive_path.is_file() or not _inside(archive_path, input_root):
+        raise FileNotFoundError(archive_path)
+
+    expected_bytes = manifest.get("archive_bytes")
+    if (
+        isinstance(expected_bytes, bool)
+        or not isinstance(expected_bytes, int)
+        or expected_bytes < 1
+        or archive_path.stat().st_size != expected_bytes
+    ):
+        raise ValueError("Resume archive byte length does not match its manifest.")
+    expected_sha256 = str(manifest.get("archive_sha256", "")).lower()
+    if SHA256_PATTERN.fullmatch(expected_sha256) is None:
+        raise ValueError("Resume archive manifest has no valid SHA-256.")
+    actual_sha256 = _file_sha256(archive_path)
+    if actual_sha256 != expected_sha256:
+        raise ValueError(
+            "Resume archive SHA-256 mismatch: "
+            f"expected={expected_sha256}, actual={actual_sha256}."
+        )
+    return manifest_path, archive_path, manifest
+
+
+def _safe_tar_member_path(member: tarfile.TarInfo) -> Path:
+    if not member.name or "\\" in member.name:
+        raise ValueError(f"Unsafe resume archive member: {member.name!r}")
+    relative = PurePosixPath(member.name)
+    if (
+        relative.is_absolute()
+        or any(part in {"", ".", ".."} for part in relative.parts)
+        or not (member.isdir() or member.isfile())
+    ):
+        raise ValueError(f"Unsafe resume archive member: {member.name}")
+    return Path(*relative.parts)
+
+
+def _extract_resume_archive(archive_path: Path, destination: Path) -> None:
+    destination.mkdir(parents=True, exist_ok=False)
+    with tarfile.open(archive_path, "r:*") as archive:
+        members = archive.getmembers()
+        relative_paths = [_safe_tar_member_path(member) for member in members]
+        if len(set(relative_paths)) != len(relative_paths):
+            raise ValueError("Resume archive contains duplicate member paths.")
+        resolved_destination = destination.resolve()
+        for member, relative in zip(members, relative_paths):
+            target = destination / relative
+            resolved_target = target.resolve()
+            if (
+                resolved_target == resolved_destination
+                or resolved_destination not in resolved_target.parents
+            ):
+                raise ValueError(
+                    f"Resume archive member escapes destination: {member.name}"
+                )
+            if member.isdir():
+                target.mkdir(parents=True, exist_ok=True)
+                continue
+            target.parent.mkdir(parents=True, exist_ok=True)
+            source = archive.extractfile(member)
+            if source is None:
+                raise ValueError(
+                    f"Cannot read resume archive member: {member.name}"
+                )
+            with source, target.open("xb") as output:
+                shutil.copyfileobj(source, output, length=1024 * 1024)
+            if target.stat().st_size != member.size:
+                raise ValueError(
+                    f"Resume archive member length mismatch: {member.name}"
+                )
+
+
+def _validate_resume_run_contents(
+    extracted: Path,
+    *,
+    manifest: dict[str, object],
+) -> Path:
+    run_container = extracted / "run"
+    if not run_container.is_dir() or run_container.is_symlink():
+        raise ValueError("Resume archive does not contain a run/ directory.")
+    children = list(run_container.iterdir())
+    if (
+        len(children) != 1
+        or not children[0].is_dir()
+        or children[0].is_symlink()
+    ):
+        raise ValueError(
+            "Resume archive must contain exactly one run directory."
+        )
+    run_dir = children[0]
+    if run_dir.name in {"", ".", ".."}:
+        raise ValueError("Resume archive has an invalid run name.")
+    pipeline_path = run_dir / "cloud_pipeline.json"
+    if not pipeline_path.is_file() or pipeline_path.is_symlink():
+        raise ValueError("Resume run has no safe cloud_pipeline.json.")
+    try:
+        pipeline = json.loads(pipeline_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        raise ValueError("Resume run has an invalid cloud_pipeline.json.") from error
+    if (
+        not isinstance(pipeline, dict)
+        or pipeline.get("locked_test_used") is not False
+    ):
+        raise ValueError(
+            "Resume run did not keep the locked test excluded."
+        )
+    manifest_pipeline = manifest["pipeline"]
+    if (
+        not isinstance(manifest_pipeline, dict)
+        or Path(str(manifest_pipeline.get("run_dir", ""))).name
+        != run_dir.name
+        or Path(str(pipeline.get("run_dir", ""))).name != run_dir.name
+    ):
+        raise ValueError(
+            "Resume run identity does not match the output manifest."
+        )
+    return run_dir
+
+
+def validate_writable_resume_run(
+    run_dir: Path,
+    *,
+    runs_root: Path | None = None,
+) -> Path:
+    """Require a real, writable run below this source snapshot's runs tree."""
+    allowed_root = (
+        ROOT / "runs/polyphonic"
+        if runs_root is None
+        else runs_root
+    ).resolve()
+    resolved = run_dir.resolve()
+    kaggle_input = Path("/kaggle/input").resolve()
+    if resolved == kaggle_input or kaggle_input in resolved.parents:
+        raise ValueError(
+            "A read-only /kaggle/input run cannot be resumed directly; "
+            "use --resume-from-input."
+        )
+    if resolved == allowed_root or allowed_root not in resolved.parents:
+        raise ValueError(
+            f"Resume run must be below writable {allowed_root}: {resolved}"
+        )
+    if not resolved.is_dir() or resolved.is_symlink():
+        raise FileNotFoundError(resolved)
+    symlinks = [path for path in resolved.rglob("*") if path.is_symlink()]
+    if symlinks:
+        raise ValueError(
+            f"Resume run contains a symbolic link: {symlinks[0]}"
+        )
+    probe_path: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            prefix=".resume-write-probe-",
+            dir=resolved,
+            delete=False,
+        ) as probe:
+            probe.write(b"writable")
+            probe_path = Path(probe.name)
+    except OSError as error:
+        raise PermissionError(f"Resume run is not writable: {resolved}") from error
+    finally:
+        if probe_path is not None:
+            probe_path.unlink(missing_ok=True)
+    return resolved
+
+
+def install_resume_run_from_input(
+    input_root: Path,
+    *,
+    runs_root: Path | None = None,
+) -> Path:
+    """Validate and install one attached train output on writable storage."""
+    manifest_path, archive_path, manifest = _load_resume_output(input_root)
+    expected_sha256 = str(manifest["archive_sha256"]).lower()
+    destination_root = (
+        ROOT / "runs/polyphonic"
+        if runs_root is None
+        else runs_root
+    ).resolve()
+    destination_root.mkdir(parents=True, exist_ok=True)
+    staging = Path(tempfile.mkdtemp(
+        prefix=".resume-import-",
+        dir=destination_root,
+    ))
+    try:
+        extracted = staging / "extracted"
+        _extract_resume_archive(archive_path, extracted)
+        extracted_run = _validate_resume_run_contents(
+            extracted,
+            manifest=manifest,
+        )
+        destination = destination_root / extracted_run.name
+        if not _inside(destination, destination_root):
+            raise ValueError("Resume run destination escapes the runs root.")
+        marker = {
+            "format": "guitar_midi_cloud_resume_v1",
+            "archive": archive_path.name,
+            "archive_sha256": expected_sha256,
+            "output_manifest": manifest_path.name,
+            "locked_test_used": False,
+        }
+        extracted_marker = extracted_run / RESUME_IMPORT_MARKER
+        extracted_marker.write_text(
+            json.dumps(marker, indent=2) + "\n",
+            encoding="utf-8",
+        )
+
+        if destination.exists():
+            destination_marker = destination / RESUME_IMPORT_MARKER
+            try:
+                installed = json.loads(
+                    destination_marker.read_text(encoding="utf-8")
+                )
+            except (
+                OSError,
+                UnicodeError,
+                json.JSONDecodeError,
+            ) as error:
+                raise FileExistsError(
+                    "A non-idempotent resume run already exists: "
+                    f"{destination}"
+                ) from error
+            if (
+                not isinstance(installed, dict)
+                or installed.get("archive_sha256") != expected_sha256
+                or installed.get("locked_test_used") is not False
+            ):
+                raise FileExistsError(
+                    "A different resume run already exists: "
+                    f"{destination}"
+                )
+        else:
+            extracted_run.replace(destination)
+        return validate_writable_resume_run(
+            destination,
+            runs_root=destination_root,
+        )
+    finally:
+        if staging.exists():
+            shutil.rmtree(staging)
 
 
 def materialize_training_archive(input_root: Path) -> Path:
@@ -560,6 +863,7 @@ def _training_control_arguments(
     smoke_examples: int,
     smoke_validation_examples: int,
     log_every_batches: int,
+    recovery_chunk_batches: int,
     maximum_runtime_minutes: float | None,
 ) -> list[str]:
     """Return the cloud controls forwarded to ``train_polyphonic.py``."""
@@ -571,6 +875,8 @@ def _training_control_arguments(
         raise ValueError("Smoke example counts must be positive.")
     if log_every_batches < 1:
         raise ValueError("log_every_batches must be positive.")
+    if recovery_chunk_batches < 1:
+        raise ValueError("recovery_chunk_batches must be positive.")
     runtime_minutes = (
         maximum_runtime_minutes
         if maximum_runtime_minutes is not None
@@ -588,6 +894,8 @@ def _training_control_arguments(
         str(workers),
         "--log-every-batches",
         str(log_every_batches),
+        "--recovery-chunk-batches",
+        str(recovery_chunk_batches),
         "--maximum-runtime-minutes",
         str(float(runtime_minutes)),
     ]
@@ -644,8 +952,29 @@ def main() -> int:
         type=int,
         default=DEFAULT_LOG_EVERY_BATCHES,
     )
+    parser.add_argument(
+        "--recovery-chunk-batches",
+        type=int,
+        default=DEFAULT_RECOVERY_CHUNK_BATCHES,
+    )
     parser.add_argument("--maximum-runtime-minutes", type=float)
-    parser.add_argument("--resume-run", type=Path)
+    resume = parser.add_mutually_exclusive_group()
+    resume.add_argument(
+        "--resume-run",
+        type=Path,
+        help=(
+            "Existing writable run below ROOT/runs/polyphonic. Paths mounted "
+            "under /kaggle/input are rejected."
+        ),
+    )
+    resume.add_argument(
+        "--resume-from-input",
+        action="store_true",
+        help=(
+            "Validate and install exactly one attached train output archive "
+            "before resuming it from writable storage."
+        ),
+    )
     args = parser.parse_args()
     os.chdir(ROOT)
 
@@ -726,9 +1055,15 @@ def main() -> int:
                 smoke_examples=args.smoke_examples,
                 smoke_validation_examples=args.smoke_validation_examples,
                 log_every_batches=args.log_every_batches,
+                recovery_chunk_batches=args.recovery_chunk_batches,
                 maximum_runtime_minutes=args.maximum_runtime_minutes,
             ))
             if args.initial_checkpoint_name:
+                if args.resume_run is not None or args.resume_from_input:
+                    raise ValueError(
+                        "Initial checkpoint and resume input are mutually "
+                        "exclusive."
+                    )
                 checkpoint_candidates = sorted(
                     args.input_root.rglob(args.initial_checkpoint_name)
                 )
@@ -742,8 +1077,21 @@ def main() -> int:
                     "--initial-checkpoint",
                     str(checkpoint_candidates[0]),
                 ])
-            if args.resume_run is not None:
-                command.extend(["--resume-run", str(args.resume_run)])
+            resume_run: Path | None = None
+            if args.resume_from_input:
+                if args.task != "train":
+                    raise ValueError(
+                        "--resume-from-input is only valid for task=train."
+                    )
+                resume_run = install_resume_run_from_input(args.input_root)
+            elif args.resume_run is not None:
+                if args.task != "train":
+                    raise ValueError(
+                        "--resume-run is only valid for task=train."
+                    )
+                resume_run = validate_writable_resume_run(args.resume_run)
+            if resume_run is not None:
+                command.extend(["--resume-run", str(resume_run)])
             _run(command)
         report = {
             "task": args.task,
@@ -751,6 +1099,8 @@ def main() -> int:
             "manifest": str(manifest),
             "validation": validation,
         }
+        if args.task not in {"rank", "select"} and resume_run is not None:
+            report["resume_run"] = str(resume_run)
         if args.task in {"rank", "select"}:
             report["run_dir"] = str(run_dir)
             if args.task == "rank":

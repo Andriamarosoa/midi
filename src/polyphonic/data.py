@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import io
 import math
-from dataclasses import dataclass
+import struct
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Mapping, Sequence
 from zipfile import ZipFile
@@ -16,6 +18,7 @@ import tensorflow as tf
 
 
 NUMPY_MAGIC = b"\x93NUMPY"
+EPOCH_PLAN_SCHEMA_VERSION = 1
 
 
 @dataclass(frozen=True)
@@ -471,6 +474,173 @@ def sampler_effective_class_counts(
     return rate * float(effective_total), int(effective_total)
 
 
+@dataclass(frozen=True)
+class PolyphonicEpochPlan:
+    """Canonical, immutable sampling and augmentation plan for one epoch.
+
+    The arrays use explicit little-endian dtypes so the digest is stable
+    across operating systems.  ``export`` produces values accepted directly
+    by ``numpy.savez``; ``from_export`` validates the stored digest before
+    returning a plan.
+    """
+
+    epoch: int
+    order: np.ndarray
+    augmentation_gains: np.ndarray
+    sha256: str = field(init=False)
+
+    def __post_init__(self) -> None:
+        epoch = _plan_integer("epoch", self.epoch)
+        order = _canonical_plan_order(self.order)
+        gains = _canonical_plan_gains(self.augmentation_gains, len(order))
+        digest = _plan_sha256(epoch, order, gains)
+        object.__setattr__(self, "epoch", epoch)
+        object.__setattr__(self, "order", order)
+        object.__setattr__(self, "augmentation_gains", gains)
+        object.__setattr__(self, "sha256", digest)
+
+    def export(self) -> dict[str, np.ndarray]:
+        """Return a read-only mapping suitable for ``numpy.savez``."""
+
+        values = {
+            "schema_version": np.asarray(
+                EPOCH_PLAN_SCHEMA_VERSION, dtype="<i4"
+            ),
+            "epoch": np.asarray(self.epoch, dtype="<i8"),
+            "order": self.order.copy(),
+            "augmentation_gains": self.augmentation_gains.copy(),
+            "sha256": np.asarray(self.sha256, dtype="<U64"),
+        }
+        for value in values.values():
+            value.setflags(write=False)
+        return values
+
+    @classmethod
+    def from_export(
+        cls, payload: Mapping[str, object]
+    ) -> "PolyphonicEpochPlan":
+        """Restore and authenticate a plan exported by :meth:`export`."""
+
+        required = {
+            "schema_version",
+            "epoch",
+            "order",
+            "augmentation_gains",
+            "sha256",
+        }
+        try:
+            missing = required - set(payload)
+        except TypeError as error:
+            raise TypeError("The epoch plan export must be a mapping.") from error
+        if missing:
+            raise ValueError(
+                f"Epoch plan export fields missing: {sorted(missing)}"
+            )
+        schema_version = _plan_scalar_integer(
+            "schema_version", payload["schema_version"]
+        )
+        if schema_version != EPOCH_PLAN_SCHEMA_VERSION:
+            raise ValueError(
+                f"Unsupported epoch plan schema: {schema_version}"
+            )
+        epoch = _plan_scalar_integer("epoch", payload["epoch"])
+        expected_sha256 = _plan_scalar_text("sha256", payload["sha256"])
+        plan = cls(
+            epoch=epoch,
+            order=np.asarray(payload["order"]),
+            augmentation_gains=np.asarray(payload["augmentation_gains"]),
+        )
+        if expected_sha256 != plan.sha256:
+            raise ValueError(
+                "Epoch plan SHA-256 mismatch; the persisted plan is corrupt."
+            )
+        return plan
+
+
+def _plan_integer(name: str, value: object) -> int:
+    if isinstance(value, (bool, np.bool_)):
+        raise ValueError(f"{name} must be a non-negative integer.")
+    try:
+        result = int(value)
+    except (TypeError, ValueError, OverflowError) as error:
+        raise ValueError(
+            f"{name} must be a non-negative integer."
+        ) from error
+    if result != value or result < 0 or result > np.iinfo(np.int64).max:
+        raise ValueError(f"{name} must be a non-negative integer.")
+    return result
+
+
+def _plan_scalar_integer(name: str, value: object) -> int:
+    array = np.asarray(value)
+    if array.shape != ():
+        raise ValueError(f"{name} must be a scalar.")
+    return _plan_integer(name, array.item())
+
+
+def _plan_scalar_text(name: str, value: object) -> str:
+    array = np.asarray(value)
+    if array.shape != ():
+        raise ValueError(f"{name} must be a scalar.")
+    result = array.item()
+    if isinstance(result, bytes):
+        try:
+            result = result.decode("ascii")
+        except UnicodeDecodeError as error:
+            raise ValueError(f"{name} must contain ASCII text.") from error
+    if not isinstance(result, str):
+        raise ValueError(f"{name} must be text.")
+    return result
+
+
+def _canonical_plan_order(value: object) -> np.ndarray:
+    raw = np.asarray(value)
+    if raw.ndim != 2 or raw.shape[1] != 2:
+        raise ValueError("Epoch plan order must have shape (N, 2).")
+    if raw.dtype.kind not in {"i", "u"}:
+        raise ValueError("Epoch plan order must contain integers.")
+    if raw.size:
+        minimum = int(np.min(raw))
+        maximum = int(np.max(raw))
+        if minimum < 0 or maximum > np.iinfo(np.int32).max:
+            raise ValueError(
+                "Epoch plan references must fit non-negative int32 values."
+            )
+    order = np.array(raw, dtype="<i4", order="C", copy=True)
+    order.setflags(write=False)
+    return order
+
+
+def _canonical_plan_gains(value: object, expected: int) -> np.ndarray:
+    raw = np.asarray(value)
+    if raw.shape != (expected,):
+        raise ValueError(
+            "Epoch plan augmentation gains must have shape (N,)."
+        )
+    if raw.dtype.kind not in {"f", "i", "u"}:
+        raise ValueError("Epoch plan augmentation gains must be numeric.")
+    gains = np.array(raw, dtype="<f4", order="C", copy=True)
+    if not np.all(np.isfinite(gains)) or np.any(gains <= 0.0):
+        raise ValueError(
+            "Epoch plan augmentation gains must be finite and positive."
+        )
+    gains.setflags(write=False)
+    return gains
+
+
+def _plan_sha256(
+    epoch: int, order: np.ndarray, augmentation_gains: np.ndarray
+) -> str:
+    digest = hashlib.sha256()
+    digest.update(b"guitar-midi-polyphonic-epoch-plan\x00")
+    digest.update(struct.pack("<I", EPOCH_PLAN_SCHEMA_VERSION))
+    digest.update(struct.pack("<q", epoch))
+    digest.update(struct.pack("<Q", len(order)))
+    digest.update(order.tobytes(order="C"))
+    digest.update(augmentation_gains.tobytes(order="C"))
+    return digest.hexdigest()
+
+
 class PolyphonicSequence(tf.keras.utils.Sequence):
     def __init__(
         self,
@@ -513,7 +683,7 @@ class PolyphonicSequence(tf.keras.utils.Sequence):
         self.batch_size = int(batch_size)
         self.input_samples = int(input_samples)
         self.normalization_gain = float(normalization_gain)
-        self.rng = np.random.default_rng(seed)
+        self.seed = _plan_integer("seed", seed)
         self.pools = pools
         self.dataset_pools = None if dataset_pools is None else dict(dataset_pools)
         self.dataset_fractions = None if dataset_fractions is None else dict(dataset_fractions)
@@ -577,15 +747,32 @@ class PolyphonicSequence(tf.keras.utils.Sequence):
                     raise ValueError(
                         "Per-frame input gains must be finite and positive."
                     )
-        self.fixed_refs = None if refs is None else np.asarray(refs, np.int32)
-        self.order, self.augmentation_gains = self._next_plan()
+        self.fixed_refs = (
+            None if refs is None else _canonical_plan_order(refs)
+        )
+        self._epoch_plan: PolyphonicEpochPlan | None = None
+        self.install_plan(self.plan_for_epoch(0))
 
-    def _next_plan(self) -> tuple[np.ndarray, np.ndarray]:
+    @property
+    def epoch(self) -> int:
+        assert self._epoch_plan is not None
+        return self._epoch_plan.epoch
+
+    @property
+    def plan_sha256(self) -> str:
+        assert self._epoch_plan is not None
+        return self._epoch_plan.sha256
+
+    def plan_for_epoch(self, epoch: int) -> PolyphonicEpochPlan:
+        """Build an epoch plan without depending on prior RNG calls."""
+
+        epoch = _plan_integer("epoch", epoch)
+        rng = self._rng_for_epoch(epoch)
         if self.pools is None and self.dataset_pools is None:
             assert self.fixed_refs is not None
             order = self.fixed_refs.copy()
             if self.shuffle:
-                self.rng.shuffle(order)
+                rng.shuffle(order)
         else:
             assert self.examples_per_epoch is not None
             if self.dataset_pools is not None:
@@ -603,21 +790,21 @@ class PolyphonicSequence(tf.keras.utils.Sequence):
                         ))
                     )
                     dataset_parts.append(self._sample_pools(
-                        self.dataset_pools[dataset_id], count
+                        self.dataset_pools[dataset_id], count, rng
                     ))
                     assigned += count
                 order = np.concatenate(dataset_parts, axis=0)
             else:
                 assert self.pools is not None
                 order = self._sample_pools(
-                    self.pools, self.examples_per_epoch
+                    self.pools, self.examples_per_epoch, rng
                 )
-            self.rng.shuffle(order)
+            rng.shuffle(order)
 
         if self.augmentation_gain_db > 0.0:
             gains = np.power(
                 np.float32(10.0),
-                self.rng.uniform(
+                rng.uniform(
                     -self.augmentation_gain_db,
                     self.augmentation_gain_db,
                     size=len(order),
@@ -626,9 +813,58 @@ class PolyphonicSequence(tf.keras.utils.Sequence):
             ).astype(np.float32)
         else:
             gains = np.ones(len(order), dtype=np.float32)
-        return order, gains
+        return PolyphonicEpochPlan(
+            epoch=epoch,
+            order=order,
+            augmentation_gains=gains,
+        )
 
-    def _sample_pools(self, pools: FramePools, total: int) -> np.ndarray:
+    def export_plan(self) -> dict[str, np.ndarray]:
+        """Export the currently installed plan for durable persistence."""
+
+        assert self._epoch_plan is not None
+        return self._epoch_plan.export()
+
+    def install_plan(
+        self,
+        plan: PolyphonicEpochPlan | Mapping[str, object],
+    ) -> PolyphonicEpochPlan:
+        """Validate and install an immutable plan without sampling again."""
+
+        if not isinstance(plan, PolyphonicEpochPlan):
+            plan = PolyphonicEpochPlan.from_export(plan)
+        expected = (
+            len(self.fixed_refs)
+            if self.pools is None and self.dataset_pools is None
+            else int(self.examples_per_epoch or 0)
+        )
+        if len(plan.order) != expected:
+            raise ValueError(
+                "Epoch plan example count does not match the sequence: "
+                f"{len(plan.order)} != {expected}."
+            )
+        self._validate_plan_references(plan.order)
+        self._epoch_plan = plan
+        self.order = plan.order
+        self.augmentation_gains = plan.augmentation_gains
+        return plan
+
+    def _rng_for_epoch(self, epoch: int) -> np.random.Generator:
+        seed_material = (
+            "guitar-midi-polyphonic-sequence-plan-v1:"
+            f"{self.seed}:{epoch}"
+        ).encode("ascii")
+        entropy = np.frombuffer(
+            hashlib.sha256(seed_material).digest(), dtype="<u4"
+        )
+        return np.random.default_rng(np.random.SeedSequence(entropy))
+
+    def _sample_pools(
+        self,
+        pools: FramePools,
+        total: int,
+        rng: np.random.Generator,
+    ) -> np.ndarray:
         sampled: list[np.ndarray] = []
         assigned = 0
         names = list(self.sampling_fractions)
@@ -640,12 +876,33 @@ class PolyphonicSequence(tf.keras.utils.Sequence):
                 else int(round(total * fraction))
             )
             pool = getattr(pools, name)
-            selection = self.rng.choice(
+            selection = rng.choice(
                 len(pool), size=count, replace=count > len(pool)
             )
             sampled.append(pool[selection])
             assigned += count
         return np.concatenate(sampled, axis=0)
+
+    def _validate_plan_references(self, order: np.ndarray) -> None:
+        labels = getattr(self.corpus, "labels", None)
+        if labels is None or len(order) == 0:
+            return
+        recording_indices = order[:, 0]
+        if np.any(recording_indices >= len(labels)):
+            raise ValueError(
+                "Epoch plan contains an out-of-range recording reference."
+            )
+        for recording_index in np.unique(recording_indices):
+            frame_indices = order[
+                recording_indices == recording_index, 1
+            ]
+            frame_count = len(
+                labels[int(recording_index)].arrays["active_bits"]
+            )
+            if np.any(frame_indices >= frame_count):
+                raise ValueError(
+                    "Epoch plan contains an out-of-range frame reference."
+                )
 
     def __len__(self) -> int:
         return max(1, math.ceil(len(self.order) / self.batch_size))
@@ -739,4 +996,67 @@ class PolyphonicSequence(tf.keras.utils.Sequence):
         return inputs, targets
 
     def on_epoch_end(self) -> None:
-        self.order, self.augmentation_gains = self._next_plan()
+        self.install_plan(self.plan_for_epoch(self.epoch + 1))
+
+
+class PlanBatchSlice(tf.keras.utils.Sequence):
+    """Expose a fixed batch interval without advancing its parent plan."""
+
+    def __init__(
+        self,
+        sequence: PolyphonicSequence,
+        start_batch: int,
+        end_batch: int,
+    ) -> None:
+        if not isinstance(sequence, PolyphonicSequence):
+            raise TypeError("sequence must be a PolyphonicSequence.")
+        start_batch = _plan_integer("start_batch", start_batch)
+        end_batch = _plan_integer("end_batch", end_batch)
+        if start_batch >= end_batch:
+            raise ValueError("A plan batch slice must contain at least one batch.")
+        if end_batch > len(sequence):
+            raise ValueError(
+                f"end_batch {end_batch} exceeds sequence length {len(sequence)}."
+            )
+
+        try:
+            super().__init__(
+                workers=sequence.workers,
+                use_multiprocessing=False,
+                max_queue_size=sequence.max_queue_size,
+            )
+        except TypeError as error:
+            if "object.__init__()" not in str(error):
+                raise
+            super().__init__()
+
+        self.sequence = sequence
+        self.start_batch = start_batch
+        self.end_batch = end_batch
+        self.batch_size = sequence.batch_size
+        self.workers = sequence.workers
+        self.max_queue_size = sequence.max_queue_size
+        self.epoch = sequence.epoch
+        self.plan_sha256 = sequence.plan_sha256
+
+    def __len__(self) -> int:
+        return self.end_batch - self.start_batch
+
+    def __getitem__(self, batch_index: int):
+        batch_index = _plan_integer("batch_index", batch_index)
+        if batch_index >= len(self):
+            raise IndexError(batch_index)
+        self._assert_parent_plan()
+        return self.sequence[self.start_batch + batch_index]
+
+    def on_epoch_end(self) -> None:
+        """Intentionally keep the parent on the exact installed plan."""
+
+    def _assert_parent_plan(self) -> None:
+        if (
+            self.sequence.epoch != self.epoch
+            or self.sequence.plan_sha256 != self.plan_sha256
+        ):
+            raise RuntimeError(
+                "The parent epoch plan changed while a batch slice was active."
+            )

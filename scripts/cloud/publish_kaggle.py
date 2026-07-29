@@ -25,6 +25,7 @@ DEFAULT_WORKERS = 4
 DEFAULT_SMOKE_EXAMPLES = 8192
 DEFAULT_SMOKE_VALIDATION_EXAMPLES = 2048
 DEFAULT_LOG_EVERY_BATCHES = 25
+DEFAULT_RECOVERY_CHUNK_BATCHES = 250
 DEFAULT_SMOKE_RUNTIME_MINUTES = 30.0
 DEFAULT_TRAIN_RUNTIME_MINUTES = 600.0
 
@@ -156,6 +157,7 @@ def _task_notebook(
     source_dataset_slug: str = "",
     config_path: str = "configs/polyphonic_train.yaml",
     initial_checkpoint_name: str = "",
+    resume_from_input: bool = False,
     maximum_examples: int = 60_000,
     maximum_recordings: int = 12,
     maximum_candidates: int = 8,
@@ -163,6 +165,7 @@ def _task_notebook(
     smoke_examples: int = DEFAULT_SMOKE_EXAMPLES,
     smoke_validation_examples: int = DEFAULT_SMOKE_VALIDATION_EXAMPLES,
     log_every_batches: int = DEFAULT_LOG_EVERY_BATCHES,
+    recovery_chunk_batches: int = DEFAULT_RECOVERY_CHUNK_BATCHES,
     maximum_runtime_minutes: float | None = None,
 ) -> dict[str, Any]:
     if maximum_examples < 1:
@@ -177,6 +180,8 @@ def _task_notebook(
         raise ValueError("Smoke example counts must be positive.")
     if log_every_batches < 1:
         raise ValueError("log_every_batches must be positive.")
+    if recovery_chunk_batches < 1:
+        raise ValueError("recovery_chunk_batches must be positive.")
     runtime_minutes = (
         maximum_runtime_minutes
         if maximum_runtime_minutes is not None
@@ -193,6 +198,7 @@ def _task_notebook(
     source_replaced = False
     config_replaced = False
     checkpoint_replaced = False
+    resume_replaced = False
     maximum_replaced = False
     recordings_replaced = False
     candidates_replaced = False
@@ -200,6 +206,7 @@ def _task_notebook(
     smoke_examples_replaced = False
     smoke_validation_replaced = False
     log_batches_replaced = False
+    recovery_chunk_replaced = False
     runtime_replaced = False
     for cell in notebook["cells"]:
         if cell.get("cell_type") != "code":
@@ -228,6 +235,11 @@ def _task_notebook(
                     f"{json.dumps(initial_checkpoint_name)}\n"
                 )
                 checkpoint_replaced = True
+            elif line.startswith("RESUME_FROM_INPUT = "):
+                source[index] = (
+                    f"RESUME_FROM_INPUT = {bool(resume_from_input)!r}\n"
+                )
+                resume_replaced = True
             elif line.startswith("MAXIMUM_EXAMPLES = "):
                 source[index] = (
                     f"MAXIMUM_EXAMPLES = {int(maximum_examples)}\n"
@@ -262,6 +274,12 @@ def _task_notebook(
                     f"LOG_EVERY_BATCHES = {int(log_every_batches)}\n"
                 )
                 log_batches_replaced = True
+            elif line.startswith("RECOVERY_CHUNK_BATCHES = "):
+                source[index] = (
+                    "RECOVERY_CHUNK_BATCHES = "
+                    f"{int(recovery_chunk_batches)}\n"
+                )
+                recovery_chunk_replaced = True
             elif line.startswith("MAXIMUM_RUNTIME_MINUTES = "):
                 source[index] = (
                     f"MAXIMUM_RUNTIME_MINUTES = {float(runtime_minutes)!r}\n"
@@ -278,6 +296,10 @@ def _task_notebook(
     if not checkpoint_replaced:
         raise ValueError(
             "INITIAL_CHECKPOINT_NAME cell not found in Kaggle notebook."
+        )
+    if not resume_replaced:
+        raise ValueError(
+            "RESUME_FROM_INPUT cell not found in Kaggle notebook."
         )
     if not maximum_replaced:
         raise ValueError(
@@ -303,6 +325,10 @@ def _task_notebook(
         raise ValueError(
             "LOG_EVERY_BATCHES cell not found in Kaggle notebook."
         )
+    if not recovery_chunk_replaced:
+        raise ValueError(
+            "RECOVERY_CHUNK_BATCHES cell not found in Kaggle notebook."
+        )
     if not runtime_replaced:
         raise ValueError(
             "MAXIMUM_RUNTIME_MINUTES cell not found in Kaggle notebook."
@@ -320,6 +346,7 @@ def publish_kernel(
     accelerator: str = "NvidiaTeslaP100",
     config_path: str = "configs/polyphonic_train.yaml",
     initial_checkpoint_name: str = "",
+    resume_kernel_source: str = "",
     maximum_examples: int = 60_000,
     maximum_recordings: int = 12,
     maximum_candidates: int = 8,
@@ -327,6 +354,7 @@ def publish_kernel(
     smoke_examples: int = DEFAULT_SMOKE_EXAMPLES,
     smoke_validation_examples: int = DEFAULT_SMOKE_VALIDATION_EXAMPLES,
     log_every_batches: int = DEFAULT_LOG_EVERY_BATCHES,
+    recovery_chunk_batches: int = DEFAULT_RECOVERY_CHUNK_BATCHES,
     maximum_runtime_minutes: float | None = None,
 ) -> str:
     if "/" in owner or not owner:
@@ -337,6 +365,19 @@ def publish_kernel(
         raise ValueError("Dataset handles must be USERNAME/SLUG.")
     if len(set(dataset_handles)) != len(dataset_handles):
         raise ValueError("Dataset handles must be unique.")
+    if resume_kernel_source:
+        if resume_kernel_source.count("/") != 1:
+            raise ValueError(
+                "Resume kernel source must be USERNAME/SLUG."
+            )
+        if task != "train":
+            raise ValueError(
+                "A resume kernel source is only valid for task=train."
+            )
+        if initial_checkpoint_name:
+            raise ValueError(
+                "Resume kernel and initial checkpoint are mutually exclusive."
+            )
     source_handles = [
         handle
         for handle in dataset_handles
@@ -362,6 +403,7 @@ def publish_kernel(
                 source_dataset_slug=source_dataset_slug,
                 config_path=config_path,
                 initial_checkpoint_name=initial_checkpoint_name,
+                resume_from_input=bool(resume_kernel_source),
                 maximum_examples=maximum_examples,
                 maximum_recordings=maximum_recordings,
                 maximum_candidates=maximum_candidates,
@@ -369,6 +411,7 @@ def publish_kernel(
                 smoke_examples=smoke_examples,
                 smoke_validation_examples=smoke_validation_examples,
                 log_every_batches=log_every_batches,
+                recovery_chunk_batches=recovery_chunk_batches,
                 maximum_runtime_minutes=maximum_runtime_minutes,
             ),
             indent=1,
@@ -388,6 +431,9 @@ def publish_kernel(
         "title": slug.replace("-", " "),
         "code_file": notebook_name,
         "dataset_sources": dataset_handles,
+        "kernel_sources": (
+            [resume_kernel_source] if resume_kernel_source else []
+        ),
     })
     (output_dir / "kernel-metadata.json").write_text(
         json.dumps(metadata, indent=2) + "\n", encoding="utf-8"
@@ -441,6 +487,14 @@ def main() -> int:
         help="Unique checkpoint basename from an attached dataset.",
     )
     kernel.add_argument(
+        "--resume-kernel",
+        default="",
+        help=(
+            "Previous USERNAME/SLUG train kernel whose validated output "
+            "archive will be installed on writable storage before resume."
+        ),
+    )
+    kernel.add_argument(
         "--output-dir", type=Path, default=Path("tmp/kaggle/kernel")
     )
     kernel.add_argument(
@@ -487,6 +541,12 @@ def main() -> int:
         help="Emit and persist progress every N train batches.",
     )
     kernel.add_argument(
+        "--recovery-chunk-batches",
+        type=int,
+        default=DEFAULT_RECOVERY_CHUNK_BATCHES,
+        help="Persist one compiled A/B recovery generation every N batches.",
+    )
+    kernel.add_argument(
         "--maximum-runtime-minutes",
         type=float,
         help=(
@@ -514,6 +574,7 @@ def main() -> int:
             accelerator=args.accelerator,
             config_path=args.config,
             initial_checkpoint_name=args.initial_checkpoint_name,
+            resume_kernel_source=args.resume_kernel,
             maximum_examples=args.maximum_examples,
             maximum_recordings=args.maximum_recordings,
             maximum_candidates=args.maximum_candidates,
@@ -521,6 +582,7 @@ def main() -> int:
             smoke_examples=args.smoke_examples,
             smoke_validation_examples=args.smoke_validation_examples,
             log_every_batches=args.log_every_batches,
+            recovery_chunk_batches=args.recovery_chunk_batches,
             maximum_runtime_minutes=args.maximum_runtime_minutes,
         )
         print(json.dumps({"kernel": kernel_id, "task": args.task}, indent=2))

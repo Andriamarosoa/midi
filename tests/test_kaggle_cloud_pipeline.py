@@ -38,7 +38,10 @@ from scripts.cloud.publish_kaggle import (
     publish_kernel,
 )
 from scripts.cloud.supervise_kaggle import STATUS_PATTERN
-from scripts.cloud.train_polyphonic import _src_training_arguments
+from scripts.cloud.train_polyphonic import (
+    _recovery_roundtrip_command,
+    _src_training_arguments,
+)
 from scripts.project_summary import update_project_summary
 
 
@@ -279,6 +282,7 @@ class KaggleCloudPipelineTests(unittest.TestCase):
         self.assertIn("SMOKE_EXAMPLES = 8192", source)
         self.assertIn("SMOKE_VALIDATION_EXAMPLES = 2048", source)
         self.assertIn("LOG_EVERY_BATCHES = 25", source)
+        self.assertIn("RECOVERY_CHUNK_BATCHES = 250", source)
         self.assertIn("MAXIMUM_RUNTIME_MINUTES = 600.0", source)
         self.assertIn(
             '"--maximum-examples", str(MAXIMUM_EXAMPLES)',
@@ -293,6 +297,11 @@ class KaggleCloudPipelineTests(unittest.TestCase):
         )
         self.assertIn(
             '"--log-every-batches", str(LOG_EVERY_BATCHES)', source
+        )
+        self.assertIn(
+            '"--recovery-chunk-batches", '
+            "str(RECOVERY_CHUNK_BATCHES)",
+            source,
         )
         self.assertIn(
             '"--maximum-runtime-minutes", '
@@ -330,6 +339,7 @@ class KaggleCloudPipelineTests(unittest.TestCase):
             smoke_examples=4096,
             smoke_validation_examples=1024,
             log_every_batches=10,
+            recovery_chunk_batches=32,
             maximum_runtime_minutes=27.5,
         )
         source = "".join(
@@ -341,6 +351,7 @@ class KaggleCloudPipelineTests(unittest.TestCase):
         self.assertIn("SMOKE_EXAMPLES = 4096", source)
         self.assertIn("SMOKE_VALIDATION_EXAMPLES = 1024", source)
         self.assertIn("LOG_EVERY_BATCHES = 10", source)
+        self.assertIn("RECOVERY_CHUNK_BATCHES = 32", source)
         self.assertIn("MAXIMUM_RUNTIME_MINUTES = 27.5", source)
 
     def test_entrypoint_separates_smoke_and_train_controls(self) -> None:
@@ -350,6 +361,7 @@ class KaggleCloudPipelineTests(unittest.TestCase):
             smoke_examples=8192,
             smoke_validation_examples=2048,
             log_every_batches=25,
+            recovery_chunk_batches=32,
             maximum_runtime_minutes=None,
         )
         train = _training_control_arguments(
@@ -358,12 +370,16 @@ class KaggleCloudPipelineTests(unittest.TestCase):
             smoke_examples=8192,
             smoke_validation_examples=2048,
             log_every_batches=25,
+            recovery_chunk_batches=250,
             maximum_runtime_minutes=None,
         )
         self.assertIn("--representative-smoke", smoke)
         self.assertIn("--smoke-test", smoke)
         self.assertEqual(
             smoke[smoke.index("--maximum-runtime-minutes") + 1], "30.0"
+        )
+        self.assertEqual(
+            smoke[smoke.index("--recovery-chunk-batches") + 1], "32"
         )
         self.assertNotIn("--skip-post-train", smoke)
         self.assertIn("--skip-post-train", train)
@@ -380,6 +396,7 @@ class KaggleCloudPipelineTests(unittest.TestCase):
             smoke_examples=8192,
             smoke_validation_examples=2048,
             log_every_batches=25,
+            recovery_chunk_batches=32,
             maximum_runtime_minutes=None,
         )
         self.assertEqual(arguments[arguments.index("--workers") + 1], "3")
@@ -388,6 +405,18 @@ class KaggleCloudPipelineTests(unittest.TestCase):
             arguments[arguments.index("--maximum-runtime-minutes") + 1],
             "30.0",
         )
+        self.assertEqual(
+            arguments[arguments.index("--recovery-chunk-batches") + 1],
+            "32",
+        )
+
+    def test_recovery_roundtrip_runs_as_importable_module(self) -> None:
+        command = _recovery_roundtrip_command(Path("runs/polyphonic/probe"))
+        self.assertEqual(command[1:3], (
+            "-m",
+            "scripts.cloud.verify_recovery_checkpoint",
+        ))
+        self.assertNotIn("verify_recovery_checkpoint.py", command)
 
     def test_select_injects_event_evaluation_limits(self) -> None:
         notebook = _task_notebook(

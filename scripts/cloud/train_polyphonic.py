@@ -25,6 +25,7 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any, Sequence
@@ -47,6 +48,7 @@ MINIMUM_STAGED_TRAIN_FREE_GIB = 2.0
 DEFAULT_SMOKE_EXAMPLES = 8192
 DEFAULT_SMOKE_VALIDATION_EXAMPLES = 2048
 DEFAULT_LOG_EVERY_BATCHES = 25
+DEFAULT_RECOVERY_CHUNK_BATCHES = 250
 DEFAULT_SMOKE_RUNTIME_MINUTES = 30.0
 DEFAULT_TRAIN_RUNTIME_MINUTES = 600.0
 
@@ -54,6 +56,18 @@ DEFAULT_TRAIN_RUNTIME_MINUTES = 600.0
 def _run(command: Sequence[str]) -> None:
     print("+ " + " ".join(command), flush=True)
     subprocess.run(command, cwd=ROOT, check=True)
+
+
+def _recovery_roundtrip_command(run_dir: Path) -> tuple[str, ...]:
+    """Build a fresh-process verifier command with the project on sys.path."""
+
+    return (
+        sys.executable,
+        "-m",
+        "scripts.cloud.verify_recovery_checkpoint",
+        "--run-dir",
+        str(run_dir),
+    )
 
 
 def _src_training_arguments(
@@ -64,6 +78,7 @@ def _src_training_arguments(
     smoke_examples: int,
     smoke_validation_examples: int,
     log_every_batches: int,
+    recovery_chunk_batches: int,
     maximum_runtime_minutes: float | None,
 ) -> list[str]:
     """Build the bounded, observable arguments passed to the trainer."""
@@ -73,6 +88,8 @@ def _src_training_arguments(
         raise ValueError("Smoke example counts must be positive.")
     if log_every_batches < 1:
         raise ValueError("log_every_batches must be positive.")
+    if recovery_chunk_batches < 1:
+        raise ValueError("recovery_chunk_batches must be positive.")
     if representative_smoke and not smoke_test:
         raise ValueError("--representative-smoke requires --smoke-test.")
     runtime_minutes = (
@@ -92,6 +109,8 @@ def _src_training_arguments(
         str(workers),
         "--log-every-batches",
         str(log_every_batches),
+        "--recovery-chunk-batches",
+        str(recovery_chunk_batches),
         "--maximum-runtime-minutes",
         str(float(runtime_minutes)),
     ]
@@ -190,6 +209,54 @@ def _require_inputs(config_path: Path, prepare_data: bool) -> None:
             f"{DEFAULT_MANIFEST} absent. Utiliser --prepare-data après "
             "avoir placé les sources brutes dans data/."
         )
+
+
+def _validate_writable_resume_run(
+    run_dir: Path,
+    *,
+    output_root: Path,
+) -> Path:
+    """Reject read-only mounts and prove that the imported run is writable."""
+    resolved = run_dir.resolve()
+    resolved_output_root = (
+        output_root
+        if output_root.is_absolute()
+        else ROOT / output_root
+    ).resolve()
+    kaggle_input = Path("/kaggle/input").resolve()
+    if resolved == kaggle_input or kaggle_input in resolved.parents:
+        raise ValueError(
+            "A run mounted under /kaggle/input cannot be resumed directly."
+        )
+    if (
+        resolved == resolved_output_root
+        or resolved_output_root not in resolved.parents
+    ):
+        raise ValueError(
+            f"Resume run must be below {resolved_output_root}: {resolved}"
+        )
+    if not resolved.is_dir() or resolved.is_symlink():
+        raise FileNotFoundError(resolved)
+    symlinks = [path for path in resolved.rglob("*") if path.is_symlink()]
+    if symlinks:
+        raise ValueError(
+            f"Resume run contains a symbolic link: {symlinks[0]}"
+        )
+    probe_name: str | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            prefix=".resume-write-probe-",
+            dir=resolved,
+            delete=False,
+        ) as probe:
+            probe.write(b"writable")
+            probe_name = probe.name
+    except OSError as error:
+        raise PermissionError(f"Resume run is not writable: {resolved}") from error
+    finally:
+        if probe_name is not None:
+            Path(probe_name).unlink(missing_ok=True)
+    return resolved
 
 
 def _latest_run(config: dict[str, Any]) -> Path:
@@ -307,6 +374,12 @@ def main() -> int:
         default=DEFAULT_LOG_EVERY_BATCHES,
     )
     parser.add_argument(
+        "--recovery-chunk-batches",
+        type=int,
+        default=DEFAULT_RECOVERY_CHUNK_BATCHES,
+        help="Persist one compiled A/B recovery generation every N batches.",
+    )
+    parser.add_argument(
         "--maximum-runtime-minutes",
         type=float,
         help=(
@@ -320,6 +393,8 @@ def main() -> int:
         help="Skip validation ranking, musical selection and TFLite export.",
     )
     args = parser.parse_args()
+    if args.resume_run is not None and args.initial_checkpoint is not None:
+        parser.error("--resume-run and --initial-checkpoint are mutually exclusive.")
 
     os.chdir(ROOT)
     config_path = args.config.resolve()
@@ -355,6 +430,14 @@ def main() -> int:
         ))
 
     config = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+    resume_run = (
+        None
+        if args.resume_run is None
+        else _validate_writable_resume_run(
+            args.resume_run,
+            output_root=Path(config["train"]["output_root"]),
+        )
+    )
     started_at = datetime.now(timezone.utc).isoformat()
     train_command = [
         sys.executable,
@@ -363,10 +446,10 @@ def main() -> int:
         "--config",
         str(config_path),
     ]
-    if args.resume_run is not None:
+    if resume_run is not None:
         train_command.extend((
             "--resume-run",
-            str(args.resume_run.resolve()),
+            str(resume_run),
         ))
     if args.initial_checkpoint is not None:
         train_command.extend((
@@ -380,14 +463,16 @@ def main() -> int:
         smoke_examples=args.smoke_examples,
         smoke_validation_examples=args.smoke_validation_examples,
         log_every_batches=args.log_every_batches,
+        recovery_chunk_batches=args.recovery_chunk_batches,
         maximum_runtime_minutes=args.maximum_runtime_minutes,
     ))
     _run(train_command)
     run_dir = (
-        args.resume_run.resolve()
-        if args.resume_run is not None
+        resume_run
+        if resume_run is not None
         else _latest_run(config)
     )
+    _run(_recovery_roundtrip_command(run_dir))
 
     artifact_dir: Path | None = None
     post_train_completed = False
