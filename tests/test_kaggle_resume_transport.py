@@ -285,7 +285,12 @@ class KaggleResumeTransportTests(unittest.TestCase):
                 kernel_id = publish_kernel(
                     owner="owner",
                     dataset_handles=[
-                        "owner/guitar-midi-data-part-01",
+                        *[
+                            "data-owner/"
+                            "guitar-midi-polyphonic-data-part-"
+                            f"{index:02d}"
+                            for index in range(1, 17)
+                        ],
                         "owner/guitar-midi-polyphonic-code-resume",
                     ],
                     task="train",

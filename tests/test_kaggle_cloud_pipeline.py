@@ -469,6 +469,11 @@ class KaggleCloudPipelineTests(unittest.TestCase):
     def test_kernel_accepts_multiple_unique_dataset_sources(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             output = Path(temporary) / "kernel"
+            shards = [
+                "data-owner/guitar-midi-polyphonic-data-part-"
+                f"{index:02d}"
+                for index in range(1, 17)
+            ]
             with (
                 mock.patch(
                     "scripts.cloud.publish_kaggle._run"
@@ -480,10 +485,8 @@ class KaggleCloudPipelineTests(unittest.TestCase):
             ):
                 kernel = publish_kernel(
                     owner="owner",
-                    dataset_handles=[
-                        "owner/data-part-01",
-                        "owner/data-part-02",
-                        "owner/guitar-midi-polyphonic-code-6ce57898",
+                    dataset_handles=shards + [
+                        "owner/guitar-midi-polyphonic-code-6ce57898"
                     ],
                     task="smoke",
                     output_dir=output,
@@ -497,11 +500,8 @@ class KaggleCloudPipelineTests(unittest.TestCase):
             self.assertEqual(metadata["title"], "smoke shards")
             self.assertEqual(
                 metadata["dataset_sources"],
-                [
-                    "owner/data-part-01",
-                    "owner/data-part-02",
-                    "owner/guitar-midi-polyphonic-code-6ce57898",
-                ],
+                shards
+                + ["owner/guitar-midi-polyphonic-code-6ce57898"],
             )
             notebook = json.loads(
                 (output / "polyphonic_smoke.ipynb").read_text(
@@ -522,6 +522,21 @@ class KaggleCloudPipelineTests(unittest.TestCase):
                 run_mock.call_args.args[0][-2:],
                 ["--accelerator", "NvidiaTeslaT4"],
             )
+
+    def test_smoke_kernel_refuses_missing_visible_training_shards(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            with self.assertRaisesRegex(ValueError, "all 16"):
+                publish_kernel(
+                    owner="owner",
+                    dataset_handles=[
+                        "owner/guitar-midi-polyphonic-code-probe",
+                        "owner/checkpoints",
+                    ],
+                    task="smoke",
+                    output_dir=Path(temporary) / "kernel",
+                )
 
     def test_source_dataset_contains_only_tracked_source_snapshot(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

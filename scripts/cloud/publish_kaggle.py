@@ -28,6 +28,10 @@ DEFAULT_LOG_EVERY_BATCHES = 25
 DEFAULT_RECOVERY_CHUNK_BATCHES = 250
 DEFAULT_SMOKE_RUNTIME_MINUTES = 30.0
 DEFAULT_TRAIN_RUNTIME_MINUTES = 600.0
+EXPECTED_TRAINING_SHARD_SLUGS = frozenset(
+    f"guitar-midi-polyphonic-data-part-{index:02d}"
+    for index in range(1, 17)
+)
 
 
 def _kaggle() -> str:
@@ -365,6 +369,18 @@ def publish_kernel(
         raise ValueError("Dataset handles must be USERNAME/SLUG.")
     if len(set(dataset_handles)) != len(dataset_handles):
         raise ValueError("Dataset handles must be unique.")
+    if task in {"smoke", "train"}:
+        attached_slugs = {
+            handle.split("/", 1)[1] for handle in dataset_handles
+        }
+        missing_shards = sorted(
+            EXPECTED_TRAINING_SHARD_SLUGS - attached_slugs
+        )
+        if missing_shards:
+            raise ValueError(
+                "Smoke/train kernels require all 16 visible training "
+                "shards; missing: " + ", ".join(missing_shards)
+            )
     if resume_kernel_source:
         if resume_kernel_source.count("/") != 1:
             raise ValueError(
