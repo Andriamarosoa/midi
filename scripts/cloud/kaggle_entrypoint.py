@@ -397,6 +397,7 @@ def validate_training_manifest(manifest: Path) -> dict[str, object]:
 
 
 def main() -> int:
+    os.environ.setdefault("PYTHONUNBUFFERED", "1")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--task", choices=("smoke", "train", "rank", "select", "rebuild"),

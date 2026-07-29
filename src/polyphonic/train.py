@@ -6,7 +6,8 @@ import argparse
 import inspect
 import json
 import platform
-from datetime import datetime
+import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 import numpy as np
@@ -76,7 +77,73 @@ def _json(path: Path, value: object) -> None:
     path.write_text(json.dumps(value, indent=2), encoding="utf-8")
 
 
+class EpochProgressLogger(tf.keras.callbacks.Callback):
+    """Persist and flush one machine-readable status line per epoch."""
+
+    def __init__(
+        self,
+        path: str | Path,
+        *,
+        total_epochs: int,
+        initial_epoch: int = 0,
+    ) -> None:
+        super().__init__()
+        self.path = Path(path)
+        self.total_epochs = int(total_epochs)
+        self.initial_epoch = int(initial_epoch)
+        self.current_epoch = int(initial_epoch)
+        self.last_metrics: dict[str, float] = {}
+
+    @staticmethod
+    def _metrics(logs: dict[str, object] | None) -> dict[str, float]:
+        return {
+            str(name): float(value)
+            for name, value in (logs or {}).items()
+            if value is not None
+        }
+
+    def _write(self, status: str, **values: object) -> None:
+        report = {
+            "schema_version": 1,
+            "status": status,
+            "epoch": self.current_epoch,
+            "total_epochs": self.total_epochs,
+            "updated_at_utc": datetime.now(timezone.utc).isoformat(),
+            **values,
+        }
+        temporary = self.path.with_suffix(self.path.suffix + ".tmp")
+        temporary.write_text(
+            json.dumps(report, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        temporary.replace(self.path)
+        print(
+            "EPOCH_PROGRESS " + json.dumps(report, separators=(",", ":")),
+            flush=True,
+        )
+
+    def on_train_begin(self, logs=None) -> None:
+        self.current_epoch = self.initial_epoch
+        self._write("starting")
+
+    def on_epoch_begin(self, epoch: int, logs=None) -> None:
+        self.current_epoch = int(epoch) + 1
+        self._write("running")
+
+    def on_epoch_end(self, epoch: int, logs=None) -> None:
+        self.current_epoch = int(epoch) + 1
+        self.last_metrics = self._metrics(logs)
+        self._write("epoch_completed", metrics=self.last_metrics)
+
+    def on_train_end(self, logs=None) -> None:
+        self._write("training_finished", metrics=self.last_metrics)
+
+
 def main() -> int:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(line_buffering=True, write_through=True)
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(line_buffering=True, write_through=True)
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument(
@@ -439,6 +506,11 @@ def main() -> int:
         tf.keras.callbacks.CSVLogger(
             str(run_dir / "history.csv"), append=bool(args.resume_run)
         ),
+        EpochProgressLogger(
+            run_dir / "epoch_progress.json",
+            total_epochs=epochs,
+            initial_epoch=initial_epoch,
+        ),
         tf.keras.callbacks.TerminateOnNaN(),
     ]
 
@@ -458,6 +530,7 @@ def main() -> int:
             initial_epoch=initial_epoch,
             epochs=epochs,
             callbacks=callbacks,
+            verbose=2,
             **_fit_queue_options(
                 model.fit, int(training.get("workers", 1))
             ),

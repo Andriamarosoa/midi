@@ -221,6 +221,7 @@ def _write_result(
 
 
 def main() -> int:
+    os.environ.setdefault("PYTHONUNBUFFERED", "1")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
     parser.add_argument("--prepare-data", action="store_true")
