@@ -314,6 +314,10 @@ class KaggleCloudPipelineTests(unittest.TestCase):
         self.assertIn("write_through=True", source)
         self.assertIn("mounted_roots", source)
         self.assertIn('input_root.rglob("pyproject.toml")', source)
+        self.assertIn(
+            'expected_source_root.rglob("source_metadata.json")',
+            source,
+        )
         self.assertIn('"mounted_inputs"', source)
         self.assertIn("shutil.copytree(source_snapshot, workspace)", source)
         self.assertNotIn('"pip", "install"', source)
