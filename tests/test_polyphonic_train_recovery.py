@@ -17,6 +17,8 @@ from src.polyphonic.recovery import (
 )
 from src.polyphonic.train import (
     SerializableTrainingPolicy,
+    _validate_continuation_config,
+    _validate_continuation_epoch_plans,
     _persist_or_load_epoch_plans,
     _reset_chunk_randomness,
     _write_model_overview,
@@ -535,6 +537,33 @@ class PolyphonicTrainRecoveryTests(unittest.TestCase):
                 [plan.sha256 for plan in loaded_again],
                 [plan.sha256 for plan in plans],
             )
+
+    def test_continuation_config_only_allows_larger_epoch_target(self) -> None:
+        source = {
+            "dataset": {"manifest": "manifest.csv"},
+            "train": {"epochs": 8, "batch_size": 64},
+        }
+        target = {
+            "dataset": {"manifest": "manifest.csv"},
+            "train": {"epochs": 12, "batch_size": 64},
+        }
+        self.assertEqual(_validate_continuation_config(source, target), 8)
+        target["train"]["batch_size"] = 32
+        with self.assertRaisesRegex(ValueError, "only by train.epochs"):
+            _validate_continuation_config(source, target)
+
+    def test_continuation_epoch_plans_retain_completed_prefix(self) -> None:
+        source = _plans(2)
+        target = _plans(3)
+        _validate_continuation_epoch_plans(source, target, 2)
+        changed = _plans(3)
+        changed[1] = PolyphonicEpochPlan(
+            1,
+            np.flip(changed[1].order, axis=0).copy(),
+            changed[1].augmentation_gains.copy(),
+        )
+        with self.assertRaisesRegex(ValueError, "changed completed"):
+            _validate_continuation_epoch_plans(source, changed, 2)
 
 
 if __name__ == "__main__":

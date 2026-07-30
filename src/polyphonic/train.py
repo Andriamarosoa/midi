@@ -903,6 +903,232 @@ def _persist_or_load_epoch_plans(
     return plans, digest
 
 
+def _load_epoch_plans_archive(
+    path: str | Path,
+) -> list[PolyphonicEpochPlan]:
+    """Load an immutable plan archive without regenerating its sequence."""
+
+    source = Path(path)
+    plans: list[PolyphonicEpochPlan] = []
+    with np.load(source, allow_pickle=False) as archive:
+        schema = int(np.asarray(archive["schema_version"]).reshape(-1)[0])
+        epoch_count = int(
+            np.asarray(archive["epoch_count"]).reshape(-1)[0]
+        )
+        if schema != 1 or epoch_count < 1:
+            raise ValueError("Epoch-plan archive contract mismatch.")
+        for epoch in range(epoch_count):
+            prefix = f"epoch_{epoch:04d}__"
+            exported = {
+                name[len(prefix):]: np.asarray(archive[name]).copy()
+                for name in archive.files
+                if name.startswith(prefix)
+            }
+            plan = PolyphonicEpochPlan.from_export(exported)
+            if plan.epoch != epoch:
+                raise ValueError(
+                    f"Persisted epoch plan {epoch} has a bad index."
+                )
+            plans.append(plan)
+    return plans
+
+
+def _validate_continuation_config(
+    source_config: Mapping[str, object],
+    target_config: Mapping[str, object],
+) -> int:
+    """Allow only an increase of the immutable epoch target."""
+
+    source = json.loads(json.dumps(dict(source_config)))
+    target = json.loads(json.dumps(dict(target_config)))
+    source_train = source.get("train")
+    target_train = target.get("train")
+    if not isinstance(source_train, dict) or not isinstance(
+        target_train, dict
+    ):
+        raise ValueError("Continuation configs require a train mapping.")
+    source_epochs = int(source_train.get("epochs", 0))
+    target_epochs = int(target_train.get("epochs", 0))
+    if source_epochs < 1 or target_epochs <= source_epochs:
+        raise ValueError(
+            "Continuation must increase the completed epoch target."
+        )
+    source_train["epochs"] = target_epochs
+    if source != target:
+        raise ValueError(
+            "Continuation config may differ only by train.epochs."
+        )
+    return source_epochs
+
+
+def _validate_continuation_epoch_plans(
+    source_plans: Sequence[PolyphonicEpochPlan],
+    target_plans: Sequence[PolyphonicEpochPlan],
+    completed_epochs: int,
+) -> None:
+    """Prove that the expanded plan retains every completed epoch."""
+
+    completed = int(completed_epochs)
+    if completed < 1 or len(source_plans) != completed:
+        raise ValueError(
+            "Continuation source plan count differs from completed epochs."
+        )
+    if len(target_plans) <= completed:
+        raise ValueError(
+            "Continuation target must contain at least one new epoch plan."
+        )
+    for epoch in range(completed):
+        if source_plans[epoch].sha256 != target_plans[epoch].sha256:
+            raise ValueError(
+                f"Continuation changed completed epoch plan {epoch + 1}."
+            )
+
+
+def _continuation_source_signatures(
+    source_run: Path,
+    source_config: Mapping[str, object],
+) -> RecoverySignatures:
+    runtime_path = source_run / "runtime.json"
+    plan_path = source_run / "epoch_plans.npz"
+    if not runtime_path.is_file() or not plan_path.is_file():
+        raise FileNotFoundError(
+            "Continuation source lacks runtime.json or epoch_plans.npz."
+        )
+    runtime = json.loads(runtime_path.read_text(encoding="utf-8"))
+    dataset = source_config.get("dataset")
+    if not isinstance(dataset, Mapping):
+        raise ValueError("Continuation source dataset config is invalid.")
+    manifest = Path(str(dataset["manifest"]))
+    if not manifest.is_file():
+        raise FileNotFoundError(
+            f"Continuation manifest is unavailable: {manifest}"
+        )
+    return RecoverySignatures(
+        plan_sha256=file_sha256(plan_path),
+        config_sha256=_canonical_json_sha256(source_config),
+        manifest_sha256=file_sha256(manifest),
+        commit=str(runtime["git_commit"]),
+    )
+
+
+def _bootstrap_continuation(
+    *,
+    source_run: str | Path,
+    run_dir: Path,
+    target_config: Mapping[str, object],
+    target_plans: Sequence[PolyphonicEpochPlan],
+    target_signatures: RecoverySignatures,
+    smoke_test: bool,
+) -> RecoverySnapshot:
+    """Fork a completed run while retaining compiled optimizer and policy."""
+
+    source = Path(source_run).resolve()
+    status_path = source / "training_status.json"
+    config_path = source / "config.json"
+    if (
+        not source.is_dir()
+        or not status_path.is_file()
+        or not config_path.is_file()
+    ):
+        raise FileNotFoundError(
+            f"Continuation source is not a complete run: {source}"
+        )
+    status = json.loads(status_path.read_text(encoding="utf-8"))
+    if (
+        status.get("status") != "complete"
+        or status.get("locked_test_used") is not False
+    ):
+        raise ValueError(
+            "Continuation source must be complete and exclude the locked test."
+        )
+    source_config = json.loads(config_path.read_text(encoding="utf-8"))
+    source_epochs = _validate_continuation_config(
+        source_config, target_config
+    )
+    source_signatures = _continuation_source_signatures(
+        source, source_config
+    )
+    source_snapshot = load_latest_recovery_checkpoint(
+        source / "recovery",
+        signatures=source_signatures,
+    )
+    if source_snapshot is None:
+        raise FileNotFoundError(
+            f"Continuation source has no compiled recovery: {source}"
+        )
+    if (
+        int(source_snapshot.state["epoch"]) != source_epochs
+        or int(source_snapshot.state["next_batch"]) != 0
+    ):
+        raise ValueError(
+            "Continuation source is not at a completed epoch boundary."
+        )
+    callback_state = _validate_callback_state(
+        source_snapshot.state["callback_state"]
+    )
+    if not smoke_test:
+        source_plans = _load_epoch_plans_archive(
+            source / "epoch_plans.npz"
+        )
+        _validate_continuation_epoch_plans(
+            source_plans, target_plans, source_epochs
+        )
+    elif len(target_plans) != source_epochs + 1:
+        raise ValueError(
+            "A continuation smoke must exercise exactly one new epoch."
+        )
+
+    epoch_dir = run_dir / "epochs"
+    epoch_dir.mkdir(parents=True, exist_ok=True)
+    for epoch in range(1, source_epochs + 1):
+        checkpoint = source / "epochs" / f"epoch-{epoch:02d}.keras"
+        if not checkpoint.is_file():
+            raise FileNotFoundError(
+                f"Continuation source checkpoint is missing: {checkpoint}"
+            )
+        _atomic_copy(checkpoint, epoch_dir / checkpoint.name)
+    for name in ("best.keras", "last.keras"):
+        checkpoint = source / name
+        if not checkpoint.is_file():
+            raise FileNotFoundError(
+                f"Continuation source checkpoint is missing: {checkpoint}"
+            )
+        _atomic_copy(checkpoint, run_dir / name)
+    history_rows = callback_state["history_rows"]
+    if not isinstance(history_rows, list):
+        raise ValueError("Continuation history state is invalid.")
+    _write_history_csv(run_dir / "history.csv", history_rows)
+
+    snapshot = save_recovery_checkpoint(
+        run_dir / "recovery",
+        source_snapshot.model,
+        epoch=source_epochs,
+        next_batch=0,
+        signatures=target_signatures,
+        callback_state=callback_state,
+    )
+    atomic_write_json(
+        run_dir / "continuation_source.json",
+        {
+            "schema_version": 1,
+            "source_run": str(source),
+            "source_epochs": source_epochs,
+            "target_epochs": len(target_plans),
+            "source_generation": source_snapshot.state["generation"],
+            "source_model_sha256": source_snapshot.state["model_sha256"],
+            "source_optimizer_iterations": source_snapshot.state[
+                "optimizer_iterations"
+            ],
+            "source_learning_rate": source_snapshot.state["learning_rate"],
+            "target_generation": snapshot.state["generation"],
+            "target_model_sha256": snapshot.state["model_sha256"],
+            "locked_test_used": False,
+            "smoke_test": bool(smoke_test),
+        },
+    )
+    return snapshot
+
+
 def _chunk_example_count(
     plan: PolyphonicEpochPlan,
     batch_size: int,
@@ -1544,11 +1770,20 @@ def main() -> int:
         "--initial-checkpoint", type=Path,
         help="Override initialization.mono_checkpoint (for controlled fine-tuning).",
     )
-    parser.add_argument(
+    recovery_mode = parser.add_mutually_exclusive_group()
+    recovery_mode.add_argument(
         "--resume-run", type=Path,
         help=(
             "Resume from an intact compiled A/B recovery generation. "
             "Legacy last.keras-only resumes are intentionally refused."
+        ),
+    )
+    recovery_mode.add_argument(
+        "--continue-from-run",
+        type=Path,
+        help=(
+            "Start a new expanded run from a completed compiled recovery, "
+            "preserving optimizer, history, policy, and epoch numbering."
         ),
     )
     parser.add_argument(
@@ -1573,7 +1808,28 @@ def main() -> int:
         help="Save exact compiled A/B recovery state every N train batches.",
     )
     args = parser.parse_args()
+    if (
+        args.continue_from_run is not None
+        and args.initial_checkpoint is not None
+    ):
+        parser.error(
+            "--continue-from-run and --initial-checkpoint are mutually exclusive."
+        )
     config = yaml.safe_load(args.config.read_text(encoding="utf-8"))
+    continuation_source_epochs: int | None = None
+    if args.continue_from_run is not None:
+        source_config_path = args.continue_from_run / "config.json"
+        if not source_config_path.is_file():
+            raise FileNotFoundError(
+                "Continuation source has no immutable config.json: "
+                f"{args.continue_from_run}"
+            )
+        source_config = json.loads(
+            source_config_path.read_text(encoding="utf-8")
+        )
+        continuation_source_epochs = _validate_continuation_config(
+            source_config, config
+        )
     seed = int(config["dataset"].get("seed", 42))
     tf.keras.utils.set_random_seed(seed)
     try:
@@ -1622,7 +1878,11 @@ def main() -> int:
     if args.smoke_test:
         examples_per_epoch = int(args.smoke_examples)
         validation_examples = int(args.smoke_validation_examples)
-        epochs = 1
+        epochs = (
+            1
+            if continuation_source_epochs is None
+            else continuation_source_epochs + 1
+        )
     if examples_per_epoch < 1 or validation_examples < 1:
         raise ValueError("Training and validation example counts must be positive.")
     workers = int(
@@ -1760,6 +2020,11 @@ def main() -> int:
                 if args.recovery_chunk_batches is not None
                 else training.get("recovery_chunk_batches", 250)
             ),
+            "continuation_source": (
+                None
+                if args.continue_from_run is None
+                else str(args.continue_from_run.resolve())
+            ),
         })
     statistics = {
         "recordings": {
@@ -1870,6 +2135,24 @@ def main() -> int:
             f"epoch={recovery_snapshot.state['epoch']} "
             f"next_batch={recovery_snapshot.state['next_batch']} "
             f"optimizer_iterations={recovery_snapshot.state['optimizer_iterations']}",
+            flush=True,
+        )
+    elif args.continue_from_run is not None:
+        recovery_snapshot = _bootstrap_continuation(
+            source_run=args.continue_from_run,
+            run_dir=run_dir,
+            target_config=config,
+            target_plans=epoch_plans,
+            target_signatures=signatures,
+            smoke_test=bool(args.smoke_test),
+        )
+        model = recovery_snapshot.model
+        print(
+            "Continued compiled model "
+            f"source={args.continue_from_run.resolve()} "
+            f"epoch={recovery_snapshot.state['epoch']} "
+            f"optimizer_iterations="
+            f"{recovery_snapshot.state['optimizer_iterations']}",
             flush=True,
         )
     else:
