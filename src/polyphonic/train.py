@@ -95,6 +95,27 @@ def _json(path: Path, value: object) -> None:
     path.write_text(json.dumps(value, indent=2), encoding="utf-8")
 
 
+def _write_model_overview(
+    model: tf.keras.Model,
+    run_dir: Path,
+) -> dict[str, object]:
+    """Persist a compact model description without rendering a summary table."""
+    overview: dict[str, object] = {
+        "name": str(model.name),
+        "parameter_count": int(model.count_params()),
+        "layer_count": len(model.layers),
+        "input_count": len(model.inputs),
+        "output_names": [str(name) for name in model.output_names],
+    }
+    _json(run_dir / "model_overview.json", overview)
+    print(
+        "MODEL_OVERVIEW "
+        + json.dumps(overview, separators=(",", ":"), sort_keys=True),
+        flush=True,
+    )
+    return overview
+
+
 class EpochProgressLogger(tf.keras.callbacks.Callback):
     """Persist and flush one machine-readable status line per epoch."""
 
@@ -1946,7 +1967,7 @@ def main() -> int:
     })
     training_status = "running"
     try:
-        model.summary()
+        _write_model_overview(model, run_dir)
         training_status, model, recovery_snapshot = (
             run_recoverable_training(
                 model=model,

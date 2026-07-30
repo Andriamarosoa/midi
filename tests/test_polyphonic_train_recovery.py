@@ -19,6 +19,7 @@ from src.polyphonic.train import (
     SerializableTrainingPolicy,
     _persist_or_load_epoch_plans,
     _reset_chunk_randomness,
+    _write_model_overview,
     run_recoverable_training,
 )
 
@@ -193,6 +194,37 @@ def _optimizer_values(model: tf.keras.Model) -> list[np.ndarray]:
 
 
 class PolyphonicTrainRecoveryTests(unittest.TestCase):
+    def test_model_overview_is_compact_and_does_not_call_summary(self) -> None:
+        class DummyModel:
+            name = "compact-test"
+            layers = [object(), object(), object()]
+            inputs = [object(), object()]
+            output_names = ["frame", "onset"]
+
+            @staticmethod
+            def count_params() -> int:
+                return 1234
+
+            @staticmethod
+            def summary() -> None:
+                raise AssertionError("model.summary() must not be called")
+
+        with tempfile.TemporaryDirectory() as temporary:
+            run_dir = Path(temporary)
+            overview = _write_model_overview(DummyModel(), run_dir)
+            persisted = json.loads(
+                (run_dir / "model_overview.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            self.assertEqual(overview, persisted)
+            self.assertEqual(persisted["parameter_count"], 1234)
+            self.assertEqual(persisted["layer_count"], 3)
+            self.assertEqual(persisted["input_count"], 2)
+            self.assertEqual(
+                persisted["output_names"], ["frame", "onset"]
+            )
+
     def _run(
         self,
         root: Path,

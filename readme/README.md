@@ -1,6 +1,6 @@
 # Résumé unique — Guitar MIDI AI
 
-> Dernière mise à jour manuelle : 2026-07-29
+> Dernière mise à jour manuelle : 2026-07-30
 >
 > Branche active : `codex/dual-stream-bass`
 >
@@ -10,23 +10,47 @@
 
 Produire sur desktop un moteur causal audio de guitare vers MIDI, monophonique
 et polyphonique, avec peu de notes fantômes, une latence compatible avec le
-live et des entraînements reproductibles exécutés sur Kaggle ou Colab.
+live et des entraînements reproductibles exécutés localement. Kaggle et Colab
+ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-30T07:52:29+04:00`
-- Étape : `dual_stream_bass_recovery_smoke`
-- Statut : `anomalie`
-- Détail : L'échec de 12 heures est expliqué : le prétendu cache RAM de 8,78 Gio conservait 7,28 Gio de NPY en `memmap` sur `/kaggle/input`; un lot de 64 touchait en moyenne 59,44 enregistrements et provoquait environ 35 lectures NPY aléatoires, tandis que les 4 workers annoncés n'atteignaient pas Keras 3. Aucun problème CUDA n'a été trouvé. Le staging copie désormais uniquement les audio/labels train-validation vers le disque local Kaggle, avec contrôle d'espace, remplacement atomique et rejet du test avant toute copie. Le smoke P100 représentatif `guitar-midi-bass-io-smoke-834b318a` est `COMPLETE` : 1 508 fichiers/8 643 963 647 octets matérialisés en 208,70 s, puis 8 192 exemples train + 2 048 validation en 29,85 s à 274,73 exemples/s; archive 17 745 920 octets, SHA-256 `25d99e5df1b0e29027a74fcf40a9efd0787c0038bb63348953ac70f30b2f81b3`, `locked_test_used=false`. La reprise exacte est intégrée : plans d'époque déterministes, checkpoints A/B natifs compilés avec poids/optimiseur/LR, état sérialisé des callbacks, reprise intra-époque, fallback après corruption, transaction de fin d'époque idempotente, arrêt après chunk et protection NaN. Le transport inter-kernels vérifie manifeste, taille, SHA-256, extraction sûre et copie vers un stockage Kaggle inscriptible. Un vérificateur séparé recharge strictement la génération la plus récente et écrit `recovery_roundtrip.json` avec runtime Python/TensorFlow/Keras, SHA du modèle, itérations Adam et LR. Le premier smoke a échoué avant staging/train parce qu'un `ForEach-Object` PowerShell avait omis les 16 shards; P100 et TensorFlow 2.20/Keras 3.13.2 étaient disponibles et aucun poids n'a été modifié. Le publisher exige maintenant explicitement les parts 01–16; 305 tests passent et le correctif `5a5a2eff` est poussé. Le retry P100 `guitar-midi-recovery-smoke-82f3562c` est `COMPLETE` depuis `2026-07-29T20:02:13+04:00` : archive 26 685 440 octets, SHA-256 `4e0497e11c5f63f8706fdb0e0b6cb14a32b801fb18bf174cedfeeb0018f4e402`, `locked_test_used=false`. Le roundtrip en processus frais passe avec TensorFlow 2.20/Keras 3.13.2, génération 6, slot B, SHA modèle conforme, 128 itérations Adam et LR 0,0001. L'unique phase 1 de validation inter-kernels `guitar-midi-recovery-phase1-5a5a2eff` a ensuite été lancée avec exactement 18 sources, P100, chunks de 32 batches et budget d'entraînement de 2 minutes. Le flux de logs s'arrête exactement à 170,3485 s au milieu de `model.summary()`, après la matérialisation des 1 508 fichiers, la détection P100, le préchargement du cache et la construction du modèle, mais avant tout marqueur `RECOVERY_PREFLIGHT`, `RECOVERY_CHUNK` ou entraînement. Il s'agit d'un processus figé pendant la production/collecte du résumé Keras, pas d'une boucle d'entraînement. Les lignes répétées proviennent du collecteur Kaggle et ne prouvent pas une double exécution. Le kernel a été supprimé manuellement le `2026-07-30`; à `2026-07-30T07:52:29+04:00`, son slug est inaccessible et absent de la liste réelle des kernels du compte, le quota s'est stabilisé à 24,00/30 h et aucun output terminal n'est récupérable. Le correctif poussé `68084816` ajoute des jalons `RECOVERY_PREFLIGHT` et un watchdog de processus : une phase de 2 minutes est désormais bornée à 10 minutes au total, préambule compris, avec `PROCESS_TIMEOUT` explicite. Le notebook corrige aussi la provenance des snapshots auto-extraits : il cherche maintenant `source_metadata.json` à la racine du dataset avant le fallback dans `midi_source`, de sorte que le prochain run portera le vrai commit. Les 307 tests de non-régression passent. Le diff exécutable `82f3562c` vers `5a5a2eff` ne touche que le publisher, ses tests et le README, donc le roundtrip déjà obtenu reste valide malgré l'ancien libellé de provenance. La prochaine action est d'empêcher le résumé Keras tabulaire dans les runs cloud, de valider ce correctif localement, puis seulement de publier le snapshot corrigé et d'effectuer une unique relance diagnostique. Le MCP reste bloqué par HTTP 403 `oauthClients.use`. Test verrouillé exclu.
-- Surveillance : terminée. Le kernel supprimé n'est plus actif, aucun artefact terminal n'existe et aucune relance n'a été tentée. Le test verrouillé reste exclu.
+- Mise à jour : `2026-07-30T08:05:22+04:00`
+- Étape : `dual_stream_bass_local_train`
+- Statut : `prêt`
+- Détail : décision permanente appliquée : aucun upload, appel API, kernel
+  ou calcul Kaggle/Colab ne sera utilisé sans nouvelle autorisation explicite.
+  Le desktop dispose d'un i7-1355U, de 15,64 Gio de RAM et de TensorFlow
+  2.15.1 CPU sans GPU CUDA. Les 572 enregistrements train et 182 validation,
+  soit 754 paires audio/labels, sont présents sous `data/processed`; les 114
+  enregistrements test restent verrouillés. L'initialisation locale utilise
+  `polyphonic_multisource_20260728_192326/epochs/epoch-08.keras`, 4 272 336
+  octets, SHA-256
+  `aaec718882bd1344461ecffa3475dceb10edcad5b2e265b1494977f6e1c9834c`.
+  `model.summary()` est remplacé par `model_overview.json` et une seule ligne
+  `MODEL_OVERVIEW` flushée. Les 308 tests de non-régression passent. Le smoke
+  minimal 256/128 puis le smoke représentatif local 8 192/2 048 passent avec
+  reprise A/B, `locked_test_used=false`, génération 6, 342 996 paramètres et transfert
+  des 25 couches compatibles; les 7 nouvelles couches graves sont
+  correctement initialisées. Le smoke représentatif entraîne à 169,89
+  exemples/s sur 128 batches et valide en environ 4 s. La projection issue de
+  ces mesures est d'environ 3 h 10 pour 8 époques, avec une marge pratique de
+  4 à 6 h en cas de chauffe ou d'activité concurrente.
+- Surveillance : aucun processus de train local n'est actif. Le train complet
+  sera lancé après les tests de non-régression et le commit du correctif. Le
+  test verrouillé reste exclu.
 
 ## Étapes suivantes
 
 1. Capturer la même suite live sans puis avec capodastre, au même niveau et avec WAV/trace complète : cordes graves isolées, accords ouverts/barrés, strums lents/rapides, octaves et harmoniques. Comparer énergie fondamentale/partiels, probabilités par hauteur, erreurs d'octave et notes manquantes. Cette capture servira au diagnostic, pas au test verrouillé.
 2. Conserver le remplacement par transposition +12/−12 uniquement comme diagnostic offline désactivé ; ne pas confondre ce test négatif avec la future architecture à deux flux.
-3. Commiter/pousser la reprise exacte, publier un snapshot privé, puis exécuter un smoke P100 Keras 3 de 8 192/2 048 exemples en chunks de 32 batches avec roundtrip compilé strict, sans utiliser le test verrouillé.
-4. Si ce smoke passe, lancer un seul train Kaggle contrôlé en deux phases : première pause après un checkpoint intra-époque, puis reprise depuis l'output du kernel précédent. Après achèvement seulement, comparer sur validation les graves MIDI 40–51, les erreurs d'octave, les accords et chaque corpus.
+3. Commiter/pousser le correctif local, puis lancer un seul train CPU local de
+   8 époques depuis `epoch-08.keras`, avec un worker, logs flushés, reprise A/B
+   toutes les 32 batches et arrêt récupérable à six heures.
+4. Après achèvement seulement, classer et sélectionner sur validation, puis
+   comparer les graves MIDI 40–51, les erreurs d'octave, les accords et chaque
+   corpus.
 5. Dans une expérience suivante seulement, corriger le contrat des masques harmoniques, sur-échantillonner les onsets/accords MIDI 40–51 sans réduire le reste et ajouter un objectif fondamentale/résonance fondé sur `note_id` et les colonnes harmoniques existantes.
 6. Ouvrir le test verrouillé une seule fois après la sélection finale, puis produire le lanceur desktop stable et ses limites documentées.
 <!-- CURRENT_STATUS_END -->
@@ -111,6 +135,13 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 <!-- PROJECT_TASK:live_ab_adaptive_attack:START -->
 - 2026-07-29 — **anomalie** — `live_ab_adaptive_attack` : L'audit du train annulé confirme un goulot d'étranglement I/O, pas une erreur CUDA. Le smoke P100 représentatif du snapshot `834b318a` est `COMPLETE` : staging 1 508 fichiers/8 643 963 647 octets en 208,70 s, entraînement-validation 8 192/2 048 en 29,85 s à 274,73 exemples/s, archive 17 745 920 octets et SHA-256 vérifié, `locked_test_used=false`; projection mesurée 2,00 h pour 8 époques avec staging. La reprise exacte et le transport inter-kernels sont poussés; le garde 16 shards du commit `5a5a2eff` porte le total à 305 tests. Le retry recovery P100 est `COMPLETE` : archive 26 685 440 octets et SHA-256 conformes, `locked_test_used=false`, roundtrip Keras 3 strict validé en génération 6/slot B avec Adam 128 et LR conservé. La phase 1 `guitar-midi-recovery-phase1-5a5a2eff` s'est figée à 170,3485 s pendant `model.summary()`, avant tout marqueur de reprise ou entraînement, puis a été supprimée manuellement le `2026-07-30`; aucun output terminal n'était publié et le quota final vérifié est 24,00/30 h. Les doublons du log sont un défaut de collecte Kaggle, pas la preuve de deux processus. Le correctif poussé `68084816` ajoute les jalons `RECOVERY_PREFLIGHT`, borne le processus entier à 10 minutes et rend `PROCESS_TIMEOUT` explicite. La provenance Kaggle est aussi corrigée en lisant `source_metadata.json` à la racine du dataset avant le fallback; 307 tests passent. Prochaine porte : supprimer l'affichage tabulaire de `model.summary()` dans le cloud, valider localement, publier le nouveau snapshot, puis lancer une seule phase 1 diagnostique; aucune phase 2 avant archive validée. MCP bloqué par HTTP 403 `oauthClients.use`. Test verrouillé exclu.
   - Surveillance `2026-07-30T07:52:29+04:00` : terminée; le slug est inaccessible et absent de la liste réelle des kernels. Aucune relance effectuée.
+  - Mise à jour `2026-07-30T08:05:22+04:00` : la porte cloud
+    précédente est annulée. Le contrat persistant interdit désormais Kaggle
+    et Colab sans nouvelle autorisation explicite. `model.summary()` est
+    remplacé par un aperçu compact; le smoke CPU local représentatif
+    8 192/2 048 passe à 169,89 exemples/s, reprise A/B génération 6,
+    `locked_test_used=false`. Le train complet sera local, unique et
+    récupérable. Les 308 tests de non-régression passent.
 <!-- PROJECT_TASK:live_ab_adaptive_attack:END -->
 <!-- JOURNAL_END -->
 ## Rapports détaillés
