@@ -16,7 +16,7 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-30T08:09:41+04:00`
+- Mise à jour : `2026-07-30T08:13:17+04:00`
 - Étape : `dual_stream_bass_local_train`
 - Statut : `en cours`
 - Détail : décision permanente appliquée : aucun upload, appel API, kernel
@@ -39,8 +39,12 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   4 à 6 h en cas de chauffe ou d'activité concurrente.
 - Surveillance : train complet local démarré à `08:08:46+04:00`, run
   `polyphonic_dual_stream_bass_20260730_080855`, PID lanceur 11256 et PID
-  TensorFlow 41032. Au batch 50/3 750 de l'époque 1/8, le débit réel est
-  151,25 exemples/s et la projection dynamique est de 3 h 31. Logs :
+  TensorFlow 41032. Au batch 650/3 750 de l'époque 1/8, le débit réel est
+  171,68 exemples/s et la projection restante est de 3 h 02. La génération
+  recovery A est fraîche à `08:13:04+04:00`; aucune erreur n'est présente.
+  L'automation `suivi-train-local-dual-stream` vérifie localement toutes les
+  dix minutes et ne signale que les fins d'époque, pauses, anomalies ou la fin.
+  Logs :
   `tmp/local/dual_stream_bass_train_20260730_080846.stdout.log` et
   `.stderr.log`. Le test verrouillé reste exclu.
 
@@ -149,6 +153,11 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
     époque 1/8, reprise A/B toutes les 32 batches et budget récupérable de
     six heures. Au batch 50/3 750, débit 151,25 exemples/s et projection
     dynamique 3 h 31. Test verrouillé exclu.
+  - Surveillance `2026-07-30T08:13:17+04:00` : batch 650/3 750 de
+    l'époque 1/8, 171,68 exemples/s, environ 3 h 02 restantes, recovery A/B
+    valides et aucune erreur. L'automation locale
+    `suivi-train-local-dual-stream` contrôle le run toutes les dix minutes
+    sans utiliser Kaggle ni le test verrouillé.
 <!-- PROJECT_TASK:live_ab_adaptive_attack:END -->
 <!-- JOURNAL_END -->
 ## Rapports détaillés
