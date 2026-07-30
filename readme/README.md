@@ -16,9 +16,9 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-07-30T08:05:22+04:00`
+- Mise à jour : `2026-07-30T08:09:41+04:00`
 - Étape : `dual_stream_bass_local_train`
-- Statut : `prêt`
+- Statut : `en cours`
 - Détail : décision permanente appliquée : aucun upload, appel API, kernel
   ou calcul Kaggle/Colab ne sera utilisé sans nouvelle autorisation explicite.
   Le desktop dispose d'un i7-1355U, de 15,64 Gio de RAM et de TensorFlow
@@ -37,17 +37,19 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   exemples/s sur 128 batches et valide en environ 4 s. La projection issue de
   ces mesures est d'environ 3 h 10 pour 8 époques, avec une marge pratique de
   4 à 6 h en cas de chauffe ou d'activité concurrente.
-- Surveillance : aucun processus de train local n'est actif. Le train complet
-  sera lancé après les tests de non-régression et le commit du correctif. Le
-  test verrouillé reste exclu.
+- Surveillance : train complet local démarré à `08:08:46+04:00`, run
+  `polyphonic_dual_stream_bass_20260730_080855`, PID lanceur 11256 et PID
+  TensorFlow 41032. Au batch 50/3 750 de l'époque 1/8, le débit réel est
+  151,25 exemples/s et la projection dynamique est de 3 h 31. Logs :
+  `tmp/local/dual_stream_bass_train_20260730_080846.stdout.log` et
+  `.stderr.log`. Le test verrouillé reste exclu.
 
 ## Étapes suivantes
 
 1. Capturer la même suite live sans puis avec capodastre, au même niveau et avec WAV/trace complète : cordes graves isolées, accords ouverts/barrés, strums lents/rapides, octaves et harmoniques. Comparer énergie fondamentale/partiels, probabilités par hauteur, erreurs d'octave et notes manquantes. Cette capture servira au diagnostic, pas au test verrouillé.
 2. Conserver le remplacement par transposition +12/−12 uniquement comme diagnostic offline désactivé ; ne pas confondre ce test négatif avec la future architecture à deux flux.
-3. Commiter/pousser le correctif local, puis lancer un seul train CPU local de
-   8 époques depuis `epoch-08.keras`, avec un worker, logs flushés, reprise A/B
-   toutes les 32 batches et arrêt récupérable à six heures.
+3. Laisser achever l'unique train CPU local de 8 époques, avec un worker, logs
+   flushés, reprise A/B toutes les 32 batches et arrêt récupérable à six heures.
 4. Après achèvement seulement, classer et sélectionner sur validation, puis
    comparer les graves MIDI 40–51, les erreurs d'octave, les accords et chaque
    corpus.
@@ -142,6 +144,11 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
     8 192/2 048 passe à 169,89 exemples/s, reprise A/B génération 6,
     `locked_test_used=false`. Le train complet sera local, unique et
     récupérable. Les 308 tests de non-régression passent.
+  - Démarrage `2026-07-30T08:08:46+04:00` : run local
+    `polyphonic_dual_stream_bass_20260730_080855`, PID TensorFlow 41032,
+    époque 1/8, reprise A/B toutes les 32 batches et budget récupérable de
+    six heures. Au batch 50/3 750, débit 151,25 exemples/s et projection
+    dynamique 3 h 31. Test verrouillé exclu.
 <!-- PROJECT_TASK:live_ab_adaptive_attack:END -->
 <!-- JOURNAL_END -->
 ## Rapports détaillés
