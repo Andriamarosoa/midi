@@ -49,24 +49,102 @@ class PolyphonicMaskedHarmonicAmplitudeLoss(tf.keras.losses.Loss):
     def __init__(
         self,
         harmonic_count: int = 20,
+        normalize_by_supervised_count: bool = False,
         reduction: str = "sum_over_batch_size",
         name: str = "polyphonic_masked_harmonic_amplitude_loss",
     ) -> None:
         super().__init__(reduction=reduction, name=name)
         self.harmonic_count = int(harmonic_count)
+        self.normalize_by_supervised_count = bool(
+            normalize_by_supervised_count
+        )
 
     def call(self, y_true, y_pred):
         count = self.harmonic_count
         target = y_true[..., :count]
         valid = tf.cast(y_true[..., count:2 * count], y_pred.dtype)
         error = tf.abs(y_pred - target) * valid
+        denominator = (
+            tf.reduce_sum(
+                tf.cast(valid > 0.0, y_pred.dtype), axis=(-2, -1)
+            )
+            if self.normalize_by_supervised_count
+            else tf.reduce_sum(valid, axis=(-2, -1))
+        )
         return tf.math.divide_no_nan(
             tf.reduce_sum(error, axis=(-2, -1)),
-            tf.reduce_sum(valid, axis=(-2, -1)),
+            denominator,
         )
 
     def get_config(self):
-        return {**super().get_config(), "harmonic_count": self.harmonic_count}
+        return {
+            **super().get_config(),
+            "harmonic_count": self.harmonic_count,
+            "normalize_by_supervised_count": (
+                self.normalize_by_supervised_count
+            ),
+        }
+
+
+@tf.keras.utils.register_keras_serializable(package="midi_polyphonic")
+class PolyphonicMaskedHarmonicPresenceLoss(tf.keras.losses.Loss):
+    def __init__(
+        self,
+        harmonic_count: int = 20,
+        positive_weight: float = 1.0,
+        negative_weight: float = 1.0,
+        reduction: str = "sum_over_batch_size",
+        name: str = "polyphonic_masked_harmonic_presence_loss",
+    ) -> None:
+        super().__init__(reduction=reduction, name=name)
+        self.harmonic_count = int(harmonic_count)
+        self.positive_weight = float(positive_weight)
+        self.negative_weight = float(negative_weight)
+        if (
+            not math.isfinite(self.positive_weight)
+            or not math.isfinite(self.negative_weight)
+            or self.positive_weight <= 0.0
+            or self.negative_weight <= 0.0
+        ):
+            raise ValueError(
+                "Harmonic presence class weights must be finite and positive."
+            )
+
+    def call(self, y_true, y_pred):
+        count = self.harmonic_count
+        target = tf.cast(y_true[..., :count], y_pred.dtype)
+        reliability = tf.cast(
+            y_true[..., count:2 * count], y_pred.dtype
+        )
+        supervised = tf.cast(reliability > 0.0, y_pred.dtype)
+        class_weight = (
+            target * tf.cast(self.positive_weight, y_pred.dtype)
+            + (1.0 - target)
+            * tf.cast(self.negative_weight, y_pred.dtype)
+        )
+        prediction = tf.clip_by_value(
+            y_pred,
+            tf.cast(tf.keras.backend.epsilon(), y_pred.dtype),
+            tf.cast(1.0 - tf.keras.backend.epsilon(), y_pred.dtype),
+        )
+        error = -(
+            target * tf.math.log(prediction)
+            + (1.0 - target) * tf.math.log(1.0 - prediction)
+        )
+        return tf.math.divide_no_nan(
+            tf.reduce_sum(
+                error * reliability * class_weight, axis=(-2, -1)
+            ),
+            tf.reduce_sum(supervised, axis=(-2, -1)),
+        )
+
+    def get_config(self):
+        return {
+            **super().get_config(),
+            "harmonic_count": self.harmonic_count,
+            "positive_weight": self.positive_weight,
+            "negative_weight": self.negative_weight,
+        }
 
 
 @tf.keras.utils.register_keras_serializable(package="midi_polyphonic")
@@ -75,12 +153,16 @@ class PolyphonicHarmonicOffsetLoss(tf.keras.losses.Loss):
         self,
         harmonic_count: int = 20,
         scale_cents: float = 35.0,
+        normalize_by_supervised_count: bool = False,
         reduction: str = "sum_over_batch_size",
         name: str = "polyphonic_harmonic_offset_loss",
     ) -> None:
         super().__init__(reduction=reduction, name=name)
         self.harmonic_count = int(harmonic_count)
         self.scale_cents = float(scale_cents)
+        self.normalize_by_supervised_count = bool(
+            normalize_by_supervised_count
+        )
 
     def call(self, y_true, y_pred):
         count = self.harmonic_count
@@ -89,9 +171,16 @@ class PolyphonicHarmonicOffsetLoss(tf.keras.losses.Loss):
         amplitude = tf.cast(y_true[..., 2 * count:3 * count], y_pred.dtype)
         weights = valid * tf.maximum(amplitude, 0.0)
         error = tf.abs(y_pred - target) / self.scale_cents
+        denominator = (
+            tf.reduce_sum(
+                tf.cast(valid > 0.0, y_pred.dtype), axis=(-2, -1)
+            )
+            if self.normalize_by_supervised_count
+            else tf.reduce_sum(weights, axis=(-2, -1))
+        )
         return tf.math.divide_no_nan(
             tf.reduce_sum(error * weights, axis=(-2, -1)),
-            tf.reduce_sum(weights, axis=(-2, -1)),
+            denominator,
         )
 
     def get_config(self):
@@ -99,6 +188,207 @@ class PolyphonicHarmonicOffsetLoss(tf.keras.losses.Loss):
             **super().get_config(),
             "harmonic_count": self.harmonic_count,
             "scale_cents": self.scale_cents,
+            "normalize_by_supervised_count": (
+                self.normalize_by_supervised_count
+            ),
+        }
+
+
+def _presence_metric_parts(y_true, y_pred, harmonic_count: int, dtype):
+    target = tf.cast(y_true[..., :harmonic_count] > 0.5, dtype)
+    reliability = tf.cast(
+        y_true[..., harmonic_count:2 * harmonic_count], dtype
+    )
+    prediction = tf.cast(y_pred, dtype)
+    return target, prediction, reliability
+
+
+def _metric_reliability_with_sample_weight(
+    reliability, sample_weight, dtype
+):
+    if sample_weight is None:
+        return reliability
+    weight = tf.cast(sample_weight, dtype)
+    if weight.shape.rank is not None and reliability.shape.rank is not None:
+        for _ in range(reliability.shape.rank - weight.shape.rank):
+            weight = tf.expand_dims(weight, axis=-1)
+    else:
+        missing = tf.maximum(tf.rank(reliability) - tf.rank(weight), 0)
+        weight = tf.reshape(
+            weight,
+            tf.concat(
+                [tf.shape(weight), tf.ones((missing,), tf.int32)], axis=0
+            ),
+        )
+    return reliability * weight
+
+
+class _PolyphonicMaskedHarmonicPresenceConfusion(tf.keras.metrics.Metric):
+    def __init__(
+        self,
+        harmonic_count: int = 20,
+        threshold: float = 0.5,
+        name: str | None = None,
+        **kwargs,
+    ) -> None:
+        super().__init__(name=name, **kwargs)
+        self.harmonic_count = int(harmonic_count)
+        self.threshold = float(threshold)
+        if not 0.0 < self.threshold < 1.0:
+            raise ValueError("Presence metric threshold must be in ]0, 1[.")
+        self.true_positive = self.add_weight(name="tp", initializer="zeros")
+        self.false_positive = self.add_weight(name="fp", initializer="zeros")
+        self.false_negative = self.add_weight(name="fn", initializer="zeros")
+
+    def update_state(self, y_true, y_pred, sample_weight=None):
+        target, probability, reliability = _presence_metric_parts(
+            y_true, y_pred, self.harmonic_count, self.dtype
+        )
+        reliability = _metric_reliability_with_sample_weight(
+            reliability, sample_weight, self.dtype
+        )
+        predicted = tf.cast(probability >= self.threshold, self.dtype)
+        self.true_positive.assign_add(
+            tf.reduce_sum(reliability * target * predicted)
+        )
+        self.false_positive.assign_add(
+            tf.reduce_sum(reliability * (1.0 - target) * predicted)
+        )
+        self.false_negative.assign_add(
+            tf.reduce_sum(reliability * target * (1.0 - predicted))
+        )
+
+    def reset_state(self):
+        for variable in self.variables:
+            variable.assign(0.0)
+
+    def get_config(self):
+        return {
+            **super().get_config(),
+            "harmonic_count": self.harmonic_count,
+            "threshold": self.threshold,
+        }
+
+
+@tf.keras.utils.register_keras_serializable(package="midi_polyphonic")
+class PolyphonicMaskedHarmonicPresencePrecision(
+    _PolyphonicMaskedHarmonicPresenceConfusion
+):
+    def __init__(
+        self,
+        harmonic_count: int = 20,
+        threshold: float = 0.5,
+        name: str = "masked_precision",
+        **kwargs,
+    ) -> None:
+        super().__init__(
+            harmonic_count=harmonic_count,
+            threshold=threshold,
+            name=name,
+            **kwargs,
+        )
+
+    def result(self):
+        return tf.math.divide_no_nan(
+            self.true_positive,
+            self.true_positive + self.false_positive,
+        )
+
+
+@tf.keras.utils.register_keras_serializable(package="midi_polyphonic")
+class PolyphonicMaskedHarmonicPresenceRecall(
+    _PolyphonicMaskedHarmonicPresenceConfusion
+):
+    def __init__(
+        self,
+        harmonic_count: int = 20,
+        threshold: float = 0.5,
+        name: str = "masked_recall",
+        **kwargs,
+    ) -> None:
+        super().__init__(
+            harmonic_count=harmonic_count,
+            threshold=threshold,
+            name=name,
+            **kwargs,
+        )
+
+    def result(self):
+        return tf.math.divide_no_nan(
+            self.true_positive,
+            self.true_positive + self.false_negative,
+        )
+
+
+@tf.keras.utils.register_keras_serializable(package="midi_polyphonic")
+class PolyphonicMaskedHarmonicPresenceF1(
+    _PolyphonicMaskedHarmonicPresenceConfusion
+):
+    def __init__(
+        self,
+        harmonic_count: int = 20,
+        threshold: float = 0.5,
+        name: str = "masked_f1",
+        **kwargs,
+    ) -> None:
+        super().__init__(
+            harmonic_count=harmonic_count,
+            threshold=threshold,
+            name=name,
+            **kwargs,
+        )
+
+    def result(self):
+        return tf.math.divide_no_nan(
+            2.0 * self.true_positive,
+            2.0 * self.true_positive
+            + self.false_positive
+            + self.false_negative,
+        )
+
+
+@tf.keras.utils.register_keras_serializable(package="midi_polyphonic")
+class PolyphonicMaskedHarmonicPresenceBrier(tf.keras.metrics.Metric):
+    def __init__(
+        self,
+        harmonic_count: int = 20,
+        name: str = "masked_brier",
+        **kwargs,
+    ) -> None:
+        super().__init__(name=name, **kwargs)
+        self.harmonic_count = int(harmonic_count)
+        self.weighted_error = self.add_weight(
+            name="weighted_error", initializer="zeros"
+        )
+        self.reliability = self.add_weight(
+            name="reliability", initializer="zeros"
+        )
+
+    def update_state(self, y_true, y_pred, sample_weight=None):
+        target, probability, reliability = _presence_metric_parts(
+            y_true, y_pred, self.harmonic_count, self.dtype
+        )
+        reliability = _metric_reliability_with_sample_weight(
+            reliability, sample_weight, self.dtype
+        )
+        self.weighted_error.assign_add(
+            tf.reduce_sum(tf.square(probability - target) * reliability)
+        )
+        self.reliability.assign_add(tf.reduce_sum(reliability))
+
+    def result(self):
+        return tf.math.divide_no_nan(
+            self.weighted_error, self.reliability
+        )
+
+    def reset_state(self):
+        for variable in self.variables:
+            variable.assign(0.0)
+
+    def get_config(self):
+        return {
+            **super().get_config(),
+            "harmonic_count": self.harmonic_count,
         }
 
 
@@ -152,6 +442,7 @@ def build_polyphonic_model(
     bass_channels: int = 8,
     bass_dense_units: int = 32,
     bass_pitch_classes: int = 25,
+    harmonic_presence_head: bool = False,
 ) -> tf.keras.Model:
     if not 1 <= pitch_classes <= 64:
         raise ValueError("pitch_classes must be in 1..64")
@@ -418,6 +709,16 @@ def build_polyphonic_model(
     harmonic_amplitude = tf.keras.layers.Reshape(
         (pitch_classes, harmonic_count), name="harmonic_amplitude"
     )(harmonic_amplitude_flat)
+    harmonic_presence = None
+    if harmonic_presence_head:
+        harmonic_presence_flat = tf.keras.layers.Dense(
+            pitch_classes * harmonic_count,
+            activation="sigmoid",
+            name="harmonic_presence_flat",
+        )(pooled)
+        harmonic_presence = tf.keras.layers.Reshape(
+            (pitch_classes, harmonic_count), name="harmonic_presence"
+        )(harmonic_presence_flat)
     harmonic_offset_flat = tf.keras.layers.Dense(
         pitch_classes * harmonic_count,
         name="harmonic_offset_logits",
@@ -429,14 +730,17 @@ def build_polyphonic_model(
         (pitch_classes, harmonic_count), name="harmonic_offset_cents"
     )(harmonic_offset_flat)
 
+    outputs = {
+        "frame": frame,
+        "onset": onset,
+        "harmonic_amplitude": harmonic_amplitude,
+        "harmonic_offset_cents": harmonic_offset,
+    }
+    if harmonic_presence is not None:
+        outputs["harmonic_presence"] = harmonic_presence
     return tf.keras.Model(
         inputs={"audio": audio, "time_mask": time_mask},
-        outputs={
-            "frame": frame,
-            "onset": onset,
-            "harmonic_amplitude": harmonic_amplitude,
-            "harmonic_offset_cents": harmonic_offset,
-        },
+        outputs=outputs,
         name="causal_polyphonic_guitar_v2",
     )
 
@@ -460,11 +764,19 @@ def transfer_compatible_weights(
         weights = layer.get_weights()
         if not weights:
             continue
-        try:
-            source_layer = source.get_layer(
-                source_aliases.get(layer.name, layer.name)
-            )
-        except ValueError:
+        source_layer = None
+        for candidate in (
+            layer.name,
+            source_aliases.get(layer.name),
+        ):
+            if candidate is None:
+                continue
+            try:
+                source_layer = source.get_layer(candidate)
+                break
+            except ValueError:
+                continue
+        if source_layer is None:
             skipped.append(layer.name)
             continue
         source_weights = source_layer.get_weights()

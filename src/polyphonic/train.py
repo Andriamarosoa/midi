@@ -42,6 +42,11 @@ from src.polyphonic.model import (
     MicroF1,
     PolyphonicHarmonicOffsetLoss,
     PolyphonicMaskedHarmonicAmplitudeLoss,
+    PolyphonicMaskedHarmonicPresenceBrier,
+    PolyphonicMaskedHarmonicPresenceF1,
+    PolyphonicMaskedHarmonicPresenceLoss,
+    PolyphonicMaskedHarmonicPresencePrecision,
+    PolyphonicMaskedHarmonicPresenceRecall,
     build_polyphonic_model,
     transfer_compatible_weights,
 )
@@ -56,13 +61,19 @@ from src.polyphonic.recovery import (
 from src.v5.train import git_commit
 
 
-def _fit_queue_options(fit, workers: int) -> dict[str, object]:
+def _fit_queue_options(
+    fit,
+    workers: int,
+    max_queue_size: int = 2,
+) -> dict[str, object]:
     """Return only queue options supported by the installed Keras version."""
+    if int(workers) < 1 or int(max_queue_size) < 1:
+        raise ValueError("workers and max_queue_size must be positive.")
     supported = inspect.signature(fit).parameters
     candidates: dict[str, object] = {
         "workers": int(workers),
         "use_multiprocessing": False,
-        "max_queue_size": 2,
+        "max_queue_size": int(max_queue_size),
     }
     return {
         name: value for name, value in candidates.items()
@@ -93,6 +104,310 @@ def _weights(
 
 def _json(path: Path, value: object) -> None:
     path.write_text(json.dumps(value, indent=2), encoding="utf-8")
+
+
+def _harmonic_supervision_preflight(
+    corpus: PolyphonicCorpus,
+    *,
+    split: str,
+    required_datasets: Sequence[str],
+    minimum_schema_version: int = 3,
+) -> dict[str, object]:
+    """Fail closed before a presence-head train can accept stale labels."""
+
+    required = tuple(sorted({str(value) for value in required_datasets}))
+    if not required:
+        raise ValueError(
+            "harmonic_supervision_required_datasets must not be empty."
+        )
+    if int(minimum_schema_version) < 3:
+        raise ValueError("Harmonic supervision schema must be at least 3.")
+    if len(corpus.items) != len(corpus.labels):
+        raise ValueError(f"{split}: corpus item/label counts differ.")
+
+    by_corpus: dict[str, dict[str, float | int]] = {}
+
+    def counters(dataset_id: str) -> dict[str, float | int]:
+        return by_corpus.setdefault(
+            dataset_id,
+            {
+                "recordings": 0,
+                "schema_recordings": 0,
+                "notes": 0,
+                "supervised_partials": 0,
+                "positive_partials": 0,
+                "negative_partials": 0,
+                "weighted_supervision": 0.0,
+                "weighted_positive": 0.0,
+                "weighted_negative": 0.0,
+            },
+        )
+
+    contract_names = {
+        "harmonic_supervision_schema_version",
+        "harmonic_presence_floor_db",
+        "harmonic_reliability_formula",
+        "note_harmonic_supervised",
+        "note_harmonic_reliability",
+        "note_harmonic_relative_db",
+        "note_harmonic_frames_measured",
+    }
+    for item, cached in zip(corpus.items, corpus.labels):
+        dataset_id = str(item.dataset_id)
+        row = counters(dataset_id)
+        row["recordings"] = int(row["recordings"]) + 1
+        arrays = cached.arrays
+        available = contract_names & set(arrays)
+        if dataset_id in required and available != contract_names:
+            raise ValueError(
+                f"{split}/{dataset_id}/{item.source_id}: harmonic "
+                "supervision schema 3 arrays are required."
+            )
+        if available and available != contract_names:
+            raise ValueError(
+                f"{split}/{dataset_id}/{item.source_id}: incomplete "
+                "harmonic supervision contract."
+            )
+        if not available:
+            continue
+
+        schema = int(
+            np.asarray(
+                arrays["harmonic_supervision_schema_version"]
+            ).reshape(())
+        )
+        if schema < int(minimum_schema_version):
+            raise ValueError(
+                f"{split}/{dataset_id}/{item.source_id}: harmonic schema "
+                f"{schema} is older than {minimum_schema_version}."
+            )
+        presence_floor_db = float(
+            np.asarray(arrays["harmonic_presence_floor_db"]).reshape(())
+        )
+        reliability_formula = str(
+            np.asarray(arrays["harmonic_reliability_formula"]).reshape(())
+        )
+        if not np.isfinite(presence_floor_db) or presence_floor_db >= 0.0:
+            raise ValueError(
+                f"{split}/{dataset_id}/{item.source_id}: invalid harmonic "
+                "presence floor."
+            )
+        if reliability_formula != "sqrt(n/(n+1))":
+            raise ValueError(
+                f"{split}/{dataset_id}/{item.source_id}: unsupported "
+                "harmonic reliability formula."
+            )
+        supervised = np.asarray(
+            arrays["note_harmonic_supervised"], np.float32
+        )
+        reliability = np.asarray(
+            arrays["note_harmonic_reliability"], np.float32
+        )
+        present = np.asarray(
+            arrays["note_harmonic_present"], np.float32
+        )
+        amplitude = np.asarray(
+            arrays["note_harmonic_amplitude"], np.float32
+        )
+        offset = np.asarray(
+            arrays["note_harmonic_offset_cents"], np.float32
+        )
+        relative_db = np.asarray(
+            arrays["note_harmonic_relative_db"], np.float32
+        )
+        raw_frames = np.asarray(
+            arrays["note_harmonic_frames_measured"]
+        )
+        if (
+            supervised.ndim != 2
+            or supervised.shape != reliability.shape
+            or supervised.shape != present.shape
+            or supervised.shape != amplitude.shape
+            or supervised.shape != offset.shape
+            or supervised.shape != relative_db.shape
+            or supervised.shape != raw_frames.shape
+        ):
+            raise ValueError(
+                f"{split}/{dataset_id}/{item.source_id}: inconsistent "
+                "harmonic supervision shapes."
+            )
+        if (
+            np.any((supervised != 0.0) & (supervised != 1.0))
+            or np.any((present != 0.0) & (present != 1.0))
+        ):
+            raise ValueError(
+                f"{split}/{dataset_id}/{item.source_id}: harmonic masks "
+                "must be binary."
+            )
+        if (
+            np.any(~np.isfinite(reliability))
+            or np.any(reliability < 0.0)
+            or np.any(reliability > 1.0)
+            or np.any(~np.isfinite(amplitude))
+            or np.any(amplitude < 0.0)
+            or np.any(amplitude > 1.0)
+            or np.any(~np.isfinite(offset))
+            or raw_frames.dtype.kind not in {"i", "u"}
+            or np.any(raw_frames < 0)
+        ):
+            raise ValueError(
+                f"{split}/{dataset_id}/{item.source_id}: invalid harmonic "
+                "target values."
+            )
+        if np.any(present > supervised):
+            raise ValueError(
+                f"{split}/{dataset_id}/{item.source_id}: presence without "
+                "supervision."
+            )
+        supervised_mask = supervised > 0.5
+        if (
+            np.any(reliability[~supervised_mask] != 0.0)
+            or np.any(reliability[supervised_mask] <= 0.0)
+            or np.any(raw_frames[~supervised_mask] != 0)
+            or np.any(raw_frames[supervised_mask] <= 0)
+            or np.any(~np.isfinite(relative_db[supervised_mask]))
+        ):
+            raise ValueError(
+                f"{split}/{dataset_id}/{item.source_id}: reliability and "
+                "supervision disagree."
+            )
+        if np.any(supervised_mask):
+            expected_reliability = np.sqrt(
+                raw_frames[supervised_mask].astype(np.float64)
+                / (
+                    raw_frames[supervised_mask].astype(np.float64)
+                    + 1.0
+                )
+            )
+            if not np.allclose(
+                reliability[supervised_mask],
+                expected_reliability,
+                rtol=2e-3,
+                atol=2e-3,
+            ):
+                raise ValueError(
+                    f"{split}/{dataset_id}/{item.source_id}: harmonic "
+                    "reliability formula mismatch."
+                )
+            expected_presence = (
+                relative_db[supervised_mask] >= presence_floor_db
+            ).astype(np.float32)
+            if not np.array_equal(
+                present[supervised_mask], expected_presence
+            ):
+                raise ValueError(
+                    f"{split}/{dataset_id}/{item.source_id}: harmonic "
+                    "presence floor mismatch."
+                )
+        expected_amplitude = np.zeros_like(amplitude)
+        for note_index in range(supervised.shape[0]):
+            note_mask = supervised_mask[note_index]
+            if not np.any(note_mask):
+                continue
+            relative = relative_db[note_index, note_mask]
+            expected_amplitude[note_index, note_mask] = np.power(
+                np.float32(10.0),
+                (relative - np.max(relative)) / np.float32(20.0),
+            )
+        if not np.allclose(
+            amplitude, expected_amplitude, rtol=2e-3, atol=2e-3
+        ):
+            raise ValueError(
+                f"{split}/{dataset_id}/{item.source_id}: relative harmonic "
+                "strength mismatch."
+            )
+        note_valid = np.asarray(
+            arrays["note_harmonic_valid"], np.float32
+        ).reshape(-1)
+        expected_valid = np.any(supervised_mask, axis=1).astype(np.float32)
+        if (
+            len(note_valid) != supervised.shape[0]
+            or np.any((note_valid > 0.5) != (expected_valid > 0.5))
+        ):
+            raise ValueError(
+                f"{split}/{dataset_id}/{item.source_id}: note-level "
+                "harmonic validity disagrees with supervision."
+            )
+
+        positive = supervised_mask & (present > 0.5)
+        negative = supervised_mask & ~positive
+        weighted = supervised * reliability
+        row["schema_recordings"] = int(row["schema_recordings"]) + 1
+        row["notes"] = int(row["notes"]) + int(supervised.shape[0])
+        row["supervised_partials"] = (
+            int(row["supervised_partials"]) + int(np.sum(supervised_mask))
+        )
+        row["positive_partials"] = (
+            int(row["positive_partials"]) + int(np.sum(positive))
+        )
+        row["negative_partials"] = (
+            int(row["negative_partials"]) + int(np.sum(negative))
+        )
+        row["weighted_supervision"] = (
+            float(row["weighted_supervision"]) + float(np.sum(weighted))
+        )
+        row["weighted_positive"] = (
+            float(row["weighted_positive"])
+            + float(np.sum(weighted * present))
+        )
+        row["weighted_negative"] = (
+            float(row["weighted_negative"])
+            + float(np.sum(weighted * (1.0 - present)))
+        )
+
+    for dataset_id in required:
+        row = by_corpus.get(dataset_id)
+        if row is None or int(row["recordings"]) == 0:
+            raise ValueError(
+                f"{split}: required harmonic dataset {dataset_id!r} is absent."
+            )
+        if int(row["schema_recordings"]) != int(row["recordings"]):
+            raise ValueError(
+                f"{split}/{dataset_id}: not every recording uses schema 3."
+            )
+        if (
+            float(row["weighted_positive"]) <= 0.0
+            or float(row["weighted_negative"]) <= 0.0
+        ):
+            raise ValueError(
+                f"{split}/{dataset_id}: positive and negative weighted "
+                "harmonic supervision are both required."
+            )
+
+    totals = {
+        name: (
+            float(sum(float(row[name]) for row in by_corpus.values()))
+            if name.startswith("weighted_")
+            else int(sum(int(row[name]) for row in by_corpus.values()))
+        )
+        for name in (
+            "recordings",
+            "schema_recordings",
+            "notes",
+            "supervised_partials",
+            "positive_partials",
+            "negative_partials",
+            "weighted_supervision",
+            "weighted_positive",
+            "weighted_negative",
+        )
+    }
+    if (
+        float(totals["weighted_positive"]) <= 0.0
+        or float(totals["weighted_negative"]) <= 0.0
+    ):
+        raise ValueError(
+            f"{split}: weighted positive and negative supervision are required."
+        )
+    return {
+        "split": str(split),
+        "minimum_schema_version": int(minimum_schema_version),
+        "required_datasets": list(required),
+        "totals": totals,
+        "by_corpus": {
+            name: by_corpus[name] for name in sorted(by_corpus)
+        },
+    }
 
 
 def _write_model_overview(
@@ -1627,7 +1942,11 @@ def run_recoverable_training(
                 epochs=1,
                 callbacks=[observer],
                 verbose=2,
-                **_fit_queue_options(model.fit, workers),
+                **_fit_queue_options(
+                    model.fit,
+                    workers,
+                    max_queue_size=int(train_sequence.max_queue_size),
+                ),
             )
             if observer.non_finite is not None:
                 raise FloatingPointError(
@@ -1865,6 +2184,45 @@ def main() -> int:
         raise ValueError("Train/validation pitch contracts differ.")
 
     training = config["train"]
+    model_config = config["model"]
+    harmonic_presence_head = bool(
+        model_config.get("harmonic_presence_head", False)
+    )
+    if harmonic_presence_head:
+        required_harmonic_datasets = model_config.get(
+            "harmonic_supervision_required_datasets",
+            ["guitarset_poly_mix"],
+        )
+        if not isinstance(required_harmonic_datasets, (list, tuple)):
+            raise ValueError(
+                "model.harmonic_supervision_required_datasets must be a list."
+            )
+        minimum_harmonic_schema = int(
+            model_config.get(
+                "harmonic_supervision_minimum_schema_version", 3
+            )
+        )
+        harmonic_supervision_report: dict[str, object] = {
+            "enabled": True,
+            "minimum_schema_version": minimum_harmonic_schema,
+            "required_datasets": [
+                str(value) for value in required_harmonic_datasets
+            ],
+            "train": _harmonic_supervision_preflight(
+                train_corpus,
+                split="train",
+                required_datasets=required_harmonic_datasets,
+                minimum_schema_version=minimum_harmonic_schema,
+            ),
+            "validation": _harmonic_supervision_preflight(
+                validation_corpus,
+                split="validation",
+                required_datasets=required_harmonic_datasets,
+                minimum_schema_version=minimum_harmonic_schema,
+            ),
+        }
+    else:
+        harmonic_supervision_report = {"enabled": False}
     dataset_fractions = training.get("dataset_fractions")
     if dataset_fractions:
         dataset_pools = build_dataset_frame_pools(train_corpus)
@@ -2068,6 +2426,7 @@ def main() -> int:
         "onset_positive_counts": onset_positive.tolist(),
         "frame_positive_weights": frame_weights.tolist(),
         "onset_positive_weights": onset_weights.tolist(),
+        "harmonic_supervision": harmonic_supervision_report,
     }
     if not args.resume_run:
         _json(run_dir / "dataset_statistics.json", statistics)
@@ -2076,6 +2435,7 @@ def main() -> int:
         "batch_size": int(training["batch_size"]),
         "input_samples": int(config["dataset"]["input_samples"]),
         "normalization_gain": float(config["dataset"]["normalization_gain"]),
+        "harmonic_presence_target": harmonic_presence_head,
         "workers": workers,
         "max_queue_size": int(training.get("max_queue_size", 2)),
     }
@@ -2114,7 +2474,6 @@ def main() -> int:
         commit=git_commit(),
     )
     recovery_snapshot: RecoverySnapshot | None = None
-    model_config = config["model"]
     if args.resume_run:
         recovery_snapshot = load_latest_recovery_checkpoint(
             run_dir / "recovery",
@@ -2184,6 +2543,7 @@ def main() -> int:
                     train_corpus.pitch_classes,
                 )
             ),
+            harmonic_presence_head=harmonic_presence_head,
         )
         initialization = config.get("initialization", {})
         source_model = (
@@ -2194,49 +2554,96 @@ def main() -> int:
         else:
             transfer = {"source": None, "transferred": [], "skipped": []}
         _json(run_dir / "weight_transfer.json", transfer)
+        losses = {
+            "frame": ClassWeightedBinaryCrossentropy(
+                frame_weights.tolist()
+            ),
+            "onset": ClassWeightedBinaryCrossentropy(
+                onset_weights.tolist()
+            ),
+            "harmonic_amplitude": (
+                PolyphonicMaskedHarmonicAmplitudeLoss(
+                    train_corpus.harmonic_count,
+                    normalize_by_supervised_count=(
+                        harmonic_presence_head
+                    ),
+                )
+            ),
+            "harmonic_offset_cents": PolyphonicHarmonicOffsetLoss(
+                train_corpus.harmonic_count,
+                float(model_config["harmonic_offset_scale_cents"]),
+                normalize_by_supervised_count=harmonic_presence_head,
+            ),
+        }
+        loss_weights = {
+            "frame": 1.0,
+            "onset": float(model_config["onset_loss_weight"]),
+            "harmonic_amplitude": float(
+                model_config["harmonic_amplitude_loss_weight"]
+            ),
+            "harmonic_offset_cents": float(
+                model_config["harmonic_offset_loss_weight"]
+            ),
+        }
+        if harmonic_presence_head:
+            losses["harmonic_presence"] = (
+                PolyphonicMaskedHarmonicPresenceLoss(
+                    train_corpus.harmonic_count,
+                    positive_weight=float(
+                        model_config.get(
+                            "harmonic_presence_positive_weight", 1.0
+                        )
+                    ),
+                    negative_weight=float(
+                        model_config.get(
+                            "harmonic_presence_negative_weight", 1.0
+                        )
+                    ),
+                )
+            )
+            loss_weights["harmonic_presence"] = float(
+                model_config.get("harmonic_presence_loss_weight", 0.05)
+            )
+        metrics: dict[str, list[tf.keras.metrics.Metric]] = {
+            "frame": [
+                MicroF1(name="micro_f1"),
+                tf.keras.metrics.Precision(name="precision"),
+                tf.keras.metrics.Recall(name="recall"),
+            ],
+            "onset": [
+                MicroF1(name="micro_f1"),
+                tf.keras.metrics.Precision(name="precision"),
+                tf.keras.metrics.Recall(name="recall"),
+            ],
+        }
+        if harmonic_presence_head:
+            presence_threshold = float(
+                model_config.get("harmonic_presence_metric_threshold", 0.5)
+            )
+            metrics["harmonic_presence"] = [
+                PolyphonicMaskedHarmonicPresencePrecision(
+                    train_corpus.harmonic_count,
+                    threshold=presence_threshold,
+                ),
+                PolyphonicMaskedHarmonicPresenceRecall(
+                    train_corpus.harmonic_count,
+                    threshold=presence_threshold,
+                ),
+                PolyphonicMaskedHarmonicPresenceF1(
+                    train_corpus.harmonic_count,
+                    threshold=presence_threshold,
+                ),
+                PolyphonicMaskedHarmonicPresenceBrier(
+                    train_corpus.harmonic_count
+                ),
+            ]
         model.compile(
             optimizer=tf.keras.optimizers.Adam(
                 float(training["learning_rate"])
             ),
-            loss={
-                "frame": ClassWeightedBinaryCrossentropy(
-                    frame_weights.tolist()
-                ),
-                "onset": ClassWeightedBinaryCrossentropy(
-                    onset_weights.tolist()
-                ),
-                "harmonic_amplitude": (
-                    PolyphonicMaskedHarmonicAmplitudeLoss(
-                        train_corpus.harmonic_count
-                    )
-                ),
-                "harmonic_offset_cents": PolyphonicHarmonicOffsetLoss(
-                    train_corpus.harmonic_count,
-                    float(model_config["harmonic_offset_scale_cents"]),
-                ),
-            },
-            loss_weights={
-                "frame": 1.0,
-                "onset": float(model_config["onset_loss_weight"]),
-                "harmonic_amplitude": float(
-                    model_config["harmonic_amplitude_loss_weight"]
-                ),
-                "harmonic_offset_cents": float(
-                    model_config["harmonic_offset_loss_weight"]
-                ),
-            },
-            metrics={
-                "frame": [
-                    MicroF1(name="micro_f1"),
-                    tf.keras.metrics.Precision(name="precision"),
-                    tf.keras.metrics.Recall(name="recall"),
-                ],
-                "onset": [
-                    MicroF1(name="micro_f1"),
-                    tf.keras.metrics.Precision(name="precision"),
-                    tf.keras.metrics.Recall(name="recall"),
-                ],
-            },
+            loss=losses,
+            loss_weights=loss_weights,
+            metrics=metrics,
         )
     (run_dir / "epochs").mkdir(exist_ok=True)
 

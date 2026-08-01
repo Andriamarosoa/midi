@@ -6,6 +6,7 @@ import unittest
 import wave
 import zipfile
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 
@@ -20,7 +21,11 @@ from src.polyphonic.data import (
     sampler_effective_class_counts,
 )
 from src.polyphonic.keras_compat import predict_compat
-from src.polyphonic.train import _fit_queue_options, _weights
+from src.polyphonic.train import (
+    _fit_queue_options,
+    _harmonic_supervision_preflight,
+    _weights,
+)
 
 
 class PolyphonicDataTests(unittest.TestCase):
@@ -66,14 +71,90 @@ class PolyphonicDataTests(unittest.TestCase):
             return sequence, epochs
 
         self.assertEqual(
-            _fit_queue_options(legacy_fit, workers=4),
+            _fit_queue_options(
+                legacy_fit, workers=4, max_queue_size=1
+            ),
             {
                 "workers": 4,
                 "use_multiprocessing": False,
-                "max_queue_size": 2,
+                "max_queue_size": 1,
             },
         )
         self.assertEqual(_fit_queue_options(keras3_fit, workers=4), {})
+
+    @staticmethod
+    def _harmonic_preflight_corpus(
+        *, schema: int | None = 3, present=(1, 0)
+    ):
+        relative_db = np.asarray(
+            [[0.0, 0.0 if present[1] else -80.0]], np.float32
+        )
+        amplitude = np.power(
+            np.float32(10.0),
+            (relative_db - np.max(relative_db, axis=1, keepdims=True))
+            / np.float32(20.0),
+        ).astype(np.float16)
+        frames_measured = np.asarray([[3, 1]], np.int32)
+        reliability = np.sqrt(
+            frames_measured.astype(np.float32)
+            / (frames_measured.astype(np.float32) + 1.0)
+        ).astype(np.float16)
+        arrays = {
+            "note_harmonic_present": np.asarray([present], np.uint8),
+            "note_harmonic_amplitude": amplitude,
+            "note_harmonic_offset_cents": np.zeros((1, 2), np.float16),
+            "note_harmonic_valid": np.ones(1, np.uint8),
+        }
+        if schema is not None:
+            arrays.update(
+                {
+                    "harmonic_supervision_schema_version": np.int8(schema),
+                    "harmonic_presence_floor_db": np.float32(-60.0),
+                    "harmonic_reliability_formula": np.asarray(
+                        "sqrt(n/(n+1))"
+                    ),
+                    "note_harmonic_supervised": np.ones((1, 2), np.uint8),
+                    "note_harmonic_reliability": reliability,
+                    "note_harmonic_relative_db": relative_db,
+                    "note_harmonic_frames_measured": frames_measured,
+                }
+            )
+        item = SimpleNamespace(
+            dataset_id="guitarset_poly_mix", source_id="synthetic"
+        )
+        return SimpleNamespace(
+            items=[item], labels=[SimpleNamespace(arrays=arrays)]
+        )
+
+    def test_harmonic_preflight_counts_schema_three_targets(self) -> None:
+        report = _harmonic_supervision_preflight(
+            self._harmonic_preflight_corpus(),
+            split="train",
+            required_datasets=["guitarset_poly_mix"],
+        )
+        totals = report["totals"]
+        self.assertEqual(totals["positive_partials"], 1)
+        self.assertEqual(totals["negative_partials"], 1)
+        self.assertAlmostEqual(
+            totals["weighted_positive"], np.sqrt(3.0 / 4.0), places=3
+        )
+        self.assertAlmostEqual(
+            totals["weighted_negative"], np.sqrt(1.0 / 2.0), places=3
+        )
+
+    def test_harmonic_preflight_rejects_old_or_single_class_labels(self) -> None:
+        with self.assertRaisesRegex(ValueError, "schema 3 arrays"):
+            _harmonic_supervision_preflight(
+                self._harmonic_preflight_corpus(schema=None),
+                split="train",
+                required_datasets=["guitarset_poly_mix"],
+            )
+        with self.assertRaisesRegex(ValueError, "positive and negative"):
+            _harmonic_supervision_preflight(
+                self._harmonic_preflight_corpus(present=(1, 1)),
+                split="validation",
+                required_datasets=["guitarset_poly_mix"],
+            )
 
     def test_extensionless_numpy_audio_is_loaded_by_magic_signature(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -342,6 +423,12 @@ class PolyphonicDataTests(unittest.TestCase):
                 note_harmonic_present=np.ones((2, 2), np.uint8),
                 note_harmonic_amplitude=np.ones((2, 2), np.float16),
                 note_harmonic_offset_cents=np.zeros((2, 2), np.float16),
+                note_harmonic_supervised=np.asarray(
+                    [[1, 1], [1, 0]], np.uint8
+                ),
+                note_harmonic_reliability=np.asarray(
+                    [[1.0, 0.5], [0.25, 0.0]], np.float16
+                ),
                 note_harmonic_valid=np.ones(2, np.uint8),
                 sample_rate=np.int32(8), hop_size=np.int32(4),
                 audio_frames=np.int64(32), midi_min=np.int16(40),
@@ -372,6 +459,15 @@ class PolyphonicDataTests(unittest.TestCase):
                 seed=1, refs=np.asarray([[0, 1]], np.int32),
             )
             inputs, targets = sequence[0]
+            _, harmonic_targets = PolyphonicSequence(
+                corpus,
+                batch_size=1,
+                input_samples=8,
+                normalization_gain=1.0,
+                seed=1,
+                refs=np.asarray([[0, 1]], np.int32),
+                harmonic_presence_target=True,
+            )[0]
             leveled_sequence = PolyphonicSequence(
                 corpus,
                 batch_size=1,
@@ -443,6 +539,19 @@ class PolyphonicDataTests(unittest.TestCase):
         })
         self.assertEqual(targets["frame"].tolist(), [[1.0, 1.0]])
         self.assertEqual(targets["onset"].tolist(), [[1.0, 1.0]])
+        self.assertIn("harmonic_presence", harmonic_targets)
+        np.testing.assert_allclose(
+            harmonic_targets["harmonic_presence"][0, 0],
+            [1.0, 1.0, 1.0, 0.5],
+        )
+        np.testing.assert_allclose(
+            harmonic_targets["harmonic_presence"][0, 1],
+            [1.0, 1.0, 0.25, 0.0],
+        )
+        np.testing.assert_allclose(
+            harmonic_targets["harmonic_offset_cents"][0, 1, 2:4],
+            [0.25, 0.0],
+        )
         self.assertEqual(inputs["audio"].shape, (1, 8, 1))
         self.assertEqual(inputs["time_mask"].sum(), 8.0)
         np.testing.assert_allclose(

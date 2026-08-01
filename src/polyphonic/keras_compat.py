@@ -56,6 +56,7 @@ def _legacy_polyphonic_spec(config: dict[str, Any]) -> dict[str, Any]:
         "harmonic_offset_scale_cents": float(
             layer_config("harmonic_offset_scaled")["scale"]
         ),
+        "harmonic_presence_head": "harmonic_presence" in layers,
     }
     if compressed_bass_branch:
         spec.update(

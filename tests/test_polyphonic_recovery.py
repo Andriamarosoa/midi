@@ -8,6 +8,15 @@ from pathlib import Path
 import numpy as np
 import tensorflow as tf
 
+from src.polyphonic.model import (
+    ClassWeightedBinaryCrossentropy,
+    PolyphonicHarmonicOffsetLoss,
+    PolyphonicMaskedHarmonicAmplitudeLoss,
+    PolyphonicMaskedHarmonicPresenceBrier,
+    PolyphonicMaskedHarmonicPresenceF1,
+    PolyphonicMaskedHarmonicPresenceLoss,
+    build_polyphonic_model,
+)
 from src.polyphonic.recovery import (
     RecoverySignatureMismatch,
     RecoverySignatures,
@@ -45,6 +54,81 @@ def _train_batch(model: tf.keras.Model) -> None:
 
 
 class PolyphonicRecoveryTests(unittest.TestCase):
+    def test_presence_head_loss_metrics_and_optimizer_resume(self) -> None:
+        model = build_polyphonic_model(
+            pitch_classes=2,
+            input_samples=512,
+            channels=4,
+            tcn_blocks=1,
+            dropout=0.0,
+            dense_units=8,
+            harmonic_count=1,
+            harmonic_presence_head=True,
+        )
+        model.compile(
+            optimizer=tf.keras.optimizers.Adam(1e-4),
+            loss={
+                "frame": ClassWeightedBinaryCrossentropy([1.0, 1.0]),
+                "onset": ClassWeightedBinaryCrossentropy([1.0, 1.0]),
+                "harmonic_amplitude": (
+                    PolyphonicMaskedHarmonicAmplitudeLoss(
+                        1, normalize_by_supervised_count=True
+                    )
+                ),
+                "harmonic_offset_cents": PolyphonicHarmonicOffsetLoss(
+                    1, normalize_by_supervised_count=True
+                ),
+                "harmonic_presence": PolyphonicMaskedHarmonicPresenceLoss(1),
+            },
+            metrics={
+                "harmonic_presence": [
+                    PolyphonicMaskedHarmonicPresenceF1(1),
+                    PolyphonicMaskedHarmonicPresenceBrier(1),
+                ]
+            },
+        )
+        inputs = {
+            "audio": np.zeros((1, 512, 1), np.float32),
+            "time_mask": np.ones((1, 512), np.float32),
+        }
+        targets = {
+            "frame": np.zeros((1, 2), np.float32),
+            "onset": np.zeros((1, 2), np.float32),
+            "harmonic_amplitude": np.zeros((1, 2, 2), np.float32),
+            "harmonic_offset_cents": np.zeros((1, 2, 3), np.float32),
+            "harmonic_presence": np.asarray(
+                [[[1.0, 1.0], [0.0, 1.0]]], np.float32
+            ),
+        }
+        model.train_on_batch(inputs, targets)
+        original_variables = [
+            np.asarray(variable.numpy()).copy()
+            for variable in model.optimizer.variables()
+        ]
+        with tempfile.TemporaryDirectory() as temporary:
+            save_recovery_checkpoint(
+                temporary,
+                model,
+                epoch=0,
+                next_batch=1,
+                signatures=_signatures(),
+            )
+            restored = load_latest_recovery_checkpoint(
+                temporary, signatures=_signatures()
+            )
+        self.assertIsNotNone(restored)
+        assert restored is not None
+        self.assertEqual(
+            int(restored.model.optimizer.iterations.numpy()), 1
+        )
+        restored_variables = [
+            np.asarray(variable.numpy())
+            for variable in restored.model.optimizer.variables()
+        ]
+        self.assertEqual(len(restored_variables), len(original_variables))
+        for expected, actual in zip(original_variables, restored_variables):
+            np.testing.assert_array_equal(expected, actual)
+
     def test_alternates_a_b_and_loads_latest_compiled_generation(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

@@ -90,16 +90,72 @@ class PolyphonicDatasetBuilderTests(unittest.TestCase):
             csv_path = Path(directory) / "harmonics.csv"
             csv_path.write_text(
                 "note_id,channel,start_s,end_s,fundamental_hz,harmonic_number,"
-                "expected_hz,measured_hz,amplitude\n"
-                "0,1,0.0,0.5,329.6276,1,329.6276,329.6276,0.8\n"
-                "1,0,1.0,1.5,261.6256,1,261.6256,261.6256,0.5\n",
+                "expected_hz,measured_hz,amplitude,relative_db,"
+                "frames_measured\n"
+                "0,1,0.0,0.5,329.6276,1,329.6276,329.6276,0.8,-70,3\n"
+                "1,0,1.0,1.5,261.6256,1,261.6256,261.6256,0.5,-6,15\n",
                 encoding="utf-8",
             )
 
             tables = build_harmonic_tables(notes, csv_path, maximum_harmonics=2)
 
         self.assertEqual(tables["note_harmonic_valid"].tolist(), [1, 1])
-        self.assertEqual(tables["note_harmonic_present"][:, 0].tolist(), [1, 1])
+        self.assertEqual(tables["note_harmonic_present"][:, 0].tolist(), [1, 0])
+        self.assertEqual(
+            tables["note_harmonic_supervised"][:, 0].tolist(), [1, 1]
+        )
+        np.testing.assert_allclose(
+            tables["note_harmonic_reliability"][:, 0],
+            [np.sqrt(15.0 / 16.0), np.sqrt(3.0 / 4.0)],
+            atol=2e-3,
+        )
+        self.assertAlmostEqual(
+            float(tables["note_harmonic_amplitude"][0, 0]),
+            1.0,
+            places=3,
+        )
+
+    def test_relative_strength_keeps_positive_db_and_missing_is_unavailable(
+        self,
+    ) -> None:
+        notes = [_note(0, 0.0, 0.5, 60), _note(1, 1.0, 1.5, 62)]
+        with tempfile.TemporaryDirectory() as directory:
+            csv_path = Path(directory) / "harmonics.csv"
+            csv_path.write_text(
+                "note_id,channel,start_s,end_s,fundamental_hz,harmonic_number,"
+                "expected_hz,measured_hz,relative_db,frames_measured\n"
+                "0,0,0.0,0.5,261.6256,1,261.6256,261.6256,20,4\n"
+                "0,0,0.0,0.5,261.6256,2,523.2512,523.2512,0,1\n"
+                "1,0,1.0,1.5,293.6648,1,293.6648,293.6648,-70,3\n",
+                encoding="utf-8",
+            )
+            tables = build_harmonic_tables(
+                notes, csv_path, maximum_harmonics=3
+            )
+
+        np.testing.assert_allclose(
+            tables["note_harmonic_amplitude"][0],
+            [1.0, 0.1, 0.0],
+            atol=2e-3,
+        )
+        self.assertEqual(
+            tables["note_harmonic_supervised"].tolist(),
+            [[1, 1, 0], [1, 0, 0]],
+        )
+        self.assertEqual(
+            tables["note_harmonic_present"].tolist(),
+            [[1, 1, 0], [0, 0, 0]],
+        )
+        np.testing.assert_allclose(
+            tables["note_harmonic_relative_db"][0, :2], [20.0, 0.0]
+        )
+        self.assertTrue(np.isnan(
+            tables["note_harmonic_relative_db"][0, 2]
+        ))
+        self.assertEqual(
+            tables["note_harmonic_frames_measured"].tolist(),
+            [[4, 1, 0], [3, 0, 0]],
+        )
 
 
 if __name__ == "__main__":

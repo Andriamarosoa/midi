@@ -146,6 +146,172 @@ def load_harmonic_csv(csv_path: Path, max_harmonics: int):
     return note_meta, present, amplitude, offset_cents
 
 
+def load_harmonic_csv_supervision(
+    csv_path: Path,
+    max_harmonics: int,
+    *,
+    presence_floor_db: float = -60.0,
+):
+    """Load explicit harmonic presence, strength, and reliability targets.
+
+    A missing CSV row means supervision is unavailable. A measured row below
+    ``presence_floor_db`` is instead an observed absent harmonic and remains a
+    valid negative target. ``relative_db`` is retained verbatim and converted
+    to a stable per-note linear strength after subtracting the strongest
+    supervised partial. This preserves ratios even when a CSV contains values
+    above 0 dB. ``frames_measured`` is retained verbatim and supplies the soft
+    reliability ``sqrt(n / (n + 1))``.
+    """
+    if max_harmonics < 1:
+        raise ValueError("max_harmonics must be positive")
+    if not math.isfinite(presence_floor_db) or presence_floor_db >= 0.0:
+        raise ValueError("presence_floor_db must be finite and negative")
+
+    note_meta: Dict[int, Dict[str, float]] = {}
+    present: Dict[int, np.ndarray] = {}
+    amplitude: Dict[int, np.ndarray] = {}
+    offset_cents: Dict[int, np.ndarray] = {}
+    supervised: Dict[int, np.ndarray] = {}
+    reliability: Dict[int, np.ndarray] = {}
+    relative_db_by_note: Dict[int, np.ndarray] = {}
+    frames_measured_by_note: Dict[int, np.ndarray] = {}
+    seen_rows: set[tuple[int, int]] = set()
+
+    with csv_path.open("r", encoding="utf-8-sig", newline="") as handle:
+        reader = csv.DictReader(handle)
+        required = {
+            "note_id", "channel", "start_s", "end_s", "fundamental_hz",
+            "harmonic_number", "expected_hz", "measured_hz", "relative_db",
+            "frames_measured",
+        }
+        missing = required - set(reader.fieldnames or [])
+        if missing:
+            raise ValueError(
+                "Colonnes de supervision harmonique manquantes: "
+                f"{sorted(missing)}"
+            )
+
+        for row in reader:
+            note_id_value = float(row["note_id"])
+            harmonic_number_value = float(row["harmonic_number"])
+            if (
+                not math.isfinite(note_id_value)
+                or not note_id_value.is_integer()
+                or note_id_value < 0.0
+                or not math.isfinite(harmonic_number_value)
+                or not harmonic_number_value.is_integer()
+            ):
+                raise ValueError("note_id and harmonic_number must be integers")
+            note_id = int(note_id_value)
+            harmonic_number = int(harmonic_number_value)
+            index = harmonic_number - 1
+            if not 0 <= index < max_harmonics:
+                continue
+
+            row_key = (note_id, harmonic_number)
+            if row_key in seen_rows:
+                raise ValueError(
+                    f"Duplicate harmonic row note_id={note_id} "
+                    f"harmonic_number={harmonic_number}"
+                )
+            seen_rows.add(row_key)
+
+            if note_id not in note_meta:
+                note_meta[note_id] = {
+                    "channel": int(float(row["channel"])),
+                    "start_s": float(row["start_s"]),
+                    "end_s": float(row["end_s"]),
+                    "fundamental_hz": float(row["fundamental_hz"]),
+                    "detected_attack_time_s": float(
+                        row.get("detected_attack_time_s") or row["start_s"]
+                    ),
+                    "attack_confidence": float(
+                        row.get("attack_confidence") or 0.0
+                    ),
+                }
+                present[note_id] = np.zeros(max_harmonics, dtype=np.float32)
+                amplitude[note_id] = np.zeros(max_harmonics, dtype=np.float32)
+                offset_cents[note_id] = np.zeros(
+                    max_harmonics, dtype=np.float32
+                )
+                supervised[note_id] = np.zeros(
+                    max_harmonics, dtype=np.float32
+                )
+                reliability[note_id] = np.zeros(
+                    max_harmonics, dtype=np.float32
+                )
+                relative_db_by_note[note_id] = np.full(
+                    max_harmonics, np.nan, dtype=np.float32
+                )
+                frames_measured_by_note[note_id] = np.zeros(
+                    max_harmonics, dtype=np.int32
+                )
+
+            relative_db = float(row["relative_db"])
+            frames_value = float(row["frames_measured"])
+            if (
+                not math.isfinite(relative_db)
+                or not math.isfinite(frames_value)
+                or not frames_value.is_integer()
+                or frames_value < 0.0
+            ):
+                raise ValueError(
+                    f"Invalid harmonic supervision for note_id={note_id}, "
+                    f"harmonic_number={harmonic_number}"
+                )
+            frames_measured = int(frames_value)
+            relative_db_by_note[note_id][index] = relative_db
+            frames_measured_by_note[note_id][index] = frames_measured
+            if frames_measured == 0:
+                continue
+
+            measured_hz = float(row["measured_hz"])
+            expected_hz = float(row["expected_hz"])
+            if (
+                not math.isfinite(measured_hz)
+                or measured_hz <= 0.0
+                or not math.isfinite(expected_hz)
+                or expected_hz <= 0.0
+            ):
+                raise ValueError(
+                    f"Invalid harmonic frequencies for note_id={note_id}, "
+                    f"harmonic_number={harmonic_number}"
+                )
+            supervised[note_id][index] = 1.0
+            reliability[note_id][index] = math.sqrt(
+                frames_measured / float(frames_measured + 1)
+            )
+            present[note_id][index] = float(
+                relative_db >= presence_floor_db
+            )
+            offset_cents[note_id][index] = cents_between(
+                measured_hz, expected_hz
+            )
+
+    for note_id, supervised_values in supervised.items():
+        valid = supervised_values > 0.0
+        if not np.any(valid):
+            continue
+        raw_db = relative_db_by_note[note_id]
+        strongest_db = float(np.max(raw_db[valid]))
+        amplitude[note_id][valid] = np.power(
+            np.float32(10.0),
+            (raw_db[valid] - strongest_db) / np.float32(20.0),
+            dtype=np.float32,
+        )
+
+    return (
+        note_meta,
+        present,
+        amplitude,
+        offset_cents,
+        supervised,
+        reliability,
+        relative_db_by_note,
+        frames_measured_by_note,
+    )
+
+
 def merge_notes(jams_notes: Sequence[NoteEvent], harmonic_meta) -> List[NoteEvent]:
     merged: List[NoteEvent] = []
     for note in jams_notes:

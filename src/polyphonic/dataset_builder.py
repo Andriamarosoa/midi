@@ -23,7 +23,7 @@ import soundfile as sf
 
 from src.dataset.build_stream_dataset import (
     NoteEvent,
-    load_harmonic_csv,
+    load_harmonic_csv_supervision,
     load_jams_notes,
 )
 
@@ -35,6 +35,9 @@ MIDI_MAX = 76
 MAX_POLYPHONY = 6
 MAX_HARMONICS = 20
 ONSET_WIDTH_HOPS = 2
+HARMONIC_SUPERVISION_SCHEMA_VERSION = 3
+HARMONIC_PRESENCE_FLOOR_DB = -60.0
+HARMONIC_RELIABILITY_FORMULA = "sqrt(n/(n+1))"
 
 
 @dataclass(frozen=True)
@@ -140,14 +143,38 @@ def build_harmonic_tables(
     notes: Sequence[NoteEvent],
     harmonic_csv: Path,
     maximum_harmonics: int = MAX_HARMONICS,
+    presence_floor_db: float = HARMONIC_PRESENCE_FLOOR_DB,
 ) -> dict[str, np.ndarray]:
-    metadata, present, amplitude, offset = load_harmonic_csv(
-        harmonic_csv, maximum_harmonics
+    (
+        metadata,
+        present,
+        amplitude,
+        offset,
+        supervised,
+        reliability,
+        relative_db,
+        frames_measured,
+    ) = load_harmonic_csv_supervision(
+        harmonic_csv,
+        maximum_harmonics,
+        presence_floor_db=presence_floor_db,
     )
     row_count = max((int(note.note_id) for note in notes), default=-1) + 1
     table_present = np.zeros((row_count, maximum_harmonics), dtype=np.uint8)
     table_amplitude = np.zeros((row_count, maximum_harmonics), dtype=np.float16)
     table_offset = np.zeros((row_count, maximum_harmonics), dtype=np.float16)
+    table_supervised = np.zeros(
+        (row_count, maximum_harmonics), dtype=np.uint8
+    )
+    table_reliability = np.zeros(
+        (row_count, maximum_harmonics), dtype=np.float16
+    )
+    table_relative_db = np.full(
+        (row_count, maximum_harmonics), np.nan, dtype=np.float32
+    )
+    table_frames_measured = np.zeros(
+        (row_count, maximum_harmonics), dtype=np.int32
+    )
     table_valid = np.zeros(row_count, dtype=np.uint8)
 
     candidates_by_channel: dict[int, list[tuple[float, int]]] = {}
@@ -194,13 +221,29 @@ def build_harmonic_tables(
             amplitude[csv_note_id], np.float16
         )
         table_offset[note_id] = np.asarray(offset[csv_note_id], np.float16)
-        table_valid[note_id] = 1
+        table_supervised[note_id] = np.asarray(
+            supervised[csv_note_id] > 0.5, np.uint8
+        )
+        table_reliability[note_id] = np.asarray(
+            reliability[csv_note_id], np.float16
+        )
+        table_relative_db[note_id] = np.asarray(
+            relative_db[csv_note_id], np.float32
+        )
+        table_frames_measured[note_id] = np.asarray(
+            frames_measured[csv_note_id], np.int32
+        )
+        table_valid[note_id] = int(np.any(table_supervised[note_id]))
         used_csv_note_ids.add(csv_note_id)
 
     return {
         "note_harmonic_present": table_present,
         "note_harmonic_amplitude": table_amplitude,
         "note_harmonic_offset_cents": table_offset,
+        "note_harmonic_supervised": table_supervised,
+        "note_harmonic_reliability": table_reliability,
+        "note_harmonic_relative_db": table_relative_db,
+        "note_harmonic_frames_measured": table_frames_measured,
         "note_harmonic_valid": table_valid,
     }
 
@@ -329,6 +372,15 @@ def build_guitarset_dataset(
                 midi_max=np.int16(MIDI_MAX),
                 maximum_polyphony=np.int8(MAX_POLYPHONY),
                 onset_width_hops=np.int8(ONSET_WIDTH_HOPS),
+                harmonic_supervision_schema_version=np.int8(
+                    HARMONIC_SUPERVISION_SCHEMA_VERSION
+                ),
+                harmonic_presence_floor_db=np.float32(
+                    HARMONIC_PRESENCE_FLOOR_DB
+                ),
+                harmonic_reliability_formula=np.asarray(
+                    HARMONIC_RELIABILITY_FORMULA
+                ),
             )
             valid = labels["valid"] > 0
             active = labels["active_bits"] != 0
@@ -389,6 +441,11 @@ def build_guitarset_dataset(
             "maximum_polyphony": MAX_POLYPHONY,
             "maximum_harmonics": MAX_HARMONICS,
             "onset_width_hops": ONSET_WIDTH_HOPS,
+            "harmonic_supervision_schema_version": (
+                HARMONIC_SUPERVISION_SCHEMA_VERSION
+            ),
+            "harmonic_presence_floor_db": HARMONIC_PRESENCE_FLOOR_DB,
+            "harmonic_reliability_formula": HARMONIC_RELIABILITY_FORMULA,
         },
         "manifest": str(manifest_path),
         "totals": totals,

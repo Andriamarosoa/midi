@@ -658,6 +658,7 @@ class PolyphonicSequence(tf.keras.utils.Sequence):
         augmentation_gain_db: float = 0.0,
         input_gain_by_frame: Sequence[np.ndarray] | None = None,
         full_context_from_start: bool = False,
+        harmonic_presence_target: bool = False,
         shuffle: bool = False,
         workers: int = 1,
         max_queue_size: int = 2,
@@ -705,6 +706,7 @@ class PolyphonicSequence(tf.keras.utils.Sequence):
             )
         )
         self.full_context_from_start = bool(full_context_from_start)
+        self.harmonic_presence_target = bool(harmonic_presence_target)
         self.workers = int(workers)
         self.max_queue_size = int(max_queue_size)
         if (
@@ -924,6 +926,12 @@ class PolyphonicSequence(tf.keras.utils.Sequence):
         harmonic_amplitude = np.zeros((size, classes, harmonics), np.float32)
         harmonic_offset = np.zeros((size, classes, harmonics), np.float32)
         harmonic_valid = np.zeros((size, classes, harmonics), np.float32)
+        harmonic_presence = np.zeros(
+            (size, classes, harmonics), np.float32
+        )
+        harmonic_supervision_weight = np.zeros(
+            (size, classes, harmonics), np.float32
+        )
         class_bits = np.arange(classes, dtype=np.uint64)
 
         for row, (recording_index, frame_index) in enumerate(selected):
@@ -971,10 +979,39 @@ class PolyphonicSequence(tf.keras.utils.Sequence):
                     continue
                 if not arrays["note_harmonic_valid"][note_id]:
                     continue
-                valid = np.asarray(
+                present = np.asarray(
                     arrays["note_harmonic_present"][note_id], np.float32
                 )
-                harmonic_valid[row, pitch_index] = valid
+                if self.harmonic_presence_target:
+                    supervised_source = arrays.get(
+                        "note_harmonic_supervised"
+                    )
+                    reliability_source = arrays.get(
+                        "note_harmonic_reliability"
+                    )
+                    if (
+                        supervised_source is None
+                        or reliability_source is None
+                    ):
+                        # Old or non-harmonic labels mean supervision is
+                        # unavailable, never an observed absent harmonic.
+                        continue
+                    supervised = np.asarray(
+                        supervised_source[note_id], np.float32
+                    )
+                    reliability = np.asarray(
+                        reliability_source[note_id], np.float32
+                    )
+                    supervision_weight = supervised * reliability
+                    harmonic_presence[row, pitch_index] = present
+                    harmonic_supervision_weight[
+                        row, pitch_index
+                    ] = supervision_weight
+                    harmonic_valid[row, pitch_index] = (
+                        supervision_weight * present
+                    )
+                else:
+                    harmonic_valid[row, pitch_index] = present
                 harmonic_amplitude[row, pitch_index] = np.asarray(
                     arrays["note_harmonic_amplitude"][note_id], np.float32
                 )
@@ -987,12 +1024,24 @@ class PolyphonicSequence(tf.keras.utils.Sequence):
             "frame": frame_target,
             "onset": onset_target,
             "harmonic_amplitude": np.concatenate(
-                [harmonic_amplitude, harmonic_valid], axis=-1
+                [
+                    harmonic_amplitude,
+                    (
+                        harmonic_supervision_weight
+                        if self.harmonic_presence_target
+                        else harmonic_valid
+                    ),
+                ],
+                axis=-1,
             ),
             "harmonic_offset_cents": np.concatenate(
                 [harmonic_offset, harmonic_valid, harmonic_amplitude], axis=-1
             ),
         }
+        if self.harmonic_presence_target:
+            targets["harmonic_presence"] = np.concatenate(
+                [harmonic_presence, harmonic_supervision_weight], axis=-1
+            )
         return inputs, targets
 
     def on_epoch_end(self) -> None:
