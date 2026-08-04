@@ -36,6 +36,7 @@ class PolyphonicDecoderConfig:
     audio_onset_lookback_frames: int = 10
     unattacked_frame_threshold: float = 0.90
     harmonic_support_threshold: float = 0.60
+    independent_note_threshold: float | None = None
     recovery_release_grace_frames: int = 4
     chord_release_grace_frames: int = 6
     chord_formation_frames: int = 0
@@ -71,6 +72,11 @@ class PolyphonicDecoderConfig:
                 raise ValueError(f"{name} must be in [0, 1].")
         if self.harmonic_tolerance_cents <= 0.0:
             raise ValueError("harmonic_tolerance_cents must be positive.")
+        if (
+            self.independent_note_threshold is not None
+            and not 0.0 <= self.independent_note_threshold <= 1.0
+        ):
+            raise ValueError("independent_note_threshold must be in [0, 1].")
 
 
 def default_decoder_config(
@@ -246,6 +252,7 @@ class PolyphonicDecoder:
         audio_hop_index: int | None = None,
         audio_onset: bool | None = None,
         audio_onset_hop_index: int | None = None,
+        independent_note_probability: np.ndarray | None = None,
     ) -> list[PolyphonicMidiEvent]:
         # ``frame_index`` remains the zero-based decoder/event clock.  Live
         # callers may supply the absolute audio-hop index so inference skips
@@ -303,6 +310,12 @@ class PolyphonicDecoder:
             harmonic_amplitude = np.asarray(harmonic_amplitude, np.float32)
             if harmonic_amplitude.ndim != 2 or harmonic_amplitude.shape[0] != self.classes:
                 raise ValueError("Invalid harmonic amplitude shape.")
+        if independent_note_probability is not None:
+            independent_note_probability = np.asarray(
+                independent_note_probability, np.float32
+            )
+            if independent_note_probability.shape != (self.classes,):
+                raise ValueError("Invalid independent-note probability shape.")
 
         events: list[PolyphonicMidiEvent] = []
         if not audio_active:
@@ -391,6 +404,18 @@ class PolyphonicDecoder:
                     onset[class_index] >= self.config.onset_threshold
                     and frame[class_index] >= self.config.frame_on_threshold
                 )
+                support = self._harmonic_support(
+                    class_index, harmonic_amplitude, self.active
+                )
+                if (
+                    self.config.independent_note_threshold is not None
+                    and independent_note_probability is not None
+                    and support >= self.config.harmonic_support_threshold
+                    and independent_note_probability[class_index]
+                    < self.config.independent_note_threshold
+                ):
+                    self.activation_count[class_index] = 0
+                    continue
                 if frame[class_index] >= threshold:
                     self.activation_count[class_index] += 1
                 else:
@@ -483,6 +508,15 @@ class PolyphonicDecoder:
             support = self._harmonic_support(
                 class_index, harmonic_amplitude, base_mask
             )
+            if (
+                self.config.independent_note_threshold is not None
+                and independent_note_probability is not None
+                and support >= self.config.harmonic_support_threshold
+                and independent_note_probability[class_index]
+                < self.config.independent_note_threshold
+            ):
+                self.activation_count[class_index] = 0
+                continue
             if (
                 not direct_onset
                 and support >= self.config.harmonic_support_threshold

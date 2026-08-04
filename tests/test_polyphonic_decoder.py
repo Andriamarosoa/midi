@@ -53,6 +53,39 @@ class PolyphonicDecoderTests(unittest.TestCase):
             event.kind == "note_on" and event.pitch == 72 for event in events
         ))
 
+    def test_independent_head_can_reject_a_supported_direct_partial(self) -> None:
+        config = PolyphonicDecoderConfig(
+            midi_min=60, midi_max=72, activation_frames=1,
+            release_frames=2, minimum_retrigger_frames=2,
+            silence_release_frames=2, maximum_polyphony=6,
+            independent_note_threshold=0.5,
+        )
+        decoder = PolyphonicDecoder(config)
+        base = np.zeros(13, np.float32)
+        base[0] = 0.9
+        decoder.step(base, base)
+        harmonic = np.zeros((13, 4), np.float32)
+        harmonic[0, 1] = 1.0
+        candidate = base.copy()
+        candidate[12] = 0.9
+
+        rejected = decoder.step(
+            candidate, candidate, harmonic,
+            independent_note_probability=np.zeros(13, np.float32),
+        )
+        self.assertFalse(any(event.pitch == 72 for event in rejected))
+
+        accepted = decoder.step(
+            candidate, candidate, harmonic,
+            independent_note_probability=np.where(
+                np.arange(13) == 12, 0.9, 0.0
+            ).astype(np.float32),
+        )
+        self.assertTrue(any(
+            event.kind == "note_on" and event.pitch == 72
+            for event in accepted
+        ))
+
     def test_recoverable_gap_preserves_notes_and_clears_weak_votes(self) -> None:
         config = PolyphonicDecoderConfig(
             midi_min=60,

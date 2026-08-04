@@ -484,6 +484,7 @@ def decode_probabilities(
     hop_size: int,
     audio_active: np.ndarray | None = None,
     audio_onset: np.ndarray | None = None,
+    independent_note: np.ndarray | None = None,
 ) -> tuple[list[NoteInterval], int]:
     decoder = PolyphonicDecoder(config)
     events: list[PolyphonicMidiEvent] = []
@@ -500,10 +501,19 @@ def decode_probabilities(
         attacks = np.asarray(audio_onset, dtype=np.bool_)
         if attacks.shape != (len(frame),):
             raise ValueError("audio_onset must have one value per frame.")
+    if independent_note is not None:
+        independent = np.asarray(independent_note, dtype=np.float32)
+        if independent.shape != frame.shape:
+            raise ValueError("independent_note must match frame probabilities.")
+    else:
+        independent = None
     for frame_index in range(len(frame)):
         emitted = decoder.step(
             frame[frame_index], onset[frame_index],
             harmonic_amplitude[frame_index],
+            independent_note_probability=(
+                None if independent is None else independent[frame_index]
+            ),
             audio_active=bool(activity[frame_index]),
             audio_hop_index=frame_index,
             audio_onset=(
@@ -575,14 +585,16 @@ def evaluate_events(
     if not checkpoint.is_file():
         raise FileNotFoundError(checkpoint)
     model = load_polyphonic_checkpoint(checkpoint)
-    inference_model = tf.keras.Model(
-        model.inputs,
-        {
-            "frame": model.get_layer("frame").output,
-            "onset": model.get_layer("onset").output,
-            "harmonic_amplitude": model.get_layer("harmonic_amplitude").output,
-        },
-    )
+    inference_outputs = {
+        "frame": model.get_layer("frame").output,
+        "onset": model.get_layer("onset").output,
+        "harmonic_amplitude": model.get_layer("harmonic_amplitude").output,
+    }
+    if "independent_note" in {layer.name for layer in model.layers}:
+        inference_outputs["independent_note"] = (
+            model.get_layer("independent_note").output
+        )
+    inference_model = tf.keras.Model(model.inputs, inference_outputs)
     frame_threshold = float(thresholds["frame"])
     onset_threshold = float(thresholds["onset"])
     configured_decoder = decoder_config_path or (run_dir / "decoder_config.json")
@@ -643,6 +655,7 @@ def evaluate_events(
                 corpus.sample_rate, corpus.hop_size,
                 activity_mask,
                 onset_mask,
+                prediction.get("independent_note"),
             )
             reference = truth_notes(arrays)
         finally:
