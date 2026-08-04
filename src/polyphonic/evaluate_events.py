@@ -6,7 +6,7 @@ import argparse
 import json
 import os
 from collections import Counter
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from typing import Mapping, Sequence
 
@@ -612,6 +612,7 @@ def evaluate_events(
     config_path: Path | None = None,
     allow_locked_test_after_final_selection: bool = False,
     final_selection_path: Path | None = None,
+    independent_note_threshold_override: float | None = None,
 ) -> dict[str, object]:
     if split == "test":
         if not allow_locked_test_after_final_selection or final_selection_path is None:
@@ -693,6 +694,11 @@ def evaluate_events(
     else:
         decoder_config = default_decoder_config(
             frame_threshold, onset_threshold,
+        )
+    if independent_note_threshold_override is not None:
+        decoder_config = replace(
+            decoder_config,
+            independent_note_threshold=float(independent_note_threshold_override),
         )
 
     all_reference: list[NoteInterval] = []
@@ -880,6 +886,10 @@ def main() -> None:
     parser.add_argument("--thresholds", type=Path)
     parser.add_argument("--decoder-config", type=Path)
     parser.add_argument(
+        "--independent-note-threshold-grid",
+        help="Liste CSV de seuils fixes, exécutés séquentiellement sur le même split.",
+    )
+    parser.add_argument(
         "--audio-evidence-config",
         type=Path,
         help=(
@@ -922,23 +932,31 @@ def main() -> None:
         audio_evidence_metadata = {
             "audio_evidence": audio_evidence_values,
         }
-    report = evaluate_events(
-        args.run_dir, args.split, args.maximum_recordings, args.dataset_id,
-        args.checkpoint, args.thresholds, args.decoder_config,
-        causal_gate, audio_evidence_metadata, args.report_suffix, args.config,
-        args.allow_locked_test_after_final_selection, args.final_selection,
+    grid = (
+        [float(value) for value in args.independent_note_threshold_grid.split(",")]
+        if args.independent_note_threshold_grid else [None]
     )
-    print(json.dumps({
+    reports = []
+    for threshold in grid:
+        suffix = args.report_suffix
+        if threshold is not None:
+            token = f"threshold_{threshold:.3f}".replace(".", "p")
+            suffix = f"{suffix}_{token}" if suffix else token
+        reports.append(evaluate_events(
+            args.run_dir, args.split, args.maximum_recordings, args.dataset_id,
+            args.checkpoint, args.thresholds, args.decoder_config,
+            causal_gate, audio_evidence_metadata, suffix, args.config,
+            args.allow_locked_test_after_final_selection, args.final_selection,
+            threshold,
+        ))
+    print(json.dumps([{
+        "threshold": report["decoder"].get("independent_note_threshold"),
         "split": report["split"],
-        "recordings": report["recordings"],
-        "selection": report["selection"],
-        "dataset_metrics": report["dataset_metrics"],
-        "strictly_causal_noteon": report["strictly_causal_noteon"],
+        "locked_test_used": report["locked_test_used"],
         "onset": report["onset"],
-        "onset_offset": report["onset_offset"],
         "retriggers": report["retriggers"],
-        "latency": report["latency"],
-    }, indent=2))
+        "independent_note_gate": report["independent_note_gate"],
+    } for report in reports], indent=2))
 
 
 if __name__ == "__main__":
