@@ -13,6 +13,20 @@ artifacts/guitar_midi_polyphonic_adaptive_attack_candidate/
 runs/*
 !runs/.gitkeep
 
+# Generated model binaries and audio/debug captures are reproducible local
+# outputs. Keep compact configs and JSON reports, but never add these binaries.
+checkpoints/
+*.keras
+*.onnx
+*.tflite
+*.npz
+*.wav
+*.flac
+*.mp3
+*.m4a
+*.aac
+**/saved_model_*/
+
 data/*
 !data/processed/
 data/processed/*
