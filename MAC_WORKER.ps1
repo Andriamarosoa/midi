@@ -208,6 +208,8 @@ if ($Action -eq "sync-code") {
         & git -C $repository archive --format=tar --output=$archive $commit
         Assert-LastExit "git archive"
         $archiveHash = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+        $runnerPath = Join-Path $repository "scripts/remote/mac_worker.sh"
+        $runnerHash = (Get-FileHash -LiteralPath $runnerPath -Algorithm SHA256).Hash.ToLowerInvariant()
         $remoteArchive = "$($config.remote_root)/inbox/mac-code-$commit.tar"
         Invoke-Ssh $config ("mkdir -p " + (Quote-Posix "$($config.remote_root)/inbox") + " " + (Quote-Posix "$($config.remote_root)/workspaces") + " " + (Quote-Posix "$($config.remote_root)/data"))
         $scpArguments = Get-ScpArguments $config
@@ -222,15 +224,20 @@ if ($Action -eq "sync-code") {
             "archive=" + (Quote-Posix $remoteArchive),
             "destination=" + (Quote-Posix $destination),
             "staging=" + (Quote-Posix $staging),
+            "runner_source=" + (Quote-Posix "$destination/scripts/remote/mac_worker.sh"),
+            "runner_target=" + (Quote-Posix "$($config.remote_root)/bin/mac_worker.sh"),
+            "runner_tmp=" + (Quote-Posix "$($config.remote_root)/bin/mac_worker.sh.tmp"),
             'actual=$(shasum -a 256 "$archive" | awk ''{print $1}''); test "$actual" = ' + (Quote-Posix $archiveHash),
             'if [ -e "$destination" ]; then grep -Fxq ' + (Quote-Posix "commit=$commit") + ' "$destination/.source.env"; else rm -rf "$staging"; mkdir -p "$staging"; tar -xf "$archive" -C "$staging"; rm -rf "$staging/data"; ln -s ' + (Quote-Posix "$($config.remote_root)/data") + ' "$staging/data"; printf ' + (Quote-Posix $sourceText) + ' > "$staging/.source.env"; mv "$staging" "$destination"; fi',
             "mkdir -p " + (Quote-Posix "$($config.remote_root)/bin"),
-            "cp " + (Quote-Posix "$destination/scripts/remote/mac_worker.sh") + " " + (Quote-Posix "$($config.remote_root)/bin/mac_worker.sh"),
-            "chmod 700 " + (Quote-Posix "$($config.remote_root)/bin/mac_worker.sh"),
+            'rm -f "$runner_tmp"; tr -d ''\r'' < "$runner_source" > "$runner_tmp"',
+            'bash -n "$runner_tmp"',
+            'actual_runner=$(shasum -a 256 "$runner_tmp" | awk ''{print $1}''); test "$actual_runner" = ' + (Quote-Posix $runnerHash),
+            'chmod 700 "$runner_tmp"; mv "$runner_tmp" "$runner_target"',
             'rm -f "$archive"'
         ) -join "; "
         Invoke-Ssh $config $command
-        Write-Output "Code synchronized: commit=$commit archive_sha256=$archiveHash"
+        Write-Output "Code synchronized: commit=$commit archive_sha256=$archiveHash runner_sha256=$runnerHash"
     }
     finally {
         Remove-Item -LiteralPath $archive -Force -ErrorAction SilentlyContinue
