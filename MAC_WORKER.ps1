@@ -123,12 +123,46 @@ function Assert-NoActiveSftp {
     }
 }
 
+function Enter-SftpMutex {
+    $mutex = New-Object System.Threading.Mutex(
+        $false,
+        "Local\MidiMacWorkerSftp"
+    )
+    $acquired = $false
+    try {
+        try {
+            $acquired = $mutex.WaitOne(0)
+        }
+        catch [System.Threading.AbandonedMutexException] {
+            $acquired = $true
+        }
+        if (-not $acquired) {
+            throw "Another MAC_WORKER process owns the atomic SFTP mutex."
+        }
+        Assert-NoActiveSftp
+        return $mutex
+    }
+    catch {
+        if ($acquired) {
+            try { $mutex.ReleaseMutex() } catch {}
+        }
+        $mutex.Dispose()
+        throw
+    }
+}
+
+function Exit-SftpMutex($Mutex) {
+    try { $Mutex.ReleaseMutex() }
+    finally { $Mutex.Dispose() }
+}
+
 function Invoke-SftpReput($Config, [string]$LocalPath, [string]$RemotePath) {
-    Assert-NoActiveSftp
     $batchPath = Join-Path (
         Split-Path -Parent $LocalPath
     ) ("sftp-" + [guid]::NewGuid().ToString("N") + ".batch")
+    $mutex = $null
     try {
+        $mutex = Enter-SftpMutex
         $line = "reput -f " +
             (Quote-SftpPath ((Resolve-Path -LiteralPath $LocalPath).Path)) +
             " " + (Quote-SftpPath $RemotePath) + "`nquit`n"
@@ -139,15 +173,17 @@ function Invoke-SftpReput($Config, [string]$LocalPath, [string]$RemotePath) {
     }
     finally {
         Remove-Item -LiteralPath $batchPath -Force -ErrorAction SilentlyContinue
+        if ($null -ne $mutex) { Exit-SftpMutex $mutex }
     }
 }
 
 function Invoke-SftpPut($Config, [string]$LocalPath, [string]$RemotePath) {
-    Assert-NoActiveSftp
     $batchPath = Join-Path (
         Split-Path -Parent $LocalPath
     ) ("sftp-" + [guid]::NewGuid().ToString("N") + ".batch")
+    $mutex = $null
     try {
+        $mutex = Enter-SftpMutex
         $line = "put -f " +
             (Quote-SftpPath ((Resolve-Path -LiteralPath $LocalPath).Path)) +
             " " + (Quote-SftpPath $RemotePath) + "`nquit`n"
@@ -158,6 +194,7 @@ function Invoke-SftpPut($Config, [string]$LocalPath, [string]$RemotePath) {
     }
     finally {
         Remove-Item -LiteralPath $batchPath -Force -ErrorAction SilentlyContinue
+        if ($null -ne $mutex) { Exit-SftpMutex $mutex }
     }
 }
 
@@ -385,12 +422,12 @@ if ($Action -eq "sync-code") {
             ("runner_target=" + (Quote-Posix "$($config.remote_root)/bin/mac_worker.sh")),
             ("runner_tmp=" + (Quote-Posix "$($config.remote_root)/bin/mac_worker.sh.tmp")),
             ("sidecar=" + (Quote-Posix $remoteSidecar)),
-            'actual=$(shasum -a 256 "$archive" | awk ''{print $1}''); test "$actual" = ' + (Quote-Posix $archiveHash),
-            'if [ -e "$destination" ]; then grep -Fxq ' + (Quote-Posix "commit=$commit") + ' "$destination/.source.env"; else rm -rf "$staging"; mkdir -p "$staging"; tar -xf "$archive" -C "$staging"; rm -rf "$staging/data"; ln -s ' + (Quote-Posix "$($config.remote_root)/data") + ' "$staging/data"; printf ' + (Quote-Posix $sourceText) + ' > "$staging/.source.env"; mv "$staging" "$destination"; fi',
-            "mkdir -p " + (Quote-Posix "$($config.remote_root)/bin"),
+            ('actual=$(shasum -a 256 "$archive" | awk ''{print $1}''); test "$actual" = ' + (Quote-Posix $archiveHash)),
+            ('if [ -e "$destination" ]; then grep -Fxq ' + (Quote-Posix "commit=$commit") + ' "$destination/.source.env"; else rm -rf "$staging"; mkdir -p "$staging"; tar -xf "$archive" -C "$staging"; rm -rf "$staging/data"; ln -s ' + (Quote-Posix "$($config.remote_root)/data") + ' "$staging/data"; printf ' + (Quote-Posix $sourceText) + ' > "$staging/.source.env"; mv "$staging" "$destination"; fi'),
+            ("mkdir -p " + (Quote-Posix "$($config.remote_root)/bin")),
             'rm -f "$runner_tmp"; tr -d ''\r'' < "$runner_source" > "$runner_tmp"',
             'bash -n "$runner_tmp"',
-            'actual_runner=$(shasum -a 256 "$runner_tmp" | awk ''{print $1}''); test "$actual_runner" = ' + (Quote-Posix $runnerHash),
+            ('actual_runner=$(shasum -a 256 "$runner_tmp" | awk ''{print $1}''); test "$actual_runner" = ' + (Quote-Posix $runnerHash)),
             'chmod 700 "$runner_tmp"; mv "$runner_tmp" "$runner_target"',
             'rm -f "$archive" "$sidecar"'
         ) -join "; "

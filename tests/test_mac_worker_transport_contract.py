@@ -1,12 +1,32 @@
 from __future__ import annotations
 
+import json
 import pathlib
 import re
+import shutil
+import subprocess
+import tempfile
+import time
 import unittest
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SOURCE = (ROOT / "MAC_WORKER.ps1").read_text(encoding="utf-8")
+POWERSHELL = shutil.which("powershell.exe") or shutil.which("powershell")
+
+
+def _ps_quote(path: pathlib.Path) -> str:
+    return "'" + str(path).replace("'", "''") + "'"
+
+
+def _load_functions_script(body: str) -> str:
+    script_path = _ps_quote(ROOT / "MAC_WORKER.ps1")
+    return (
+        f"$source=Get-Content -Raw -LiteralPath {script_path}; "
+        "$cut=$source.IndexOf('if ($Action -eq \"configure\")'); "
+        ". ([scriptblock]::Create($source.Substring(0,$cut))) -Action probe; "
+        + body
+    )
 
 
 class MacWorkerTransportContractTests(unittest.TestCase):
@@ -15,7 +35,8 @@ class MacWorkerTransportContractTests(unittest.TestCase):
         self.assertIn("function Invoke-SftpReput", SOURCE)
         self.assertIn('"put -f "', SOURCE)
         self.assertIn('"reput -f "', SOURCE)
-        self.assertNotRegex(SOURCE, r"&\s+scp[^\n]+\$archive")
+        upload_actions = SOURCE.partition('if ($Action -eq "pull")')[0]
+        self.assertNotIn("& scp", upload_actions)
 
     def test_partial_upload_requires_sha_and_size_sidecar(self) -> None:
         self.assertIn('"$remotePart.expected.env"', SOURCE)
@@ -31,6 +52,13 @@ class MacWorkerTransportContractTests(unittest.TestCase):
             re.compile(
                 r'^\s+"(?:archive|part|sidecar|expected_sha|expected_size|'
                 r'destination|staging|runner_source|runner_target|runner_tmp)="\s+\+',
+                re.MULTILINE,
+            ),
+        )
+        self.assertNotRegex(
+            SOURCE,
+            re.compile(
+                r'^\s+(?!\()["\'][^\r\n]*\+\s+\(Quote-Posix',
                 re.MULTILINE,
             ),
         )
@@ -52,7 +80,111 @@ class MacWorkerTransportContractTests(unittest.TestCase):
     def test_transfer_has_bounded_sleep_assertion_and_single_sftp_guard(self) -> None:
         self.assertIn("caffeinate -ims -t 21600", SOURCE)
         self.assertIn("function Assert-NoActiveSftp", SOURCE)
+        self.assertIn("Local\\MidiMacWorkerSftp", SOURCE)
+        self.assertIn("WaitOne(0)", SOURCE)
         self.assertIn("Refusing a second SFTP upload", SOURCE)
+
+    @unittest.skipUnless(POWERSHELL, "PowerShell is required")
+    def test_atomic_mutex_rejects_concurrent_process(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            ready = pathlib.Path(directory) / "ready.txt"
+            holder_script = _load_functions_script(
+                "$mutex=Enter-SftpMutex; "
+                f"[IO.File]::WriteAllText({_ps_quote(ready)}, 'ready'); "
+                "try { Start-Sleep -Seconds 5 } finally { Exit-SftpMutex $mutex }"
+            )
+            holder = subprocess.Popen(
+                [POWERSHELL, "-NoProfile", "-Command", holder_script],
+                cwd=ROOT,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            try:
+                deadline = time.monotonic() + 10.0
+                while not ready.exists() and time.monotonic() < deadline:
+                    if holder.poll() is not None:
+                        break
+                    time.sleep(0.05)
+                self.assertTrue(ready.exists(), "mutex holder did not start")
+                contender = subprocess.run(
+                    [
+                        POWERSHELL,
+                        "-NoProfile",
+                        "-Command",
+                        _load_functions_script(
+                            "try { $mutex=Enter-SftpMutex; "
+                            "Exit-SftpMutex $mutex; exit 0 } "
+                            "catch { Write-Error $_; exit 9 }"
+                        ),
+                    ],
+                    cwd=ROOT,
+                    capture_output=True,
+                    text=True,
+                    timeout=15,
+                    check=False,
+                )
+                self.assertNotEqual(contender.returncode, 0)
+                self.assertIn(
+                    "owns the atomic SFTP mutex",
+                    contender.stdout + contender.stderr,
+                )
+            finally:
+                try:
+                    holder.wait(timeout=10)
+                except subprocess.TimeoutExpired:
+                    holder.kill()
+                    holder.wait(timeout=5)
+
+    @unittest.skipUnless(POWERSHELL, "PowerShell is required")
+    def test_dry_run_rejects_locked_test_split_behaviorally(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            temporary = pathlib.Path(directory)
+            config = temporary / "worker.json"
+            manifest = temporary / "manifest.csv"
+            config.write_text(
+                json.dumps(
+                    {
+                        "host": "invalid.local",
+                        "user": "nobody",
+                        "port": 22,
+                        "remote_root": "/Users/nobody/midi-worker",
+                        "identity_file": "",
+                        "local_workspace_root": str(ROOT),
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            manifest.write_text(
+                "split,audio_path,labels_path\ntest,,\n",
+                encoding="utf-8",
+            )
+            result = subprocess.run(
+                [
+                    POWERSHELL,
+                    "-NoProfile",
+                    "-ExecutionPolicy",
+                    "Bypass",
+                    "-File",
+                    str(ROOT / "MAC_WORKER.ps1"),
+                    "sync-data",
+                    "-ConfigPath",
+                    str(config),
+                    "-Manifest",
+                    str(manifest),
+                    "-DryRun",
+                ],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                timeout=30,
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn(
+                "Only an exact train+validation manifest is allowed",
+                result.stdout + result.stderr,
+            )
 
 
 if __name__ == "__main__":
