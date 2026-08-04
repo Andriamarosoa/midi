@@ -61,6 +61,13 @@ from src.polyphonic.recovery import (
 from src.v5.train import git_commit
 
 
+def _rss_to_mib(value: float, *, platform_name: str | None = None) -> float:
+    """Normalize ``ru_maxrss`` to MiB on Linux and macOS."""
+    current_platform = platform_name or sys.platform
+    divisor = 1024.0**2 if current_platform == "darwin" else 1024.0
+    return float(value) / divisor
+
+
 def _fit_queue_options(
     fit,
     workers: int,
@@ -561,7 +568,21 @@ class BatchProgressLogger(tf.keras.callbacks.Callback):
                 timeout=5,
             )
         except (FileNotFoundError, subprocess.SubprocessError):
-            return []
+            # Apple Metal has no nvidia-smi equivalent. Preserve visibility of
+            # the TensorFlow device while marking utilization as unavailable.
+            return [
+                {
+                    "index": index,
+                    "name": device.name,
+                    "backend": "tensorflow",
+                    "utilization_percent": None,
+                    "memory_used_mib": None,
+                    "memory_total_mib": None,
+                }
+                for index, device in enumerate(
+                    tf.config.list_physical_devices("GPU")
+                )
+            ]
         devices: list[dict[str, object]] = []
         for line in result.stdout.splitlines():
             fields = [value.strip() for value in line.split(",")]
@@ -586,9 +607,9 @@ class BatchProgressLogger(tf.keras.callbacks.Callback):
         try:
             import resource
 
-            # Linux reports KiB; macOS reports bytes. Kaggle is Linux.
+            # Linux reports KiB while macOS reports bytes.
             value = float(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
-            return value / 1024.0
+            return _rss_to_mib(value)
         except (ImportError, OSError, ValueError):
             return None
 
@@ -2078,6 +2099,11 @@ def main() -> int:
         sys.stdout.reconfigure(line_buffering=True, write_through=True)
     if hasattr(sys.stderr, "reconfigure"):
         sys.stderr.reconfigure(line_buffering=True, write_through=True)
+    if os.environ.get("MIDI_FORCE_CPU") == "1":
+        tf.config.set_visible_devices([], "GPU")
+        print("DEVICE_POLICY cpu_only", flush=True)
+    else:
+        print("DEVICE_POLICY default", flush=True)
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument(

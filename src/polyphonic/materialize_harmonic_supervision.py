@@ -12,6 +12,7 @@ import argparse
 import csv
 import hashlib
 import json
+import os
 from collections import defaultdict
 from pathlib import Path
 
@@ -60,6 +61,30 @@ def _absolute_row(
         value = result.get(name, "")
         if value:
             result[name] = str(_resolve_path(value, repository_root))
+    return result
+
+
+def _portable_row(
+    row: dict[str, str],
+    repository_root: Path,
+    manifest_directory: Path,
+) -> dict[str, str]:
+    """Serialize project-owned paths relative to the manifest directory."""
+    result = dict(row)
+    for name in PATH_FIELDS:
+        value = result.get(name, "")
+        if not value:
+            continue
+        resolved = Path(value).resolve(strict=True)
+        try:
+            resolved.relative_to(repository_root)
+        except ValueError as exc:
+            raise ValueError(
+                f"{name} must remain inside repository_root: {resolved}"
+            ) from exc
+        result[name] = Path(
+            os.path.relpath(resolved, start=manifest_directory)
+        ).as_posix()
     return result
 
 
@@ -179,10 +204,14 @@ def materialize(
     if any(row["split"] not in ALLOWED_SPLITS for row in rows):
         raise AssertionError("Forbidden split reached output rows")
     manifest_path = (output_root / "manifest_train_validation.csv").resolve()
+    portable_rows = [
+        _portable_row(row, repository_root, manifest_path.parent)
+        for row in rows
+    ]
     with manifest_path.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=fieldnames)
         writer.writeheader()
-        writer.writerows(rows)
+        writer.writerows(portable_rows)
 
     validation = validate(
         manifest_path,

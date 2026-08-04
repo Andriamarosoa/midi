@@ -6,6 +6,8 @@ import csv
 import hashlib
 import io
 import math
+import os
+import re
 import struct
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -41,9 +43,43 @@ class CachedLabels:
     arrays: Mapping[str, np.ndarray]
 
 
-def _manifest_path(value: str) -> Path:
-    """Load manifests produced on Windows or POSIX on either platform."""
-    return Path(value.replace("\\", "/"))
+def _manifest_path(
+    value: str,
+    *,
+    manifest_directory: Path | None = None,
+) -> Path:
+    """Load Windows/POSIX manifests from the current project checkout.
+
+    Materialized manifests intentionally preserve source provenance and may
+    contain absolute paths from the machine that built them. When such a path
+    is foreign to the current OS, rebase its ``data/...`` tail onto this
+    checkout (or ``MIDI_DATA_ROOT``) instead of treating a Windows drive path
+    as a relative POSIX path.
+    """
+    normalized = value.replace("\\", "/")
+    candidate = Path(normalized)
+    if candidate.exists():
+        return candidate
+
+    foreign_absolute = bool(
+        re.match(r"^[A-Za-z]:/", normalized) or normalized.startswith("/")
+    )
+    data_marker = "/data/"
+    marker_index = normalized.lower().find(data_marker)
+    if foreign_absolute and marker_index >= 0:
+        configured_root = os.environ.get("MIDI_DATA_ROOT")
+        data_root = (
+            Path(configured_root).expanduser()
+            if configured_root
+            else Path(__file__).resolve().parents[2] / "data"
+        )
+        relative_to_data = normalized[marker_index + len(data_marker):]
+        return data_root / Path(relative_to_data)
+    if candidate.is_absolute():
+        return candidate
+    if manifest_directory is not None:
+        return (manifest_directory / candidate).resolve()
+    return candidate
 
 
 def _is_numpy_audio(path: Path) -> bool:
@@ -55,7 +91,8 @@ def _is_numpy_audio(path: Path) -> bool:
 
 
 def load_manifest(path: Path) -> list[ManifestItem]:
-    with path.open("r", encoding="utf-8-sig", newline="") as handle:
+    resolved_manifest = path.resolve(strict=True)
+    with resolved_manifest.open("r", encoding="utf-8-sig", newline="") as handle:
         rows = list(csv.DictReader(handle))
     required = {
         "source_id", "dataset_id", "player_id", "group_id", "split",
@@ -73,9 +110,13 @@ def load_manifest(path: Path) -> list[ManifestItem]:
         player_id=row["player_id"],
         group_id=row["group_id"],
         split=row["split"],
-        audio_path=_manifest_path(row["audio_path"]),
+        audio_path=_manifest_path(
+            row["audio_path"], manifest_directory=resolved_manifest.parent
+        ),
         audio_member=row["audio_member"],
-        labels_path=_manifest_path(row["labels_path"]),
+        labels_path=_manifest_path(
+            row["labels_path"], manifest_directory=resolved_manifest.parent
+        ),
         capture_id=row["capture_id"],
         license_id=row["license_id"],
     ) for row in rows]

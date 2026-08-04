@@ -153,8 +153,8 @@ class HarmonicMaterializationTests(unittest.TestCase):
             self.assertEqual({row["split"] for row in rows}, {
                 "train", "validation",
             })
-            self.assertTrue(all(Path(row["audio_path"]).is_absolute() for row in rows))
-            self.assertTrue(all(Path(row["labels_path"]).is_absolute() for row in rows))
+            self.assertTrue(all(not Path(row["audio_path"]).is_absolute() for row in rows))
+            self.assertTrue(all(not Path(row["labels_path"]).is_absolute() for row in rows))
             self.assertEqual(len(report["guitarset_artifacts"]), 2)
             self.assertEqual(len(report["manifest_sha256"]), 64)
             self.assertFalse((root / "missing-test.npz").exists())
@@ -162,7 +162,10 @@ class HarmonicMaterializationTests(unittest.TestCase):
             guitarset_row = next(
                 row for row in rows if row["source_id"] == "train"
             )
-            with np.load(guitarset_row["labels_path"], allow_pickle=False) as arrays:
+            with np.load(
+                output_manifest.parent / guitarset_row["labels_path"],
+                allow_pickle=False,
+            ) as arrays:
                 self.assertEqual(
                     int(arrays["harmonic_supervision_schema_version"]), 3
                 )

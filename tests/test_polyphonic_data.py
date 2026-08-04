@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import csv
+import os
 import tempfile
 import unittest
 import wave
 import zipfile
+from unittest import mock
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -240,10 +242,53 @@ class PolyphonicDataTests(unittest.TestCase):
             item = load_manifest(manifest_path)[0]
 
         self.assertEqual(
-            item.audio_path.as_posix(), "data/processed/audio.npy"
+            item.audio_path, Path(temporary) / "data" / "processed" / "audio.npy"
         )
         self.assertEqual(
-            item.labels_path.as_posix(), "data/processed/labels.npz"
+            item.labels_path, Path(temporary) / "data" / "processed" / "labels.npz"
+        )
+
+    def test_foreign_windows_paths_rebase_to_configured_data_root(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            manifest_path = root / "manifest.csv"
+            fields = [
+                "source_id", "dataset_id", "player_id", "group_id", "split",
+                "audio_path", "audio_member", "labels_path", "capture_id",
+                "license_id",
+            ]
+            with manifest_path.open("w", newline="", encoding="utf-8") as handle:
+                writer = csv.DictWriter(handle, fieldnames=fields)
+                writer.writeheader()
+                writer.writerow({
+                    "source_id": "portable-absolute",
+                    "dataset_id": "unit",
+                    "player_id": "p",
+                    "group_id": "g",
+                    "split": "train",
+                    "audio_path": (
+                        r"C:\Users\builder\midi\data\processed\audio.npy"
+                    ),
+                    "audio_member": "",
+                    "labels_path": (
+                        r"C:\Users\builder\midi\data\processed\labels.npz"
+                    ),
+                    "capture_id": "clean",
+                    "license_id": "unit",
+                })
+
+            configured_data = root / "shared-data"
+            with mock.patch.dict(
+                os.environ,
+                {"MIDI_DATA_ROOT": str(configured_data)},
+            ):
+                item = load_manifest(manifest_path)[0]
+
+        self.assertEqual(
+            item.audio_path, configured_data / "processed" / "audio.npy"
+        )
+        self.assertEqual(
+            item.labels_path, configured_data / "processed" / "labels.npz"
         )
 
     def test_softened_class_weights_preserve_rarity_without_saturation(self) -> None:

@@ -1,0 +1,8 @@
+{
+  "host": "MacBook-Air.local",
+  "user": "mac-user",
+  "port": 22,
+  "remote_root": "/Users/mac-user/midi-worker",
+  "identity_file": "C:\\Users\\user\\.ssh\\id_ed25519",
+  "local_workspace_root": "C:\\Users\\user\\Desktop\\midi"
+}
