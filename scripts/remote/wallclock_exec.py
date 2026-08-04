@@ -39,13 +39,29 @@ def _terminate_group(
             os.killpg(pgid, signal.SIGTERM)
         except ProcessLookupError:
             pass
+        except PermissionError:
+            # Preserve a failure result below instead of turning a cleanup
+            # problem into an unhandled supervisor exception.
+            pass
     deadline = time.monotonic() + grace_seconds
-    while _group_alive(pgid) and time.monotonic() < deadline:
+    while time.monotonic() < deadline:
+        # Reap the direct child as soon as it exits. On macOS an unreaped
+        # group leader can make killpg(..., 0) report the group as present and
+        # a subsequent SIGKILL fail with EPERM even though no runnable member
+        # remains.
+        process.poll()
+        if not _group_alive(pgid):
+            break
         time.sleep(0.1)
+    process.poll()
     if _group_alive(pgid):
         try:
             os.killpg(pgid, signal.SIGKILL)
         except ProcessLookupError:
+            pass
+        except PermissionError:
+            # Do not claim success: the final group probe below remains true
+            # and the caller returns the evidence-preserving status 125.
             pass
     try:
         process.wait(timeout=max(1, grace_seconds))
@@ -53,6 +69,11 @@ def _terminate_group(
         # The process group has already received SIGKILL. Returning a failure
         # lets the outer runner preserve evidence instead of claiming success.
         pass
+    # Give orphaned descendants a short opportunity to be reaped after the
+    # group-wide signal. The direct child has already been waited above.
+    disappearance_deadline = time.monotonic() + max(1, grace_seconds)
+    while _group_alive(pgid) and time.monotonic() < disappearance_deadline:
+        time.sleep(0.05)
     return not _group_alive(pgid)
 
 

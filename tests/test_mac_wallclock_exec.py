@@ -8,10 +8,51 @@ import sys
 import tempfile
 import time
 import unittest
+from unittest import mock
+
+from scripts.remote import wallclock_exec
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SUPERVISOR = ROOT / "scripts" / "remote" / "wallclock_exec.py"
+
+
+class MacWallClockExecFailureTests(unittest.TestCase):
+    def test_persistent_permission_error_cannot_be_reported_as_stopped(self) -> None:
+        sigkill = 9
+        process = mock.Mock()
+        process.pid = 4242
+        process.poll.return_value = None
+        process.wait.side_effect = subprocess.TimeoutExpired("probe", 1)
+
+        with (
+            mock.patch.object(wallclock_exec, "_group_alive", return_value=True),
+            mock.patch.object(
+                wallclock_exec.os,
+                "killpg",
+                side_effect=PermissionError(1, "Operation not permitted"),
+                create=True,
+            ) as killpg,
+            mock.patch.object(
+                wallclock_exec.signal, "SIGKILL", sigkill, create=True
+            ),
+            mock.patch.object(
+                wallclock_exec.time,
+                "monotonic",
+                side_effect=[0.0, 2.0, 3.0, 5.0],
+            ),
+            mock.patch.object(wallclock_exec.time, "sleep"),
+        ):
+            stopped = wallclock_exec._terminate_group(process, grace_seconds=1)
+
+        self.assertFalse(stopped)
+        self.assertEqual(
+            killpg.call_args_list,
+            [
+                mock.call(4242, signal.SIGTERM),
+                mock.call(4242, sigkill),
+            ],
+        )
 
 
 @unittest.skipUnless(os.name == "posix", "POSIX process groups are required")
