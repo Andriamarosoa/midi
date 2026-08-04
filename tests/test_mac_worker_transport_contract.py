@@ -54,6 +54,10 @@ class MacWorkerTransportContractTests(unittest.TestCase):
         self.assertIn('grep -Fxq "size=$expected_size"', SOURCE)
         self.assertIn('stat -f %z "$part"', SOURCE)
         self.assertIn('shasum -a 256 "$part"', SOURCE)
+        self.assertIn(
+            'if [ "$partial_size" = "$expected_size" ]; then echo complete',
+            SOURCE,
+        )
 
     def test_remote_assignments_are_single_array_elements(self) -> None:
         self.assertNotRegex(

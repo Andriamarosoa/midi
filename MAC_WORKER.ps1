@@ -243,7 +243,7 @@ function Initialize-RemoteUpload(
         'if [ -e "$part" ] && [ ! -f "$sidecar" ]; then echo "Refusing orphan partial upload: $part" >&2; exit 20; fi',
         'if [ -e "$sidecar" ]; then test -f "$sidecar"; test "$(wc -l < "$sidecar" | tr -d '' '')" = 2; grep -Fxq "sha256=$expected_sha" "$sidecar"; grep -Fxq "size=$expected_size" "$sidecar"; else sidecar_tmp="$sidecar.tmp.$$"; umask 077; printf ''sha256=%s\nsize=%s\n'' "$expected_sha" "$expected_size" > "$sidecar_tmp"; mv "$sidecar_tmp" "$sidecar"; fi',
         'if [ -e "$part" ]; then test -f "$part"; partial_size=$(stat -f %z "$part"); test "$partial_size" -le "$expected_size"; if [ "$partial_size" = "$expected_size" ]; then partial_sha=$(shasum -a 256 "$part" | awk ''{print $1}''); test "$partial_sha" = "$expected_sha"; fi; fi',
-        'if [ -e "$archive" ]; then test -f "$archive"; test ! -e "$part"; final_size=$(stat -f %z "$archive"); test "$final_size" = "$expected_size"; final_sha=$(shasum -a 256 "$archive" | awk ''{print $1}''); test "$final_sha" = "$expected_sha"; echo complete; elif [ -e "$part" ]; then echo resume; else echo new; fi'
+        'if [ -e "$archive" ]; then test -f "$archive"; test ! -e "$part"; final_size=$(stat -f %z "$archive"); test "$final_size" = "$expected_size"; final_sha=$(shasum -a 256 "$archive" | awk ''{print $1}''); test "$final_sha" = "$expected_sha"; echo complete; elif [ -e "$part" ]; then if [ "$partial_size" = "$expected_size" ]; then echo complete; else echo resume; fi; else echo new; fi'
     ) -join "; "
     $output = @(Invoke-Ssh $Config $command)
     $state = @($output | ForEach-Object { ([string]$_).Trim() } | Where-Object { $_ -in @("complete", "new", "resume") } | Select-Object -Last 1)
