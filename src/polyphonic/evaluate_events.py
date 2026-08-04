@@ -6,7 +6,7 @@ import argparse
 import json
 import os
 from collections import Counter
-from dataclasses import asdict, dataclass, replace
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Mapping, Sequence
 
@@ -501,10 +501,11 @@ def decode_probabilities(
     audio_onset: np.ndarray | None = None,
     independent_note: np.ndarray | None = None,
     independent_note_gate_diagnostics: dict[str, object] | None = None,
+    independent_note_diagnostic_thresholds: tuple[float, ...] = (),
 ) -> tuple[list[NoteInterval], int]:
     decoder = PolyphonicDecoder(
         config,
-        independent_note_diagnostic_thresholds=INDEPENDENT_NOTE_DIAGNOSTIC_THRESHOLDS,
+        independent_note_diagnostic_thresholds=independent_note_diagnostic_thresholds,
     )
     events: list[PolyphonicMidiEvent] = []
     retriggers = 0
@@ -618,6 +619,7 @@ def _aggregate_independent_note_gate(
                 )
             }
         ),
+        "quantile_method": "numpy.linear",
         "would_reject": {
             f"{float(threshold):.3f}": int(
                 np.count_nonzero(probabilities < float(threshold))
@@ -641,7 +643,6 @@ def evaluate_events(
     config_path: Path | None = None,
     allow_locked_test_after_final_selection: bool = False,
     final_selection_path: Path | None = None,
-    independent_note_threshold_override: float | None = None,
 ) -> dict[str, object]:
     if split == "test":
         if not allow_locked_test_after_final_selection or final_selection_path is None:
@@ -724,12 +725,6 @@ def evaluate_events(
         decoder_config = default_decoder_config(
             frame_threshold, onset_threshold,
         )
-    if independent_note_threshold_override is not None:
-        decoder_config = replace(
-            decoder_config,
-            independent_note_threshold=float(independent_note_threshold_override),
-        )
-
     all_reference: list[NoteInterval] = []
     all_estimated: list[NoteInterval] = []
     causal_clips: list[ClipNoteOnData] = []
@@ -781,6 +776,10 @@ def evaluate_events(
                 onset_mask,
                 prediction.get("independent_note"),
                 independent_note_gate,
+                (
+                    INDEPENDENT_NOTE_DIAGNOSTIC_THRESHOLDS
+                    if split == "validation" else ()
+                ),
             )
             reference = truth_notes(arrays)
         finally:
@@ -918,10 +917,6 @@ def main() -> None:
     parser.add_argument("--thresholds", type=Path)
     parser.add_argument("--decoder-config", type=Path)
     parser.add_argument(
-        "--independent-note-threshold-grid",
-        help="Liste CSV de seuils fixes, exécutés séquentiellement sur le même split.",
-    )
-    parser.add_argument(
         "--audio-evidence-config",
         type=Path,
         help=(
@@ -964,31 +959,19 @@ def main() -> None:
         audio_evidence_metadata = {
             "audio_evidence": audio_evidence_values,
         }
-    grid = (
-        [float(value) for value in args.independent_note_threshold_grid.split(",")]
-        if args.independent_note_threshold_grid else [None]
+    report = evaluate_events(
+        args.run_dir, args.split, args.maximum_recordings, args.dataset_id,
+        args.checkpoint, args.thresholds, args.decoder_config,
+        causal_gate, audio_evidence_metadata, args.report_suffix, args.config,
+        args.allow_locked_test_after_final_selection, args.final_selection,
     )
-    reports = []
-    for threshold in grid:
-        suffix = args.report_suffix
-        if threshold is not None:
-            token = f"threshold_{threshold:.3f}".replace(".", "p")
-            suffix = f"{suffix}_{token}" if suffix else token
-        reports.append(evaluate_events(
-            args.run_dir, args.split, args.maximum_recordings, args.dataset_id,
-            args.checkpoint, args.thresholds, args.decoder_config,
-            causal_gate, audio_evidence_metadata, suffix, args.config,
-            args.allow_locked_test_after_final_selection, args.final_selection,
-            threshold,
-        ))
-    print(json.dumps([{
-        "threshold": report["decoder"].get("independent_note_threshold"),
+    print(json.dumps({
         "split": report["split"],
         "locked_test_used": report["locked_test_used"],
         "onset": report["onset"],
         "retriggers": report["retriggers"],
         "independent_note_gate": report["independent_note_gate"],
-    } for report in reports], indent=2))
+    }, indent=2))
 
 
 if __name__ == "__main__":

@@ -15,13 +15,16 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
 > Mise a jour effective : `2026-08-05T04:26:18Z` - etape
-> `independent_note_validation_threshold_grid`.
+> `independent_note_validation_one_pass_diagnostic`.
 >
 > Le diagnostic validation-only est termine : le seuil `0,01` est inoperant
 > (709 candidats eligibles, 0 rejet, probabilite minimum `0,48080769`, F1 onset
-> inchange a `0,21760081`). Aucun test verrouille, entrainement, export ou live
-> n'a ete effectue. Suite : grille CPU `0,50..0,90`, puis revue ChatGPT avant
-> toute promotion. Rapport :
+> inchange a `0,21760081`). La revue du commit `40aa1fe5` est appliquee : le
+> diagnostic des douze seuils est maintenant impose au seul split validation,
+> l'ancienne grille multi-passes est retiree, et les tests couvrent quantiles,
+> comparaison stricte et absence de candidats (`44` tests). Aucun test verrouille,
+> entrainement, export ou live n'a ete effectue. Suite : revue ChatGPT du
+> correctif puis une seule passe CPU validation. Rapport :
 > `readme/results/2026-08-05_independent-note-validation-diagnostic.md`.
 
 ## État courant

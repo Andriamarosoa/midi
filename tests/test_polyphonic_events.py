@@ -25,25 +25,44 @@ from src.polyphonic.evaluate_events import (
 
 
 class PolyphonicEventEvaluationTests(unittest.TestCase):
-    def test_independent_note_gate_aggregation_has_exact_quantiles_and_grid(self) -> None:
+    def test_independent_note_gate_aggregation_uses_all_values_and_strict_thresholds(self) -> None:
         reports = [{"independent_note_gate": {
             "enabled": True, "threshold": 0.01, "eligible_candidates": 2,
             "rejected_candidates": 0, "eligible_probability_min": 0.2,
             "eligible_probability_max": 0.8, "eligible_probability_mean": 0.5,
-            "diagnostic_thresholds": [0.5],
+            "diagnostic_thresholds": [0.4, 0.5],
             "eligible_probability_values": [0.2, 0.8],
         }}, {"independent_note_gate": {
             "enabled": True, "threshold": 0.01, "eligible_candidates": 1,
             "rejected_candidates": 0, "eligible_probability_min": 0.4,
             "eligible_probability_max": 0.4, "eligible_probability_mean": 0.4,
-            "diagnostic_thresholds": [0.5],
+            "diagnostic_thresholds": [0.4, 0.5],
             "eligible_probability_values": [0.4],
         }}]
         result = _aggregate_independent_note_gate(reports)
         self.assertEqual(result["eligible_candidates"], 3)
+        self.assertEqual(result["would_reject"]["0.400"], 1)
         self.assertEqual(result["would_reject"]["0.500"], 2)
         self.assertAlmostEqual(result["eligible_probability_mean"], 7 / 15)
-        self.assertAlmostEqual(result["probability_quantiles"]["p50"], 0.4)
+        self.assertEqual(result["quantile_method"], "numpy.linear")
+        for name, percentile in (("p01", 0.01), ("p05", 0.05), ("p50", 0.5), ("p95", 0.95), ("p99", 0.99)):
+            self.assertAlmostEqual(
+                result["probability_quantiles"][name],
+                float(np.quantile([0.2, 0.4, 0.8], percentile)),
+            )
+
+    def test_independent_note_gate_aggregation_handles_no_candidates(self) -> None:
+        reports = [{"independent_note_gate": {
+            "enabled": True, "threshold": 0.01, "eligible_candidates": 0,
+            "rejected_candidates": 0, "eligible_probability_min": None,
+            "eligible_probability_max": None, "eligible_probability_mean": None,
+            "diagnostic_thresholds": [0.5],
+            "eligible_probability_values": [],
+        }}]
+        result = _aggregate_independent_note_gate(reports)
+        self.assertEqual(result["eligible_candidates"], 0)
+        self.assertEqual(result["probability_quantiles"], {})
+        self.assertEqual(result["would_reject"], {"0.500": 0})
 
     def test_force_cpu_is_applied_before_tensorflow_import(self) -> None:
         import src.polyphonic.evaluate_events as events
