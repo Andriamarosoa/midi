@@ -92,7 +92,11 @@ function Get-ScpArguments($Config) {
 function Invoke-Ssh($Config, [string]$Command, [switch]$AllowPassword) {
     $arguments = Get-SshArguments $Config -AllowPassword:$AllowPassword
     $target = "$($Config.user)@$($Config.host)"
-    & ssh @arguments $target $Command
+    # Windows PowerShell 5.1 can split or strip quoting from a long native
+    # command argument. Send one script through stdin instead. The trailing
+    # comment safely absorbs the CRLF that PowerShell appends to the stream.
+    $payload = $Command + "`n# mac-worker-stdin-terminator"
+    $payload | & ssh @arguments $target bash -s
     Assert-LastExit "SSH command"
 }
 
@@ -205,7 +209,7 @@ if ($Action -eq "sync-code") {
     New-Item -ItemType Directory -Force -Path $temporaryRoot | Out-Null
     $archive = Join-Path $temporaryRoot "mac-code-$commit.tar"
     try {
-        & git -C $repository archive --format=tar --output=$archive $commit
+        & git -c core.autocrlf=false -C $repository archive --format=tar --output=$archive $commit
         Assert-LastExit "git archive"
         $archiveHash = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
         $runnerPath = Join-Path $repository "scripts/remote/mac_worker.sh"
