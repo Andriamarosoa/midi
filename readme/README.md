@@ -40,27 +40,31 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 ## État courant
 
-- Mise à jour : `2026-08-04T23:02:26+04:00`.
-- Étape : `independent_note_absolute_partial_alignment`.
-- Statut : `anomalie de garde smoke — revue requise avant relance`.
+- Mise à jour : `2026-08-04T23:07:03+04:00` (réconciliée, approximative ; l'horloge du Mac était avancée d'environ 11 h).
+- Étape : `independent_note_absolute_partial_alignment_smoke`.
+- Statut : `terminé — revue requise avant toute nouvelle évaluation ou tout entraînement`.
 - Résultat établi : la tête précédente est saturée et ne doit pas être promue;
   `locked_test_used=false`. Le constructeur de cibles corrige maintenant la
   somme nécessaire entre décalage annotation-vers-classe et résidu du partiel.
-- Vérification : compilation et 24 tests ciblés réussis. Une tentative de smoke
-  réduite a été refusée avant entraînement : le garde exige `8192 / 2048 / 4096`
-  exemples. Aucun poids, export, live, test verrouillé ni métrique nouvelle.
+- Vérification : compilation et 24 tests ciblés réussis. La tentative réduite
+  refusée est archivée ; l'unique relance autorisée aux tailles fixes a terminé
+  sur CPU avec `8192 / 2048 / 4096` exemples et 4 époques. Elle est strictement
+  train-only : `validation_loaded=false`, `locked_test_used=false`, aucun
+  export ou live, backbone gelé et parité exacte (`erreur max=0`, accord=1).
+  Elle valide le contrat de labels, pas une baisse des faux NoteOn en validation.
 - Rapport :
   `readme/results/2026-08-04_independent-note-absolute-partial-alignment.md`.
   `readme/results/2026-08-04_independent-note-alignment-smoke-anomaly.md`.
+  `readme/results/2026-08-04_independent-note-alignment-smoke.md`.
 
 ## Prochaine action réelle
 
 1. Ne promouvoir ni le checkpoint précédent ni un seuil de porte.
-2. Faire relire l'anomalie de garde smoke.
-3. Si approuvé, exécuter seulement le smoke Mac aux tailles fixes `8192 / 2048 /
-   4096`, sans entraînement complet.
-4. Conserver le test verrouillé fermé et ne lancer aucun entraînement complet
-   avant le résultat du smoke.
+2. Faire relire le résultat du smoke et son rapport détaillé par ChatGPT.
+3. Ne pas promouvoir le seuil interne `0,01` : il n'est pas une mesure
+   événementielle du décodeur et requiert une validation appariée distincte.
+4. Conserver le test verrouillé fermé et ne lancer aucune nouvelle évaluation,
+   aucun entraînement complet, export ou live avant une décision revue.
 
 ## État archivé — dual-stream du 30 juillet (remplacé)
 
