@@ -17,6 +17,7 @@ from src.polyphonic.recovery import (
 )
 from src.polyphonic.train import (
     SerializableTrainingPolicy,
+    _freeze_independent_note_backbone,
     _validate_continuation_config,
     _validate_continuation_epoch_plans,
     _persist_or_load_epoch_plans,
@@ -196,6 +197,64 @@ def _optimizer_values(model: tf.keras.Model) -> list[np.ndarray]:
 
 
 class PolyphonicTrainRecoveryTests(unittest.TestCase):
+    def test_auxiliary_policy_monitors_independent_note_loss(self) -> None:
+        policy = SerializableTrainingPolicy(
+            early_stopping_patience=2,
+            reduce_lr_patience=1,
+            minimum_learning_rate=1e-5,
+            early_monitor_metric="val_independent_note_loss",
+            early_monitor_mode="min",
+        )
+        first = policy.advance(
+            0,
+            {
+                "val_frame_micro_f1": 0.8,
+                "val_independent_note_loss": 0.5,
+                "val_loss": 0.5,
+            },
+            1e-3,
+        )
+        second = policy.advance(
+            1,
+            {
+                "val_frame_micro_f1": 0.8,
+                "val_independent_note_loss": 0.4,
+                "val_loss": 0.4,
+            },
+            1e-3,
+        )
+        self.assertTrue(first.improved)
+        self.assertTrue(second.improved)
+        restored = SerializableTrainingPolicy.from_dict(policy.as_dict())
+        self.assertEqual(restored.as_dict(), policy.as_dict())
+
+    def test_frozen_backbone_requires_complete_weight_transfer(self) -> None:
+        inputs = tf.keras.Input((3,), name="input")
+        backbone = tf.keras.layers.Dense(4, name="backbone")(inputs)
+        outputs = tf.keras.layers.Dense(
+            2, name="independent_note"
+        )(backbone)
+        model = tf.keras.Model(inputs, outputs)
+        trainable = _freeze_independent_note_backbone(
+            model,
+            {
+                "transferred": ["backbone"],
+                "skipped": ["independent_note"],
+            },
+        )
+        self.assertEqual(trainable, ["independent_note"])
+        self.assertFalse(model.get_layer("backbone").trainable)
+
+        fresh = tf.keras.models.clone_model(model)
+        with self.assertRaisesRegex(RuntimeError, "backbone"):
+            _freeze_independent_note_backbone(
+                fresh,
+                {
+                    "transferred": [],
+                    "skipped": ["backbone", "independent_note"],
+                },
+            )
+
     def test_model_overview_is_compact_and_does_not_call_summary(self) -> None:
         class DummyModel:
             name = "compact-test"

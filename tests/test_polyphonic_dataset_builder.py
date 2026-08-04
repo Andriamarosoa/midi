@@ -115,6 +115,38 @@ class PolyphonicDatasetBuilderTests(unittest.TestCase):
             places=3,
         )
 
+    def test_harmonics_preserve_matched_fundamental_offset_cents(self) -> None:
+        notes = [
+            _note(0, 0.0, 0.5, 60),
+            _note(1, 1.0, 1.5, 62),
+        ]
+        fundamental_hz = 440.0 * 2.0 ** ((60.25 - 69.0) / 12.0)
+        with tempfile.TemporaryDirectory() as directory:
+            csv_path = Path(directory) / "harmonics.csv"
+            csv_path.write_text(
+                "note_id,channel,start_s,end_s,fundamental_hz,"
+                "harmonic_number,expected_hz,measured_hz,relative_db,"
+                "frames_measured\n"
+                f"7,0,0.0,0.5,{fundamental_hz},1,{fundamental_hz},"
+                f"{fundamental_hz},-3,4\n",
+                encoding="utf-8",
+            )
+
+            tables = build_harmonic_tables(
+                notes, csv_path, maximum_harmonics=2
+            )
+
+        np.testing.assert_allclose(
+            tables["note_fundamental_offset_cents"],
+            [25.0, 0.0],
+            atol=1e-3,
+        )
+        self.assertEqual(
+            tables["note_fundamental_offset_cents"].dtype,
+            np.dtype(np.float32),
+        )
+        self.assertEqual(tables["note_harmonic_valid"].tolist(), [1, 0])
+
     def test_relative_strength_keeps_positive_db_and_missing_is_unavailable(
         self,
     ) -> None:

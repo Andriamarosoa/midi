@@ -56,6 +56,43 @@ jamais copiés.
 audio/labels, plus le manifeste, pour environ 7,94 Gio. Il est copié une fois
 sur le SSD local du Mac; aucun entraînement ne lit les données par SMB.
 
+Un checkpoint d'initialisation est transfere separement, avec reprise SFTP,
+taille et SHA-256 verifies avant renommage atomique :
+
+```powershell
+.\MAC_WORKER.ps1 sync-checkpoint `
+  -Checkpoint runs\polyphonic\<run>\epochs\epoch-07.keras `
+  -ConfigPath <chemin-vers-mac_worker.json>
+```
+
+## Gate neuronal anti-fausses-notes
+
+Le premier calcul du nouveau head est strictement train-only, CPU-only et
+borne. Depuis un worktree isole, fournir explicitement le vrai `-ConfigPath` :
+
+```powershell
+$gateArgs = @(
+  "--config", "configs/polyphonic_dual_stream_bass_independent_note.yaml",
+  "--initial-checkpoint", "/Users/<user>/midi-worker/checkpoints/<sha>.keras",
+  "--output-dir", "tmp/independent-note-neural-train-gate",
+  "--fit-examples", "8192",
+  "--dev-examples", "2048",
+  "--calibration-examples", "4096",
+  "--epochs", "4",
+  "--maximum-runtime-minutes", "60"
+)
+
+.\MAC_WORKER.ps1 start -JobId independent-note-neural-train-gate `
+  -Device cpu -WallTimeoutSeconds 3900 `
+  -Module src.polyphonic.smoke_neural_independent_note `
+  -ModuleArgs $gateArgs -ConfigPath <chemin-vers-mac_worker.json>
+```
+
+Cette garde prouve seulement que le head apprend a distinguer les candidats
+annotes `independent_note` et `harmonic_only`. Elle ne prouve pas encore une
+baisse des faux `NoteOn`; cette preuve exige ensuite une comparaison appariee
+du decodeur sur validation, jamais le test verrouille.
+
 ## Porte CPU contre Metal
 
 Apple indique qu'un petit modèle ou un petit batch peut être plus rapide sur

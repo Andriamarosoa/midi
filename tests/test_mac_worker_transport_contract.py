@@ -90,6 +90,38 @@ class MacWorkerTransportContractTests(unittest.TestCase):
         )
         self.assertIn("splits=train,validation locked_test_used=false", SOURCE)
 
+    def test_checkpoint_sync_is_resumable_and_content_addressed(self) -> None:
+        self.assertIn('"sync-checkpoint"', SOURCE)
+        self.assertIn('if ($Action -eq "sync-checkpoint")', SOURCE)
+        self.assertIn(
+            '"$($config.remote_root)/checkpoints/$checkpointHash.keras"',
+            SOURCE,
+        )
+        self.assertIn(
+            "Checkpoint synchronized: sha256=$checkpointHash",
+            SOURCE,
+        )
+        self.assertIn("sync-checkpoint", REMOTE_README)
+
+    def test_independent_note_gate_has_remote_data_and_cpu_preflight(self) -> None:
+        self.assertIn(
+            '"src.polyphonic.smoke_neural_independent_note"', RUNNER
+        )
+        self.assertIn("The independent-note train gate is CPU-only", RUNNER)
+        self.assertIn('option_value("--fit-examples", required=True)', RUNNER)
+        self.assertIn('option_value("--initial-checkpoint", required=True)', RUNNER)
+        self.assertIn("locked_test_used=false", RUNNER)
+        self.assertIn(
+            "-Module src.polyphonic.smoke_neural_independent_note",
+            REMOTE_README,
+        )
+
+    def test_code_sync_reextracts_verified_inactive_workspace(self) -> None:
+        self.assertIn('if ! mkdir "$active_lock"', SOURCE)
+        self.assertIn("trap cleanup_sync_lock EXIT", SOURCE)
+        self.assertIn('"archive_sha256=$archiveHash"', SOURCE)
+        self.assertIn('rm -rf "$destination"', SOURCE)
+
     def test_mac_training_preflight_uses_real_train_config(self) -> None:
         self.assertIn('training = config["train"]', RUNNER)
         self.assertNotIn('training = config["training"]', RUNNER)

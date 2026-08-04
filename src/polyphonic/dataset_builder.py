@@ -175,6 +175,9 @@ def build_harmonic_tables(
     table_frames_measured = np.zeros(
         (row_count, maximum_harmonics), dtype=np.int32
     )
+    table_fundamental_offset_cents = np.zeros(
+        row_count, dtype=np.float32
+    )
     table_valid = np.zeros(row_count, dtype=np.uint8)
 
     candidates_by_channel: dict[int, list[tuple[float, int]]] = {}
@@ -214,6 +217,17 @@ def build_harmonic_tables(
         if timing_error > 0.010 or pitch_error > 0.5:
             continue
         meta = metadata[csv_note_id]
+        fundamental_hz = float(meta["fundamental_hz"])
+        if not math.isfinite(fundamental_hz) or fundamental_hz <= 0.0:
+            raise ValueError(
+                "Matched harmonic note has an invalid fundamental_hz."
+            )
+        fundamental_midi = 69.0 + 12.0 * math.log2(
+            fundamental_hz / 440.0
+        )
+        table_fundamental_offset_cents[note_id] = np.float32(
+            100.0 * (fundamental_midi - float(note.pitch_midi))
+        )
         table_present[note_id] = np.asarray(
             present[csv_note_id] > 0.5, np.uint8
         )
@@ -244,6 +258,9 @@ def build_harmonic_tables(
         "note_harmonic_reliability": table_reliability,
         "note_harmonic_relative_db": table_relative_db,
         "note_harmonic_frames_measured": table_frames_measured,
+        "note_fundamental_offset_cents": (
+            table_fundamental_offset_cents
+        ),
         "note_harmonic_valid": table_valid,
     }
 

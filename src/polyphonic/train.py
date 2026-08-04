@@ -33,6 +33,7 @@ from src.polyphonic.data import (
     class_counts,
     dataset_balanced_class_counts,
     dataset_balanced_validation_refs,
+    load_independent_note_fundamental_offsets,
     load_manifest,
     natural_validation_refs,
     sampler_effective_class_counts,
@@ -47,6 +48,11 @@ from src.polyphonic.model import (
     PolyphonicMaskedHarmonicPresenceLoss,
     PolyphonicMaskedHarmonicPresencePrecision,
     PolyphonicMaskedHarmonicPresenceRecall,
+    PolyphonicMaskedIndependentNoteBrier,
+    PolyphonicMaskedIndependentNoteF1,
+    PolyphonicMaskedIndependentNoteLoss,
+    PolyphonicMaskedIndependentNotePrecision,
+    PolyphonicMaskedIndependentNoteRecall,
     build_polyphonic_model,
     transfer_compatible_weights,
 )
@@ -86,6 +92,42 @@ def _fit_queue_options(
         name: value for name, value in candidates.items()
         if name in supported
     }
+
+
+def _freeze_independent_note_backbone(
+    model: tf.keras.Model,
+    transfer: Mapping[str, object],
+) -> list[str]:
+    """Freeze only after every weighted backbone layer was restored."""
+
+    transferred = {str(name) for name in transfer.get("transferred", [])}
+    skipped = {str(name) for name in transfer.get("skipped", [])}
+    allowed_skipped = {
+        layer.name for layer in model.layers
+        if layer.name.startswith("independent_note") and layer.weights
+    }
+    unexpected_skipped = sorted(skipped - allowed_skipped)
+    weighted_backbone = {
+        layer.name for layer in model.layers
+        if not layer.name.startswith("independent_note") and layer.weights
+    }
+    missing_backbone = sorted(weighted_backbone - transferred)
+    if unexpected_skipped or missing_backbone:
+        raise RuntimeError(
+            "Refusing to freeze an incompletely restored backbone: "
+            f"unexpected_skipped={unexpected_skipped}, "
+            f"missing_backbone={missing_backbone}."
+        )
+    for layer in model.layers:
+        layer.trainable = layer.name.startswith("independent_note")
+    trainable_layers = [
+        layer.name for layer in model.layers if layer.trainable
+    ]
+    if not any(
+        layer.trainable and layer.weights for layer in model.layers
+    ):
+        raise RuntimeError("The independent-note head has no trainable weights.")
+    return trainable_layers
 
 
 def _weights(
@@ -942,6 +984,8 @@ class SerializableTrainingPolicy:
     reduce_lr_factor: float = 0.5
     early_min_delta: float = 0.0
     reduce_min_delta: float = 1e-4
+    early_monitor_metric: str = "val_frame_micro_f1"
+    early_monitor_mode: str = "max"
     best_frame_micro_f1: float | None = None
     best_frame_epoch: int | None = None
     early_stopping_wait: int = 0
@@ -959,6 +1003,10 @@ class SerializableTrainingPolicy:
             raise ValueError("Reduce-LR factor must be in ]0, 1[.")
         if self.minimum_learning_rate <= 0.0:
             raise ValueError("Minimum learning rate must be positive.")
+        if not str(self.early_monitor_metric).strip():
+            raise ValueError("Early-stopping monitor metric cannot be empty.")
+        if self.early_monitor_mode not in {"min", "max"}:
+            raise ValueError("Early-stopping monitor mode must be min or max.")
 
     @classmethod
     def from_dict(
@@ -983,6 +1031,12 @@ class SerializableTrainingPolicy:
             reduce_lr_factor=float(value.get("reduce_lr_factor", 0.5)),
             early_min_delta=float(value.get("early_min_delta", 0.0)),
             reduce_min_delta=float(value.get("reduce_min_delta", 1e-4)),
+            early_monitor_metric=str(
+                value.get("early_monitor_metric", "val_frame_micro_f1")
+            ),
+            early_monitor_mode=str(
+                value.get("early_monitor_mode", "max")
+            ),
             best_frame_micro_f1=optional_float(
                 "best_frame_micro_f1"
             ),
@@ -1006,6 +1060,8 @@ class SerializableTrainingPolicy:
             "reduce_lr_factor": self.reduce_lr_factor,
             "early_min_delta": self.early_min_delta,
             "reduce_min_delta": self.reduce_min_delta,
+            "early_monitor_metric": self.early_monitor_metric,
+            "early_monitor_mode": self.early_monitor_mode,
             "best_frame_micro_f1": self.best_frame_micro_f1,
             "best_frame_epoch": self.best_frame_epoch,
             "early_stopping_wait": self.early_stopping_wait,
@@ -1021,15 +1077,22 @@ class SerializableTrainingPolicy:
         metrics: Mapping[str, float],
         learning_rate: float,
     ) -> EpochPolicyDecision:
-        frame_f1 = float(metrics["val_frame_micro_f1"])
+        monitored_value = float(metrics[self.early_monitor_metric])
         validation_loss = float(metrics["val_loss"])
-        improved = (
-            self.best_frame_micro_f1 is None
-            or frame_f1
-            > self.best_frame_micro_f1 + self.early_min_delta
-        )
+        if self.early_monitor_mode == "max":
+            improved = (
+                self.best_frame_micro_f1 is None
+                or monitored_value
+                > self.best_frame_micro_f1 + self.early_min_delta
+            )
+        else:
+            improved = (
+                self.best_frame_micro_f1 is None
+                or monitored_value
+                < self.best_frame_micro_f1 - self.early_min_delta
+            )
         if improved:
-            self.best_frame_micro_f1 = frame_f1
+            self.best_frame_micro_f1 = monitored_value
             self.best_frame_epoch = int(epoch)
             self.early_stopping_wait = 0
         else:
@@ -2183,7 +2246,12 @@ def main() -> int:
         # Older TensorFlow builds may not expose the deterministic-op switch.
         pass
 
-    items = load_manifest(Path(config["dataset"]["manifest"]))
+    model_config = config["model"]
+    independent_note_head = bool(
+        model_config.get("independent_note_head", False)
+    )
+    manifest_path = Path(config["dataset"]["manifest"]).resolve(strict=True)
+    items = load_manifest(manifest_path)
     train_items = [item for item in items if item.split == "train"]
     validation_items = [item for item in items if item.split == "validation"]
     if args.smoke_test and not args.representative_smoke:
@@ -2201,8 +2269,50 @@ def main() -> int:
             ][:1]
         ]
 
-    train_corpus = PolyphonicCorpus(train_items)
-    validation_corpus = PolyphonicCorpus(validation_items)
+    fundamental_offsets: dict[tuple[str, str], np.ndarray] = {}
+    required_offset_datasets: tuple[str, ...] = ()
+    if independent_note_head:
+        sidecar_value = str(
+            config["dataset"].get("independent_note_fundamental_offsets", "")
+        )
+        sidecar_expected_sha = str(
+            config["dataset"].get(
+                "independent_note_fundamental_offsets_sha256", ""
+            )
+        )
+        if not sidecar_value or len(sidecar_expected_sha) != 64:
+            raise ValueError(
+                "A verified independent-note fundamental-offset sidecar is required."
+            )
+        sidecar_path = Path(sidecar_value)
+        if not sidecar_path.is_absolute():
+            sidecar_path = Path(__file__).resolve().parents[2] / sidecar_path
+        fundamental_offsets = load_independent_note_fundamental_offsets(
+            sidecar_path,
+            expected_sha256=sidecar_expected_sha,
+            expected_manifest_sha256=file_sha256(manifest_path),
+        )
+        configured_required = config["dataset"].get(
+            "independent_note_fundamental_offset_required_datasets",
+            ["guitarset_poly_mix"],
+        )
+        if not isinstance(configured_required, (list, tuple)):
+            raise ValueError(
+                "dataset.independent_note_fundamental_offset_required_datasets "
+                "must be a list."
+            )
+        required_offset_datasets = tuple(str(value) for value in configured_required)
+
+    train_corpus = PolyphonicCorpus(
+        train_items,
+        fundamental_offsets=fundamental_offsets,
+        required_fundamental_offset_datasets=required_offset_datasets,
+    )
+    validation_corpus = PolyphonicCorpus(
+        validation_items,
+        fundamental_offsets=fundamental_offsets,
+        required_fundamental_offset_datasets=required_offset_datasets,
+    )
     if (
         train_corpus.midi_min != validation_corpus.midi_min
         or train_corpus.midi_max != validation_corpus.midi_max
@@ -2210,11 +2320,24 @@ def main() -> int:
         raise ValueError("Train/validation pitch contracts differ.")
 
     training = config["train"]
-    model_config = config["model"]
     harmonic_presence_head = bool(
         model_config.get("harmonic_presence_head", False)
     )
-    if harmonic_presence_head:
+    independent_note_auxiliary_only = bool(
+        model_config.get("independent_note_auxiliary_only", False)
+    )
+    freeze_backbone = bool(
+        model_config.get("independent_note_freeze_backbone", False)
+    )
+    if independent_note_auxiliary_only and not independent_note_head:
+        raise ValueError(
+            "independent_note_auxiliary_only requires independent_note_head."
+        )
+    if freeze_backbone and not independent_note_head:
+        raise ValueError(
+            "independent_note_freeze_backbone requires independent_note_head."
+        )
+    if harmonic_presence_head or independent_note_head:
         required_harmonic_datasets = model_config.get(
             "harmonic_supervision_required_datasets",
             ["guitarset_poly_mix"],
@@ -2462,6 +2585,7 @@ def main() -> int:
         "input_samples": int(config["dataset"]["input_samples"]),
         "normalization_gain": float(config["dataset"]["normalization_gain"]),
         "harmonic_presence_target": harmonic_presence_head,
+        "independent_note_target": independent_note_head,
         "workers": workers,
         "max_queue_size": int(training.get("max_queue_size", 2)),
     }
@@ -2570,15 +2694,49 @@ def main() -> int:
                 )
             ),
             harmonic_presence_head=harmonic_presence_head,
+            independent_note_head=independent_note_head,
+            independent_note_units=int(
+                model_config.get("independent_note_units", 32)
+            ),
         )
         initialization = config.get("initialization", {})
         source_model = (
             args.initial_checkpoint or initialization.get("mono_checkpoint")
         )
         if source_model:
-            transfer = transfer_compatible_weights(model, Path(source_model))
+            source_path = Path(source_model)
+            required_checkpoint_sha256 = initialization.get(
+                "required_checkpoint_sha256"
+            )
+            if required_checkpoint_sha256:
+                actual_checkpoint_sha256 = file_sha256(source_path)
+                if actual_checkpoint_sha256 != str(
+                    required_checkpoint_sha256
+                ):
+                    raise ValueError(
+                        "Initialization checkpoint SHA-256 differs from the "
+                        "immutable config: "
+                        f"{actual_checkpoint_sha256} != "
+                        f"{required_checkpoint_sha256}."
+                    )
+            transfer = transfer_compatible_weights(model, source_path)
         else:
             transfer = {"source": None, "transferred": [], "skipped": []}
+        if freeze_backbone:
+            if not source_model:
+                raise ValueError(
+                    "A verified initialization checkpoint is required when "
+                    "the independent-note backbone is frozen."
+                )
+            trainable_layers = _freeze_independent_note_backbone(
+                model, transfer
+            )
+        else:
+            trainable_layers = [
+                layer.name for layer in model.layers if layer.trainable
+            ]
+        transfer["frozen_backbone"] = freeze_backbone
+        transfer["trainable_layers"] = trainable_layers
         _json(run_dir / "weight_transfer.json", transfer)
         losses = {
             "frame": ClassWeightedBinaryCrossentropy(
@@ -2630,6 +2788,23 @@ def main() -> int:
             loss_weights["harmonic_presence"] = float(
                 model_config.get("harmonic_presence_loss_weight", 0.05)
             )
+        if independent_note_head:
+            losses["independent_note"] = PolyphonicMaskedIndependentNoteLoss(
+                train_corpus.pitch_classes,
+                positive_weight=float(
+                    model_config.get("independent_note_positive_weight", 1.0)
+                ),
+                negative_weight=float(
+                    model_config.get("independent_note_negative_weight", 1.0)
+                ),
+            )
+            loss_weights["independent_note"] = float(
+                model_config.get("independent_note_loss_weight", 1.0)
+            )
+            if independent_note_auxiliary_only:
+                for output_name in tuple(loss_weights):
+                    if output_name != "independent_note":
+                        loss_weights[output_name] = 0.0
         metrics: dict[str, list[tf.keras.metrics.Metric]] = {
             "frame": [
                 MicroF1(name="micro_f1"),
@@ -2661,6 +2836,27 @@ def main() -> int:
                 ),
                 PolyphonicMaskedHarmonicPresenceBrier(
                     train_corpus.harmonic_count
+                ),
+            ]
+        if independent_note_head:
+            independent_threshold = float(
+                model_config.get("independent_note_metric_threshold", 0.5)
+            )
+            metrics["independent_note"] = [
+                PolyphonicMaskedIndependentNotePrecision(
+                    train_corpus.pitch_classes,
+                    threshold=independent_threshold,
+                ),
+                PolyphonicMaskedIndependentNoteRecall(
+                    train_corpus.pitch_classes,
+                    threshold=independent_threshold,
+                ),
+                PolyphonicMaskedIndependentNoteF1(
+                    train_corpus.pitch_classes,
+                    threshold=independent_threshold,
+                ),
+                PolyphonicMaskedIndependentNoteBrier(
+                    train_corpus.pitch_classes
                 ),
             ]
         model.compile(
@@ -2701,6 +2897,22 @@ def main() -> int:
                     ),
                     minimum_learning_rate=float(
                         training["minimum_learning_rate"]
+                    ),
+                    early_monitor_metric=(
+                        "val_independent_note_loss"
+                        if (
+                            independent_note_auxiliary_only
+                            or freeze_backbone
+                        )
+                        else "val_frame_micro_f1"
+                    ),
+                    early_monitor_mode=(
+                        "min"
+                        if (
+                            independent_note_auxiliary_only
+                            or freeze_backbone
+                        )
+                        else "max"
                     ),
                 ),
                 recovery_snapshot=recovery_snapshot,

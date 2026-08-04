@@ -148,6 +148,73 @@ class PolyphonicMaskedHarmonicPresenceLoss(tf.keras.losses.Loss):
 
 
 @tf.keras.utils.register_keras_serializable(package="midi_polyphonic")
+class PolyphonicMaskedIndependentNoteLoss(tf.keras.losses.Loss):
+    """Binary cross-entropy for partially supervised pitch candidates.
+
+    ``y_true`` concatenates the binary independent-note target and its
+    reliability mask along the pitch axis.  A zero reliability means that the
+    candidate is ambiguous or unavailable and contributes neither a positive
+    nor a negative example.
+    """
+
+    def __init__(
+        self,
+        pitch_classes: int = 37,
+        positive_weight: float = 1.0,
+        negative_weight: float = 1.0,
+        reduction: str = "sum_over_batch_size",
+        name: str = "polyphonic_masked_independent_note_loss",
+    ) -> None:
+        super().__init__(reduction=reduction, name=name)
+        self.pitch_classes = int(pitch_classes)
+        self.positive_weight = float(positive_weight)
+        self.negative_weight = float(negative_weight)
+        if self.pitch_classes < 1:
+            raise ValueError("pitch_classes must be positive.")
+        if (
+            not math.isfinite(self.positive_weight)
+            or not math.isfinite(self.negative_weight)
+            or self.positive_weight <= 0.0
+            or self.negative_weight <= 0.0
+        ):
+            raise ValueError(
+                "Independent-note class weights must be finite and positive."
+            )
+
+    def call(self, y_true, y_pred):
+        count = self.pitch_classes
+        target = tf.cast(y_true[..., :count], y_pred.dtype)
+        reliability = tf.cast(y_true[..., count:2 * count], y_pred.dtype)
+        supervised = tf.cast(reliability > 0.0, y_pred.dtype)
+        prediction = tf.clip_by_value(
+            y_pred,
+            tf.cast(tf.keras.backend.epsilon(), y_pred.dtype),
+            tf.cast(1.0 - tf.keras.backend.epsilon(), y_pred.dtype),
+        )
+        error = -(
+            target * tf.math.log(prediction)
+            + (1.0 - target) * tf.math.log(1.0 - prediction)
+        )
+        class_weight = (
+            target * tf.cast(self.positive_weight, y_pred.dtype)
+            + (1.0 - target)
+            * tf.cast(self.negative_weight, y_pred.dtype)
+        )
+        return tf.math.divide_no_nan(
+            tf.reduce_sum(error * reliability * class_weight, axis=-1),
+            tf.reduce_sum(supervised, axis=-1),
+        )
+
+    def get_config(self):
+        return {
+            **super().get_config(),
+            "pitch_classes": self.pitch_classes,
+            "positive_weight": self.positive_weight,
+            "negative_weight": self.negative_weight,
+        }
+
+
+@tf.keras.utils.register_keras_serializable(package="midi_polyphonic")
 class PolyphonicHarmonicOffsetLoss(tf.keras.losses.Loss):
     def __init__(
         self,
@@ -198,6 +265,17 @@ def _presence_metric_parts(y_true, y_pred, harmonic_count: int, dtype):
     target = tf.cast(y_true[..., :harmonic_count] > 0.5, dtype)
     reliability = tf.cast(
         y_true[..., harmonic_count:2 * harmonic_count], dtype
+    )
+    prediction = tf.cast(y_pred, dtype)
+    return target, prediction, reliability
+
+
+def _independent_note_metric_parts(
+    y_true, y_pred, pitch_classes: int, dtype
+):
+    target = tf.cast(y_true[..., :pitch_classes] > 0.5, dtype)
+    reliability = tf.cast(
+        y_true[..., pitch_classes:2 * pitch_classes], dtype
     )
     prediction = tf.cast(y_pred, dtype)
     return target, prediction, reliability
@@ -392,6 +470,181 @@ class PolyphonicMaskedHarmonicPresenceBrier(tf.keras.metrics.Metric):
         }
 
 
+class _PolyphonicMaskedIndependentNoteConfusion(tf.keras.metrics.Metric):
+    def __init__(
+        self,
+        pitch_classes: int = 37,
+        threshold: float = 0.5,
+        name: str | None = None,
+        **kwargs,
+    ) -> None:
+        super().__init__(name=name, **kwargs)
+        self.pitch_classes = int(pitch_classes)
+        self.threshold = float(threshold)
+        if self.pitch_classes < 1:
+            raise ValueError("pitch_classes must be positive.")
+        if not 0.0 < self.threshold < 1.0:
+            raise ValueError(
+                "Independent-note metric threshold must be in ]0, 1[."
+            )
+        self.true_positive = self.add_weight(name="tp", initializer="zeros")
+        self.false_positive = self.add_weight(name="fp", initializer="zeros")
+        self.false_negative = self.add_weight(name="fn", initializer="zeros")
+
+    def update_state(self, y_true, y_pred, sample_weight=None):
+        target, probability, reliability = _independent_note_metric_parts(
+            y_true, y_pred, self.pitch_classes, self.dtype
+        )
+        reliability = _metric_reliability_with_sample_weight(
+            reliability, sample_weight, self.dtype
+        )
+        predicted = tf.cast(probability >= self.threshold, self.dtype)
+        self.true_positive.assign_add(
+            tf.reduce_sum(reliability * target * predicted)
+        )
+        self.false_positive.assign_add(
+            tf.reduce_sum(reliability * (1.0 - target) * predicted)
+        )
+        self.false_negative.assign_add(
+            tf.reduce_sum(reliability * target * (1.0 - predicted))
+        )
+
+    def reset_state(self):
+        for variable in self.variables:
+            variable.assign(0.0)
+
+    def get_config(self):
+        return {
+            **super().get_config(),
+            "pitch_classes": self.pitch_classes,
+            "threshold": self.threshold,
+        }
+
+
+@tf.keras.utils.register_keras_serializable(package="midi_polyphonic")
+class PolyphonicMaskedIndependentNotePrecision(
+    _PolyphonicMaskedIndependentNoteConfusion
+):
+    def __init__(
+        self,
+        pitch_classes: int = 37,
+        threshold: float = 0.5,
+        name: str = "masked_precision",
+        **kwargs,
+    ) -> None:
+        super().__init__(
+            pitch_classes=pitch_classes,
+            threshold=threshold,
+            name=name,
+            **kwargs,
+        )
+
+    def result(self):
+        return tf.math.divide_no_nan(
+            self.true_positive,
+            self.true_positive + self.false_positive,
+        )
+
+
+@tf.keras.utils.register_keras_serializable(package="midi_polyphonic")
+class PolyphonicMaskedIndependentNoteRecall(
+    _PolyphonicMaskedIndependentNoteConfusion
+):
+    def __init__(
+        self,
+        pitch_classes: int = 37,
+        threshold: float = 0.5,
+        name: str = "masked_recall",
+        **kwargs,
+    ) -> None:
+        super().__init__(
+            pitch_classes=pitch_classes,
+            threshold=threshold,
+            name=name,
+            **kwargs,
+        )
+
+    def result(self):
+        return tf.math.divide_no_nan(
+            self.true_positive,
+            self.true_positive + self.false_negative,
+        )
+
+
+@tf.keras.utils.register_keras_serializable(package="midi_polyphonic")
+class PolyphonicMaskedIndependentNoteF1(
+    _PolyphonicMaskedIndependentNoteConfusion
+):
+    def __init__(
+        self,
+        pitch_classes: int = 37,
+        threshold: float = 0.5,
+        name: str = "masked_f1",
+        **kwargs,
+    ) -> None:
+        super().__init__(
+            pitch_classes=pitch_classes,
+            threshold=threshold,
+            name=name,
+            **kwargs,
+        )
+
+    def result(self):
+        return tf.math.divide_no_nan(
+            2.0 * self.true_positive,
+            2.0 * self.true_positive
+            + self.false_positive
+            + self.false_negative,
+        )
+
+
+@tf.keras.utils.register_keras_serializable(package="midi_polyphonic")
+class PolyphonicMaskedIndependentNoteBrier(tf.keras.metrics.Metric):
+    def __init__(
+        self,
+        pitch_classes: int = 37,
+        name: str = "masked_brier",
+        **kwargs,
+    ) -> None:
+        super().__init__(name=name, **kwargs)
+        self.pitch_classes = int(pitch_classes)
+        if self.pitch_classes < 1:
+            raise ValueError("pitch_classes must be positive.")
+        self.weighted_error = self.add_weight(
+            name="weighted_error", initializer="zeros"
+        )
+        self.reliability = self.add_weight(
+            name="reliability", initializer="zeros"
+        )
+
+    def update_state(self, y_true, y_pred, sample_weight=None):
+        target, probability, reliability = _independent_note_metric_parts(
+            y_true, y_pred, self.pitch_classes, self.dtype
+        )
+        reliability = _metric_reliability_with_sample_weight(
+            reliability, sample_weight, self.dtype
+        )
+        self.weighted_error.assign_add(
+            tf.reduce_sum(tf.square(probability - target) * reliability)
+        )
+        self.reliability.assign_add(tf.reduce_sum(reliability))
+
+    def result(self):
+        return tf.math.divide_no_nan(
+            self.weighted_error, self.reliability
+        )
+
+    def reset_state(self):
+        for variable in self.variables:
+            variable.assign(0.0)
+
+    def get_config(self):
+        return {
+            **super().get_config(),
+            "pitch_classes": self.pitch_classes,
+        }
+
+
 @tf.keras.utils.register_keras_serializable(package="midi_polyphonic")
 class MicroF1(tf.keras.metrics.Metric):
     def __init__(self, threshold: float = 0.5, name: str = "micro_f1", **kwargs):
@@ -443,6 +696,8 @@ def build_polyphonic_model(
     bass_dense_units: int = 32,
     bass_pitch_classes: int = 25,
     harmonic_presence_head: bool = False,
+    independent_note_head: bool = False,
+    independent_note_units: int = 32,
 ) -> tf.keras.Model:
     if not 1 <= pitch_classes <= 64:
         raise ValueError("pitch_classes must be in 1..64")
@@ -459,6 +714,8 @@ def build_polyphonic_model(
             raise ValueError("Bass branch dimensions must be positive.")
         if not 1 <= bass_pitch_classes <= pitch_classes:
             raise ValueError("bass_pitch_classes must fit the pitch axis.")
+    if independent_note_head and independent_note_units < 1:
+        raise ValueError("independent_note_units must be positive.")
     audio = tf.keras.Input((input_samples, 1), dtype=tf.float32, name="audio")
     time_mask = tf.keras.Input((input_samples,), dtype=tf.float32, name="time_mask")
     mask = tf.keras.layers.Reshape(
@@ -730,6 +987,29 @@ def build_polyphonic_model(
         (pitch_classes, harmonic_count), name="harmonic_offset_cents"
     )(harmonic_offset_flat)
 
+    independent_note = None
+    if independent_note_head:
+        independent_note_parts = [pooled, onset_features]
+        if bass_features is not None:
+            independent_note_parts.append(bass_features)
+        independent_note_context = tf.keras.layers.Concatenate(
+            name="independent_note_context"
+        )(independent_note_parts)
+        independent_note_hidden = tf.keras.layers.Dense(
+            independent_note_units,
+            activation="swish",
+            name="independent_note_dense",
+        )(independent_note_context)
+        independent_note_hidden = tf.keras.layers.Dropout(
+            dropout,
+            name="independent_note_dropout",
+        )(independent_note_hidden)
+        independent_note = tf.keras.layers.Dense(
+            pitch_classes,
+            activation="sigmoid",
+            name="independent_note",
+        )(independent_note_hidden)
+
     outputs = {
         "frame": frame,
         "onset": onset,
@@ -738,6 +1018,8 @@ def build_polyphonic_model(
     }
     if harmonic_presence is not None:
         outputs["harmonic_presence"] = harmonic_presence
+    if independent_note is not None:
+        outputs["independent_note"] = independent_note
     return tf.keras.Model(
         inputs={"audio": audio, "time_mask": time_mask},
         outputs=outputs,

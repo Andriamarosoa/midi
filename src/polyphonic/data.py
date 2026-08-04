@@ -5,6 +5,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import io
+import json
 import math
 import os
 import re
@@ -18,9 +19,21 @@ import numpy as np
 import soundfile as sf
 import tensorflow as tf
 
+from src.polyphonic.independent_note_targets import (
+    build_independent_note_targets,
+)
+
 
 NUMPY_MAGIC = b"\x93NUMPY"
 EPOCH_PLAN_SCHEMA_VERSION = 1
+
+
+def _sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for block in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
 
 
 @dataclass(frozen=True)
@@ -41,6 +54,62 @@ class ManifestItem:
 class CachedLabels:
     item: ManifestItem
     arrays: Mapping[str, np.ndarray]
+
+
+FundamentalOffsetMap = Mapping[tuple[str, str], np.ndarray]
+
+
+def load_independent_note_fundamental_offsets(
+    path: Path,
+    *,
+    expected_sha256: str,
+    expected_manifest_sha256: str,
+) -> dict[tuple[str, str], np.ndarray]:
+    """Load the small train/validation sidecar used by the independent head.
+
+    The sidecar exists because schema-3 label archives do not yet carry the
+    fractional fundamental tuning.  It is fail-closed against tampering,
+    manifest drift, duplicate rows, malformed arrays, and any indication that
+    the locked test split was used.
+    """
+
+    resolved = path.resolve(strict=True)
+    actual_sha256 = _sha256_file(resolved)
+    if actual_sha256 != str(expected_sha256):
+        raise ValueError("Independent-note offset sidecar SHA-256 mismatch.")
+    try:
+        payload = json.loads(resolved.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise ValueError("Independent-note offset sidecar is not valid JSON.") from exc
+    if not isinstance(payload, dict):
+        raise ValueError("Independent-note offset sidecar must be an object.")
+    if int(payload.get("schema_version", -1)) != 1:
+        raise ValueError("Unsupported independent-note offset sidecar schema.")
+    if payload.get("locked_test_used") is not False:
+        raise ValueError("Fail closed: offset sidecar does not exclude locked test.")
+    if payload.get("manifest_sha256") != str(expected_manifest_sha256):
+        raise ValueError("Independent-note offset sidecar manifest mismatch.")
+    records = payload.get("records")
+    if not isinstance(records, list) or not records:
+        raise ValueError("Independent-note offset sidecar has no records.")
+    result: dict[tuple[str, str], np.ndarray] = {}
+    ordered_keys: list[tuple[str, str]] = []
+    for record in records:
+        if not isinstance(record, dict):
+            raise ValueError("Independent-note offset sidecar record is invalid.")
+        dataset_id = str(record.get("dataset_id", ""))
+        source_id = str(record.get("source_id", ""))
+        key = (dataset_id, source_id)
+        if not dataset_id or not source_id or key in result:
+            raise ValueError("Independent-note offset sidecar keys are invalid.")
+        values = np.asarray(record.get("note_fundamental_offset_cents"), dtype=np.float32)
+        if values.ndim != 1 or not len(values) or not np.all(np.isfinite(values)):
+            raise ValueError("Independent-note offset sidecar values are invalid.")
+        result[key] = values
+        ordered_keys.append(key)
+    if ordered_keys != sorted(ordered_keys):
+        raise ValueError("Independent-note offset sidecar records are not sorted.")
+    return result
 
 
 def _manifest_path(
@@ -132,10 +201,18 @@ class PolyphonicCorpus:
         "hop_size", "audio_frames", "midi_min", "midi_max",
     }
 
-    def __init__(self, items: Sequence[ManifestItem]) -> None:
+    def __init__(
+        self,
+        items: Sequence[ManifestItem],
+        *,
+        fundamental_offsets: FundamentalOffsetMap | None = None,
+        required_fundamental_offset_datasets: Sequence[str] = (),
+    ) -> None:
         if not items:
             raise ValueError("The corpus split is empty.")
         self.items = list(items)
+        offsets = dict(fundamental_offsets or {})
+        required_datasets = {str(value) for value in required_fundamental_offset_datasets}
         self.labels: list[CachedLabels] = []
         for item in self.items:
             with np.load(item.labels_path, allow_pickle=False) as source:
@@ -145,6 +222,29 @@ class PolyphonicCorpus:
                         f"{item.source_id}: label arrays missing {sorted(missing)}"
                     )
                 arrays = {name: np.asarray(source[name]) for name in source.files}
+            key = (str(item.dataset_id), str(item.source_id))
+            offset_values = offsets.get(key)
+            if offset_values is None:
+                if item.dataset_id in required_datasets:
+                    raise ValueError(
+                        f"{item.source_id}: required fundamental offset is missing"
+                    )
+            else:
+                offset_values = np.asarray(offset_values, dtype=np.float32)
+                expected_rows = int(arrays["note_harmonic_present"].shape[0])
+                if offset_values.shape != (expected_rows,):
+                    raise ValueError(
+                        f"{item.source_id}: fundamental offset rows do not match labels"
+                    )
+                existing = arrays.get("note_fundamental_offset_cents")
+                if existing is not None and not np.allclose(
+                    np.asarray(existing, dtype=np.float32), offset_values,
+                    rtol=0.0, atol=1e-4,
+                ):
+                    raise ValueError(
+                        f"{item.source_id}: embedded and sidecar fundamental offsets disagree"
+                    )
+                arrays["note_fundamental_offset_cents"] = offset_values
             frame_count = len(arrays["active_bits"])
             for name in ("onset_bits", "polyphony", "valid"):
                 if len(arrays[name]) != frame_count:
@@ -700,6 +800,7 @@ class PolyphonicSequence(tf.keras.utils.Sequence):
         input_gain_by_frame: Sequence[np.ndarray] | None = None,
         full_context_from_start: bool = False,
         harmonic_presence_target: bool = False,
+        independent_note_target: bool = False,
         shuffle: bool = False,
         workers: int = 1,
         max_queue_size: int = 2,
@@ -748,6 +849,7 @@ class PolyphonicSequence(tf.keras.utils.Sequence):
         )
         self.full_context_from_start = bool(full_context_from_start)
         self.harmonic_presence_target = bool(harmonic_presence_target)
+        self.independent_note_target = bool(independent_note_target)
         self.workers = int(workers)
         self.max_queue_size = int(max_queue_size)
         if (
@@ -964,6 +1066,8 @@ class PolyphonicSequence(tf.keras.utils.Sequence):
         time_mask = np.zeros((size, self.input_samples), dtype=np.float32)
         frame_target = np.zeros((size, classes), dtype=np.float32)
         onset_target = np.zeros((size, classes), dtype=np.float32)
+        independent_note = np.zeros((size, classes), dtype=np.float32)
+        independent_note_weight = np.zeros((size, classes), dtype=np.float32)
         harmonic_amplitude = np.zeros((size, classes, harmonics), np.float32)
         harmonic_offset = np.zeros((size, classes, harmonics), np.float32)
         harmonic_valid = np.zeros((size, classes, harmonics), np.float32)
@@ -1009,6 +1113,14 @@ class PolyphonicSequence(tf.keras.utils.Sequence):
             onset_bits = np.uint64(arrays["onset_bits"][frame_index])
             frame_target[row] = ((active_bits >> class_bits) & 1).astype(np.float32)
             onset_target[row] = ((onset_bits >> class_bits) & 1).astype(np.float32)
+            if self.independent_note_target:
+                independent = build_independent_note_targets(
+                    arrays,
+                    frame_index,
+                    pitch_classes=classes,
+                )
+                independent_note[row] = independent.target
+                independent_note_weight[row] = independent.weight
 
             for pitch_index, note_id in zip(
                 arrays["slot_pitch"][frame_index],
@@ -1082,6 +1194,10 @@ class PolyphonicSequence(tf.keras.utils.Sequence):
         if self.harmonic_presence_target:
             targets["harmonic_presence"] = np.concatenate(
                 [harmonic_presence, harmonic_supervision_weight], axis=-1
+            )
+        if self.independent_note_target:
+            targets["independent_note"] = np.concatenate(
+                [independent_note, independent_note_weight], axis=-1
             )
         return inputs, targets
 

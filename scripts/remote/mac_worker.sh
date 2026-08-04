@@ -289,6 +289,7 @@ PY
     cat > "$preflight" <<'PY'
 import csv
 import hashlib
+import json
 import pathlib
 import sys
 import yaml
@@ -304,7 +305,11 @@ if tf.__version__ != "2.15.1":
     raise SystemExit(f"Expected TensorFlow 2.15.1, got {tf.__version__}")
 if device == "metal" and not tf.config.list_physical_devices("GPU"):
     raise SystemExit("Apple Metal GPU is unavailable")
-if module != "src.polyphonic.train":
+controlled_modules = {
+    "src.polyphonic.train",
+    "src.polyphonic.smoke_neural_independent_note",
+}
+if module not in controlled_modules:
     raise SystemExit(0)
 
 
@@ -340,42 +345,83 @@ if not config_path.is_absolute():
     config_path = workspace / config_path
 config = yaml.safe_load(config_path.read_text(encoding="utf-8"))
 training = config["train"]
-workers = int(option_value("--workers") or training.get("workers", 1))
 queue_size = int(training.get("max_queue_size", 1))
-recovery_chunks = int(
-    option_value("--recovery-chunk-batches")
-    or training.get("recovery_chunk_batches", 32)
-)
-runtime_minutes = float(
-    option_value("--maximum-runtime-minutes")
-    or training.get("maximum_runtime_minutes", 360)
-)
-smoke_test = flag_value("--smoke-test")
-representative_smoke = flag_value("--representative-smoke")
-if smoke_test != representative_smoke:
-    raise SystemExit(
-        "Representative Mac smokes require both --smoke-test and "
-        "--representative-smoke"
+if module == "src.polyphonic.train":
+    workers = int(option_value("--workers") or training.get("workers", 1))
+    recovery_chunks = int(
+        option_value("--recovery-chunk-batches")
+        or training.get("recovery_chunk_batches", 32)
     )
-if smoke_test:
-    smoke_examples = int(option_value("--smoke-examples") or 8192)
-    smoke_validation_examples = int(
-        option_value("--smoke-validation-examples") or 2048
+    runtime_minutes = float(
+        option_value("--maximum-runtime-minutes")
+        or training.get("maximum_runtime_minutes", 360)
     )
-    if (smoke_examples, smoke_validation_examples) != (8192, 2048):
+    smoke_test = flag_value("--smoke-test")
+    representative_smoke = flag_value("--representative-smoke")
+    if smoke_test != representative_smoke:
         raise SystemExit(
-            "Representative Mac smokes require exactly 8192 train and "
-            "2048 validation examples"
+            "Representative Mac smokes require both --smoke-test and "
+            "--representative-smoke"
         )
-if workers != 1 or queue_size != 1 or recovery_chunks != 32:
-    raise SystemExit(
-        "Mac M4 safety contract requires workers=1, max_queue_size=1 "
-        "and recovery_chunk_batches=32"
+    if smoke_test:
+        smoke_examples = int(option_value("--smoke-examples") or 8192)
+        smoke_validation_examples = int(
+            option_value("--smoke-validation-examples") or 2048
+        )
+        if (smoke_examples, smoke_validation_examples) != (8192, 2048):
+            raise SystemExit(
+                "Representative Mac smokes require exactly 8192 train and "
+                "2048 validation examples"
+            )
+    if workers != 1 or queue_size != 1 or recovery_chunks != 32:
+        raise SystemExit(
+            "Mac M4 safety contract requires workers=1, max_queue_size=1 "
+            "and recovery_chunk_batches=32"
+        )
+    if not 0 < runtime_minutes <= 360:
+        raise SystemExit(
+            "Mac M4 safety contract requires 0 < maximum_runtime_minutes <= 360"
+        )
+else:
+    if device != "cpu":
+        raise SystemExit("The independent-note train gate is CPU-only")
+    if queue_size != 1:
+        raise SystemExit("The independent-note train gate requires queue size 1")
+    fit_examples = int(option_value("--fit-examples", required=True))
+    dev_examples = int(option_value("--dev-examples", required=True))
+    calibration_examples = int(
+        option_value("--calibration-examples", required=True)
     )
-if not 0 < runtime_minutes <= 360:
-    raise SystemExit(
-        "Mac M4 safety contract requires 0 < maximum_runtime_minutes <= 360"
+    if (fit_examples, dev_examples, calibration_examples) != (8192, 2048, 4096):
+        raise SystemExit(
+            "The independent-note gate requires exactly 8192 fit, 2048 dev, "
+            "and 4096 calibration examples"
+        )
+    epochs = int(option_value("--epochs", required=True))
+    if epochs != int(training["epochs"]):
+        raise SystemExit("The independent-note gate must use config train.epochs")
+    runtime_minutes = float(
+        option_value("--maximum-runtime-minutes", required=True)
     )
+    if not 0 < runtime_minutes <= 60:
+        raise SystemExit(
+            "The independent-note train gate requires a runtime in (0, 60] minutes"
+        )
+    checkpoint = pathlib.Path(
+        option_value("--initial-checkpoint", required=True)
+    ).resolve(strict=True)
+    checkpoint_root = (worker_root / "checkpoints").resolve(strict=True)
+    if checkpoint.parent != checkpoint_root:
+        raise SystemExit("Initial checkpoint is outside the immutable checkpoint store")
+    expected_checkpoint = str(
+        config.get("initialization", {}).get("required_checkpoint_sha256", "")
+    )
+    checkpoint_digest = hashlib.sha256(checkpoint.read_bytes()).hexdigest()
+    if checkpoint_digest != expected_checkpoint:
+        raise SystemExit("Initial checkpoint SHA-256 differs from the config")
+    output_dir = pathlib.Path(option_value("--output-dir", required=True))
+    if output_dir.is_absolute() or ".." in output_dir.parts or output_dir.parts[:1] != ("tmp",):
+        raise SystemExit("Independent-note output must be a relative tmp/... path")
 if runtime_minutes * 60 + 60 > wall_timeout_seconds:
     raise SystemExit(
         "maximum_runtime_minutes must leave at least 60 seconds before "
@@ -405,6 +451,29 @@ for row in rows:
     counts[split] += 1
 if counts != {"train": 572, "validation": 182}:
     raise SystemExit(f"Unexpected remote split contract: {counts}")
+if module == "src.polyphonic.smoke_neural_independent_note":
+    sidecar_value = str(
+        config["dataset"].get("independent_note_fundamental_offsets", "")
+    )
+    sidecar_expected = str(
+        config["dataset"].get("independent_note_fundamental_offsets_sha256", "")
+    )
+    if not sidecar_value or len(sidecar_expected) != 64:
+        raise SystemExit("Independent-note gate requires a signed offset sidecar")
+    sidecar = pathlib.Path(sidecar_value)
+    if not sidecar.is_absolute():
+        sidecar = workspace / sidecar
+    sidecar = sidecar.resolve(strict=True)
+    if hashlib.sha256(sidecar.read_bytes()).hexdigest() != sidecar_expected:
+        raise SystemExit("Independent-note offset sidecar SHA-256 mismatch")
+    payload = json.loads(sidecar.read_text(encoding="utf-8"))
+    if (
+        not isinstance(payload, dict)
+        or payload.get("schema_version") != 1
+        or payload.get("locked_test_used") is not False
+        or payload.get("manifest_sha256") != digest
+    ):
+        raise SystemExit("Independent-note offset sidecar provenance is invalid")
 print("REMOTE_SPLIT_PREFLIGHT train=572 validation=182 test=0")
 PY
     stdout_path="$worker_root/logs/$job_id.stdout.log"

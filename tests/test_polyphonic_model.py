@@ -22,6 +22,11 @@ from src.polyphonic.model import (
     PolyphonicMaskedHarmonicPresenceLoss,
     PolyphonicMaskedHarmonicPresencePrecision,
     PolyphonicMaskedHarmonicPresenceRecall,
+    PolyphonicMaskedIndependentNoteBrier,
+    PolyphonicMaskedIndependentNoteF1,
+    PolyphonicMaskedIndependentNoteLoss,
+    PolyphonicMaskedIndependentNotePrecision,
+    PolyphonicMaskedIndependentNoteRecall,
     build_polyphonic_model,
     transfer_compatible_weights,
 )
@@ -118,6 +123,119 @@ class PolyphonicModelTests(unittest.TestCase):
         )
 
         self.assertEqual(outputs["harmonic_presence"].shape, (1, 3, 2))
+
+    def test_independent_note_head_is_lightweight_causal_and_opt_in(self) -> None:
+        shared = {
+            "pitch_classes": 6,
+            "input_samples": 1024,
+            "normal_window_samples": 512,
+            "compressed_bass_branch": True,
+            "bass_channels": 2,
+            "bass_dense_units": 4,
+            "bass_pitch_classes": 3,
+            "channels": 4,
+            "tcn_blocks": 1,
+            "dropout": 0.0,
+            "dense_units": 8,
+            "harmonic_count": 2,
+        }
+        baseline = build_polyphonic_model(**shared)
+        candidate = build_polyphonic_model(
+            **shared,
+            independent_note_head=True,
+            independent_note_units=7,
+        )
+        inputs = {
+            "audio": np.zeros((2, 1024, 1), np.float32),
+            "time_mask": np.ones((2, 1024), np.float32),
+        }
+        outputs = candidate(inputs, training=False)
+
+        self.assertNotIn("independent_note", baseline.output_names)
+        self.assertEqual(outputs["independent_note"].shape, (2, 6))
+        self.assertEqual(candidate.get_layer("independent_note_dense").units, 7)
+        self.assertEqual(len(candidate.inputs), 2)
+        self.assertLess(
+            candidate.count_params() - baseline.count_params(),
+            500,
+        )
+
+    def test_independent_note_head_preserves_old_checkpoint_outputs(self) -> None:
+        tf.keras.utils.set_random_seed(790)
+        shared = {
+            "pitch_classes": 6,
+            "input_samples": 512,
+            "channels": 4,
+            "tcn_blocks": 1,
+            "dropout": 0.0,
+            "dense_units": 8,
+            "harmonic_count": 2,
+            "harmonic_presence_head": True,
+        }
+        source = build_polyphonic_model(**shared)
+        target = build_polyphonic_model(
+            **shared,
+            independent_note_head=True,
+            independent_note_units=7,
+        )
+        inputs = {
+            "audio": np.linspace(-0.5, 0.5, 512, dtype=np.float32)[
+                None, :, None
+            ],
+            "time_mask": np.ones((1, 512), np.float32),
+        }
+        with tempfile.TemporaryDirectory() as temporary:
+            checkpoint = Path(temporary) / "source.keras"
+            source.save(checkpoint)
+            report = transfer_compatible_weights(target, checkpoint)
+
+        self.assertIn("independent_note_dense", report["skipped"])
+        self.assertIn("independent_note", report["skipped"])
+        expected = source(inputs, training=False)
+        actual = target(inputs, training=False)
+        for name in expected:
+            np.testing.assert_allclose(
+                expected[name].numpy(),
+                actual[name].numpy(),
+                rtol=1e-6,
+                atol=1e-6,
+            )
+
+    def test_independent_note_head_roundtrip_is_serializable(self) -> None:
+        tf.keras.utils.set_random_seed(791)
+        model = build_polyphonic_model(
+            pitch_classes=3,
+            input_samples=512,
+            channels=4,
+            tcn_blocks=1,
+            dropout=0.0,
+            dense_units=8,
+            harmonic_count=2,
+            independent_note_head=True,
+            independent_note_units=7,
+        )
+        inputs = {
+            "audio": np.linspace(-0.5, 0.5, 512, dtype=np.float32)[
+                None, :, None
+            ],
+            "time_mask": np.ones((1, 512), np.float32),
+        }
+        expected = model(inputs, training=False)
+        with tempfile.TemporaryDirectory() as temporary:
+            checkpoint = Path(temporary) / "candidate.keras"
+            model.save(checkpoint)
+            restored = load_polyphonic_checkpoint(checkpoint)
+            actual = restored(inputs, training=False)
+
+        self.assertIn("independent_note", restored.output_names)
+        self.assertEqual(restored.get_layer("independent_note_dense").units, 7)
+        for name in expected:
+            np.testing.assert_allclose(
+                expected[name].numpy(),
+                actual[name].numpy(),
+                rtol=1e-6,
+                atol=1e-6,
+            )
 
     def test_dual_stream_zero_residual_preserves_transferred_model(self) -> None:
         tf.keras.utils.set_random_seed(456)
@@ -318,6 +436,51 @@ class PolyphonicModelTests(unittest.TestCase):
             restored = type(metric).from_config(metric.get_config())
             self.assertEqual(restored.get_config(), metric.get_config())
 
+    def test_masked_independent_note_loss_and_metrics_use_reliability(self) -> None:
+        truth = tf.constant([[1.0, 0.0, 1.0, 0.5]])
+        prediction = tf.constant([[0.9, 0.8]])
+        loss = PolyphonicMaskedIndependentNoteLoss(2)
+        expected_loss = (-np.log(0.9) - 0.5 * np.log(0.2)) / 2.0
+        self.assertAlmostEqual(
+            float(loss(truth, prediction)), expected_loss, places=6
+        )
+        self.assertEqual(
+            float(loss(tf.zeros((1, 4)), prediction)), 0.0
+        )
+        weighted = PolyphonicMaskedIndependentNoteLoss(
+            2, positive_weight=2.0, negative_weight=3.0
+        )
+        positive = weighted(
+            tf.constant([[1.0, 0.0, 1.0, 0.0]]),
+            tf.constant([[0.5, 0.5]]),
+        )
+        negative = weighted(
+            tf.constant([[0.0, 0.0, 1.0, 0.0]]),
+            tf.constant([[0.5, 0.5]]),
+        )
+        self.assertAlmostEqual(float(positive), 2.0 * np.log(2.0), places=6)
+        self.assertAlmostEqual(float(negative), 3.0 * np.log(2.0), places=6)
+        restored_weighted = PolyphonicMaskedIndependentNoteLoss.from_config(
+            weighted.get_config()
+        )
+        self.assertEqual(restored_weighted.get_config(), weighted.get_config())
+
+        metrics = (
+            PolyphonicMaskedIndependentNotePrecision(2),
+            PolyphonicMaskedIndependentNoteRecall(2),
+            PolyphonicMaskedIndependentNoteF1(2),
+            PolyphonicMaskedIndependentNoteBrier(2),
+        )
+        for metric in metrics:
+            metric.update_state(truth, prediction)
+        self.assertAlmostEqual(float(metrics[0].result()), 2.0 / 3.0)
+        self.assertAlmostEqual(float(metrics[1].result()), 1.0)
+        self.assertAlmostEqual(float(metrics[2].result()), 0.8)
+        self.assertAlmostEqual(float(metrics[3].result()), 0.22, places=6)
+        for metric in metrics:
+            restored = type(metric).from_config(metric.get_config())
+            self.assertEqual(restored.get_config(), metric.get_config())
+
     def test_weighted_bce_and_micro_f1_are_serializable(self) -> None:
         loss = ClassWeightedBinaryCrossentropy([1.0, 2.0])
         value = loss(tf.constant([[1.0, 0.0]]), tf.constant([[0.5, 0.5]]))
@@ -333,6 +496,7 @@ class PolyphonicModelTests(unittest.TestCase):
             ClassWeightedBinaryCrossentropy([1.0, 2.0]),
             PolyphonicMaskedHarmonicAmplitudeLoss(2),
             PolyphonicMaskedHarmonicPresenceLoss(2),
+            PolyphonicMaskedIndependentNoteLoss(2),
             PolyphonicHarmonicOffsetLoss(2),
         )
         for loss in losses:

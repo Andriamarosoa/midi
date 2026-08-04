@@ -1,0 +1,81 @@
+dataset:
+  manifest: data/processed/polyphonic_harmonic_presence_v1/manifest_train_validation.csv
+  independent_note_fundamental_offsets: configs/assets/polyphonic_guitarset_fundamental_offsets_train_validation.json
+  independent_note_fundamental_offsets_sha256: d3cf33c441efb13f1e16bbb4df95b7a170cc3dd096015d11bd241550c1f16622
+  independent_note_fundamental_offset_required_datasets:
+    - guitarset_poly_mix
+  seed: 47
+  input_samples: 8192
+  normalization_gain: 1.4932045250002872
+
+train:
+  run_name: polyphonic_dual_stream_bass_independent_note
+  output_root: runs/polyphonic
+  epochs: 4
+  batch_size: 32
+  examples_per_epoch: 240000
+  validation_examples: 60000
+  learning_rate: 0.001
+  minimum_learning_rate: 0.00001
+  early_stopping_patience: 2
+  reduce_lr_patience: 1
+  maximum_frame_weight: 12.0
+  maximum_onset_weight: 20.0
+  class_weight_basis: sampled
+  class_weight_exponent: 0.5
+  workers: 1
+  max_queue_size: 1
+  recovery_chunk_batches: 32
+  log_every_batches: 25
+  maximum_runtime_minutes: 360
+  augmentation_gain_db: 6.0
+  dataset_fractions:
+    guitarset_poly_mix: 0.45
+    gaps_poly_mix: 0.35
+    guitar_techs_poly_directinput: 0.15
+    guitar_techs_poly_micamp: 0.05
+  validation_dataset_fractions:
+    guitarset_poly_mix: 0.45
+    gaps_poly_mix: 0.35
+    guitar_techs_poly_directinput: 0.15
+    guitar_techs_poly_micamp: 0.05
+  sampling_fractions:
+    onset: 0.30
+    polyphonic: 0.30
+    monophonic: 0.25
+    silence: 0.15
+
+model:
+  channels: 32
+  tcn_blocks: 4
+  dropout: 0.10
+  dense_units: 128
+  harmonic_offset_scale_cents: 35.0
+  normal_window_samples: 4096
+  compressed_bass_branch: true
+  bass_channels: 8
+  bass_dense_units: 32
+  bass_pitch_classes: 25
+  onset_loss_weight: 0.50
+  harmonic_amplitude_loss_weight: 0.05
+  harmonic_offset_loss_weight: 0.01
+  harmonic_presence_head: true
+  harmonic_presence_loss_weight: 0.05
+  harmonic_presence_positive_weight: 1.0
+  harmonic_presence_negative_weight: 6.0
+  harmonic_presence_metric_threshold: 0.50
+  independent_note_head: true
+  independent_note_units: 32
+  independent_note_loss_weight: 1.0
+  independent_note_positive_weight: 2.0
+  independent_note_negative_weight: 1.0
+  independent_note_metric_threshold: 0.50
+  independent_note_freeze_backbone: true
+  independent_note_auxiliary_only: true
+  harmonic_supervision_minimum_schema_version: 3
+  harmonic_supervision_required_datasets:
+    - guitarset_poly_mix
+
+initialization:
+  mono_checkpoint: ""
+  required_checkpoint_sha256: 1ce8ac44ca7156d4bc058b5b37580805f2ab6536b380636c04b9a31b1a411325

@@ -3,6 +3,7 @@ param(
     [Parameter(Mandatory = $true, Position = 0)]
     [ValidateSet(
         "configure", "pair", "probe", "sync-code", "sync-data",
+        "sync-checkpoint",
         "bootstrap", "start", "stop", "status", "tail", "pull"
     )]
     [string]$Action,
@@ -14,6 +15,7 @@ param(
     [string]$LocalWorkspaceRoot,
     [string]$ConfigPath = "$PSScriptRoot\tmp\local\mac_worker.json",
     [string]$Manifest = "data\processed\polyphonic_harmonic_presence_v1\manifest_train_validation.csv",
+    [string]$Checkpoint,
     [string]$PythonBin = "python3.11",
     [string]$Module,
     [string[]]$ModuleArgs = @(),
@@ -424,13 +426,18 @@ if ($Action -eq "sync-code") {
             ("runner_target=" + (Quote-Posix "$($config.remote_root)/bin/mac_worker.sh")),
             ("runner_tmp=" + (Quote-Posix "$($config.remote_root)/bin/mac_worker.sh.tmp")),
             ("sidecar=" + (Quote-Posix $remoteSidecar)),
+            ("active_lock=" + (Quote-Posix "$($config.remote_root)/active.lock")),
             ('actual=$(shasum -a 256 "$archive" | awk ''{print $1}''); test "$actual" = ' + (Quote-Posix $archiveHash)),
-            ('if [ -e "$destination" ]; then grep -Fxq ' + (Quote-Posix "commit=$commit") + ' "$destination/.source.env"; else rm -rf "$staging"; mkdir -p "$staging"; tar -xf "$archive" -C "$staging"; rm -rf "$staging/data"; ln -s ' + (Quote-Posix "$($config.remote_root)/data") + ' "$staging/data"; printf ' + (Quote-Posix $sourceText) + ' > "$staging/.source.env"; mv "$staging" "$destination"; fi'),
+            'sync_lock_owned=0; if ! mkdir "$active_lock" 2>/dev/null; then echo "Heavy-worker lock is active; refusing code replacement" >&2; exit 6; fi; sync_lock_owned=1',
+            'cleanup_sync_lock() { if [ "$sync_lock_owned" = 1 ]; then rmdir "$active_lock" 2>/dev/null || true; fi; }; trap cleanup_sync_lock EXIT',
+            ('rm -rf "$staging"; mkdir -p "$staging"; tar -xf "$archive" -C "$staging"; rm -rf "$staging/data"; ln -s ' + (Quote-Posix "$($config.remote_root)/data") + ' "$staging/data"; printf ' + (Quote-Posix $sourceText) + ' > "$staging/.source.env"'),
+            ('if [ -e "$destination" ]; then test -d "$destination"; grep -Fxq ' + (Quote-Posix "commit=$commit") + ' "$destination/.source.env"; grep -Fxq ' + (Quote-Posix "archive_sha256=$archiveHash") + ' "$destination/.source.env"; rm -rf "$destination"; fi; mv "$staging" "$destination"'),
             ("mkdir -p " + (Quote-Posix "$($config.remote_root)/bin")),
             'rm -f "$runner_tmp"; tr -d ''\r'' < "$runner_source" > "$runner_tmp"',
             'bash -n "$runner_tmp"',
             ('actual_runner=$(shasum -a 256 "$runner_tmp" | awk ''{print $1}''); test "$actual_runner" = ' + (Quote-Posix $runnerHash)),
             'chmod 700 "$runner_tmp"; mv "$runner_tmp" "$runner_target"',
+            'rmdir "$active_lock"; sync_lock_owned=0; trap - EXIT',
             'rm -f "$archive" "$sidecar"'
         ) -join "; "
         Invoke-Ssh $config $command
@@ -551,6 +558,66 @@ if ($Action -eq "sync-data") {
         }
         elseif (Test-Path -LiteralPath $archive -PathType Leaf) {
             Write-Warning "Archive preserved for exact SFTP resume: $archive"
+        }
+    }
+    exit 0
+}
+
+if ($Action -eq "sync-checkpoint") {
+    if (-not $Checkpoint) {
+        throw "sync-checkpoint requires -Checkpoint."
+    }
+    $checkpointPath = (Resolve-Path -LiteralPath $Checkpoint).Path
+    if (-not (Test-Path -LiteralPath $checkpointPath -PathType Leaf)) {
+        throw "Checkpoint is not a file: $checkpointPath"
+    }
+    $checkpointHash = (
+        Get-FileHash -LiteralPath $checkpointPath -Algorithm SHA256
+    ).Hash.ToLowerInvariant()
+    $checkpointSize = (Get-Item -LiteralPath $checkpointPath).Length
+    $remoteCheckpoint = (
+        "$($config.remote_root)/checkpoints/$checkpointHash.keras"
+    )
+    $remotePart = "$remoteCheckpoint.part"
+    $remoteSidecar = "$remotePart.expected.env"
+    $caffeinatePid = $null
+    try {
+        $checkpointDirectory = "$($config.remote_root)/checkpoints"
+        $mkdirCheckpoint = "mkdir -p " + (
+            Quote-Posix $checkpointDirectory
+        )
+        Invoke-Ssh $config $mkdirCheckpoint
+        $caffeinatePid = Start-RemoteCaffeinate $config
+        $remoteState = Initialize-RemoteUpload (
+            $config
+        ) $remoteCheckpoint $checkpointHash $checkpointSize
+        if ($remoteState -eq "new") {
+            Invoke-SftpPut $config $checkpointPath $remotePart
+        }
+        elseif ($remoteState -eq "resume") {
+            Invoke-SftpReput $config $checkpointPath $remotePart
+        }
+        Complete-RemoteUpload (
+            $config
+        ) $remoteCheckpoint $checkpointHash $checkpointSize
+        $removeCheckpointSidecar = "rm -f " + (
+            Quote-Posix $remoteSidecar
+        )
+        Invoke-Ssh $config $removeCheckpointSidecar
+        Write-Output (
+            "Checkpoint synchronized: sha256=$checkpointHash " +
+            "bytes=$checkpointSize remote_checkpoint=$remoteCheckpoint"
+        )
+    }
+    finally {
+        if ($null -ne $caffeinatePid) {
+            try { Stop-RemoteCaffeinate $config $caffeinatePid }
+            catch {
+                Write-Warning (
+                    "Could not stop remote caffeinate PID " +
+                    "${caffeinatePid}: $($_.Exception.Message)"
+                )
+            }
         }
     }
     exit 0
