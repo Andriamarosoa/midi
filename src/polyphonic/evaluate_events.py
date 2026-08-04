@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 from collections import Counter
@@ -53,6 +54,10 @@ INDEPENDENT_NOTE_DIAGNOSTIC_THRESHOLDS = (
     0.001, 0.005, 0.01, 0.02, 0.05, 0.10, 0.20, 0.50,
     0.60, 0.70, 0.80, 0.90,
 )
+
+
+def _sha256_file(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 @dataclass(frozen=True)
@@ -629,6 +634,51 @@ def _aggregate_independent_note_gate(
     }
 
 
+def _low_midi_metrics(
+    reference: Sequence[NoteInterval], estimated: Sequence[NoteInterval],
+) -> dict[str, object]:
+    """Return event and diagnostic metrics restricted to MIDI 40--51."""
+    low_reference = [note for note in reference if 40 <= note.pitch <= 51]
+    low_estimated = [note for note in estimated if 40 <= note.pitch <= 51]
+    matches = match_notes(low_reference, low_estimated)
+    return {
+        "midi_min": 40,
+        "midi_max": 51,
+        "onset": note_metrics(low_reference, low_estimated, matches),
+        "diagnostics": diagnose_note_errors(
+            low_reference, low_estimated, matches,
+        ),
+    }
+
+
+def _load_paired_decoder_configs(
+    reference_path: Path,
+    candidate_path: Path,
+) -> tuple[PolyphonicDecoderConfig, PolyphonicDecoderConfig]:
+    """Load A/B configs and reject any difference except the gate threshold."""
+    reference_values = json.loads(reference_path.read_text(encoding="utf-8"))
+    candidate_values = json.loads(candidate_path.read_text(encoding="utf-8"))
+    if not isinstance(reference_values, dict) or not isinstance(candidate_values, dict):
+        raise ValueError("Paired decoder configurations must be JSON objects.")
+    differing = {
+        key for key in set(reference_values) | set(candidate_values)
+        if reference_values.get(key) != candidate_values.get(key)
+    }
+    if differing != {"independent_note_threshold"}:
+        raise ValueError(
+            "Paired decoder configurations must differ only in "
+            "independent_note_threshold."
+        )
+    if reference_values.get("independent_note_threshold") is not None:
+        raise ValueError("Paired reference must disable independent_note_threshold.")
+    if candidate_values.get("independent_note_threshold") is None:
+        raise ValueError("Paired candidate must enable independent_note_threshold.")
+    return (
+        PolyphonicDecoderConfig(**reference_values),
+        PolyphonicDecoderConfig(**candidate_values),
+    )
+
+
 def evaluate_events(
     run_dir: Path,
     split: str,
@@ -643,6 +693,7 @@ def evaluate_events(
     config_path: Path | None = None,
     allow_locked_test_after_final_selection: bool = False,
     final_selection_path: Path | None = None,
+    paired_decoder_config_path: Path | None = None,
 ) -> dict[str, object]:
     if split == "test":
         if not allow_locked_test_after_final_selection or final_selection_path is None:
@@ -725,6 +776,13 @@ def evaluate_events(
         decoder_config = default_decoder_config(
             frame_threshold, onset_threshold,
         )
+    paired_candidate_config: PolyphonicDecoderConfig | None = None
+    if paired_decoder_config_path is not None:
+        if not configured_decoder.is_file():
+            raise ValueError("Paired evaluation requires a reference decoder config.")
+        decoder_config, paired_candidate_config = _load_paired_decoder_configs(
+            configured_decoder, paired_decoder_config_path,
+        )
     all_reference: list[NoteInterval] = []
     all_estimated: list[NoteInterval] = []
     causal_clips: list[ClipNoteOnData] = []
@@ -738,6 +796,10 @@ def evaluate_events(
     )
     recording_reports: list[dict[str, object]] = []
     total_retriggers = 0
+    paired_reference: list[NoteInterval] = []
+    paired_estimated: list[NoteInterval] = []
+    paired_reports: list[dict[str, object]] = []
+    paired_retriggers = 0
     for recording_index, item in enumerate(items):
         corpus = PolyphonicCorpus([item])
         arrays = corpus.labels[0].arrays
@@ -782,6 +844,14 @@ def evaluate_events(
                 ),
             )
             reference = truth_notes(arrays)
+            if paired_candidate_config is not None:
+                candidate_gate: dict[str, object] = {}
+                candidate_estimated, candidate_retriggers = decode_probabilities(
+                    prediction["frame"], prediction["onset"],
+                    prediction["harmonic_amplitude"], paired_candidate_config,
+                    corpus.sample_rate, corpus.hop_size, activity_mask, onset_mask,
+                    prediction.get("independent_note"), candidate_gate,
+                )
         finally:
             corpus.close()
         onset_matches = match_notes(reference, estimated)
@@ -815,6 +885,21 @@ def evaluate_events(
                 reference, estimated, onset_matches,
             ),
         })
+        if paired_candidate_config is not None:
+            candidate_matches = match_notes(reference, candidate_estimated)
+            paired_retriggers += candidate_retriggers
+            paired_reports.append({
+                "source_id": item.source_id,
+                "dataset_id": item.dataset_id,
+                "group_id": item.group_id,
+                "capture_id": item.capture_id,
+                "duration_s": audio_duration_s,
+                "onset": note_metrics(reference, candidate_estimated, candidate_matches),
+                "retriggers": candidate_retriggers,
+                "diagnostics": diagnose_note_errors(
+                    reference, candidate_estimated, candidate_matches,
+                ),
+            })
         # Offset each recording in time so aggregate matching cannot cross files.
         shift = 1.0 + max(
             [note.end_s for note in all_reference + all_estimated] or [0.0]
@@ -825,6 +910,13 @@ def evaluate_events(
         all_estimated.extend(NoteInterval(
             note.pitch, note.start_s + shift, note.end_s + shift
         ) for note in estimated)
+        if paired_candidate_config is not None:
+            paired_reference.extend(NoteInterval(
+                note.pitch, note.start_s + shift, note.end_s + shift
+            ) for note in reference)
+            paired_estimated.extend(NoteInterval(
+                note.pitch, note.start_s + shift, note.end_s + shift
+            ) for note in candidate_estimated)
 
     onset_matches = match_notes(all_reference, all_estimated)
     offset_matches = match_notes(all_reference, all_estimated, require_offset=True)
@@ -875,6 +967,48 @@ def evaluate_events(
         ),
         "per_recording": recording_reports,
     }
+    if paired_candidate_config is not None:
+        candidate_matches = match_notes(paired_reference, paired_estimated)
+        candidate_onset = note_metrics(
+            paired_reference, paired_estimated, candidate_matches,
+        )
+        candidate_diagnostics = diagnose_note_errors(
+            paired_reference, paired_estimated, candidate_matches,
+        )
+        reference_low = _low_midi_metrics(all_reference, all_estimated)
+        candidate_low = _low_midi_metrics(paired_reference, paired_estimated)
+        report["paired_ab"] = {
+            "single_inference_per_recording": True,
+            "reference_config": str(configured_decoder),
+            "candidate_config": str(paired_decoder_config_path),
+            "reference_config_sha256": _sha256_file(configured_decoder),
+            "candidate_config_sha256": _sha256_file(paired_decoder_config_path),
+            "reference": {
+                "onset": report["onset"],
+                "dataset_metrics": report["dataset_metrics"],
+                "retriggers": report["retriggers"],
+                "diagnostics": report["diagnostics"],
+                "low_midi_40_51": reference_low,
+            },
+            "candidate": {
+                "onset": candidate_onset,
+                "dataset_metrics": aggregate_dataset_note_metrics(
+                    paired_reports, validation_fractions,
+                ),
+                "retriggers": paired_retriggers,
+                "diagnostics": candidate_diagnostics,
+                "low_midi_40_51": candidate_low,
+            },
+            "delta_candidate_minus_reference": {
+                "false_positive_notes": (
+                    candidate_onset["false_positive_notes"]
+                    - report["onset"]["false_positive_notes"]
+                ),
+                "matched_notes": candidate_onset["matched_notes"] - report["onset"]["matched_notes"],
+                "missing_notes": candidate_onset["missing_notes"] - report["onset"]["missing_notes"],
+                "f1": candidate_onset["f1"] - report["onset"]["f1"],
+            },
+        }
     reports_root = run_dir / "reports"
     reports_root.mkdir(exist_ok=True)
     checkpoint_suffix = (
@@ -916,6 +1050,11 @@ def main() -> None:
     )
     parser.add_argument("--thresholds", type=Path)
     parser.add_argument("--decoder-config", type=Path)
+    parser.add_argument(
+        "--paired-decoder-config",
+        type=Path,
+        help="Configuration candidat A/B ; seule la porte note indépendante peut différer.",
+    )
     parser.add_argument(
         "--audio-evidence-config",
         type=Path,
@@ -964,6 +1103,7 @@ def main() -> None:
         args.checkpoint, args.thresholds, args.decoder_config,
         causal_gate, audio_evidence_metadata, args.report_suffix, args.config,
         args.allow_locked_test_after_final_selection, args.final_selection,
+        args.paired_decoder_config,
     )
     print(json.dumps({
         "split": report["split"],

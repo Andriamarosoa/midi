@@ -42,7 +42,7 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 - Mise à jour : `2026-08-04T23:07:03+04:00` (réconciliée, approximative ; l'horloge du Mac était avancée d'environ 11 h).
 - Étape : `independent_note_absolute_partial_alignment_smoke`.
-- Statut : `hypothèse de validation appariée définie — revue requise avant exécution`.
+- Statut : `mode A/B à inférence unique implémenté — revue requise avant exécution`.
 - Résultat établi : la tête précédente est saturée et ne doit pas être promue;
   `locked_test_used=false`. Le constructeur de cibles corrige maintenant la
   somme nécessaire entre décalage annotation-vers-classe et résidu du partiel.
@@ -62,7 +62,7 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## Prochaine action réelle
 
 1. Ne promouvoir ni le checkpoint précédent ni un seuil de porte.
-2. Faire relire l'hypothèse de validation appariée par ChatGPT.
+2. Faire relire l'implémentation A/B et l'hypothèse de validation appariée par ChatGPT.
 3. Si elle est approuvée, exécuter une seule évaluation CPU sur les 12 prises
    validation canoniques, A/B apparié : porte absente contre seuil fixé `0,01`.
 4. Conserver le test verrouillé fermé et ne lancer aucun entraînement complet,

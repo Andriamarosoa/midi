@@ -21,7 +21,7 @@ Le modèle de tête est celui du smoke borné, SHA-256 `d4d2101ff6f7f4da9cee4eb9
 
 Mesures primaires, globales et par corpus : faux NoteOn, faux NoteOn/min, faux positifs à intervalle harmonique, erreurs d'octave, précision, rappel et F1 onset, notes manquantes, retriggers et fragmentation. Les graves MIDI 40–51 sont rapportés séparément. La latence causale est mesurée ; la porte ne doit ajouter aucun hop au NoteOn.
 
-La variante n'est retenue comme candidat de recherche que si elle réduit les faux NoteOn et les faux positifs harmoniques sans régression matérielle de rappel ou F1 onset, sans dégradation sur un corpus, sans aggravation des erreurs d'octave graves et sans latence de NoteOn supplémentaire. Sinon elle est rejetée ; aucun seuil alternatif n'est essayé dans cette passe.
+La variante n'est retenue comme candidat de recherche que si tous les critères préenregistrés sont satisfaits : au moins un faux NoteOn global en moins ; zéro augmentation des faux positifs harmoniques, erreurs d'octave, retriggers et fragments ; baisse de rappel global au plus `0,005` ; baisse de F1 onset global au plus `0,002` ; baisse de F1 onset de chaque corpus au plus `0,010` ; au plus cinq notes manquantes supplémentaires ; et zéro hop de NoteOn ajouté. Sinon elle est rejetée ; aucun seuil alternatif n'est essayé dans cette passe.
 
 ## Garde-fous
 
@@ -31,3 +31,7 @@ La variante n'est retenue comme candidat de recherche que si elle réduit les fa
 - Le rapport doit inclure commandes, SHA-256 des checkpoints/configurations, résultats A/B par prise et par corpus, ainsi que l'intégrité Keras/ZIP.
 
 Cette hypothèse doit être revue avant son exécution. Elle permet de mesurer le comportement événementiel réel, sans transformer la calibration train-only en promotion automatique.
+
+## Implémentation prête à relire
+
+Le mode `--paired-decoder-config` effectue une seule inférence par enregistrement puis deux décodages. Il refuse les configurations qui diffèrent sur un champ autre que `independent_note_threshold`, inclut les deux SHA-256 de configuration, les résultats A/B, leurs différences et les métriques MIDI 40–51. La configuration référence versionnée désactive explicitement la porte. Les tests ciblés vérifient la restriction de configuration, les métriques graves et l'unique appel d'inférence dans la boucle des enregistrements.

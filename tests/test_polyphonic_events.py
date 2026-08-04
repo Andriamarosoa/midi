@@ -13,6 +13,8 @@ from src.polyphonic.evaluate_events import (
     NoteInterval,
     _aggregate_independent_note_gate,
     _audio_duration_s,
+    _load_paired_decoder_configs,
+    _low_midi_metrics,
     aggregate_dataset_note_metrics,
     aggregate_strictly_causal_noteon_metrics,
     build_strictly_causal_noteon_clip,
@@ -25,6 +27,29 @@ from src.polyphonic.evaluate_events import (
 
 
 class PolyphonicEventEvaluationTests(unittest.TestCase):
+    def test_paired_decoder_configs_allow_only_gate_threshold(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        reference, candidate = _load_paired_decoder_configs(
+            root / "configs" / "independent_note_decoder_reference.json",
+            root / "configs" / "independent_note_decoder_candidate.json",
+        )
+        self.assertIsNone(reference.independent_note_threshold)
+        self.assertEqual(candidate.independent_note_threshold, 0.01)
+
+    def test_paired_mode_keeps_one_model_prediction_call_per_recording(self) -> None:
+        source = Path(__file__).resolve().parents[1] / "src" / "polyphonic" / "evaluate_events.py"
+        body = source.read_text(encoding="utf-8")
+        loop_start = body.index("for recording_index, item in enumerate(items):")
+        loop_end = body.index("    onset_matches = match_notes(all_reference", loop_start)
+        self.assertEqual(body[loop_start:loop_end].count("predict_compat("), 1)
+
+    def test_low_midi_metrics_are_restricted_to_40_through_51(self) -> None:
+        report = _low_midi_metrics(
+            [NoteInterval(40, 0.0, 0.5), NoteInterval(52, 0.0, 0.5)],
+            [NoteInterval(40, 0.01, 0.5), NoteInterval(52, 0.01, 0.5)],
+        )
+        self.assertEqual(report["onset"]["reference_notes"], 1)
+        self.assertEqual(report["onset"]["estimated_notes"], 1)
     def test_independent_note_gate_aggregation_uses_all_values_and_strict_thresholds(self) -> None:
         reports = [{"independent_note_gate": {
             "enabled": True, "threshold": 0.01, "eligible_candidates": 2,
