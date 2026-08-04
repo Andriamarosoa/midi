@@ -40,12 +40,12 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 ## État courant
 
-- Mise à jour : `2026-08-04T22:42:12+04:00`.
+- Mise à jour : `2026-08-04T22:58:38+04:00`.
 - Étape : `independent_note_absolute_partial_alignment`.
-- Statut : `contrat corrigé — revue requise avant smoke`.
+- Statut : `sémantique du contrat restaurée — revue requise avant smoke`.
 - Résultat établi : la tête précédente est saturée et ne doit pas être promue;
   `locked_test_used=false`. Le constructeur de cibles corrige maintenant la
-  double addition potentielle entre décalage fondamental et partiel absolu.
+  somme nécessaire entre décalage annotation-vers-classe et résidu du partiel.
 - Vérification : compilation et 24 tests ciblés réussis. Aucun entraînement,
   export, live, test verrouillé ni nouveau calcul de métriques n'a été exécuté.
 - Rapport :

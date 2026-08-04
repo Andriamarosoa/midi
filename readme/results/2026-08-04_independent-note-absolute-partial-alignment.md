@@ -2,19 +2,19 @@
 
 ## Hypothèse
 
-`note_harmonic_offset_cents` est calculé depuis la fréquence mesurée du partiel
-vers sa fréquence théorique (`fondamentale annotée × numéro harmonique`). Il
-porte donc déjà le décalage de la fondamentale et celui du partiel. L'ancien
-constructeur de cible ajoutait en plus `note_fundamental_offset_cents`, ce qui
-pouvait déplacer deux fois la classe MIDI négative lorsqu'un décalage
-fondamental non nul était fourni.
+La classe active est un MIDI entier, tandis que le CSV harmonique est ancré à
+l'annotation JAMS potentiellement fractionnaire. `note_fundamental_offset_cents`
+relie ces deux repères; `note_harmonic_offset_cents` relie ensuite l'harmonique
+annoté à sa fréquence mesurée. Les deux termes sont complémentaires.
 
 ## Correctif limité
 
-La cible `harmonic_only` emploie désormais uniquement le décalage harmonique
-absolu pour convertir le partiel mesuré en classe MIDI. `note_id` continue de
-lier chaque fondamental à ses propres partiels et une note annotée simultanée
-reste positive, prioritaire sur toute cible négative.
+Une première interprétation a temporairement supprimé le premier terme. La
+revue l'a rejetée avant tout smoke. Le contrat final le restaure avec des noms
+explicites : `annotation_offset_from_rounded_midi_cents` et
+`partial_residual_from_annotated_harmonic_cents`. `note_id` continue de lier
+chaque fondamental à ses propres partiels et une note annotée simultanée reste
+positive, prioritaire sur toute cible négative.
 
 Ce changement ne reconstruit aucune donnée et ne modifie pas le JSON de
 validation précédent. Il ne réentraîne pas de modèle et ne sélectionne aucun
@@ -25,9 +25,9 @@ seuil.
 - Compilation Python réussie.
 - 24 tests ciblés réussis : cibles indépendantes, données polyphoniques et
   sidecar de décalage.
-- Le nouveau test vérifie un fondamental à +40 cents et un partiel absolu à
-  +30 cents : la cible reste la classe du second harmonique, au lieu d'être
-  déplacée artificiellement d'un demi-ton par l'addition des deux valeurs.
+- Le test de contrat vérifie une annotation à +40 cents par rapport à la classe
+  MIDI entière et un H2 à +30 cents par rapport à l'annotation : la cible est
+  la classe supérieure, à +70 cents du H2 de la classe entière.
 
 ## Suite autorisée
 

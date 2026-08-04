@@ -117,7 +117,7 @@ class IndependentNoteTargetTests(unittest.TestCase):
         self.assertEqual(built.weight[12], 0.0)
         self.assertAlmostEqual(float(built.weight[13]), 0.4, places=6)
 
-    def test_absolute_partial_offset_is_not_double_counted_with_fundamental(self) -> None:
+    def test_annotation_offset_and_partial_residual_are_composed(self) -> None:
         arrays = _frame_arrays(
             supervised=np.asarray([[0, 1, 0]], np.uint8),
             present=np.asarray([[0, 1, 0]], np.uint8),
@@ -131,8 +131,8 @@ class IndependentNoteTargetTests(unittest.TestCase):
             arrays, 0, pitch_classes=24
         )
 
-        self.assertAlmostEqual(float(built.weight[12]), 0.4, places=6)
-        self.assertEqual(built.weight[13], 0.0)
+        self.assertEqual(built.weight[12], 0.0)
+        self.assertAlmostEqual(float(built.weight[13]), 0.4, places=6)
 
     def test_absent_or_unsupervised_partial_stays_masked(self) -> None:
         arrays = _frame_arrays(
