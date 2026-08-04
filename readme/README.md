@@ -1,8 +1,8 @@
 # Résumé unique — Guitar MIDI AI
 
-> Dernière mise à jour manuelle : 2026-07-30
+> Dernière mise à jour manuelle : 2026-08-04
 >
-> Branche active : `codex/dual-stream-bass`
+> Branche active : `codex/independent-note-neural-v2`
 >
 > Règle : ce fichier est le résumé chronologique unique du projet. Chaque
 > étape terminée, active, suivante ou en anomalie doit y être inscrite.
@@ -14,7 +14,7 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-> Mise a jour effective : `2026-08-05T04:26:18Z` - etape
+> Mise a jour effective : `2026-08-04T22:25:56+04:00` - etape
 > `independent_note_validation_one_pass_diagnostic`.
 >
 > Le diagnostic validation-only est termine : le seuil `0,01` est inoperant
@@ -33,7 +33,24 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 > `readme/results/2026-08-05_independent-note-historical-grid.md`.
 > `readme/results/2026-08-05_independent-note-one-pass-diagnostic.md`.
 
+> Note d'horloge : le Mac a horodaté la fin brute à
+> `2026-08-05T05:25:56Z`, mais son horloge était avancée d'environ 11 h.
+> Le temps réconcilié ci-dessus est `2026-08-04T18:25:56Z`; les résultats et
+> le JSON brut restent inchangés.
+
 ## État courant
+
+- Mise à jour : `2026-08-04T22:32:57+04:00`.
+- Étape : `independent_note_validation_one_pass_diagnostic`.
+- Statut : `terminé — revue requise avant toute suite`.
+- Résultat : sur 12 enregistrements validation, 709 candidats sont observés;
+  le seuil diagnostique `0,90` n'en rejetterait que 49. La porte indépendante
+  seule ne résout donc pas les 3389 faux NoteOn. `locked_test_used=false`.
+- Limite : cette conclusion ne vaut que pour ces 12 enregistrements, ce
+  checkpoint et cette tête. Aucun entraînement, export, live ou test verrouillé
+  n'est autorisé avant la revue du rapport one-pass.
+
+## État archivé — dual-stream du 30 juillet (remplacé)
 
 - Mise à jour : `2026-07-30T08:13:17+04:00`
 - Étape : `dual_stream_bass_local_train`
