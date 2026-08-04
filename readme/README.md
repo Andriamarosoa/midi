@@ -23,9 +23,12 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 > diagnostic des douze seuils est maintenant impose au seul split validation,
 > l'ancienne grille multi-passes est retiree, et les tests couvrent quantiles,
 > comparaison stricte et absence de candidats (`44` tests). Aucun test verrouille,
-> entrainement, export ou live n'a ete effectue. Suite : revue ChatGPT du
-> correctif puis une seule passe CPU validation. Rapport :
+> entrainement, export ou live n'a ete effectue. Une ancienne grille CPU
+> terminee a confirme que `0,90` ne retire que 2 faux NoteOn et ne remplace pas
+> le diagnostic a une passe. Suite : revue ChatGPT du resultat puis une seule
+> passe CPU validation. Rapports :
 > `readme/results/2026-08-05_independent-note-validation-diagnostic.md`.
+> `readme/results/2026-08-05_independent-note-historical-grid.md`.
 
 ## État courant
 
