@@ -25,10 +25,13 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 > comparaison stricte et absence de candidats (`44` tests). Aucun test verrouille,
 > entrainement, export ou live n'a ete effectue. Une ancienne grille CPU
 > terminee a confirme que `0,90` ne retire que 2 faux NoteOn et ne remplace pas
-> le diagnostic a une passe. Suite : revue ChatGPT du resultat puis une seule
-> passe CPU validation. Rapports :
+> le diagnostic a une passe. Le diagnostic a une passe est maintenant termine :
+> mediane `0,98582065`, seulement 49/709 rejets hypothetiques a `0,90`, donc
+> la porte seule ne peut pas corriger les 3389 faux NoteOn. Suite : revue
+> ChatGPT du resultat avant toute modification ou nouveau calcul. Rapports :
 > `readme/results/2026-08-05_independent-note-validation-diagnostic.md`.
 > `readme/results/2026-08-05_independent-note-historical-grid.md`.
+> `readme/results/2026-08-05_independent-note-one-pass-diagnostic.md`.
 
 ## État courant
 
