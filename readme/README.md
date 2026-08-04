@@ -50,11 +50,22 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   checkpoint et cette tête. Aucun entraînement, export, live ou test verrouillé
   n'est autorisé avant la revue du rapport one-pass.
 
+## Prochaine action réelle
+
+1. Clore `independent-note-neural-v2` comme résultat négatif pour cette tête :
+   elle est trop saturée pour filtrer seule les faux NoteOn.
+2. Ne promouvoir ni ce checkpoint ni un seuil de porte.
+3. Définir, sur validation seulement, une hypothèse distincte qui traite la
+   cause des faux NoteOn; ne pas lancer de train complet avant son smoke et sa
+   revue.
+4. Conserver le test verrouillé fermé.
+
 ## État archivé — dual-stream du 30 juillet (remplacé)
 
 - Mise à jour : `2026-07-30T08:13:17+04:00`
 - Étape : `dual_stream_bass_local_train`
-- Statut : `en cours`
+- Statut historique au 30 juillet : `en cours à cet instant`, désormais
+  remplacé et non actif.
 - Détail : décision permanente appliquée : aucun upload, appel API, kernel
   ou calcul Kaggle/Colab ne sera utilisé sans nouvelle autorisation explicite.
   Le desktop dispose d'un i7-1355U, de 15,64 Gio de RAM et de TensorFlow
@@ -84,7 +95,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `tmp/local/dual_stream_bass_train_20260730_080846.stdout.log` et
   `.stderr.log`. Le test verrouillé reste exclu.
 
-## Étapes suivantes
+## Étapes archivées — plan dual-stream du 30 juillet (non actif)
+
+> Ces étapes appartiennent au plan dual-stream remplacé ci-dessus. Elles ne
+> doivent ni être exécutées ni interprétées comme le plan actuel.
 
 1. Capturer la même suite live sans puis avec capodastre, au même niveau et avec WAV/trace complète : cordes graves isolées, accords ouverts/barrés, strums lents/rapides, octaves et harmoniques. Comparer énergie fondamentale/partiels, probabilités par hauteur, erreurs d'octave et notes manquantes. Cette capture servira au diagnostic, pas au test verrouillé.
 2. Conserver le remplacement par transposition +12/−12 uniquement comme diagnostic offline désactivé ; ne pas confondre ce test négatif avec la future architecture à deux flux.

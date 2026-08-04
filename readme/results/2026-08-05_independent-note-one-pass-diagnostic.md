@@ -4,8 +4,8 @@
 
 - Job Mac CPU : `independent-note-one-pass-diagnostic-cpu-20260805`.
 - Commit : `0a235d2ecc5a82564897eb347caee26e2842a7eb`.
-- Fin réconciliée : `2026-08-04T18:25:56Z` (`2026-08-04T22:25:56+04:00`),
-  code de sortie `0`.
+- Fin réconciliée approximative, après correction de l'avance d'environ 11 h :
+  `2026-08-04T18:25:56Z` (`2026-08-04T22:25:56+04:00`), code de sortie `0`.
 - Horodatage brut conservé : le Mac a écrit `2026-08-05T05:25:56Z`, alors que
   son horloge était avancée d'environ 11 h par rapport à l'horloge Windows
   vérifiée à `2026-08-04T22:32:57+04:00`. Le JSON brut et son SHA-256 ne sont

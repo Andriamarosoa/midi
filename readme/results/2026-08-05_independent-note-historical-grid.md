@@ -4,8 +4,9 @@
 
 - Job Mac CPU : `independent-note-threshold-grid-cpu-20260805`.
 - Commit exécuté : `a4f37676b4791e83d9842ade4da07eb9bfaa1d46`.
-- Fin réconciliée : `2026-08-04T18:12:03Z` (`2026-08-04T22:12:03+04:00`),
-  code de sortie `0`. L'horodatage brut du Mac, conservé comme provenance,
+- Fin réconciliée approximative, après correction de l'avance d'environ 11 h :
+  `2026-08-04T18:12:03Z` (`2026-08-04T22:12:03+04:00`), code de sortie `0`.
+  L'horodatage brut du Mac, conservé comme provenance,
   était `2026-08-05T05:12:03Z` alors que son horloge était avancée d'environ
   11 h; aucun résultat n'est recalculé.
 - Split : validation, 12 enregistrements, `locked_test_used=false`.
