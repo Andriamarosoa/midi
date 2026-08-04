@@ -11,6 +11,7 @@ from typing import Mapping, Sequence
 
 import numpy as np
 import tensorflow as tf
+import yaml
 
 from src.polyphonic import model as _registered_model_types  # noqa: F401
 from src.polyphonic.keras_compat import load_polyphonic_checkpoint
@@ -550,6 +551,7 @@ def evaluate_events(
     causal_gate: CausalMetricGate | None = None,
     audio_evidence_metadata: Mapping[str, object] | None = None,
     report_suffix: str | None = None,
+    config_path: Path | None = None,
 ) -> dict[str, object]:
     if report_suffix is not None and (
         not report_suffix
@@ -561,7 +563,22 @@ def evaluate_events(
         raise ValueError(
             "report_suffix must contain only letters, digits, '_' or '-'."
         )
-    config = json.loads((run_dir / "config.json").read_text(encoding="utf-8"))
+    resolved_config_path = config_path or (run_dir / "config.json")
+    config_text = resolved_config_path.read_text(encoding="utf-8")
+    config = (
+        yaml.safe_load(config_text)
+        if resolved_config_path.suffix.lower() in {".yaml", ".yml"}
+        else json.loads(config_text)
+    )
+    if not isinstance(config, dict):
+        raise ValueError("Evaluation config must be an object.")
+    if config_path is not None:
+        manifest = Path(str(config["dataset"]["manifest"]))
+        if not manifest.is_absolute():
+            # Config files live under <repo>/configs; manifests are repo-relative.
+            config["dataset"]["manifest"] = str(
+                (resolved_config_path.parent.parent / manifest).resolve()
+            )
     thresholds = json.loads(
         (thresholds_path or (run_dir / "thresholds.json")).read_text(
             encoding="utf-8"
@@ -767,6 +784,11 @@ def main() -> None:
     parser.add_argument("--maximum-recordings", type=int)
     parser.add_argument("--dataset-id")
     parser.add_argument("--checkpoint", type=Path)
+    parser.add_argument(
+        "--config",
+        type=Path,
+        help="Configuration JSON/YAML explicite, indépendante du run-dir.",
+    )
     parser.add_argument("--thresholds", type=Path)
     parser.add_argument("--decoder-config", type=Path)
     parser.add_argument(
@@ -815,7 +837,7 @@ def main() -> None:
     report = evaluate_events(
         args.run_dir, args.split, args.maximum_recordings, args.dataset_id,
         args.checkpoint, args.thresholds, args.decoder_config,
-        causal_gate, audio_evidence_metadata, args.report_suffix,
+        causal_gate, audio_evidence_metadata, args.report_suffix, args.config,
     )
     print(json.dumps({
         "split": report["split"],

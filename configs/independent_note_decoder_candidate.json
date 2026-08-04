@@ -1,0 +1,22 @@
+{
+  "midi_min": 40,
+  "midi_max": 76,
+  "frame_on_threshold": 0.6,
+  "strong_frame_threshold": 0.85,
+  "frame_off_threshold": 0.36,
+  "onset_threshold": 0.615,
+  "activation_frames": 2,
+  "release_frames": 3,
+  "minimum_retrigger_frames": 14,
+  "silence_release_frames": 14,
+  "maximum_polyphony": 6,
+  "harmonic_suppression_strength": 0.25,
+  "harmonic_tolerance_cents": 35.0,
+  "audio_onset_lookback_frames": 10,
+  "unattacked_frame_threshold": 0.9,
+  "harmonic_support_threshold": 0.6,
+  "recovery_release_grace_frames": 4,
+  "chord_release_grace_frames": 6,
+  "chord_formation_frames": 0,
+  "independent_note_threshold": 0.01
+}
