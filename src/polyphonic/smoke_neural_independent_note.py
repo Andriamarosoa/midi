@@ -843,7 +843,10 @@ def _run_with_corpus_registry(
     )
 
     model_path = output_dir / "independent_note_head.keras"
-    full_model.save(model_path, include_optimizer=False)
+    # Native ``.keras`` saving under Keras 3 rejects ``include_optimizer``.
+    # The gate reloads only for inference parity, so the default native format
+    # is sufficient and stays compatible with both Keras 2 and 3.
+    full_model.save(model_path)
     probability, target, weight, corpus = _predict_flat(
         head_model, sequences["calibration"]
     )
