@@ -14,6 +14,16 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
+> Mise a jour effective : `2026-08-05T04:26:18Z` - etape
+> `independent_note_validation_threshold_grid`.
+>
+> Le diagnostic validation-only est termine : le seuil `0,01` est inoperant
+> (709 candidats eligibles, 0 rejet, probabilite minimum `0,48080769`, F1 onset
+> inchange a `0,21760081`). Aucun test verrouille, entrainement, export ou live
+> n'a ete effectue. Suite : grille CPU `0,50..0,90`, puis revue ChatGPT avant
+> toute promotion. Rapport :
+> `readme/results/2026-08-05_independent-note-validation-diagnostic.md`.
+
 ## État courant
 
 - Mise à jour : `2026-07-30T08:13:17+04:00`
