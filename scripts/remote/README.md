@@ -38,14 +38,33 @@ Depuis Windows, dans la branche propre du worker :
 Le fichier réel de configuration reste sous `tmp/local/mac_worker.json`, donc
 hors Git. Aucun mot de passe n'y est stocké.
 
-## Synchronisation LAN
+## Synchronisation Git
 
-Le code doit être un commit Git propre. Il est envoyé comme archive immuable,
-identifiée par SHA-256; le worktree Windows et son pointeur `.git` ne sont
-jamais copiés.
+Le code est un commit Git propre. Le Mac conserve un checkout Git sous
+`/Users/<user>/midi-worker/repository`; les jobs refusent de démarrer si son
+`HEAD` ne correspond pas exactement au commit demandé. Cette voie évite toute
+modification de fin de ligne par une archive Windows.
+
+Après le commit et le push depuis Windows, initialiser une seule fois le Mac :
+
+```bash
+git clone <repo-url> /Users/<user>/midi-worker/repository
+git -C /Users/<user>/midi-worker/repository switch --track origin/<branche>
+cp /Users/<user>/midi-worker/repository/scripts/remote/mac_worker.sh /Users/<user>/midi-worker/bin/mac_worker.sh
+chmod 700 /Users/<user>/midi-worker/bin/mac_worker.sh
+```
+
+Pour chaque nouveau commit de cette branche sur le Mac :
+
+```bash
+git -C /Users/<user>/midi-worker/repository pull --ff-only
+cp /Users/<user>/midi-worker/repository/scripts/remote/mac_worker.sh /Users/<user>/midi-worker/bin/mac_worker.sh
+chmod 700 /Users/<user>/midi-worker/bin/mac_worker.sh
+```
+
+Puis, depuis Windows :
 
 ```powershell
-.\MAC_WORKER.ps1 sync-code
 .\MAC_WORKER.ps1 bootstrap
 .\MAC_WORKER.ps1 sync-data -DryRun
 .\MAC_WORKER.ps1 sync-data

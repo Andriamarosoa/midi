@@ -1,7 +1,9 @@
 dataset:
   manifest: data/processed/polyphonic_harmonic_presence_v1/manifest_train_validation.csv
   independent_note_fundamental_offsets: configs/assets/polyphonic_guitarset_fundamental_offsets_train_validation.json
-  independent_note_fundamental_offsets_sha256: d3cf33c441efb13f1e16bbb4df95b7a170cc3dd096015d11bd241550c1f16622
+  # SHA-256 of the Git-archived (LF) payload installed on the Mac worker.
+  # Do not compute this from a Windows working-tree copy, whose CRLF bytes differ.
+  independent_note_fundamental_offsets_sha256: 8ebf0935e7024bf684adf0a08b6dc3e767af2da8e1040c08abbfbeff40969d55
   independent_note_fundamental_offset_required_datasets:
     - guitarset_poly_mix
   seed: 47

@@ -21,6 +21,21 @@ require_commit() {
     echo "Invalid commit identifier: $commit" >&2
     exit 2
   }
+  # Preferred transport: a persistent Git checkout.  It avoids Windows CRLF
+  # changes in archive payloads while still fail-closing on the exact commit.
+  local git_workspace="$worker_root/repository"
+  if [[ -d "$git_workspace/.git" ]]; then
+    local actual_commit
+    actual_commit="$(git -C "$git_workspace" rev-parse HEAD 2>/dev/null || true)"
+    [[ "$actual_commit" = "$commit" ]] || {
+      echo "Git workspace commit mismatch: expected $commit, got ${actual_commit:-unavailable}" >&2
+      exit 3
+    }
+    printf '%s\n' "$git_workspace"
+    return
+  fi
+
+  # Compatibility path for pre-existing immutable archive workspaces.
   local workspace="$worker_root/workspaces/$commit"
   [[ -d "$workspace" ]] || {
     echo "Missing synchronized workspace: $workspace" >&2
