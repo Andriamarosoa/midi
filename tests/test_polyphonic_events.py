@@ -11,6 +11,7 @@ from src.polyphonic.data import ManifestItem
 from src.polyphonic.decoder import PolyphonicDecoderConfig, PolyphonicMidiEvent
 from src.polyphonic.evaluate_events import (
     NoteInterval,
+    _aggregate_independent_note_gate,
     _audio_duration_s,
     aggregate_dataset_note_metrics,
     aggregate_strictly_causal_noteon_metrics,
@@ -24,6 +25,26 @@ from src.polyphonic.evaluate_events import (
 
 
 class PolyphonicEventEvaluationTests(unittest.TestCase):
+    def test_independent_note_gate_aggregation_has_exact_quantiles_and_grid(self) -> None:
+        reports = [{"independent_note_gate": {
+            "enabled": True, "threshold": 0.01, "eligible_candidates": 2,
+            "rejected_candidates": 0, "eligible_probability_min": 0.2,
+            "eligible_probability_max": 0.8, "eligible_probability_mean": 0.5,
+            "diagnostic_thresholds": [0.5],
+            "eligible_probability_values": [0.2, 0.8],
+        }}, {"independent_note_gate": {
+            "enabled": True, "threshold": 0.01, "eligible_candidates": 1,
+            "rejected_candidates": 0, "eligible_probability_min": 0.4,
+            "eligible_probability_max": 0.4, "eligible_probability_mean": 0.4,
+            "diagnostic_thresholds": [0.5],
+            "eligible_probability_values": [0.4],
+        }}]
+        result = _aggregate_independent_note_gate(reports)
+        self.assertEqual(result["eligible_candidates"], 3)
+        self.assertEqual(result["would_reject"]["0.500"], 2)
+        self.assertAlmostEqual(result["eligible_probability_mean"], 7 / 15)
+        self.assertAlmostEqual(result["probability_quantiles"]["p50"], 0.4)
+
     def test_force_cpu_is_applied_before_tensorflow_import(self) -> None:
         import src.polyphonic.evaluate_events as events
 

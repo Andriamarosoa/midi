@@ -49,6 +49,11 @@ from src.polyphonic.decoder import (
 )
 from src.polyphonic.event_diagnostics import diagnose_note_errors
 
+INDEPENDENT_NOTE_DIAGNOSTIC_THRESHOLDS = (
+    0.001, 0.005, 0.01, 0.02, 0.05, 0.10, 0.20, 0.50,
+    0.60, 0.70, 0.80, 0.90,
+)
+
 
 @dataclass(frozen=True)
 class NoteInterval:
@@ -497,7 +502,10 @@ def decode_probabilities(
     independent_note: np.ndarray | None = None,
     independent_note_gate_diagnostics: dict[str, object] | None = None,
 ) -> tuple[list[NoteInterval], int]:
-    decoder = PolyphonicDecoder(config)
+    decoder = PolyphonicDecoder(
+        config,
+        independent_note_diagnostic_thresholds=INDEPENDENT_NOTE_DIAGNOSTIC_THRESHOLDS,
+    )
     events: list[PolyphonicMidiEvent] = []
     retriggers = 0
     if audio_active is None:
@@ -582,6 +590,12 @@ def _aggregate_independent_note_gate(
         for gate in gates
         if gate["eligible_probability_max"] is not None
     ]
+    probabilities = np.asarray([
+        value
+        for gate in gates
+        for value in gate.get("eligible_probability_values", [])
+    ], dtype=np.float64)
+    thresholds = gates[0].get("diagnostic_thresholds", [])
     return {
         "enabled": bool(gates[0]["enabled"]),
         "threshold": gates[0]["threshold"],
@@ -595,6 +609,21 @@ def _aggregate_independent_note_gate(
         "eligible_probability_mean": (
             None if eligible == 0 else weighted_sum / eligible
         ),
+        "probability_quantiles": (
+            {} if probabilities.size == 0 else {
+                name: float(np.quantile(probabilities, percentile))
+                for name, percentile in (
+                    ("p01", 0.01), ("p05", 0.05), ("p50", 0.50),
+                    ("p95", 0.95), ("p99", 0.99),
+                )
+            }
+        ),
+        "would_reject": {
+            f"{float(threshold):.3f}": int(
+                np.count_nonzero(probabilities < float(threshold))
+            )
+            for threshold in thresholds
+        },
     }
 
 
@@ -809,6 +838,11 @@ def evaluate_events(
     causal_noteon_metrics = aggregate_strictly_causal_noteon_metrics(
         causal_clips, gate=causal_gate
     )
+    independent_note_gate = _aggregate_independent_note_gate(recording_reports)
+    for recording in recording_reports:
+        gate = recording.get("independent_note_gate")
+        if isinstance(gate, dict):
+            gate.pop("eligible_probability_values", None)
     report = {
         "run_dir": str(run_dir),
         "checkpoint": str(checkpoint),
@@ -831,9 +865,7 @@ def evaluate_events(
         "dataset_metrics": dataset_metrics,
         "strictly_causal_noteon": causal_noteon_metrics,
         "retriggers": total_retriggers,
-        "independent_note_gate": _aggregate_independent_note_gate(
-            recording_reports
-        ),
+        "independent_note_gate": independent_note_gate,
         "audio_evidence_policy": (
             "shared_live_audio_evidence_with_synthetic_silence_priming"
         ),

@@ -116,7 +116,11 @@ def _harmonic_number(
 class PolyphonicDecoder:
     """Own one global state per MIDI pitch; guitar strings never own notes."""
 
-    def __init__(self, config: PolyphonicDecoderConfig) -> None:
+    def __init__(
+        self,
+        config: PolyphonicDecoderConfig,
+        independent_note_diagnostic_thresholds: tuple[float, ...] = (),
+    ) -> None:
         self.config = config
         self.classes = config.midi_max - config.midi_min + 1
         self.active = np.zeros(self.classes, dtype=np.bool_)
@@ -139,6 +143,12 @@ class PolyphonicDecoder:
         self._independent_note_gate_probability_min: float | None = None
         self._independent_note_gate_probability_max: float | None = None
         self._independent_note_gate_probability_sum = 0.0
+        self._independent_note_diagnostic_thresholds = tuple(
+            sorted({float(value) for value in independent_note_diagnostic_thresholds})
+        )
+        if any(not 0.0 <= value <= 1.0 for value in self._independent_note_diagnostic_thresholds):
+            raise ValueError("Independent-note diagnostic thresholds must be in [0, 1].")
+        self._independent_note_diagnostic_values: list[float] = []
         self.harmonic_relations = tuple(
             tuple(
                 (base_index, number - 1)
@@ -220,6 +230,8 @@ class PolyphonicDecoder:
         rejected = bool(value < float(self.config.independent_note_threshold))
         if rejected:
             self._independent_note_gate_rejected += 1
+        if self._independent_note_diagnostic_thresholds:
+            self._independent_note_diagnostic_values.append(value)
         return rejected
 
     @property
@@ -237,6 +249,8 @@ class PolyphonicDecoder:
                 None if eligible == 0
                 else self._independent_note_gate_probability_sum / eligible
             ),
+            "diagnostic_thresholds": list(self._independent_note_diagnostic_thresholds),
+            "eligible_probability_values": list(self._independent_note_diagnostic_values),
         }
 
     @property
