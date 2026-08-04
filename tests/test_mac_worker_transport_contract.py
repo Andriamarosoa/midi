@@ -12,6 +12,15 @@ import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SOURCE = (ROOT / "MAC_WORKER.ps1").read_text(encoding="utf-8")
+RUNNER = (ROOT / "scripts" / "remote" / "mac_worker.sh").read_text(
+    encoding="utf-8"
+)
+REMOTE_README = (ROOT / "scripts" / "remote" / "README.md").read_text(
+    encoding="utf-8"
+)
+TRAIN_SOURCE = (ROOT / "src" / "polyphonic" / "train.py").read_text(
+    encoding="utf-8"
+)
 POWERSHELL = shutil.which("powershell.exe") or shutil.which("powershell")
 
 
@@ -76,6 +85,40 @@ class MacWorkerTransportContractTests(unittest.TestCase):
             SOURCE,
         )
         self.assertIn("splits=train,validation locked_test_used=false", SOURCE)
+
+    def test_mac_training_preflight_uses_real_train_config(self) -> None:
+        self.assertIn('training = config["train"]', RUNNER)
+        self.assertNotIn('training = config["training"]', RUNNER)
+
+    def test_representative_smoke_is_always_tiny_and_hard_bounded(self) -> None:
+        self.assertIn('"--smoke-test"', REMOTE_README)
+        self.assertIn('"--representative-smoke"', REMOTE_README)
+        self.assertIn("smoke_test != representative_smoke", RUNNER)
+        self.assertIn("must leave at least 60 seconds", RUNNER)
+        self.assertIn("WallTimeoutSeconds", SOURCE)
+        self.assertIn("wallclock_exec.py", RUNNER)
+        self.assertIn("process_group_alive", RUNNER)
+        self.assertIn("orphaned_group_alive", RUNNER)
+        self.assertIn("Duplicate controlled option", RUNNER)
+        self.assertIn("Duplicate controlled flag", RUNNER)
+        self.assertIn("allow_abbrev=False", TRAIN_SOURCE)
+
+    def test_remote_worker_exposes_owned_stop_contract(self) -> None:
+        self.assertIn('"configure", "pair", "probe", "sync-code", "sync-data",', SOURCE)
+        self.assertIn('"bootstrap", "start", "stop", "status", "tail", "pull"', SOURCE)
+        self.assertIn('if ($Action -eq "stop")', SOURCE)
+        self.assertIn("Refusing stop because process ownership does not match", RUNNER)
+        self.assertIn("Refusing stop because supervisor identity cannot be proven", RUNNER)
+        self.assertIn("kill -TERM \"$supervisor_pid\"", RUNNER)
+        self.assertIn("Supervised process handshake failed", RUNNER)
+        self.assertIn("lock preserved", RUNNER)
+        self.assertIn("Handshake failed with an owned group", RUNNER)
+        self.assertIn('ps -ww -p "$supervisor_pid"', RUNNER)
+        self.assertIn("stale_owner_cleanup=true", RUNNER)
+        self.assertIn('printf \'active_owner=%s', RUNNER)
+        self.assertIn("final_status=orphaned_group", RUNNER)
+        self.assertIn('final_status" != orphaned_group', RUNNER)
+        self.assertIn("Owned runner survived stop; lock preserved", RUNNER)
 
     def test_transfer_has_bounded_sleep_assertion_and_single_sftp_guard(self) -> None:
         self.assertIn("caffeinate -ims -t 21600", SOURCE)

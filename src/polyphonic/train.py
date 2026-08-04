@@ -2104,7 +2104,7 @@ def main() -> int:
         print("DEVICE_POLICY cpu_only", flush=True)
     else:
         print("DEVICE_POLICY default", flush=True)
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__, allow_abbrev=False)
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument(
         "--smoke-test",

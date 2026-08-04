@@ -3,7 +3,7 @@ param(
     [Parameter(Mandatory = $true, Position = 0)]
     [ValidateSet(
         "configure", "pair", "probe", "sync-code", "sync-data",
-        "bootstrap", "start", "status", "tail", "pull"
+        "bootstrap", "start", "stop", "status", "tail", "pull"
     )]
     [string]$Action,
     [string]$HostName,
@@ -20,6 +20,8 @@ param(
     [ValidateSet("cpu", "metal")]
     [string]$Device = "metal",
     [string]$JobId,
+    [ValidateRange(1, 22200)]
+    [int]$WallTimeoutSeconds = 22200,
     [int]$Lines = 80,
     [string]$RunPath,
     [string]$Destination = "$PSScriptRoot\tmp\local\mac_results",
@@ -562,7 +564,16 @@ if ($Action -eq "bootstrap") {
 if ($Action -eq "start") {
     if (-not $Module) { throw "start requires -Module." }
     if (-not $JobId) { $JobId = "job-" + (Get-Date -Format "yyyyMMdd-HHmmss") }
-    Invoke-Worker $config (@("start", [string]$config.remote_root, $commit, $JobId, $Device, $Module) + $ModuleArgs)
+    Invoke-Worker $config (@(
+        "start", [string]$config.remote_root, $commit, $JobId, $Device,
+        [string]$WallTimeoutSeconds, $Module
+    ) + $ModuleArgs)
+    exit 0
+}
+
+if ($Action -eq "stop") {
+    if (-not $JobId) { throw "stop requires -JobId." }
+    Invoke-Worker $config @("stop", [string]$config.remote_root, $JobId)
     exit 0
 }
 

@@ -65,6 +65,7 @@ sur les deux devices :
 ```powershell
 $smokeArgs = @(
   "--config", "configs/polyphonic_dual_stream_bass_harmonic_presence.yaml",
+  "--smoke-test",
   "--representative-smoke",
   "--smoke-examples", "8192",
   "--smoke-validation-examples", "2048",
@@ -74,13 +75,15 @@ $smokeArgs = @(
 )
 
 .\MAC_WORKER.ps1 start -JobId mac-smoke-cpu `
-  -Device cpu -Module src.polyphonic.train -ModuleArgs $smokeArgs
+  -Device cpu -WallTimeoutSeconds 3900 `
+  -Module src.polyphonic.train -ModuleArgs $smokeArgs
 .\MAC_WORKER.ps1 status -JobId mac-smoke-cpu
 .\MAC_WORKER.ps1 tail -JobId mac-smoke-cpu
 
 # À lancer seulement après la fin terminale du smoke CPU.
 .\MAC_WORKER.ps1 start -JobId mac-smoke-metal `
-  -Device metal -Module src.polyphonic.train -ModuleArgs $smokeArgs
+  -Device metal -WallTimeoutSeconds 3900 `
+  -Module src.polyphonic.train -ModuleArgs $smokeArgs
 ```
 
 Comparer débit, loss/F1, parité, RSS, pression mémoire/swap et température
@@ -92,6 +95,7 @@ soutenue. Les 16 Gio sont unifiés entre CPU, GPU et système; conserver
 ```powershell
 .\MAC_WORKER.ps1 status -JobId <job>
 .\MAC_WORKER.ps1 tail -JobId <job> -Lines 120
+.\MAC_WORKER.ps1 stop -JobId <job>
 .\MAC_WORKER.ps1 pull -JobId <job> `
   -RunPath runs/polyphonic/<run> `
   -Destination C:\Users\user\Desktop\midi\tmp\local\mac_results
