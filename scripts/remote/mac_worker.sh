@@ -427,6 +427,19 @@ PY
     cat > "$job_command" <<EOF
 #!/usr/bin/env bash
 set -euo pipefail
+requested_open_files=4096
+current_open_files="\$(ulimit -Sn)"
+if [[ "\$current_open_files" != "unlimited" ]] &&
+   (( current_open_files < requested_open_files )); then
+  ulimit -Sn "\$requested_open_files"
+fi
+current_open_files="\$(ulimit -Sn)"
+if [[ "\$current_open_files" != "unlimited" ]] &&
+   (( current_open_files < requested_open_files )); then
+  echo "Open-file soft limit remains below \$requested_open_files: \$current_open_files" >&2
+  exit 12
+fi
+printf 'OPEN_FILE_LIMIT soft=%s requested=%s\n' "\$current_open_files" "\$requested_open_files"
 $preflight_line
 exec $command_line
 EOF

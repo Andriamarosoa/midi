@@ -234,5 +234,11 @@ class MacWorkerTransportContractTests(unittest.TestCase):
             )
 
 
+    def test_remote_job_raises_open_file_limit_for_memmap_cache(self) -> None:
+        self.assertIn("requested_open_files=4096", RUNNER)
+        self.assertIn('ulimit -Sn "\\$requested_open_files"', RUNNER)
+        self.assertIn("OPEN_FILE_LIMIT", RUNNER)
+
+
 if __name__ == "__main__":
     unittest.main()
