@@ -87,6 +87,21 @@ def _remap_octave_up_outputs(
     return mapped_frame, mapped_onset, mapped_harmonic
 
 
+def _remap_octave_up_probability(
+    probability: np.ndarray | None,
+    semitones: int = OCTAVE_SEMITONES,
+) -> np.ndarray | None:
+    if probability is None:
+        return None
+    values = np.asarray(probability, np.float32).reshape(-1)
+    shift = int(semitones)
+    if not 1 <= shift < len(values):
+        raise ValueError("Output transposition must fit inside the pitch axis.")
+    mapped = np.zeros_like(values)
+    mapped[:-shift] = values[shift:]
+    return mapped
+
+
 def transcribe(
     input_wav: Path,
     output_midi: Path,
@@ -196,6 +211,9 @@ def transcribe(
         frame_probability = prediction.frame_probability
         onset_probability = prediction.onset_probability
         harmonic_amplitude = prediction.harmonic_amplitude
+        independent_note = getattr(
+            prediction, "independent_note_probability", None
+        )
         if input_octave_up:
             (
                 frame_probability,
@@ -206,6 +224,7 @@ def transcribe(
                 onset_probability,
                 harmonic_amplitude,
             )
+            independent_note = _remap_octave_up_probability(independent_note)
         decoded_events = decoder.step(
             frame_probability,
             onset_probability,
@@ -217,6 +236,9 @@ def transcribe(
                 audio_evidence.audio_hop_index
                 if audio_evidence.onset.is_onset else None
             ),
+            **({} if independent_note is None else {
+                "independent_note_probability": independent_note,
+            }),
         )
         for event in decoded_events:
             reason = event.reason or "unspecified"

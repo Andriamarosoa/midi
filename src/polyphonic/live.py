@@ -538,6 +538,13 @@ def run(args) -> int:
                     ):
                         strong_predictions_vetoed_by_activity_gate += 1
                 consumed_audio_onset_hop = pending_audio_onset_hop
+                independent_note = getattr(
+                    prediction, "independent_note_probability", None
+                )
+                decoder_gate_kwargs = (
+                    {} if independent_note is None
+                    else {"independent_note_probability": independent_note}
+                )
                 events = decoder.step(
                     prediction.frame_probability,
                     prediction.onset_probability,
@@ -548,6 +555,7 @@ def run(args) -> int:
                     audio_hop_index=audio_evidence.audio_hop_index,
                     audio_onset=consumed_audio_onset_hop is not None,
                     audio_onset_hop_index=consumed_audio_onset_hop,
+                    **decoder_gate_kwargs,
                 )
                 pending_audio_onset_hop = None
                 for event in events:

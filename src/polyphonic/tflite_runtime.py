@@ -26,6 +26,7 @@ class PolyphonicPrediction:
     harmonic_amplitude: np.ndarray
     harmonic_offset_cents: np.ndarray
     inference_ms: float
+    independent_note_probability: np.ndarray | None = None
 
 
 class PolyphonicBundle:
@@ -70,7 +71,13 @@ class TFLitePolyphonicModel:
         )
         self.interpreter.allocate_tensors()
         self.runner = self.interpreter.get_signature_runner("serving_default")
+        self.metadata = bundle.metadata
         self.gain = float(bundle.metadata["normalization_gain"])
+        self.pitch_classes = (
+            int(bundle.metadata["max_pitch"])
+            - int(bundle.metadata["min_pitch"]) + 1
+        )
+        self.harmonic_count = int(bundle.metadata.get("harmonic_count", 0))
         self.input_samples = int(bundle.metadata["max_window_samples"])
         if self.input_samples < 1:
             raise ValueError("max_window_samples must be positive.")
@@ -99,14 +106,39 @@ class TFLitePolyphonicModel:
         started = time.perf_counter()
         result = self.runner(audio=self.audio, time_mask=self.mask)
         elapsed = (time.perf_counter() - started) * 1000.0
+        harmonic_amplitude = self._harmonic_matrix(result, "harmonic_amplitude")
+        harmonic_offset_cents = self._harmonic_matrix(
+            result, "harmonic_offset_cents"
+        )
+        independent = result.get("independent_note")
+        decoder = self.metadata.get("decoder", {})
+        if (
+            isinstance(decoder, dict)
+            and decoder.get("independent_note_threshold") is not None
+            and independent is None
+        ):
+            raise RuntimeError(
+                "Bundle enables independent_note_threshold without TFLite output."
+            )
         return PolyphonicPrediction(
             frame_probability=np.asarray(result["frame"], np.float32).reshape(-1),
             onset_probability=np.asarray(result["onset"], np.float32).reshape(-1),
-            harmonic_amplitude=np.asarray(
-                result["harmonic_amplitude"], np.float32
-            ).reshape(37, 20),
-            harmonic_offset_cents=np.asarray(
-                result["harmonic_offset_cents"], np.float32
-            ).reshape(37, 20),
+            harmonic_amplitude=harmonic_amplitude,
+            harmonic_offset_cents=harmonic_offset_cents,
             inference_ms=elapsed,
+            independent_note_probability=(
+                None if independent is None
+                else np.asarray(independent, np.float32).reshape(-1)
+            ),
         )
+
+    def _harmonic_matrix(self, result: dict[str, np.ndarray], name: str) -> np.ndarray:
+        values = np.asarray(result[name], np.float32).reshape(-1)
+        count = self.harmonic_count
+        if count <= 0:
+            if len(values) % self.pitch_classes:
+                raise ValueError(f"{name} is incompatible with bundle pitch range.")
+            count = len(values) // self.pitch_classes
+        if values.size != self.pitch_classes * count:
+            raise ValueError(f"{name} shape disagrees with bundle metadata.")
+        return values.reshape(self.pitch_classes, count)

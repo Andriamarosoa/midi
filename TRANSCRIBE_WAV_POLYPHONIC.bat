@@ -9,5 +9,9 @@ if not exist ".venv\Scripts\python.exe" (
   echo Environnement .venv introuvable.
   exit /b 1
 )
-".venv\Scripts\python.exe" -m src.polyphonic.transcribe "%~1" "%~2" %3 %4 %5 %6 %7 %8 %9
+set "INPUT_WAV=%~1"
+set "OUTPUT_MIDI=%~2"
+shift
+shift
+".venv\Scripts\python.exe" -m src.polyphonic.transcribe "%INPUT_WAV%" "%OUTPUT_MIDI%" %*
 endlocal

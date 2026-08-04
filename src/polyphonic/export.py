@@ -28,6 +28,11 @@ OUTPUT_NAMES = (
 )
 
 
+def export_output_names(model: tf.keras.Model) -> tuple[str, ...]:
+    names = {layer.name for layer in model.layers}
+    return OUTPUT_NAMES + (("independent_note",) if "independent_note" in names else ())
+
+
 def sha256(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
@@ -242,6 +247,7 @@ def export(run_dir: Path, output_dir: Path, examples: int = 96) -> dict[str, obj
         }
     )
     model = load_polyphonic_checkpoint(checkpoint)
+    output_names = export_output_names(model)
     input_samples = int(config["dataset"]["input_samples"])
 
     class ExportModule(tf.Module):
@@ -259,7 +265,7 @@ def export(run_dir: Path, output_dir: Path, examples: int = 96) -> dict[str, obj
             )
             return {
                 name: tf.identity(values[name], name=name)
-                for name in OUTPUT_NAMES
+                for name in output_names
             }
 
     module = ExportModule(model)
@@ -276,8 +282,8 @@ def export(run_dir: Path, output_dir: Path, examples: int = 96) -> dict[str, obj
 
     export_check_split = "validation"
     audio, mask = _examples(config, examples, split=export_check_split)
-    expected_parts: dict[str, list[np.ndarray]] = {name: [] for name in OUTPUT_NAMES}
-    actual_parts: dict[str, list[np.ndarray]] = {name: [] for name in OUTPUT_NAMES}
+    expected_parts: dict[str, list[np.ndarray]] = {name: [] for name in output_names}
+    actual_parts: dict[str, list[np.ndarray]] = {name: [] for name in output_names}
     _, runner = _signature(tflite_path, 1)
     for index in range(len(audio)):
         expected = model(
@@ -287,7 +293,7 @@ def export(run_dir: Path, output_dir: Path, examples: int = 96) -> dict[str, obj
         actual = runner(
             audio=audio[index:index + 1], time_mask=mask[index:index + 1]
         )
-        for name in OUTPUT_NAMES:
+        for name in output_names:
             expected_parts[name].append(np.asarray(expected[name]))
             actual_parts[name].append(np.asarray(actual[name]))
     expected_all = {
@@ -297,7 +303,7 @@ def export(run_dir: Path, output_dir: Path, examples: int = 96) -> dict[str, obj
         name: np.concatenate(values) for name, values in actual_parts.items()
     }
     parity: dict[str, object] = {}
-    for name in OUTPUT_NAMES:
+    for name in output_names:
         difference = np.abs(expected_all[name] - actual_all[name])
         parity[name] = {
             "maximum_absolute_error": float(np.max(difference)),
@@ -368,14 +374,15 @@ def export(run_dir: Path, output_dir: Path, examples: int = 96) -> dict[str, obj
         ),
         "compressed_bass_branch": dual_stream,
         "normalization_gain": float(config["dataset"]["normalization_gain"]),
-        "min_pitch": 40,
-        "max_pitch": 76,
-        "maximum_polyphony": 6,
+        "min_pitch": int(decoder_config["midi_min"]),
+        "max_pitch": int(decoder_config["midi_max"]),
+        "maximum_polyphony": int(decoder_config["maximum_polyphony"]),
+        "harmonic_count": int(model.get_layer("harmonic_amplitude").output.shape[-1]),
         "polyphony_supported": True,
         "frame_threshold": float(thresholds["frame"]),
         "onset_threshold": float(thresholds["onset"]),
         "decoder": decoder_config,
-        "outputs": list(OUTPUT_NAMES),
+        "outputs": list(output_names),
         "recommended_tflite_threads": latency["tflite"]["recommended_threads"],
         "tflite_weight_quantization": "float16",
         "tflite_io_dtype": "float32",

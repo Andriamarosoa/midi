@@ -610,7 +610,20 @@ def evaluate_events(
     audio_evidence_metadata: Mapping[str, object] | None = None,
     report_suffix: str | None = None,
     config_path: Path | None = None,
+    allow_locked_test_after_final_selection: bool = False,
+    final_selection_path: Path | None = None,
 ) -> dict[str, object]:
+    if split == "test":
+        if not allow_locked_test_after_final_selection or final_selection_path is None:
+            raise PermissionError(
+                "Locked test requires explicit final-selection authorization."
+            )
+        selection = json.loads(final_selection_path.read_text(encoding="utf-8"))
+        if (
+            selection.get("selected_on") != "validation_note_events"
+            or selection.get("locked_test_used") is not False
+        ):
+            raise PermissionError("Final selection is missing or test-contaminated.")
     if report_suffix is not None and (
         not report_suffix
         or any(
@@ -794,6 +807,7 @@ def evaluate_events(
         "run_dir": str(run_dir),
         "checkpoint": str(checkpoint),
         "split": split,
+        "locked_test_used": split == "test",
         "dataset_id": dataset_id,
         "recordings": len(items),
         "selection": _selection_report(
@@ -845,6 +859,16 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--run-dir", type=Path, required=True)
     parser.add_argument("--split", choices=("validation", "test"), required=True)
+    parser.add_argument(
+        "--allow-locked-test-after-final-selection",
+        action="store_true",
+        help="Autorisation explicite requise pour le split test verrouillé.",
+    )
+    parser.add_argument(
+        "--final-selection",
+        type=Path,
+        help="selection.json validation-only requis avec le drapeau test.",
+    )
     parser.add_argument("--maximum-recordings", type=int)
     parser.add_argument("--dataset-id")
     parser.add_argument("--checkpoint", type=Path)
@@ -902,6 +926,7 @@ def main() -> None:
         args.run_dir, args.split, args.maximum_recordings, args.dataset_id,
         args.checkpoint, args.thresholds, args.decoder_config,
         causal_gate, audio_evidence_metadata, args.report_suffix, args.config,
+        args.allow_locked_test_after_final_selection, args.final_selection,
     )
     print(json.dumps({
         "split": report["split"],

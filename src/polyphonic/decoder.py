@@ -360,6 +360,10 @@ class PolyphonicDecoder:
             )
             if independent_note_probability.shape != (self.classes,):
                 raise ValueError("Invalid independent-note probability shape.")
+        elif self.config.independent_note_threshold is not None:
+            raise RuntimeError(
+                "independent_note_threshold requires independent-note probabilities."
+            )
 
         events: list[PolyphonicMidiEvent] = []
         if not audio_active:

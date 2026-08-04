@@ -63,7 +63,9 @@ class PolyphonicDecoderTests(unittest.TestCase):
         decoder = PolyphonicDecoder(config)
         base = np.zeros(13, np.float32)
         base[0] = 0.9
-        decoder.step(base, base)
+        decoder.step(
+            base, base, independent_note_probability=np.zeros(13, np.float32)
+        )
         harmonic = np.zeros((13, 4), np.float32)
         harmonic[0, 1] = 1.0
         candidate = base.copy()
@@ -80,7 +82,6 @@ class PolyphonicDecoderTests(unittest.TestCase):
         self.assertEqual(
             decoder.independent_note_gate_diagnostics["rejected_candidates"], 1
         )
-
         accepted = decoder.step(
             candidate, candidate, harmonic,
             independent_note_probability=np.where(
@@ -97,6 +98,15 @@ class PolyphonicDecoderTests(unittest.TestCase):
         self.assertEqual(
             decoder.independent_note_gate_diagnostics["rejected_candidates"], 1
         )
+
+    def test_independent_threshold_fails_closed_without_probabilities(self) -> None:
+        decoder = PolyphonicDecoder(PolyphonicDecoderConfig(
+            midi_min=60, midi_max=60, independent_note_threshold=0.5,
+        ))
+        probability = np.asarray([0.9], np.float32)
+
+        with self.assertRaisesRegex(RuntimeError, "requires independent-note"):
+            decoder.step(probability, probability)
 
     def test_recoverable_gap_preserves_notes_and_clears_weak_votes(self) -> None:
         config = PolyphonicDecoderConfig(
