@@ -166,8 +166,20 @@ if ($Action -eq "pair") {
     $keyPath = [string]$config.identity_file
     if (-not (Test-Path -LiteralPath $keyPath -PathType Leaf)) {
         New-Item -ItemType Directory -Force -Path (Split-Path -Parent $keyPath) | Out-Null
-        & ssh-keygen -t ed25519 -f $keyPath -N "" -C "midi-mac-worker"
-        Assert-LastExit "ssh-keygen"
+        # Windows PowerShell 5.1 can drop a native empty-string argument and
+        # make ssh-keygen consume -C as the passphrase. Passing a literal pair
+        # of quotes through Start-Process preserves the intended empty value.
+        $keygenArguments = @(
+            "-t", "ed25519", "-f", $keyPath,
+            "-N", '""', "-C", "midi-mac-worker"
+        )
+        $keygen = Start-Process `
+            -FilePath (Get-Command ssh-keygen).Source `
+            -ArgumentList $keygenArguments `
+            -Wait -PassThru -NoNewWindow
+        if ($keygen.ExitCode -ne 0) {
+            throw "ssh-keygen failed with exit code $($keygen.ExitCode)."
+        }
     }
     $publicKeyPath = "$keyPath.pub"
     if (-not (Test-Path -LiteralPath $publicKeyPath -PathType Leaf)) {
