@@ -35,3 +35,5 @@ Cette hypothèse doit être revue avant son exécution. Elle permet de mesurer l
 ## Implémentation prête à relire
 
 Le mode `--paired-decoder-config` effectue une seule inférence par enregistrement puis deux décodages. Il refuse les configurations qui diffèrent sur un champ autre que `independent_note_threshold`, inclut les deux SHA-256 de configuration, les résultats A/B, leurs différences et les métriques MIDI 40–51. La configuration référence versionnée désactive explicitement la porte. Les tests ciblés vérifient la restriction de configuration, les métriques graves et l'unique appel d'inférence dans la boucle des enregistrements.
+
+Le correctif complémentaire ajoute les métriques causales du candidat, y compris faux NoteOn/min, octaves et latence, ainsi que l'agrégation des diagnostics par corpus et `onset_offset` du candidat. Les deux branches partagent un décalage inter-prises fondé uniquement sur la durée WAV. Le mode A/B refuse tout split hors validation, exige le manifeste SHA-256 attendu et les douze clés de prises versionnées, et inscrit le SHA-256 du checkpoint dans le rapport.

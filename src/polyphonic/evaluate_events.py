@@ -60,6 +60,15 @@ def _sha256_file(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _assert_expected_selection(path: Path, manifest: Path, items: Sequence[ManifestItem]) -> None:
+    expected = json.loads(path.read_text(encoding="utf-8"))
+    actual_keys = ["|".join(_recording_key(item)[:4]) for item in items]
+    if expected.get("manifest_sha256") != _sha256_file(manifest):
+        raise ValueError("Expected selection manifest SHA-256 mismatch.")
+    if expected.get("recording_keys") != actual_keys:
+        raise ValueError("Expected paired validation recording selection mismatch.")
+
+
 @dataclass(frozen=True)
 class NoteInterval:
     pitch: int
@@ -651,6 +660,26 @@ def _low_midi_metrics(
     }
 
 
+def _diagnostics_by_corpus(
+    reports: Sequence[Mapping[str, object]],
+) -> dict[str, dict[str, int]]:
+    """Sum root-cause diagnostics by corpus for paired comparisons."""
+    fields = (
+        "harmonic_interval_false_positives", "fragmented_reference_notes",
+        "excess_fragments", "false_positive_without_active_reference",
+    )
+    result: dict[str, dict[str, int]] = {}
+    for report in reports:
+        corpus = str(report["dataset_id"])
+        diagnostics = report.get("diagnostics", {})
+        if not isinstance(diagnostics, Mapping):
+            continue
+        totals = result.setdefault(corpus, {field: 0 for field in fields})
+        for field in fields:
+            totals[field] += int(diagnostics.get(field, 0))
+    return dict(sorted(result.items()))
+
+
 def _load_paired_decoder_configs(
     reference_path: Path,
     candidate_path: Path,
@@ -694,6 +723,7 @@ def evaluate_events(
     allow_locked_test_after_final_selection: bool = False,
     final_selection_path: Path | None = None,
     paired_decoder_config_path: Path | None = None,
+    expected_selection_path: Path | None = None,
 ) -> dict[str, object]:
     if split == "test":
         if not allow_locked_test_after_final_selection or final_selection_path is None:
@@ -778,6 +808,8 @@ def evaluate_events(
         )
     paired_candidate_config: PolyphonicDecoderConfig | None = None
     if paired_decoder_config_path is not None:
+        if split != "validation":
+            raise PermissionError("Paired decoder evaluation is validation-only.")
         if not configured_decoder.is_file():
             raise ValueError("Paired evaluation requires a reference decoder config.")
         decoder_config, paired_candidate_config = _load_paired_decoder_configs(
@@ -800,6 +832,8 @@ def evaluate_events(
     paired_estimated: list[NoteInterval] = []
     paired_reports: list[dict[str, object]] = []
     paired_retriggers = 0
+    paired_causal_clips: list[ClipNoteOnData] = []
+    recording_offset_s = 0.0
     for recording_index, item in enumerate(items):
         corpus = PolyphonicCorpus([item])
         arrays = corpus.labels[0].arrays
@@ -887,6 +921,16 @@ def evaluate_events(
         })
         if paired_candidate_config is not None:
             candidate_matches = match_notes(reference, candidate_estimated)
+            candidate_offset_matches = match_notes(
+                reference, candidate_estimated, require_offset=True,
+            )
+            candidate_clip, candidate_causal_metrics = build_strictly_causal_noteon_clip(
+                reference, candidate_estimated,
+                clip_id=(f"{item.source_id}::{item.capture_id}::{recording_index:04d}"),
+                corpus_id=str(item.dataset_id), duration_s=audio_duration_s,
+                recall_deadlines_ms=causal_recall_deadlines_ms,
+            )
+            paired_causal_clips.append(candidate_clip)
             paired_retriggers += candidate_retriggers
             paired_reports.append({
                 "source_id": item.source_id,
@@ -895,15 +939,17 @@ def evaluate_events(
                 "capture_id": item.capture_id,
                 "duration_s": audio_duration_s,
                 "onset": note_metrics(reference, candidate_estimated, candidate_matches),
+                "onset_offset": note_metrics(
+                    reference, candidate_estimated, candidate_offset_matches,
+                ),
+                "strictly_causal_noteon": candidate_causal_metrics,
                 "retriggers": candidate_retriggers,
                 "diagnostics": diagnose_note_errors(
                     reference, candidate_estimated, candidate_matches,
                 ),
             })
         # Offset each recording in time so aggregate matching cannot cross files.
-        shift = 1.0 + max(
-            [note.end_s for note in all_reference + all_estimated] or [0.0]
-        )
+        shift = recording_offset_s
         all_reference.extend(NoteInterval(
             note.pitch, note.start_s + shift, note.end_s + shift
         ) for note in reference)
@@ -917,6 +963,7 @@ def evaluate_events(
             paired_estimated.extend(NoteInterval(
                 note.pitch, note.start_s + shift, note.end_s + shift
             ) for note in candidate_estimated)
+        recording_offset_s += audio_duration_s + 1.0
 
     onset_matches = match_notes(all_reference, all_estimated)
     offset_matches = match_notes(all_reference, all_estimated, require_offset=True)
@@ -929,6 +976,12 @@ def evaluate_events(
     causal_noteon_metrics = aggregate_strictly_causal_noteon_metrics(
         causal_clips, gate=causal_gate
     )
+    if paired_decoder_config_path is not None:
+        if expected_selection_path is None:
+            raise ValueError("Paired evaluation requires --expected-selection.")
+        _assert_expected_selection(
+            expected_selection_path, Path(config["dataset"]["manifest"]), items,
+        )
     independent_note_gate = _aggregate_independent_note_gate(recording_reports)
     for recording in recording_reports:
         gate = recording.get("independent_note_gate")
@@ -937,6 +990,7 @@ def evaluate_events(
     report = {
         "run_dir": str(run_dir),
         "checkpoint": str(checkpoint),
+        "checkpoint_sha256": _sha256_file(checkpoint),
         "split": split,
         "locked_test_used": split == "test",
         "dataset_id": dataset_id,
@@ -975,6 +1029,9 @@ def evaluate_events(
         candidate_diagnostics = diagnose_note_errors(
             paired_reference, paired_estimated, candidate_matches,
         )
+        candidate_causal = aggregate_strictly_causal_noteon_metrics(
+            paired_causal_clips, gate=causal_gate,
+        )
         reference_low = _low_midi_metrics(all_reference, all_estimated)
         candidate_low = _low_midi_metrics(paired_reference, paired_estimated)
         report["paired_ab"] = {
@@ -988,6 +1045,7 @@ def evaluate_events(
                 "dataset_metrics": report["dataset_metrics"],
                 "retriggers": report["retriggers"],
                 "diagnostics": report["diagnostics"],
+                "diagnostics_by_corpus": _diagnostics_by_corpus(recording_reports),
                 "low_midi_40_51": reference_low,
             },
             "candidate": {
@@ -996,7 +1054,9 @@ def evaluate_events(
                     paired_reports, validation_fractions,
                 ),
                 "retriggers": paired_retriggers,
+                "strictly_causal_noteon": candidate_causal,
                 "diagnostics": candidate_diagnostics,
+                "diagnostics_by_corpus": _diagnostics_by_corpus(paired_reports),
                 "low_midi_40_51": candidate_low,
             },
             "delta_candidate_minus_reference": {
@@ -1056,6 +1116,10 @@ def main() -> None:
         help="Configuration candidat A/B ; seule la porte note indépendante peut différer.",
     )
     parser.add_argument(
+        "--expected-selection", type=Path,
+        help="JSON qui verrouille manifest et 12 prises de l'évaluation A/B.",
+    )
+    parser.add_argument(
         "--audio-evidence-config",
         type=Path,
         help=(
@@ -1104,6 +1168,7 @@ def main() -> None:
         causal_gate, audio_evidence_metadata, args.report_suffix, args.config,
         args.allow_locked_test_after_final_selection, args.final_selection,
         args.paired_decoder_config,
+        args.expected_selection,
     )
     print(json.dumps({
         "split": report["split"],

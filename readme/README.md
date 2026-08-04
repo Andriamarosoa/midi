@@ -42,7 +42,7 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 - Mise à jour : `2026-08-04T23:07:03+04:00` (réconciliée, approximative ; l'horloge du Mac était avancée d'environ 11 h).
 - Étape : `independent_note_absolute_partial_alignment_smoke`.
-- Statut : `mode A/B à inférence unique implémenté — revue requise avant exécution`.
+- Statut : `correctifs A/B de provenance et métriques implémentés — revue requise avant exécution`.
 - Résultat établi : la tête précédente est saturée et ne doit pas être promue;
   `locked_test_used=false`. Le constructeur de cibles corrige maintenant la
   somme nécessaire entre décalage annotation-vers-classe et résidu du partiel.
