@@ -1,8 +1,0 @@
-{
-  "samples": 17252,
-  "joint_frame_accuracy": 0.8880709482958498,
-  "gated_correct_pitch_recall": 0.8908159243200631,
-  "conditional_pitch_top1": 0.9210878990934174,
-  "conditional_pitch_top3": 0.9635001970831691,
-  "evaluated_checkpoint": "best_pitch.keras"
-}

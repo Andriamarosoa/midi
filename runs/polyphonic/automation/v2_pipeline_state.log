@@ -1,5 +1,0 @@
-2026-07-19T19:37:56.2570064+04:00 Waiting for baseline final.keras: C:\Users\user\Desktop\midi\runs\polyphonic\polyphonic_v2_0_guitarset_20260719_173445
-2026-07-20T00:04:34.0307837+04:00 Baseline training complete. Running validation-only threshold selection.
-2026-07-20T00:11:54.4608081+04:00 Starting full V2.1 GuitarSet+GAPS training.
-2026-07-20T06:20:42.2617142+04:00 Resuming V2.1 from last.keras after interrupted epoch 9.
-2026-07-20T08:32:28.4050951+04:00 Resumed V2.1 training complete.

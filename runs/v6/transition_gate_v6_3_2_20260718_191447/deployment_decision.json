@@ -1,6 +1,0 @@
-{
-  "accepted_for_live_integration": false,
-  "reference": "v6_0",
-  "reason": "locked_test_does_not_show_a_safe_strict_ghost_improvement",
-  "aggregate_report": "C:\\Users\\user\\Desktop\\midi\\runs\\v6\\transition_gate_v6_3_2_20260718_191447\\continuous_transition_gate_ablation\\aggregate.json"
-}
