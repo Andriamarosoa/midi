@@ -51,7 +51,8 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   sur CPU avec `8192 / 2048 / 4096` exemples et 4 époques. Elle est strictement
   train-only : `validation_loaded=false`, `locked_test_used=false`, aucun
   export ou live, backbone gelé et parité exacte (`erreur max=0`, accord=1).
-  Elle valide le contrat de labels, pas une baisse des faux NoteOn en validation.
+  Elle exerce le contrat de labels restauré avec succès, pas une baisse des faux
+  NoteOn en validation ni une preuve autonome de sa justesse sémantique.
 - Rapport :
   `readme/results/2026-08-04_independent-note-absolute-partial-alignment.md`.
   `readme/results/2026-08-04_independent-note-alignment-smoke-anomaly.md`.
