@@ -132,6 +132,13 @@ class PolyphonicDecoder:
         self.silence_count = 0
         self.audio_onset_available = False
         self.last_audio_onset = -10**9
+        # Diagnostic-only counters.  They deliberately do not retain a frame
+        # history, so enabling the gate stays safe for the live decoder.
+        self._independent_note_gate_eligible = 0
+        self._independent_note_gate_rejected = 0
+        self._independent_note_gate_probability_min: float | None = None
+        self._independent_note_gate_probability_max: float | None = None
+        self._independent_note_gate_probability_sum = 0.0
         self.harmonic_relations = tuple(
             tuple(
                 (base_index, number - 1)
@@ -194,6 +201,43 @@ class PolyphonicDecoder:
             and self.frame_index - self.last_audio_onset
             <= self.config.chord_formation_frames
         )
+
+    def _observe_independent_note_gate(self, probability: float) -> bool:
+        """Record one actionable gate decision and return whether it rejects."""
+        value = float(probability)
+        self._independent_note_gate_eligible += 1
+        self._independent_note_gate_probability_sum += value
+        self._independent_note_gate_probability_min = (
+            value
+            if self._independent_note_gate_probability_min is None
+            else min(self._independent_note_gate_probability_min, value)
+        )
+        self._independent_note_gate_probability_max = (
+            value
+            if self._independent_note_gate_probability_max is None
+            else max(self._independent_note_gate_probability_max, value)
+        )
+        rejected = bool(value < float(self.config.independent_note_threshold))
+        if rejected:
+            self._independent_note_gate_rejected += 1
+        return rejected
+
+    @property
+    def independent_note_gate_diagnostics(self) -> dict[str, object]:
+        """Compact evidence about decisions the optional gate could affect."""
+        eligible = self._independent_note_gate_eligible
+        return {
+            "enabled": self.config.independent_note_threshold is not None,
+            "threshold": self.config.independent_note_threshold,
+            "eligible_candidates": eligible,
+            "rejected_candidates": self._independent_note_gate_rejected,
+            "eligible_probability_min": self._independent_note_gate_probability_min,
+            "eligible_probability_max": self._independent_note_gate_probability_max,
+            "eligible_probability_mean": (
+                None if eligible == 0
+                else self._independent_note_gate_probability_sum / eligible
+            ),
+        }
 
     @property
     def recent_audio_onset(self) -> bool:
@@ -411,8 +455,9 @@ class PolyphonicDecoder:
                     self.config.independent_note_threshold is not None
                     and independent_note_probability is not None
                     and support >= self.config.harmonic_support_threshold
-                    and independent_note_probability[class_index]
-                    < self.config.independent_note_threshold
+                    and self._observe_independent_note_gate(
+                        independent_note_probability[class_index]
+                    )
                 ):
                     self.activation_count[class_index] = 0
                     continue
@@ -512,8 +557,9 @@ class PolyphonicDecoder:
                 self.config.independent_note_threshold is not None
                 and independent_note_probability is not None
                 and support >= self.config.harmonic_support_threshold
-                and independent_note_probability[class_index]
-                < self.config.independent_note_threshold
+                and self._observe_independent_note_gate(
+                    independent_note_probability[class_index]
+                )
             ):
                 self.activation_count[class_index] = 0
                 continue

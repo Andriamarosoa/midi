@@ -74,6 +74,12 @@ class PolyphonicDecoderTests(unittest.TestCase):
             independent_note_probability=np.zeros(13, np.float32),
         )
         self.assertFalse(any(event.pitch == 72 for event in rejected))
+        self.assertEqual(
+            decoder.independent_note_gate_diagnostics["eligible_candidates"], 1
+        )
+        self.assertEqual(
+            decoder.independent_note_gate_diagnostics["rejected_candidates"], 1
+        )
 
         accepted = decoder.step(
             candidate, candidate, harmonic,
@@ -85,6 +91,12 @@ class PolyphonicDecoderTests(unittest.TestCase):
             event.kind == "note_on" and event.pitch == 72
             for event in accepted
         ))
+        self.assertEqual(
+            decoder.independent_note_gate_diagnostics["eligible_candidates"], 2
+        )
+        self.assertEqual(
+            decoder.independent_note_gate_diagnostics["rejected_candidates"], 1
+        )
 
     def test_recoverable_gap_preserves_notes_and_clears_weak_votes(self) -> None:
         config = PolyphonicDecoderConfig(

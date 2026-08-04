@@ -495,6 +495,7 @@ def decode_probabilities(
     audio_active: np.ndarray | None = None,
     audio_onset: np.ndarray | None = None,
     independent_note: np.ndarray | None = None,
+    independent_note_gate_diagnostics: dict[str, object] | None = None,
 ) -> tuple[list[NoteInterval], int]:
     decoder = PolyphonicDecoder(config)
     events: list[PolyphonicMidiEvent] = []
@@ -544,9 +545,57 @@ def decode_probabilities(
             )
         events.extend(emitted)
     events.extend(decoder.panic())
+    if independent_note_gate_diagnostics is not None:
+        independent_note_gate_diagnostics.update(
+            decoder.independent_note_gate_diagnostics
+        )
     return events_to_notes(
         events, sample_rate, hop_size, max(len(frame) - 1, 0)
     ), retriggers
+
+
+def _aggregate_independent_note_gate(
+    recording_reports: list[dict[str, object]],
+) -> dict[str, object]:
+    values = [
+        report.get("independent_note_gate")
+        for report in recording_reports
+        if report.get("independent_note_gate") is not None
+    ]
+    if not values:
+        return {"enabled": False, "recordings": 0}
+    gates = [value for value in values if isinstance(value, dict)]
+    eligible = sum(int(gate["eligible_candidates"]) for gate in gates)
+    weighted_sum = sum(
+        int(gate["eligible_candidates"])
+        * float(gate["eligible_probability_mean"])
+        for gate in gates
+        if gate["eligible_probability_mean"] is not None
+    )
+    minima = [
+        float(gate["eligible_probability_min"])
+        for gate in gates
+        if gate["eligible_probability_min"] is not None
+    ]
+    maxima = [
+        float(gate["eligible_probability_max"])
+        for gate in gates
+        if gate["eligible_probability_max"] is not None
+    ]
+    return {
+        "enabled": bool(gates[0]["enabled"]),
+        "threshold": gates[0]["threshold"],
+        "recordings": len(gates),
+        "eligible_candidates": eligible,
+        "rejected_candidates": sum(
+            int(gate["rejected_candidates"]) for gate in gates
+        ),
+        "eligible_probability_min": None if not minima else min(minima),
+        "eligible_probability_max": None if not maxima else max(maxima),
+        "eligible_probability_mean": (
+            None if eligible == 0 else weighted_sum / eligible
+        ),
+    }
 
 
 def evaluate_events(
@@ -675,6 +724,7 @@ def evaluate_events(
                 metadata=audio_evidence_metadata,
                 )
             )
+            independent_note_gate: dict[str, object] = {}
             estimated, retriggers = decode_probabilities(
                 prediction["frame"], prediction["onset"],
                 prediction["harmonic_amplitude"], decoder_config,
@@ -682,6 +732,7 @@ def evaluate_events(
                 activity_mask,
                 onset_mask,
                 prediction.get("independent_note"),
+                independent_note_gate,
             )
             reference = truth_notes(arrays)
         finally:
@@ -712,6 +763,7 @@ def evaluate_events(
             "strictly_causal_noteon": causal_metrics,
             "retriggers": retriggers,
             "audio_evidence": audio_evidence_report,
+            "independent_note_gate": independent_note_gate,
             "diagnostics": diagnose_note_errors(
                 reference, estimated, onset_matches,
             ),
@@ -759,6 +811,9 @@ def evaluate_events(
         "dataset_metrics": dataset_metrics,
         "strictly_causal_noteon": causal_noteon_metrics,
         "retriggers": total_retriggers,
+        "independent_note_gate": _aggregate_independent_note_gate(
+            recording_reports
+        ),
         "audio_evidence_policy": (
             "shared_live_audio_evidence_with_synthetic_silence_priming"
         ),
