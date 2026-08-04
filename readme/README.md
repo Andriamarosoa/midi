@@ -40,22 +40,25 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 ## État courant
 
-- Mise à jour : `2026-08-04T22:58:38+04:00`.
+- Mise à jour : `2026-08-04T23:02:26+04:00`.
 - Étape : `independent_note_absolute_partial_alignment`.
-- Statut : `sémantique du contrat restaurée — revue requise avant smoke`.
+- Statut : `anomalie de garde smoke — revue requise avant relance`.
 - Résultat établi : la tête précédente est saturée et ne doit pas être promue;
   `locked_test_used=false`. Le constructeur de cibles corrige maintenant la
   somme nécessaire entre décalage annotation-vers-classe et résidu du partiel.
-- Vérification : compilation et 24 tests ciblés réussis. Aucun entraînement,
-  export, live, test verrouillé ni nouveau calcul de métriques n'a été exécuté.
+- Vérification : compilation et 24 tests ciblés réussis. Une tentative de smoke
+  réduite a été refusée avant entraînement : le garde exige `8192 / 2048 / 4096`
+  exemples. Aucun poids, export, live, test verrouillé ni métrique nouvelle.
 - Rapport :
   `readme/results/2026-08-04_independent-note-absolute-partial-alignment.md`.
+  `readme/results/2026-08-04_independent-note-alignment-smoke-anomaly.md`.
 
 ## Prochaine action réelle
 
 1. Ne promouvoir ni le checkpoint précédent ni un seuil de porte.
-2. Faire relire le contrat d'alignement absolu des partiels.
-3. Exécuter seulement un smoke Mac borné, validation-only, après cette revue.
+2. Faire relire l'anomalie de garde smoke.
+3. Si approuvé, exécuter seulement le smoke Mac aux tailles fixes `8192 / 2048 /
+   4096`, sans entraînement complet.
 4. Conserver le test verrouillé fermé et ne lancer aucun entraînement complet
    avant le résultat du smoke.
 
