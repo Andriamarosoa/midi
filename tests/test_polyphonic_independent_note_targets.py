@@ -117,7 +117,7 @@ class IndependentNoteTargetTests(unittest.TestCase):
         self.assertEqual(built.weight[12], 0.0)
         self.assertAlmostEqual(float(built.weight[13]), 0.4, places=6)
 
-    def test_fractional_fundamental_is_included_in_absolute_partial_pitch(self) -> None:
+    def test_absolute_partial_offset_is_not_double_counted_with_fundamental(self) -> None:
         arrays = _frame_arrays(
             supervised=np.asarray([[0, 1, 0]], np.uint8),
             present=np.asarray([[0, 1, 0]], np.uint8),
@@ -131,8 +131,8 @@ class IndependentNoteTargetTests(unittest.TestCase):
             arrays, 0, pitch_classes=24
         )
 
-        self.assertEqual(built.weight[12], 0.0)
-        self.assertAlmostEqual(float(built.weight[13]), 0.4, places=6)
+        self.assertAlmostEqual(float(built.weight[12]), 0.4, places=6)
+        self.assertEqual(built.weight[13], 0.0)
 
     def test_absent_or_unsupervised_partial_stays_masked(self) -> None:
         arrays = _frame_arrays(

@@ -40,25 +40,24 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 ## État courant
 
-- Mise à jour : `2026-08-04T22:32:57+04:00`.
-- Étape : `independent_note_validation_one_pass_diagnostic`.
-- Statut : `terminé — revue requise avant toute suite`.
-- Résultat : sur 12 enregistrements validation, 709 candidats sont observés;
-  le seuil diagnostique `0,90` n'en rejetterait que 49. La porte indépendante
-  seule ne résout donc pas les 3389 faux NoteOn. `locked_test_used=false`.
-- Limite : cette conclusion ne vaut que pour ces 12 enregistrements, ce
-  checkpoint et cette tête. Aucun entraînement, export, live ou test verrouillé
-  n'est autorisé avant la revue du rapport one-pass.
+- Mise à jour : `2026-08-04T22:42:12+04:00`.
+- Étape : `independent_note_absolute_partial_alignment`.
+- Statut : `contrat corrigé — revue requise avant smoke`.
+- Résultat établi : la tête précédente est saturée et ne doit pas être promue;
+  `locked_test_used=false`. Le constructeur de cibles corrige maintenant la
+  double addition potentielle entre décalage fondamental et partiel absolu.
+- Vérification : compilation et 24 tests ciblés réussis. Aucun entraînement,
+  export, live, test verrouillé ni nouveau calcul de métriques n'a été exécuté.
+- Rapport :
+  `readme/results/2026-08-04_independent-note-absolute-partial-alignment.md`.
 
 ## Prochaine action réelle
 
-1. Clore `independent-note-neural-v2` comme résultat négatif pour cette tête :
-   elle est trop saturée pour filtrer seule les faux NoteOn.
-2. Ne promouvoir ni ce checkpoint ni un seuil de porte.
-3. Définir, sur validation seulement, une hypothèse distincte qui traite la
-   cause des faux NoteOn; ne pas lancer de train complet avant son smoke et sa
-   revue.
-4. Conserver le test verrouillé fermé.
+1. Ne promouvoir ni le checkpoint précédent ni un seuil de porte.
+2. Faire relire le contrat d'alignement absolu des partiels.
+3. Exécuter seulement un smoke Mac borné, validation-only, après cette revue.
+4. Conserver le test verrouillé fermé et ne lancer aucun entraînement complet
+   avant le résultat du smoke.
 
 ## État archivé — dual-stream du 30 juillet (remplacé)
 

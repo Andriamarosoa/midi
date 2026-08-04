@@ -28,8 +28,7 @@ def _aligned_candidate_class(
     base_class: int,
     harmonic_number: int,
     *,
-    fundamental_offset_cents: float,
-    offset_cents: float,
+    absolute_harmonic_offset_cents: float,
     pitch_classes: int,
     tolerance_cents: float,
 ) -> int | None:
@@ -37,8 +36,11 @@ def _aligned_candidate_class(
         return None
     semitones = (
         12.0 * math.log2(float(harmonic_number))
-        + float(fundamental_offset_cents) / 100.0
-        + float(offset_cents) / 100.0
+        # ``note_harmonic_offset_cents`` is measured_hz against expected_hz
+        # (the annotated fundamental times the harmonic number).  It already
+        # includes the fundamental tuning displacement, so adding a separate
+        # fundamental offset would move the candidate twice.
+        + float(absolute_harmonic_offset_cents) / 100.0
     )
     rounded = int(round(semitones))
     if abs(100.0 * (semitones - rounded)) > tolerance_cents:
@@ -100,7 +102,6 @@ def build_independent_note_targets(
         "note_harmonic_amplitude",
         "note_harmonic_reliability",
         "note_harmonic_offset_cents",
-        "note_fundamental_offset_cents",
         "slot_pitch",
         "slot_note_id",
     )
@@ -118,9 +119,6 @@ def build_independent_note_targets(
     offset_cents = np.asarray(
         arrays["note_harmonic_offset_cents"], dtype=np.float32
     )
-    fundamental_offset_cents = np.asarray(
-        arrays["note_fundamental_offset_cents"], dtype=np.float32
-    )
     if supervised.ndim != 2 or supervised.shape != present.shape:
         raise ValueError("Harmonic supervised/present tables must align.")
     if (
@@ -129,11 +127,6 @@ def build_independent_note_targets(
         or offset_cents.shape != supervised.shape
     ):
         raise ValueError("Harmonic confidence tables must align with supervision.")
-    if fundamental_offset_cents.shape != (supervised.shape[0],):
-        raise ValueError(
-            "Fundamental offsets must align with harmonic note rows."
-        )
-
     slot_pitch = np.asarray(arrays["slot_pitch"])
     slot_note_id = np.asarray(arrays["slot_note_id"])
     if slot_pitch.shape != slot_note_id.shape or slot_pitch.ndim != 2:
@@ -164,10 +157,6 @@ def build_independent_note_targets(
             raise ValueError("Active slot pitch is absent from active_bits.")
         if not note_valid[note_id]:
             continue
-        fundamental_offset = float(fundamental_offset_cents[note_id])
-        if not math.isfinite(fundamental_offset):
-            raise ValueError("Supervised fundamental offsets must be finite.")
-
         for harmonic_index in np.flatnonzero(
             (supervised[note_id] > 0) & (present[note_id] > 0)
         ):
@@ -177,8 +166,7 @@ def build_independent_note_targets(
             candidate = _aligned_candidate_class(
                 base_class,
                 int(harmonic_index) + 1,
-                fundamental_offset_cents=fundamental_offset,
-                offset_cents=partial_offset,
+                absolute_harmonic_offset_cents=partial_offset,
                 pitch_classes=classes,
                 tolerance_cents=tolerance,
             )
