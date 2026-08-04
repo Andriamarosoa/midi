@@ -89,6 +89,78 @@ function Get-ScpArguments($Config) {
     return $arguments
 }
 
+function Get-SftpArguments($Config, [string]$BatchPath) {
+    $arguments = @(
+        "-b", $BatchPath,
+        "-P", [string]$Config.port,
+        "-o", "ConnectTimeout=10",
+        "-o", "ServerAliveInterval=30",
+        "-o", "ServerAliveCountMax=6",
+        "-o", "BatchMode=yes"
+    )
+    if ($Config.identity_file) {
+        $arguments += @("-i", [string]$Config.identity_file)
+    }
+    return $arguments
+}
+
+function Quote-SftpPath([string]$Value) {
+    if (
+        $Value.Contains("`r") -or
+        $Value.Contains("`n") -or
+        $Value.Contains('"')
+    ) {
+        throw "Unsupported SFTP path character."
+    }
+    return '"' + $Value.Replace('\', '/') + '"'
+}
+
+function Assert-NoActiveSftp {
+    $active = @(Get-Process -Name "sftp" -ErrorAction SilentlyContinue)
+    if ($active.Count -gt 0) {
+        $pids = ($active | ForEach-Object { $_.Id }) -join ","
+        throw "Refusing a second SFTP upload while sftp.exe is active (PID $pids)."
+    }
+}
+
+function Invoke-SftpReput($Config, [string]$LocalPath, [string]$RemotePath) {
+    Assert-NoActiveSftp
+    $batchPath = Join-Path (
+        Split-Path -Parent $LocalPath
+    ) ("sftp-" + [guid]::NewGuid().ToString("N") + ".batch")
+    try {
+        $line = "reput -f " +
+            (Quote-SftpPath ((Resolve-Path -LiteralPath $LocalPath).Path)) +
+            " " + (Quote-SftpPath $RemotePath) + "`nquit`n"
+        Write-Utf8NoBom $batchPath $line
+        $arguments = Get-SftpArguments $Config $batchPath
+        & sftp @arguments "$($Config.user)@$($Config.host)"
+        Assert-LastExit "resumable SFTP upload"
+    }
+    finally {
+        Remove-Item -LiteralPath $batchPath -Force -ErrorAction SilentlyContinue
+    }
+}
+
+function Invoke-SftpPut($Config, [string]$LocalPath, [string]$RemotePath) {
+    Assert-NoActiveSftp
+    $batchPath = Join-Path (
+        Split-Path -Parent $LocalPath
+    ) ("sftp-" + [guid]::NewGuid().ToString("N") + ".batch")
+    try {
+        $line = "put -f " +
+            (Quote-SftpPath ((Resolve-Path -LiteralPath $LocalPath).Path)) +
+            " " + (Quote-SftpPath $RemotePath) + "`nquit`n"
+        Write-Utf8NoBom $batchPath $line
+        $arguments = Get-SftpArguments $Config $batchPath
+        & sftp @arguments "$($Config.user)@$($Config.host)"
+        Assert-LastExit "initial SFTP upload"
+    }
+    finally {
+        Remove-Item -LiteralPath $batchPath -Force -ErrorAction SilentlyContinue
+    }
+}
+
 function Invoke-Ssh($Config, [string]$Command, [switch]$AllowPassword) {
     $arguments = Get-SshArguments $Config -AllowPassword:$AllowPassword
     $target = "$($Config.user)@$($Config.host)"
@@ -98,6 +170,71 @@ function Invoke-Ssh($Config, [string]$Command, [switch]$AllowPassword) {
     $payload = $Command + "`n# mac-worker-stdin-terminator"
     $payload | & ssh @arguments $target bash -s
     Assert-LastExit "SSH command"
+}
+
+function Start-RemoteCaffeinate($Config) {
+    $output = @(Invoke-Ssh $Config 'set -e; nohup /usr/bin/caffeinate -ims -t 21600 </dev/null >/dev/null 2>&1 & echo $!')
+    $pidText = @($output | ForEach-Object { ([string]$_).Trim() } | Where-Object { $_ -match '^[0-9]+$' } | Select-Object -Last 1)
+    if ($pidText.Count -ne 1) {
+        throw "Remote caffeinate did not return one PID."
+    }
+    return [int]$pidText[0]
+}
+
+function Stop-RemoteCaffeinate($Config, [int]$CaffeinatePid) {
+    $command = 'pid={0}; comm=$(ps -p "$pid" -o comm= 2>/dev/null | awk -F/ ''{{print $NF}}'' | tr -d '' ''); if [ "$comm" = caffeinate ]; then kill "$pid" 2>/dev/null || true; fi' -f $CaffeinatePid
+    Invoke-Ssh $Config $command
+}
+
+function Initialize-RemoteUpload(
+    $Config,
+    [string]$RemoteArchive,
+    [string]$ExpectedHash,
+    [int64]$ExpectedSize
+) {
+    $remotePart = "$RemoteArchive.part"
+    $remoteSidecar = "$remotePart.expected.env"
+    $command = @(
+        "set -euo pipefail",
+        ("archive=" + (Quote-Posix $RemoteArchive)),
+        ("part=" + (Quote-Posix $remotePart)),
+        ("sidecar=" + (Quote-Posix $remoteSidecar)),
+        ("expected_sha=" + (Quote-Posix $ExpectedHash)),
+        ("expected_size=" + (Quote-Posix ([string]$ExpectedSize))),
+        'if [ -e "$part" ] && [ ! -f "$sidecar" ]; then echo "Refusing orphan partial upload: $part" >&2; exit 20; fi',
+        'if [ -e "$sidecar" ]; then test -f "$sidecar"; test "$(wc -l < "$sidecar" | tr -d '' '')" = 2; grep -Fxq "sha256=$expected_sha" "$sidecar"; grep -Fxq "size=$expected_size" "$sidecar"; else sidecar_tmp="$sidecar.tmp.$$"; umask 077; printf ''sha256=%s\nsize=%s\n'' "$expected_sha" "$expected_size" > "$sidecar_tmp"; mv "$sidecar_tmp" "$sidecar"; fi',
+        'if [ -e "$part" ]; then test -f "$part"; partial_size=$(stat -f %z "$part"); test "$partial_size" -le "$expected_size"; if [ "$partial_size" = "$expected_size" ]; then partial_sha=$(shasum -a 256 "$part" | awk ''{print $1}''); test "$partial_sha" = "$expected_sha"; fi; fi',
+        'if [ -e "$archive" ]; then test -f "$archive"; test ! -e "$part"; final_size=$(stat -f %z "$archive"); test "$final_size" = "$expected_size"; final_sha=$(shasum -a 256 "$archive" | awk ''{print $1}''); test "$final_sha" = "$expected_sha"; echo complete; elif [ -e "$part" ]; then echo resume; else echo new; fi'
+    ) -join "; "
+    $output = @(Invoke-Ssh $Config $command)
+    $state = @($output | ForEach-Object { ([string]$_).Trim() } | Where-Object { $_ -in @("complete", "new", "resume") } | Select-Object -Last 1)
+    if ($state.Count -ne 1) {
+        throw "Remote upload preparation returned no valid state."
+    }
+    return [string]$state[0]
+}
+
+function Complete-RemoteUpload(
+    $Config,
+    [string]$RemoteArchive,
+    [string]$ExpectedHash,
+    [int64]$ExpectedSize
+) {
+    $remotePart = "$RemoteArchive.part"
+    $remoteSidecar = "$remotePart.expected.env"
+    $command = @(
+        "set -euo pipefail",
+        ("archive=" + (Quote-Posix $RemoteArchive)),
+        ("part=" + (Quote-Posix $remotePart)),
+        ("sidecar=" + (Quote-Posix $remoteSidecar)),
+        ("expected_sha=" + (Quote-Posix $ExpectedHash)),
+        ("expected_size=" + (Quote-Posix ([string]$ExpectedSize))),
+        'test -f "$sidecar"; test "$(wc -l < "$sidecar" | tr -d '' '')" = 2; grep -Fxq "sha256=$expected_sha" "$sidecar"; grep -Fxq "size=$expected_size" "$sidecar"',
+        'if [ -e "$archive" ]; then test -f "$archive"; test ! -e "$part"; actual_size=$(stat -f %z "$archive"); actual_sha=$(shasum -a 256 "$archive" | awk ''{print $1}''); else test -f "$part"; actual_size=$(stat -f %z "$part"); test "$actual_size" = "$expected_size"; actual_sha=$(shasum -a 256 "$part" | awk ''{print $1}''); test "$actual_sha" = "$expected_sha"; mv "$part" "$archive"; fi',
+        'test "$actual_size" = "$expected_size"',
+        'test "$actual_sha" = "$expected_sha"'
+    ) -join "; "
+    Invoke-Ssh $Config $command
 }
 
 function Invoke-Worker($Config, [string[]]$Arguments) {
@@ -208,29 +345,46 @@ if ($Action -eq "sync-code") {
     $temporaryRoot = Join-Path $repository "tmp\local"
     New-Item -ItemType Directory -Force -Path $temporaryRoot | Out-Null
     $archive = Join-Path $temporaryRoot "mac-code-$commit.tar"
+    $buildingArchive = "$archive.building"
+    $syncSucceeded = $false
+    $caffeinatePid = $null
     try {
-        & git -c core.autocrlf=false -C $repository archive --format=tar --output=$archive $commit
-        Assert-LastExit "git archive"
+        if (-not (Test-Path -LiteralPath $archive -PathType Leaf)) {
+            Remove-Item -LiteralPath $buildingArchive -Force -ErrorAction SilentlyContinue
+            & git -c core.autocrlf=false -C $repository archive --format=tar --output=$buildingArchive $commit
+            Assert-LastExit "git archive"
+            Move-Item -LiteralPath $buildingArchive -Destination $archive
+        }
         $archiveHash = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+        $archiveSize = (Get-Item -LiteralPath $archive).Length
         $runnerPath = Join-Path $repository "scripts/remote/mac_worker.sh"
         $runnerHash = (Get-FileHash -LiteralPath $runnerPath -Algorithm SHA256).Hash.ToLowerInvariant()
         $remoteArchive = "$($config.remote_root)/inbox/mac-code-$commit.tar"
+        $remotePart = "$remoteArchive.part"
+        $remoteSidecar = "$remotePart.expected.env"
         Invoke-Ssh $config ("mkdir -p " + (Quote-Posix "$($config.remote_root)/inbox") + " " + (Quote-Posix "$($config.remote_root)/workspaces") + " " + (Quote-Posix "$($config.remote_root)/data"))
-        $scpArguments = Get-ScpArguments $config
-        & scp @scpArguments $archive "${target}:$remoteArchive"
-        Assert-LastExit "code archive upload"
+        $caffeinatePid = Start-RemoteCaffeinate $config
+        $remoteState = Initialize-RemoteUpload $config $remoteArchive $archiveHash $archiveSize
+        if ($remoteState -eq "new") {
+            Invoke-SftpPut $config $archive $remotePart
+        }
+        elseif ($remoteState -eq "resume") {
+            Invoke-SftpReput $config $archive $remotePart
+        }
+        Complete-RemoteUpload $config $remoteArchive $archiveHash $archiveSize
 
         $destination = "$($config.remote_root)/workspaces/$commit"
         $staging = "$($config.remote_root)/inbox/workspace-$commit"
         $sourceText = "commit=$commit`narchive_sha256=$archiveHash`n"
         $command = @(
             "set -euo pipefail",
-            "archive=" + (Quote-Posix $remoteArchive),
-            "destination=" + (Quote-Posix $destination),
-            "staging=" + (Quote-Posix $staging),
-            "runner_source=" + (Quote-Posix "$destination/scripts/remote/mac_worker.sh"),
-            "runner_target=" + (Quote-Posix "$($config.remote_root)/bin/mac_worker.sh"),
-            "runner_tmp=" + (Quote-Posix "$($config.remote_root)/bin/mac_worker.sh.tmp"),
+            ("archive=" + (Quote-Posix $remoteArchive)),
+            ("destination=" + (Quote-Posix $destination)),
+            ("staging=" + (Quote-Posix $staging)),
+            ("runner_source=" + (Quote-Posix "$destination/scripts/remote/mac_worker.sh")),
+            ("runner_target=" + (Quote-Posix "$($config.remote_root)/bin/mac_worker.sh")),
+            ("runner_tmp=" + (Quote-Posix "$($config.remote_root)/bin/mac_worker.sh.tmp")),
+            ("sidecar=" + (Quote-Posix $remoteSidecar)),
             'actual=$(shasum -a 256 "$archive" | awk ''{print $1}''); test "$actual" = ' + (Quote-Posix $archiveHash),
             'if [ -e "$destination" ]; then grep -Fxq ' + (Quote-Posix "commit=$commit") + ' "$destination/.source.env"; else rm -rf "$staging"; mkdir -p "$staging"; tar -xf "$archive" -C "$staging"; rm -rf "$staging/data"; ln -s ' + (Quote-Posix "$($config.remote_root)/data") + ' "$staging/data"; printf ' + (Quote-Posix $sourceText) + ' > "$staging/.source.env"; mv "$staging" "$destination"; fi',
             "mkdir -p " + (Quote-Posix "$($config.remote_root)/bin"),
@@ -238,13 +392,24 @@ if ($Action -eq "sync-code") {
             'bash -n "$runner_tmp"',
             'actual_runner=$(shasum -a 256 "$runner_tmp" | awk ''{print $1}''); test "$actual_runner" = ' + (Quote-Posix $runnerHash),
             'chmod 700 "$runner_tmp"; mv "$runner_tmp" "$runner_target"',
-            'rm -f "$archive"'
+            'rm -f "$archive" "$sidecar"'
         ) -join "; "
         Invoke-Ssh $config $command
+        $syncSucceeded = $true
         Write-Output "Code synchronized: commit=$commit archive_sha256=$archiveHash runner_sha256=$runnerHash"
     }
     finally {
-        Remove-Item -LiteralPath $archive -Force -ErrorAction SilentlyContinue
+        Remove-Item -LiteralPath $buildingArchive -Force -ErrorAction SilentlyContinue
+        if ($null -ne $caffeinatePid) {
+            try { Stop-RemoteCaffeinate $config $caffeinatePid }
+            catch { Write-Warning "Could not stop remote caffeinate PID ${caffeinatePid}: $($_.Exception.Message)" }
+        }
+        if ($syncSucceeded) {
+            Remove-Item -LiteralPath $archive -Force -ErrorAction SilentlyContinue
+        }
+        elseif (Test-Path -LiteralPath $archive -PathType Leaf) {
+            Write-Warning "Archive preserved for exact SFTP resume: $archive"
+        }
     }
     exit 0
 }
@@ -262,6 +427,7 @@ if ($Action -eq "sync-data") {
     if (($splits -join ',') -ne 'train,validation') {
         throw "Only an exact train+validation manifest is allowed; found: $($splits -join ',')."
     }
+    $manifestHash = (Get-FileHash -LiteralPath $manifestPath -Algorithm SHA256).Hash.ToLowerInvariant()
     $sourcePaths = @($manifestPath)
     foreach ($row in $rows) {
         foreach ($field in @("audio_path", "labels_path")) {
@@ -285,42 +451,68 @@ if ($Action -eq "sync-data") {
         $totalBytes += (Get-Item -LiteralPath $resolved).Length
     }
     if ($DryRun) {
-        $manifestHash = (Get-FileHash -LiteralPath $manifestPath -Algorithm SHA256).Hash.ToLowerInvariant()
         Write-Output "Data plan verified: rows=$($rows.Count) files=$($relativePaths.Count) bytes=$totalBytes manifest_sha256=$manifestHash splits=train,validation locked_test_used=false"
         exit 0
-    }
-    $drive = Get-PSDrive -Name ([System.IO.Path]::GetPathRoot($localRoot).Substring(0, 1))
-    if ($drive.Free -lt ($totalBytes + 2GB)) {
-        throw "Not enough temporary disk space for the $([math]::Round($totalBytes / 1GB, 2)) GiB LAN archive."
     }
     $temporaryRoot = Join-Path $localRoot "tmp\local"
     New-Item -ItemType Directory -Force -Path $temporaryRoot | Out-Null
     $listPath = Join-Path $temporaryRoot "mac-data-files.txt"
-    $archive = Join-Path $temporaryRoot "mac-data-train-validation.tar"
+    $archive = Join-Path $temporaryRoot "mac-data-$manifestHash.tar"
+    $buildingArchive = "$archive.building"
+    $syncSucceeded = $false
+    $caffeinatePid = $null
     try {
         Write-Utf8NoBom $listPath (($relativePaths -join "`n") + "`n")
-        Push-Location $localRoot
-        try {
-            & tar -cf $archive -T $listPath
-            Assert-LastExit "train/validation data archive"
+        if (-not (Test-Path -LiteralPath $archive -PathType Leaf)) {
+            $drive = Get-PSDrive -Name ([System.IO.Path]::GetPathRoot($localRoot).Substring(0, 1))
+            if ($drive.Free -lt ($totalBytes + 2GB)) {
+                throw "Not enough temporary disk space for the $([math]::Round($totalBytes / 1GB, 2)) GiB LAN archive."
+            }
+            Remove-Item -LiteralPath $buildingArchive -Force -ErrorAction SilentlyContinue
+            Push-Location $localRoot
+            try {
+                & tar -cf $buildingArchive -T $listPath
+                Assert-LastExit "train/validation data archive"
+            }
+            finally { Pop-Location }
+            Move-Item -LiteralPath $buildingArchive -Destination $archive
         }
-        finally { Pop-Location }
         $archiveHash = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
-        $manifestHash = (Get-FileHash -LiteralPath $manifestPath -Algorithm SHA256).Hash.ToLowerInvariant()
+        $archiveSize = (Get-Item -LiteralPath $archive).Length
         $remoteArchive = "$($config.remote_root)/inbox/mac-data-$manifestHash.tar"
+        $remotePart = "$remoteArchive.part"
+        $remoteSidecar = "$remotePart.expected.env"
         Invoke-Ssh $config ("mkdir -p " + (Quote-Posix "$($config.remote_root)/inbox") + " " + (Quote-Posix "$($config.remote_root)/data"))
-        $scpArguments = Get-ScpArguments $config
-        & scp @scpArguments $archive "${target}:$remoteArchive"
-        Assert-LastExit "train/validation data upload"
+        $caffeinatePid = Start-RemoteCaffeinate $config
+        $remoteState = Initialize-RemoteUpload $config $remoteArchive $archiveHash $archiveSize
+        if ($remoteState -eq "new") {
+            Invoke-SftpPut $config $archive $remotePart
+        }
+        elseif ($remoteState -eq "resume") {
+            Invoke-SftpReput $config $archive $remotePart
+        }
+        Complete-RemoteUpload $config $remoteArchive $archiveHash $archiveSize
         Invoke-Worker $config @(
             "install-data", [string]$config.remote_root,
             $manifestHash, $archiveHash, [string]$rows.Count
         )
+        Invoke-Ssh $config ("rm -f " + (Quote-Posix $remoteSidecar))
+        $syncSucceeded = $true
         Write-Output "Data synchronized: rows=$($rows.Count) files=$($relativePaths.Count) bytes=$totalBytes manifest_sha256=$manifestHash archive_sha256=$archiveHash locked_test_used=false"
     }
     finally {
+        Remove-Item -LiteralPath $buildingArchive -Force -ErrorAction SilentlyContinue
         Remove-Item -LiteralPath $listPath -Force -ErrorAction SilentlyContinue
-        Remove-Item -LiteralPath $archive -Force -ErrorAction SilentlyContinue
+        if ($null -ne $caffeinatePid) {
+            try { Stop-RemoteCaffeinate $config $caffeinatePid }
+            catch { Write-Warning "Could not stop remote caffeinate PID ${caffeinatePid}: $($_.Exception.Message)" }
+        }
+        if ($syncSucceeded) {
+            Remove-Item -LiteralPath $archive -Force -ErrorAction SilentlyContinue
+        }
+        elseif (Test-Path -LiteralPath $archive -PathType Leaf) {
+            Write-Warning "Archive preserved for exact SFTP resume: $archive"
+        }
     }
     exit 0
 }
