@@ -4,14 +4,23 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from collections import Counter
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Mapping, Sequence
 
 import numpy as np
+
+_FORCE_CPU = os.environ.get("MIDI_FORCE_CPU") == "1"
+if _FORCE_CPU:
+    os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
 import tensorflow as tf
 import yaml
+
+if _FORCE_CPU:
+    tf.config.set_visible_devices([], "GPU")
 
 from src.polyphonic import model as _registered_model_types  # noqa: F401
 from src.polyphonic.keras_compat import load_polyphonic_checkpoint

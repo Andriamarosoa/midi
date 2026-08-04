@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 import unittest
 from pathlib import Path
 
@@ -23,6 +24,15 @@ from src.polyphonic.evaluate_events import (
 
 
 class PolyphonicEventEvaluationTests(unittest.TestCase):
+    def test_force_cpu_is_applied_before_tensorflow_import(self) -> None:
+        import src.polyphonic.evaluate_events as events
+
+        source = Path(events.__file__).read_text(encoding="utf-8")
+        self.assertLess(
+            source.index('_FORCE_CPU = os.environ.get("MIDI_FORCE_CPU") == "1"'),
+            source.index("import tensorflow as tf"),
+        )
+
     def test_strictly_causal_metrics_do_not_replace_historical_matching(self) -> None:
         reference = [NoteInterval(60, 0.100, 0.500)]
         early_prediction = [NoteInterval(60, 0.099, 0.400)]
