@@ -3,6 +3,7 @@
   "checkpoint_sha256": "d4d2101ff6f7f4da9cee4eb9ee6b24e5c347cc0493039a1618a6d02e730a0adc",
   "reference_config_sha256": "c16be48271912c99c4237345e8406e39b88490b5565047757f6ca9e905615f96",
   "candidate_config_sha256": "fd0480ed107b52fb85f48a0d6cf2b99c8f93ca43b6e0f9b7f60ee54274c81079",
+  "evaluation_config_sha256": "245285783eb395e1c16f9773cf9a15565510ba289467d63ad6a7d725bae19804",
   "recording_keys": [
     "gaps_poly_mix|-D1wc|336_-D1wc|gaps_mixed_downmix",
     "guitar_techs_poly_directinput|gtech_p2_chords_drop3_7|gtech_p2_chords_drop3_7_directinput|directinput",

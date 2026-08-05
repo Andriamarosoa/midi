@@ -63,6 +63,7 @@ def _sha256_file(path: Path) -> str:
 def _assert_expected_selection(
     path: Path, manifest: Path, items: Sequence[ManifestItem], *,
     checkpoint: Path, reference_config: Path, candidate_config: Path,
+    evaluation_config: Path,
 ) -> None:
     expected = json.loads(path.read_text(encoding="utf-8"))
     actual_keys = ["|".join(_recording_key(item)[:4]) for item in items]
@@ -74,6 +75,7 @@ def _assert_expected_selection(
         ("checkpoint_sha256", _sha256_file(checkpoint)),
         ("reference_config_sha256", _sha256_file(reference_config)),
         ("candidate_config_sha256", _sha256_file(candidate_config)),
+        ("evaluation_config_sha256", _sha256_file(evaluation_config)),
     ):
         if expected.get(name) != actual:
             raise ValueError(f"Expected paired {name} mismatch.")
@@ -795,6 +797,7 @@ def evaluate_events(
         else run_dir / "best.keras"
     )
     checkpoint = checkpoint_path or default_checkpoint
+    preflight_pair: tuple[PolyphonicDecoderConfig, PolyphonicDecoderConfig] | None = None
     if paired_decoder_config_path is not None:
         if split != "validation":
             raise PermissionError("Paired decoder evaluation is validation-only.")
@@ -802,11 +805,16 @@ def evaluate_events(
             raise ValueError("Paired evaluation requires --expected-selection.")
         if not configured_decoder.is_file() or not checkpoint.is_file():
             raise FileNotFoundError("Paired evaluation provenance artifact missing.")
-        _load_paired_decoder_configs(configured_decoder, paired_decoder_config_path)
+        if audio_evidence_metadata is not None:
+            raise ValueError("Paired evaluation forbids --audio-evidence-config.")
+        preflight_pair = _load_paired_decoder_configs(
+            configured_decoder, paired_decoder_config_path,
+        )
         _assert_expected_selection(
             expected_selection_path, Path(config["dataset"]["manifest"]), items,
             checkpoint=checkpoint, reference_config=configured_decoder,
             candidate_config=paired_decoder_config_path,
+            evaluation_config=resolved_config_path,
         )
     if not checkpoint.is_file():
         raise FileNotFoundError(checkpoint)
@@ -833,11 +841,9 @@ def evaluate_events(
         )
     paired_candidate_config: PolyphonicDecoderConfig | None = None
     if paired_decoder_config_path is not None:
-        if not configured_decoder.is_file():
-            raise ValueError("Paired evaluation requires a reference decoder config.")
-        decoder_config, paired_candidate_config = _load_paired_decoder_configs(
-            configured_decoder, paired_decoder_config_path,
-        )
+        if preflight_pair is None:
+            raise RuntimeError("Paired decoder preflight was not completed.")
+        decoder_config, paired_candidate_config = preflight_pair
     all_reference: list[NoteInterval] = []
     all_estimated: list[NoteInterval] = []
     causal_clips: list[ClipNoteOnData] = []
@@ -1064,6 +1070,7 @@ def evaluate_events(
                 "diagnostics": report["diagnostics"],
                 "diagnostics_by_corpus": _diagnostics_by_corpus(recording_reports),
                 "low_midi_40_51": reference_low,
+                "per_recording": recording_reports,
             },
             "candidate": {
                 "onset": candidate_onset,
@@ -1075,6 +1082,7 @@ def evaluate_events(
                 "diagnostics": candidate_diagnostics,
                 "diagnostics_by_corpus": _diagnostics_by_corpus(paired_reports),
                 "low_midi_40_51": candidate_low,
+                "per_recording": paired_reports,
             },
             "delta_candidate_minus_reference": {
                 "false_positive_notes": (
