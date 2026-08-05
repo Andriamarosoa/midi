@@ -23,3 +23,11 @@ Une éventuelle validation A/B devra utiliser une seule inférence par prise et 
 ## Décision actuelle
 
 Cette note définit une piste, pas une autorisation de calcul. Elle doit être revue avant tout changement de labels, génération de candidats, smoke ou entraînement.
+
+## Contrat exécutable pré-minage
+
+Un exemple est une tentative de NoteOn **émise**, pas une frame candidate. Les candidats éligibles mais non sélectionnés ou non émis sont masqués dans ce premier cycle. Les tentatives contiguës d'une même prise et même pitch sont réduites à l'épisode au score maximal. Chaque ligne conserve `gate_eligible`, `rank`, `selected`, `emitted_noteon`, `event_id`, frame, pitch, raison, score et support harmonique.
+
+Les prises sont d'abord affectées avec `partition_train_groups()` et sa clé `leakage_group_key`, puis seulement minées : aucune répartition aléatoire de candidats n'est admise. Le label emploiera `latest_causal_same_pitch_one_to_one` avec latence maximale `250 ms`. Les features de la future tête sont strictement causales : frame/onset, score/raison/support du candidat, rang/sélection, état audio-onset et polyphonie active ; ni vérité ni futur ne peuvent être des entrées.
+
+Avant minage, le mineur devra vérifier SHA du commit, manifeste train, checkpoint, YAML, config décodeur, thresholds et toute config audio. Il devra produire les comptes par corpus, partition et classe avant de pouvoir autoriser un smoke.
