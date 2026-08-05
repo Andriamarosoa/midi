@@ -22,3 +22,7 @@ Les métriques causales sont également identiques : 2 073 faux NoteOn, `69,9237
 ## Décision
 
 La porte `independent_note` au seuil `0,01` n'est pas promue : elle n'est pas rejetée pour régression, mais elle n'a aucun effet observable sur cette validation. Aucun seuil alternatif n'est exploré, aucun export, live, entraînement ou test verrouillé ne suit avant une nouvelle hypothèse revue.
+
+## Correctif d'observabilité ultérieur
+
+Le rapport de cette passe ne sérialisait pas les compteurs internes de la porte candidate ; ce défaut n'affecte pas l'égalité des événements A/B déjà mesurée. Le code futur conserve désormais, par prise et globalement, les candidats éligibles/rejetés et les quantiles de probabilités de la branche candidate. Cette information ne peut pas être reconstruite sans refaire la passe, ce qui n'est pas autorisé pour ce résultat clos.

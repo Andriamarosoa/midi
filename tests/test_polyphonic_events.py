@@ -102,6 +102,18 @@ class PolyphonicEventEvaluationTests(unittest.TestCase):
         self.assertEqual(result["probability_quantiles"], {})
         self.assertEqual(result["would_reject"], {"0.500": 0})
 
+    def test_candidate_gate_aggregation_preserves_rejections(self) -> None:
+        result = _aggregate_independent_note_gate([{"independent_note_gate": {
+            "enabled": True, "threshold": 0.01, "eligible_candidates": 2,
+            "rejected_candidates": 1, "eligible_probability_min": 0.005,
+            "eligible_probability_max": 0.9, "eligible_probability_mean": 0.4525,
+            "diagnostic_thresholds": [0.01],
+            "eligible_probability_values": [0.005, 0.9],
+        }}])
+        self.assertTrue(result["enabled"])
+        self.assertEqual(result["rejected_candidates"], 1)
+        self.assertEqual(result["would_reject"]["0.010"], 1)
+
     def test_force_cpu_is_applied_before_tensorflow_import(self) -> None:
         import src.polyphonic.evaluate_events as events
 

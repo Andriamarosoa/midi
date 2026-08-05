@@ -914,6 +914,7 @@ def evaluate_events(
                     prediction["harmonic_amplitude"], paired_candidate_config,
                     corpus.sample_rate, corpus.hop_size, activity_mask, onset_mask,
                     prediction.get("independent_note"), candidate_gate,
+                    INDEPENDENT_NOTE_DIAGNOSTIC_THRESHOLDS,
                 )
         finally:
             corpus.close()
@@ -973,6 +974,7 @@ def evaluate_events(
                 ),
                 "strictly_causal_noteon": candidate_causal_metrics,
                 "retriggers": candidate_retriggers,
+                "independent_note_gate": candidate_gate,
                 "diagnostics": diagnose_note_errors(
                     reference, candidate_estimated, candidate_matches,
                 ),
@@ -1055,6 +1057,11 @@ def evaluate_events(
         candidate_causal = aggregate_strictly_causal_noteon_metrics(
             paired_causal_clips, gate=causal_gate,
         )
+        candidate_gate_summary = _aggregate_independent_note_gate(paired_reports)
+        for recording in paired_reports:
+            gate = recording.get("independent_note_gate")
+            if isinstance(gate, dict):
+                gate.pop("eligible_probability_values", None)
         reference_low = _low_midi_metrics(all_reference, all_estimated)
         candidate_low = _low_midi_metrics(paired_reference, paired_estimated)
         report["paired_ab"] = {
@@ -1079,6 +1086,7 @@ def evaluate_events(
                 ),
                 "retriggers": paired_retriggers,
                 "strictly_causal_noteon": candidate_causal,
+                "independent_note_gate": candidate_gate_summary,
                 "diagnostics": candidate_diagnostics,
                 "diagnostics_by_corpus": _diagnostics_by_corpus(paired_reports),
                 "low_midi_40_51": candidate_low,
