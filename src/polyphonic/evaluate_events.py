@@ -60,13 +60,23 @@ def _sha256_file(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def _assert_expected_selection(path: Path, manifest: Path, items: Sequence[ManifestItem]) -> None:
+def _assert_expected_selection(
+    path: Path, manifest: Path, items: Sequence[ManifestItem], *,
+    checkpoint: Path, reference_config: Path, candidate_config: Path,
+) -> None:
     expected = json.loads(path.read_text(encoding="utf-8"))
     actual_keys = ["|".join(_recording_key(item)[:4]) for item in items]
     if expected.get("manifest_sha256") != _sha256_file(manifest):
         raise ValueError("Expected selection manifest SHA-256 mismatch.")
     if expected.get("recording_keys") != actual_keys:
         raise ValueError("Expected paired validation recording selection mismatch.")
+    for name, actual in (
+        ("checkpoint_sha256", _sha256_file(checkpoint)),
+        ("reference_config_sha256", _sha256_file(reference_config)),
+        ("candidate_config_sha256", _sha256_file(candidate_config)),
+    ):
+        if expected.get(name) != actual:
+            raise ValueError(f"Expected paired {name} mismatch.")
 
 
 @dataclass(frozen=True)
@@ -702,6 +712,8 @@ def _load_paired_decoder_configs(
         raise ValueError("Paired reference must disable independent_note_threshold.")
     if candidate_values.get("independent_note_threshold") is None:
         raise ValueError("Paired candidate must enable independent_note_threshold.")
+    if float(candidate_values["independent_note_threshold"]) != 0.01:
+        raise ValueError("Paired candidate threshold must be exactly 0.01.")
     return (
         PolyphonicDecoderConfig(**reference_values),
         PolyphonicDecoderConfig(**candidate_values),
@@ -776,12 +788,26 @@ def evaluate_events(
     items = select_evaluation_recordings(
         manifest_items, split, maximum_recordings, dataset_id,
     )
+    configured_decoder = decoder_config_path or (run_dir / "decoder_config.json")
     default_checkpoint = (
         run_dir / "selected.keras"
         if (run_dir / "selected.keras").is_file()
         else run_dir / "best.keras"
     )
     checkpoint = checkpoint_path or default_checkpoint
+    if paired_decoder_config_path is not None:
+        if split != "validation":
+            raise PermissionError("Paired decoder evaluation is validation-only.")
+        if expected_selection_path is None:
+            raise ValueError("Paired evaluation requires --expected-selection.")
+        if not configured_decoder.is_file() or not checkpoint.is_file():
+            raise FileNotFoundError("Paired evaluation provenance artifact missing.")
+        _load_paired_decoder_configs(configured_decoder, paired_decoder_config_path)
+        _assert_expected_selection(
+            expected_selection_path, Path(config["dataset"]["manifest"]), items,
+            checkpoint=checkpoint, reference_config=configured_decoder,
+            candidate_config=paired_decoder_config_path,
+        )
     if not checkpoint.is_file():
         raise FileNotFoundError(checkpoint)
     model = load_polyphonic_checkpoint(checkpoint)
@@ -797,7 +823,6 @@ def evaluate_events(
     inference_model = tf.keras.Model(model.inputs, inference_outputs)
     frame_threshold = float(thresholds["frame"])
     onset_threshold = float(thresholds["onset"])
-    configured_decoder = decoder_config_path or (run_dir / "decoder_config.json")
     if configured_decoder.is_file():
         decoder_config = PolyphonicDecoderConfig(**json.loads(
             configured_decoder.read_text(encoding="utf-8")
@@ -808,8 +833,6 @@ def evaluate_events(
         )
     paired_candidate_config: PolyphonicDecoderConfig | None = None
     if paired_decoder_config_path is not None:
-        if split != "validation":
-            raise PermissionError("Paired decoder evaluation is validation-only.")
         if not configured_decoder.is_file():
             raise ValueError("Paired evaluation requires a reference decoder config.")
         decoder_config, paired_candidate_config = _load_paired_decoder_configs(
@@ -976,12 +999,6 @@ def evaluate_events(
     causal_noteon_metrics = aggregate_strictly_causal_noteon_metrics(
         causal_clips, gate=causal_gate
     )
-    if paired_decoder_config_path is not None:
-        if expected_selection_path is None:
-            raise ValueError("Paired evaluation requires --expected-selection.")
-        _assert_expected_selection(
-            expected_selection_path, Path(config["dataset"]["manifest"]), items,
-        )
     independent_note_gate = _aggregate_independent_note_gate(recording_reports)
     for recording in recording_reports:
         gate = recording.get("independent_note_gate")

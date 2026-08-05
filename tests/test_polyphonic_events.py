@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -35,6 +37,17 @@ class PolyphonicEventEvaluationTests(unittest.TestCase):
         )
         self.assertIsNone(reference.independent_note_threshold)
         self.assertEqual(candidate.independent_note_threshold, 0.01)
+
+    def test_paired_decoder_configs_reject_non_preregistered_threshold(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        reference = root / "configs" / "independent_note_decoder_reference.json"
+        values = json.loads((root / "configs" / "independent_note_decoder_candidate.json").read_text())
+        values["independent_note_threshold"] = 0.5
+        with tempfile.TemporaryDirectory() as directory:
+            candidate = Path(directory) / "candidate.json"
+            candidate.write_text(json.dumps(values), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "exactly 0.01"):
+                _load_paired_decoder_configs(reference, candidate)
 
     def test_paired_mode_keeps_one_model_prediction_call_per_recording(self) -> None:
         source = Path(__file__).resolve().parents[1] / "src" / "polyphonic" / "evaluate_events.py"
