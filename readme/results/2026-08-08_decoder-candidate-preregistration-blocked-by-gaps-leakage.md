@@ -67,3 +67,21 @@ de split GAPS réellement group-safe (par exemple répartition complète des
 joueurs entre train/validation et conséquences sur les cohortes). Seulement
 après un manifeste versionné/revu sans chevauchement train/validation pourra
 être créée une **nouvelle** préinscription immuable, suivie de sa propre revue.
+
+## Revue de clôture
+
+La revue externe du commit documentaire `d4280e0` approuve cet arrêt : le
+garde est déclenché avant toute écriture de plan et avant tout hachage d'actif.
+Elle n'autorise pas une nouvelle préinscription à ce stade.
+
+Le prochain commit autorisable est uniquement documentaire et doit enregistrer
+une décision utilisateur entre deux politiques incompatibles :
+
+- **A — préserver la validation existante** : garder intégralement en
+  validation les joueurs qui y figurent déjà, et rendre les 31 prises train de
+  ces dix joueurs inéligibles au futur minage train-only ;
+- **B — refaire le split GAPS au niveau joueur** : affecter chaque joueur entier
+  à un split selon une règle déterministe versionnée, en assumant une nouvelle
+  validation officielle non directement comparable aux mesures historiques.
+
+Ni le manifeste ni les données ne seront modifiés avant ce choix et sa revue.

@@ -16,10 +16,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-08-08T22:27:16+04:00`.
+- Mise à jour : `2026-08-08T22:43:47+04:00`.
 - Étape : `decoder_candidate_preregistration`.
-- Statut : `anomalie fail-closed : la préinscription réelle est refusée avant
-  toute écriture car dix groupes GAPS traversent train et validation`.
+- Statut : `anomalie fail-closed confirmée : dix groupes GAPS traversent train
+  et validation; un choix scientifique de politique de split est requis`.
 - Résultat scientifique conservé : la tête `independent_note` précédente reste
   un résultat négatif, saturé près de 1, et ne doit promouvoir ni checkpoint ni
   seuil. Le test verrouillé reste fermé.
@@ -126,8 +126,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 ## Prochaine action réelle
 
-1. Définir et faire relire une politique de split GAPS réellement group-safe ;
-   ne pas filtrer manuellement les prises et ne pas contourner le garde.
+1. Choisir explicitement une politique de split GAPS réellement group-safe :
+   **A** préserver l'actuelle validation et exclure du train les 31 prises des
+   joueurs concernés, ou **B** redéfinir le split au niveau joueur et adopter
+   une nouvelle validation officielle. Ne pas filtrer manuellement des prises.
 2. Après un manifeste versionné sans chevauchement train/validation et une
    revue explicite, préinscrire un nouveau plan et registre immuables sur le
    Mac, puis faire relire leurs SHA, partitions et couverture.
@@ -376,8 +378,10 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
   écriture ou hachage : le manifeste `b28cb17...` comporte dix groupes GAPS
   chevauchant train/validation. Le répertoire de sortie vide a été supprimé;
   aucun plan, registre, actif projet, minage, entraînement, validation, export,
-  live ou test verrouillé n'a été produit. Une décision group-safe est requise
-  avant toute nouvelle tentative.
+  live ou test verrouillé n'a été produit. La revue de `d4280e0` est approuvée
+  et n'autorise qu'un futur commit de politique, sans données ni calcul : le
+  choix entre préserver la validation actuelle (A) et créer une nouvelle
+  validation group-safe (B) appartient à l'utilisateur avant toute tentative.
 <!-- PROJECT_TASK:decoder_candidate_asset_evidence_contract:END -->
 <!-- JOURNAL_END -->
 ## Rapports détaillés
