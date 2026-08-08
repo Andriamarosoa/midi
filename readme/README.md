@@ -16,25 +16,26 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-08-08T14:00:20+04:00`.
-- Étape : `decoder_candidate_contract_hardening`.
-- Statut : `correctif implémenté et vérifié — revue ChatGPT requise avant
-  instrumentation du décodeur`.
+- Mise à jour : `2026-08-08T14:15:07+04:00`.
+- Étape : `decoder_candidate_contract_reviewed`.
+- Statut : `commits af5437ee et 88a66ce approuvés par la revue ChatGPT —
+  instrumentation isolée du décodeur autorisée comme prochaine étape`.
 - Résultat scientifique conservé : la tête `independent_note` précédente reste
   un résultat négatif, saturé près de 1, et ne doit promouvoir ni checkpoint ni
   seuil. Le test verrouillé reste fermé.
 - Contrat candidat : le bug de continuité est corrigé; les champs causaux réels
   sont déclarés et les métadonnées `rank/selected` sont explicitement
-  post-porte. Les invariants échouent en mode fermé. Le module reste isolé et
-  `decoder.py` n'a pas été modifié.
+  post-porte. Les invariants échouent en mode fermé. La revue externe confirme
+  qu'aucun correctif supplémentaire n'est requis avant l'instrumentation.
 - Infrastructure Ollama : le commit `af5437ee` conserve le verrou partagé
   jusqu'au déchargement vérifié, refuse les worktrees sales et les redirections,
   transporte le prompt par stdin, contrôle tous les composants des chemins et
   ne persiste plus le corps des réponses.
-- Vérification : 38 tests ciblés Windows et 23 tests Mac réussis, syntaxe Python,
-  analyse PowerShell et `git diff --check` réussis. Un appel réel 14B a terminé,
-  puis le statut a confirmé `active_lock=false` et `running_models=[]`. Sa
-  réponse générique n'est pas acceptée comme code review.
+- Vérification : les 38 tests ciblés Windows ont été rejoués avec succès au
+  commit `88a66ce`; les 23 tests Mac, la syntaxe Python, l'analyse PowerShell et
+  `git diff --check` avaient déjà réussi. Un appel réel 14B a terminé, puis le
+  statut a confirmé `active_lock=false` et `running_models=[]`. Sa réponse
+  générique n'est pas acceptée comme code review.
 - `locked_test_used=false`; aucun entraînement, minage, calcul validation,
   export ou live n'a été exécuté.
 - Rapports :
@@ -45,11 +46,17 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## Prochaine action réelle
 
 1. Ne promouvoir ni le checkpoint précédent ni un seuil de porte.
-2. Faire relire par ChatGPT le commit `af5437ee` et le rapport de durcissement.
-3. Ne connecter aucun producteur à `decoder.py` avant approbation explicite du
-   contrat corrigé.
-4. Conserver le test verrouillé fermé et ne lancer aucun entraînement, minage,
-   validation, export ou live pendant cette revue.
+2. Préparer un unique commit d'instrumentation de `decoder.py`, désactivée par
+   défaut : features causales juste avant la porte, puis rang, sélection et
+   émission seulement après leurs décisions réelles.
+3. Exiger une parité événement par événement et état interne par état interne
+   entre collecte désactivée et activée; créer les `event_id` hors de l'objet
+   public `PolyphonicMidiEvent`, borner la collecte et figer l'encodage de
+   `candidate_reason`.
+4. Avant tout futur artefact miné, attacher `source_id`, `group_id`,
+   `capture_id` et la partition `fit/dev/calibration` en amont du minage.
+5. Conserver le test verrouillé fermé et ne lancer aucun entraînement, minage,
+   validation, export ou live avant la revue de ce futur commit.
 
 ## État archivé — dual-stream du 30 juillet (remplacé)
 
@@ -215,13 +222,16 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
   d'éditer, de commiter ou de remplacer les preuves réelles.
 <!-- PROJECT_TASK:ollama_local_team:END -->
 <!-- PROJECT_TASK:decoder_candidate_mining_contract:START -->
-- 2026-08-08 — **revue requise** — `decoder_candidate_mining_contract` : le
+- 2026-08-08 — **terminé** — `decoder_candidate_mining_contract` : le
   contrat isolé corrige le découpage des épisodes avec `best_row` et
   `last_frame_index`, ajoute les features causales manquantes, sépare les
   métadonnées post-porte et impose des invariants JSON fail-closed. Les scores
   décroissants, les `event_id` distincts et les états incohérents sont testés.
-  Aucun branchement dans `decoder.py`, minage, entraînement ou calcul
-  validation n'a été effectué; test verrouillé fermé.
+  Les commits `af5437ee` et `88a66ce` sont approuvés par la revue externe et les
+  38 tests ciblés Windows ont été rejoués avec succès. Aucun branchement dans
+  `decoder.py`, minage, entraînement ou calcul validation n'a été effectué;
+  test verrouillé fermé. La prochaine tâche distincte est une instrumentation
+  désactivée par défaut, soumise à une nouvelle revue avant tout calcul.
 <!-- PROJECT_TASK:decoder_candidate_mining_contract:END -->
 <!-- JOURNAL_END -->
 ## Rapports détaillés

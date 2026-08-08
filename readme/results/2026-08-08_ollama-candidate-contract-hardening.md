@@ -79,9 +79,36 @@ Le 14B n'a pas respecté la consigne de revue ciblée : il a produit un résumé
 générique et cité un chemin inexistant. Ce résultat mesure une limite réelle du
 modèle local et ne constitue pas une approbation.
 
+## Revue externe
+
+La revue ChatGPT reçue le 8 août approuve les commits `af5437ee` et `88a66ce`
+sans défaut bloquant. Les 38 tests ciblés Windows ont été rejoués au commit
+`88a66ce` et réussissent tous. Aucun code ni résultat expérimental n'a été
+modifié pendant cette clôture documentaire.
+
+La prochaine modification autorisée est limitée à l'instrumentation de
+`decoder.py`, désactivée par défaut. Elle devra :
+
+- capturer les features causales immédiatement avant la porte;
+- ajouter rang, sélection et émission seulement après les décisions réelles;
+- démontrer une parité événement par événement et état interne par état interne
+  entre le décodeur sans collecte et le même décodeur avec collecte activée;
+- produire des identifiants d'événement hors de l'objet public
+  `PolyphonicMidiEvent`, avec une collecte bornée;
+- figer l'encodage de `candidate_reason` avant tout entraînement;
+- attribuer `source_id`, `group_id`, `capture_id` et la partition
+  `fit/dev/calibration` avant tout futur minage, jamais après constitution de
+  l'artefact.
+
+Ces exigences sont des garde-fous pour le prochain commit; elles n'autorisent
+encore aucun minage, entraînement, calcul validation, export, live ou accès au
+test verrouillé.
+
 ## Décision
 
 Le correctif est techniquement vérifié sur Windows et Mac. Aucun entraînement,
 minage, validation officielle, export, live ou test verrouillé n'a été lancé.
-Une revue ChatGPT du commit et de ce rapport reste requise avant toute
-instrumentation de `decoder.py`.
+La revue ChatGPT approuve le contrat durci. Une instrumentation isolée,
+désactivée par défaut et couverte par les preuves de parité ci-dessus peut être
+préparée dans un commit distinct; ce futur commit devra être revu avant tout
+calcul.
