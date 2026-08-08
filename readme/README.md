@@ -16,10 +16,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-08-08T15:17:28+04:00`.
-- Étape : `decoder_candidate_instrumentation`.
-- Statut : `instrumentation-only vérifiée sur Windows et Mac au commit exact —
-  revue externe requise avant tout minage`.
+- Mise à jour : `2026-08-08T15:33:20+04:00`.
+- Étape : `decoder_candidate_provenance_contract`.
+- Statut : `instrumentation-only approuvée; contrat de provenance et unité
+  d'apprentissage à définir puis relire, sans minage`.
 - Résultat scientifique conservé : la tête `independent_note` précédente reste
   un résultat négatif, saturé près de 1, et ne doit promouvoir ni checkpoint ni
   seuil. Le test verrouillé reste fermé.
@@ -62,16 +62,20 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `readme/results/2026-08-05_decoder-candidate-mining-hypothesis.md`,
   `readme/results/2026-08-08_ollama-local-team.md` et
   `readme/results/2026-08-08_ollama-candidate-contract-hardening.md`, puis
-  `readme/results/2026-08-08_decoder-candidate-instrumentation.md`.
+  `readme/results/2026-08-08_decoder-candidate-instrumentation.md` et
+  `readme/results/2026-08-08_decoder-candidate-instrumentation-review.md`.
 
 ## Prochaine action réelle
 
-1. Faire relire le commit `f7514228800d8ad15db7d047dcadfbf8640cf4ee` et son
-   rapport par ChatGPT.
-2. Ne promouvoir ni checkpoint ni seuil et ne lancer aucun minage avant cette
-   revue.
-3. Résoudre dans un futur commit revu `capture_id`/partition et la sémantique
-   de collapse avant toute production d'artefact.
+1. Préenregistrer et faire relire un contrat de provenance complet :
+   `source_id`, `dataset_id`, `group_id`, `capture_id`, clé de fuite et
+   partition déterministe `fit/dev/calibration` assignée au niveau groupe
+   avant tout minage.
+2. Définir l'unité d'apprentissage avant d'écrire le mineur : soit supprimer
+   `collapse_emitted_candidate_episodes()`, soit introduire un véritable
+   `candidate_episode_id` distinct du `event_id` d'un NoteOn.
+3. Ne promouvoir ni checkpoint ni seuil, et ne lancer aucun minage avant la
+   revue de ce contrat.
 4. Conserver le test verrouillé fermé; aucun entraînement, validation, export
    ou live n'est autorisé par cette étape.
 
@@ -251,7 +255,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
   désactivée par défaut, soumise à une nouvelle revue avant tout calcul.
 <!-- PROJECT_TASK:decoder_candidate_mining_contract:END -->
 <!-- PROJECT_TASK:decoder_candidate_instrumentation:START -->
-- 2026-08-08 — **en cours** — `decoder_candidate_instrumentation` : collecteur
+- 2026-08-08 — **terminé** — `decoder_candidate_instrumentation` : collecteur
   optionnel désactivé par défaut ajouté aux voies legacy et causale. Snapshot
   pré-porte immuable, métadonnées post-décision, identifiants déterministes hors
   événement MIDI, encodage des raisons compatible avec le live, buffer borné,
@@ -260,9 +264,24 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
   deux tests Windows-only. Les 512 frames sont identiques au décodeur `f9ed9d0`
   pour événements et état. Le chemin désactivé ne montre aucune régression
   mesurable; l'overhead activé est 98,11 µs/frame dans le benchmark dense. Mac
-  propre au commit exact `f751422`; revue externe requise, sans minage ni test
-  verrouillé.
+  propre au commit exact `f751422`. Revue de clôture de `f751422` et
+  `d4492c3` approuvée : les 86 tests documentés sont rejoués localement avec
+  succès (`86/86`, 6,895 s), l'arbre est propre et aucun processus scientifique
+  n'est actif sur Windows ou Mac. La parité instrumentation désactivée/activée,
+  les snapshots pré-porte, la remise non bloquante et les erreurs fail-open
+  sont confirmés. Aucun minage, entraînement, validation, export, live ou test
+  verrouillé n'est autorisé par cette clôture.
 <!-- PROJECT_TASK:decoder_candidate_instrumentation:END -->
+<!-- PROJECT_TASK:decoder_candidate_provenance_contract:START -->
+- 2026-08-08 — **en cours** — `decoder_candidate_provenance_contract` :
+  définir sans calcul la provenance persistante et l'unité d'apprentissage du
+  futur minage. Bloquants connus : le collecteur brut ne porte pas encore
+  `capture_id` ni la partition group-safe `fit/dev/calibration`; de plus,
+  `collapse_emitted_candidate_episodes()` ne peut fusionner des NoteOn réels
+  puisque leur `event_id` déterministe contient la frame. Aucun artefact,
+  minage, entraînement, validation, export, live ou test verrouillé n'est
+  autorisé avant un commit de contrat explicitement revu.
+<!-- PROJECT_TASK:decoder_candidate_provenance_contract:END -->
 <!-- JOURNAL_END -->
 ## Rapports détaillés
 
@@ -277,6 +296,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-08 — équipe Ollama locale](results/2026-08-08_ollama-local-team.md)
 - [2026-08-08 — durcissement Ollama et contrat candidat](results/2026-08-08_ollama-candidate-contract-hardening.md)
 - [2026-08-08 — instrumentation des candidats du décodeur](results/2026-08-08_decoder-candidate-instrumentation.md)
+- [2026-08-08 — revue de clôture de l'instrumentation](results/2026-08-08_decoder-candidate-instrumentation-review.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.
