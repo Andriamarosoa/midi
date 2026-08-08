@@ -19,6 +19,7 @@ from .decoder_candidate_provenance import (
     DecoderCandidateProvenance,
     ManifestItemLike,
     ValidatedDecoderCandidateManifestSnapshot,
+    _require_persisted_partition_plan,
     _require_validated_manifest_snapshot,
 )
 from .decoder_reason_codes import (
@@ -217,11 +218,13 @@ class DecoderCandidateCollector:
                 "ValidatedDecoderCandidateManifestSnapshot."
             )
         _require_validated_manifest_snapshot(validated_snapshot)
+        _require_persisted_partition_plan(validated_snapshot.persisted_plan)
         if (
             type(maximum_attempts) is not int
             or maximum_attempts <= 0
         ):
             raise ValueError("maximum_attempts must be a positive integer.")
+        self._validated_snapshot = validated_snapshot
         self._provenance = validated_snapshot.provenance_for_snapshot_item(
             manifest_item
         )
@@ -390,6 +393,10 @@ class DecoderCandidateCollector:
 
     def drain(self) -> DecoderCandidateBatch:
         """Atomically drain rows together with any overflow evidence."""
+        # A direct collector must not become a loophole around the mining
+        # context: the immutable preassignment has to remain byte-identical
+        # until the batch is made available to any future artifact writer.
+        _require_persisted_partition_plan(self._validated_snapshot.persisted_plan)
         with self._lock:
             batch = DecoderCandidateBatch(
                 attempts=tuple(self._attempts),

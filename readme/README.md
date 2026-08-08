@@ -16,9 +16,9 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-08-08T17:05:55+04:00`.
+- Mise à jour : `2026-08-08T20:19:48+04:00`.
 - Étape : `decoder_candidate_provenance_contract`.
-- Statut : `protocole snapshot/plan/labels causales codé et testé localement;
+- Statut : `correctif du matching causal des retriggers vérifié localement;
   revue externe requise, sans plan réel ni minage`.
 - Résultat scientifique conservé : la tête `independent_note` précédente reste
   un résultat négatif, saturé près de 1, et ne doit promouvoir ni checkpoint ni
@@ -66,15 +66,22 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 - Microbenchmark borné dense : ancien décodeur 175,77 µs/frame, nouveau chemin
   désactivé 162,53 µs/frame (aucune régression mesurée), collecte activée
   260,64 µs/frame, soit +98,11 µs et 1,69 % du hop de 5,805 ms.
-- Étiquettes futures : les seuls exemples sont les NoteOn gate-éligibles et
-  émis. Le matcher causal same-pitch une-à-une est strictement causale, à
-  250 ms inclusifs et à la fin du hop. Les frames invalides sont exclues; les
-  retriggers sont comptés comme exclusion explicite; toute autre NoteOn sans
+- Étiquettes futures : les seuls exemples de fit sont les NoteOn gate-éligibles
+  et émis. Le matcher causal same-pitch une-à-une reçoit cependant tous les
+  NoteOn valides du flux réel, retriggers inclus, à la fin du hop et à 250 ms
+  inclusifs, avant projection vers le fit. Un retrigger same-pitch ne peut donc
+  plus laisser une référence disponible pour rendre positif un candidat tardif.
+  Les frames invalides ou hors audio ne consomment pas de référence; les
+  retriggers restent comptés comme exclusion explicite; toute autre NoteOn sans
   trace ou erreur de collecteur invalide le lot. Les features de fit sont
   projetées strictement depuis `CAUSAL_FEATURES`.
 - Vérification du protocole Windows : compilation Python, `git diff --check`
-  et **128 tests ciblés réussis en 7,438 s** sont rejoués avant ce commit. Le
-  détail et la commande exacte sont archivés dans le nouveau rapport ci-dessous.
+  et **128 tests ciblés réussis en 7,438 s** ont été archivés avant le commit
+  précédent. Le détail et la commande exacte sont archivés dans le rapport.
+- Vérification du correctif retrigger Windows : compilation Python,
+  `git diff --check` et **131 tests ciblés réussis en 8,993 s**. Les deux
+  ordres same-pitch retrigger/candidat, le retrigger invalide et l'intégrité du
+  plan au `drain()` sont couverts dans le nouveau rapport.
 - Limite avant minage : aucun plan réel ni artefact candidat n'a été généré ou
   persisté; aucun décodeur ni mineur n'a été exécuté. Les chemins sont liés au
   snapshot manifeste, mais la preuve préenregistrée des octets d'audio/labels
@@ -88,11 +95,12 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `readme/results/2026-08-08_decoder-candidate-instrumentation.md`,
   `readme/results/2026-08-08_decoder-candidate-instrumentation-review.md` et
   `readme/results/2026-08-08_decoder-candidate-provenance-contract.md`, puis
-  `readme/results/2026-08-08_decoder-candidate-snapshot-label-protocol.md`.
+  `readme/results/2026-08-08_decoder-candidate-snapshot-label-protocol.md` et
+  `readme/results/2026-08-08_decoder-candidate-retrigger-causal-matching-fix.md`.
 
 ## Prochaine action réelle
 
-1. Faire relire ce commit de protocole, sans lancer de calcul.
+1. Faire relire ce correctif de matching, sans lancer de calcul.
 2. Après approbation explicite seulement, préenregistrer le plan réel et la
    preuve d'actifs associée, puis faire relire ces deux éléments avant la toute
    première collecte.
@@ -309,7 +317,15 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
   dans `2026-08-08_decoder-candidate-snapshot-label-protocol.md`. Aucun plan
   réel, artefact, minage, entraînement, validation, export, live ou test
   verrouillé n'a été produit. Les empreintes des actifs audio/labels restent à
-  préenregistrer avant toute ouverture réelle. Revue externe requise.
+  préenregistrer avant toute ouverture réelle. La revue de `a06e9641` a trouvé
+  un faux positif de labels : un retrigger same-pitch exclu du fit ne consommait
+  pas sa référence avant le matching d'un candidat ultérieur. Le correctif
+  applique désormais le matcher à tous les NoteOn valides du flux avant de
+  projeter uniquement les résultats entraînables, et sépare les matches complets
+  des matches exclus du fit. Il exige aussi un plan réellement persistant pour
+  construire la capacité collecteur et le revérifie au `drain()`. Compilation,
+  `git diff --check` et 131 tests ciblés Windows passent en 8,993 s. Aucune
+  donnée projet n'a été ouverte; revue externe requise.
 <!-- PROJECT_TASK:decoder_candidate_provenance_contract:END -->
 <!-- JOURNAL_END -->
 ## Rapports détaillés
@@ -328,6 +344,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-08 — revue de clôture de l'instrumentation](results/2026-08-08_decoder-candidate-instrumentation-review.md)
 - [2026-08-08 — contrat de provenance des candidats du décodeur](results/2026-08-08_decoder-candidate-provenance-contract.md)
 - [2026-08-08 — protocole snapshot et labels causales des candidats](results/2026-08-08_decoder-candidate-snapshot-label-protocol.md)
+- [2026-08-08 — correctif causal des retriggers candidats](results/2026-08-08_decoder-candidate-retrigger-causal-matching-fix.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.

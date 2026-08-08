@@ -22,8 +22,10 @@ from src.polyphonic.decoder_candidate_labels import (
 )
 from src.polyphonic.decoder_candidate_provenance import (
     PersistedDecoderCandidatePartitionPlan,
+    build_decoder_candidate_partition_plan_from_snapshot,
     load_decoder_candidate_partition_plan,
     validate_decoder_candidate_partition_plan_against_snapshot,
+    write_decoder_candidate_partition_plan,
 )
 
 
@@ -107,7 +109,7 @@ class DecoderCandidateSnapshotProtocolTests(unittest.TestCase):
             )
             with self.assertRaisesRegex(RuntimeError, "load_manifest_snapshot"):
                 validate_decoder_candidate_partition_plan_against_snapshot(
-                    context.persisted_plan.plan, lookalike
+                    context.persisted_plan, lookalike
                 )
             copied_with_substituted_paths = replace(
                 context.snapshot,
@@ -122,7 +124,7 @@ class DecoderCandidateSnapshotProtocolTests(unittest.TestCase):
             )
             with self.assertRaisesRegex(RuntimeError, "loader-attested"):
                 validate_decoder_candidate_partition_plan_against_snapshot(
-                    context.persisted_plan.plan,
+                    context.persisted_plan,
                     copied_with_substituted_paths,
                 )
             with self.assertRaisesRegex(RuntimeError, "loader-attested"):
@@ -296,6 +298,64 @@ class DecoderCandidateSnapshotProtocolTests(unittest.TestCase):
                     partition_plan_path=plan_path,
                     seed=48,
                 )
+
+    def test_collector_capability_cannot_be_created_from_an_in_memory_or_forged_plan(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            manifest_path = root / "manifest.csv"
+            plan_path = root / "partition-plan.json"
+            _write_full_manifest(manifest_path)
+            snapshot = load_manifest_snapshot(manifest_path)
+            plan = build_decoder_candidate_partition_plan_from_snapshot(
+                snapshot, seed=47
+            )
+            with self.assertRaisesRegex(ValueError, "PersistedDecoderCandidatePartitionPlan"):
+                validate_decoder_candidate_partition_plan_against_snapshot(plan, snapshot)  # type: ignore[arg-type]
+
+            persisted = write_decoder_candidate_partition_plan(plan_path, plan)
+            forged = PersistedDecoderCandidatePartitionPlan(
+                path=persisted.path,
+                sha256=persisted.sha256,
+                plan=persisted.plan,
+            )
+            with self.assertRaisesRegex(RuntimeError, "factory-attested"):
+                validate_decoder_candidate_partition_plan_against_snapshot(
+                    forged, snapshot
+                )
+
+    def test_direct_collector_refuses_to_drain_after_its_persisted_plan_changes(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            manifest_path = root / "manifest.csv"
+            plan_path = root / "partition-plan.json"
+            _write_full_manifest(manifest_path)
+            context = create_decoder_candidate_mining_context(
+                manifest_path=manifest_path,
+                partition_plan_path=plan_path,
+                seed=47,
+            )
+            collector = context.collector_for_item(
+                context.items_for_partition("fit")[0]
+            )
+            collector.record_candidate(
+                frame_index=0,
+                pitch=60,
+                candidate_reason="model_onset",
+                candidate_score=0.9,
+                frame_probability=0.9,
+                onset_probability=0.9,
+                harmonic_support=0.0,
+                audio_onset_available=True,
+                audio_onset_recent=True,
+                active_polyphony=0,
+                gate_eligible=True,
+                post_gate_rank=0,
+                post_gate_selected=True,
+                emitted_noteon=True,
+            )
+            plan_path.write_bytes(plan_path.read_bytes() + b" ")
+            with self.assertRaisesRegex(RuntimeError, "bytes changed"):
+                collector.drain()
 
     def test_context_rejects_a_hand_constructed_nonpersisted_plan_wrapper(self) -> None:
         with TemporaryDirectory() as temporary:

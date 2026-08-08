@@ -20,12 +20,21 @@ from src.polyphonic.decoder_candidate_labels import (
 )
 from src.polyphonic.decoder_candidate_provenance import (
     build_decoder_candidate_partition_plan_from_snapshot,
+    load_decoder_candidate_partition_plan,
     validate_decoder_candidate_partition_plan_against_snapshot,
+    write_decoder_candidate_partition_plan,
 )
 from src.polyphonic.data import load_manifest_snapshot
 
 
 class DecoderCandidateInstrumentationTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self._collector_temporaries: list[TemporaryDirectory] = []
+
+    def tearDown(self) -> None:
+        for temporary in self._collector_temporaries:
+            temporary.cleanup()
+
     @staticmethod
     def decoder_state(decoder: PolyphonicDecoder) -> dict[str, object]:
         state: dict[str, object] = {}
@@ -40,9 +49,8 @@ class DecoderCandidateInstrumentationTests(unittest.TestCase):
                 state[name] = value
         return state
 
-    @classmethod
     def collector(
-        cls,
+        self,
         maximum_attempts: int = 4096,
         collector_type: type[DecoderCandidateCollector] = DecoderCandidateCollector,
     ) -> DecoderCandidateCollector:
@@ -65,8 +73,9 @@ class DecoderCandidateInstrumentationTests(unittest.TestCase):
                 group_id="group-3", capture_id="capture-3", split="train",
             ),
         ]
-        with TemporaryDirectory() as temporary:
-            path = Path(temporary) / "manifest.csv"
+        temporary = TemporaryDirectory()
+        try:
+            path = Path(temporary.name) / "manifest.csv"
             fields = (
                 "source_id", "dataset_id", "player_id", "group_id",
                 "capture_id", "split", "audio_path", "audio_member",
@@ -81,9 +90,9 @@ class DecoderCandidateInstrumentationTests(unittest.TestCase):
                         if hasattr(candidate, field)
                     }
                     row.update({
-                        "audio_path": str(Path(temporary) / f"{candidate.source_id}.wav"),
+                        "audio_path": str(Path(temporary.name) / f"{candidate.source_id}.wav"),
                         "audio_member": "",
-                        "labels_path": str(Path(temporary) / f"{candidate.source_id}.npz"),
+                        "labels_path": str(Path(temporary.name) / f"{candidate.source_id}.npz"),
                         "license_id": "unit-test",
                     })
                     writer.writerow(row)
@@ -91,14 +100,25 @@ class DecoderCandidateInstrumentationTests(unittest.TestCase):
             plan = build_decoder_candidate_partition_plan_from_snapshot(
                 snapshot, seed=47
             )
-            validated = validate_decoder_candidate_partition_plan_against_snapshot(
-                plan, snapshot
+            persisted = write_decoder_candidate_partition_plan(
+                Path(temporary.name) / "partition-plan.json", plan
             )
-        return collector_type(
-            validated_snapshot=validated,
-            manifest_item=snapshot.items[0],
-            maximum_attempts=maximum_attempts,
-        )
+            persisted = load_decoder_candidate_partition_plan(persisted.path)
+            validated = validate_decoder_candidate_partition_plan_against_snapshot(
+                persisted, snapshot
+            )
+            collector = collector_type(
+                validated_snapshot=validated,
+                manifest_item=snapshot.items[0],
+                maximum_attempts=maximum_attempts,
+            )
+        except Exception:
+            temporary.cleanup()
+            raise
+        # The collector re-verifies the persisted plan at drain time, so keep
+        # the synthetic plan alive for the complete test lifecycle.
+        self._collector_temporaries.append(temporary)
+        return collector
 
     def test_instrumentation_is_disabled_by_default(self) -> None:
         decoder = PolyphonicDecoder(PolyphonicDecoderConfig())

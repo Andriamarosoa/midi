@@ -182,7 +182,7 @@ def load_decoder_candidate_mining_context(
     snapshot = load_manifest_snapshot(manifest_path)
     persisted_plan = load_decoder_candidate_partition_plan(partition_plan_path)
     validated_snapshot = validate_decoder_candidate_partition_plan_against_snapshot(
-        persisted_plan.plan, snapshot
+        persisted_plan, snapshot
     )
     return DecoderCandidateMiningContext(
         snapshot=snapshot,
@@ -214,7 +214,7 @@ def create_decoder_candidate_mining_context(
     # plan as a substitute for the future miner's file-backed preassignment.
     reloaded_plan = load_decoder_candidate_partition_plan(persisted_plan.path)
     validated_snapshot = validate_decoder_candidate_partition_plan_against_snapshot(
-        reloaded_plan.plan, snapshot
+        reloaded_plan, snapshot
     )
     return DecoderCandidateMiningContext(
         snapshot=snapshot,

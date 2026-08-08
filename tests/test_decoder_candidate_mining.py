@@ -18,13 +18,22 @@ from src.polyphonic.decoder_candidate_mining import (
 )
 from src.polyphonic.decoder_candidate_provenance import (
     build_decoder_candidate_partition_plan_from_snapshot,
+    load_decoder_candidate_partition_plan,
     validate_decoder_candidate_partition_plan_against_snapshot,
+    write_decoder_candidate_partition_plan,
 )
 from src.polyphonic.data import load_manifest_snapshot
 from src.polyphonic.decoder_reason_codes import NOTE_ON_REASON_CODES
 
 
 class CandidateMiningContractTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self._collector_temporaries: list[TemporaryDirectory] = []
+
+    def tearDown(self) -> None:
+        for temporary in self._collector_temporaries:
+            temporary.cleanup()
+
     @staticmethod
     def manifest_item(**overrides) -> SimpleNamespace:
         values = dict(
@@ -38,32 +47,32 @@ class CandidateMiningContractTests(unittest.TestCase):
         values.update(overrides)
         return SimpleNamespace(**values)
 
-    @classmethod
     def collector(
-        cls,
+        self,
         *,
         maximum_attempts: int = 4096,
         seed: int = 47,
         **overrides,
     ) -> DecoderCandidateCollector:
-        item = cls.manifest_item(**overrides)
+        item = self.manifest_item(**overrides)
         items = [
             item,
-            cls.manifest_item(
+            self.manifest_item(
                 source_id="second-source",
                 dataset_id=item.dataset_id,
                 group_id="second-group",
                 capture_id="second-capture",
             ),
-            cls.manifest_item(
+            self.manifest_item(
                 source_id="third-source",
                 dataset_id=item.dataset_id,
                 group_id="third-group",
                 capture_id="third-capture",
             ),
         ]
-        with TemporaryDirectory() as temporary:
-            path = Path(temporary) / "manifest.csv"
+        temporary = TemporaryDirectory()
+        try:
+            path = Path(temporary.name) / "manifest.csv"
             fields = (
                 "source_id", "dataset_id", "player_id", "group_id",
                 "capture_id", "split", "audio_path", "audio_member",
@@ -78,9 +87,9 @@ class CandidateMiningContractTests(unittest.TestCase):
                         if hasattr(candidate, field)
                     }
                     row.update({
-                        "audio_path": str(Path(temporary) / f"{candidate.source_id}.wav"),
+                        "audio_path": str(Path(temporary.name) / f"{candidate.source_id}.wav"),
                         "audio_member": "",
-                        "labels_path": str(Path(temporary) / f"{candidate.source_id}.npz"),
+                        "labels_path": str(Path(temporary.name) / f"{candidate.source_id}.npz"),
                         "license_id": "unit-test",
                     })
                     writer.writerow(row)
@@ -88,14 +97,23 @@ class CandidateMiningContractTests(unittest.TestCase):
             plan = build_decoder_candidate_partition_plan_from_snapshot(
                 snapshot, seed=seed
             )
-            validated = validate_decoder_candidate_partition_plan_against_snapshot(
-                plan, snapshot
+            persisted = write_decoder_candidate_partition_plan(
+                Path(temporary.name) / "partition-plan.json", plan
             )
-        return DecoderCandidateCollector(
-            validated_snapshot=validated,
-            manifest_item=snapshot.items[0],
-            maximum_attempts=maximum_attempts,
-        )
+            persisted = load_decoder_candidate_partition_plan(persisted.path)
+            validated = validate_decoder_candidate_partition_plan_against_snapshot(
+                persisted, snapshot
+            )
+            collector = DecoderCandidateCollector(
+                validated_snapshot=validated,
+                manifest_item=snapshot.items[0],
+                maximum_attempts=maximum_attempts,
+            )
+        except Exception:
+            temporary.cleanup()
+            raise
+        self._collector_temporaries.append(temporary)
+        return collector
 
     @staticmethod
     def row(**overrides) -> DecoderCandidateAttempt:

@@ -757,13 +757,9 @@ def write_decoder_candidate_partition_plan(
             os.close(descriptor)
         if temporary_path is not None:
             temporary_path.unlink(missing_ok=True)
-    persisted = PersistedDecoderCandidatePartitionPlan(
-        path=target,
-        sha256=decoder_candidate_partition_plan_sha256(plan),
-        plan=plan,
-    )
-    _register_persisted_partition_plan(persisted)
-    return persisted
+    # Return only a fresh parse of the bytes that reached their immutable
+    # destination.  An in-memory plan is never a collector capability.
+    return load_decoder_candidate_partition_plan(target)
 
 
 def load_decoder_candidate_partition_plan(
@@ -828,6 +824,9 @@ class ValidatedDecoderCandidateManifestSnapshot:
     """
 
     plan: DecoderCandidatePartitionPlan
+    persisted_plan: PersistedDecoderCandidatePartitionPlan = field(
+        repr=False, compare=False
+    )
     manifest_sha256: str
     _items: tuple[ManifestItemLike, ...] = field(repr=False, compare=False)
     _validation_token: object = field(repr=False, compare=False)
@@ -839,6 +838,17 @@ class ValidatedDecoderCandidateManifestSnapshot:
             )
         if self.plan.manifest_sha256 != _manifest_sha256(self.manifest_sha256):
             raise ValueError("validated candidate snapshot manifest mismatch.")
+        if not isinstance(self.persisted_plan, PersistedDecoderCandidatePartitionPlan):
+            raise ValueError(
+                "validated candidate snapshot requires a persisted partition plan."
+            )
+        _require_persisted_partition_plan(self.persisted_plan)
+        if self.persisted_plan.plan != self.plan:
+            raise ValueError("validated candidate snapshot plan differs from persisted plan.")
+        if self.persisted_plan.sha256 != decoder_candidate_partition_plan_sha256(
+            self.plan
+        ):
+            raise ValueError("validated candidate snapshot partition-plan digest mismatch.")
         if type(self._items) is not tuple or not self._items:
             raise ValueError("validated candidate snapshot must retain immutable items.")
 
@@ -850,7 +860,7 @@ class ValidatedDecoderCandidateManifestSnapshot:
     @property
     def partition_plan_sha256(self) -> str:
         """Digest which every drained recording batch must carry."""
-        return decoder_candidate_partition_plan_sha256(self.plan)
+        return self.persisted_plan.sha256
 
     @property
     def train_items(self) -> tuple[ManifestItemLike, ...]:
@@ -889,12 +899,22 @@ def build_decoder_candidate_partition_plan_from_snapshot(
 
 
 def validate_decoder_candidate_partition_plan_against_snapshot(
-    plan: DecoderCandidatePartitionPlan,
+    persisted_plan: PersistedDecoderCandidatePartitionPlan,
     snapshot: ManifestSnapshotLike,
 ) -> ValidatedDecoderCandidateManifestSnapshot:
-    """Bind a plan to the exact full objects that will open audio and labels."""
-    if not isinstance(plan, DecoderCandidatePartitionPlan):
-        raise ValueError("plan must be DecoderCandidatePartitionPlan.")
+    """Bind an immutable persisted plan to exact full manifest objects.
+
+    This is intentionally the only factory which creates a collector-capable
+    validation.  A caller may inspect or construct an in-memory plan, but it
+    cannot bind that plan to decoder collection until the canonical bytes have
+    been written without overwrite and loaded back from disk.
+    """
+    if not isinstance(persisted_plan, PersistedDecoderCandidatePartitionPlan):
+        raise ValueError(
+            "persisted_plan must be PersistedDecoderCandidatePartitionPlan."
+        )
+    _require_persisted_partition_plan(persisted_plan)
+    plan = persisted_plan.plan
     _require_loaded_manifest_snapshot(snapshot)
     manifest_sha256 = _manifest_sha256(snapshot.manifest_sha256)
     items = tuple(snapshot.items)
@@ -905,6 +925,7 @@ def validate_decoder_candidate_partition_plan_against_snapshot(
     )
     validated = ValidatedDecoderCandidateManifestSnapshot(
         plan=plan,
+        persisted_plan=persisted_plan,
         manifest_sha256=manifest_sha256,
         _items=items,
         _validation_token=_VALIDATED_SNAPSHOT_TOKEN,

@@ -220,6 +220,89 @@ class DecoderCandidateLabelsTests(unittest.TestCase):
                 candidate_collection_error=None,
             ).require_complete()
 
+    def test_excluded_same_pitch_retrigger_consumes_reference_before_fit_projection(
+        self,
+    ) -> None:
+        """A retrigger is excluded from fit, never from chronological matching."""
+        candidate_after_retrigger = _attempt(
+            frame_index=11,
+            event_id="decoder-noteon-v2:candidate-after-retrigger",
+        )
+        retrigger_first = label_emitted_decoder_candidates(
+            _batch(candidate_after_retrigger),
+            [ReferenceNote(60, 1.0, 1.5)],
+            frame_valid=[True] * 12,
+            sample_rate=100,
+            hop_size=10,
+            audio_frames=200,
+            emitted_events=[
+                _note_on(10, 60, "retrigger"),
+                _note_on(11, 60, "model_onset"),
+            ],
+            candidate_collection_error=None,
+        )
+        # Frame 10 is at 1.1 s and consumes the 1.0 s reference first, so the
+        # later trainable candidate is a real causal false NoteOn.
+        self.assertEqual(retrigger_first.labels[0].causal_noteon_target, 0)
+        self.assertEqual(retrigger_first.causal_matchable_decoder_noteons, 2)
+        self.assertEqual(retrigger_first.causal_false_decoder_noteons, 1)
+        self.assertEqual(retrigger_first.matched_reference_noteons, 1)
+        self.assertEqual(
+            retrigger_first.matched_reference_noteons_excluded_from_fit, 1
+        )
+        retrigger_counters = DecoderCandidateMiningCounters.from_batches(
+            (retrigger_first,)
+        )
+        self.assertEqual(retrigger_counters.matched_reference_noteons, 1)
+        self.assertEqual(
+            retrigger_counters.matched_reference_noteons_excluded_from_fit, 1
+        )
+        self.assertEqual(retrigger_counters.causal_false_decoder_noteons, 1)
+
+        candidate_before_retrigger = _attempt(
+            frame_index=10,
+            event_id="decoder-noteon-v2:candidate-before-retrigger",
+        )
+        candidate_first = label_emitted_decoder_candidates(
+            _batch(candidate_before_retrigger),
+            [ReferenceNote(60, 1.0, 1.5)],
+            frame_valid=[True] * 12,
+            sample_rate=100,
+            hop_size=10,
+            audio_frames=200,
+            emitted_events=[
+                _note_on(10, 60, "model_onset"),
+                _note_on(11, 60, "retrigger"),
+            ],
+            candidate_collection_error=None,
+        )
+        # The candidate now occurs first and rightfully owns the one reference.
+        self.assertEqual(candidate_first.labels[0].causal_noteon_target, 1)
+        self.assertEqual(candidate_first.causal_matchable_decoder_noteons, 2)
+        self.assertEqual(candidate_first.causal_false_decoder_noteons, 1)
+        self.assertEqual(candidate_first.matched_reference_noteons, 1)
+        self.assertEqual(
+            candidate_first.matched_reference_noteons_excluded_from_fit, 0
+        )
+
+        invalid_retrigger = label_emitted_decoder_candidates(
+            _batch(candidate_after_retrigger),
+            [ReferenceNote(60, 1.0, 1.5)],
+            frame_valid=[True] * 10 + [False, True],
+            sample_rate=100,
+            hop_size=10,
+            audio_frames=200,
+            emitted_events=[
+                _note_on(10, 60, "retrigger"),
+                _note_on(11, 60, "model_onset"),
+            ],
+            candidate_collection_error=None,
+        )
+        # The protocol includes every *valid* emitted NoteOn, not a decoded
+        # frame that the label contract itself marks invalid.
+        self.assertEqual(invalid_retrigger.labels[0].causal_noteon_target, 1)
+        self.assertEqual(invalid_retrigger.causal_matchable_decoder_noteons, 1)
+
     def test_overflow_collection_error_and_missing_event_are_never_labeled(self) -> None:
         attempt = _attempt()
         with self.assertRaisesRegex(RuntimeError, "overflowed"):
