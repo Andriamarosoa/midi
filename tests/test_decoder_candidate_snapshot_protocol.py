@@ -224,7 +224,9 @@ class DecoderCandidateSnapshotProtocolTests(unittest.TestCase):
                 corpus.items = [item]
                 with reloaded.open_recording(item) as opened:
                     self.assertIs(opened, corpus)
-                corpus_type.assert_called_once_with([item])
+                corpus_type.assert_called_once_with(
+                    [item], label_verifier=mock.ANY, asset_verifier=mock.ANY
+                )
 
     def test_clone_with_identical_ids_but_substituted_paths_is_refused_before_collection(self) -> None:
         with TemporaryDirectory() as temporary:

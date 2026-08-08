@@ -296,12 +296,12 @@ def validate_decoder_candidate_asset_evidence(
         raise RuntimeError("Fail closed: asset evidence does not cover exact train snapshot items.")
 
 
-def verify_decoder_candidate_assets_for_item(
+def _entry_for_snapshot_item(
     persisted: PersistedDecoderCandidateAssetEvidence,
     validated_snapshot: ValidatedDecoderCandidateManifestSnapshot,
     item: ManifestItem,
-) -> None:
-    """Re-hash one exact item immediately before its corpus opens the paths."""
+) -> DecoderCandidateAssetEvidenceEntry:
+    """Resolve one evidence entry after all manifest/plan checks pass."""
     validate_decoder_candidate_asset_evidence(persisted, validated_snapshot)
     identity = _identity(item)
     matching = [entry for entry in persisted.evidence.entries if entry.identity == identity]
@@ -311,12 +311,41 @@ def verify_decoder_candidate_assets_for_item(
     provenance = validated_snapshot.provenance_for_snapshot_item(item)
     if entry.partition != provenance.partition or entry.audio_member != item.audio_member:
         raise RuntimeError("Fail closed: asset evidence identity metadata differs from snapshot item.")
-    audio_size, audio_sha = _digest_file(item.audio_path)
+    return entry
+
+
+def verify_decoder_candidate_label_asset_for_item(
+    persisted: PersistedDecoderCandidateAssetEvidence,
+    validated_snapshot: ValidatedDecoderCandidateManifestSnapshot,
+    item: ManifestItem,
+) -> None:
+    """Re-hash labels immediately before ``PolyphonicCorpus`` reads them."""
+    entry = _entry_for_snapshot_item(persisted, validated_snapshot, item)
     labels_size, labels_sha = _digest_file(item.labels_path)
-    if (audio_size, audio_sha) != (entry.audio_size_bytes, entry.audio_sha256):
-        raise RuntimeError("Fail closed: candidate audio asset bytes differ from pre-registration.")
     if (labels_size, labels_sha) != (entry.labels_size_bytes, entry.labels_sha256):
         raise RuntimeError("Fail closed: candidate label asset bytes differ from pre-registration.")
+
+
+def verify_decoder_candidate_audio_asset_for_item(
+    persisted: PersistedDecoderCandidateAssetEvidence,
+    validated_snapshot: ValidatedDecoderCandidateManifestSnapshot,
+    item: ManifestItem,
+) -> None:
+    """Re-hash audio at the corpus's actual lazy audio-load boundary."""
+    entry = _entry_for_snapshot_item(persisted, validated_snapshot, item)
+    audio_size, audio_sha = _digest_file(item.audio_path)
+    if (audio_size, audio_sha) != (entry.audio_size_bytes, entry.audio_sha256):
+        raise RuntimeError("Fail closed: candidate audio asset bytes differ from pre-registration.")
+
+
+def verify_decoder_candidate_assets_for_item(
+    persisted: PersistedDecoderCandidateAssetEvidence,
+    validated_snapshot: ValidatedDecoderCandidateManifestSnapshot,
+    item: ManifestItem,
+) -> None:
+    """Re-hash both assets; useful for explicit full preflight checks."""
+    verify_decoder_candidate_label_asset_for_item(persisted, validated_snapshot, item)
+    verify_decoder_candidate_audio_asset_for_item(persisted, validated_snapshot, item)
 
 
 __all__ = [
@@ -326,6 +355,8 @@ __all__ = [
     "build_decoder_candidate_asset_evidence",
     "load_decoder_candidate_asset_evidence",
     "validate_decoder_candidate_asset_evidence",
+    "verify_decoder_candidate_audio_asset_for_item",
     "verify_decoder_candidate_assets_for_item",
+    "verify_decoder_candidate_label_asset_for_item",
     "write_decoder_candidate_asset_evidence",
 ]

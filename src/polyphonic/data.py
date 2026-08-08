@@ -12,7 +12,7 @@ import re
 import struct
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Mapping, Sequence
+from typing import Callable, Mapping, Sequence
 from zipfile import ZipFile
 
 import numpy as np
@@ -294,6 +294,8 @@ class PolyphonicCorpus:
         *,
         fundamental_offsets: FundamentalOffsetMap | None = None,
         required_fundamental_offset_datasets: Sequence[str] = (),
+        label_verifier: Callable[[ManifestItem], None] | None = None,
+        asset_verifier: Callable[[ManifestItem], None] | None = None,
     ) -> None:
         if not items:
             raise ValueError("The corpus split is empty.")
@@ -301,7 +303,10 @@ class PolyphonicCorpus:
         offsets = dict(fundamental_offsets or {})
         required_datasets = {str(value) for value in required_fundamental_offset_datasets}
         self.labels: list[CachedLabels] = []
+        self._label_verifier = label_verifier
         for item in self.items:
+            if self._label_verifier is not None:
+                self._label_verifier(item)
             with np.load(item.labels_path, allow_pickle=False) as source:
                 missing = self.REQUIRED_LABELS - set(source.files)
                 if missing:
@@ -349,6 +354,7 @@ class PolyphonicCorpus:
         self.harmonic_count = int(first["note_harmonic_present"].shape[1])
         self._audio: dict[int, np.ndarray] = {}
         self._archives: dict[Path, ZipFile] = {}
+        self._asset_verifier = asset_verifier
 
         for cached in self.labels[1:]:
             arrays = cached.arrays
@@ -390,8 +396,19 @@ class PolyphonicCorpus:
         if cached is not None:
             return cached
         item = self.items[recording_index]
+        # An approved candidate-mining context supplies an evidence verifier.
+        # It runs at the actual lazy-load boundary, not only when the corpus
+        # object was constructed. For NumPy audio, avoid mmap in that path so
+        # all verified bytes are materialized by this load rather than faulted
+        # from the file later during replay.
+        if self._asset_verifier is not None:
+            self._asset_verifier(item)
         if not item.audio_member and _is_numpy_audio(item.audio_path):
-            waveform = np.load(item.audio_path, mmap_mode="r", allow_pickle=False)
+            waveform = np.load(
+                item.audio_path,
+                mmap_mode=None if self._asset_verifier is not None else "r",
+                allow_pickle=False,
+            )
             rate = self.sample_rate
             if waveform.ndim == 1:
                 waveform = waveform[:, None]

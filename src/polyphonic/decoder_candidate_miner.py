@@ -19,7 +19,8 @@ from .decoder_candidate_asset_evidence import (
     build_decoder_candidate_asset_evidence,
     load_decoder_candidate_asset_evidence,
     validate_decoder_candidate_asset_evidence,
-    verify_decoder_candidate_assets_for_item,
+    verify_decoder_candidate_audio_asset_for_item,
+    verify_decoder_candidate_label_asset_for_item,
     write_decoder_candidate_asset_evidence,
 )
 from .decoder_candidate_mining import DecoderCandidateCollector
@@ -185,12 +186,33 @@ class DecoderCandidateMiningContext:
                 "Fail closed: opening a candidate recording requires persisted "
                 "audio/label asset evidence."
             )
-        verify_decoder_candidate_assets_for_item(
-            self.persisted_asset_evidence,
-            self.validated_snapshot,
-            snapshot_item,
-        )
-        with PolyphonicCorpus([snapshot_item]) as corpus:
+        def verify_labels_at_load(lazy_item: ManifestItem) -> None:
+            if lazy_item is not snapshot_item:
+                raise RuntimeError(
+                    "Fail closed: corpus requested labels for another manifest item."
+                )
+            verify_decoder_candidate_label_asset_for_item(
+                self.persisted_asset_evidence,
+                self.validated_snapshot,
+                lazy_item,
+            )
+
+        def verify_audio_at_load(lazy_item: ManifestItem) -> None:
+            if lazy_item is not snapshot_item:
+                raise RuntimeError(
+                    "Fail closed: corpus requested audio for another manifest item."
+                )
+            verify_decoder_candidate_audio_asset_for_item(
+                self.persisted_asset_evidence,
+                self.validated_snapshot,
+                lazy_item,
+            )
+
+        with PolyphonicCorpus(
+            [snapshot_item],
+            label_verifier=verify_labels_at_load,
+            asset_verifier=verify_audio_at_load,
+        ) as corpus:
             if corpus.items[0] is not snapshot_item:
                 raise AssertionError("corpus did not retain the validated snapshot item.")
             yield corpus

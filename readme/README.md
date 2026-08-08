@@ -16,10 +16,11 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-08-08T21:37:15+04:00`.
+- Mise à jour : `2026-08-08T21:55:59+04:00`.
 - Étape : `decoder_candidate_asset_evidence_contract`.
-- Statut : `contrat d'empreintes audio/labels implémenté et vérifié sur actifs
-  synthétiques; revue externe requise avant toute préinscription réelle`.
+- Statut : `contrat d'empreintes audio/labels et correctif de lecture paresseuse
+  vérifiés sur actifs synthétiques; revue externe requise avant toute
+  préinscription réelle`.
 - Résultat scientifique conservé : la tête `independent_note` précédente reste
   un résultat négatif, saturé près de 1, et ne doit promouvoir ni checkpoint ni
   seuil. Le test verrouillé reste fermé.
@@ -42,9 +43,12 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 - Preuve d'actifs : avant toute ouverture future, le contexte exigera un
   registre canonique, persistant et attesté des tailles/SHA-256 audio et labels
   de chaque capture train, lié au même manifeste, plan, `audio_member` et
-  partition. Il rehache les deux fichiers juste avant `PolyphonicCorpus`; une
-  couverture incomplète, un fichier modifié, un wrapper forgé ou des octets du
-  registre modifiés échouent fermé. Aucune preuve réelle n'a encore été créée.
+  partition. Les labels sont rehachés juste avant leur lecture par le
+  constructeur et l'audio juste avant son véritable chargement paresseux par
+  `corpus.audio()`; le chemin `.npy` protégé ne conserve pas de `mmap` après
+  cette vérification. Une couverture incomplète, un fichier modifié, un wrapper
+  forgé ou des octets du registre modifiés échouent fermé. Aucune preuve réelle
+  n'a encore été créée.
 - Chaque ligne future porte la provenance immuable complète : `source_id`,
   `dataset_id`, `group_id`, `capture_id`, clé de fuite et partition. Les lots
   portant un autre manifeste/plan, une prise rejouée, un `event_id` dupliqué ou
@@ -92,10 +96,12 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   **approuvée**. Un rejeu Windows indépendant de la même suite ciblée obtient
   aussi **131 tests réussis en 9,336 s**. Cette seconde durée est une mesure
   d'exécution distincte; elle ne remplace pas l'évidence historique à 8,993 s.
-- Vérification du contrat d'actifs Windows : compilation Python, `git diff
-  --check` et **134 tests ciblés réussis en 9,429 s**, dont les chemins
-  synthétiques de couverture train-only, de rehash avant ouverture, de fichier
-  modifié, de wrapper forgé et de registre incomplet.
+- Vérification du correctif d'actifs Windows : compilation Python, `git diff
+  --check` et **136 tests ciblés réussis en 9,718 s**, dont un parcours réel
+  synthétique préinscription -> relecture -> ouverture, le rejet d'une mutation
+  audio après construction mais avant `corpus.audio()`, et le cache de conteneur
+  audio partagé. La vérification initiale du contrat à 134 tests en 9,429 s
+  reste archivée dans son rapport propre.
 - Limite avant minage : aucun plan réel ni artefact candidat n'a été généré ou
   persisté; aucun décodeur ni mineur n'a été exécuté. Les chemins sont liés au
   snapshot manifeste, mais la preuve préenregistrée des octets d'audio/labels
@@ -112,11 +118,13 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `readme/results/2026-08-08_decoder-candidate-snapshot-label-protocol.md` et
   `readme/results/2026-08-08_decoder-candidate-retrigger-causal-matching-fix.md`,
   puis `readme/results/2026-08-08_decoder-candidate-retrigger-causal-matching-review.md`
-  et `readme/results/2026-08-08_decoder-candidate-asset-evidence-contract.md`.
+  et `readme/results/2026-08-08_decoder-candidate-asset-evidence-contract.md`,
+  puis `readme/results/2026-08-08_decoder-candidate-asset-evidence-lazy-audio-fix.md`.
 
 ## Prochaine action réelle
 
-1. Faire relire le contrat d'empreintes, sans créer de plan ou de registre réel.
+1. Faire relire le correctif de chargement paresseux du contrat d'empreintes,
+   sans créer de plan ou de registre réel.
 2. Après approbation explicite seulement, préenregistrer sur le Mac le plan
    réel et la preuve versionnée des actifs audio/labels, puis faire relire ces
    deux éléments avant la toute première collecte.
@@ -353,13 +361,17 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
   physique, partition préassignée, `audio_member`, taille et SHA-256 du
   conteneur audio et des labels; aucun chemin hôte n'est persisté, le manifeste
   déjà hashé restant son ancre. Le registre est écrit sans écrasement, relu et
-  attesté; le contexte refuse d'ouvrir tout corpus sans ce registre et rehache
-  les deux actifs juste avant l'ouverture. Les tests synthétiques couvrent la
-  couverture complète, les octets modifiés, le wrapper forgé et l'absence de
-  preuve. Compilation, `git diff --check` et 134 tests ciblés Windows passent
-  en 9,429 s. Aucun manifeste réel, plan réel, actif projet, minage,
-  entraînement, validation, export, live ou test verrouillé n'a été ouvert ou
-  produit. Revue externe requise avant la préinscription réelle sur le Mac.
+  attesté; le contexte refuse d'ouvrir tout corpus sans ce registre. La revue
+  de `7440d093` approuve le format mais a relevé la fenêtre du chargement audio
+  paresseux. Le correctif vérifie désormais les labels à l'entrée du
+  constructeur et l'audio à l'entrée de `corpus.audio()`. Un parcours
+  synthétique réel `pre_register -> reload -> open_recording` prouve le refus
+  d'un audio muté après construction du corpus; le cache de conteneur partagé
+  est aussi couvert. Compilation, `git diff --check` et 136 tests ciblés
+  Windows passent en 9,718 s. Aucun manifeste réel, plan réel, actif projet,
+  minage, entraînement, validation, export, live ou test verrouillé n'a été
+  ouvert ou produit. Revue externe requise avant la préinscription réelle sur
+  le Mac.
 <!-- PROJECT_TASK:decoder_candidate_asset_evidence_contract:END -->
 <!-- JOURNAL_END -->
 ## Rapports détaillés
@@ -381,6 +393,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-08 — correctif causal des retriggers candidats](results/2026-08-08_decoder-candidate-retrigger-causal-matching-fix.md)
 - [2026-08-08 — revue du correctif causal des retriggers](results/2026-08-08_decoder-candidate-retrigger-causal-matching-review.md)
 - [2026-08-08 — contrat d'empreintes des actifs candidats](results/2026-08-08_decoder-candidate-asset-evidence-contract.md)
+- [2026-08-08 — correctif de lecture paresseuse des actifs candidats](results/2026-08-08_decoder-candidate-asset-evidence-lazy-audio-fix.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.
