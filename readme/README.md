@@ -1,6 +1,6 @@
 # Résumé unique — Guitar MIDI AI
 
-> Dernière mise à jour manuelle : 2026-08-04
+> Dernière mise à jour manuelle : 2026-08-08
 >
 > Branche active : `codex/independent-note-neural-v2`
 >
@@ -58,6 +58,13 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `readme/results/2026-08-04_independent-note-alignment-smoke-anomaly.md`.
   `readme/results/2026-08-04_independent-note-alignment-smoke.md`.
   `readme/results/2026-08-04_independent-note-paired-decoder-hypothesis.md`.
+- Infrastructure locale vérifiée le `2026-08-08T13:19:03+04:00` : le Mac M4
+  dispose maintenant d'un routeur Ollama versionné et accessible uniquement
+  via SSH. Le 14B est le conseiller principal, le 8B traite les lots et le
+  36B reste réservé aux secondes revues rares. Le chemin complet a été exercé,
+  les 24 tests Windows et 9 tests Mac passent, le verrou TensorFlow est
+  partagé, l'API Ollama est liée à `127.0.0.1` et le test verrouillé reste
+  fermé. Rapport : `readme/results/2026-08-08_ollama-local-team.md`.
 
 ## Prochaine action réelle
 
@@ -215,6 +222,15 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
     `suivi-train-local-dual-stream` contrôle le run toutes les dix minutes
     sans utiliser Kaggle ni le test verrouillé.
 <!-- PROJECT_TASK:live_ab_adaptive_attack:END -->
+<!-- PROJECT_TASK:ollama_local_team:START -->
+- 2026-08-08 — **terminé** — `ollama_local_team` : routeur local versionné
+  pour `qwen3:8b`, `qwen3:14b` et `qwen3.6:latest`, appelé par SSH depuis
+  Windows et partageant le verrou atomique du worker TensorFlow. Validation :
+  24 tests Windows, 9 tests Mac, premier code review réel et benchmark
+  séquentiel terminés, `locked_test_used=false`. L'API directe réseau a été
+  fermée et Ollama écoute seulement `127.0.0.1:11434`. Aucun modèle local ne
+  possède l'autorité d'éditer, de commiter ou de remplacer les preuves réelles.
+<!-- PROJECT_TASK:ollama_local_team:END -->
 <!-- JOURNAL_END -->
 ## Rapports détaillés
 
