@@ -16,10 +16,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-08-08T15:33:20+04:00`.
+- Mise à jour : `2026-08-08T16:08:19+04:00`.
 - Étape : `decoder_candidate_provenance_contract`.
-- Statut : `instrumentation-only approuvée; contrat de provenance et unité
-  d'apprentissage à définir puis relire, sans minage`.
+- Statut : `contrat codé et testé localement; revue externe requise, sans
+  plan persistant ni minage`.
 - Résultat scientifique conservé : la tête `independent_note` précédente reste
   un résultat négatif, saturé près de 1, et ne doit promouvoir ni checkpoint ni
   seuil. Le test verrouillé reste fermé.
@@ -30,11 +30,24 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   erreur de collecte est mémorisée sans bloquer les événements MIDI. Une frame
   entière est remise en un seul batch après toutes ses décisions; une
   contention du collecteur échoue immédiatement sans attendre son verrou.
-- Provenance et capacité du collecteur sont immuables après sa construction;
-  elles ne peuvent pas dériver au milieu d'un batch.
+- Le module pur `decoder_candidate_provenance` réutilise exactement le
+  groupement corpus-aware du smoke indépendant et ajoute un plan versionné de
+  partitions. Il lit le manifeste complet une seule fois, calcule son SHA-256
+  sur les mêmes octets, refuse tout test verrouillé, exclut validation et
+  préassigne les groupes train en `fit/dev/calibration` avant toute collecte.
+- Chaque ligne future porte la provenance immuable complète : `source_id`,
+  `dataset_id`, `group_id`, `capture_id`, clé de fuite et partition. Le
+  collecteur exige une partition validée contre le manifeste exact et résout
+  l'item depuis ce plan : une capture, un groupe ou une partition forgés sont
+  refusés avant la collecte. L'identité du plan inclut désormais `capture_id`.
 - Les codes de raisons existants du live sont centralisés sans changement. Les
-  `event_id` sont déterministes par provenance/frame/pitch et restent hors de
+  `event_id` v2 sont déterministes par identité physique/frame/pitch (la
+  partition est volontairement exclue) et restent hors de
   `PolyphonicMidiEvent`.
+- L'unité d'apprentissage est désormais définie : un vrai NoteOn
+  `gate_eligible=True` et `emitted_noteon=True`. Le collapse temporel est
+  supprimé; deux NoteOn réels restent distincts et un `event_id` dupliqué rend
+  un futur artefact invalide.
 - Infrastructure Ollama : le commit `af5437ee` conserve le verrou partagé
   jusqu'au déchargement vérifié, refuse les worktrees sales et les redirections,
   transporte le prompt par stdin, contrôle tous les composants des chemins et
@@ -50,32 +63,35 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 - Microbenchmark borné dense : ancien décodeur 175,77 µs/frame, nouveau chemin
   désactivé 162,53 µs/frame (aucune régression mesurée), collecte activée
   260,64 µs/frame, soit +98,11 µs et 1,69 % du hop de 5,805 ms.
-- Limites avant minage : `recording_key`/`leakage_group_key` ne sont que les
-  équivalents transitoires de `source_id`/`group_id`; le schéma brut n'inclut
-  pas encore `capture_id` ni la partition `fit/dev/calibration`. La sémantique
-  de collapse d'épisodes doit aussi être tranchée puisque chaque vrai NoteOn
-  possède désormais un ID unique. Aucun artefact miné ne peut être accepté
-  avant ces corrections.
+- Vérification du contrat Windows : compilation Python, `git diff --check` et
+  107 tests unitaires ciblés réussis en 7,207 s, dont 35 tests directs du
+  contrat/provenance/instrumentation. Les tests prouvent le plan déterministe
+  malgré un ordre de manifeste différent, le SHA de manifeste, les six champs
+  de provenance, le refus des tests verrouillés, la résolution via le plan, la
+  capture multiple et l'absence de collapse.
+- Limite avant minage : aucun plan réel ni artefact candidat n'a été généré ou
+  persisté; aucun décodeur ni mineur n'a été exécuté. Après revue, le futur
+  mineur devra d'abord construire et valider son plan depuis le manifeste
+  train/validation exact, puis créer les collecteurs uniquement via cette
+  partition validée.
 - `locked_test_used=false`; aucun entraînement, minage, calcul validation,
   export ou live n'a été exécuté.
 - Rapports :
   `readme/results/2026-08-05_decoder-candidate-mining-hypothesis.md`,
   `readme/results/2026-08-08_ollama-local-team.md` et
   `readme/results/2026-08-08_ollama-candidate-contract-hardening.md`, puis
-  `readme/results/2026-08-08_decoder-candidate-instrumentation.md` et
-  `readme/results/2026-08-08_decoder-candidate-instrumentation-review.md`.
+  `readme/results/2026-08-08_decoder-candidate-instrumentation.md`,
+  `readme/results/2026-08-08_decoder-candidate-instrumentation-review.md` et
+  `readme/results/2026-08-08_decoder-candidate-provenance-contract.md`.
 
 ## Prochaine action réelle
 
-1. Préenregistrer et faire relire un contrat de provenance complet :
-   `source_id`, `dataset_id`, `group_id`, `capture_id`, clé de fuite et
-   partition déterministe `fit/dev/calibration` assignée au niveau groupe
-   avant tout minage.
-2. Définir l'unité d'apprentissage avant d'écrire le mineur : soit supprimer
-   `collapse_emitted_candidate_episodes()`, soit introduire un véritable
-   `candidate_episode_id` distinct du `event_id` d'un NoteOn.
-3. Ne promouvoir ni checkpoint ni seuil, et ne lancer aucun minage avant la
-   revue de ce contrat.
+1. Faire relire ce commit de contrat, sans lancer de calcul.
+2. Après approbation explicite seulement, préenregistrer un plan réel à partir
+   du manifeste train/validation exact et faire relire ce plan avant la toute
+   première collecte.
+3. Ne promouvoir ni checkpoint ni seuil, et ne lancer aucun minage avant ces
+   deux revues.
 4. Conserver le test verrouillé fermé; aucun entraînement, validation, export
    ou live n'est autorisé par cette étape.
 
@@ -273,14 +289,18 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
   verrouillé n'est autorisé par cette clôture.
 <!-- PROJECT_TASK:decoder_candidate_instrumentation:END -->
 <!-- PROJECT_TASK:decoder_candidate_provenance_contract:START -->
-- 2026-08-08 — **en cours** — `decoder_candidate_provenance_contract` :
-  définir sans calcul la provenance persistante et l'unité d'apprentissage du
-  futur minage. Bloquants connus : le collecteur brut ne porte pas encore
-  `capture_id` ni la partition group-safe `fit/dev/calibration`; de plus,
-  `collapse_emitted_candidate_episodes()` ne peut fusionner des NoteOn réels
-  puisque leur `event_id` déterministe contient la frame. Aucun artefact,
-  minage, entraînement, validation, export, live ou test verrouillé n'est
-  autorisé avant un commit de contrat explicitement revu.
+- 2026-08-08 — **en revue** — `decoder_candidate_provenance_contract` : sans
+  calcul scientifique, le contrat persistant v1 est ajouté. Le plan est lié au
+  SHA-256 des octets du manifeste complet, refuse le test verrouillé, conserve
+  `source_id`, `dataset_id`, `group_id`, `capture_id`, clé de fuite et
+  partition group-safe `fit/dev/calibration`; son identité physique inclut la
+  capture. Un collecteur exige maintenant une partition validée contre le
+  manifeste exact avant de résoudre chaque item. L'unité choisie est un vrai
+  NoteOn gate-éligible et émis; `collapse_emitted_candidate_episodes()` est
+  supprimé, les événements restent séparés et tout ID dupliqué échoue fermé.
+  Tests Windows : compilation, diff propre et 107 tests ciblés OK en 7,207 s.
+  Aucun plan réel, artefact, minage, entraînement, validation, export, live ou
+  test verrouillé n'a été produit. Revue externe requise avant toute suite.
 <!-- PROJECT_TASK:decoder_candidate_provenance_contract:END -->
 <!-- JOURNAL_END -->
 ## Rapports détaillés
@@ -297,6 +317,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-08 — durcissement Ollama et contrat candidat](results/2026-08-08_ollama-candidate-contract-hardening.md)
 - [2026-08-08 — instrumentation des candidats du décodeur](results/2026-08-08_decoder-candidate-instrumentation.md)
 - [2026-08-08 — revue de clôture de l'instrumentation](results/2026-08-08_decoder-candidate-instrumentation-review.md)
+- [2026-08-08 — contrat de provenance des candidats du décodeur](results/2026-08-08_decoder-candidate-provenance-contract.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.

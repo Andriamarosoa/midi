@@ -1,7 +1,8 @@
 """Contracts for leakage-safe, causal decoder-candidate mining.
 
 This module intentionally performs no mining.  It defines the immutable row
-schema and episode reduction that the future train-only miner must use.
+schema and explicit real-NoteOn learning unit that a future train-only miner
+must use.
 """
 from __future__ import annotations
 
@@ -13,6 +14,11 @@ import math
 from threading import Lock
 from typing import Iterable, Mapping
 
+from .decoder_candidate_provenance import (
+    DecoderCandidateProvenance,
+    ManifestItemLike,
+    ValidatedDecoderCandidatePartition,
+)
 from .decoder_reason_codes import (
     CANDIDATE_REASON_ENCODING,
     CANDIDATE_REASON_VOCABULARY,
@@ -21,9 +27,12 @@ from .decoder_reason_codes import (
 
 @dataclass(frozen=True)
 class DecoderCandidateAttempt:
-    recording_key: str
+    source_id: str
+    dataset_id: str
+    group_id: str
+    capture_id: str
     leakage_group_key: str
-    corpus_id: str
+    partition: str
     frame_index: int
     pitch: int
     candidate_reason: str
@@ -42,14 +51,25 @@ class DecoderCandidateAttempt:
 
     def __post_init__(self) -> None:
         for field_name in (
-            "recording_key",
+            "source_id",
+            "dataset_id",
+            "group_id",
+            "capture_id",
             "leakage_group_key",
-            "corpus_id",
-            "candidate_reason",
         ):
             value = getattr(self, field_name)
             if not isinstance(value, str) or not value.strip():
                 raise ValueError(f"{field_name} must be a non-empty string.")
+        DecoderCandidateProvenance(
+            source_id=self.source_id,
+            dataset_id=self.dataset_id,
+            group_id=self.group_id,
+            capture_id=self.capture_id,
+            leakage_group_key=self.leakage_group_key,
+            partition=self.partition,
+        )
+        if not isinstance(self.candidate_reason, str) or not self.candidate_reason:
+            raise ValueError("candidate_reason must be a non-empty string.")
         if self.candidate_reason not in CANDIDATE_REASON_ENCODING:
             raise ValueError(
                 "candidate_reason must use the fixed pre-gate vocabulary."
@@ -154,24 +174,25 @@ class DecoderCandidateCollector:
     def __init__(
         self,
         *,
-        recording_key: str,
-        leakage_group_key: str,
-        corpus_id: str,
+        validated_partition: ValidatedDecoderCandidatePartition,
+        manifest_item: ManifestItemLike,
         maximum_attempts: int = 4096,
     ) -> None:
-        for name, value in (
-            ("recording_key", recording_key),
-            ("leakage_group_key", leakage_group_key),
-            ("corpus_id", corpus_id),
+        if not isinstance(
+            validated_partition, ValidatedDecoderCandidatePartition
         ):
-            if not isinstance(value, str) or not value.strip():
-                raise ValueError(f"{name} must be a non-empty string.")
+            raise ValueError(
+                "validated_partition must be "
+                "ValidatedDecoderCandidatePartition."
+            )
         if (
             type(maximum_attempts) is not int
             or maximum_attempts <= 0
         ):
             raise ValueError("maximum_attempts must be a positive integer.")
-        self._identity = (recording_key, leakage_group_key, corpus_id)
+        self._provenance = validated_partition.provenance_for_train_item(
+            manifest_item
+        )
         self._attempts: deque[DecoderCandidateAttempt] = deque(
             maxlen=maximum_attempts
         )
@@ -182,16 +203,32 @@ class DecoderCandidateCollector:
         self._batch_dropped_attempts = 0
 
     @property
-    def recording_key(self) -> str:
-        return self._identity[0]
+    def provenance(self) -> DecoderCandidateProvenance:
+        return self._provenance
+
+    @property
+    def source_id(self) -> str:
+        return self._provenance.source_id
+
+    @property
+    def dataset_id(self) -> str:
+        return self._provenance.dataset_id
+
+    @property
+    def group_id(self) -> str:
+        return self._provenance.group_id
+
+    @property
+    def capture_id(self) -> str:
+        return self._provenance.capture_id
 
     @property
     def leakage_group_key(self) -> str:
-        return self._identity[1]
+        return self._provenance.leakage_group_key
 
     @property
-    def corpus_id(self) -> str:
-        return self._identity[2]
+    def partition(self) -> str:
+        return self._provenance.partition
 
     @property
     def maximum_attempts(self) -> int:
@@ -203,17 +240,19 @@ class DecoderCandidateCollector:
     def _event_id(self, frame_index: int, pitch: int) -> str:
         canonical = json.dumps(
             (
-                "decoder-noteon-v1",
-                self.corpus_id,
+                "decoder-noteon-v2",
+                self.dataset_id,
+                self.source_id,
+                self.group_id,
+                self.capture_id,
                 self.leakage_group_key,
-                self.recording_key,
                 frame_index,
                 pitch,
             ),
             ensure_ascii=False,
             separators=(",", ":"),
         ).encode("utf-8")
-        return "decoder-noteon-v1:" + hashlib.sha256(canonical).hexdigest()
+        return "decoder-noteon-v2:" + hashlib.sha256(canonical).hexdigest()
 
     def record_candidate(
         self,
@@ -272,9 +311,12 @@ class DecoderCandidateCollector:
                 else None
             )
             prepared.append(DecoderCandidateAttempt(
-                recording_key=self.recording_key,
+                source_id=self.source_id,
+                dataset_id=self.dataset_id,
+                group_id=self.group_id,
+                capture_id=self.capture_id,
                 leakage_group_key=self.leakage_group_key,
-                corpus_id=self.corpus_id,
+                partition=self.partition,
                 event_id=event_id,
                 **values,
             ))
@@ -326,50 +368,32 @@ class DecoderCandidateCollector:
             return batch
 
 
-def collapse_emitted_candidate_episodes(
+def select_trainable_emitted_events(
     attempts: Iterable[DecoderCandidateAttempt],
 ) -> list[DecoderCandidateAttempt]:
-    """Keep one strongest row per contiguous emitted NoteOn attempt episode.
+    """Return the explicit first learning unit: one real emitted NoteOn.
 
-    Non-emitted rows are deliberately masked in the first experiment: they
-    were never an event error and receive no direct event label.
+    No temporal aggregation occurs here. A repeated NoteOn is a separate
+    decoder decision and must remain separately matchable to causal ground
+    truth. Duplicate event identifiers therefore indicate an invalid artifact,
+    rather than a tie to resolve with a score-dependent heuristic.
     """
-    selected = sorted(
-        (row for row in attempts if row.gate_eligible and row.emitted_noteon),
-        key=lambda row: (
-            row.recording_key,
-            row.leakage_group_key,
-            row.corpus_id,
-            row.pitch,
-            row.event_id or "",
-            row.frame_index,
-        ),
+    selected = list(
+        row for row in attempts if row.gate_eligible and row.emitted_noteon
     )
-    episodes: list[DecoderCandidateAttempt] = []
-    best_row: DecoderCandidateAttempt | None = None
-    last_frame_index: int | None = None
-    for row in selected:
-        contiguous = best_row is not None and last_frame_index is not None and (
-            row.recording_key == best_row.recording_key
-            and row.leakage_group_key == best_row.leakage_group_key
-            and row.corpus_id == best_row.corpus_id
-            and row.pitch == best_row.pitch
-            and row.event_id == best_row.event_id
-            and row.frame_index <= last_frame_index + 1
-        )
-        if not contiguous:
-            if best_row is not None:
-                episodes.append(best_row)
-            best_row = row
-        elif row.candidate_score > best_row.candidate_score:
-            best_row = row
-        last_frame_index = row.frame_index
-    if best_row is not None:
-        episodes.append(best_row)
+    event_ids = [row.event_id for row in selected]
+    if any(event_id is None for event_id in event_ids):
+        raise RuntimeError("Fail closed: emitted trainable event has no event_id.")
+    if len(set(event_ids)) != len(event_ids):
+        raise RuntimeError("Fail closed: duplicate trainable event_id.")
     return sorted(
-        episodes,
+        selected,
         key=lambda row: (
-            row.recording_key,
+            row.partition,
+            row.dataset_id,
+            row.source_id,
+            row.capture_id,
+            row.leakage_group_key,
             row.frame_index,
             row.pitch,
             row.event_id or "",
@@ -389,4 +413,12 @@ POST_GATE_METADATA_FIELDS = (
     "post_gate_selected",
     "emitted_noteon",
     "event_id",
+)
+PROVENANCE_FIELDS = (
+    "source_id",
+    "dataset_id",
+    "group_id",
+    "capture_id",
+    "leakage_group_key",
+    "partition",
 )

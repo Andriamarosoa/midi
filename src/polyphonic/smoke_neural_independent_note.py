@@ -21,8 +21,7 @@ import re
 import subprocess
 import sys
 import time
-import unicodedata
-from collections import Counter, defaultdict
+from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
@@ -46,6 +45,14 @@ from src.polyphonic.data import (
     dataset_balanced_validation_refs,
     load_independent_note_fundamental_offsets,
     load_manifest,
+)
+from src.polyphonic.decoder_candidate_provenance import (
+    canonical_digest,
+    canonical_identifier,
+    dataset_family as _dataset_family,
+    leakage_group_key,
+    partition_train_groups,
+    train_items_only,
 )
 from src.polyphonic.keras_compat import load_polyphonic_checkpoint
 from src.polyphonic.model import (
@@ -75,13 +82,6 @@ def file_sha256(path: Path) -> str:
         for block in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(block)
     return digest.hexdigest()
-
-
-def canonical_digest(values: Iterable[str]) -> str:
-    payload = ("\n".join(sorted(str(value) for value in values)) + "\n").encode(
-        "utf-8"
-    )
-    return hashlib.sha256(payload).hexdigest()
 
 
 def source_snapshot(root: Path) -> dict[str, object]:
@@ -134,166 +134,6 @@ def source_snapshot(root: Path) -> dict[str, object]:
         "archive_sha256": archive_sha256,
         "provenance_file": str(provenance),
     }
-
-
-def train_items_only(items: Sequence[ManifestItem]) -> list[ManifestItem]:
-    """Return train rows while refusing any manifest that exposes test rows."""
-
-    split_counts = Counter(str(item.split) for item in items)
-    if split_counts.get("test", 0):
-        raise RuntimeError("Fail closed: the train-only manifest contains test rows.")
-    unexpected = set(split_counts) - {"train", "validation"}
-    if unexpected:
-        raise RuntimeError(f"Fail closed: unexpected manifest splits {sorted(unexpected)}")
-    train = [item for item in items if str(item.split) == "train"]
-    if not train:
-        raise RuntimeError("Fail closed: the manifest has no train rows.")
-    return train
-
-
-def canonical_identifier(value: object) -> str:
-    """Return a stable ASCII identifier for manifest grouping metadata."""
-
-    normalized = unicodedata.normalize("NFKD", str(value).strip()).encode(
-        "ascii", "ignore"
-    ).decode("ascii")
-    return re.sub(r"[^a-z0-9]+", "_", normalized.lower()).strip("_")
-
-
-def _dataset_family(dataset_id: object) -> str:
-    value = canonical_identifier(dataset_id)
-    if value.startswith("guitarset"):
-        return "guitarset"
-    if value.startswith("gaps"):
-        return "gaps"
-    if "guitar" in value and "tech" in value:
-        return "guitar_techs"
-    if not value:
-        raise RuntimeError("Fail closed: an item has an empty dataset_id.")
-    return value
-
-
-def leakage_group_key(item: ManifestItem) -> str:
-    """Group all related recordings, including cross-corpus capture views."""
-
-    family = _dataset_family(item.dataset_id)
-    group_id = canonical_identifier(item.group_id)
-    player_id = canonical_identifier(item.player_id)
-    if family == "guitarset":
-        if not player_id:
-            raise RuntimeError("Fail closed: GuitarSet item has no player_id.")
-        return f"guitarset:player:{player_id}"
-    if family == "gaps":
-        unavailable = {
-            "", "unknown", "gaps_unknown", "unknown_player", "na", "n_a",
-            "none", "null",
-        }
-        if player_id not in unavailable:
-            return f"gaps:player:{player_id}"
-        if not group_id:
-            raise RuntimeError(
-                "Fail closed: GAPS item has neither a usable player_id nor group_id."
-            )
-        return f"gaps:group:{group_id}"
-    if not group_id:
-        raise RuntimeError(
-            f"Fail closed: {item.dataset_id!r} item has no group_id."
-        )
-    return f"{family}:group:{group_id}"
-
-
-def partition_train_groups(
-    items: Sequence[ManifestItem],
-    *,
-    seed: int,
-) -> tuple[dict[str, list[ManifestItem]], dict[str, object]]:
-    """Create deterministic 70/15/15 partitions without leakage.
-
-    GuitarSet is held together by player, GAPS by canonical player (falling
-    back to score/group), and Guitar-TECHS by group across direct and mic
-    dataset identifiers.
-    """
-
-    by_group: dict[str, list[ManifestItem]] = defaultdict(list)
-    for item in items:
-        if str(item.split) != "train":
-            raise RuntimeError("Non-train item reached the group partitioner.")
-        by_group[leakage_group_key(item)].append(item)
-    group_stratum: dict[str, str] = {}
-    for group_key, members in by_group.items():
-        strata = {_dataset_family(item.dataset_id) for item in members}
-        if len(strata) != 1:
-            raise RuntimeError(
-                f"Fail closed: leakage group {group_key!r} spans unrelated corpora."
-            )
-        group_stratum[group_key] = next(iter(strata))
-
-    groups_by_stratum: dict[str, list[str]] = defaultdict(list)
-    for group_key, stratum in group_stratum.items():
-        groups_by_stratum[stratum].append(group_key)
-
-    assignments: dict[str, str] = {}
-    for stratum, group_keys in sorted(groups_by_stratum.items()):
-        ordered = sorted(
-            group_keys,
-            key=lambda group_key: hashlib.sha256(
-                f"independent-note-v2:{int(seed)}:{stratum}:{group_key}".encode(
-                    "utf-8"
-                )
-            ).hexdigest(),
-        )
-        if len(ordered) < 3:
-            raise RuntimeError(
-                f"Fail closed: {stratum} needs at least three leakage groups."
-            )
-        dev_count = max(1, int(round(len(ordered) * 0.15)))
-        calibration_count = max(1, int(round(len(ordered) * 0.15)))
-        if dev_count + calibration_count >= len(ordered):
-            dev_count = calibration_count = 1
-        fit_end = len(ordered) - dev_count - calibration_count
-        for group_key in ordered[:fit_end]:
-            assignments[group_key] = "fit"
-        for group_key in ordered[fit_end : fit_end + dev_count]:
-            assignments[group_key] = "dev"
-        for group_key in ordered[fit_end + dev_count :]:
-            assignments[group_key] = "calibration"
-
-    partitions = {name: [] for name in ("fit", "dev", "calibration")}
-    for item in items:
-        partitions[assignments[leakage_group_key(item)]].append(item)
-    group_sets = {
-        name: {leakage_group_key(item) for item in selected}
-        for name, selected in partitions.items()
-    }
-    if any(
-        group_sets[left] & group_sets[right]
-        for left, right in (("fit", "dev"), ("fit", "calibration"), ("dev", "calibration"))
-    ):
-        raise RuntimeError("Fail closed: train partitions overlap by leakage group.")
-
-    datasets = {str(item.dataset_id) for item in items}
-    for name, selected in partitions.items():
-        if {str(item.dataset_id) for item in selected} != datasets:
-            raise RuntimeError(f"Fail closed: {name} does not cover every corpus.")
-    report = {
-        "seed": int(seed),
-        "strategy": "corpus_aware_leakage_group_hash_70_15_15",
-        "partitions": {
-            name: {
-                "rows": len(selected),
-                "groups": len(group_sets[name]),
-                "group_digest": canonical_digest(group_sets[name]),
-                "source_digest": canonical_digest(
-                    str(item.source_id) for item in selected
-                ),
-                "by_corpus": dict(sorted(Counter(
-                    str(item.dataset_id) for item in selected
-                ).items())),
-            }
-            for name, selected in partitions.items()
-        },
-    }
-    return partitions, report
 
 
 def freeze_independent_note_only(model: tf.keras.Model) -> dict[str, object]:

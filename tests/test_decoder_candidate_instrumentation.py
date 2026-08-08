@@ -1,6 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import fields
+import csv
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from types import SimpleNamespace
 import unittest
 
 import numpy as np
@@ -11,6 +15,10 @@ from src.polyphonic.decoder import (
     PolyphonicMidiEvent,
 )
 from src.polyphonic.decoder_candidate_mining import DecoderCandidateCollector
+from src.polyphonic.decoder_candidate_provenance import (
+    build_decoder_candidate_partition_plan_from_manifest,
+    validate_decoder_candidate_partition_plan_from_manifest,
+)
 
 
 class DecoderCandidateInstrumentationTests(unittest.TestCase):
@@ -28,12 +36,53 @@ class DecoderCandidateInstrumentationTests(unittest.TestCase):
                 state[name] = value
         return state
 
-    @staticmethod
-    def collector(maximum_attempts: int = 4096) -> DecoderCandidateCollector:
-        return DecoderCandidateCollector(
-            recording_key="recording",
-            leakage_group_key="group",
-            corpus_id="corpus",
+    @classmethod
+    def collector(
+        cls,
+        maximum_attempts: int = 4096,
+        collector_type: type[DecoderCandidateCollector] = DecoderCandidateCollector,
+    ) -> DecoderCandidateCollector:
+        item = SimpleNamespace(
+            source_id="source",
+            dataset_id="corpus",
+            player_id="player",
+            group_id="group",
+            capture_id="capture",
+            split="train",
+        )
+        items = [
+            item,
+            SimpleNamespace(
+                source_id="source-2", dataset_id="corpus", player_id="player-2",
+                group_id="group-2", capture_id="capture-2", split="train",
+            ),
+            SimpleNamespace(
+                source_id="source-3", dataset_id="corpus", player_id="player-3",
+                group_id="group-3", capture_id="capture-3", split="train",
+            ),
+        ]
+        with TemporaryDirectory() as temporary:
+            path = Path(temporary) / "manifest.csv"
+            fields = (
+                "source_id", "dataset_id", "player_id", "group_id",
+                "capture_id", "split",
+            )
+            with path.open("w", encoding="utf-8", newline="") as handle:
+                writer = csv.DictWriter(handle, fieldnames=fields)
+                writer.writeheader()
+                for candidate in items:
+                    writer.writerow({
+                        field: getattr(candidate, field) for field in fields
+                    })
+            plan = build_decoder_candidate_partition_plan_from_manifest(
+                path, seed=47
+            )
+            validated = validate_decoder_candidate_partition_plan_from_manifest(
+                plan, path
+            )
+        return collector_type(
+            validated_partition=validated,
+            manifest_item=item,
             maximum_attempts=maximum_attempts,
         )
 
@@ -134,11 +183,7 @@ class DecoderCandidateInstrumentationTests(unittest.TestCase):
                 self.batch_calls += 1
                 return super().record_candidates(rows)
 
-        collector = CountingCollector(
-            recording_key="recording",
-            leakage_group_key="group",
-            corpus_id="corpus",
-        )
+        collector = self.collector(collector_type=CountingCollector)
         decoder = PolyphonicDecoder(
             PolyphonicDecoderConfig(
                 midi_min=60,
