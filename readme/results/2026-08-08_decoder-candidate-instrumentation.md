@@ -6,6 +6,9 @@ Point de départ approuvé :
 `f9ed9d0230675284632765d7dc8aca7ae33ff1aa` sur
 `codex/independent-note-neural-v2`.
 
+Commit d'instrumentation vérifié :
+`f7514228800d8ad15db7d047dcadfbf8640cf4ee`.
+
 Cette étape ajoute uniquement un side-channel d'observation au décodeur. Elle
 ne produit aucun artefact miné, ne change aucune décision MIDI et n'autorise ni
 entraînement, validation officielle, export, live ou test verrouillé.
@@ -72,6 +75,18 @@ Les **512/512 frames** ont rendu les mêmes événements dans le même ordre et 
 même état interne, bit à bit pour les tableaux. Les sauts de hop, silence,
 releases, retriggers, reset de continuité et panic sont inclus.
 
+
+## Vérifications Mac M4
+
+- Checkout propre sur `codex/independent-note-neural-v2`, au commit exact
+  `f7514228800d8ad15db7d047dcadfbf8640cf4ee`.
+- Python `3.11.9`, NumPy `1.26.4`.
+- La même commande ciblée exécute **86 tests** en `0,604 s` : `OK`, avec deux
+  tests Windows-only explicitement ignorés.
+- La compilation syntaxique des six fichiers Python touchés réussit.
+- Aucun processus scientifique, entraînement, minage, validation officielle,
+  export, live ou test verrouillé n'a été lancé.
+
 ## Latence
 
 Microbenchmark Windows borné, six répétitions alternées de 3 000 frames,
@@ -106,7 +121,7 @@ activée dans le live.
 
 ## Décision
 
-L'instrumentation-only est prête pour vérification Mac au commit exact, puis
-revue externe. `locked_test_used=false`. Aucun minage, entraînement, validation,
-export ou live ne doit être lancé avant approbation explicite de cette étape et
-correction des limites ci-dessus.
+L'instrumentation-only est vérifiée sur Windows et Mac au commit exact; elle est
+prête pour revue externe. `locked_test_used=false`. Aucun minage, entraînement,
+validation, export ou live ne doit être lancé avant approbation explicite de
+cette étape et correction des limites ci-dessus.

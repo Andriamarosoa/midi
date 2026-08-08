@@ -16,10 +16,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-08-08T15:14:24+04:00`.
+- Mise à jour : `2026-08-08T15:17:28+04:00`.
 - Étape : `decoder_candidate_instrumentation`.
-- Statut : `instrumentation-only implémentée et vérifiée sur Windows — revue
-  du commit et vérification Mac encore requises avant tout minage`.
+- Statut : `instrumentation-only vérifiée sur Windows et Mac au commit exact —
+  revue externe requise avant tout minage`.
 - Résultat scientifique conservé : la tête `independent_note` précédente reste
   un résultat négatif, saturé près de 1, et ne doit promouvoir ni checkpoint ni
   seuil. Le test verrouillé reste fermé.
@@ -43,6 +43,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   au décodeur approuvé `f9ed9d0`, 512 frames couvrant porte active/inactive et
   voie legacy/causale ont une parité exacte des événements et de tout l'état
   décisionnel, y compris reset et panic.
+- Vérification Mac : checkout propre au commit
+  `f7514228800d8ad15db7d047dcadfbf8640cf4ee`; les mêmes 86 tests réussissent
+  en 0,604 s (`OK`, deux tests Windows-only ignorés) et la compilation des six
+  fichiers Python touchés réussit.
 - Microbenchmark borné dense : ancien décodeur 175,77 µs/frame, nouveau chemin
   désactivé 162,53 µs/frame (aucune régression mesurée), collecte activée
   260,64 µs/frame, soit +98,11 µs et 1,69 % du hop de 5,805 ms.
@@ -62,12 +66,13 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 ## Prochaine action réelle
 
-1. Committer et pousser cette instrumentation avec ses preuves Windows.
-2. Rejouer les mêmes tests sur le Mac au commit exact, sans calcul scientifique.
-3. Faire relire le commit et le rapport par ChatGPT.
-4. Ne promouvoir ni checkpoint ni seuil et ne lancer aucun minage avant cette
-   revue et la résolution explicite des deux limites de schéma ci-dessus.
-5. Conserver le test verrouillé fermé; aucun entraînement, validation, export
+1. Faire relire le commit `f7514228800d8ad15db7d047dcadfbf8640cf4ee` et son
+   rapport par ChatGPT.
+2. Ne promouvoir ni checkpoint ni seuil et ne lancer aucun minage avant cette
+   revue.
+3. Résoudre dans un futur commit revu `capture_id`/partition et la sémantique
+   de collapse avant toute production d'artefact.
+4. Conserver le test verrouillé fermé; aucun entraînement, validation, export
    ou live n'est autorisé par cette étape.
 
 ## État archivé — dual-stream du 30 juillet (remplacé)
@@ -251,11 +256,12 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
   pré-porte immuable, métadonnées post-décision, identifiants déterministes hors
   événement MIDI, encodage des raisons compatible avec le live, buffer borné,
   overflow fail-closed, remise par frame non bloquante et erreur de collecte
-  fail-open. Les 86 tests Windows
-  passent; 512 frames sont identiques au décodeur `f9ed9d0` pour événements et
-  état. Le chemin désactivé ne montre aucune régression mesurable; l'overhead
-  activé est 98,11 µs/frame dans le benchmark dense. Vérification Mac et revue
-  externe requises; aucun minage ni test verrouillé.
+  fail-open. Les 86 tests Windows et Mac passent; le Mac ignore explicitement
+  deux tests Windows-only. Les 512 frames sont identiques au décodeur `f9ed9d0`
+  pour événements et état. Le chemin désactivé ne montre aucune régression
+  mesurable; l'overhead activé est 98,11 µs/frame dans le benchmark dense. Mac
+  propre au commit exact `f751422`; revue externe requise, sans minage ni test
+  verrouillé.
 <!-- PROJECT_TASK:decoder_candidate_instrumentation:END -->
 <!-- JOURNAL_END -->
 ## Rapports détaillés
