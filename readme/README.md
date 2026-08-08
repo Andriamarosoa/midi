@@ -16,10 +16,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-08-08T20:42:53+04:00`.
-- Étape : `decoder_candidate_provenance_contract`.
-- Statut : `correctif du matching causal des retriggers approuvé après revue
-  externe et rejeu local; aucun plan réel ni minage n'a été démarré`.
+- Mise à jour : `2026-08-08T21:37:15+04:00`.
+- Étape : `decoder_candidate_asset_evidence_contract`.
+- Statut : `contrat d'empreintes audio/labels implémenté et vérifié sur actifs
+  synthétiques; revue externe requise avant toute préinscription réelle`.
 - Résultat scientifique conservé : la tête `independent_note` précédente reste
   un résultat négatif, saturé près de 1, et ne doit promouvoir ni checkpoint ni
   seuil. Le test verrouillé reste fermé.
@@ -39,6 +39,12 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   relecture stricte, SHA du plan dans chaque batch, et re-vérification avant
   collecteur, ouverture ou agrégation. Le mineur train-only refusera aussi un
   groupe partagé entre train et validation.
+- Preuve d'actifs : avant toute ouverture future, le contexte exigera un
+  registre canonique, persistant et attesté des tailles/SHA-256 audio et labels
+  de chaque capture train, lié au même manifeste, plan, `audio_member` et
+  partition. Il rehache les deux fichiers juste avant `PolyphonicCorpus`; une
+  couverture incomplète, un fichier modifié, un wrapper forgé ou des octets du
+  registre modifiés échouent fermé. Aucune preuve réelle n'a encore été créée.
 - Chaque ligne future porte la provenance immuable complète : `source_id`,
   `dataset_id`, `group_id`, `capture_id`, clé de fuite et partition. Les lots
   portant un autre manifeste/plan, une prise rejouée, un `event_id` dupliqué ou
@@ -86,6 +92,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   **approuvée**. Un rejeu Windows indépendant de la même suite ciblée obtient
   aussi **131 tests réussis en 9,336 s**. Cette seconde durée est une mesure
   d'exécution distincte; elle ne remplace pas l'évidence historique à 8,993 s.
+- Vérification du contrat d'actifs Windows : compilation Python, `git diff
+  --check` et **134 tests ciblés réussis en 9,429 s**, dont les chemins
+  synthétiques de couverture train-only, de rehash avant ouverture, de fichier
+  modifié, de wrapper forgé et de registre incomplet.
 - Limite avant minage : aucun plan réel ni artefact candidat n'a été généré ou
   persisté; aucun décodeur ni mineur n'a été exécuté. Les chemins sont liés au
   snapshot manifeste, mais la preuve préenregistrée des octets d'audio/labels
@@ -101,16 +111,18 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `readme/results/2026-08-08_decoder-candidate-provenance-contract.md`, puis
   `readme/results/2026-08-08_decoder-candidate-snapshot-label-protocol.md` et
   `readme/results/2026-08-08_decoder-candidate-retrigger-causal-matching-fix.md`,
-  puis `readme/results/2026-08-08_decoder-candidate-retrigger-causal-matching-review.md`.
+  puis `readme/results/2026-08-08_decoder-candidate-retrigger-causal-matching-review.md`
+  et `readme/results/2026-08-08_decoder-candidate-asset-evidence-contract.md`.
 
 ## Prochaine action réelle
 
-1. Définir puis préenregistrer, dans une étape distincte, le plan réel et la
-   preuve versionnée des actifs audio/labels associés; faire relire ces deux
-   éléments avant la toute première collecte.
-2. Ne promouvoir ni checkpoint ni seuil, et ne lancer aucun minage avant la
+1. Faire relire le contrat d'empreintes, sans créer de plan ou de registre réel.
+2. Après approbation explicite seulement, préenregistrer sur le Mac le plan
+   réel et la preuve versionnée des actifs audio/labels, puis faire relire ces
+   deux éléments avant la toute première collecte.
+3. Ne promouvoir ni checkpoint ni seuil, et ne lancer aucun minage avant la
    revue de la préinscription réelle.
-3. Conserver le test verrouillé fermé; aucun entraînement, validation, export
+4. Conserver le test verrouillé fermé; aucun entraînement, validation, export
    ou live n'est autorisé par cette étape.
 
 ## État archivé — dual-stream du 30 juillet (remplacé)
@@ -334,6 +346,21 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
   uniquement la préinscription réelle, soumise à une nouvelle revue avant tout
   minage.
 <!-- PROJECT_TASK:decoder_candidate_provenance_contract:END -->
+<!-- PROJECT_TASK:decoder_candidate_asset_evidence_contract:START -->
+- 2026-08-08 — **en revue** — `decoder_candidate_asset_evidence_contract` :
+  ajout sans calcul scientifique d'un registre canonique d'empreintes pour les
+  actifs que le futur mineur pourrait ouvrir. Chaque entrée train lie identité
+  physique, partition préassignée, `audio_member`, taille et SHA-256 du
+  conteneur audio et des labels; aucun chemin hôte n'est persisté, le manifeste
+  déjà hashé restant son ancre. Le registre est écrit sans écrasement, relu et
+  attesté; le contexte refuse d'ouvrir tout corpus sans ce registre et rehache
+  les deux actifs juste avant l'ouverture. Les tests synthétiques couvrent la
+  couverture complète, les octets modifiés, le wrapper forgé et l'absence de
+  preuve. Compilation, `git diff --check` et 134 tests ciblés Windows passent
+  en 9,429 s. Aucun manifeste réel, plan réel, actif projet, minage,
+  entraînement, validation, export, live ou test verrouillé n'a été ouvert ou
+  produit. Revue externe requise avant la préinscription réelle sur le Mac.
+<!-- PROJECT_TASK:decoder_candidate_asset_evidence_contract:END -->
 <!-- JOURNAL_END -->
 ## Rapports détaillés
 
@@ -353,6 +380,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-08 — protocole snapshot et labels causales des candidats](results/2026-08-08_decoder-candidate-snapshot-label-protocol.md)
 - [2026-08-08 — correctif causal des retriggers candidats](results/2026-08-08_decoder-candidate-retrigger-causal-matching-fix.md)
 - [2026-08-08 — revue du correctif causal des retriggers](results/2026-08-08_decoder-candidate-retrigger-causal-matching-review.md)
+- [2026-08-08 — contrat d'empreintes des actifs candidats](results/2026-08-08_decoder-candidate-asset-evidence-contract.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.

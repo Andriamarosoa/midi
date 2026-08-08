@@ -14,6 +14,14 @@ from pathlib import Path
 from typing import Iterable, Iterator
 
 from .data import ManifestItem, ManifestSnapshot, PolyphonicCorpus, load_manifest_snapshot
+from .decoder_candidate_asset_evidence import (
+    PersistedDecoderCandidateAssetEvidence,
+    build_decoder_candidate_asset_evidence,
+    load_decoder_candidate_asset_evidence,
+    validate_decoder_candidate_asset_evidence,
+    verify_decoder_candidate_assets_for_item,
+    write_decoder_candidate_asset_evidence,
+)
 from .decoder_candidate_mining import DecoderCandidateCollector
 from .decoder_candidate_labels import (
     CausalCandidateLabelBatch,
@@ -41,6 +49,7 @@ class DecoderCandidateMiningContext:
     snapshot: ManifestSnapshot
     persisted_plan: PersistedDecoderCandidatePartitionPlan
     validated_snapshot: ValidatedDecoderCandidateManifestSnapshot
+    persisted_asset_evidence: PersistedDecoderCandidateAssetEvidence | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.snapshot, ManifestSnapshot):
@@ -75,6 +84,10 @@ class DecoderCandidateMiningContext:
         ):
             raise ValueError(
                 "validated items must be the exact objects from the manifest snapshot."
+            )
+        if self.persisted_asset_evidence is not None:
+            validate_decoder_candidate_asset_evidence(
+                self.persisted_asset_evidence, self.validated_snapshot
             )
 
     def items_for_partition(self, partition: str) -> tuple[ManifestItem, ...]:
@@ -167,6 +180,16 @@ class DecoderCandidateMiningContext:
         # inspect an official validation item through the same context and then
         # accidentally pair it with an unrelated collector.
         self.validated_snapshot.provenance_for_snapshot_item(snapshot_item)
+        if self.persisted_asset_evidence is None:
+            raise RuntimeError(
+                "Fail closed: opening a candidate recording requires persisted "
+                "audio/label asset evidence."
+            )
+        verify_decoder_candidate_assets_for_item(
+            self.persisted_asset_evidence,
+            self.validated_snapshot,
+            snapshot_item,
+        )
         with PolyphonicCorpus([snapshot_item]) as corpus:
             if corpus.items[0] is not snapshot_item:
                 raise AssertionError("corpus did not retain the validated snapshot item.")
@@ -177,6 +200,7 @@ def load_decoder_candidate_mining_context(
     *,
     manifest_path: Path,
     partition_plan_path: Path,
+    asset_evidence_path: Path | None = None,
 ) -> DecoderCandidateMiningContext:
     """Load a persisted plan and validate it before any future decode can start."""
     snapshot = load_manifest_snapshot(manifest_path)
@@ -184,10 +208,16 @@ def load_decoder_candidate_mining_context(
     validated_snapshot = validate_decoder_candidate_partition_plan_against_snapshot(
         persisted_plan, snapshot
     )
+    persisted_asset_evidence = (
+        load_decoder_candidate_asset_evidence(asset_evidence_path)
+        if asset_evidence_path is not None
+        else None
+    )
     return DecoderCandidateMiningContext(
         snapshot=snapshot,
         persisted_plan=persisted_plan,
         validated_snapshot=validated_snapshot,
+        persisted_asset_evidence=persisted_asset_evidence,
     )
 
 
@@ -223,8 +253,35 @@ def create_decoder_candidate_mining_context(
     )
 
 
+def pre_register_decoder_candidate_asset_evidence(
+    *,
+    manifest_path: Path,
+    partition_plan_path: Path,
+    asset_evidence_path: Path,
+) -> DecoderCandidateMiningContext:
+    """Hash train assets once and persist their proof without decoding them.
+
+    This is intentionally distinct from a candidate-mining run: it only hashes
+    manifest-referenced files, writes immutable evidence, then returns a
+    context which will re-hash an item immediately before any future open.
+    """
+    context = load_decoder_candidate_mining_context(
+        manifest_path=manifest_path,
+        partition_plan_path=partition_plan_path,
+    )
+    evidence = build_decoder_candidate_asset_evidence(context.validated_snapshot)
+    persisted = write_decoder_candidate_asset_evidence(asset_evidence_path, evidence)
+    return DecoderCandidateMiningContext(
+        snapshot=context.snapshot,
+        persisted_plan=context.persisted_plan,
+        validated_snapshot=context.validated_snapshot,
+        persisted_asset_evidence=persisted,
+    )
+
+
 __all__ = [
     "DecoderCandidateMiningContext",
     "create_decoder_candidate_mining_context",
     "load_decoder_candidate_mining_context",
+    "pre_register_decoder_candidate_asset_evidence",
 ]

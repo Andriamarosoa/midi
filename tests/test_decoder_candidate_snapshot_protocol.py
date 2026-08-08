@@ -16,6 +16,10 @@ from src.polyphonic.decoder_candidate_miner import (
     create_decoder_candidate_mining_context,
     load_decoder_candidate_mining_context,
 )
+from src.polyphonic.decoder_candidate_asset_evidence import (
+    build_decoder_candidate_asset_evidence,
+    write_decoder_candidate_asset_evidence,
+)
 from src.polyphonic.decoder_candidate_mining import DecoderCandidateCollector
 from src.polyphonic.decoder_candidate_labels import (
     label_emitted_decoder_candidates,
@@ -176,16 +180,25 @@ class DecoderCandidateSnapshotProtocolTests(unittest.TestCase):
             root = Path(temporary)
             manifest_path = root / "manifest.csv"
             plan_path = root / "partition-plan.json"
+            evidence_path = root / "asset-evidence.json"
             _write_full_manifest(manifest_path)
+            for index in range(3):
+                (root / f"audio-original-{index}.wav").write_bytes(b"audio")
+                (root / f"labels-original-{index}.npz").write_bytes(b"labels")
 
             context = create_decoder_candidate_mining_context(
                 manifest_path=manifest_path,
                 partition_plan_path=plan_path,
                 seed=47,
             )
+            write_decoder_candidate_asset_evidence(
+                evidence_path,
+                build_decoder_candidate_asset_evidence(context.validated_snapshot),
+            )
             reloaded = load_decoder_candidate_mining_context(
                 manifest_path=manifest_path,
                 partition_plan_path=plan_path,
+                asset_evidence_path=evidence_path,
             )
 
             self.assertEqual(context.persisted_plan, reloaded.persisted_plan)
@@ -195,12 +208,12 @@ class DecoderCandidateSnapshotProtocolTests(unittest.TestCase):
             all_partition_items = tuple(
                 item
                 for partition in ("fit", "dev", "calibration")
-                for item in context.items_for_partition(partition)
+                for item in reloaded.items_for_partition(partition)
             )
             self.assertEqual(len(all_partition_items), 3)
             for item in all_partition_items:
-                self.assertTrue(any(item is original for original in context.snapshot.items))
-                collector = context.collector_for_item(item, maximum_attempts=2)
+                self.assertTrue(any(item is original for original in reloaded.snapshot.items))
+                collector = reloaded.collector_for_item(item, maximum_attempts=2)
                 self.assertEqual(collector.source_id, item.source_id)
 
             item = all_partition_items[0]
@@ -209,7 +222,7 @@ class DecoderCandidateSnapshotProtocolTests(unittest.TestCase):
             ) as corpus_type:
                 corpus = corpus_type.return_value.__enter__.return_value
                 corpus.items = [item]
-                with context.open_recording(item) as opened:
+                with reloaded.open_recording(item) as opened:
                     self.assertIs(opened, corpus)
                 corpus_type.assert_called_once_with([item])
 
