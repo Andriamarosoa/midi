@@ -161,9 +161,57 @@ class DecoderCandidateProvenanceTests(unittest.TestCase):
                 items, manifest_sha256=self.MANIFEST_SHA256, seed=47
             )
 
-    def test_plan_refuses_train_validation_leakage_group_overlap(self) -> None:
+    def test_policy_a_preserves_validation_and_versions_overlap_exclusions(self) -> None:
         items = _complete_train_items()
-        train = items[0]
+        train = next(item for item in items if item.source_id == "gaps-0")
+        validation = _item(
+            "validation-clone",
+            train.dataset_id,
+            train.player_id,
+            train.group_id,
+            "validation-capture",
+            split="validation",
+        )
+        items.append(validation)
+
+        plan = build_decoder_candidate_partition_plan(
+            items, manifest_sha256=self.MANIFEST_SHA256, seed=47
+        )
+        shuffled = build_decoder_candidate_partition_plan(
+            list(reversed(items)), manifest_sha256=self.MANIFEST_SHA256, seed=47
+        )
+
+        self.assertEqual(plan, shuffled)
+        self.assertEqual(validation.split, "validation")
+        self.assertEqual(len(plan.excluded_train_records), 1)
+        exclusion = plan.excluded_train_records[0]
+        self.assertEqual(
+            exclusion.manifest_identity_key,
+            (train.dataset_id, train.source_id, train.capture_id),
+        )
+        self.assertEqual(exclusion.leakage_group_key, leakage_group_key(validation))
+        self.assertNotIn(
+            exclusion.manifest_identity_key,
+            {record.manifest_identity_key for record in plan.records},
+        )
+        self.assertEqual(
+            {record.manifest_identity_key for record in plan.records}
+            | {record.manifest_identity_key for record in plan.excluded_train_records},
+            {
+                (item.dataset_id, item.source_id, item.capture_id)
+                for item in items
+                if item.split == "train"
+            },
+        )
+        plan.require_matches_manifest_items(
+            items, expected_manifest_sha256=self.MANIFEST_SHA256
+        )
+        with self.assertRaisesRegex(RuntimeError, "excluded to preserve"):
+            plan.provenance_for_train_item(train)
+
+    def test_policy_a_refuses_tampered_or_manual_train_exclusions(self) -> None:
+        items = _complete_train_items()
+        train = next(item for item in items if item.source_id == "gaps-0")
         items.append(_item(
             "validation-clone",
             train.dataset_id,
@@ -172,9 +220,22 @@ class DecoderCandidateProvenanceTests(unittest.TestCase):
             "validation-capture",
             split="validation",
         ))
-        with self.assertRaisesRegex(RuntimeError, "overlap by leakage group"):
-            build_decoder_candidate_partition_plan(
-                items, manifest_sha256=self.MANIFEST_SHA256, seed=47
+        plan = build_decoder_candidate_partition_plan(
+            items, manifest_sha256=self.MANIFEST_SHA256, seed=47
+        )
+
+        without_exclusion = plan.as_json()
+        without_exclusion["excluded_train_records"] = []
+        tampered = DecoderCandidatePartitionPlan.from_json(without_exclusion)
+        with self.assertRaisesRegex(RuntimeError, "historical-validation policy"):
+            tampered.require_matches_manifest_items(
+                items, expected_manifest_sha256=self.MANIFEST_SHA256
+            )
+
+        manually_filtered = [item for item in items if item.source_id != "gaps-1"]
+        with self.assertRaisesRegex(RuntimeError, "historical-validation policy"):
+            plan.require_matches_manifest_items(
+                manually_filtered, expected_manifest_sha256=self.MANIFEST_SHA256
             )
 
     def test_plan_rejects_inconsistent_leakage_partition_payload(self) -> None:

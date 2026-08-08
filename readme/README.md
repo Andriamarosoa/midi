@@ -1,6 +1,6 @@
 # Résumé unique — Guitar MIDI AI
 
-> Dernière mise à jour manuelle : 2026-08-08
+> Dernière mise à jour manuelle : 2026-08-09
 >
 > Branche active : `codex/independent-note-neural-v2`
 >
@@ -16,10 +16,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-08-08T22:43:47+04:00`.
-- Étape : `decoder_candidate_preregistration`.
-- Statut : `anomalie fail-closed confirmée : dix groupes GAPS traversent train
-  et validation; un choix scientifique de politique de split est requis`.
+- Mise à jour : `2026-08-09T03:55:43+04:00`.
+- Étape : `decoder_candidate_gaps_policy_a_contract`.
+- Statut : `en revue : politique A codée et testée synthétiquement; la
+  validation historique est préservée et aucun plan réel n'a encore été créé`.
 - Résultat scientifique conservé : la tête `independent_note` précédente reste
   un résultat négatif, saturé près de 1, et ne doit promouvoir ni checkpoint ni
   seuil. Le test verrouillé reste fermé.
@@ -37,8 +37,11 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   forgés échouent fermé avant toute collecte.
 - Le plan canonique est persistant et immuable : écriture sans écrasement,
   relecture stricte, SHA du plan dans chaque batch, et re-vérification avant
-  collecteur, ouverture ou agrégation. Le mineur train-only refusera aussi un
-  groupe partagé entre train et validation.
+  collecteur, ouverture ou agrégation. La politique A, désormais versionnée au
+  schéma 2, conserve la validation historique et exclut automatiquement du
+  futur minage toute capture train dont le groupe corpus-aware est déjà en
+  validation. Les identités exclues sont elles-mêmes persistées et rematchées
+  contre le manifeste complet; aucun sous-ensemble manuel ne peut passer.
 - Preuve d'actifs : avant toute ouverture future, le contexte exigera un
   registre canonique, persistant et attesté des tailles/SHA-256 audio et labels
   de chaque capture train, lié au même manifeste, plan, `audio_member` et
@@ -101,13 +104,20 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   audio après construction mais avant `corpus.audio()`, et le cache de conteneur
   audio partagé. La vérification initiale du contrat à 134 tests en 9,429 s
   reste archivée dans son rapport propre.
+- Vérification de la politique A Windows : compilation Python, `git diff
+  --check` et **138 tests ciblés réussis en 8,696 s**. Les nouveaux fixtures
+  GAPS synthétiques vérifient l'exclusion train déterministe, la persistance
+  exacte des captures exclues, le refus d'un sous-ensemble manuel et
+  l'impossibilité de construire leur collecteur.
 - Préinscription Mac de `d16b25f7` : le checkout est synchronisé et inactif,
   mais le garde group-safe a refusé le manifeste
   `b28cb17cfb80a82860ab44635b2c6d05718243e027a8fc8199fe72e27f1b8ed7` avant
   toute écriture ou hachage. Dix joueurs `gaps_poly_mix` chevauchent train et
   validation (31 prises train, 11 validation au total). Le répertoire de sortie
   vide a été supprimé ; aucun plan, registre, actif ouvert, artefact candidat,
-  minage ou test verrouillé n'existe.
+  minage ou test verrouillé n'existe. Le choix utilisateur A conserve cette
+  validation; il ne modifie ni le manifeste ni les données et prépare seulement
+  l'exclusion déterministe versionnée des prises train concernées.
 - `locked_test_used=false`; aucun entraînement, minage, calcul validation,
   export ou live n'a été exécuté.
 - Rapports :
@@ -122,17 +132,17 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   puis `readme/results/2026-08-08_decoder-candidate-retrigger-causal-matching-review.md`
   et `readme/results/2026-08-08_decoder-candidate-asset-evidence-contract.md`,
   puis `readme/results/2026-08-08_decoder-candidate-asset-evidence-lazy-audio-fix.md`
-  et `readme/results/2026-08-08_decoder-candidate-preregistration-blocked-by-gaps-leakage.md`.
+  et `readme/results/2026-08-08_decoder-candidate-preregistration-blocked-by-gaps-leakage.md`,
+  puis `readme/results/2026-08-09_decoder-candidate-gaps-policy-a-contract.md`.
 
 ## Prochaine action réelle
 
-1. Choisir explicitement une politique de split GAPS réellement group-safe :
-   **A** préserver l'actuelle validation et exclure du train les 31 prises des
-   joueurs concernés, ou **B** redéfinir le split au niveau joueur et adopter
-   une nouvelle validation officielle. Ne pas filtrer manuellement des prises.
-2. Après un manifeste versionné sans chevauchement train/validation et une
-   revue explicite, préinscrire un nouveau plan et registre immuables sur le
-   Mac, puis faire relire leurs SHA, partitions et couverture.
+1. Faire relire le contrat de politique A : exclusion automatique et versionnée
+   des prises train GAPS/groupes présents dans validation, sans modification de
+   cette validation ni filtrage manuel.
+2. Après approbation explicite seulement, préinscrire une seule fois sur le Mac
+   le plan et le registre d'actifs immuables depuis le manifeste complet; faire
+   relire leurs SHA, les 31 exclusions attendues, partitions et couverture.
 3. Ne promouvoir ni checkpoint ni seuil, et ne lancer aucun minage avant la
    revue de cette future préinscription réussie.
 4. Conserver le test verrouillé fermé; aucun entraînement, validation, export
@@ -360,7 +370,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
   minage.
 <!-- PROJECT_TASK:decoder_candidate_provenance_contract:END -->
 <!-- PROJECT_TASK:decoder_candidate_asset_evidence_contract:START -->
-- 2026-08-08 — **anomalie** — `decoder_candidate_asset_evidence_contract` :
+- 2026-08-08 — **en revue** — `decoder_candidate_asset_evidence_contract` :
   ajout sans calcul scientifique d'un registre canonique d'empreintes pour les
   actifs que le futur mineur pourrait ouvrir. Chaque entrée train lie identité
   physique, partition préassignée, `audio_member`, taille et SHA-256 du
@@ -382,6 +392,15 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
   et n'autorise qu'un futur commit de politique, sans données ni calcul : le
   choix entre préserver la validation actuelle (A) et créer une nouvelle
   validation group-safe (B) appartient à l'utilisateur avant toute tentative.
+  Mise à jour du 2026-08-09 : l'utilisateur a choisi **A**. Le schéma 2 du plan
+  persiste désormais chaque capture train exclue parce que son groupe
+  corpus-aware est présent dans validation, puis rematche cette liste contre le
+  manifeste complet. La validation elle-même reste inchangée, toute liste train
+  fournie manuellement échoue, et les objets exposés au futur contexte ne
+  couvrent que les prises planifiées. Tests synthétiques uniquement; aucun plan
+  réel, registre, actif projet, minage, entraînement, validation, export, live
+  ou test verrouillé n'a été exécuté. Revue externe requise avant une nouvelle
+  préinscription Mac.
 <!-- PROJECT_TASK:decoder_candidate_asset_evidence_contract:END -->
 <!-- JOURNAL_END -->
 ## Rapports détaillés
@@ -405,6 +424,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-08 — contrat d'empreintes des actifs candidats](results/2026-08-08_decoder-candidate-asset-evidence-contract.md)
 - [2026-08-08 — correctif de lecture paresseuse des actifs candidats](results/2026-08-08_decoder-candidate-asset-evidence-lazy-audio-fix.md)
 - [2026-08-08 — préinscription bloquée par le chevauchement GAPS](results/2026-08-08_decoder-candidate-preregistration-blocked-by-gaps-leakage.md)
+- [2026-08-09 — contrat de politique A pour le chevauchement GAPS](results/2026-08-09_decoder-candidate-gaps-policy-a-contract.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.

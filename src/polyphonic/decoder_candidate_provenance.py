@@ -22,10 +22,11 @@ import weakref
 from typing import Iterable, Mapping, Protocol, Sequence
 
 
-DECODER_CANDIDATE_PARTITION_SCHEMA_VERSION = 1
+DECODER_CANDIDATE_PARTITION_SCHEMA_VERSION = 2
 DECODER_CANDIDATE_PARTITION_PURPOSE = "decoder_candidate_train_only_partition"
 DECODER_CANDIDATE_PARTITION_POLICY = (
-    "corpus_aware_leakage_group_hash_70_15_15"
+    "preserve_historical_validation_exclude_train_validation_leakage_groups_"
+    "then_corpus_aware_hash_70_15_15_v1"
 )
 DECODER_CANDIDATE_PARTITIONS = ("fit", "dev", "calibration")
 _VALIDATED_PARTITION_TOKEN = object()
@@ -308,28 +309,75 @@ def train_items_only(items: Sequence[ManifestItemLike]) -> list[ManifestItemLike
     return train
 
 
+@dataclass(frozen=True)
+class CandidateTrainSelection:
+    """Deterministic train eligibility under the historical-validation policy.
+
+    Official validation remains byte-for-byte the supplied manifest rows.  The
+    only allowed response to an overlapping leakage group is to omit its train
+    rows from the *future candidate-mining* population.  This object is an
+    internal derivation from the complete manifest; the derived exclusions are
+    persisted in :class:`DecoderCandidatePartitionPlan` rather than accepted
+    from a caller-provided list.
+    """
+
+    eligible_train_items: tuple[ManifestItemLike, ...]
+    excluded_train_items: tuple[ManifestItemLike, ...]
+    validation_leakage_groups: tuple[str, ...]
+
+    def __post_init__(self) -> None:
+        if type(self.eligible_train_items) is not tuple:
+            raise ValueError("eligible_train_items must be an immutable tuple.")
+        if type(self.excluded_train_items) is not tuple:
+            raise ValueError("excluded_train_items must be an immutable tuple.")
+        if type(self.validation_leakage_groups) is not tuple:
+            raise ValueError("validation_leakage_groups must be an immutable tuple.")
+        if not self.eligible_train_items:
+            raise RuntimeError(
+                "Fail closed: preserving validation excludes every candidate train row."
+            )
+        if tuple(sorted(set(self.validation_leakage_groups))) != self.validation_leakage_groups:
+            raise ValueError("validation_leakage_groups must be canonical and unique.")
+
+
+def candidate_train_selection(
+    items: Sequence[ManifestItemLike],
+) -> CandidateTrainSelection:
+    """Derive the sole allowed candidate-train population from a full manifest.
+
+    Policy A deliberately leaves validation untouched.  Any train row whose
+    corpus-aware leakage group occurs in validation is excluded automatically,
+    never by an externally filtered recording list.  The complete manifest is
+    still required, so an omitted row is detected when the persisted plan is
+    later matched back to its manifest SHA-256.
+    """
+    train = train_items_only(items)
+    validation = tuple(item for item in items if str(item.split) == "validation")
+    validation_groups = tuple(sorted({leakage_group_key(item) for item in validation}))
+    validation_group_set = set(validation_groups)
+    eligible = tuple(
+        item for item in train if leakage_group_key(item) not in validation_group_set
+    )
+    excluded = tuple(
+        item for item in train if leakage_group_key(item) in validation_group_set
+    )
+    return CandidateTrainSelection(
+        eligible_train_items=eligible,
+        excluded_train_items=excluded,
+        validation_leakage_groups=validation_groups,
+    )
+
+
 def candidate_train_items_only(
     items: Sequence[ManifestItemLike],
 ) -> list[ManifestItemLike]:
-    """Return candidate-train rows while refusing validation leakage groups.
+    """Return only deterministically eligible rows under Policy A.
 
-    The historical smoke's generic :func:`train_items_only` deliberately only
-    filters the split.  The future decoder-candidate miner has a stronger
-    contract: its causal labels must not contain a player/group also used by
-    official validation.  Keeping that stricter rule in a dedicated helper
-    avoids silently changing the already-reviewed smoke semantics.
+    This compatibility helper intentionally cannot accept exclusions from a
+    caller.  :func:`candidate_train_selection` recomputes them solely from the
+    complete manifest and its historical validation rows.
     """
-    train = train_items_only(items)
-    validation = [item for item in items if str(item.split) == "validation"]
-    train_groups = {leakage_group_key(item) for item in train}
-    validation_groups = {leakage_group_key(item) for item in validation}
-    overlapping_groups = sorted(train_groups & validation_groups)
-    if overlapping_groups:
-        raise RuntimeError(
-            "Fail closed: train and validation rows overlap by leakage group: "
-            f"{overlapping_groups!r}."
-        )
-    return train
+    return list(candidate_train_selection(items).eligible_train_items)
 
 
 def partition_train_groups(
@@ -484,6 +532,57 @@ class DecoderCandidateProvenance:
         )
 
 
+@dataclass(frozen=True)
+class DecoderCandidateTrainExclusion:
+    """One train capture excluded solely to preserve historical validation.
+
+    Exclusions are recording-specific evidence, not an editable filter.  Their
+    group key explains *why* the capture is absent from the three candidate
+    partitions while the exact physical identity makes the omission auditable.
+    """
+
+    source_id: str
+    dataset_id: str
+    group_id: str
+    capture_id: str
+    leakage_group_key: str
+
+    def __post_init__(self) -> None:
+        for name in (
+            "source_id", "dataset_id", "group_id", "capture_id",
+            "leakage_group_key",
+        ):
+            _non_empty_string(getattr(self, name), name)
+
+    @property
+    def manifest_identity_key(self) -> tuple[str, str, str]:
+        return (self.dataset_id, self.source_id, self.capture_id)
+
+    def as_json(self) -> dict[str, str]:
+        return {
+            "dataset_id": self.dataset_id,
+            "source_id": self.source_id,
+            "group_id": self.group_id,
+            "capture_id": self.capture_id,
+            "leakage_group_key": self.leakage_group_key,
+        }
+
+    @classmethod
+    def from_train_item(
+        cls,
+        item: ManifestItemLike,
+    ) -> "DecoderCandidateTrainExclusion":
+        if str(item.split) != "train":
+            raise RuntimeError("Fail closed: candidate exclusion requires split=train.")
+        return cls(
+            source_id=_non_empty_string(item.source_id, "source_id"),
+            dataset_id=_non_empty_string(item.dataset_id, "dataset_id"),
+            group_id=_non_empty_string(item.group_id, "group_id"),
+            capture_id=_non_empty_string(item.capture_id, "capture_id"),
+            leakage_group_key=leakage_group_key(item),
+        )
+
+
 def _manifest_sha256(value: object) -> str:
     if not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{64}", value):
         raise ValueError("manifest_sha256 must be a lowercase SHA-256 digest.")
@@ -492,11 +591,12 @@ def _manifest_sha256(value: object) -> str:
 
 @dataclass(frozen=True)
 class DecoderCandidatePartitionPlan:
-    """Versioned preassignment which must match the exact train manifest."""
+    """Versioned, Policy-A preassignment bound to the complete manifest."""
 
     manifest_sha256: str
     seed: int
     records: tuple[DecoderCandidateProvenance, ...]
+    excluded_train_records: tuple[DecoderCandidateTrainExclusion, ...]
 
     def __post_init__(self) -> None:
         _manifest_sha256(self.manifest_sha256)
@@ -504,6 +604,8 @@ class DecoderCandidatePartitionPlan:
             raise ValueError("seed must be a JSON-native integer.")
         if type(self.records) is not tuple or not self.records:
             raise ValueError("records must be a non-empty immutable tuple.")
+        if type(self.excluded_train_records) is not tuple:
+            raise ValueError("excluded_train_records must be an immutable tuple.")
         expected = tuple(sorted(
             self.records,
             key=lambda record: (
@@ -519,6 +621,29 @@ class DecoderCandidatePartitionPlan:
             raise ValueError(
                 "partition-plan records have duplicate "
                 "dataset/source/capture identities."
+            )
+        expected_exclusions = tuple(sorted(
+            self.excluded_train_records,
+            key=lambda record: (
+                record.dataset_id,
+                record.source_id,
+                record.capture_id,
+            ),
+        ))
+        if self.excluded_train_records != expected_exclusions:
+            raise ValueError(
+                "excluded train records must be canonically sorted."
+            )
+        exclusion_keys = [
+            record.manifest_identity_key for record in self.excluded_train_records
+        ]
+        if len(set(exclusion_keys)) != len(exclusion_keys):
+            raise ValueError(
+                "excluded train records have duplicate dataset/source/capture identities."
+            )
+        if set(keys) & set(exclusion_keys):
+            raise ValueError(
+                "a train identity cannot be both planned and excluded."
             )
         group_assignments: dict[str, str] = {}
         for record in self.records:
@@ -539,13 +664,16 @@ class DecoderCandidatePartitionPlan:
             "partition_policy": DECODER_CANDIDATE_PARTITION_POLICY,
             "seed": self.seed,
             "records": [record.as_json() for record in self.records],
+            "excluded_train_records": [
+                record.as_json() for record in self.excluded_train_records
+            ],
         }
 
     @classmethod
     def from_json(cls, payload: Mapping[str, object]) -> "DecoderCandidatePartitionPlan":
         required = {
             "schema_version", "purpose", "locked_test_used", "manifest_sha256",
-            "partition_policy", "seed", "records",
+            "partition_policy", "seed", "records", "excluded_train_records",
         }
         if not isinstance(payload, Mapping) or set(payload) != required:
             raise ValueError("partition plan has unexpected or missing top-level fields.")
@@ -573,10 +701,23 @@ class DecoderCandidatePartitionPlan:
             if not isinstance(value, dict) or set(value) != record_keys:
                 raise ValueError("partition-plan record schema is invalid.")
             records.append(DecoderCandidateProvenance(**value))
+        exclusions_payload = payload["excluded_train_records"]
+        if not isinstance(exclusions_payload, list):
+            raise ValueError("excluded train records must be a JSON list.")
+        exclusion_keys = {
+            "dataset_id", "source_id", "group_id", "capture_id",
+            "leakage_group_key",
+        }
+        exclusions: list[DecoderCandidateTrainExclusion] = []
+        for value in exclusions_payload:
+            if not isinstance(value, dict) or set(value) != exclusion_keys:
+                raise ValueError("excluded train record schema is invalid.")
+            exclusions.append(DecoderCandidateTrainExclusion(**value))
         return cls(
             manifest_sha256=_manifest_sha256(payload["manifest_sha256"]),
             seed=payload["seed"],
             records=tuple(records),
+            excluded_train_records=tuple(exclusions),
         )
 
     def require_matches_manifest_items(
@@ -592,9 +733,13 @@ class DecoderCandidatePartitionPlan:
             manifest_sha256=expected_manifest_sha256,
             seed=self.seed,
         )
-        if self.records != expected.records:
+        if (
+            self.records != expected.records
+            or self.excluded_train_records != expected.excluded_train_records
+        ):
             raise RuntimeError(
-                "Fail closed: candidate partition plan does not match train manifest."
+                "Fail closed: candidate partition plan does not match the complete "
+                "manifest under the historical-validation policy."
             )
 
     def provenance_for_train_item(
@@ -615,6 +760,21 @@ class DecoderCandidatePartitionPlan:
             _non_empty_string(item.source_id, "source_id"),
             _non_empty_string(item.capture_id, "capture_id"),
         )
+        excluded = [
+            record for record in self.excluded_train_records
+            if record.manifest_identity_key == identity
+        ]
+        if excluded:
+            observed_exclusion = DecoderCandidateTrainExclusion.from_train_item(item)
+            if observed_exclusion != excluded[0]:
+                raise RuntimeError(
+                    "Fail closed: excluded train item provenance differs from the "
+                    "historical-validation policy."
+                )
+            raise RuntimeError(
+                "Fail closed: train item is excluded to preserve historical "
+                "validation leakage groups."
+            )
         matching = [
             record for record in self.records
             if record.manifest_identity_key == identity
@@ -650,8 +810,8 @@ def build_decoder_candidate_partition_plan(
     _manifest_sha256(manifest_sha256)
     if not items:
         raise RuntimeError("Fail closed: candidate manifest has no items.")
-    train_items = candidate_train_items_only(items)
-    partitions, _ = partition_train_groups(train_items, seed=seed)
+    selection = candidate_train_selection(items)
+    partitions, _ = partition_train_groups(selection.eligible_train_items, seed=seed)
     records = tuple(sorted(
         (
             DecoderCandidateProvenance.from_train_item(item, partition=partition)
@@ -668,6 +828,17 @@ def build_decoder_candidate_partition_plan(
         manifest_sha256=manifest_sha256,
         seed=seed,
         records=records,
+        excluded_train_records=tuple(sorted(
+            (
+                DecoderCandidateTrainExclusion.from_train_item(item)
+                for item in selection.excluded_train_items
+            ),
+            key=lambda record: (
+                record.dataset_id,
+                record.source_id,
+                record.capture_id,
+            ),
+        )),
     )
 
 
@@ -864,8 +1035,24 @@ class ValidatedDecoderCandidateManifestSnapshot:
 
     @property
     def train_items(self) -> tuple[ManifestItemLike, ...]:
-        """Return only snapshot objects that the train-only plan covers."""
-        return tuple(item for item in self._items if str(item.split) == "train")
+        """Return only exact candidate-safe train objects covered by the plan.
+
+        Under Policy A this intentionally omits train captures whose leakage
+        group belongs to historical validation.  They remain in ``items`` as
+        immutable manifest evidence, but cannot reach asset hashing, a corpus,
+        a collector, or a future candidate artifact.
+        """
+        planned = {record.manifest_identity_key for record in self.plan.records}
+        return tuple(
+            item
+            for item in self._items
+            if str(item.split) == "train"
+            and (
+                str(item.dataset_id),
+                str(item.source_id),
+                str(item.capture_id),
+            ) in planned
+        )
 
     def require_snapshot_item(self, item: ManifestItemLike) -> ManifestItemLike:
         """Refuse every object which is not literally from this snapshot."""

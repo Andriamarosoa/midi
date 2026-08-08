@@ -33,7 +33,14 @@ from src.polyphonic.decoder_candidate_provenance import (
 )
 
 
-def _write_full_manifest(path: Path, *, path_suffix: str = "original") -> None:
+def _write_full_manifest(
+    path: Path,
+    *,
+    path_suffix: str = "original",
+    validation_player_id: str = "validation-player",
+    validation_group_id: str = "validation-group",
+    train_rows: int = 3,
+) -> None:
     fields = (
         "source_id", "dataset_id", "player_id", "group_id", "split",
         "audio_path", "audio_member", "labels_path", "capture_id",
@@ -42,7 +49,7 @@ def _write_full_manifest(path: Path, *, path_suffix: str = "original") -> None:
     with path.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields)
         writer.writeheader()
-        for index in range(3):
+        for index in range(train_rows):
             writer.writerow({
                 "source_id": f"source-{index}",
                 "dataset_id": "unit-corpus",
@@ -58,8 +65,8 @@ def _write_full_manifest(path: Path, *, path_suffix: str = "original") -> None:
         writer.writerow({
             "source_id": "validation-source",
             "dataset_id": "unit-corpus",
-            "player_id": "validation-player",
-            "group_id": "validation-group",
+            "player_id": validation_player_id,
+            "group_id": validation_group_id,
             "split": "validation",
             "audio_path": f"audio-{path_suffix}-validation.wav",
             "audio_member": "",
@@ -70,6 +77,41 @@ def _write_full_manifest(path: Path, *, path_suffix: str = "original") -> None:
 
 
 class DecoderCandidateSnapshotProtocolTests(unittest.TestCase):
+    def test_policy_a_context_exposes_only_plan_covered_train_items(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            manifest_path = root / "manifest.csv"
+            plan_path = root / "partition-plan.json"
+            _write_full_manifest(
+                manifest_path,
+                validation_player_id="player-0",
+                validation_group_id="group-0",
+                train_rows=4,
+            )
+
+            context = create_decoder_candidate_mining_context(
+                manifest_path=manifest_path,
+                partition_plan_path=plan_path,
+                seed=47,
+            )
+
+            eligible = tuple(
+                item
+                for partition in ("fit", "dev", "calibration")
+                for item in context.items_for_partition(partition)
+            )
+            excluded = next(
+                item for item in context.snapshot.items
+                if item.split == "train" and item.player_id == "player-0"
+            )
+            self.assertEqual(len(eligible), 3)
+            self.assertNotIn(excluded, eligible)
+            self.assertEqual(
+                len(context.persisted_plan.plan.excluded_train_records), 1
+            )
+            with self.assertRaisesRegex(RuntimeError, "excluded to preserve"):
+                context.collector_for_item(excluded)
+
     def test_snapshot_hashes_the_same_bytes_that_build_full_manifest_items(self) -> None:
         with TemporaryDirectory() as temporary:
             root = Path(temporary)

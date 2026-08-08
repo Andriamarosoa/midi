@@ -99,9 +99,7 @@ class DecoderCandidateMiningContext:
                 f"{list(DECODER_CANDIDATE_PARTITIONS)!r}."
             )
         selected: list[ManifestItem] = []
-        for item in self.snapshot.items:
-            if item.split != "train":
-                continue
+        for item in self.validated_snapshot.train_items:
             record = self.validated_snapshot.provenance_for_snapshot_item(item)
             if record.partition == partition:
                 selected.append(item)
