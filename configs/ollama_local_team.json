@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "endpoint": "http://127.0.0.1:11434",
+  "default_context_tokens": 4096,
+  "maximum_context_bytes": 131072,
+  "roles": {
+    "brainstorming": {
+      "model": "qwen3:14b",
+      "temperature": 0.6,
+      "maximum_output_tokens": 768,
+      "instruction": "Generate several distinct hypotheses, expose drawbacks, and rank the next checks."
+    },
+    "research": {
+      "model": "qwen3:14b",
+      "temperature": 0.2,
+      "maximum_output_tokens": 1000,
+      "instruction": "Synthesize only the supplied repository evidence or cited sources. Mark every unsupported or time-sensitive claim as unknown."
+    },
+    "batch_test": {
+      "model": "qwen3:8b",
+      "temperature": 0.1,
+      "maximum_output_tokens": 800,
+      "instruction": "Propose or classify bounded tests. Never claim that a command ran; return exact test intent and expected evidence."
+    },
+    "implementation": {
+      "model": "qwen3:14b",
+      "temperature": 0.1,
+      "maximum_output_tokens": 1400,
+      "instruction": "Draft the smallest coherent implementation or patch, including failure modes and tests. Do not edit files or run commands."
+    },
+    "code_review": {
+      "model": "qwen3:14b",
+      "temperature": 0.0,
+      "maximum_output_tokens": 1200,
+      "instruction": "Review supplied code for concrete correctness, safety, provenance, leakage, and test gaps. Cite file and line evidence when available."
+    },
+    "deep_review": {
+      "model": "qwen3.6:latest",
+      "temperature": 0.0,
+      "maximum_output_tokens": 1200,
+      "instruction": "Act as a rare second-opinion reviewer. Re-evaluate assumptions, identify hidden coupling, and distinguish blocking findings from uncertainty."
+    },
+    "result_interpretation": {
+      "model": "qwen3:14b",
+      "temperature": 0.1,
+      "maximum_output_tokens": 1000,
+      "instruction": "Interpret supplied results without changing the protocol after seeing metrics. Separate observations, causal limits, regressions, and next hypotheses."
+    },
+    "orchestration": {
+      "model": "qwen3:14b",
+      "temperature": 0.1,
+      "maximum_output_tokens": 800,
+      "instruction": "Produce a bounded dependency-aware plan. Keep destructive actions, Git publication, locked-test access, and final authority with Codex and the user."
+    },
+    "performance_judge": {
+      "model": "qwen3.6:latest",
+      "temperature": 0.0,
+      "maximum_output_tokens": 800,
+      "instruction": "Judge anonymized model outputs against a fixed rubric. Never replace objective throughput, memory, test, or correctness measurements."
+    }
+  },
+  "benchmark": {
+    "models": [
+      "qwen3:8b",
+      "qwen3:14b",
+      "qwen3.6:latest"
+    ],
+    "context_tokens": 4096,
+    "maximum_output_tokens": 96,
+    "temperature": 0.0,
+    "seed": 42
+  }
+}
