@@ -22,6 +22,10 @@ import tensorflow as tf
 from src.polyphonic.independent_note_targets import (
     build_independent_note_targets,
 )
+from src.polyphonic.decoder_candidate_provenance import (
+    _manifest_snapshot_capability_token,
+    _register_loaded_manifest_snapshot,
+)
 
 
 NUMPY_MAGIC = b"\x93NUMPY"
@@ -48,6 +52,42 @@ class ManifestItem:
     labels_path: Path
     capture_id: str
     license_id: str
+
+
+@dataclass(frozen=True)
+class ManifestSnapshot:
+    """One immutable parse of the exact manifest bytes used by a workflow.
+
+    ``items`` deliberately contains the fully resolved :class:`ManifestItem`
+    objects which later open audio and labels.  A caller that has validated the
+    SHA-256 can therefore keep using these exact objects instead of reparsing a
+    manifest and accidentally binding an otherwise-identical recording to
+    different paths.
+    """
+
+    manifest_path: Path
+    manifest_sha256: str
+    items: tuple[ManifestItem, ...]
+    _decoder_candidate_snapshot_token: object = field(repr=False, compare=False)
+
+    def __post_init__(self) -> None:
+        if (
+            self._decoder_candidate_snapshot_token
+            is not _manifest_snapshot_capability_token()
+        ):
+            raise ValueError(
+                "ManifestSnapshot must be created by load_manifest_snapshot()."
+            )
+        if not isinstance(self.manifest_path, Path):
+            raise ValueError("manifest_path must be a pathlib.Path.")
+        if not isinstance(self.manifest_sha256, str) or not re.fullmatch(
+            r"[0-9a-f]{64}", self.manifest_sha256
+        ):
+            raise ValueError("manifest_sha256 must be a lowercase SHA-256 digest.")
+        if type(self.items) is not tuple or not self.items:
+            raise ValueError("items must be a non-empty immutable tuple.")
+        if not all(isinstance(item, ManifestItem) for item in self.items):
+            raise ValueError("items must contain only ManifestItem values.")
 
 
 @dataclass(frozen=True)
@@ -127,25 +167,27 @@ def _manifest_path(
     """
     normalized = value.replace("\\", "/")
     candidate = Path(normalized)
-    if candidate.exists():
-        return candidate
-
     foreign_absolute = bool(
         re.match(r"^[A-Za-z]:/", normalized) or normalized.startswith("/")
     )
+    # A native absolute path remains native.  Relative manifest entries must
+    # never be captured opportunistically from the process working directory:
+    # the manifest directory is the sole coordinate system for a snapshot.
+    if candidate.is_absolute() and candidate.exists():
+        return candidate
     data_marker = "/data/"
     marker_index = normalized.lower().find(data_marker)
     if foreign_absolute and marker_index >= 0:
         configured_root = os.environ.get("MIDI_DATA_ROOT")
         data_root = (
-            Path(configured_root).expanduser()
+            Path(configured_root).expanduser().resolve()
             if configured_root
             else Path(__file__).resolve().parents[2] / "data"
         )
         relative_to_data = normalized[marker_index + len(data_marker):]
-        return data_root / Path(relative_to_data)
+        return (data_root / Path(relative_to_data)).resolve()
     if candidate.is_absolute():
-        return candidate
+        return candidate.resolve(strict=False)
     if manifest_directory is not None:
         return (manifest_directory / candidate).resolve()
     return candidate
@@ -159,10 +201,41 @@ def _is_numpy_audio(path: Path) -> bool:
         return handle.read(len(NUMPY_MAGIC)) == NUMPY_MAGIC
 
 
-def load_manifest(path: Path) -> list[ManifestItem]:
+def _manifest_cell(
+    row: Mapping[str, object],
+    name: str,
+    *,
+    allow_empty: bool = False,
+) -> str:
+    """Read one manifest cell without silently coercing a missing value."""
+    value = row.get(name)
+    if not isinstance(value, str):
+        raise ValueError(f"Manifest {name} must be a CSV string.")
+    if not allow_empty and not value.strip():
+        raise ValueError(f"Manifest {name} must be non-empty.")
+    return value
+
+
+def load_manifest_snapshot(path: Path) -> ManifestSnapshot:
+    """Read, hash, and parse a complete manifest from the same byte buffer.
+
+    The digest is intentionally computed before the CSV is decoded, from the
+    precise bytes which yielded the returned fully-resolved item objects.  This
+    is the manifest entry point required by future decoder-candidate mining;
+    it closes the parse/hash and path-binding gap that an independent reload
+    would leave open.
+    """
     resolved_manifest = path.resolve(strict=True)
-    with resolved_manifest.open("r", encoding="utf-8-sig", newline="") as handle:
-        rows = list(csv.DictReader(handle))
+    raw_bytes = resolved_manifest.read_bytes()
+    manifest_sha256 = hashlib.sha256(raw_bytes).hexdigest()
+    try:
+        decoded = raw_bytes.decode("utf-8-sig")
+    except UnicodeDecodeError as exc:
+        raise ValueError(f"Manifest is not valid UTF-8: {path}") from exc
+    with io.StringIO(decoded, newline="") as handle:
+        reader = csv.DictReader(handle)
+        fieldnames = set(reader.fieldnames or ())
+        rows = list(reader)
     required = {
         "source_id", "dataset_id", "player_id", "group_id", "split",
         "audio_path", "audio_member", "labels_path", "capture_id",
@@ -170,25 +243,39 @@ def load_manifest(path: Path) -> list[ManifestItem]:
     }
     if not rows:
         raise ValueError(f"Empty polyphonic manifest: {path}")
-    missing = required - set(rows[0])
+    missing = required - fieldnames
     if missing:
         raise ValueError(f"Manifest columns missing: {sorted(missing)}")
-    return [ManifestItem(
-        source_id=row["source_id"],
-        dataset_id=row["dataset_id"],
-        player_id=row["player_id"],
-        group_id=row["group_id"],
-        split=row["split"],
-        audio_path=_manifest_path(
-            row["audio_path"], manifest_directory=resolved_manifest.parent
-        ),
-        audio_member=row["audio_member"],
-        labels_path=_manifest_path(
-            row["labels_path"], manifest_directory=resolved_manifest.parent
-        ),
-        capture_id=row["capture_id"],
-        license_id=row["license_id"],
-    ) for row in rows]
+    snapshot = ManifestSnapshot(
+        manifest_path=resolved_manifest,
+        manifest_sha256=manifest_sha256,
+        items=tuple(ManifestItem(
+            source_id=_manifest_cell(row, "source_id"),
+            dataset_id=_manifest_cell(row, "dataset_id"),
+            player_id=_manifest_cell(row, "player_id", allow_empty=True),
+            group_id=_manifest_cell(row, "group_id"),
+            split=_manifest_cell(row, "split"),
+            audio_path=_manifest_path(
+                _manifest_cell(row, "audio_path"),
+                manifest_directory=resolved_manifest.parent,
+            ),
+            audio_member=_manifest_cell(row, "audio_member", allow_empty=True),
+            labels_path=_manifest_path(
+                _manifest_cell(row, "labels_path"),
+                manifest_directory=resolved_manifest.parent,
+            ),
+            capture_id=_manifest_cell(row, "capture_id"),
+            license_id=_manifest_cell(row, "license_id"),
+        ) for row in rows),
+        _decoder_candidate_snapshot_token=_manifest_snapshot_capability_token(),
+    )
+    _register_loaded_manifest_snapshot(snapshot)
+    return snapshot
+
+
+def load_manifest(path: Path) -> list[ManifestItem]:
+    """Load manifest items while preserving the historical list-returning API."""
+    return list(load_manifest_snapshot(path).items)
 
 
 class PolyphonicCorpus:

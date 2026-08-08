@@ -11,13 +11,15 @@ from dataclasses import asdict, dataclass
 import hashlib
 import json
 import math
+import re
 from threading import Lock
 from typing import Iterable, Mapping
 
 from .decoder_candidate_provenance import (
     DecoderCandidateProvenance,
     ManifestItemLike,
-    ValidatedDecoderCandidatePartition,
+    ValidatedDecoderCandidateManifestSnapshot,
+    _require_validated_manifest_snapshot,
 )
 from .decoder_reason_codes import (
     CANDIDATE_REASON_ENCODING,
@@ -138,6 +140,10 @@ class DecoderCandidateBatch:
     attempts: tuple[DecoderCandidateAttempt, ...]
     total_attempts: int
     dropped_attempts: int
+    manifest_sha256: str
+    partition_plan_sha256: str
+    recording_identity: tuple[str, str, str]
+    partition: str
 
     def __post_init__(self) -> None:
         if type(self.attempts) is not tuple:
@@ -150,6 +156,31 @@ class DecoderCandidateBatch:
             raise ValueError(
                 "total_attempts must equal retained plus dropped attempts."
             )
+        for name in ("manifest_sha256", "partition_plan_sha256"):
+            value = getattr(self, name)
+            if not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{64}", value):
+                raise ValueError(f"{name} must be a lowercase SHA-256 digest.")
+        if (
+            type(self.recording_identity) is not tuple
+            or len(self.recording_identity) != 3
+            or not all(isinstance(value, str) and value.strip() for value in self.recording_identity)
+        ):
+            raise ValueError(
+                "recording_identity must be a non-empty (dataset_id, source_id, capture_id) tuple."
+            )
+        if self.partition not in ("fit", "dev", "calibration"):
+            raise ValueError("partition must be a preassigned train partition.")
+        for attempt in self.attempts:
+            if not isinstance(attempt, DecoderCandidateAttempt):
+                raise ValueError("attempts must contain only DecoderCandidateAttempt values.")
+            if (
+                attempt.dataset_id,
+                attempt.source_id,
+                attempt.capture_id,
+            ) != self.recording_identity:
+                raise ValueError("batch attempts must share the recording identity.")
+            if attempt.partition != self.partition:
+                raise ValueError("batch attempts must share the preassigned partition.")
 
     @property
     def complete(self) -> bool:
@@ -174,25 +205,28 @@ class DecoderCandidateCollector:
     def __init__(
         self,
         *,
-        validated_partition: ValidatedDecoderCandidatePartition,
+        validated_snapshot: ValidatedDecoderCandidateManifestSnapshot,
         manifest_item: ManifestItemLike,
         maximum_attempts: int = 4096,
     ) -> None:
         if not isinstance(
-            validated_partition, ValidatedDecoderCandidatePartition
+            validated_snapshot, ValidatedDecoderCandidateManifestSnapshot
         ):
             raise ValueError(
-                "validated_partition must be "
-                "ValidatedDecoderCandidatePartition."
+                "validated_snapshot must be "
+                "ValidatedDecoderCandidateManifestSnapshot."
             )
+        _require_validated_manifest_snapshot(validated_snapshot)
         if (
             type(maximum_attempts) is not int
             or maximum_attempts <= 0
         ):
             raise ValueError("maximum_attempts must be a positive integer.")
-        self._provenance = validated_partition.provenance_for_train_item(
+        self._provenance = validated_snapshot.provenance_for_snapshot_item(
             manifest_item
         )
+        self._manifest_sha256 = validated_snapshot.manifest_sha256
+        self._partition_plan_sha256 = validated_snapshot.partition_plan_sha256
         self._attempts: deque[DecoderCandidateAttempt] = deque(
             maxlen=maximum_attempts
         )
@@ -361,6 +395,10 @@ class DecoderCandidateCollector:
                 attempts=tuple(self._attempts),
                 total_attempts=self._batch_total_attempts,
                 dropped_attempts=self._batch_dropped_attempts,
+                manifest_sha256=self._manifest_sha256,
+                partition_plan_sha256=self._partition_plan_sha256,
+                recording_identity=self._provenance.manifest_identity_key,
+                partition=self._provenance.partition,
             )
             self._attempts.clear()
             self._batch_total_attempts = 0

@@ -12,9 +12,13 @@ import csv
 from dataclasses import dataclass, field
 import hashlib
 import io
+import json
+import os
 from pathlib import Path
 import re
+import tempfile
 import unicodedata
+import weakref
 from typing import Iterable, Mapping, Protocol, Sequence
 
 
@@ -25,6 +29,64 @@ DECODER_CANDIDATE_PARTITION_POLICY = (
 )
 DECODER_CANDIDATE_PARTITIONS = ("fit", "dev", "calibration")
 _VALIDATED_PARTITION_TOKEN = object()
+_VALIDATED_SNAPSHOT_TOKEN = object()
+_LOADED_MANIFEST_SNAPSHOT_TOKEN = object()
+_LOADED_MANIFEST_SNAPSHOTS: dict[int, weakref.ReferenceType[object]] = {}
+_VALIDATED_MANIFEST_SNAPSHOTS: dict[int, weakref.ReferenceType[object]] = {}
+_PERSISTED_PARTITION_PLANS: dict[int, weakref.ReferenceType[object]] = {}
+
+
+def _manifest_snapshot_capability_token() -> object:
+    """Return the private capability used only by ``data.load_manifest_snapshot``."""
+    return _LOADED_MANIFEST_SNAPSHOT_TOKEN
+
+
+def _register_identity(
+    registry: dict[int, weakref.ReferenceType[object]],
+    value: object,
+) -> None:
+    """Store a weak capability keyed by object identity, never equality.
+
+    ``WeakKeyDictionary`` is intentionally not used: a separately loaded but
+    equal plan may replace the weak value while retaining the first weak key,
+    so garbage collection of that first object removes the new capability.
+    """
+    identity = id(value)
+
+    def cleanup(reference: weakref.ReferenceType[object]) -> None:
+        if registry.get(identity) is reference:
+            registry.pop(identity, None)
+
+    registry[identity] = weakref.ref(value, cleanup)
+
+
+def _identity_is_registered(
+    registry: Mapping[int, weakref.ReferenceType[object]],
+    value: object,
+) -> bool:
+    reference = registry.get(id(value))
+    return reference is not None and reference() is value
+
+
+def _register_loaded_manifest_snapshot(snapshot: object) -> None:
+    """Attest one exact loader-created snapshot object by identity.
+
+    A frozen dataclass token alone is insufficient because
+    :func:`dataclasses.replace` copies private fields.  The weak registry is
+    intentionally process-local and stores the object itself as its value, so
+    an equal-looking copy never gains this capability.
+    """
+    _register_identity(_LOADED_MANIFEST_SNAPSHOTS, snapshot)
+
+
+def _register_validated_manifest_snapshot(snapshot: object) -> None:
+    """Attest the exact validated capability returned by the factory."""
+    _register_identity(_VALIDATED_MANIFEST_SNAPSHOTS, snapshot)
+
+
+def _register_persisted_partition_plan(plan: object) -> None:
+    """Attest a plan object that was actually written or reloaded from disk."""
+    _register_identity(_PERSISTED_PARTITION_PLANS, plan)
 
 
 class ManifestItemLike(Protocol):
@@ -36,6 +98,59 @@ class ManifestItemLike(Protocol):
     group_id: str
     capture_id: str
     split: str
+
+
+class ManifestSnapshotLike(Protocol):
+    """One loader-certified manifest parse whose items will open the recording."""
+
+    manifest_sha256: str
+    items: Sequence[ManifestItemLike]
+
+
+def _require_loaded_manifest_snapshot(snapshot: ManifestSnapshotLike) -> None:
+    """Reject a caller-made structural lookalike before candidate collection."""
+    if (
+        getattr(snapshot, "_decoder_candidate_snapshot_token", None)
+        is not _LOADED_MANIFEST_SNAPSHOT_TOKEN
+    ):
+        raise RuntimeError(
+            "Fail closed: candidate plan requires a snapshot created by "
+            "load_manifest_snapshot()."
+        )
+    if not _identity_is_registered(_LOADED_MANIFEST_SNAPSHOTS, snapshot):
+        raise RuntimeError(
+            "Fail closed: candidate plan requires the exact loader-attested "
+            "manifest snapshot object."
+        )
+
+
+def _require_validated_manifest_snapshot(snapshot: object) -> None:
+    """Reject copied/forged validation capabilities before a collector sees them."""
+    if not _identity_is_registered(_VALIDATED_MANIFEST_SNAPSHOTS, snapshot):
+        raise RuntimeError(
+            "Fail closed: candidate collector requires the exact factory-attested "
+            "validated manifest snapshot object."
+        )
+
+
+def _require_persisted_partition_plan(persisted: object) -> None:
+    """Require a factory-attested immutable on-disk plan before collection."""
+    if not _identity_is_registered(_PERSISTED_PARTITION_PLANS, persisted):
+        raise RuntimeError(
+            "Fail closed: candidate context requires the exact factory-attested "
+            "persisted plan object."
+        )
+    path = getattr(persisted, "path", None)
+    sha256 = getattr(persisted, "sha256", None)
+    plan = getattr(persisted, "plan", None)
+    if not isinstance(path, Path) or not isinstance(sha256, str):
+        raise RuntimeError("Fail closed: persisted partition plan shape is invalid.")
+    resolved = path.resolve(strict=True)
+    raw_bytes = resolved.read_bytes()
+    if hashlib.sha256(raw_bytes).hexdigest() != sha256:
+        raise RuntimeError("Fail closed: persisted partition plan bytes changed on disk.")
+    if raw_bytes != _canonical_partition_plan_bytes(plan):
+        raise RuntimeError("Fail closed: persisted partition plan no longer matches its plan.")
 
 
 @dataclass(frozen=True)
@@ -190,6 +305,30 @@ def train_items_only(items: Sequence[ManifestItemLike]) -> list[ManifestItemLike
     train = [item for item in items if str(item.split) == "train"]
     if not train:
         raise RuntimeError("Fail closed: the manifest has no train rows.")
+    return train
+
+
+def candidate_train_items_only(
+    items: Sequence[ManifestItemLike],
+) -> list[ManifestItemLike]:
+    """Return candidate-train rows while refusing validation leakage groups.
+
+    The historical smoke's generic :func:`train_items_only` deliberately only
+    filters the split.  The future decoder-candidate miner has a stronger
+    contract: its causal labels must not contain a player/group also used by
+    official validation.  Keeping that stricter rule in a dedicated helper
+    avoids silently changing the already-reviewed smoke semantics.
+    """
+    train = train_items_only(items)
+    validation = [item for item in items if str(item.split) == "validation"]
+    train_groups = {leakage_group_key(item) for item in train}
+    validation_groups = {leakage_group_key(item) for item in validation}
+    overlapping_groups = sorted(train_groups & validation_groups)
+    if overlapping_groups:
+        raise RuntimeError(
+            "Fail closed: train and validation rows overlap by leakage group: "
+            f"{overlapping_groups!r}."
+        )
     return train
 
 
@@ -511,7 +650,7 @@ def build_decoder_candidate_partition_plan(
     _manifest_sha256(manifest_sha256)
     if not items:
         raise RuntimeError("Fail closed: candidate manifest has no items.")
-    train_items = train_items_only(items)
+    train_items = candidate_train_items_only(items)
     partitions, _ = partition_train_groups(train_items, seed=seed)
     records = tuple(sorted(
         (
@@ -533,13 +672,130 @@ def build_decoder_candidate_partition_plan(
 
 
 @dataclass(frozen=True)
-class ValidatedDecoderCandidatePartition:
-    """A partition plan proven against one exact manifest before collection.
+class PersistedDecoderCandidatePartitionPlan:
+    """A strict plan loaded from or atomically written to one JSON file."""
 
-    The object is intentionally created only by
-    :func:`validate_decoder_candidate_partition_plan_from_manifest`.  Future
-    mining code must use :meth:`provenance_for_train_item` to construct each
-    collector, which prevents it from inventing a partition or capture record.
+    path: Path
+    sha256: str
+    plan: DecoderCandidatePartitionPlan
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.path, Path):
+            raise ValueError("path must be a pathlib.Path.")
+        _manifest_sha256(self.sha256)
+        if not isinstance(self.plan, DecoderCandidatePartitionPlan):
+            raise ValueError("plan must be DecoderCandidatePartitionPlan.")
+
+
+def _canonical_partition_plan_bytes(
+    plan: DecoderCandidatePartitionPlan,
+) -> bytes:
+    if not isinstance(plan, DecoderCandidatePartitionPlan):
+        raise ValueError("plan must be DecoderCandidatePartitionPlan.")
+    return (
+        json.dumps(
+            plan.as_json(),
+            ensure_ascii=False,
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n"
+    ).encode("utf-8")
+
+
+def decoder_candidate_partition_plan_sha256(
+    plan: DecoderCandidatePartitionPlan,
+) -> str:
+    """Return the SHA-256 of the canonical immutable plan representation."""
+    return hashlib.sha256(_canonical_partition_plan_bytes(plan)).hexdigest()
+
+
+def write_decoder_candidate_partition_plan(
+    path: Path,
+    plan: DecoderCandidatePartitionPlan,
+) -> PersistedDecoderCandidatePartitionPlan:
+    """Persist one canonical plan atomically, without generating any rows.
+
+    The caller is responsible for deciding when a real plan may be created.
+    This helper only makes its JSON serialization reproducible and ensures that
+    a partially written plan can never be mistaken for a valid preassignment.
+    """
+    target = Path(path).expanduser()
+    if target.exists() or target.is_symlink():
+        raise FileExistsError(
+            "Fail closed: candidate partition plan already exists and is immutable."
+        )
+    if not target.parent.is_dir():
+        raise ValueError("partition-plan parent directory does not exist.")
+    target = target.resolve(strict=False)
+    payload = _canonical_partition_plan_bytes(plan)
+    temporary_path: Path | None = None
+    descriptor: int | None = None
+    try:
+        descriptor, temporary_name = tempfile.mkstemp(
+            prefix=f".{target.name}.", suffix=".tmp", dir=target.parent
+        )
+        temporary_path = Path(temporary_name)
+        with os.fdopen(descriptor, "wb") as handle:
+            descriptor = None
+            handle.write(payload)
+            handle.flush()
+            os.fsync(handle.fileno())
+        try:
+            # Link creation is exclusive: unlike os.replace(), it cannot
+            # silently replace a reviewed preassignment if a second invocation
+            # races or merely reuses the same output path.
+            os.link(temporary_path, target)
+        except FileExistsError as exc:
+            raise FileExistsError(
+                "Fail closed: candidate partition plan already exists and is immutable."
+            ) from exc
+        temporary_path.unlink()
+        temporary_path = None
+    finally:
+        if descriptor is not None:
+            os.close(descriptor)
+        if temporary_path is not None:
+            temporary_path.unlink(missing_ok=True)
+    persisted = PersistedDecoderCandidatePartitionPlan(
+        path=target,
+        sha256=decoder_candidate_partition_plan_sha256(plan),
+        plan=plan,
+    )
+    _register_persisted_partition_plan(persisted)
+    return persisted
+
+
+def load_decoder_candidate_partition_plan(
+    path: Path,
+) -> PersistedDecoderCandidatePartitionPlan:
+    """Load only a complete canonical candidate partition plan file."""
+    resolved = Path(path).resolve(strict=True)
+    raw_bytes = resolved.read_bytes()
+    try:
+        payload = json.loads(raw_bytes.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError("candidate partition plan is not valid UTF-8 JSON.") from exc
+    plan = DecoderCandidatePartitionPlan.from_json(payload)
+    if raw_bytes != _canonical_partition_plan_bytes(plan):
+        raise ValueError("candidate partition plan is not canonical JSON.")
+    persisted = PersistedDecoderCandidatePartitionPlan(
+        path=resolved,
+        sha256=hashlib.sha256(raw_bytes).hexdigest(),
+        plan=plan,
+    )
+    _register_persisted_partition_plan(persisted)
+    return persisted
+
+
+@dataclass(frozen=True)
+class ValidatedDecoderCandidatePartition:
+    """Legacy identity-only validation for plan preparation and inspection.
+
+    It remains useful to inspect a plan without importing the data stack.  It
+    intentionally cannot construct a collector: that requires
+    :class:`ValidatedDecoderCandidateManifestSnapshot`, which retains the exact
+    full manifest items holding audio and label paths.
     """
 
     plan: DecoderCandidatePartitionPlan
@@ -559,6 +815,102 @@ class ValidatedDecoderCandidatePartition:
         item: ManifestItemLike,
     ) -> DecoderCandidateProvenance:
         return self.plan.provenance_for_train_item(item)
+
+
+@dataclass(frozen=True)
+class ValidatedDecoderCandidateManifestSnapshot:
+    """A plan bound to the exact full item objects which will open data.
+
+    Object identity is intentional.  A clone with the same source/capture IDs
+    but substituted ``audio_path`` or ``labels_path`` is not an item from the
+    hash-validated snapshot and is refused before a collector or corpus can be
+    created.
+    """
+
+    plan: DecoderCandidatePartitionPlan
+    manifest_sha256: str
+    _items: tuple[ManifestItemLike, ...] = field(repr=False, compare=False)
+    _validation_token: object = field(repr=False, compare=False)
+
+    def __post_init__(self) -> None:
+        if self._validation_token is not _VALIDATED_SNAPSHOT_TOKEN:
+            raise ValueError(
+                "validated candidate snapshot must come from exact snapshot validation."
+            )
+        if self.plan.manifest_sha256 != _manifest_sha256(self.manifest_sha256):
+            raise ValueError("validated candidate snapshot manifest mismatch.")
+        if type(self._items) is not tuple or not self._items:
+            raise ValueError("validated candidate snapshot must retain immutable items.")
+
+    @property
+    def items(self) -> tuple[ManifestItemLike, ...]:
+        """Return the exact objects parsed from the hash-validated CSV bytes."""
+        return self._items
+
+    @property
+    def partition_plan_sha256(self) -> str:
+        """Digest which every drained recording batch must carry."""
+        return decoder_candidate_partition_plan_sha256(self.plan)
+
+    @property
+    def train_items(self) -> tuple[ManifestItemLike, ...]:
+        """Return only snapshot objects that the train-only plan covers."""
+        return tuple(item for item in self._items if str(item.split) == "train")
+
+    def require_snapshot_item(self, item: ManifestItemLike) -> ManifestItemLike:
+        """Refuse every object which is not literally from this snapshot."""
+        if not any(item is snapshot_item for snapshot_item in self._items):
+            raise RuntimeError(
+                "Fail closed: candidate item is not an object from the validated "
+                "manifest snapshot."
+            )
+        return item
+
+    def provenance_for_snapshot_item(
+        self,
+        item: ManifestItemLike,
+    ) -> DecoderCandidateProvenance:
+        """Resolve a train item only after its snapshot object identity is proven."""
+        snapshot_item = self.require_snapshot_item(item)
+        return self.plan.provenance_for_train_item(snapshot_item)
+
+
+def build_decoder_candidate_partition_plan_from_snapshot(
+    snapshot: ManifestSnapshotLike,
+    *,
+    seed: int,
+) -> DecoderCandidatePartitionPlan:
+    """Build a plan from one already byte-hashed full manifest snapshot."""
+    _require_loaded_manifest_snapshot(snapshot)
+    manifest_sha256 = _manifest_sha256(snapshot.manifest_sha256)
+    return build_decoder_candidate_partition_plan(
+        tuple(snapshot.items), manifest_sha256=manifest_sha256, seed=seed
+    )
+
+
+def validate_decoder_candidate_partition_plan_against_snapshot(
+    plan: DecoderCandidatePartitionPlan,
+    snapshot: ManifestSnapshotLike,
+) -> ValidatedDecoderCandidateManifestSnapshot:
+    """Bind a plan to the exact full objects that will open audio and labels."""
+    if not isinstance(plan, DecoderCandidatePartitionPlan):
+        raise ValueError("plan must be DecoderCandidatePartitionPlan.")
+    _require_loaded_manifest_snapshot(snapshot)
+    manifest_sha256 = _manifest_sha256(snapshot.manifest_sha256)
+    items = tuple(snapshot.items)
+    if not items:
+        raise RuntimeError("Fail closed: candidate manifest snapshot has no items.")
+    plan.require_matches_manifest_items(
+        items, expected_manifest_sha256=manifest_sha256
+    )
+    validated = ValidatedDecoderCandidateManifestSnapshot(
+        plan=plan,
+        manifest_sha256=manifest_sha256,
+        _items=items,
+        _validation_token=_VALIDATED_SNAPSHOT_TOKEN,
+    )
+    _register_validated_manifest_snapshot(validated)
+    return validated
 
 
 def build_decoder_candidate_partition_plan_from_manifest(

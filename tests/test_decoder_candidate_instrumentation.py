@@ -15,10 +15,14 @@ from src.polyphonic.decoder import (
     PolyphonicMidiEvent,
 )
 from src.polyphonic.decoder_candidate_mining import DecoderCandidateCollector
-from src.polyphonic.decoder_candidate_provenance import (
-    build_decoder_candidate_partition_plan_from_manifest,
-    validate_decoder_candidate_partition_plan_from_manifest,
+from src.polyphonic.decoder_candidate_labels import (
+    label_emitted_decoder_candidates,
 )
+from src.polyphonic.decoder_candidate_provenance import (
+    build_decoder_candidate_partition_plan_from_snapshot,
+    validate_decoder_candidate_partition_plan_against_snapshot,
+)
+from src.polyphonic.data import load_manifest_snapshot
 
 
 class DecoderCandidateInstrumentationTests(unittest.TestCase):
@@ -65,24 +69,34 @@ class DecoderCandidateInstrumentationTests(unittest.TestCase):
             path = Path(temporary) / "manifest.csv"
             fields = (
                 "source_id", "dataset_id", "player_id", "group_id",
-                "capture_id", "split",
+                "capture_id", "split", "audio_path", "audio_member",
+                "labels_path", "license_id",
             )
             with path.open("w", encoding="utf-8", newline="") as handle:
                 writer = csv.DictWriter(handle, fieldnames=fields)
                 writer.writeheader()
                 for candidate in items:
-                    writer.writerow({
+                    row = {
                         field: getattr(candidate, field) for field in fields
+                        if hasattr(candidate, field)
+                    }
+                    row.update({
+                        "audio_path": str(Path(temporary) / f"{candidate.source_id}.wav"),
+                        "audio_member": "",
+                        "labels_path": str(Path(temporary) / f"{candidate.source_id}.npz"),
+                        "license_id": "unit-test",
                     })
-            plan = build_decoder_candidate_partition_plan_from_manifest(
-                path, seed=47
+                    writer.writerow(row)
+            snapshot = load_manifest_snapshot(path)
+            plan = build_decoder_candidate_partition_plan_from_snapshot(
+                snapshot, seed=47
             )
-            validated = validate_decoder_candidate_partition_plan_from_manifest(
-                plan, path
+            validated = validate_decoder_candidate_partition_plan_against_snapshot(
+                plan, snapshot
             )
         return collector_type(
-            validated_partition=validated,
-            manifest_item=item,
+            validated_snapshot=validated,
+            manifest_item=snapshot.items[0],
             maximum_attempts=maximum_attempts,
         )
 
@@ -209,6 +223,65 @@ class DecoderCandidateInstrumentationTests(unittest.TestCase):
         self.assertFalse(attempts[72].post_gate_selected)
         self.assertFalse(attempts[72].emitted_noteon)
         self.assertEqual(collector.batch_calls, 1)
+
+    def test_retrigger_is_an_explicit_nonlearning_exclusion_in_decoder_to_label_flow(
+        self,
+    ) -> None:
+        """A real retrigger must not masquerade as a missing model-onset trace."""
+        collector = self.collector()
+        decoder = PolyphonicDecoder(
+            PolyphonicDecoderConfig(
+                midi_min=60,
+                midi_max=60,
+                activation_frames=1,
+                release_frames=4,
+                minimum_retrigger_frames=1,
+                maximum_polyphony=1,
+                harmonic_support_threshold=0.0,
+            ),
+            candidate_collector=collector,
+        )
+        probability = np.asarray([0.9], np.float32)
+        harmonic = np.zeros((1, 4), np.float32)
+        events = []
+        events.extend(
+            decoder.step(
+                probability,
+                probability,
+                harmonic,
+                audio_onset=True,
+            )
+        )
+        events.extend(
+            decoder.step(
+                probability,
+                probability,
+                harmonic,
+                audio_onset=True,
+            )
+        )
+        self.assertEqual(
+            [event.reason for event in events if event.kind == "note_on"],
+            ["model_onset", "retrigger"],
+        )
+
+        labeled = label_emitted_decoder_candidates(
+            collector.drain(),
+            [],
+            frame_valid=[True, True],
+            sample_rate=100,
+            hop_size=10,
+            audio_frames=100,
+            emitted_events=events,
+            candidate_collection_error=decoder.candidate_collection_error,
+        )
+        labeled.require_complete()
+        self.assertEqual(labeled.negative_targets, 1)
+        self.assertEqual(labeled.uninstrumented_decoder_noteons, 1)
+        self.assertEqual(
+            labeled.uninstrumented_decoder_noteons_by_reason,
+            (("retrigger", 1),),
+        )
 
     def test_instrumented_and_plain_decoders_have_strict_frame_state_parity(
         self,

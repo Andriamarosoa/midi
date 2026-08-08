@@ -17,9 +17,10 @@ from src.polyphonic.decoder_candidate_mining import (
     select_trainable_emitted_events,
 )
 from src.polyphonic.decoder_candidate_provenance import (
-    build_decoder_candidate_partition_plan_from_manifest,
-    validate_decoder_candidate_partition_plan_from_manifest,
+    build_decoder_candidate_partition_plan_from_snapshot,
+    validate_decoder_candidate_partition_plan_against_snapshot,
 )
+from src.polyphonic.data import load_manifest_snapshot
 from src.polyphonic.decoder_reason_codes import NOTE_ON_REASON_CODES
 
 
@@ -65,24 +66,34 @@ class CandidateMiningContractTests(unittest.TestCase):
             path = Path(temporary) / "manifest.csv"
             fields = (
                 "source_id", "dataset_id", "player_id", "group_id",
-                "capture_id", "split",
+                "capture_id", "split", "audio_path", "audio_member",
+                "labels_path", "license_id",
             )
             with path.open("w", encoding="utf-8", newline="") as handle:
                 writer = csv.DictWriter(handle, fieldnames=fields)
                 writer.writeheader()
                 for candidate in items:
-                    writer.writerow({
+                    row = {
                         field: getattr(candidate, field) for field in fields
+                        if hasattr(candidate, field)
+                    }
+                    row.update({
+                        "audio_path": str(Path(temporary) / f"{candidate.source_id}.wav"),
+                        "audio_member": "",
+                        "labels_path": str(Path(temporary) / f"{candidate.source_id}.npz"),
+                        "license_id": "unit-test",
                     })
-            plan = build_decoder_candidate_partition_plan_from_manifest(
-                path, seed=seed
+                    writer.writerow(row)
+            snapshot = load_manifest_snapshot(path)
+            plan = build_decoder_candidate_partition_plan_from_snapshot(
+                snapshot, seed=seed
             )
-            validated = validate_decoder_candidate_partition_plan_from_manifest(
-                plan, path
+            validated = validate_decoder_candidate_partition_plan_against_snapshot(
+                plan, snapshot
             )
         return DecoderCandidateCollector(
-            validated_partition=validated,
-            manifest_item=item,
+            validated_snapshot=validated,
+            manifest_item=snapshot.items[0],
             maximum_attempts=maximum_attempts,
         )
 
@@ -266,7 +277,13 @@ class CandidateMiningContractTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "retained plus dropped"):
             DecoderCandidateBatch(
-                attempts=(), total_attempts=1, dropped_attempts=0
+                attempts=(),
+                total_attempts=1,
+                dropped_attempts=0,
+                manifest_sha256="a" * 64,
+                partition_plan_sha256="b" * 64,
+                recording_identity=("corpus", "source", "capture"),
+                partition="fit",
             )
 
     def test_event_id_changes_with_each_physical_identity_component(self) -> None:

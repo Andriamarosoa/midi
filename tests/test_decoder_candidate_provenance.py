@@ -161,6 +161,22 @@ class DecoderCandidateProvenanceTests(unittest.TestCase):
                 items, manifest_sha256=self.MANIFEST_SHA256, seed=47
             )
 
+    def test_plan_refuses_train_validation_leakage_group_overlap(self) -> None:
+        items = _complete_train_items()
+        train = items[0]
+        items.append(_item(
+            "validation-clone",
+            train.dataset_id,
+            train.player_id,
+            train.group_id,
+            "validation-capture",
+            split="validation",
+        ))
+        with self.assertRaisesRegex(RuntimeError, "overlap by leakage group"):
+            build_decoder_candidate_partition_plan(
+                items, manifest_sha256=self.MANIFEST_SHA256, seed=47
+            )
+
     def test_plan_rejects_inconsistent_leakage_partition_payload(self) -> None:
         plan = build_decoder_candidate_partition_plan(
             _complete_train_items(), manifest_sha256=self.MANIFEST_SHA256, seed=47

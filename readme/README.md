@@ -16,10 +16,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-08-08T16:08:19+04:00`.
+- Mise à jour : `2026-08-08T17:05:55+04:00`.
 - Étape : `decoder_candidate_provenance_contract`.
-- Statut : `contrat codé et testé localement; revue externe requise, sans
-  plan persistant ni minage`.
+- Statut : `protocole snapshot/plan/labels causales codé et testé localement;
+  revue externe requise, sans plan réel ni minage`.
 - Résultat scientifique conservé : la tête `independent_note` précédente reste
   un résultat négatif, saturé près de 1, et ne doit promouvoir ni checkpoint ni
   seuil. Le test verrouillé reste fermé.
@@ -30,16 +30,19 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   erreur de collecte est mémorisée sans bloquer les événements MIDI. Une frame
   entière est remise en un seul batch après toutes ses décisions; une
   contention du collecteur échoue immédiatement sans attendre son verrou.
-- Le module pur `decoder_candidate_provenance` réutilise exactement le
-  groupement corpus-aware du smoke indépendant et ajoute un plan versionné de
-  partitions. Il lit le manifeste complet une seule fois, calcule son SHA-256
-  sur les mêmes octets, refuse tout test verrouillé, exclut validation et
-  préassigne les groupes train en `fit/dev/calibration` avant toute collecte.
+- Le snapshot manifeste lit et hache une fois les octets CSV puis construit les
+  mêmes objets complets `ManifestItem` qui seront fournis à `PolyphonicCorpus`
+  et au collecteur. Les chemins relatifs sont ancrés au manifeste. Les copies
+  de snapshot/capacité validée, les chemins substitués et les wrappers de plan
+  forgés échouent fermé avant toute collecte.
+- Le plan canonique est persistant et immuable : écriture sans écrasement,
+  relecture stricte, SHA du plan dans chaque batch, et re-vérification avant
+  collecteur, ouverture ou agrégation. Le mineur train-only refusera aussi un
+  groupe partagé entre train et validation.
 - Chaque ligne future porte la provenance immuable complète : `source_id`,
-  `dataset_id`, `group_id`, `capture_id`, clé de fuite et partition. Le
-  collecteur exige une partition validée contre le manifeste exact et résout
-  l'item depuis ce plan : une capture, un groupe ou une partition forgés sont
-  refusés avant la collecte. L'identité du plan inclut désormais `capture_id`.
+  `dataset_id`, `group_id`, `capture_id`, clé de fuite et partition. Les lots
+  portant un autre manifeste/plan, une prise rejouée, un `event_id` dupliqué ou
+  une couverture incomplète de partition seront refusés.
 - Les codes de raisons existants du live sont centralisés sans changement. Les
   `event_id` v2 sont déterministes par identité physique/frame/pitch (la
   partition est volontairement exclue) et restent hors de
@@ -63,17 +66,19 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 - Microbenchmark borné dense : ancien décodeur 175,77 µs/frame, nouveau chemin
   désactivé 162,53 µs/frame (aucune régression mesurée), collecte activée
   260,64 µs/frame, soit +98,11 µs et 1,69 % du hop de 5,805 ms.
-- Vérification du contrat Windows : compilation Python, `git diff --check` et
-  107 tests unitaires ciblés réussis en 7,207 s, dont 35 tests directs du
-  contrat/provenance/instrumentation. Les tests prouvent le plan déterministe
-  malgré un ordre de manifeste différent, le SHA de manifeste, les six champs
-  de provenance, le refus des tests verrouillés, la résolution via le plan, la
-  capture multiple et l'absence de collapse.
+- Étiquettes futures : les seuls exemples sont les NoteOn gate-éligibles et
+  émis. Le matcher causal same-pitch une-à-une est strictement causale, à
+  250 ms inclusifs et à la fin du hop. Les frames invalides sont exclues; les
+  retriggers sont comptés comme exclusion explicite; toute autre NoteOn sans
+  trace ou erreur de collecteur invalide le lot. Les features de fit sont
+  projetées strictement depuis `CAUSAL_FEATURES`.
+- Vérification du protocole Windows : compilation Python, `git diff --check`
+  et **128 tests ciblés réussis en 7,438 s** sont rejoués avant ce commit. Le
+  détail et la commande exacte sont archivés dans le nouveau rapport ci-dessous.
 - Limite avant minage : aucun plan réel ni artefact candidat n'a été généré ou
-  persisté; aucun décodeur ni mineur n'a été exécuté. Après revue, le futur
-  mineur devra d'abord construire et valider son plan depuis le manifeste
-  train/validation exact, puis créer les collecteurs uniquement via cette
-  partition validée.
+  persisté; aucun décodeur ni mineur n'a été exécuté. Les chemins sont liés au
+  snapshot manifeste, mais la preuve préenregistrée des octets d'audio/labels
+  est une précondition distincte avant leur première ouverture réelle.
 - `locked_test_used=false`; aucun entraînement, minage, calcul validation,
   export ou live n'a été exécuté.
 - Rapports :
@@ -82,16 +87,17 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `readme/results/2026-08-08_ollama-candidate-contract-hardening.md`, puis
   `readme/results/2026-08-08_decoder-candidate-instrumentation.md`,
   `readme/results/2026-08-08_decoder-candidate-instrumentation-review.md` et
-  `readme/results/2026-08-08_decoder-candidate-provenance-contract.md`.
+  `readme/results/2026-08-08_decoder-candidate-provenance-contract.md`, puis
+  `readme/results/2026-08-08_decoder-candidate-snapshot-label-protocol.md`.
 
 ## Prochaine action réelle
 
-1. Faire relire ce commit de contrat, sans lancer de calcul.
-2. Après approbation explicite seulement, préenregistrer un plan réel à partir
-   du manifeste train/validation exact et faire relire ce plan avant la toute
+1. Faire relire ce commit de protocole, sans lancer de calcul.
+2. Après approbation explicite seulement, préenregistrer le plan réel et la
+   preuve d'actifs associée, puis faire relire ces deux éléments avant la toute
    première collecte.
 3. Ne promouvoir ni checkpoint ni seuil, et ne lancer aucun minage avant ces
-   deux revues.
+   deux revues supplémentaires.
 4. Conserver le test verrouillé fermé; aucun entraînement, validation, export
    ou live n'est autorisé par cette étape.
 
@@ -290,17 +296,20 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 <!-- PROJECT_TASK:decoder_candidate_instrumentation:END -->
 <!-- PROJECT_TASK:decoder_candidate_provenance_contract:START -->
 - 2026-08-08 — **en revue** — `decoder_candidate_provenance_contract` : sans
-  calcul scientifique, le contrat persistant v1 est ajouté. Le plan est lié au
-  SHA-256 des octets du manifeste complet, refuse le test verrouillé, conserve
-  `source_id`, `dataset_id`, `group_id`, `capture_id`, clé de fuite et
-  partition group-safe `fit/dev/calibration`; son identité physique inclut la
-  capture. Un collecteur exige maintenant une partition validée contre le
-  manifeste exact avant de résoudre chaque item. L'unité choisie est un vrai
-  NoteOn gate-éligible et émis; `collapse_emitted_candidate_episodes()` est
-  supprimé, les événements restent séparés et tout ID dupliqué échoue fermé.
-  Tests Windows : compilation, diff propre et 107 tests ciblés OK en 7,207 s.
-  Aucun plan réel, artefact, minage, entraînement, validation, export, live ou
-  test verrouillé n'a été produit. Revue externe requise avant toute suite.
+  calcul scientifique, le protocole v1 est complété par le snapshot manifeste
+  attesté, le plan canonique immuable, le contexte train-only et les labels
+  causales. Les mêmes objets `ManifestItem` du CSV hashé alimentent le corpus
+  et le collecteur; copies de snapshot/capacité/plan, chemins substitués,
+  mélange de SHA, duplicats de prises/IDs et couverture de partition incomplète
+  échouent fermé. Les labels utilisent un matcher same-pitch strictement causal
+  (250 ms, fin de hop), excluent frames invalides et retriggers documentés, et
+  refusent toute autre trace manquante ou erreur de collecteur. Les features
+  sont projetées strictement hors cible/provenance/post-porte. Tests Windows :
+  compilation, diff propre et suite ciblée complète OK; résultat exact archivé
+  dans `2026-08-08_decoder-candidate-snapshot-label-protocol.md`. Aucun plan
+  réel, artefact, minage, entraînement, validation, export, live ou test
+  verrouillé n'a été produit. Les empreintes des actifs audio/labels restent à
+  préenregistrer avant toute ouverture réelle. Revue externe requise.
 <!-- PROJECT_TASK:decoder_candidate_provenance_contract:END -->
 <!-- JOURNAL_END -->
 ## Rapports détaillés
@@ -318,6 +327,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-08 — instrumentation des candidats du décodeur](results/2026-08-08_decoder-candidate-instrumentation.md)
 - [2026-08-08 — revue de clôture de l'instrumentation](results/2026-08-08_decoder-candidate-instrumentation-review.md)
 - [2026-08-08 — contrat de provenance des candidats du décodeur](results/2026-08-08_decoder-candidate-provenance-contract.md)
+- [2026-08-08 — protocole snapshot et labels causales des candidats](results/2026-08-08_decoder-candidate-snapshot-label-protocol.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.
