@@ -9,7 +9,6 @@ with the same atomic directory used by the heavyweight Mac worker.
 from __future__ import annotations
 
 import argparse
-import base64
 import contextlib
 import datetime as dt
 import hashlib
@@ -71,6 +70,22 @@ class TeamError(RuntimeError):
     """Expected fail-closed error suitable for concise CLI reporting."""
 
 
+class NoRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Refuse every redirect so a loopback request cannot escape the Mac."""
+
+    def redirect_request(
+        self,
+        request: urllib.request.Request,
+        file_pointer: Any,
+        code: int,
+        message: str,
+        headers: Mapping[str, str],
+        new_url: str,
+    ) -> None:
+        del request, file_pointer, code, message, headers, new_url
+        return None
+
+
 def _utc_now() -> str:
     return dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
 
@@ -127,7 +142,10 @@ def validate_context_path(path: pathlib.Path) -> pathlib.Path:
     lowered_name = resolved.name.lower()
     if lowered_name in FORBIDDEN_CONTEXT_NAMES:
         raise TeamError(f"Sensitive context file is forbidden: {path}")
-    if "locked_test" in lowered_name or "locked-test" in lowered_name:
+    if any(
+        "locked_test" in part.lower() or "locked-test" in part.lower()
+        for part in resolved.parts
+    ):
         raise TeamError(f"Locked-test context is forbidden: {path}")
     if resolved.suffix.lower() in FORBIDDEN_CONTEXT_SUFFIXES:
         raise TeamError(f"Binary/audio/model context is forbidden: {path}")
@@ -179,6 +197,13 @@ class OllamaClient:
     def __init__(self, endpoint: str, timeout_seconds: int = 1800) -> None:
         self.endpoint = endpoint.rstrip("/")
         self.timeout_seconds = timeout_seconds
+        parsed = urllib.parse.urlparse(self.endpoint)
+        if parsed.scheme != "http" or parsed.hostname not in LOOPBACK_HOSTS:
+            raise TeamError("Ollama endpoint must remain loopback HTTP.")
+        self.opener = urllib.request.build_opener(
+            urllib.request.ProxyHandler({}),
+            NoRedirectHandler(),
+        )
 
     def request(self, path: str, payload: Optional[Mapping[str, Any]] = None) -> Dict[str, Any]:
         data = None
@@ -188,7 +213,10 @@ class OllamaClient:
             headers["Content-Type"] = "application/json"
         request = urllib.request.Request(self.endpoint + path, data=data, headers=headers)
         try:
-            with urllib.request.urlopen(request, timeout=self.timeout_seconds) as reply:
+            with self.opener.open(request, timeout=self.timeout_seconds) as reply:
+                final_url = urllib.parse.urlparse(reply.geturl())
+                if final_url.scheme != "http" or final_url.hostname not in LOOPBACK_HOSTS:
+                    raise TeamError("Ollama response escaped the loopback endpoint.")
                 response = json.load(reply)
         except (OSError, urllib.error.URLError, json.JSONDecodeError) as exc:
             raise TeamError(f"Ollama request failed for {path}: {exc}") from exc
@@ -217,7 +245,7 @@ class OllamaClient:
         maximum_output_tokens: int,
         temperature: float,
         seed: int = 42,
-        keep_alive: str = "2m",
+        keep_alive: Any = 0,
     ) -> Dict[str, Any]:
         return self.request(
             "/api/chat",
@@ -249,6 +277,8 @@ class OllamaClient:
                 "prompt": prompt,
                 "stream": False,
                 "think": False,
+                # Keep the model resident only long enough to measure memory;
+                # run_benchmark() unloads and verifies it in its finally block.
                 "keep_alive": "30s",
                 "options": {
                     "num_ctx": int(benchmark["context_tokens"]),
@@ -262,6 +292,30 @@ class OllamaClient:
     def unload(self, model: str) -> None:
         self.request("/api/generate", {"model": model, "keep_alive": 0})
 
+    def unload_and_wait(
+        self,
+        model: str,
+        *,
+        timeout_seconds: float = 30.0,
+        poll_seconds: float = 0.25,
+    ) -> None:
+        """Unload a model and prove that it is absent before releasing the lock."""
+        self.unload(model)
+        deadline = time.monotonic() + timeout_seconds
+        while True:
+            running_names = {
+                str(item.get("name") or item.get("model") or "")
+                for item in self.running_models()
+            }
+            if model not in running_names:
+                return
+            if time.monotonic() >= deadline:
+                raise TeamError(
+                    f"Ollama model {model!r} remained resident after unload; "
+                    "the heavy-worker lock requires manual inspection."
+                )
+            time.sleep(poll_seconds)
+
 
 class HeavyWorkerLock:
     """Share the Mac worker's atomic lock directory."""
@@ -272,6 +326,7 @@ class HeavyWorkerLock:
         self.owner_path = self.path / "ollama-team-owner.json"
         self.label = label
         self.owned = False
+        self.preserved = False
 
     def __enter__(self) -> "HeavyWorkerLock":
         self.worker_root.mkdir(parents=True, exist_ok=True)
@@ -300,8 +355,30 @@ class HeavyWorkerLock:
             raise
         return self
 
+    def preserve(self, reason: str) -> None:
+        """Keep the lock fail-closed when resource cleanup cannot be proven."""
+        if not self.owned:
+            return
+        self.preserved = True
+        owner = {
+            "kind": "ollama_team_cleanup_failed",
+            "label": self.label,
+            "pid": os.getpid(),
+            "requires_manual_inspection": True,
+            "cleanup_error": reason,
+            "updated_utc": _utc_now(),
+        }
+        with contextlib.suppress(OSError):
+            self.owner_path.write_text(
+                json.dumps(owner, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+
     def __exit__(self, exc_type: Any, exc: Any, traceback: Any) -> None:
         if not self.owned:
+            return
+        if self.preserved:
+            self.owned = False
             return
         with contextlib.suppress(FileNotFoundError):
             self.owner_path.unlink()
@@ -350,6 +427,29 @@ def _git_metadata() -> Dict[str, Optional[str]]:
     return {"commit": run("rev-parse", "HEAD"), "branch": run("branch", "--show-current")}
 
 
+def assert_clean_git_worktree() -> None:
+    try:
+        result = subprocess.run(
+            [
+                "git",
+                "-C",
+                str(REPOSITORY_ROOT),
+                "status",
+                "--porcelain",
+                "--untracked-files=all",
+            ],
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+    except OSError as exc:
+        raise TeamError(f"Cannot inspect the Git worktree: {exc}") from exc
+    if result.returncode != 0:
+        raise TeamError("Cannot inspect the Git worktree cleanliness.")
+    if result.stdout.strip():
+        raise TeamError("Ollama advisory work requires a clean Git worktree.")
+
+
 def _write_report(payload: Mapping[str, Any], prefix: str, log_root: pathlib.Path) -> pathlib.Path:
     log_root.mkdir(parents=True, exist_ok=True)
     stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
@@ -363,23 +463,17 @@ def _write_report(payload: Mapping[str, Any], prefix: str, log_root: pathlib.Pat
     return path
 
 
-def _decode_prompt(args: argparse.Namespace) -> str:
-    if args.prompt_base64:
-        try:
-            return base64.b64decode(args.prompt_base64, validate=True).decode("utf-8")
-        except (ValueError, UnicodeDecodeError) as exc:
-            raise TeamError("--prompt-base64 must contain valid UTF-8 base64.") from exc
-    if args.prompt is not None:
-        return args.prompt
+def _decode_prompt() -> str:
     return sys.stdin.read()
 
 
 def run_role(args: argparse.Namespace, config: Mapping[str, Any]) -> int:
+    assert_clean_git_worktree()
     roles = config["roles"]
     if args.role not in roles:
         raise TeamError(f"Unknown role {args.role!r}; choose from {', '.join(sorted(roles))}.")
     role = roles[args.role]
-    prompt = _decode_prompt(args)
+    prompt = _decode_prompt()
     context_text, context_evidence = read_context_files(
         [pathlib.Path(item) for item in args.context_file],
         int(config["maximum_context_bytes"]),
@@ -391,17 +485,24 @@ def run_role(args: argparse.Namespace, config: Mapping[str, Any]) -> int:
     if model not in installed:
         raise TeamError(f"Required model {model!r} is not installed; no automatic pull is allowed.")
     worker_root = pathlib.Path(os.environ.get("MIDI_MAC_WORKER_ROOT", str(DEFAULT_WORKER_ROOT)))
-    with HeavyWorkerLock(worker_root, f"ollama:{args.role}:{model}"):
-        started = time.perf_counter()
-        result = client.chat(
-            model,
-            messages,
-            context_tokens=int(config["default_context_tokens"]),
-            maximum_output_tokens=int(role["maximum_output_tokens"]),
-            temperature=float(role["temperature"]),
-            keep_alive="2m",
-        )
-        wall_seconds = time.perf_counter() - started
+    with HeavyWorkerLock(worker_root, f"ollama:{args.role}:{model}") as lock:
+        try:
+            started = time.perf_counter()
+            result = client.chat(
+                model,
+                messages,
+                context_tokens=int(config["default_context_tokens"]),
+                maximum_output_tokens=int(role["maximum_output_tokens"]),
+                temperature=float(role["temperature"]),
+                keep_alive=0,
+            )
+            wall_seconds = time.perf_counter() - started
+        finally:
+            try:
+                client.unload_and_wait(model)
+            except BaseException as cleanup_error:
+                lock.preserve(str(cleanup_error))
+                raise
     message = result.get("message")
     if not isinstance(message, dict) or not isinstance(message.get("content"), str):
         raise TeamError("Ollama chat response is missing message.content.")
@@ -415,13 +516,21 @@ def run_role(args: argparse.Namespace, config: Mapping[str, Any]) -> int:
         "prompt_sha256": _sha256_bytes(prompt.encode("utf-8")),
         "context": context_evidence,
         "response": response,
+        "response_sha256": _sha256_bytes(response.encode("utf-8")),
+        "response_characters": len(response),
         "metrics": extract_metrics(result, wall_seconds),
         "git": _git_metadata(),
         "locked_test_used": False,
         "advisory_only": True,
     }
     if not args.no_log:
-        report_path = _write_report(report, f"{args.role}_{model.replace(':', '-')}", args.log_root)
+        persisted_report = dict(report)
+        persisted_report.pop("response")
+        report_path = _write_report(
+            persisted_report,
+            f"{args.role}_{model.replace(':', '-')}",
+            args.log_root,
+        )
         report["report_path"] = str(report_path)
     if args.json:
         print(json.dumps(report, indent=2, ensure_ascii=False))
@@ -442,6 +551,7 @@ BENCHMARK_PROMPT = (
 
 
 def run_benchmark(args: argparse.Namespace, config: Mapping[str, Any]) -> int:
+    assert_clean_git_worktree()
     benchmark = config.get("benchmark")
     if not isinstance(benchmark, dict):
         raise TeamError("Benchmark configuration is missing.")
@@ -455,26 +565,32 @@ def run_benchmark(args: argparse.Namespace, config: Mapping[str, Any]) -> int:
         raise TeamError("Missing models; automatic pull is forbidden: " + ", ".join(missing))
     records: List[Dict[str, Any]] = []
     worker_root = pathlib.Path(os.environ.get("MIDI_MAC_WORKER_ROOT", str(DEFAULT_WORKER_ROOT)))
-    with HeavyWorkerLock(worker_root, "ollama:benchmark"):
+    with HeavyWorkerLock(worker_root, "ollama:benchmark") as lock:
         for model in models:
-            started = time.perf_counter()
-            result = client.generate_benchmark(model, BENCHMARK_PROMPT, benchmark)
-            wall_seconds = time.perf_counter() - started
-            running = next(
-                (item for item in client.running_models() if item.get("name") == model),
-                {},
-            )
-            response = str(result.get("response") or "").strip()
-            record = {
-                "model": model,
-                "metrics": extract_metrics(result, wall_seconds),
-                "resident_gb": round(int(running.get("size") or 0) / 1024**3, 2),
-                "vram_gb": round(int(running.get("size_vram") or 0) / 1024**3, 2),
-                "response_sha256": _sha256_bytes(response.encode("utf-8")),
-                "response_excerpt": response[:400],
-            }
-            records.append(record)
-            client.unload(model)
+            try:
+                started = time.perf_counter()
+                result = client.generate_benchmark(model, BENCHMARK_PROMPT, benchmark)
+                wall_seconds = time.perf_counter() - started
+                running = next(
+                    (item for item in client.running_models() if item.get("name") == model),
+                    {},
+                )
+                response = str(result.get("response") or "").strip()
+                record = {
+                    "model": model,
+                    "metrics": extract_metrics(result, wall_seconds),
+                    "resident_gb": round(int(running.get("size") or 0) / 1024**3, 2),
+                    "vram_gb": round(int(running.get("size_vram") or 0) / 1024**3, 2),
+                    "response_sha256": _sha256_bytes(response.encode("utf-8")),
+                    "response_characters": len(response),
+                }
+                records.append(record)
+            finally:
+                try:
+                    client.unload_and_wait(model)
+                except BaseException as cleanup_error:
+                    lock.preserve(str(cleanup_error))
+                    raise
     report = {
         "schema_version": 1,
         "kind": "ollama_team_benchmark",
@@ -527,9 +643,6 @@ def build_parser() -> argparse.ArgumentParser:
 
     run_parser = subparsers.add_parser("run", help="Run one advisory role.")
     run_parser.add_argument("--role", required=True)
-    prompt_group = run_parser.add_mutually_exclusive_group()
-    prompt_group.add_argument("--prompt")
-    prompt_group.add_argument("--prompt-base64")
     run_parser.add_argument("--context-file", action="append", default=[])
     run_parser.add_argument("--json", action="store_true")
     run_parser.add_argument("--no-log", action="store_true")

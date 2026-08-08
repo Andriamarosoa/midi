@@ -4,7 +4,7 @@
 conseillers locaux. Il ne modifie jamais Git et ne remplace ni les tests reels,
 ni les mesures, ni la decision de Codex/utilisateur.
 
-Depuis Windows, apres commit/push puis `git pull --ff-only` dans `~/midi` :
+Depuis Windows, après commit/push puis `git pull --ff-only` dans `~/midi` :
 
 ```powershell
 .\OLLAMA_TEAM.ps1 models
@@ -24,13 +24,23 @@ Routage par defaut :
   interpretation ;
 - `qwen3.6:latest` : seconde revue rare et juge qualitatif.
 
-Le script refuse un modele absent au lieu de le telecharger. Les contextes
-doivent etre des fichiers texte explicites du depot ; `.git`, donnees,
-checkpoints, runs, secrets, audio et modeles sont bloques. Le prompt complet
-n'est pas conserve : seul son SHA-256 l'est. Les rapports locaux vont sous
-`tmp/local/ollama_team`, donc hors Git.
+Le script refuse un modèle absent au lieu de le télécharger. `run` et
+`benchmark` exigent le même commit exact et un worktree propre sur Windows et
+sur le Mac. Le prompt traverse SSH par l'entrée standard UTF-8, jamais dans la
+ligne de commande distante. Les contextes doivent être des fichiers texte
+explicites du dépôt ; `.git`, données, checkpoints, runs, secrets, audio,
+modèles et tout composant de chemin nommé comme test verrouillé sont bloqués.
 
-Le routeur prend le meme verrou atomique `~/midi-worker/active.lock` que le
-worker TensorFlow. Un job Ollama et un calcul MIDI lourd ne peuvent donc pas
-demarrer en parallele. Si un processus est tue brutalement, verifier le PID et
-le proprietaire avant tout nettoyage manuel du verrou.
+L'API est obligatoirement HTTP loopback, sans proxy ni redirection. Les
+rapports persistants sous `tmp/local/ollama_team` ne conservent ni prompt ni
+réponse en clair : seulement leurs empreintes, les tailles, les métriques et
+la provenance des contextes. La réponse reste affichée au terminal pour
+l'utilisateur qui a demandé l'avis.
+
+Le routeur prend le même verrou atomique `~/midi-worker/active.lock` que le
+worker TensorFlow. Avant de libérer ce verrou, il demande le déchargement du
+modèle et vérifie via `/api/ps` que celui-ci n'est plus résident. Si cette
+preuve échoue, le verrou est volontairement conservé avec
+`requires_manual_inspection=true`; aucun calcul MIDI lourd ne doit alors être
+relancé avant inspection. Si un processus est tué brutalement, vérifier le PID,
+le propriétaire et les modèles résidents avant tout nettoyage manuel.
