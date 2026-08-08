@@ -16,11 +16,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-08-08T21:55:59+04:00`.
-- Étape : `decoder_candidate_asset_evidence_contract`.
-- Statut : `contrat d'empreintes audio/labels et correctif de lecture paresseuse
-  vérifiés sur actifs synthétiques; revue externe requise avant toute
-  préinscription réelle`.
+- Mise à jour : `2026-08-08T22:27:16+04:00`.
+- Étape : `decoder_candidate_preregistration`.
+- Statut : `anomalie fail-closed : la préinscription réelle est refusée avant
+  toute écriture car dix groupes GAPS traversent train et validation`.
 - Résultat scientifique conservé : la tête `independent_note` précédente reste
   un résultat négatif, saturé près de 1, et ne doit promouvoir ni checkpoint ni
   seuil. Le test verrouillé reste fermé.
@@ -102,10 +101,13 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   audio après construction mais avant `corpus.audio()`, et le cache de conteneur
   audio partagé. La vérification initiale du contrat à 134 tests en 9,429 s
   reste archivée dans son rapport propre.
-- Limite avant minage : aucun plan réel ni artefact candidat n'a été généré ou
-  persisté; aucun décodeur ni mineur n'a été exécuté. Les chemins sont liés au
-  snapshot manifeste, mais la preuve préenregistrée des octets d'audio/labels
-  est une précondition distincte avant leur première ouverture réelle.
+- Préinscription Mac de `d16b25f7` : le checkout est synchronisé et inactif,
+  mais le garde group-safe a refusé le manifeste
+  `b28cb17cfb80a82860ab44635b2c6d05718243e027a8fc8199fe72e27f1b8ed7` avant
+  toute écriture ou hachage. Dix joueurs `gaps_poly_mix` chevauchent train et
+  validation (31 prises train, 11 validation au total). Le répertoire de sortie
+  vide a été supprimé ; aucun plan, registre, actif ouvert, artefact candidat,
+  minage ou test verrouillé n'existe.
 - `locked_test_used=false`; aucun entraînement, minage, calcul validation,
   export ou live n'a été exécuté.
 - Rapports :
@@ -119,17 +121,18 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `readme/results/2026-08-08_decoder-candidate-retrigger-causal-matching-fix.md`,
   puis `readme/results/2026-08-08_decoder-candidate-retrigger-causal-matching-review.md`
   et `readme/results/2026-08-08_decoder-candidate-asset-evidence-contract.md`,
-  puis `readme/results/2026-08-08_decoder-candidate-asset-evidence-lazy-audio-fix.md`.
+  puis `readme/results/2026-08-08_decoder-candidate-asset-evidence-lazy-audio-fix.md`
+  et `readme/results/2026-08-08_decoder-candidate-preregistration-blocked-by-gaps-leakage.md`.
 
 ## Prochaine action réelle
 
-1. Faire relire le correctif de chargement paresseux du contrat d'empreintes,
-   sans créer de plan ou de registre réel.
-2. Après approbation explicite seulement, préenregistrer sur le Mac le plan
-   réel et la preuve versionnée des actifs audio/labels, puis faire relire ces
-   deux éléments avant la toute première collecte.
+1. Définir et faire relire une politique de split GAPS réellement group-safe ;
+   ne pas filtrer manuellement les prises et ne pas contourner le garde.
+2. Après un manifeste versionné sans chevauchement train/validation et une
+   revue explicite, préinscrire un nouveau plan et registre immuables sur le
+   Mac, puis faire relire leurs SHA, partitions et couverture.
 3. Ne promouvoir ni checkpoint ni seuil, et ne lancer aucun minage avant la
-   revue de la préinscription réelle.
+   revue de cette future préinscription réussie.
 4. Conserver le test verrouillé fermé; aucun entraînement, validation, export
    ou live n'est autorisé par cette étape.
 
@@ -355,7 +358,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
   minage.
 <!-- PROJECT_TASK:decoder_candidate_provenance_contract:END -->
 <!-- PROJECT_TASK:decoder_candidate_asset_evidence_contract:START -->
-- 2026-08-08 — **en revue** — `decoder_candidate_asset_evidence_contract` :
+- 2026-08-08 — **anomalie** — `decoder_candidate_asset_evidence_contract` :
   ajout sans calcul scientifique d'un registre canonique d'empreintes pour les
   actifs que le futur mineur pourrait ouvrir. Chaque entrée train lie identité
   physique, partition préassignée, `audio_member`, taille et SHA-256 du
@@ -368,10 +371,13 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
   synthétique réel `pre_register -> reload -> open_recording` prouve le refus
   d'un audio muté après construction du corpus; le cache de conteneur partagé
   est aussi couvert. Compilation, `git diff --check` et 136 tests ciblés
-  Windows passent en 9,718 s. Aucun manifeste réel, plan réel, actif projet,
-  minage, entraînement, validation, export, live ou test verrouillé n'a été
-  ouvert ou produit. Revue externe requise avant la préinscription réelle sur
-  le Mac.
+  Windows passent en 9,718 s. La revue externe de `d16b25f7` est approuvée et
+  a autorisé la seule préinscription Mac. Celle-ci s'est arrêtée avant toute
+  écriture ou hachage : le manifeste `b28cb17...` comporte dix groupes GAPS
+  chevauchant train/validation. Le répertoire de sortie vide a été supprimé;
+  aucun plan, registre, actif projet, minage, entraînement, validation, export,
+  live ou test verrouillé n'a été produit. Une décision group-safe est requise
+  avant toute nouvelle tentative.
 <!-- PROJECT_TASK:decoder_candidate_asset_evidence_contract:END -->
 <!-- JOURNAL_END -->
 ## Rapports détaillés
@@ -394,6 +400,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-08 — revue du correctif causal des retriggers](results/2026-08-08_decoder-candidate-retrigger-causal-matching-review.md)
 - [2026-08-08 — contrat d'empreintes des actifs candidats](results/2026-08-08_decoder-candidate-asset-evidence-contract.md)
 - [2026-08-08 — correctif de lecture paresseuse des actifs candidats](results/2026-08-08_decoder-candidate-asset-evidence-lazy-audio-fix.md)
+- [2026-08-08 — préinscription bloquée par le chevauchement GAPS](results/2026-08-08_decoder-candidate-preregistration-blocked-by-gaps-leakage.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.
