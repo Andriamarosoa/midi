@@ -16,10 +16,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-08-08T20:19:48+04:00`.
+- Mise à jour : `2026-08-08T20:42:53+04:00`.
 - Étape : `decoder_candidate_provenance_contract`.
-- Statut : `correctif du matching causal des retriggers vérifié localement;
-  revue externe requise, sans plan réel ni minage`.
+- Statut : `correctif du matching causal des retriggers approuvé après revue
+  externe et rejeu local; aucun plan réel ni minage n'a été démarré`.
 - Résultat scientifique conservé : la tête `independent_note` précédente reste
   un résultat négatif, saturé près de 1, et ne doit promouvoir ni checkpoint ni
   seuil. Le test verrouillé reste fermé.
@@ -82,6 +82,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `git diff --check` et **131 tests ciblés réussis en 8,993 s**. Les deux
   ordres same-pitch retrigger/candidat, le retrigger invalide et l'intégrité du
   plan au `drain()` sont couverts dans le nouveau rapport.
+- Revue externe du commit `9e666eb0f83d556a2b74809d0ffee47c51966fa1` :
+  **approuvée**. Un rejeu Windows indépendant de la même suite ciblée obtient
+  aussi **131 tests réussis en 9,336 s**. Cette seconde durée est une mesure
+  d'exécution distincte; elle ne remplace pas l'évidence historique à 8,993 s.
 - Limite avant minage : aucun plan réel ni artefact candidat n'a été généré ou
   persisté; aucun décodeur ni mineur n'a été exécuté. Les chemins sont liés au
   snapshot manifeste, mais la preuve préenregistrée des octets d'audio/labels
@@ -96,17 +100,17 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `readme/results/2026-08-08_decoder-candidate-instrumentation-review.md` et
   `readme/results/2026-08-08_decoder-candidate-provenance-contract.md`, puis
   `readme/results/2026-08-08_decoder-candidate-snapshot-label-protocol.md` et
-  `readme/results/2026-08-08_decoder-candidate-retrigger-causal-matching-fix.md`.
+  `readme/results/2026-08-08_decoder-candidate-retrigger-causal-matching-fix.md`,
+  puis `readme/results/2026-08-08_decoder-candidate-retrigger-causal-matching-review.md`.
 
 ## Prochaine action réelle
 
-1. Faire relire ce correctif de matching, sans lancer de calcul.
-2. Après approbation explicite seulement, préenregistrer le plan réel et la
-   preuve d'actifs associée, puis faire relire ces deux éléments avant la toute
-   première collecte.
-3. Ne promouvoir ni checkpoint ni seuil, et ne lancer aucun minage avant ces
-   deux revues supplémentaires.
-4. Conserver le test verrouillé fermé; aucun entraînement, validation, export
+1. Définir puis préenregistrer, dans une étape distincte, le plan réel et la
+   preuve versionnée des actifs audio/labels associés; faire relire ces deux
+   éléments avant la toute première collecte.
+2. Ne promouvoir ni checkpoint ni seuil, et ne lancer aucun minage avant la
+   revue de la préinscription réelle.
+3. Conserver le test verrouillé fermé; aucun entraînement, validation, export
    ou live n'est autorisé par cette étape.
 
 ## État archivé — dual-stream du 30 juillet (remplacé)
@@ -303,7 +307,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
   verrouillé n'est autorisé par cette clôture.
 <!-- PROJECT_TASK:decoder_candidate_instrumentation:END -->
 <!-- PROJECT_TASK:decoder_candidate_provenance_contract:START -->
-- 2026-08-08 — **en revue** — `decoder_candidate_provenance_contract` : sans
+- 2026-08-08 — **terminé** — `decoder_candidate_provenance_contract` : sans
   calcul scientifique, le protocole v1 est complété par le snapshot manifeste
   attesté, le plan canonique immuable, le contexte train-only et les labels
   causales. Les mêmes objets `ManifestItem` du CSV hashé alimentent le corpus
@@ -324,8 +328,11 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
   projeter uniquement les résultats entraînables, et sépare les matches complets
   des matches exclus du fit. Il exige aussi un plan réellement persistant pour
   construire la capacité collecteur et le revérifie au `drain()`. Compilation,
-  `git diff --check` et 131 tests ciblés Windows passent en 8,993 s. Aucune
-  donnée projet n'a été ouverte; revue externe requise.
+  `git diff --check` et 131 tests ciblés Windows passent en 8,993 s, puis un
+  rejeu indépendant passe en 9,336 s. La revue externe du commit `9e666eb0`
+  est approuvée. Aucune donnée projet n'a été ouverte; la prochaine étape est
+  uniquement la préinscription réelle, soumise à une nouvelle revue avant tout
+  minage.
 <!-- PROJECT_TASK:decoder_candidate_provenance_contract:END -->
 <!-- JOURNAL_END -->
 ## Rapports détaillés
@@ -345,6 +352,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-08 — contrat de provenance des candidats du décodeur](results/2026-08-08_decoder-candidate-provenance-contract.md)
 - [2026-08-08 — protocole snapshot et labels causales des candidats](results/2026-08-08_decoder-candidate-snapshot-label-protocol.md)
 - [2026-08-08 — correctif causal des retriggers candidats](results/2026-08-08_decoder-candidate-retrigger-causal-matching-fix.md)
+- [2026-08-08 — revue du correctif causal des retriggers](results/2026-08-08_decoder-candidate-retrigger-causal-matching-review.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.
