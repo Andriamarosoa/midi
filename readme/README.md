@@ -14,64 +14,42 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-> Mise a jour effective : `2026-08-04T22:25:56+04:00` - etape
-> `independent_note_validation_one_pass_diagnostic`.
->
-> Le diagnostic validation-only est termine : le seuil `0,01` est inoperant
-> (709 candidats eligibles, 0 rejet, probabilite minimum `0,48080769`, F1 onset
-> inchange a `0,21760081`). La revue du commit `40aa1fe5` est appliquee : le
-> diagnostic des douze seuils est maintenant impose au seul split validation,
-> l'ancienne grille multi-passes est retiree, et les tests couvrent quantiles,
-> comparaison stricte et absence de candidats (`44` tests). Aucun test verrouille,
-> entrainement, export ou live n'a ete effectue. Une ancienne grille CPU
-> terminee a confirme que `0,90` ne retire que 2 faux NoteOn et ne remplace pas
-> le diagnostic a une passe. Le diagnostic a une passe est maintenant termine :
-> mediane `0,98582065`, seulement 49/709 rejets hypothetiques a `0,90`, donc
-> la porte seule ne peut pas corriger les 3389 faux NoteOn. Suite : revue
-> ChatGPT du resultat avant toute modification ou nouveau calcul. Rapports :
-> `readme/results/2026-08-05_independent-note-validation-diagnostic.md`.
-> `readme/results/2026-08-05_independent-note-historical-grid.md`.
-> `readme/results/2026-08-05_independent-note-one-pass-diagnostic.md`.
-
-> Note d'horloge : le Mac a horodaté la fin brute à
-> `2026-08-05T05:25:56Z`, mais son horloge était avancée d'environ 11 h.
-> Le temps réconcilié ci-dessus est `2026-08-04T18:25:56Z`; les résultats et
-> le JSON brut restent inchangés.
-
 ## État courant
 
-- Mise à jour : `2026-08-04T23:07:03+04:00` (réconciliée, approximative ; l'horloge du Mac était avancée d'environ 11 h).
-- Étape : `independent_note_absolute_partial_alignment_smoke`.
-- Statut : `hypothèse de minage de candidats du décodeur définie — revue requise`.
-- Résultat établi : la tête précédente est saturée et ne doit pas être promue;
-  `locked_test_used=false`. Le constructeur de cibles corrige maintenant la
-  somme nécessaire entre décalage annotation-vers-classe et résidu du partiel.
-- Vérification : compilation et 24 tests ciblés réussis. La tentative réduite
-  refusée est archivée ; l'unique relance autorisée aux tailles fixes a terminé
-  sur CPU avec `8192 / 2048 / 4096` exemples et 4 époques. Elle est strictement
-  train-only : `validation_loaded=false`, `locked_test_used=false`, aucun
-  export ou live, backbone gelé et parité exacte (`erreur max=0`, accord=1).
-  Elle exerce le contrat de labels restauré avec succès, pas une baisse des faux
-  NoteOn en validation ni une preuve autonome de sa justesse sémantique.
-- Rapport :
-  `readme/results/2026-08-04_independent-note-absolute-partial-alignment.md`.
-  `readme/results/2026-08-04_independent-note-alignment-smoke-anomaly.md`.
-  `readme/results/2026-08-04_independent-note-alignment-smoke.md`.
-  `readme/results/2026-08-04_independent-note-paired-decoder-hypothesis.md`.
-- Infrastructure locale vérifiée le `2026-08-08T13:19:03+04:00` : le Mac M4
-  dispose maintenant d'un routeur Ollama versionné et accessible uniquement
-  via SSH. Le 14B est le conseiller principal, le 8B traite les lots et le
-  36B reste réservé aux secondes revues rares. Le chemin complet a été exercé,
-  les 24 tests Windows et 9 tests Mac passent, le verrou TensorFlow est
-  partagé, l'API Ollama est liée à `127.0.0.1` et le test verrouillé reste
-  fermé. Rapport : `readme/results/2026-08-08_ollama-local-team.md`.
+- Mise à jour : `2026-08-08T14:00:20+04:00`.
+- Étape : `decoder_candidate_contract_hardening`.
+- Statut : `correctif implémenté et vérifié — revue ChatGPT requise avant
+  instrumentation du décodeur`.
+- Résultat scientifique conservé : la tête `independent_note` précédente reste
+  un résultat négatif, saturé près de 1, et ne doit promouvoir ni checkpoint ni
+  seuil. Le test verrouillé reste fermé.
+- Contrat candidat : le bug de continuité est corrigé; les champs causaux réels
+  sont déclarés et les métadonnées `rank/selected` sont explicitement
+  post-porte. Les invariants échouent en mode fermé. Le module reste isolé et
+  `decoder.py` n'a pas été modifié.
+- Infrastructure Ollama : le commit `af5437ee` conserve le verrou partagé
+  jusqu'au déchargement vérifié, refuse les worktrees sales et les redirections,
+  transporte le prompt par stdin, contrôle tous les composants des chemins et
+  ne persiste plus le corps des réponses.
+- Vérification : 38 tests ciblés Windows et 23 tests Mac réussis, syntaxe Python,
+  analyse PowerShell et `git diff --check` réussis. Un appel réel 14B a terminé,
+  puis le statut a confirmé `active_lock=false` et `running_models=[]`. Sa
+  réponse générique n'est pas acceptée comme code review.
+- `locked_test_used=false`; aucun entraînement, minage, calcul validation,
+  export ou live n'a été exécuté.
+- Rapports :
+  `readme/results/2026-08-05_decoder-candidate-mining-hypothesis.md`,
+  `readme/results/2026-08-08_ollama-local-team.md` et
+  `readme/results/2026-08-08_ollama-candidate-contract-hardening.md`.
 
 ## Prochaine action réelle
 
 1. Ne promouvoir ni le checkpoint précédent ni un seuil de porte.
-2. Faire relire l'hypothèse de minage des candidats du décodeur par ChatGPT.
-3. Ne pas promouvoir la porte close ni rechercher un autre seuil sur l'ancienne expérience.
-4. Conserver le test verrouillé fermé et ne lancer aucun entraînement complet, export ou live avant revue de cette nouvelle hypothèse.
+2. Faire relire par ChatGPT le commit `af5437ee` et le rapport de durcissement.
+3. Ne connecter aucun producteur à `decoder.py` avant approbation explicite du
+   contrat corrigé.
+4. Conserver le test verrouillé fermé et ne lancer aucun entraînement, minage,
+   validation, export ou live pendant cette revue.
 
 ## État archivé — dual-stream du 30 juillet (remplacé)
 
@@ -225,12 +203,26 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 <!-- PROJECT_TASK:ollama_local_team:START -->
 - 2026-08-08 — **terminé** — `ollama_local_team` : routeur local versionné
   pour `qwen3:8b`, `qwen3:14b` et `qwen3.6:latest`, appelé par SSH depuis
-  Windows et partageant le verrou atomique du worker TensorFlow. Validation :
-  24 tests Windows, 9 tests Mac, premier code review réel et benchmark
-  séquentiel terminés, `locked_test_used=false`. L'API directe réseau a été
-  fermée et Ollama écoute seulement `127.0.0.1:11434`. Aucun modèle local ne
-  possède l'autorité d'éditer, de commiter ou de remplacer les preuves réelles.
+  Windows et partageant le verrou atomique du worker TensorFlow. Le correctif
+  `af5437ee` maintient désormais ce verrou jusqu'au déchargement confirmé,
+  refuse les worktrees sales, les proxies/redirections et tout composant de
+  chemin test verrouillé, transporte les prompts par stdin et retire les corps
+  de réponse des rapports persistants. Validation cumulée du correctif : 38
+  tests Windows et 23 tests Mac, appel réel suivi de
+  `active_lock=false/running_models=[]`, `locked_test_used=false`. La réponse
+  générique du 14B n'est pas une revue valide. L'API directe réseau reste
+  fermée sur `127.0.0.1:11434`; aucun modèle local ne possède l'autorité
+  d'éditer, de commiter ou de remplacer les preuves réelles.
 <!-- PROJECT_TASK:ollama_local_team:END -->
+<!-- PROJECT_TASK:decoder_candidate_mining_contract:START -->
+- 2026-08-08 — **revue requise** — `decoder_candidate_mining_contract` : le
+  contrat isolé corrige le découpage des épisodes avec `best_row` et
+  `last_frame_index`, ajoute les features causales manquantes, sépare les
+  métadonnées post-porte et impose des invariants JSON fail-closed. Les scores
+  décroissants, les `event_id` distincts et les états incohérents sont testés.
+  Aucun branchement dans `decoder.py`, minage, entraînement ou calcul
+  validation n'a été effectué; test verrouillé fermé.
+<!-- PROJECT_TASK:decoder_candidate_mining_contract:END -->
 <!-- JOURNAL_END -->
 ## Rapports détaillés
 
@@ -241,6 +233,9 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-07-28 — incident de publication Kaggle](results/2026-07-28_kaggle-upload-incident.md)
 - [2026-07-29 — validation du candidat desktop sélectionné](results/2026-07-29_desktop-candidate-validation.md)
 - [2026-07-29 — validation de l’attaque causale adaptative](results/2026-07-29_adaptive-attack-validation.md)
+- [2026-08-05 — hypothèse de minage des candidats du décodeur](results/2026-08-05_decoder-candidate-mining-hypothesis.md)
+- [2026-08-08 — équipe Ollama locale](results/2026-08-08_ollama-local-team.md)
+- [2026-08-08 — durcissement Ollama et contrat candidat](results/2026-08-08_ollama-candidate-contract-hardening.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.
