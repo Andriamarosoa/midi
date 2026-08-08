@@ -21,23 +21,13 @@ from src.polyphonic.audio_gain import (
 )
 from src.polyphonic.audio_evidence import PolyphonicAudioEvidencePolicy
 from src.polyphonic.decoder import PolyphonicDecoder, PolyphonicDecoderConfig
+from src.polyphonic.decoder_reason_codes import NOTE_ON_REASON_CODES
 from src.polyphonic.input_level import CausalModelInputLeveler
 from src.polyphonic.tflite_runtime import PolyphonicBundle, TFLitePolyphonicModel
 from src.product.audio_io import managed_input_stream
 from src.product.backpressure import LiveBackpressure
 from src.product.live import list_devices, make_sink, parse_device
 from src.stream.ring_buffer import MonoRingBuffer
-
-
-NOTE_ON_REASON_CODES = {
-    "model_onset": 1,
-    "frame_attack": 2,
-    "frame_fallback": 3,
-    "harmonic_strong_frame": 4,
-    "retrigger": 5,
-    "legacy": 6,
-    "chord_completion": 7,
-}
 
 
 def _decoder(bundle: PolyphonicBundle) -> PolyphonicDecoder:

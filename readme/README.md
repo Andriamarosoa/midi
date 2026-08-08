@@ -16,47 +16,59 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-08-08T14:15:07+04:00`.
-- Étape : `decoder_candidate_contract_reviewed`.
-- Statut : `commits af5437ee et 88a66ce approuvés par la revue ChatGPT —
-  instrumentation isolée du décodeur autorisée comme prochaine étape`.
+- Mise à jour : `2026-08-08T15:14:24+04:00`.
+- Étape : `decoder_candidate_instrumentation`.
+- Statut : `instrumentation-only implémentée et vérifiée sur Windows — revue
+  du commit et vérification Mac encore requises avant tout minage`.
 - Résultat scientifique conservé : la tête `independent_note` précédente reste
   un résultat négatif, saturé près de 1, et ne doit promouvoir ni checkpoint ni
   seuil. Le test verrouillé reste fermé.
-- Contrat candidat : le bug de continuité est corrigé; les champs causaux réels
-  sont déclarés et les métadonnées `rank/selected` sont explicitement
-  post-porte. Les invariants échouent en mode fermé. La revue externe confirme
-  qu'aucun correctif supplémentaire n'est requis avant l'instrumentation.
+- Instrumentation candidat : `PolyphonicDecoder` accepte un collecteur optionnel
+  `None` par défaut. Les features sont figées avant la porte; rang, sélection,
+  émission et `event_id` ne sont ajoutés qu'après les décisions réelles. Le
+  buffer est borné et drainable, tout débordement invalide le batch, et une
+  erreur de collecte est mémorisée sans bloquer les événements MIDI. Une frame
+  entière est remise en un seul batch après toutes ses décisions; une
+  contention du collecteur échoue immédiatement sans attendre son verrou.
+- Provenance et capacité du collecteur sont immuables après sa construction;
+  elles ne peuvent pas dériver au milieu d'un batch.
+- Les codes de raisons existants du live sont centralisés sans changement. Les
+  `event_id` sont déterministes par provenance/frame/pitch et restent hors de
+  `PolyphonicMidiEvent`.
 - Infrastructure Ollama : le commit `af5437ee` conserve le verrou partagé
   jusqu'au déchargement vérifié, refuse les worktrees sales et les redirections,
   transporte le prompt par stdin, contrôle tous les composants des chemins et
   ne persiste plus le corps des réponses.
-- Vérification : les 38 tests ciblés Windows ont été rejoués avec succès au
-  commit `88a66ce`; les 23 tests Mac, la syntaxe Python, l'analyse PowerShell et
-  `git diff --check` avaient déjà réussi. Un appel réel 14B a terminé, puis le
-  statut a confirmé `active_lock=false` et `running_models=[]`. Sa réponse
-  générique n'est pas acceptée comme code review.
+- Vérification instrumentation Windows : 86 tests ciblés réussis. Par rapport
+  au décodeur approuvé `f9ed9d0`, 512 frames couvrant porte active/inactive et
+  voie legacy/causale ont une parité exacte des événements et de tout l'état
+  décisionnel, y compris reset et panic.
+- Microbenchmark borné dense : ancien décodeur 175,77 µs/frame, nouveau chemin
+  désactivé 162,53 µs/frame (aucune régression mesurée), collecte activée
+  260,64 µs/frame, soit +98,11 µs et 1,69 % du hop de 5,805 ms.
+- Limites avant minage : `recording_key`/`leakage_group_key` ne sont que les
+  équivalents transitoires de `source_id`/`group_id`; le schéma brut n'inclut
+  pas encore `capture_id` ni la partition `fit/dev/calibration`. La sémantique
+  de collapse d'épisodes doit aussi être tranchée puisque chaque vrai NoteOn
+  possède désormais un ID unique. Aucun artefact miné ne peut être accepté
+  avant ces corrections.
 - `locked_test_used=false`; aucun entraînement, minage, calcul validation,
   export ou live n'a été exécuté.
 - Rapports :
   `readme/results/2026-08-05_decoder-candidate-mining-hypothesis.md`,
   `readme/results/2026-08-08_ollama-local-team.md` et
-  `readme/results/2026-08-08_ollama-candidate-contract-hardening.md`.
+  `readme/results/2026-08-08_ollama-candidate-contract-hardening.md`, puis
+  `readme/results/2026-08-08_decoder-candidate-instrumentation.md`.
 
 ## Prochaine action réelle
 
-1. Ne promouvoir ni le checkpoint précédent ni un seuil de porte.
-2. Préparer un unique commit d'instrumentation de `decoder.py`, désactivée par
-   défaut : features causales juste avant la porte, puis rang, sélection et
-   émission seulement après leurs décisions réelles.
-3. Exiger une parité événement par événement et état interne par état interne
-   entre collecte désactivée et activée; créer les `event_id` hors de l'objet
-   public `PolyphonicMidiEvent`, borner la collecte et figer l'encodage de
-   `candidate_reason`.
-4. Avant tout futur artefact miné, attacher `source_id`, `group_id`,
-   `capture_id` et la partition `fit/dev/calibration` en amont du minage.
-5. Conserver le test verrouillé fermé et ne lancer aucun entraînement, minage,
-   validation, export ou live avant la revue de ce futur commit.
+1. Committer et pousser cette instrumentation avec ses preuves Windows.
+2. Rejouer les mêmes tests sur le Mac au commit exact, sans calcul scientifique.
+3. Faire relire le commit et le rapport par ChatGPT.
+4. Ne promouvoir ni checkpoint ni seuil et ne lancer aucun minage avant cette
+   revue et la résolution explicite des deux limites de schéma ci-dessus.
+5. Conserver le test verrouillé fermé; aucun entraînement, validation, export
+   ou live n'est autorisé par cette étape.
 
 ## État archivé — dual-stream du 30 juillet (remplacé)
 
@@ -233,6 +245,18 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
   test verrouillé fermé. La prochaine tâche distincte est une instrumentation
   désactivée par défaut, soumise à une nouvelle revue avant tout calcul.
 <!-- PROJECT_TASK:decoder_candidate_mining_contract:END -->
+<!-- PROJECT_TASK:decoder_candidate_instrumentation:START -->
+- 2026-08-08 — **en cours** — `decoder_candidate_instrumentation` : collecteur
+  optionnel désactivé par défaut ajouté aux voies legacy et causale. Snapshot
+  pré-porte immuable, métadonnées post-décision, identifiants déterministes hors
+  événement MIDI, encodage des raisons compatible avec le live, buffer borné,
+  overflow fail-closed, remise par frame non bloquante et erreur de collecte
+  fail-open. Les 86 tests Windows
+  passent; 512 frames sont identiques au décodeur `f9ed9d0` pour événements et
+  état. Le chemin désactivé ne montre aucune régression mesurable; l'overhead
+  activé est 98,11 µs/frame dans le benchmark dense. Vérification Mac et revue
+  externe requises; aucun minage ni test verrouillé.
+<!-- PROJECT_TASK:decoder_candidate_instrumentation:END -->
 <!-- JOURNAL_END -->
 ## Rapports détaillés
 
@@ -246,6 +270,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-05 — hypothèse de minage des candidats du décodeur](results/2026-08-05_decoder-candidate-mining-hypothesis.md)
 - [2026-08-08 — équipe Ollama locale](results/2026-08-08_ollama-local-team.md)
 - [2026-08-08 — durcissement Ollama et contrat candidat](results/2026-08-08_ollama-candidate-contract-hardening.md)
+- [2026-08-08 — instrumentation des candidats du décodeur](results/2026-08-08_decoder-candidate-instrumentation.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.

@@ -8,6 +8,8 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from .decoder_candidate_mining import DecoderCandidateCollector
+
 
 @dataclass(frozen=True)
 class PolyphonicMidiEvent:
@@ -16,6 +18,51 @@ class PolyphonicMidiEvent:
     velocity: int
     frame_index: int
     reason: str = ""
+
+
+@dataclass(frozen=True)
+class _DecoderCandidateTrace:
+    """Causal candidate values frozen before any optional gate decision."""
+
+    frame_index: int
+    pitch: int
+    candidate_reason: str
+    candidate_score: float
+    frame_probability: float
+    onset_probability: float
+    harmonic_support: float
+    audio_onset_available: bool
+    audio_onset_recent: bool
+    active_polyphony: int
+    gate_eligible: bool
+
+
+@dataclass(frozen=True)
+class _CompletedDecoderCandidateTrace:
+    """One observation completed only after all decoder decisions."""
+
+    trace: _DecoderCandidateTrace
+    post_gate_rank: int | None
+    post_gate_selected: bool
+    emitted_noteon: bool
+
+    def collector_values(self) -> dict[str, object]:
+        return {
+            "frame_index": self.trace.frame_index,
+            "pitch": self.trace.pitch,
+            "candidate_reason": self.trace.candidate_reason,
+            "candidate_score": self.trace.candidate_score,
+            "frame_probability": self.trace.frame_probability,
+            "onset_probability": self.trace.onset_probability,
+            "harmonic_support": self.trace.harmonic_support,
+            "audio_onset_available": self.trace.audio_onset_available,
+            "audio_onset_recent": self.trace.audio_onset_recent,
+            "active_polyphony": self.trace.active_polyphony,
+            "gate_eligible": self.trace.gate_eligible,
+            "post_gate_rank": self.post_gate_rank,
+            "post_gate_selected": self.post_gate_selected,
+            "emitted_noteon": self.emitted_noteon,
+        }
 
 
 @dataclass(frozen=True)
@@ -120,8 +167,12 @@ class PolyphonicDecoder:
         self,
         config: PolyphonicDecoderConfig,
         independent_note_diagnostic_thresholds: tuple[float, ...] = (),
+        *,
+        candidate_collector: DecoderCandidateCollector | None = None,
     ) -> None:
         self.config = config
+        self._candidate_collector = candidate_collector
+        self._candidate_collection_error: str | None = None
         self.classes = config.midi_max - config.midi_min + 1
         self.active = np.zeros(self.classes, dtype=np.bool_)
         self.activation_count = np.zeros(self.classes, dtype=np.int16)
@@ -233,6 +284,98 @@ class PolyphonicDecoder:
         if self._independent_note_diagnostic_thresholds:
             self._independent_note_diagnostic_values.append(value)
         return rejected
+
+    def _capture_candidate_trace(
+        self,
+        *,
+        class_index: int,
+        candidate_reason: str,
+        candidate_score: float,
+        frame_probability: float,
+        onset_probability: float,
+        harmonic_support: float,
+        audio_onset_recent: bool,
+        active_polyphony: int,
+        gate_eligible: bool,
+    ) -> _DecoderCandidateTrace | None:
+        """Freeze causal values only when explicit instrumentation is active."""
+        if (
+            self._candidate_collector is None
+            or self._candidate_collection_error is not None
+        ):
+            return None
+        try:
+            return _DecoderCandidateTrace(
+                frame_index=int(self.frame_index),
+                pitch=int(self.config.midi_min + class_index),
+                candidate_reason=str(candidate_reason),
+                candidate_score=float(candidate_score),
+                frame_probability=float(frame_probability),
+                onset_probability=float(onset_probability),
+                harmonic_support=float(harmonic_support),
+                audio_onset_available=bool(self.audio_onset_available),
+                audio_onset_recent=bool(audio_onset_recent),
+                active_polyphony=int(active_polyphony),
+                gate_eligible=bool(gate_eligible),
+            )
+        except Exception as error:  # Instrumentation must never block MIDI.
+            self._candidate_collection_error = (
+                f"{type(error).__name__}: {error}"
+            )
+            return None
+
+    def _complete_candidate_trace(
+        self,
+        completed: list[_CompletedDecoderCandidateTrace] | None,
+        trace: _DecoderCandidateTrace | None,
+        *,
+        post_gate_rank: int | None,
+        post_gate_selected: bool,
+        emitted_noteon: bool,
+    ) -> None:
+        """Queue post-decision metadata without calling an external sink."""
+        if (
+            completed is None
+            or trace is None
+            or self._candidate_collection_error is not None
+        ):
+            return
+        try:
+            completed.append(_CompletedDecoderCandidateTrace(
+                trace=trace,
+                post_gate_rank=post_gate_rank,
+                post_gate_selected=post_gate_selected,
+                emitted_noteon=emitted_noteon,
+            ))
+        except Exception as error:  # Instrumentation must never block MIDI.
+            self._candidate_collection_error = (
+                f"{type(error).__name__}: {error}"
+            )
+
+    def _flush_candidate_traces(
+        self,
+        completed: list[_CompletedDecoderCandidateTrace] | None,
+    ) -> None:
+        """Submit once, after MIDI decisions, through a non-blocking sink."""
+        if (
+            not completed
+            or self._candidate_collector is None
+            or self._candidate_collection_error is not None
+        ):
+            return
+        try:
+            self._candidate_collector.record_candidates(
+                row.collector_values() for row in completed
+            )
+        except Exception as error:  # Instrumentation must never block MIDI.
+            self._candidate_collection_error = (
+                f"{type(error).__name__}: {error}"
+            )
+
+    @property
+    def candidate_collection_error(self) -> str | None:
+        """Latched instrumentation failure; any future artifact must refuse it."""
+        return self._candidate_collection_error
 
     @property
     def independent_note_gate_diagnostics(self) -> dict[str, object]:
@@ -455,6 +598,20 @@ class PolyphonicDecoder:
             return events
         if not self.audio_onset_available:
             legacy_candidates: list[tuple[float, int]] = []
+            legacy_traces: dict[int, _DecoderCandidateTrace] | None = (
+                {}
+                if (
+                    self._candidate_collector is not None
+                    and self._candidate_collection_error is None
+                )
+                else None
+            )
+            legacy_completed: list[_CompletedDecoderCandidateTrace] | None = (
+                [] if legacy_traces is not None else None
+            )
+            active_polyphony = (
+                int(np.sum(self.active)) if legacy_traces is not None else 0
+            )
             for class_index in np.flatnonzero(~self.active):
                 class_index = int(class_index)
                 threshold = self._legacy_on_threshold(
@@ -469,15 +626,49 @@ class PolyphonicDecoder:
                 support = self._harmonic_support(
                     class_index, harmonic_amplitude, self.active
                 )
+                candidate_score: float | None = None
+                gate_eligible = False
+                trace = None
+                if legacy_traces is not None:
+                    candidate_score = float(
+                        frame[class_index] + onset[class_index]
+                    )
+                    gate_eligible = bool(
+                        support >= self.config.harmonic_support_threshold
+                    )
+                    if gate_eligible:
+                        trace = self._capture_candidate_trace(
+                            class_index=class_index,
+                            candidate_reason="legacy",
+                            candidate_score=candidate_score,
+                            frame_probability=float(frame[class_index]),
+                            onset_probability=float(onset[class_index]),
+                            harmonic_support=support,
+                            audio_onset_recent=False,
+                            active_polyphony=active_polyphony,
+                            gate_eligible=True,
+                        )
                 if (
                     self.config.independent_note_threshold is not None
                     and independent_note_probability is not None
-                    and support >= self.config.harmonic_support_threshold
+                    and (
+                        gate_eligible
+                        if legacy_traces is not None
+                        else support >= self.config.harmonic_support_threshold
+                    )
                     and self._observe_independent_note_gate(
                         independent_note_probability[class_index]
                     )
                 ):
                     self.activation_count[class_index] = 0
+                    if trace is not None:
+                        self._complete_candidate_trace(
+                            legacy_completed,
+                            trace,
+                            post_gate_rank=None,
+                            post_gate_selected=False,
+                            emitted_noteon=False,
+                        )
                     continue
                 if frame[class_index] >= threshold:
                     self.activation_count[class_index] += 1
@@ -489,13 +680,42 @@ class PolyphonicDecoder:
                     and frame[class_index] >= threshold
                 )
                 if direct_onset or stable_frame:
+                    if candidate_score is None:
+                        candidate_score = float(
+                            frame[class_index] + onset[class_index]
+                        )
+                    if legacy_traces is not None and trace is None:
+                        gate_eligible = bool(
+                            support >= self.config.harmonic_support_threshold
+                        )
+                        trace = self._capture_candidate_trace(
+                            class_index=class_index,
+                            candidate_reason="legacy",
+                            candidate_score=candidate_score,
+                            frame_probability=float(frame[class_index]),
+                            onset_probability=float(onset[class_index]),
+                            harmonic_support=support,
+                            audio_onset_recent=False,
+                            active_polyphony=active_polyphony,
+                            gate_eligible=gate_eligible,
+                        )
                     legacy_candidates.append((
-                        float(frame[class_index] + onset[class_index]),
+                        candidate_score,
                         class_index,
                     ))
-            for _, class_index in sorted(
-                legacy_candidates, reverse=True
-            )[:max(0, available)]:
+                    if legacy_traces is not None and trace is not None:
+                        legacy_traces[class_index] = trace
+                elif trace is not None:
+                    self._complete_candidate_trace(
+                        legacy_completed,
+                        trace,
+                        post_gate_rank=None,
+                        post_gate_selected=False,
+                        emitted_noteon=False,
+                    )
+            legacy_ranked = sorted(legacy_candidates, reverse=True)
+            selected_legacy = legacy_ranked[:max(0, available)]
+            for rank, (_, class_index) in enumerate(selected_legacy):
                 pitch = self.config.midi_min + class_index
                 velocity = self._velocity(
                     frame[class_index], onset[class_index]
@@ -509,6 +729,27 @@ class PolyphonicDecoder:
                 events.append(PolyphonicMidiEvent(
                     "note_on", pitch, velocity, self.frame_index, "legacy"
                 ))
+                if legacy_traces is not None:
+                    self._complete_candidate_trace(
+                        legacy_completed,
+                        legacy_traces.get(class_index),
+                        post_gate_rank=rank,
+                        post_gate_selected=True,
+                        emitted_noteon=True,
+                    )
+            if legacy_traces is not None:
+                for rank, (_, class_index) in enumerate(
+                    legacy_ranked[len(selected_legacy):],
+                    start=len(selected_legacy),
+                ):
+                    self._complete_candidate_trace(
+                        legacy_completed,
+                        legacy_traces.get(class_index),
+                        post_gate_rank=rank,
+                        post_gate_selected=False,
+                        emitted_noteon=False,
+                    )
+            self._flush_candidate_traces(legacy_completed)
             return events
 
         provisional: list[tuple[float, int, bool, str]] = []
@@ -567,19 +808,62 @@ class PolyphonicDecoder:
         for _, class_index, _, _ in provisional:
             base_mask[class_index] = True
         candidates: list[tuple[float, int, str, bool]] = []
+        candidate_traces: dict[int, _DecoderCandidateTrace] | None = (
+            {}
+            if (
+                self._candidate_collector is not None
+                and self._candidate_collection_error is None
+            )
+            else None
+        )
+        completed_traces: list[_CompletedDecoderCandidateTrace] | None = (
+            [] if candidate_traces is not None else None
+        )
+        active_polyphony = (
+            int(np.sum(self.active)) if candidate_traces is not None else 0
+        )
         for score, class_index, direct_onset, reason in provisional:
             support = self._harmonic_support(
                 class_index, harmonic_amplitude, base_mask
             )
+            gate_eligible = False
+            trace = None
+            if candidate_traces is not None:
+                gate_eligible = bool(
+                    support >= self.config.harmonic_support_threshold
+                )
+                trace = self._capture_candidate_trace(
+                    class_index=class_index,
+                    candidate_reason=reason,
+                    candidate_score=score,
+                    frame_probability=float(frame[class_index]),
+                    onset_probability=float(onset[class_index]),
+                    harmonic_support=support,
+                    audio_onset_recent=self._recent_audio_onset(),
+                    active_polyphony=active_polyphony,
+                    gate_eligible=gate_eligible,
+                )
             if (
                 self.config.independent_note_threshold is not None
                 and independent_note_probability is not None
-                and support >= self.config.harmonic_support_threshold
+                and (
+                    gate_eligible
+                    if candidate_traces is not None
+                    else support >= self.config.harmonic_support_threshold
+                )
                 and self._observe_independent_note_gate(
                     independent_note_probability[class_index]
                 )
             ):
                 self.activation_count[class_index] = 0
+                if trace is not None:
+                    self._complete_candidate_trace(
+                        completed_traces,
+                        trace,
+                        post_gate_rank=None,
+                        post_gate_selected=False,
+                        emitted_noteon=False,
+                    )
                 continue
             if (
                 not direct_onset
@@ -600,10 +884,20 @@ class PolyphonicDecoder:
                 )
                 if frame[class_index] < harmonic_threshold:
                     self.activation_count[class_index] = 0
+                    if trace is not None:
+                        self._complete_candidate_trace(
+                            completed_traces,
+                            trace,
+                            post_gate_rank=None,
+                            post_gate_selected=False,
+                            emitted_noteon=False,
+                        )
                     continue
                 score -= self.config.harmonic_suppression_strength * support
                 reason = "harmonic_strong_frame"
             candidates.append((score, class_index, reason, direct_onset))
+            if candidate_traces is not None and trace is not None:
+                candidate_traces[class_index] = trace
 
         ranked = sorted(candidates, key=lambda item: (-item[0], item[1]))
         selected = ranked[:max(0, available)]
@@ -611,7 +905,7 @@ class PolyphonicDecoder:
             self._recent_audio_onset()
             and sum(bool(item[3]) for item in selected) >= 2
         )
-        for _, class_index, reason, direct_onset in selected:
+        for rank, (_, class_index, reason, direct_onset) in enumerate(selected):
             pitch = self.config.midi_min + class_index
             velocity = self._velocity(frame[class_index], onset[class_index])
             self.active[class_index] = True
@@ -627,6 +921,27 @@ class PolyphonicDecoder:
             events.append(PolyphonicMidiEvent(
                 "note_on", pitch, velocity, self.frame_index, reason
             ))
+            if candidate_traces is not None:
+                self._complete_candidate_trace(
+                    completed_traces,
+                    candidate_traces.get(class_index),
+                    post_gate_rank=rank,
+                    post_gate_selected=True,
+                    emitted_noteon=True,
+                )
+        if candidate_traces is not None:
+            for rank, (_, class_index, _, _) in enumerate(
+                ranked[len(selected):],
+                start=len(selected),
+            ):
+                self._complete_candidate_trace(
+                    completed_traces,
+                    candidate_traces.get(class_index),
+                    post_gate_rank=rank,
+                    post_gate_selected=False,
+                    emitted_noteon=False,
+                )
+        self._flush_candidate_traces(completed_traces)
         return events
 
     def panic(self, reason: str = "panic") -> list[PolyphonicMidiEvent]:

@@ -5,9 +5,18 @@ schema and episode reduction that the future train-only miner must use.
 """
 from __future__ import annotations
 
+from collections import deque
 from dataclasses import asdict, dataclass
+import hashlib
+import json
 import math
-from typing import Iterable
+from threading import Lock
+from typing import Iterable, Mapping
+
+from .decoder_reason_codes import (
+    CANDIDATE_REASON_ENCODING,
+    CANDIDATE_REASON_VOCABULARY,
+)
 
 
 @dataclass(frozen=True)
@@ -41,6 +50,10 @@ class DecoderCandidateAttempt:
             value = getattr(self, field_name)
             if not isinstance(value, str) or not value.strip():
                 raise ValueError(f"{field_name} must be a non-empty string.")
+        if self.candidate_reason not in CANDIDATE_REASON_ENCODING:
+            raise ValueError(
+                "candidate_reason must use the fixed pre-gate vocabulary."
+            )
         for field_name in ("frame_index", "pitch", "active_polyphony"):
             if type(getattr(self, field_name)) is not int:
                 raise ValueError(f"{field_name} must be a JSON-native integer.")
@@ -96,6 +109,221 @@ class DecoderCandidateAttempt:
 
     def as_json(self) -> dict[str, object]:
         return asdict(self)
+
+
+@dataclass(frozen=True)
+class DecoderCandidateBatch:
+    """One drained buffer plus the overflow evidence needed to trust it."""
+
+    attempts: tuple[DecoderCandidateAttempt, ...]
+    total_attempts: int
+    dropped_attempts: int
+
+    def __post_init__(self) -> None:
+        if type(self.attempts) is not tuple:
+            raise ValueError("attempts must be an immutable tuple.")
+        for name in ("total_attempts", "dropped_attempts"):
+            value = getattr(self, name)
+            if type(value) is not int or value < 0:
+                raise ValueError(f"{name} must be a non-negative integer.")
+        if self.total_attempts != len(self.attempts) + self.dropped_attempts:
+            raise ValueError(
+                "total_attempts must equal retained plus dropped attempts."
+            )
+
+    @property
+    def complete(self) -> bool:
+        return self.dropped_attempts == 0
+
+    def require_complete(self) -> None:
+        if not self.complete:
+            raise RuntimeError(
+                "Decoder candidate batch overflowed; refuse this artifact."
+            )
+
+
+class DecoderCandidateCollector:
+    """Bounded opt-in sink for immutable decoder-candidate observations.
+
+    The decoder supplies causal values captured before its optional gate and
+    completes each row only after ranking/emission.  Event identifiers live
+    here rather than on :class:`PolyphonicMidiEvent`, so instrumentation cannot
+    change the public MIDI event contract.
+    """
+
+    def __init__(
+        self,
+        *,
+        recording_key: str,
+        leakage_group_key: str,
+        corpus_id: str,
+        maximum_attempts: int = 4096,
+    ) -> None:
+        for name, value in (
+            ("recording_key", recording_key),
+            ("leakage_group_key", leakage_group_key),
+            ("corpus_id", corpus_id),
+        ):
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError(f"{name} must be a non-empty string.")
+        if (
+            type(maximum_attempts) is not int
+            or maximum_attempts <= 0
+        ):
+            raise ValueError("maximum_attempts must be a positive integer.")
+        self._identity = (recording_key, leakage_group_key, corpus_id)
+        self._attempts: deque[DecoderCandidateAttempt] = deque(
+            maxlen=maximum_attempts
+        )
+        self._lock = Lock()
+        self._total_attempts = 0
+        self._dropped_attempts = 0
+        self._batch_total_attempts = 0
+        self._batch_dropped_attempts = 0
+
+    @property
+    def recording_key(self) -> str:
+        return self._identity[0]
+
+    @property
+    def leakage_group_key(self) -> str:
+        return self._identity[1]
+
+    @property
+    def corpus_id(self) -> str:
+        return self._identity[2]
+
+    @property
+    def maximum_attempts(self) -> int:
+        maximum = self._attempts.maxlen
+        if maximum is None:  # Construction above always sets a finite bound.
+            raise RuntimeError("Decoder candidate collector lost its bound.")
+        return maximum
+
+    def _event_id(self, frame_index: int, pitch: int) -> str:
+        canonical = json.dumps(
+            (
+                "decoder-noteon-v1",
+                self.corpus_id,
+                self.leakage_group_key,
+                self.recording_key,
+                frame_index,
+                pitch,
+            ),
+            ensure_ascii=False,
+            separators=(",", ":"),
+        ).encode("utf-8")
+        return "decoder-noteon-v1:" + hashlib.sha256(canonical).hexdigest()
+
+    def record_candidate(
+        self,
+        *,
+        frame_index: int,
+        pitch: int,
+        candidate_reason: str,
+        candidate_score: float,
+        frame_probability: float,
+        onset_probability: float,
+        harmonic_support: float,
+        audio_onset_available: bool,
+        audio_onset_recent: bool,
+        active_polyphony: int,
+        gate_eligible: bool,
+        post_gate_rank: int | None,
+        post_gate_selected: bool,
+        emitted_noteon: bool,
+    ) -> DecoderCandidateAttempt:
+        """Store one completed observation without retaining unbounded data."""
+        return self.record_candidates(({
+            "frame_index": frame_index,
+            "pitch": pitch,
+            "candidate_reason": candidate_reason,
+            "candidate_score": candidate_score,
+            "frame_probability": frame_probability,
+            "onset_probability": onset_probability,
+            "harmonic_support": harmonic_support,
+            "audio_onset_available": audio_onset_available,
+            "audio_onset_recent": audio_onset_recent,
+            "active_polyphony": active_polyphony,
+            "gate_eligible": gate_eligible,
+            "post_gate_rank": post_gate_rank,
+            "post_gate_selected": post_gate_selected,
+            "emitted_noteon": emitted_noteon,
+        },))[0]
+
+    def record_candidates(
+        self,
+        rows: Iterable[Mapping[str, object]],
+    ) -> tuple[DecoderCandidateAttempt, ...]:
+        """Validate a frame batch, then commit it without waiting for a lock."""
+        prepared: list[DecoderCandidateAttempt] = []
+        for row in rows:
+            values = dict(row)
+            frame_index = values.get("frame_index")
+            pitch = values.get("pitch")
+            emitted_noteon = values.get("emitted_noteon")
+            event_id = (
+                self._event_id(frame_index, pitch)
+                if (
+                    type(frame_index) is int
+                    and type(pitch) is int
+                    and emitted_noteon is True
+                )
+                else None
+            )
+            prepared.append(DecoderCandidateAttempt(
+                recording_key=self.recording_key,
+                leakage_group_key=self.leakage_group_key,
+                corpus_id=self.corpus_id,
+                event_id=event_id,
+                **values,
+            ))
+        if not prepared:
+            return ()
+        if not self._lock.acquire(blocking=False):
+            raise RuntimeError(
+                "Decoder candidate collector is busy; refuse this artifact."
+            )
+        try:
+            for attempt in prepared:
+                if len(self._attempts) == self._attempts.maxlen:
+                    self._dropped_attempts += 1
+                    self._batch_dropped_attempts += 1
+                self._attempts.append(attempt)
+                self._total_attempts += 1
+                self._batch_total_attempts += 1
+        finally:
+            self._lock.release()
+        return tuple(prepared)
+
+    @property
+    def attempts(self) -> tuple[DecoderCandidateAttempt, ...]:
+        """Return an immutable point-in-time copy of the bounded buffer."""
+        with self._lock:
+            return tuple(self._attempts)
+
+    @property
+    def total_attempts(self) -> int:
+        with self._lock:
+            return self._total_attempts
+
+    @property
+    def dropped_attempts(self) -> int:
+        with self._lock:
+            return self._dropped_attempts
+
+    def drain(self) -> DecoderCandidateBatch:
+        """Atomically drain rows together with any overflow evidence."""
+        with self._lock:
+            batch = DecoderCandidateBatch(
+                attempts=tuple(self._attempts),
+                total_attempts=self._batch_total_attempts,
+                dropped_attempts=self._batch_dropped_attempts,
+            )
+            self._attempts.clear()
+            self._batch_total_attempts = 0
+            self._batch_dropped_attempts = 0
+            return batch
 
 
 def collapse_emitted_candidate_episodes(
