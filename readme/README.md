@@ -17,8 +17,21 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `causal_candidate_v2_independent_validation_attempt4_authorization_pending_external_review`.
-- Statut : `en cours — attempt3 classée premetric asset-path-resolution; préparation attempt4 sans exécution`.
+- Étape : `causal_candidate_v2_independent_validation_attempt4_closed_inconclusive`.
+- Statut : `terminé — post-claim timeout, phase scientifique indéterminée, V2 inconclusive fail-closed`.
+- Clôture provenance-only Attempt4 : l'unique exécution autorisée au commit
+  `df2a2a0641d7897195ee0712002bcc48e97858e6` a créé son marker persistant,
+  acquis le lease et créé sa destination, puis a atteint le timeout externe
+  exact de `900 s`. Le marker fait `628` octets, SHA-256
+  `00c677be7d78771e1b8c82d6bdf394dc8c9af64441a7f12f99c02f832908f1b0`.
+  La destination est vide, le lock vide reste présent, et aucun processus ne
+  subsiste. Aucun rapport ni métrique A/B n'a été publié. Le point scientifique
+  atteint reste indéterminable : une métrique a pu exister seulement en mémoire.
+  Par conséquent, `ab_metrics_produced=unknown`, `ab_metrics_observed=false`,
+  le verdict V2 indépendant est `inconclusive_fail_closed`, la cohorte n'est
+  plus réutilisable comme validation indépendante et tout retry est interdit.
+  Le marker, le lock et la destination ne doivent pas être supprimés. Rapport :
+  `readme/results/2026-08-10_causal-candidate-v2-independent-validation-attempt4-post-claim-timeout.md`.
 - Demande d'autorisation attempt3, sans exécution : attempt2 a consommé son
   approval et son marker, puis s'est arrêtée avant TensorFlow et avant tout
   actif scientifique parce que le registre d'evidence attendu était absent du
