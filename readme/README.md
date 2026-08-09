@@ -16,18 +16,22 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-08-09T12:08:26+04:00`.
+- Mise à jour : `2026-08-09T12:47:23+04:00`.
 - Étape : `decoder_candidate_guitarset_expansion_hypothesis`.
-- Statut : `en cours — unique replay CPU V3 de 90 prises démarré ; attendre son
-  rapport terminal avant toute interprétation`.
-- Exécution active vérifiée : job Mac
-  `decoder-candidate-guitarset-v3-cpu-20260809`, démarré à
-  `2026-08-09T19:07:52Z`, CPU forcé, limite murale `3 600 s`, commit exact
-  `4ddc88666a1c55725c18a813c63ecd25a03bf298`, verrou worker détenu. Le
-  worktree Mac était propre et le préflight de lancement a confirmé les SHA du
-  plan Policy A v2 et du registre d'actifs. Aucun résultat, fit, calibration,
-  validation, export, live ou test verrouillé ne doit être inféré avant le
-  statut terminal et l'inspection de l'artefact.
+- Statut : `terminé — replay CPU V3 de 90 prises, en attente de revue humaine`.
+- Résultat vérifié : le job Mac
+  `decoder-candidate-guitarset-v3-cpu-20260809` a terminé avec `exit_code=0`
+  et l'état `complete_non_authorizing` au commit
+  `4ddc88666a1c55725c18a813c63ecd25a03bf298`. Les 90 prises train-only ont
+  produit 3 139 candidats supervisés (684 positifs causaux, 2 455 faux NoteOn),
+  0 perte et 3 139 `event_id` uniques. La porte de représentation passe, y
+  compris GuitarSet positif `31/28/14` pour fit/dev/calibration, mais
+  `fit_authorized=false` reste obligatoire. `locked_test_used=false`; aucun
+  fit, calibration, validation, export, live, choix de seuil ou test verrouillé
+  n'est autorisé. Les horodatages du worker Mac sont conservés dans le rapport
+  sans réconciliation : début `2026-08-09T19:07:52Z`, fin
+  `2026-08-09T19:41:24Z`. Rapport :
+  `readme/results/2026-08-09_decoder-candidate-guitarset-v3-mining-run.md`.
 - Résultat vérifié : le job Mac `decoder-candidate-extended-mining-cpu-20260809`
   a terminé sans erreur au commit `42a88b0d…`, avec `locked_test_used=false`,
   3 057 candidats supervisés (639 positifs, 2 418 négatifs), zéro perte et
@@ -44,10 +48,11 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   SHA-256 LF `db55930a…5683`, avant Git, actifs ou TensorFlow. Les substitutions
   par chemin externe ou octets modifiés échouent fermées. Aucun calcul ne suit ;
   la revue externe du correctif est approuvée. L'unique replay CPU V3 est
-  maintenant en cours ; aucun second lancement ni changement de contrat n'est
-  autorisé. Rapports :
+  maintenant terminé ; aucun second lancement ni changement de contrat n'est
+  autorisé avant la revue du rapport terminal. Rapports :
   `readme/results/2026-08-09_decoder-candidate-guitarset-expansion-hypothesis.md`
-  et `readme/results/2026-08-09_decoder-candidate-guitarset-protocol-binding-fix.md`.
+  et `readme/results/2026-08-09_decoder-candidate-guitarset-protocol-binding-fix.md`,
+  puis `readme/results/2026-08-09_decoder-candidate-guitarset-v3-mining-run.md`.
 - Résultat scientifique conservé : la tête `independent_note` précédente reste
   un résultat négatif, saturé près de 1, et ne doit promouvoir ni checkpoint ni
   seuil. Le test verrouillé reste fermé.
@@ -209,11 +214,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 ## Prochaine action réelle
 
-1. Faire relire le contrat v3 : table de comptes par corpus, sélection canonique
-   de 90 prises, sept SHA inchangés, porte à 8 inchangée et absence de fit.
-2. Après approbation seulement, synchroniser le commit revu sur le Mac puis
-   préflight une unique passe CPU train-only de 90 prises ; arrêter l'étape
-   après son corpus candidat et son rapport.
+1. Faire relire le résultat V3 : provenance des 90 prises, sept SHA, comptes
+   par corpus/partition, réconciliations, artefacts et `fit_authorized=false`.
+2. Ne définir une nouvelle hypothèse qu'après cette revue ; aucun fit ne découle
+   mécaniquement du passage de la porte de représentation.
 3. Conserver le test verrouillé fermé : aucun fit, calibration, validation,
    export, live ou sélection de seuil n'est autorisé à cette étape.
 
@@ -557,11 +561,16 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
   revue externe l'a ensuite approuvé et l'unique job CPU V3
   `decoder-candidate-guitarset-v3-cpu-20260809` a démarré à
   `2026-08-09T19:07:52Z` au commit exact `4ddc886…`. CPU forcé, limite murale
-  `3 600 s`, verrou actif ; aucun résultat n'est encore disponible et aucune
-  autre action scientifique n'est autorisée avant son rapport terminal.
+  `3 600 s`, verrou actif. Le job termine ensuite avec `exit_code=0` et
+  `complete_non_authorizing` : 3 139 candidats supervisés (684 positifs,
+  2 455 négatifs), 0 perte et 3 139 `event_id` uniques. La porte à 8 passe,
+  dont GuitarSet positif `31/28/14`, mais `fit_authorized=false` et
+  `locked_test_used=false` restent obligatoires. Aucune autre action
+  scientifique n'est autorisée avant la revue du rapport terminal.
   Rapports :
   `readme/results/2026-08-09_decoder-candidate-guitarset-expansion-hypothesis.md`
-  et `readme/results/2026-08-09_decoder-candidate-guitarset-protocol-binding-fix.md`.
+  et `readme/results/2026-08-09_decoder-candidate-guitarset-protocol-binding-fix.md`,
+  puis `readme/results/2026-08-09_decoder-candidate-guitarset-v3-mining-run.md`.
 <!-- PROJECT_TASK:decoder_candidate_asset_evidence_contract:END -->
 <!-- JOURNAL_END -->
 ## Rapports détaillés
@@ -595,6 +604,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-09 — passe CPU étendue Policy A, porte refusée](results/2026-08-09_decoder-candidate-extended-mining-run.md)
 - [2026-08-09 — hypothèse d'extension GuitarSet canonique](results/2026-08-09_decoder-candidate-guitarset-expansion-hypothesis.md)
 - [2026-08-09 — correctif de scellement du protocole GuitarSet v3](results/2026-08-09_decoder-candidate-guitarset-protocol-binding-fix.md)
+- [2026-08-09 — minage CPU V3 GuitarSet, porte passée mais non autorisant](results/2026-08-09_decoder-candidate-guitarset-v3-mining-run.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.
