@@ -3,8 +3,9 @@
 This module deliberately has no CLI and cannot open audio, labels, a Keras
 model, a checkpoint, or asset evidence.  It only verifies the sealed protocol,
 the complete manifest metadata, and the historical selection before deriving
-the exact independent validation cohort.  A separately reviewed runner will be
-required before any real asset-evidence creation or CPU evaluation.
+the exact independent validation cohort.  The current protocol authorizes only
+a separate byte-level evidence builder; a separately reviewed reader and
+runner remain required before any CPU evaluation.
 """
 from __future__ import annotations
 
@@ -36,8 +37,9 @@ INDEPENDENT_V2_SELECTION_SEED = 47
 INDEPENDENT_V2_GATE_PLACEMENT = "post_ranking_pre_noteon"
 INDEPENDENT_V2_THRESHOLD = 0.31
 INDEPENDENT_V2_PROTOCOL_STATUS = (
-    "synthetic_asset_evidence_implementation_pending_external_review"
+    "independent_validation_asset_evidence_builder_authorized"
 )
+INDEPENDENT_V2_ALLOWED_NOW = ("independent_validation_asset_evidence_build",)
 INDEPENDENT_V2_FROZEN_ARTIFACT_SHA256 = {
     "v2_execution_report_sha256": "43e28b4ebfe33f5ad0f28be1c4b61704af8cebc08012458cbd645d3027b9acf9",
     "transcription_checkpoint_sha256": "1ce8ac44ca7156d4bc058b5b37580805f2ab6536b380636c04b9a31b1a411325",
@@ -48,7 +50,7 @@ INDEPENDENT_V2_FROZEN_ARTIFACT_SHA256 = {
     "reference_decoder_config_sha256": "c16be48271912c99c4237345e8406e39b88490b5565047757f6ca9e905615f96",
 }
 INDEPENDENT_V2_PROTOCOL_SHA256 = (
-    "38cf5f397657e99dfcff9bc747ed35824d18dade4affa847478864725fc468c3"
+    "d63655c388991f3782a738e5bba58f0409ae79f297a3d5009dab7971349ba015"
 )
 _SEALED_INDEPENDENT_V2_COHORTS: dict[int, weakref.ReferenceType[object]] = {}
 _ASSET_EVIDENCE_REQUIREMENTS: dict[int, weakref.ReferenceType[object]] = {}
@@ -326,10 +328,10 @@ def _require_exact_protocol(repository_root: Path) -> tuple[Mapping[str, object]
     if payload.get("purpose") != "causal_candidate_fit_v2_post_ranking_independent_validation_contract":
         raise ValueError("independent V2 protocol purpose is invalid.")
     if payload.get("status") != INDEPENDENT_V2_PROTOCOL_STATUS:
-        raise RuntimeError("independent V2 protocol is not pending external review.")
+        raise RuntimeError("independent V2 protocol status is not builder-authorized.")
     authorization = _require_mapping(payload.get("authorization_scope"), "authorization_scope")
-    if tuple(authorization.get("allowed_now", ())) != ("external_review",):
-        raise RuntimeError("independent V2 protocol is not review-only.")
+    if tuple(authorization.get("allowed_now", ())) != INDEPENDENT_V2_ALLOWED_NOW:
+        raise RuntimeError("independent V2 protocol does not authorize only its builder.")
     return payload, digest
 
 

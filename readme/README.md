@@ -17,8 +17,8 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `causal_candidate_v2_independent_validation_asset_evidence_review_fix`.
-- Statut : `terminé — correctif synthétique des garde-fous de preuve d'actifs; revue externe requise avant tout actif ou calcul réel`.
+- Étape : `causal_candidate_v2_independent_validation_asset_evidence_builder_authorization`.
+- Statut : `terminé — autorisation séparée et scellée du seul builder byte-level; revue externe requise avant tout hachage d'actif réel`.
 - Anomalie pré-métrique V2 vérifiée : le job unique
   `causal-candidate-v2-train-dev-cpu-20260809`, lancé au commit approuvé
   `ddd15be4fbf7e47205a0025f80821e2446ef9720` avec CPU et `900 s`, termine
@@ -138,6 +138,18 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   scientifique. Aucun registre réel n'est créé : la seule action suivante
   reste la revue externe de ce correctif. Rapport :
   `readme/results/2026-08-10_causal-candidate-v2-independent-validation-asset-evidence-review-fix.md`.
+- Autorisation builder V2 indépendante, sans accès aux actifs : la seconde
+  revue externe du correctif `5fd4fc8` est approuvée. Le nouveau protocole
+  scellé (SHA-256 `d63655c3…9ba015`) autorise uniquement
+  `independent_validation_asset_evidence_build` : le builder pourra, lors de
+  l'étape distincte autorisée, hacher et publier atomiquement la preuve des
+  `30` audio et `30` labels de la cohorte validation indépendante. Il garde
+  `reader_authorized_now=false` et ne contient encore ni SHA source de preuve
+  ni SHA attendu de registre. Le lecteur/validateur, tout chargement de modèle,
+  décodage d'actif, évaluation, fit, calibration, export, live et test
+  verrouillé restent interdits. Ce commit ne lance pas le builder et n'ouvre
+  aucun actif projet. Rapport :
+  `readme/results/2026-08-10_causal-candidate-v2-independent-validation-asset-evidence-builder-authorization.md`.
 - Correctif d'intégration V2 sans calcul : le worker Windows n'autorise
   désormais l'accusé dédié qu'au module exact
   `src.polyphonic.run_causal_candidate_v2_train_dev_diagnostic`, avec CPU,

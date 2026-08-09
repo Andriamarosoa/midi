@@ -1,14 +1,15 @@
 {
   "schema_version": 1,
   "purpose": "causal_candidate_fit_v2_post_ranking_independent_validation_contract",
-  "status": "synthetic_asset_evidence_implementation_pending_external_review",
+  "status": "independent_validation_asset_evidence_builder_authorized",
   "locked_test_used": false,
   "authorization_scope": {
     "allowed_now": [
-      "external_review"
+      "independent_validation_asset_evidence_build"
     ],
     "forbidden_now": [
-      "real_audio_or_label_access",
+      "asset_evidence_reader_or_validation",
+      "asset_content_decoding",
       "model_loading",
       "real_runner_execution",
       "fit",
@@ -130,7 +131,7 @@
       "ordered_recording_keys_sha256",
       "recording_keys"
     ],
-    "builder_authorized_now": false,
+    "builder_authorized_now": true,
     "reader_authorized_now": false,
     "source_evidence_protocol_sha256": null,
     "expected_evidence_sha256": null
@@ -168,5 +169,5 @@
     "guitarset_claim_forbidden": true,
     "automatic_promotion": false
   },
-  "next_action": "External review of the synthetic independent-validation asset-evidence implementation only. No project asset-evidence build, model load, audio or label access, evaluation, fit, calibration, export, live use, or locked-test access is authorized."
+  "next_action": "Execute exactly one separately reviewed, byte-level asset-evidence builder for the fixed 30-recording independent validation cohort; it may hash and atomically publish only those 30 audio and 30 label files. Reader/validation, model loading, decoding, evaluation, fit, calibration, export, live use and locked-test access remain forbidden until a separate reader protocol seals the resulting evidence SHA-256."
 }
