@@ -1,7 +1,9 @@
 # Runner V2 indépendant — implémentation contract-only
 
-Cette étape ajoute uniquement le shell fail-closed du runner prévu par le
-contrat approuvé. Le runner charge et vérifie le contrat scellé, puis refuse
+Cette étape complète le shell fail-closed du runner prévu par le contrat
+approuvé. Le runner expose les phases pures d'orchestration (préflight,
+cohorte, evidence, artefacts, frontière scientifique lazy, A/B, rapport et
+décision), puis refuse
 toute exécution tant qu'une capability one-job séparée, factory-attestée et
 liée au commit, au contrat, au CPU, au délai de 900 secondes et à l'identité
 du job n'existe pas.
@@ -11,7 +13,7 @@ main, un appel à `main()`, un booléen, un chemin ou une variable d'environneme
 ne peuvent donc pas ouvrir d'actif, charger TensorFlow ou produire une
 métrique.
 
-Vérifications contract-only : py_compile OK ; 9 tests ciblés OK ;
+Vérifications contract-only : py_compile OK ; 28 tests ciblés OK ;
 `git diff --check` OK. Aucun audio, label, manifeste scientifique, registre,
 modèle, checkpoint, TensorFlow, inférence, métrique, job Mac, fit, calibration,
 export, live ou test verrouillé n'a été utilisé.

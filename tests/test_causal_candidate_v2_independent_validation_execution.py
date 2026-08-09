@@ -4,6 +4,7 @@ from pathlib import Path
 import subprocess
 import sys
 import unittest
+import hashlib
 
 from src.polyphonic import run_causal_candidate_v2_independent_validation_execution as runner
 
@@ -49,6 +50,62 @@ class IndependentV2ExecutionRunnerTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(RuntimeError, "not authorized"):
             runner.run_authorized_independent_v2(Path(__file__).resolve().parents[1], forged)
+
+    def test_phase_order_is_frozen(self) -> None:
+        self.assertEqual(runner.phase_order()[:4], ("authorization", "contract", "runtime", "cohort"))
+        self.assertEqual(runner.phase_order()[-3:], ("ab", "metrics", "report"))
+
+    def test_state_machine_is_one_shot(self) -> None:
+        state = runner.OneShotStateMachine()
+        state.advance(runner.OneShotPhase.SCIENTIFIC_ASSET_OPENED)
+        state.advance(runner.OneShotPhase.INFERENCE_STARTED)
+        state.advance(runner.OneShotPhase.AB_METRIC_PRODUCED)
+        state.advance(runner.OneShotPhase.COHORT_CONSUMED)
+        self.assertTrue(state.cohort_consumed)
+        with self.assertRaisesRegex(RuntimeError, "cannot return"):
+            state.advance(runner.OneShotPhase.PRE_SCIENCE)
+
+    def test_report_schema_rejects_missing_metric_and_guitarset(self) -> None:
+        base = {
+            "views": runner.REPORT_VIEWS,
+            "granularity": runner.REPORT_GRANULARITIES,
+            "datasets": runner.REPORT_DATASETS,
+            "recording_count": 30,
+            "independent_group_count": 20,
+            "metrics": runner.REPORT_METRICS,
+            "provenance": runner.REPORT_PROVENANCE,
+            "locked_test_used": False,
+            "numeric_values": {name: 0.0 for name in runner.REPORT_METRICS},
+        }
+        runner.validate_future_report(base)
+        broken = dict(base)
+        broken["metrics"] = runner.REPORT_METRICS[:-1]
+        with self.assertRaisesRegex(ValueError, "metrics"):
+            runner.validate_future_report(broken)
+        broken = dict(base)
+        broken["datasets"] = runner.REPORT_DATASETS + ("guitarset_poly_mix",)
+        with self.assertRaisesRegex(ValueError, "GuitarSet"):
+            runner.validate_future_report(broken)
+
+    def test_report_schema_rejects_nonfinite(self) -> None:
+        report = {
+            "views": runner.REPORT_VIEWS, "granularity": runner.REPORT_GRANULARITIES,
+            "datasets": runner.REPORT_DATASETS, "recording_count": 30,
+            "independent_group_count": 20, "metrics": runner.REPORT_METRICS,
+            "provenance": runner.REPORT_PROVENANCE, "locked_test_used": False,
+            "numeric_values": {runner.REPORT_METRICS[0]: float("nan")},
+        }
+        with self.assertRaisesRegex(ValueError, "non-finite"):
+            runner.validate_future_report(report)
+
+    def test_frozen_artifact_hashes_reject_mutation(self) -> None:
+        raw = b"synthetic"
+        expected = {name: hashlib.sha256(raw).hexdigest() for name in runner.FROZEN_ARTIFACT_NAMES}
+        runner.validate_frozen_artifact_hashes({name: raw for name in runner.FROZEN_ARTIFACT_NAMES}, expected)
+        broken = dict(expected)
+        broken[runner.FROZEN_ARTIFACT_NAMES[0]] = "0" * 64
+        with self.assertRaisesRegex(ValueError, "SHA mismatch"):
+            runner.validate_frozen_artifact_hashes({name: raw for name in runner.FROZEN_ARTIFACT_NAMES}, broken)
 
 
 if __name__ == "__main__":
