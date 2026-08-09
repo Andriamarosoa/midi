@@ -1,0 +1,157 @@
+{
+  "schema_version": 1,
+  "purpose": "causal_candidate_fit_v2_post_ranking_independent_validation_execution_contract",
+  "status": "sealed_execution_contract_pending_external_review",
+  "locked_test_used": false,
+  "authorization_scope": {
+    "allowed_now": [
+      "external_review"
+    ],
+    "forbidden_now": [
+      "independent_validation_asset_evidence_build",
+      "asset_evidence_reader_or_validation",
+      "asset_content_decoding",
+      "model_loading",
+      "runner_implementation",
+      "real_runner_execution",
+      "fit",
+      "recalibration",
+      "threshold_search",
+      "historical_validation_reuse",
+      "export",
+      "live",
+      "locked_test"
+    ]
+  },
+  "scientific_question": "With the exact frozen V1 head, threshold, twelve causal pre-gate features, audio-evidence policy, transcription checkpoint, and post-ranking/pre-NoteOn placement, does V2 reduce causal false NoteOns on the separately derived GAPS and Guitar-TECHS validation cohort without material recall, F1, fragmentation, retrigger, or latency regressions?",
+  "prerequisite_provenance": {
+    "closed_independent_protocol_relative_path": "configs/causal_candidate_fit_v2_independent_validation_protocol.json",
+    "closed_independent_protocol_sha256": "def274de1d1c738c7d4342f8f16ef2aaab99e9b2f87d6641d012d36ab6a34119",
+    "closed_independent_protocol_status": "independent_validation_asset_evidence_revalidated_pending_external_review",
+    "manifest_sha256": "b28cb17cfb80a82860ab44635b2c6d05718243e027a8fc8199fe72e27f1b8ed7",
+    "historical_v1_validation_selection_sha256": "8c3cf53c7f5dcf086b70767e28499c3164aa307059652a6d0a2fc87159f9dcbc",
+    "policy_a_partition_plan_sha256": "a8347e4e6300dc59b48eab253186fd60ae21cd769fa21d647db4d7e0893685f4",
+    "asset_evidence_relative_path": "tmp/local/causal_candidate_v2_independent_validation_asset_evidence_20260810.json",
+    "asset_evidence_sha256": "10307a642185b3ef64a15a1120ec44ea4460c5875018b02fdaa7a18512822aee",
+    "asset_evidence_builder_protocol_sha256": "d63655c388991f3782a738e5bba58f0409ae79f297a3d5009dab7971349ba015",
+    "asset_evidence_entries": 30,
+    "asset_evidence_revalidated_assets": {
+      "audio": 30,
+      "labels": 30
+    }
+  },
+  "frozen_v2_intervention": {
+    "v2_train_dev_execution_report_sha256": "43e28b4ebfe33f5ad0f28be1c4b61704af8cebc08012458cbd645d3027b9acf9",
+    "transcription_checkpoint_sha256": "1ce8ac44ca7156d4bc058b5b37580805f2ab6536b380636c04b9a31b1a411325",
+    "model_sha256": "b9320cd004ed686720e282e4338c4a6413c2ef3dd701d421de3533f710d8a59e",
+    "standardizer_sha256": "0600aa1aa75eb008f04e299de3ffe9d7b6b0a722b177750b42e0967740df5e3b",
+    "threshold": 0.31,
+    "encoded_feature_count": 12,
+    "candidate_gate_placement": "post_ranking_pre_noteon",
+    "audio_evidence_config_sha256": "45edbb712415c5b62f10a1405678fc28cee083891131108b2875ce8f71abcd3e",
+    "evaluation_config_sha256": "245285783eb395e1c16f9773cf9a15565510ba289467d63ad6a7d725bae19804",
+    "reference_decoder_config_sha256": "c16be48271912c99c4237345e8406e39b88490b5565047757f6ca9e905615f96"
+  },
+  "cohort": {
+    "manifest_split": "validation",
+    "classification": "independent_validation_non_promotional",
+    "recording_count": 30,
+    "independent_group_count": 20,
+    "recordings_per_dataset": {
+      "gaps_poly_mix": 10,
+      "guitar_techs_poly_directinput": 10,
+      "guitar_techs_poly_micamp": 10,
+      "guitarset_poly_mix": 0
+    },
+    "selection_is_derived_from_full_manifest": true,
+    "forbid_manual_recording_selection": true,
+    "forbid_metric_audio_or_label_based_selection": true,
+    "exclude_historical_recording_keys": true,
+    "exclude_historical_leakage_groups": true,
+    "exclude_policy_a_eligible_train_groups": true,
+    "guitarset_claim_forbidden": true
+  },
+  "future_runner_semantics": {
+    "runner_module_to_implement": "src.polyphonic.run_causal_candidate_v2_independent_validation_execution",
+    "current_runner_exists": false,
+    "current_execution_authorized": false,
+    "single_cpu_job": true,
+    "wall_timeout_seconds": 900,
+    "single_transcription_inference_per_recording": true,
+    "same_transcription_predictions_reused_across_ab": true,
+    "same_audio_evidence_masks_reused_across_ab": true,
+    "audio_evidence_override_forbidden": true,
+    "reference_has_no_causal_candidate_gate": true,
+    "candidate_uses_only_the_frozen_v2_intervention": true,
+    "candidate_gate_features_are_the_frozen_pre_ranking_v1_snapshot": true,
+    "candidate_gate_placement_must_equal": "post_ranking_pre_noteon",
+    "independent_decoder_states_after_divergence": true,
+    "same_hop_backfill_after_candidate_rejection": false,
+    "execution_time_asset_gate": "A separately reviewed future runner must rehash canonical evidence bytes and all 30 audio plus 30 label assets, construct only an in-memory validated capability, and then open the identical attested ManifestItem objects. The currently closed generic reader must not be used as a standalone operation.",
+    "no_model_or_threshold_selection": true,
+    "no_automatic_retry": true,
+    "stop_after_report": true
+  },
+  "required_before_any_future_model_loading": [
+    "implement_and_externally_review_a_new_fail_closed_runner_without_executing_it",
+    "seal_a_separate_one_job_invocation_authorization_with_the_exact_reviewed_runner_commit",
+    "verify_the_execution_contract_raw_bytes_before_any_manifest_or_asset_access",
+    "verify_the_closed_independent_protocol_raw_bytes_and_status",
+    "verify_the_historical_selection_raw_bytes",
+    "derive_the_exact_thirty_recording_cohort_from_the_full_manifest_before_opening_audio_or_labels",
+    "verify_all_frozen_v1_v2_artifact_hashes_before_tensorflow_or_audio_label_access",
+    "rehash_the_canonical_evidence_and_all_sixty_selected_assets_inside_the_future_runner_before_opening_an_asset",
+    "require_cpu_only_clean_exact_git_worktree_no_active_heavy_job_and_a_fresh_destination",
+    "reject_any_test_row_historical_recording_or_historical_or_policy_a_leakage_overlap",
+    "assert_post_ranking_pre_noteon_placement_before_shared_transcription_inference"
+  ],
+  "required_report_for_any_future_execution": {
+    "provenance": [
+      "git_commit",
+      "worker_device",
+      "execution_contract_sha256",
+      "closed_independent_protocol_sha256",
+      "asset_evidence_sha256",
+      "asset_evidence_builder_protocol_sha256",
+      "manifest_sha256",
+      "historical_selection_sha256",
+      "all_frozen_artifact_sha256",
+      "all_thirty_recording_identities_and_twenty_leakage_groups",
+      "candidate_gate_placement",
+      "locked_test_used"
+    ],
+    "paired_metrics": [
+      "onset",
+      "onset_offset",
+      "strictly_causal_noteon",
+      "strictly_causal_latency",
+      "retriggers",
+      "diagnostics",
+      "low_midi_40_51",
+      "causal_candidate_gate_diagnostics",
+      "paired_event_deltas"
+    ],
+    "granularity": [
+      "global",
+      "per_dataset",
+      "per_recording",
+      "per_independent_leakage_group"
+    ],
+    "guitarset_result_must_be_absent": true,
+    "stop_after_report": true
+  },
+  "pre_registered_interpretation_rules": {
+    "all_rules_must_pass_for_positive_independent_evidence": true,
+    "global_causal_false_noteon_relative_reduction_minimum": 0.01,
+    "per_dataset_causal_false_noteons_must_not_increase": true,
+    "global_causal_recall_within_250ms_maximum_drop": 0.002,
+    "per_dataset_causal_recall_within_250ms_maximum_drop": 0.005,
+    "global_onset_f1_maximum_drop": 0.001,
+    "per_dataset_onset_f1_maximum_drop": 0.002,
+    "retriggers_and_excess_fragments_must_not_increase": true,
+    "causal_latency_p50_and_p90_maximum_increase_ms": 5.804988662131519,
+    "guitarset_claim_forbidden": true,
+    "automatic_promotion": false
+  },
+  "next_action": "External review of this declarative execution contract only. The next possible code change is a synthetic, fail-closed runner implementation; it must not open assets, load models, invoke TensorFlow, or run the independent cohort."
+}

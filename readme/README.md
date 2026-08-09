@@ -17,8 +17,8 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `causal_candidate_v2_independent_validation_asset_evidence_revalidated`.
-- Statut : `terminé — unique revalidation byte-level réussie; builder/lecteur refermés et revue externe requise avant tout contrat d'exécution`.
+- Étape : `causal_candidate_v2_independent_validation_execution_contract`.
+- Statut : `en cours — contrat d'exécution déclaratif scellé; revue externe requise, sans runner ni calcul réel`.
 - Anomalie pré-métrique V2 vérifiée : le job unique
   `causal-candidate-v2-train-dev-cpu-20260809`, lancé au commit approuvé
   `ddd15be4fbf7e47205a0025f80821e2446ef9720` avec CPU et `900 s`, termine
@@ -184,6 +184,20 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   aussitôt refermé (SHA-256 `def274de…a34119`, builder/reader `false/false`),
   donc aucune seconde revalidation ne peut démarrer avant revue. Rapport :
   `readme/results/2026-08-10_causal-candidate-v2-independent-validation-asset-evidence-revalidation.md`.
+- Contrat d'exécution V2 indépendant, déclaratif uniquement : le nouveau
+  protocole versionné SHA-256 `a2495774…d28b59` lie le protocole indépendant
+  fermé `def274de…a34119`, le registre revalidé `10307a64…22aee`, son
+  protocole builder source `d63655c3…9ba015`, le manifeste, la sélection
+  historique et le plan Policy A. Il gèle la cohorte validation indépendante
+  `10/10/10/0` (`30` prises, `20` groupes), tous les artefacts V1/V2, le seuil
+  `0,31`, les 12 features et le placement `post_ranking_pre_noteon`. Son seul
+  état est `external_review` : builder, lecteur, runner, accès aux actifs,
+  modèle, TensorFlow et tout calcul réel restent interdits. Il exige d'un futur
+  runner revu qu'il rehache le registre et les `30` audio + `30` labels avant
+  toute ouverture, exécute une seule passe CPU A/B puis s'arrête sans promotion
+  ni retry. Compilation et `19` tests synthétiques/provenance passent en
+  `1,650 s`, sans actif projet ni TensorFlow. Rapport :
+  `readme/results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md`.
 - Correctif d'intégration V2 sans calcul : le worker Windows n'autorise
   désormais l'accusé dédié qu'au module exact
   `src.polyphonic.run_causal_candidate_v2_train_dev_diagnostic`, avec CPU,
@@ -1039,6 +1053,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-10 — diagnostic V2 train/dev CPU, résultat exploratoire non promotionnel](results/2026-08-10_causal-candidate-v2-train-dev-diagnostic-run.md)
 - [2026-08-10 — contrat d'évaluation V2 indépendante GAPS/Guitar-TECHS, sans calcul](results/2026-08-10_causal-candidate-v2-independent-validation-contract.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
+- [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.
