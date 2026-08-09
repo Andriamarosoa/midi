@@ -18,7 +18,7 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 - Mise à jour : `2026-08-09`.
 - Étape : `causal_candidate_v2_train_dev_diagnostic_runner_integration`.
-- Statut : `anomalie — l'unique invocation V2 approuvée a échoué au préflight local Mac avant TensorFlow; nouvelle revue requise avant toute reprise`.
+- Statut : `anomalie — la matérialisation autorisée reste bloquée car les deux octets sources préenregistrés sont introuvables; aucune reconstruction ni reprise n'est autorisée`.
 - Anomalie pré-métrique V2 vérifiée : le job unique
   `causal-candidate-v2-train-dev-cpu-20260809`, lancé au commit approuvé
   `ddd15be4fbf7e47205a0025f80821e2446ef9720` avec CPU et `900 s`, termine
@@ -33,6 +33,16 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   inutilisés. Aucune relance n'est autorisée : il faut d'abord revoir la
   matérialisation contrôlée des artefacts locaux manquants. Rapport :
   `readme/results/2026-08-10_causal-candidate-v2-train-dev-preflight-missing-local-artifacts.md`.
+- Suivi de matérialisation, sans écriture : les deux fichiers originaux requis
+  (`decoder_candidate_partition_plan_v2.json` SHA
+  `a8347e4e…3685f4` et `decoder_candidate_asset_evidence_v1.json` SHA
+  `12dd74f2…e586507`) sont absents de tout `C:\Users\user\Desktop\midi` et
+  de `/Users/amcarene/midi-worker`; ils ne sont pas versionnés et `tmp/` est
+  ignoré par Git. Aucun SHA source n'est donc disponible à comparer ou copier.
+  Aucun dossier Mac, transfert, Python ou relance n'a été effectué. Ils ne
+  seront pas régénérés : fournir les deux originaux depuis une sauvegarde ou
+  indiquer leur emplacement est nécessaire avant une nouvelle revue. Rapport :
+  `readme/results/2026-08-10_causal-candidate-v2-artifact-materialization-blocked.md`.
 - Correctif d'intégration V2 sans calcul : le worker Windows n'autorise
   désormais l'accusé dédié qu'au module exact
   `src.polyphonic.run_causal_candidate_v2_train_dev_diagnostic`, avec CPU,
@@ -882,6 +892,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-09 — protocole du diagnostic V2 train-only dev](results/2026-08-09_causal-candidate-v2-train-dev-diagnostic-protocol.md)
 - [2026-08-09 — implémentation du runner V2 train-only dev](results/2026-08-09_causal-candidate-v2-train-dev-diagnostic-runner-implementation.md)
 - [2026-08-10 — anomalie de préflight V2, artefacts locaux Mac absents](results/2026-08-10_causal-candidate-v2-train-dev-preflight-missing-local-artifacts.md)
+- [2026-08-10 — matérialisation V2 bloquée, octets sources absents](results/2026-08-10_causal-candidate-v2-artifact-materialization-blocked.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.
