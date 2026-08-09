@@ -18,7 +18,21 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 - Mise à jour : `2026-08-09`.
 - Étape : `causal_candidate_v2_train_dev_diagnostic_runner_integration`.
-- Statut : `terminé — les deux corrections d'intégration V2 sont implémentées et testées; revue externe requise avant toute exécution réelle`.
+- Statut : `anomalie — l'unique invocation V2 approuvée a échoué au préflight local Mac avant TensorFlow; nouvelle revue requise avant toute reprise`.
+- Anomalie pré-métrique V2 vérifiée : le job unique
+  `causal-candidate-v2-train-dev-cpu-20260809`, lancé au commit approuvé
+  `ddd15be4fbf7e47205a0025f80821e2446ef9720` avec CPU et `900 s`, termine
+  `exited_nonzero`/code `1` à l'horodatage brut worker
+  `2026-08-10T01:02:26Z` (non réconcilié). L'accusé V2 et le
+  préflight worker ont passé, mais le runner ne trouve pas
+  `repository/tmp/local`, où il attend le plan Policy A et le registre
+  d'actifs locaux scellés. Il échoue donc pendant `load_sealed_v2_diagnostic_contract`,
+  avant TensorFlow, modèle, checkpoint, audio, labels, inférence ou métrique.
+  La destination V2 et le verrou actif sont tous deux absents après l'arrêt;
+  les 30 prises, les 12 validations historiques et le test verrouillé restent
+  inutilisés. Aucune relance n'est autorisée : il faut d'abord revoir la
+  matérialisation contrôlée des artefacts locaux manquants. Rapport :
+  `readme/results/2026-08-10_causal-candidate-v2-train-dev-preflight-missing-local-artifacts.md`.
 - Correctif d'intégration V2 sans calcul : le worker Windows n'autorise
   désormais l'accusé dédié qu'au module exact
   `src.polyphonic.run_causal_candidate_v2_train_dev_diagnostic`, avec CPU,
@@ -867,6 +881,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-09 — intégration A/B synthétique explicite de la porte V2](results/2026-08-09_causal-candidate-v2-synthetic-integration.md)
 - [2026-08-09 — protocole du diagnostic V2 train-only dev](results/2026-08-09_causal-candidate-v2-train-dev-diagnostic-protocol.md)
 - [2026-08-09 — implémentation du runner V2 train-only dev](results/2026-08-09_causal-candidate-v2-train-dev-diagnostic-runner-implementation.md)
+- [2026-08-10 — anomalie de préflight V2, artefacts locaux Mac absents](results/2026-08-10_causal-candidate-v2-train-dev-preflight-missing-local-artifacts.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.
