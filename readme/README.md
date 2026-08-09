@@ -42,6 +42,14 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   interdit encore fit, recalibration, recherche de seuil, export, live et test
   verrouillé. Aucun Mac job ni calcul validation n'a été lancé. Rapport :
   `readme/results/2026-08-09_causal-candidate-fit-v1-transport-and-validation-preregistration.md`.
+- Révision de contrat sans calcul après revue externe de `64ccc768` : l'A/B ne
+  prétend plus conserver les mêmes candidats après la première divergence. Il
+  impose une seule inférence et les mêmes masques audio, puis deux états de
+  décodeur causaux indépendants; les features de la branche candidate sont
+  calculées juste avant sa porte depuis son état propre. Toute surcharge audio
+  est interdite. Les deltas de latence causale `p50` et `p90` sont maintenant
+  chacun limités à `+1` hop (`5,804988662 ms`). L'implémentation et l'exécution
+  restent interdites jusqu'à la revue de cette révision.
 - Résultat vérifié : le job Mac
   `decoder-candidate-guitarset-v3-cpu-20260809` a terminé avec `exit_code=0`
   et l'état `complete_non_authorizing` au commit

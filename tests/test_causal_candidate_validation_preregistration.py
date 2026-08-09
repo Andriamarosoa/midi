@@ -79,10 +79,38 @@ class CausalCandidateValidationPreregistrationTests(unittest.TestCase):
         )
         self.assertEqual(gate["threshold"], 0.31)
         self.assertTrue(contract["single_transcription_inference_per_recording"])
-        self.assertTrue(contract["same_base_decoder_and_audio_evidence"])
-        self.assertTrue(contract["candidate_features_are_pre_gate_only"])
-        self.assertTrue(contract["candidate_head_must_reuse_the_same_pre_gate_candidates"])
-        self.assertTrue(contract["candidate_head_must_not_change_reference_events_or_base_inference"])
+        self.assertTrue(contract["same_base_transcription_predictions"])
+        self.assertTrue(contract["same_base_decoder_configuration"])
+        self.assertTrue(
+            contract["only_branch_specific_decoder_difference_is_causal_candidate_gate"]
+        )
+        self.assertTrue(contract["audio_evidence_override_forbidden"])
+        self.assertTrue(contract["audio_evidence_computed_once_per_recording"])
+        self.assertTrue(contract["same_audio_evidence_masks_reused_across_ab"])
+        self.assertTrue(contract["independent_decoder_state_after_gate_decisions"])
+        self.assertTrue(
+            contract["candidate_features_computed_immediately_pre_gate_from_candidate_state"]
+        )
+        self.assertTrue(
+            contract["candidate_head_must_not_change_reference_branch_or_base_inference"]
+        )
+        self.assertNotIn("candidate_head_must_reuse_the_same_pre_gate_candidates", contract)
+        self.assertEqual(
+            policy["decision_rules"][
+                "candidate_strictly_causal_latency_p50_delta_hops_maximum"
+            ],
+            1.0,
+        )
+        self.assertEqual(
+            policy["decision_rules"][
+                "candidate_strictly_causal_latency_p90_delta_hops_maximum"
+            ],
+            1.0,
+        )
+        self.assertEqual(
+            policy["decision_rules"]["causal_latency_hop_ms"],
+            5.804988662131519,
+        )
         self.assertTrue(
             policy["decision_rules"]["all_rules_must_pass_for_a_positive_ab_result"]
         )

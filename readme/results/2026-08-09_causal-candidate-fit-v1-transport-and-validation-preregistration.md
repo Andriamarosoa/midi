@@ -45,7 +45,7 @@ Les fichiers canoniques, normalisés LF par `.gitattributes`, sont :
 | Fichier | SHA-256 |
 | --- | --- |
 | `configs/causal_candidate_fit_v1_validation_selection_12.json` | `8c3cf53c7f5dcf086b70767e28499c3164aa307059652a6d0a2fc87159f9dcbc` |
-| `configs/causal_candidate_fit_v1_validation_ab_policy.json` | `53e8e26839ce7eadee0e4437ab1446c6a15370396862b09d9cf8964067e3029a` |
+| `configs/causal_candidate_fit_v1_validation_ab_policy.json` | `750755910721fc5921f0507e794b20611d82b3f51ad07192d798ef369799f858` |
 
 La cohorte est le split historique `validation`, exactement douze prises
 fixées par identité `dataset|source|capture|audio_member`, sous le manifeste
@@ -55,24 +55,37 @@ GuitarSet. `locked_test_used=false` est inscrit dans les deux fichiers.
 
 La référence applique le décodeur scellé historique sans porte causale. Le
 candidat utilise **seulement** le modèle et standardiseur V1 listés ci-dessus,
-avec le seuil interne train-only gelé à `0,31`. Le candidat ne peut voir que
-les douze valeurs pré-porte gelées; il doit réutiliser les mêmes candidats
-pré-porte et la même inférence de transcription que la référence.
+avec le seuil interne train-only gelé à `0,31`.
+
+L'inférence de transcription, la configuration de base du décodeur et les
+masques d'audio-evidence sont partagés; la seule différence de configuration
+de branche est donc la porte causale V1 candidate. Les deux décodeurs évoluent
+ensuite comme deux trajectoires causales indépendantes. Après qu'une porte
+accepte ou rejette un NoteOn, les états peuvent légitimement diverger; la
+branche candidate construit donc ses douze features immédiatement avant sa
+propre porte, depuis son état courant. Elle ne réutilise jamais a posteriori
+la trace de candidats de la référence. Cette définition mesure le vrai
+comportement stateful du décodeur, tout en isolant la seule inférence réseau
+commune.
+
+Tout `--audio-evidence-config` ou autre override audio est interdit. L'audio
+evidence historique par défaut est calculée une seule fois par prise et les
+mêmes masques activité/onset sont fournis aux deux trajectoires.
 
 L'évaluation future devra réaliser une seule inférence de transcription par
-prise, puis deux décodages sur les mêmes prédictions :
+prise, puis deux décodages étatfuls sur les mêmes prédictions et masques :
 
 ```text
 prédiction de transcription, une fois
-├── référence : aucune porte causale V1
-└── candidat : modèle V1 + standardiseur V1 + seuil 0,31
+├── référence : aucune porte causale V1, état référence
+└── candidat : modèle V1 + standardiseur V1 + seuil 0,31, état candidat
 ```
 
 Elle rapportera les métriques globales, par corpus et par prise : onset,
-onset+offset, NoteOn strictement causal, retriggers, diagnostics, MIDI 40–51
-et deltas A/B appariés. Les SHA du modèle, standardiseur, rapport de fit,
-manifeste, sélection, checkpoint, YAML et décodeur de référence seront
-reproduits dans le rapport terminal.
+onset+offset, NoteOn strictement causal avec ses latences `p50/p90`,
+retriggers, diagnostics, MIDI 40–51 et deltas A/B appariés. Les SHA du modèle,
+standardiseur, rapport de fit, manifeste, sélection, checkpoint, YAML et
+décodeur de référence seront reproduits dans le rapport terminal.
 
 ## Règles décisionnelles fixées avant résultats
 
@@ -85,6 +98,8 @@ passent sur les mêmes douze prises :
 | Rappel onset global | au moins `-0,005` |
 | F1 onset global | au moins `-0,002` |
 | Rappel NoteOn strictement causal global | au moins `-0,005` |
+| Delta de latence causale `p50` | au plus `+1` hop (`5,804988662 ms`) |
+| Delta de latence causale `p90` | au plus `+1` hop (`5,804988662 ms`) |
 | F1 onset de chaque corpus | au moins `-0,010` |
 | F1 onset MIDI 40–51 | au moins `-0,010` |
 | Retriggers | au plus `0` |
@@ -92,7 +107,8 @@ passent sur les mêmes douze prises :
 
 Un verdict positif ne promeut pas automatiquement le modèle ni le seuil. Les
 actions explicitement interdites restent : fit, recalibration, recherche de
-seuil, export, live et test verrouillé.
+seuil, export, live et test verrouillé. Cette révision répond à la revue de
+`64ccc768` sans modifier les artefacts V1 ni effectuer un calcul.
 
 ## Vérifications locales
 
@@ -103,7 +119,7 @@ C:\Users\user\Desktop\midi\.venv\Scripts\python.exe -B -m unittest \
   tests.test_causal_candidate_fit \
   tests.test_run_causal_candidate_fit
 
-Ran 36 tests in 14.587s — OK
+Ran 36 tests in 14.602s — OK
 ```
 
 `py_compile` des quatre modules de test et `bash -n` du worker ont également

@@ -47,16 +47,22 @@
       }
     },
     "single_transcription_inference_per_recording": true,
-    "same_base_decoder_and_audio_evidence": true,
-    "candidate_features_are_pre_gate_only": true,
-    "candidate_head_must_reuse_the_same_pre_gate_candidates": true,
-    "candidate_head_must_not_change_reference_events_or_base_inference": true
+    "same_base_transcription_predictions": true,
+    "same_base_decoder_configuration": true,
+    "only_branch_specific_decoder_difference_is_causal_candidate_gate": true,
+    "audio_evidence_override_forbidden": true,
+    "audio_evidence_computed_once_per_recording": true,
+    "same_audio_evidence_masks_reused_across_ab": true,
+    "independent_decoder_state_after_gate_decisions": true,
+    "candidate_features_computed_immediately_pre_gate_from_candidate_state": true,
+    "candidate_head_must_not_change_reference_branch_or_base_inference": true
   },
   "required_report": {
     "global": [
       "onset",
       "onset_offset",
       "strictly_causal_noteon",
+      "strictly_causal_latency",
       "retriggers",
       "diagnostics",
       "low_midi_40_51"
@@ -80,6 +86,9 @@
     "candidate_global_onset_recall_delta_minimum": -0.005,
     "candidate_global_onset_f1_delta_minimum": -0.002,
     "candidate_global_strictly_causal_recall_delta_minimum": -0.005,
+    "candidate_strictly_causal_latency_p50_delta_hops_maximum": 1.0,
+    "candidate_strictly_causal_latency_p90_delta_hops_maximum": 1.0,
+    "causal_latency_hop_ms": 5.804988662131519,
     "candidate_per_corpus_onset_f1_delta_minimum": -0.01,
     "candidate_low_midi_40_51_onset_f1_delta_minimum": -0.01,
     "candidate_retriggers_delta_maximum": 0,
