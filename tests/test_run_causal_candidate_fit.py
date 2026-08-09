@@ -11,15 +11,21 @@ from unittest.mock import patch
 from src.polyphonic.causal_candidate_fit import (
     CandidateFitPreflight,
     CandidateFitRow,
+    CandidateFitExecutionSpec,
     FEATURE_DIMENSION,
     V1_EXECUTION_SPEC,
+    build_v1_logistic_model,
     canonical_candidate_order,
 )
 from src.polyphonic.run_causal_candidate_fit import (
     FIT_EXECUTE_ENV,
     PartitionArrays,
+    _as_training_arrays,
+    _fit_model_v1,
     _make_callbacks,
     _standardizer_json,
+    _training_history_json,
+    _weight_evidence,
     build_partition_arrays,
     run_v1_fit,
 )
@@ -143,8 +149,10 @@ class RunCausalCandidateFitTests(unittest.TestCase):
             ),
         )
         source = inspect.getsource(run_v1_fit)
-        self.assertIn("sample_weight=fit.weights", source)
-        self.assertIn("shuffle=V1_EXECUTION_SPEC.shuffle", source)
+        fit_source = inspect.getsource(_fit_model_v1)
+        self.assertIn("_fit_model_v1(", source)
+        self.assertIn("sample_weight=w_fit", fit_source)
+        self.assertIn("shuffle=execution_spec.shuffle", fit_source)
         self.assertNotIn("validation_data", source)
         self.assertIn("if dev_signal.passed", source)
         self.assertIs(V1_EXECUTION_SPEC.shuffle, False)
@@ -194,6 +202,86 @@ class RunCausalCandidateFitTests(unittest.TestCase):
         self.assertEqual(monitor.best_epoch, 1)
         self.assertIn("v1_dev_weighted_bce", logs)
         self.assertTrue(model.restored)
+
+    def test_synthetic_keras_fit_materializes_single_dense_input_and_report_evidence(self) -> None:
+        """Exercise one real Keras epoch without opening project artifacts.
+
+        This is deliberately below ``run_v1_fit``: that public entry point
+        correctly rejects synthetic paths because it is bound to the one
+        sealed V3 artifact.  The private training boundary is the same one
+        used by that entry point, and this test catches Keras nested-tuple
+        input ambiguity before the unique scientific fit.
+        """
+
+        try:
+            import numpy as np
+            import tensorflow as tf
+        except ImportError:
+            self.skipTest("TensorFlow is unavailable in this test environment.")
+        try:
+            tf.config.set_visible_devices([], "GPU")
+        except RuntimeError:
+            self.skipTest("TensorFlow GPU visibility was initialized by this environment.")
+        _, fit, dev, calibration = build_partition_arrays(_preflight())
+        x_fit, y_fit, w_fit = _as_training_arrays(fit)
+        self.assertIsInstance(x_fit, np.ndarray)
+        self.assertEqual(x_fit.dtype, np.float32)
+        self.assertEqual(x_fit.shape, (len(fit.rows), FEATURE_DIMENSION))
+        self.assertEqual(y_fit.dtype, np.float32)
+        self.assertEqual(w_fit.dtype, np.float32)
+        model = build_v1_logistic_model(tf, seed=47)
+        model.compile(
+            optimizer=tf.keras.optimizers.Adam(learning_rate=0.01),
+            loss=tf.keras.losses.BinaryCrossentropy(),
+        )
+        synthetic_spec = CandidateFitExecutionSpec(
+            seed=47,
+            batch_size=2,
+            learning_rate=0.01,
+            maximum_epochs=1,
+            patience=1,
+            min_delta=1e-4,
+            shuffle=False,
+        )
+        monitor, losses, duration = _fit_model_v1(
+            model,
+            tf,
+            fit,
+            dev,
+            execution_spec=synthetic_spec,
+            wall_timeout_seconds=60.0,
+        )
+        self.assertGreaterEqual(duration, 0.0)
+        self.assertEqual(len(losses), 1)
+        self.assertEqual(monitor.best_epoch, 1)
+        history = _training_history_json(losses, monitor)
+        self.assertEqual(len(history), 1)
+        self.assertEqual(
+            set(history[0]),
+            {
+                "epoch",
+                "keras_fit_loss",
+                "dev_weighted_bce",
+                "dev_weighted_brier",
+                "dev_auc_by_family",
+            },
+        )
+        evidence = _weight_evidence((fit, dev, calibration))
+        self.assertEqual(len(evidence), 18)
+        self.assertEqual(
+            set(evidence[0]),
+            {
+                "partition",
+                "family",
+                "target",
+                "group_count",
+                "row_count",
+                "total_weight",
+                "minimum_row_weight",
+                "maximum_row_weight",
+                "groups",
+            },
+        )
 
 
 if __name__ == "__main__":

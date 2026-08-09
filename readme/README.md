@@ -627,6 +627,17 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
   `git diff --check` et 47 tests synthétiques ciblés passent en `5,388 s`.
   Aucun job Mac, fit, calibration, validation, export, live ou test verrouillé
   n'a été lancé. Une revue externe supplémentaire du runner est obligatoire.
+  La revue de `5de7f7ef` a ensuite demandé un correctif préalable, sans donnée
+  projet : le runner convertit maintenant explicitement les entrées Keras
+  `fit` en tableaux NumPy `float32`, persiste la courbe fit/dev par époque,
+  la décomposition des poids par partition/famille/cible/groupe et le coût
+  d'inférence par candidat. Un test Keras synthétique traverse une époque
+  réelle avec ce même chemin et les 48 tests ciblés passent. Aucun artefact V3,
+  fit réel, calibration, validation, export, live ou test verrouillé n'a été
+  ouvert. Le prochain lancement, seulement après revue externe, devra passer
+  exclusivement par `scripts/remote/mac_worker.sh start` sur CPU avec timeout
+  externe de 900 s; jamais directement par le module Python. Rapport :
+  `readme/results/2026-08-09_decoder-candidate-fit-runner-evidence-correction.md`.
   Rapports :
   `readme/results/2026-08-09_decoder-candidate-fit-hypothesis-v1.md`, puis
   `readme/results/2026-08-09_decoder-candidate-fit-protocol-implementation.md`,

@@ -25,6 +25,7 @@ from .causal_candidate_fit import (
     FEATURE_DIMENSION,
     CandidateFitPreflight,
     CandidateFitRow,
+    CandidateFitExecutionSpec,
     CalibrationDecision,
     DevSignal,
     FitStandardizer,
@@ -192,7 +193,43 @@ def _probabilities(model, features: Sequence[Sequence[float]]) -> tuple[float, .
     return tuple(float(value) for value in values)
 
 
-def _make_callbacks(tf, dev: PartitionArrays):
+def _as_training_arrays(partition: PartitionArrays):
+    """Materialize the one-input Keras training tensors explicitly.
+
+    ``PartitionArrays`` deliberately stores immutable Python tuples for the
+    sealed preflight and reproducible report construction.  Keras, however,
+    receives exactly one dense ``(candidates, 12)`` input and matching
+    one-dimensional target/weight arrays.  Do not leave that boundary to
+    Keras's nested-list interpretation on the first real fit.
+    """
+
+    try:
+        import numpy as np
+    except ImportError as error:
+        raise RuntimeError("candidate fit runner requires NumPy.") from error
+    features = np.asarray(partition.features, dtype=np.float32)
+    targets = np.asarray(partition.targets, dtype=np.float32)
+    weights = np.asarray(partition.weights, dtype=np.float32)
+    if features.shape != (len(partition.rows), FEATURE_DIMENSION):
+        raise RuntimeError("candidate fit feature matrix shape is invalid.")
+    if targets.shape != (len(partition.rows),) or weights.shape != targets.shape:
+        raise RuntimeError("candidate fit target or weight array shape is invalid.")
+    if not (
+        np.isfinite(features).all()
+        and np.isfinite(targets).all()
+        and np.isfinite(weights).all()
+    ):
+        raise RuntimeError("candidate fit arrays must be finite.")
+    return features, targets, weights
+
+
+def _make_callbacks(
+    tf,
+    dev: PartitionArrays,
+    *,
+    execution_spec: CandidateFitExecutionSpec = V1_EXECUTION_SPEC,
+    wall_timeout_seconds: float = FIT_WALL_TIMEOUT_SECONDS,
+):
     """Create the only callbacks used by V1, with dev inference-only evidence."""
 
     class PreregisteredDevMonitor(tf.keras.callbacks.Callback):
@@ -210,7 +247,7 @@ def _make_callbacks(tf, dev: PartitionArrays):
             self.started_at = time.monotonic()
 
         def _stop_if_over_budget(self) -> bool:
-            if time.monotonic() - self.started_at <= FIT_WALL_TIMEOUT_SECONDS:
+            if time.monotonic() - self.started_at <= wall_timeout_seconds:
                 return False
             self.timed_out = True
             self.model.stop_training = True
@@ -234,14 +271,14 @@ def _make_callbacks(tf, dev: PartitionArrays):
                 "weighted_brier": signal.weighted_brier,
                 "roc_auc_by_family": dict(signal.roc_auc_by_family),
             })
-            if signal.weighted_bce < self.best_weighted_bce - V1_EXECUTION_SPEC.min_delta:
+            if signal.weighted_bce < self.best_weighted_bce - execution_spec.min_delta:
                 self.best_epoch = epoch + 1
                 self.best_weighted_bce = signal.weighted_bce
                 self.best_weights = [weight.copy() for weight in self.model.get_weights()]
                 self.wait = 0
                 return
             self.wait += 1
-            if self.wait >= V1_EXECUTION_SPEC.patience:
+            if self.wait >= execution_spec.patience:
                 self.model.stop_training = True
 
         def on_train_end(self, logs=None) -> None:
@@ -249,6 +286,128 @@ def _make_callbacks(tf, dev: PartitionArrays):
                 self.model.set_weights(self.best_weights)
 
     return PreregisteredDevMonitor()
+
+
+def _fit_model_v1(
+    model,
+    tensorflow,
+    fit: PartitionArrays,
+    dev: PartitionArrays,
+    *,
+    execution_spec: CandidateFitExecutionSpec = V1_EXECUTION_SPEC,
+    wall_timeout_seconds: float = FIT_WALL_TIMEOUT_SECONDS,
+):
+    """Run the sealed single-input fit and return its exact fit/dev evidence.
+
+    The public runner always uses :data:`V1_EXECUTION_SPEC`.  The two private
+    keyword parameters exist solely to execute a one-epoch synthetic Keras
+    regression test; they are not CLI or public-runner tuning knobs.
+    """
+
+    x_fit, y_fit, w_fit = _as_training_arrays(fit)
+    monitor = _make_callbacks(
+        tensorflow,
+        dev,
+        execution_spec=execution_spec,
+        wall_timeout_seconds=wall_timeout_seconds,
+    )
+    started_at = time.monotonic()
+    history = model.fit(
+        x_fit,
+        y_fit,
+        sample_weight=w_fit,
+        batch_size=execution_spec.batch_size,
+        epochs=execution_spec.maximum_epochs,
+        shuffle=execution_spec.shuffle,
+        callbacks=[monitor],
+        verbose=2,
+    )
+    duration_seconds = time.monotonic() - started_at
+    if monitor.timed_out or duration_seconds > wall_timeout_seconds:
+        raise TimeoutError("Fail closed: V1 fit exceeded its wall budget.")
+    fit_losses = tuple(float(value) for value in history.history.get("loss", ()))
+    if not fit_losses or len(fit_losses) != len(monitor.epoch_history):
+        raise RuntimeError("V1 fit/dev histories are incomplete or misaligned.")
+    if not all(math.isfinite(value) and value >= 0.0 for value in fit_losses):
+        raise RuntimeError("V1 Keras fit losses are invalid.")
+    return monitor, fit_losses, duration_seconds
+
+
+def _training_history_json(
+    fit_losses: Sequence[float],
+    monitor,
+) -> list[dict[str, object]]:
+    if len(fit_losses) != len(monitor.epoch_history):
+        raise RuntimeError("cannot serialize misaligned V1 fit/dev histories.")
+    history: list[dict[str, object]] = []
+    for loss, dev_epoch in zip(fit_losses, monitor.epoch_history):
+        history.append({
+            "epoch": dev_epoch["epoch"],
+            "keras_fit_loss": float(loss),
+            "dev_weighted_bce": dev_epoch["weighted_bce"],
+            "dev_weighted_brier": dev_epoch["weighted_brier"],
+            "dev_auc_by_family": dict(dev_epoch["roc_auc_by_family"]),
+        })
+    return history
+
+
+def _weight_evidence(
+    partitions: Sequence[PartitionArrays],
+) -> list[dict[str, object]]:
+    """Persist the exact local family/target/group weighting decomposition."""
+
+    evidence: list[dict[str, object]] = []
+    for partition in partitions:
+        cells: dict[tuple[str, int], dict[str, list[float]]] = {}
+        for row, weight in zip(partition.rows, partition.weights):
+            by_group = cells.setdefault((row.family, row.target), {})
+            by_group.setdefault(row.leakage_group_key, []).append(float(weight))
+        for (family, target) in sorted(cells):
+            by_group = cells[(family, target)]
+            values = tuple(
+                weight for group_values in by_group.values() for weight in group_values
+            )
+            evidence.append({
+                "partition": partition.partition,
+                "family": family,
+                "target": target,
+                "group_count": len(by_group),
+                "row_count": len(values),
+                "total_weight": math.fsum(values),
+                "minimum_row_weight": min(values),
+                "maximum_row_weight": max(values),
+                "groups": [
+                    {
+                        "leakage_group_key": group,
+                        "row_count": len(group_values),
+                        "total_weight": math.fsum(group_values),
+                        "minimum_row_weight": min(group_values),
+                        "maximum_row_weight": max(group_values),
+                    }
+                    for group, group_values in sorted(by_group.items())
+                ],
+            })
+    return evidence
+
+
+def _inference_cost_json(model, partitions: Sequence[PartitionArrays]) -> dict[str, float | int]:
+    """Measure post-fit train-only head inference cost once over all candidates."""
+
+    features = tuple(
+        vector for partition in partitions for vector in partition.features
+    )
+    if not features:
+        raise RuntimeError("candidate inference-cost measurement requires candidates.")
+    started_at = time.perf_counter()
+    probabilities = _probabilities(model, features)
+    elapsed_seconds = time.perf_counter() - started_at
+    if len(probabilities) != len(features) or elapsed_seconds < 0.0:
+        raise RuntimeError("candidate inference-cost measurement is invalid.")
+    return {
+        "candidates": len(features),
+        "elapsed_seconds": elapsed_seconds,
+        "microseconds_per_candidate": elapsed_seconds * 1_000_000.0 / len(features),
+    }
 
 
 def _signal_json(signal: DevSignal) -> dict[str, object]:
@@ -318,23 +477,15 @@ def run_v1_fit(
         ),
         loss=tensorflow.keras.losses.BinaryCrossentropy(),
     )
-    monitor = _make_callbacks(tensorflow, dev)
-    started_at = time.monotonic()
-    model.fit(
-        fit.features,
-        fit.targets,
-        sample_weight=fit.weights,
-        batch_size=V1_EXECUTION_SPEC.batch_size,
-        epochs=V1_EXECUTION_SPEC.maximum_epochs,
-        shuffle=V1_EXECUTION_SPEC.shuffle,
-        callbacks=[monitor],
-        verbose=2,
+    monitor, fit_losses, duration_seconds = _fit_model_v1(
+        model,
+        tensorflow,
+        fit,
+        dev,
     )
-    duration_seconds = time.monotonic() - started_at
-    if monitor.timed_out or duration_seconds > FIT_WALL_TIMEOUT_SECONDS:
-        raise TimeoutError("Fail closed: V1 fit exceeded its 15-minute wall budget.")
     if monitor.best_epoch is None:
         raise RuntimeError("V1 fit produced no monitored dev epoch.")
+    training_history = _training_history_json(fit_losses, monitor)
     dev_probabilities = _probabilities(model, dev.features)
     dev_signal = assess_dev_signal(dev.rows, dev_probabilities)
     # Calibration is structurally unreachable until the separately defined dev
@@ -348,6 +499,8 @@ def run_v1_fit(
         else None
     )
     status = "complete_non_authorizing" if dev_signal.passed else "failed_dev_gate"
+    weight_evidence = _weight_evidence((fit, dev, calibration))
+    inference_cost = _inference_cost_json(model, (fit, dev, calibration))
     partial = parent / f".{output_dir.name}.partial-{os.getpid()}"
     if partial.exists():
         raise FileExistsError(f"refusing to reuse partial fit directory: {partial}")
@@ -392,11 +545,13 @@ def run_v1_fit(
                 }
                 for value in (fit, dev, calibration)
             },
+            "weight_evidence": weight_evidence,
             "best_epoch": monitor.best_epoch,
             "duration_seconds": duration_seconds,
+            "inference_cost": inference_cost,
             "dev": _signal_json(dev_signal),
             "calibration": _calibration_json(calibration_decision),
-            "history": list(monitor.epoch_history),
+            "training_history": training_history,
             "model": {
                 "path": model_path.name,
                 "sha256": model_sha256,
