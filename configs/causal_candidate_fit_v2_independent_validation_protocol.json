@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "purpose": "causal_candidate_fit_v2_post_ranking_independent_validation_contract",
-  "status": "contract_only_pending_external_review",
+  "status": "synthetic_runner_implemented_pending_external_review",
   "locked_test_used": false,
   "authorization_scope": {
     "allowed_now": [
@@ -10,7 +10,7 @@
     "forbidden_now": [
       "real_audio_or_label_access",
       "model_loading",
-      "runner_implementation",
+      "real_runner_execution",
       "fit",
       "recalibration",
       "threshold_search",
@@ -71,20 +71,21 @@
       "guitarset_poly_mix": 0
     },
     "selection_seed": 47,
+    "independent_group_count": 20,
     "gaps_rule": "Rank remaining eligible GAPS leakage groups by sha256('causal-v2-independent-validation-v1:47:gaps:' + leakage_group_key), then select exactly one recording from each of the first ten groups by sha256('causal-v2-independent-validation-v1:47:gaps:recording:' + canonical_recording_key), with canonical recording key as tie-breaker.",
     "guitar_techs_rule": "Intersect remaining eligible directinput and micamp leakage groups, rank those physical groups by sha256('causal-v2-independent-validation-v1:47:guitar_techs:' + leakage_group_key), then select both captures for the first ten groups.",
     "canonical_recording_key": "dataset_id|group_id|source_id|capture_id",
     "recording_keys": [
-      "gaps_poly_mix|by1wc|400_by1wc|gaps_mixed_downmix",
-      "gaps_poly_mix|jk1wc|197_jk1wc|gaps_mixed_downmix",
-      "gaps_poly_mix|Qc1wc|048_Qc1wc|gaps_mixed_downmix",
-      "gaps_poly_mix|Jf1wc|382_Jf1wc|gaps_mixed_downmix",
-      "gaps_poly_mix|mk1wc|204_mk1wc|gaps_mixed_downmix",
-      "gaps_poly_mix|sV1wc|064_sV1wc|gaps_mixed_downmix",
       "gaps_poly_mix|jw1wc|276_jw1wc|gaps_mixed_downmix",
-      "gaps_poly_mix|nw1wc|280_nw1wc|gaps_mixed_downmix",
-      "gaps_poly_mix|D41wc|357_D41wc|gaps_mixed_downmix",
-      "gaps_poly_mix|Kf1wc|103_Kf1wc|gaps_mixed_downmix",
+      "gaps_poly_mix|Jf1wc|382_Jf1wc|gaps_mixed_downmix",
+      "gaps_poly_mix|Fc1wc|049_Fc1wc|gaps_mixed_downmix",
+      "gaps_poly_mix|XM1wc|157_XM1wc|gaps_mixed_downmix",
+      "gaps_poly_mix|Qc1wc|048_Qc1wc|gaps_mixed_downmix",
+      "gaps_poly_mix|v41wc|233_v41wc|gaps_mixed_downmix",
+      "gaps_poly_mix|Wy1wc|249_Wy1wc|gaps_mixed_downmix",
+      "gaps_poly_mix|lV1wc|058_lV1wc|gaps_mixed_downmix",
+      "gaps_poly_mix|TM1wc|159_TM1wc|gaps_mixed_downmix",
+      "gaps_poly_mix|h41wc|231_h41wc|gaps_mixed_downmix",
       "guitar_techs_poly_directinput|gtech_p2_scales_c|gtech_p2_scales_c_directinput|directinput",
       "guitar_techs_poly_micamp|gtech_p2_scales_c|gtech_p2_scales_c_micamp|micamp",
       "guitar_techs_poly_directinput|gtech_p2_scales_bb|gtech_p2_scales_bb_directinput|directinput",
@@ -114,11 +115,29 @@
       "a_required_dataset_count_or_paired_guitar_techs_group_count_is_unavailable",
       "any_manual_override_or_fallback"
     ],
-    "scope_limit": "The resulting cohort can support only GAPS and Guitar-TECHS conclusions. It must report GuitarSet as not independently evaluable, never as a zero-effect result."
+    "scope_limit": "The resulting cohort can support only GAPS and Guitar-TECHS conclusions. It must report GuitarSet as not independently evaluable, never as a zero-effect result. Guitar-TECHS independence is at the project's pre-registered group_id leakage-group level, not a claim about musician, instrument, or session independence."
+  },
+  "validation_asset_evidence_contract": {
+    "schema_version": 1,
+    "purpose": "causal_candidate_v2_independent_validation_asset_evidence",
+    "asset_types": [
+      "audio",
+      "labels"
+    ],
+    "must_bind": [
+      "independent_validation_protocol_sha256",
+      "manifest_sha256",
+      "ordered_recording_keys_sha256",
+      "recording_keys"
+    ],
+    "builder_authorized_now": false,
+    "reader_authorized_now": false
   },
   "future_execution_contract": {
     "single_cpu_job": true,
     "wall_timeout_seconds": 900,
+    "independent_group_count": 20,
+    "report_recordings_and_independent_groups_separately": true,
     "single_transcription_inference_per_recording": true,
     "same_predictions_and_audio_evidence_masks_reused_across_ab": true,
     "reference_has_no_causal_candidate_gate": true,
@@ -147,5 +166,5 @@
     "guitarset_claim_forbidden": true,
     "automatic_promotion": false
   },
-  "next_action": "External review of this contract only. No runner, asset-evidence build, model load, audio or label access, evaluation, fit, calibration, export, live use, or locked-test access is authorized."
+  "next_action": "External review of the synthetic runner/provenance implementation only. No asset-evidence build, model load, audio or label access, evaluation, fit, calibration, export, live use, or locked-test access is authorized."
 }
