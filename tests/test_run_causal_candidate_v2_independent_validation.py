@@ -217,9 +217,8 @@ class IndependentV2ValidationRunnerTests(unittest.TestCase):
             "guitar_techs_poly_micamp": 10,
         })
         self.assertFalse(any(key.startswith("guitarset_poly_mix|") for key in cohort.recording_keys))
-        requirement = runner.validation_asset_evidence_requirement(cohort)
-        self.assertEqual(requirement.recording_keys, cohort.recording_keys)
-        self.assertFalse(requirement.as_json()["builder_authorized_now"])
+        with self.assertRaisesRegex(RuntimeError, "factory-attested"):
+            runner.validation_asset_evidence_requirement(cohort)
 
     def test_rejects_any_locked_test_row_before_selecting_a_cohort(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

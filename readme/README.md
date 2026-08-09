@@ -17,8 +17,8 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `causal_candidate_v2_independent_validation_asset_evidence_implementation`.
-- Statut : `terminé — preuve d'actifs V2 indépendante implémentée synthétiquement; revue externe requise avant tout actif ou calcul réel`.
+- Étape : `causal_candidate_v2_independent_validation_asset_evidence_review_fix`.
+- Statut : `terminé — correctif synthétique des garde-fous de preuve d'actifs; revue externe requise avant tout actif ou calcul réel`.
 - Anomalie pré-métrique V2 vérifiée : le job unique
   `causal-candidate-v2-train-dev-cpu-20260809`, lancé au commit approuvé
   `ddd15be4fbf7e47205a0025f80821e2446ef9720` avec CPU et `900 s`, termine
@@ -122,6 +122,22 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   implémentation ; toute construction de preuve réelle reste interdite.
   Rapport :
   `readme/results/2026-08-10_causal-candidate-v2-independent-validation-asset-evidence-implementation.md`.
+- Correctif de revue de cette preuve byte-level, toujours synthétique : la
+  revue externe de `3d889f05` avait refusé l'ancienne API, car un cohort
+  construit à la main et un registre JSON canonique aux digests inventés
+  pouvaient encore franchir des étapes de provenance. La nouvelle API exige
+  désormais un cohort et une demande d'évidence attestés par le chargeur
+  scellé, bloque builder/reader tant que leurs flags versionnés sont `false`,
+  rehache les 60 actifs entre build et publication, puis ne rend un registre
+  utilisable qu'après rehash complet identité/métadonnées/octet. Une future
+  étape de lecture devra aussi figer le SHA du registre et le SHA du protocole
+  de construction; les deux autorisations sont mutuellement exclusives. Le
+  lecteur de snapshot est maintenant sans TensorFlow. Les 14 tests nouveaux
+  sans TensorFlow passent en `2,868 s`; la suite provenance élargie compte 44
+  tests en `10,340 s`, sans actif projet, modèle, Mac, inférence ou calcul
+  scientifique. Aucun registre réel n'est créé : la seule action suivante
+  reste la revue externe de ce correctif. Rapport :
+  `readme/results/2026-08-10_causal-candidate-v2-independent-validation-asset-evidence-review-fix.md`.
 - Correctif d'intégration V2 sans calcul : le worker Windows n'autorise
   désormais l'accusé dédié qu'au module exact
   `src.polyphonic.run_causal_candidate_v2_train_dev_diagnostic`, avec CPU,

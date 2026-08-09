@@ -4,8 +4,10 @@ This module is deliberately narrower than the train-only candidate evidence:
 it can attest only the 30 independently derived validation recordings.  It
 never loads a waveform, an NPZ payload, TensorFlow, a checkpoint, or a
 decoder.  Building the registry reads the bytes of the declared audio and
-label *files* solely to record size and SHA-256; a future reviewed runner must
-re-hash them at their actual open boundaries before it can use them.
+label *files* solely to record size and SHA-256, but is impossible while the
+sealed protocol leaves builder authorization disabled.  A future reviewed
+runner must re-hash them at their actual open boundaries before it can use
+them.
 """
 from __future__ import annotations
 
@@ -22,6 +24,9 @@ import weakref
 from .decoder_candidate_provenance import _require_loaded_manifest_snapshot, leakage_group_key
 from .run_causal_candidate_v2_independent_validation import (
     IndependentV2ValidationCohort,
+    IndependentV2ValidationAssetEvidenceRequirement,
+    require_independent_v2_validation_asset_evidence_requirement,
+    require_sealed_independent_v2_validation_cohort,
 )
 
 
@@ -29,7 +34,8 @@ INDEPENDENT_V2_VALIDATION_ASSET_EVIDENCE_SCHEMA_VERSION = 1
 INDEPENDENT_V2_VALIDATION_ASSET_EVIDENCE_PURPOSE = (
     "causal_candidate_v2_independent_validation_asset_evidence"
 )
-_PERSISTED_EVIDENCE: dict[int, weakref.ReferenceType[object]] = {}
+_BUILT_EVIDENCE: dict[int, weakref.ReferenceType[object]] = {}
+_VALIDATED_EVIDENCE: dict[int, weakref.ReferenceType[object]] = {}
 
 
 class IndependentValidationManifestItemLike(Protocol):
@@ -289,33 +295,94 @@ def _canonical_bytes(evidence: IndependentV2ValidationAssetEvidence) -> bytes:
 
 @dataclass(frozen=True)
 class PersistedIndependentV2ValidationAssetEvidence:
-    """One factory-attested canonical parse of immutable evidence bytes."""
+    """A canonical on-disk registry which is not trusted until validated."""
 
     path: Path
     sha256: str
     evidence: IndependentV2ValidationAssetEvidence
 
 
-def _register(persisted: PersistedIndependentV2ValidationAssetEvidence) -> None:
-    identifier = id(persisted)
+@dataclass(frozen=True)
+class BuiltIndependentV2ValidationAssetEvidence:
+    """A builder capability bound to one sealed cohort and exact snapshot."""
+
+    cohort: IndependentV2ValidationCohort
+    snapshot: IndependentValidationManifestSnapshotLike
+    requirement: IndependentV2ValidationAssetEvidenceRequirement
+    evidence: IndependentV2ValidationAssetEvidence
+
+
+@dataclass(frozen=True)
+class ValidatedIndependentV2ValidationAssetEvidence:
+    """One full re-hash of an immutable registry against its exact assets."""
+
+    persisted: PersistedIndependentV2ValidationAssetEvidence
+    cohort: IndependentV2ValidationCohort
+    snapshot: IndependentValidationManifestSnapshotLike
+    requirement: IndependentV2ValidationAssetEvidenceRequirement
+
+
+def _register(
+    registry: dict[int, weakref.ReferenceType[object]], value: object
+) -> None:
+    identifier = id(value)
 
     def cleanup(reference: weakref.ReferenceType[object]) -> None:
-        if _PERSISTED_EVIDENCE.get(identifier) is reference:
-            _PERSISTED_EVIDENCE.pop(identifier, None)
+        if registry.get(identifier) is reference:
+            registry.pop(identifier, None)
 
-    _PERSISTED_EVIDENCE[identifier] = weakref.ref(persisted, cleanup)
+    registry[identifier] = weakref.ref(value, cleanup)
 
 
-def _require_persisted(value: object) -> PersistedIndependentV2ValidationAssetEvidence:
+def _require_registered(
+    registry: dict[int, weakref.ReferenceType[object]], value: object, *, name: str
+) -> None:
+    reference = registry.get(id(value))
+    if reference is None or reference() is not value:
+        raise RuntimeError(f"Fail closed: {name} must be factory-attested.")
+
+
+def _require_built(
+    value: object,
+) -> BuiltIndependentV2ValidationAssetEvidence:
+    if not isinstance(value, BuiltIndependentV2ValidationAssetEvidence):
+        raise ValueError(
+            "independent validation evidence must be "
+            "BuiltIndependentV2ValidationAssetEvidence."
+        )
+    _require_registered(_BUILT_EVIDENCE, value, name="independent validation evidence build")
+    return value
+
+
+def _require_validated(
+    value: object,
+) -> ValidatedIndependentV2ValidationAssetEvidence:
+    if not isinstance(value, ValidatedIndependentV2ValidationAssetEvidence):
+        raise ValueError(
+            "independent validation evidence must be "
+            "ValidatedIndependentV2ValidationAssetEvidence."
+        )
+    _require_registered(
+        _VALIDATED_EVIDENCE,
+        value,
+        name="independent validation asset evidence validation",
+    )
+    checked = _read_persisted_bytes(value.persisted)
+    if checked.sha256 != value.requirement.expected_evidence_sha256:
+        raise RuntimeError("Fail closed: independent validation evidence SHA-256 differs from protocol.")
+    return value
+
+
+def _read_persisted_bytes(
+    value: object,
+) -> PersistedIndependentV2ValidationAssetEvidence:
     if not isinstance(value, PersistedIndependentV2ValidationAssetEvidence):
         raise ValueError(
             "independent validation asset evidence must be "
             "PersistedIndependentV2ValidationAssetEvidence."
         )
-    reference = _PERSISTED_EVIDENCE.get(id(value))
-    if reference is None or reference() is not value:
-        raise RuntimeError("Fail closed: independent validation evidence must be factory-attested.")
-    raw = value.path.read_bytes()
+    resolved = value.path.resolve(strict=True)
+    raw = resolved.read_bytes()
     if _sha256(raw) != value.sha256:
         raise RuntimeError("Fail closed: independent validation evidence bytes changed.")
     if raw != _canonical_bytes(value.evidence):
@@ -323,13 +390,52 @@ def _require_persisted(value: object) -> PersistedIndependentV2ValidationAssetEv
     return value
 
 
+def _require_requirement(
+    cohort: IndependentV2ValidationCohort,
+    requirement: object,
+    *,
+    operation: str,
+) -> IndependentV2ValidationAssetEvidenceRequirement:
+    sealed = require_sealed_independent_v2_validation_cohort(cohort)
+    checked = require_independent_v2_validation_asset_evidence_requirement(requirement)
+    if (
+        checked.protocol_sha256 != sealed.protocol_sha256
+        or checked.manifest_sha256 != sealed.manifest_sha256
+        or checked.recording_keys != sealed.recording_keys
+        or checked.ordered_recording_keys_sha256
+        != ordered_recording_keys_sha256(sealed.recording_keys)
+        or checked.builder_authorized_now
+        != sealed.asset_evidence_builder_authorized
+        or checked.reader_authorized_now
+        != sealed.asset_evidence_reader_authorized
+        or checked.source_evidence_protocol_sha256
+        != (
+            sealed.protocol_sha256
+            if sealed.asset_evidence_builder_authorized
+            else sealed.asset_evidence_source_protocol_sha256
+        )
+        or checked.expected_evidence_sha256
+        != sealed.asset_evidence_expected_sha256
+    ):
+        raise RuntimeError("Fail closed: asset-evidence requirement differs from sealed cohort.")
+    allowed = (
+        checked.builder_authorized_now
+        if operation == "build"
+        else checked.reader_authorized_now
+    )
+    if not allowed:
+        raise RuntimeError(
+            f"Fail closed: independent validation asset-evidence {operation} is not authorized."
+        )
+    return checked
+
+
 def _cohort_items(
     cohort: IndependentV2ValidationCohort,
     snapshot: IndependentValidationManifestSnapshotLike,
 ) -> tuple[IndependentValidationManifestItemLike, ...]:
     """Select exact full-snapshot objects only after all identities agree."""
-    if not isinstance(cohort, IndependentV2ValidationCohort):
-        raise ValueError("cohort must be IndependentV2ValidationCohort.")
+    require_sealed_independent_v2_validation_cohort(cohort)
     _require_loaded_manifest_snapshot(snapshot)
     if snapshot.manifest_sha256 != cohort.manifest_sha256:
         raise RuntimeError("Fail closed: validation snapshot uses another manifest digest.")
@@ -351,11 +457,65 @@ def _cohort_items(
     return tuple(selected)
 
 
+def _verify_evidence_against_selected(
+    evidence: IndependentV2ValidationAssetEvidence,
+    cohort: IndependentV2ValidationCohort,
+    requirement: IndependentV2ValidationAssetEvidenceRequirement,
+    selected: Sequence[IndependentValidationManifestItemLike],
+) -> None:
+    """Re-hash every declared file before a registry becomes usable/published."""
+
+    if (
+        evidence.independent_validation_protocol_sha256
+        != requirement.source_evidence_protocol_sha256
+        or evidence.manifest_sha256 != cohort.manifest_sha256
+        or evidence.recording_keys != cohort.recording_keys
+        or evidence.ordered_recording_keys_sha256
+        != ordered_recording_keys_sha256(cohort.recording_keys)
+    ):
+        raise RuntimeError("Fail closed: validation asset evidence differs from the sealed cohort.")
+    if len(evidence.entries) != len(selected):
+        raise RuntimeError("Fail closed: validation asset evidence entry count differs from cohort.")
+    for item, entry in zip(selected, evidence.entries):
+        expected_metadata = (
+            canonical_recording_key(item),
+            leakage_group_key(item),
+            item.dataset_id,
+            item.source_id,
+            item.capture_id,
+            item.audio_member,
+        )
+        actual_metadata = (
+            entry.recording_key,
+            entry.leakage_group_key,
+            entry.dataset_id,
+            entry.source_id,
+            entry.capture_id,
+            entry.audio_member,
+        )
+        if actual_metadata != expected_metadata:
+            raise RuntimeError(
+                "Fail closed: validation asset evidence entry metadata differs from snapshot."
+            )
+        if _digest_file(item.audio_path) != (
+            entry.audio_size_bytes,
+            entry.audio_sha256,
+        ):
+            raise RuntimeError("Fail closed: validation asset evidence audio bytes differ.")
+        if _digest_file(item.labels_path) != (
+            entry.labels_size_bytes,
+            entry.labels_sha256,
+        ):
+            raise RuntimeError("Fail closed: validation asset evidence label bytes differ.")
+
+
 def build_independent_v2_validation_asset_evidence(
     cohort: IndependentV2ValidationCohort,
     snapshot: IndependentValidationManifestSnapshotLike,
-) -> IndependentV2ValidationAssetEvidence:
+    requirement: IndependentV2ValidationAssetEvidenceRequirement,
+) -> BuiltIndependentV2ValidationAssetEvidence:
     """Hash exactly the 30 selected files without decoding either asset type."""
+    checked_requirement = _require_requirement(cohort, requirement, operation="build")
     selected = _cohort_items(cohort, snapshot)
     digest_cache: dict[Path, tuple[int, str]] = {}
 
@@ -380,7 +540,7 @@ def build_independent_v2_validation_asset_evidence(
         )
         for item in selected
     )
-    return IndependentV2ValidationAssetEvidence(
+    evidence = IndependentV2ValidationAssetEvidence(
         schema_version=INDEPENDENT_V2_VALIDATION_ASSET_EVIDENCE_SCHEMA_VERSION,
         purpose=INDEPENDENT_V2_VALIDATION_ASSET_EVIDENCE_PURPOSE,
         independent_validation_protocol_sha256=cohort.protocol_sha256,
@@ -392,13 +552,32 @@ def build_independent_v2_validation_asset_evidence(
         asset_types=("audio", "labels"),
         entries=entries,
     )
+    built = BuiltIndependentV2ValidationAssetEvidence(
+        cohort=cohort,
+        snapshot=snapshot,
+        requirement=checked_requirement,
+        evidence=evidence,
+    )
+    _register(_BUILT_EVIDENCE, built)
+    return built
 
 
 def write_independent_v2_validation_asset_evidence(
     path: Path,
-    evidence: IndependentV2ValidationAssetEvidence,
+    built: BuiltIndependentV2ValidationAssetEvidence,
 ) -> PersistedIndependentV2ValidationAssetEvidence:
     """Publish immutable canonical evidence without overwriting an existing file."""
+    checked = _require_built(built)
+    _require_requirement(checked.cohort, checked.requirement, operation="build")
+    selected = _cohort_items(checked.cohort, checked.snapshot)
+    # Close the build -> write race: nothing is published unless the bytes just
+    # re-hashed now still equal the builder's evidence.
+    _verify_evidence_against_selected(
+        checked.evidence,
+        checked.cohort,
+        checked.requirement,
+        selected,
+    )
     target = Path(path).expanduser()
     if target.exists() or target.is_symlink():
         raise FileExistsError(
@@ -406,7 +585,7 @@ def write_independent_v2_validation_asset_evidence(
         )
     if not target.parent.is_dir():
         raise ValueError("independent validation evidence parent directory does not exist.")
-    raw = _canonical_bytes(evidence)
+    raw = _canonical_bytes(checked.evidence)
     temporary = target.with_name(
         f".{target.name}.{os.getpid()}.{secrets.token_hex(8)}.part"
     )
@@ -424,13 +603,20 @@ def write_independent_v2_validation_asset_evidence(
         raise
     finally:
         temporary.unlink(missing_ok=True)
-    return load_independent_v2_validation_asset_evidence(target)
+    return PersistedIndependentV2ValidationAssetEvidence(
+        path=target.resolve(strict=True),
+        sha256=_sha256(raw),
+        evidence=checked.evidence,
+    )
 
 
 def load_independent_v2_validation_asset_evidence(
     path: Path,
+    cohort: IndependentV2ValidationCohort,
+    requirement: IndependentV2ValidationAssetEvidenceRequirement,
 ) -> PersistedIndependentV2ValidationAssetEvidence:
-    """Read only the canonical evidence JSON; never open its declared assets."""
+    """Parse canonical JSON only; it remains untrusted until full validation."""
+    _require_requirement(cohort, requirement, operation="read")
     resolved = Path(path).resolve(strict=True)
     raw = resolved.read_bytes()
     try:
@@ -441,81 +627,60 @@ def load_independent_v2_validation_asset_evidence(
         raise ValueError("independent validation asset evidence is not valid UTF-8 JSON.") from exc
     if raw != _canonical_bytes(evidence):
         raise ValueError("independent validation asset evidence is not canonical JSON.")
-    persisted = PersistedIndependentV2ValidationAssetEvidence(
+    if _sha256(raw) != requirement.expected_evidence_sha256:
+        raise RuntimeError("Fail closed: independent validation evidence SHA-256 differs from protocol.")
+    return PersistedIndependentV2ValidationAssetEvidence(
         path=resolved,
         sha256=_sha256(raw),
         evidence=evidence,
     )
-    _register(persisted)
-    return persisted
 
 
 def validate_independent_v2_validation_asset_evidence(
     persisted: PersistedIndependentV2ValidationAssetEvidence,
     cohort: IndependentV2ValidationCohort,
     snapshot: IndependentValidationManifestSnapshotLike,
-) -> None:
-    """Require the persisted registry to bind the exact sealed 30-item cohort."""
-    checked = _require_persisted(persisted)
+    requirement: IndependentV2ValidationAssetEvidenceRequirement,
+) -> ValidatedIndependentV2ValidationAssetEvidence:
+    """Re-hash all 60 declared files before returning a usable capability."""
+    checked_requirement = _require_requirement(cohort, requirement, operation="read")
+    checked = _read_persisted_bytes(persisted)
     selected = _cohort_items(cohort, snapshot)
-    evidence = checked.evidence
-    if (
-        evidence.independent_validation_protocol_sha256 != cohort.protocol_sha256
-        or evidence.manifest_sha256 != cohort.manifest_sha256
-        or evidence.recording_keys != cohort.recording_keys
-        or evidence.ordered_recording_keys_sha256
-        != ordered_recording_keys_sha256(cohort.recording_keys)
-    ):
-        raise RuntimeError("Fail closed: validation asset evidence differs from the sealed cohort.")
-    expected = tuple(
-        (
-            canonical_recording_key(item),
-            leakage_group_key(item),
-            item.dataset_id,
-            item.source_id,
-            item.capture_id,
-            item.audio_member,
-        )
-        for item in selected
+    _verify_evidence_against_selected(
+        checked.evidence,
+        cohort,
+        checked_requirement,
+        selected,
     )
-    actual = tuple(
-        (
-            entry.recording_key,
-            entry.leakage_group_key,
-            entry.dataset_id,
-            entry.source_id,
-            entry.capture_id,
-            entry.audio_member,
-        )
-        for entry in evidence.entries
+    validated = ValidatedIndependentV2ValidationAssetEvidence(
+        persisted=checked,
+        cohort=cohort,
+        snapshot=snapshot,
+        requirement=checked_requirement,
     )
-    if actual != expected:
-        raise RuntimeError("Fail closed: validation asset evidence entry metadata differs from snapshot.")
+    _register(_VALIDATED_EVIDENCE, validated)
+    return validated
 
 
 def _entry_for_item(
-    persisted: PersistedIndependentV2ValidationAssetEvidence,
-    cohort: IndependentV2ValidationCohort,
-    snapshot: IndependentValidationManifestSnapshotLike,
+    validated: ValidatedIndependentV2ValidationAssetEvidence,
     item: IndependentValidationManifestItemLike,
 ) -> IndependentV2ValidationAssetEvidenceEntry:
-    validate_independent_v2_validation_asset_evidence(persisted, cohort, snapshot)
-    selected = _cohort_items(cohort, snapshot)
+    checked = _require_validated(validated)
+    selected = _cohort_items(checked.cohort, checked.snapshot)
     if not any(item is snapshot_item for snapshot_item in selected):
         raise RuntimeError("Fail closed: validation asset item is not an exact selected snapshot object.")
     key = canonical_recording_key(item)
-    index = cohort.recording_keys.index(key)
-    return persisted.evidence.entries[index]
+    index = checked.cohort.recording_keys.index(key)
+    return checked.persisted.evidence.entries[index]
 
 
 def verify_independent_v2_validation_label_asset_for_item(
-    persisted: PersistedIndependentV2ValidationAssetEvidence,
-    cohort: IndependentV2ValidationCohort,
-    snapshot: IndependentValidationManifestSnapshotLike,
+    validated: ValidatedIndependentV2ValidationAssetEvidence,
     item: IndependentValidationManifestItemLike,
 ) -> None:
     """Re-hash labels immediately before a future runner opens them."""
-    entry = _entry_for_item(persisted, cohort, snapshot, item)
+    entry = _entry_for_item(validated, item)
     if _digest_file(item.labels_path) != (
         entry.labels_size_bytes,
         entry.labels_sha256,
@@ -524,13 +689,11 @@ def verify_independent_v2_validation_label_asset_for_item(
 
 
 def verify_independent_v2_validation_audio_asset_for_item(
-    persisted: PersistedIndependentV2ValidationAssetEvidence,
-    cohort: IndependentV2ValidationCohort,
-    snapshot: IndependentValidationManifestSnapshotLike,
+    validated: ValidatedIndependentV2ValidationAssetEvidence,
     item: IndependentValidationManifestItemLike,
 ) -> None:
     """Re-hash audio immediately before a future runner opens it."""
-    entry = _entry_for_item(persisted, cohort, snapshot, item)
+    entry = _entry_for_item(validated, item)
     if _digest_file(item.audio_path) != (
         entry.audio_size_bytes,
         entry.audio_sha256,
@@ -541,9 +704,11 @@ def verify_independent_v2_validation_audio_asset_for_item(
 __all__ = [
     "INDEPENDENT_V2_VALIDATION_ASSET_EVIDENCE_PURPOSE",
     "INDEPENDENT_V2_VALIDATION_ASSET_EVIDENCE_SCHEMA_VERSION",
+    "BuiltIndependentV2ValidationAssetEvidence",
     "IndependentV2ValidationAssetEvidence",
     "IndependentV2ValidationAssetEvidenceEntry",
     "PersistedIndependentV2ValidationAssetEvidence",
+    "ValidatedIndependentV2ValidationAssetEvidence",
     "build_independent_v2_validation_asset_evidence",
     "canonical_recording_key",
     "load_independent_v2_validation_asset_evidence",

@@ -15,6 +15,7 @@ import json
 import math
 from pathlib import Path
 from typing import Mapping, Sequence
+import weakref
 
 from .decoder_candidate_provenance import (
     DecoderCandidateManifestItem,
@@ -47,8 +48,10 @@ INDEPENDENT_V2_FROZEN_ARTIFACT_SHA256 = {
     "reference_decoder_config_sha256": "c16be48271912c99c4237345e8406e39b88490b5565047757f6ca9e905615f96",
 }
 INDEPENDENT_V2_PROTOCOL_SHA256 = (
-    "4d6ae76bf115945821e2560be23c2c71f7e4906874a78b1dfdf5049413a0f4de"
+    "38cf5f397657e99dfcff9bc747ed35824d18dade4affa847478864725fc468c3"
 )
+_SEALED_INDEPENDENT_V2_COHORTS: dict[int, weakref.ReferenceType[object]] = {}
+_ASSET_EVIDENCE_REQUIREMENTS: dict[int, weakref.ReferenceType[object]] = {}
 
 
 def _sha256_bytes(raw: bytes) -> str:
@@ -88,6 +91,66 @@ def _ordered_recording_keys_sha256(recording_keys: Sequence[str]) -> str:
     return _sha256_bytes(("\n".join(recording_keys) + "\n").encode("utf-8"))
 
 
+def _register_identity(
+    registry: dict[int, weakref.ReferenceType[object]], value: object
+) -> None:
+    """Record a process-local capability by identity, never by equality."""
+
+    identifier = id(value)
+
+    def cleanup(reference: weakref.ReferenceType[object]) -> None:
+        if registry.get(identifier) is reference:
+            registry.pop(identifier, None)
+
+    registry[identifier] = weakref.ref(value, cleanup)
+
+
+def _require_identity(
+    registry: Mapping[int, weakref.ReferenceType[object]], value: object, *, name: str
+) -> None:
+    reference = registry.get(id(value))
+    if reference is None or reference() is not value:
+        raise RuntimeError(f"Fail closed: {name} must be factory-attested by the sealed loader.")
+
+
+def _require_sealed_independent_v2_validation_cohort(
+    cohort: object,
+) -> "IndependentV2ValidationCohort":
+    if not isinstance(cohort, IndependentV2ValidationCohort):
+        raise ValueError("cohort must be IndependentV2ValidationCohort.")
+    _require_identity(
+        _SEALED_INDEPENDENT_V2_COHORTS,
+        cohort,
+        name="independent V2 validation cohort",
+    )
+    return cohort
+
+
+def require_sealed_independent_v2_validation_cohort(
+    cohort: object,
+) -> "IndependentV2ValidationCohort":
+    """Public capability check for a cohort loaded from sealed bytes."""
+
+    return _require_sealed_independent_v2_validation_cohort(cohort)
+
+
+def require_independent_v2_validation_asset_evidence_requirement(
+    requirement: object,
+) -> "IndependentV2ValidationAssetEvidenceRequirement":
+    """Return only the exact sealed-loader requirement capability."""
+
+    if not isinstance(requirement, IndependentV2ValidationAssetEvidenceRequirement):
+        raise ValueError(
+            "requirement must be IndependentV2ValidationAssetEvidenceRequirement."
+        )
+    _require_identity(
+        _ASSET_EVIDENCE_REQUIREMENTS,
+        requirement,
+        name="independent V2 validation asset-evidence requirement",
+    )
+    return requirement
+
+
 @dataclass(frozen=True)
 class IndependentV2ValidationCohort:
     """The metadata-only result which a future runner must reproduce exactly."""
@@ -99,6 +162,10 @@ class IndependentV2ValidationCohort:
     leakage_groups: tuple[str, ...]
     recordings_per_dataset: tuple[tuple[str, int], ...]
     independent_group_count: int
+    asset_evidence_builder_authorized: bool
+    asset_evidence_reader_authorized: bool
+    asset_evidence_source_protocol_sha256: str | None
+    asset_evidence_expected_sha256: str | None
 
     def __post_init__(self) -> None:
         _require_sha256(self.protocol_sha256, "protocol_sha256")
@@ -116,6 +183,36 @@ class IndependentV2ValidationCohort:
             raise ValueError("independent V2 cohort dataset counts are invalid.")
         if self.independent_group_count != 20:
             raise ValueError("independent_group_count must be 20.")
+        if (
+            type(self.asset_evidence_builder_authorized) is not bool
+            or type(self.asset_evidence_reader_authorized) is not bool
+        ):
+            raise ValueError("independent V2 asset-evidence authorization flags must be bool.")
+        for field in (
+            "asset_evidence_source_protocol_sha256",
+            "asset_evidence_expected_sha256",
+        ):
+            value = getattr(self, field)
+            if value is not None:
+                _require_sha256(value, field)
+        if self.asset_evidence_builder_authorized:
+            if (
+                self.asset_evidence_reader_authorized
+                or self.asset_evidence_source_protocol_sha256 is not None
+                or self.asset_evidence_expected_sha256 is not None
+            ):
+                raise ValueError("asset-evidence builder authorization cannot also read a registry.")
+        elif self.asset_evidence_reader_authorized:
+            if (
+                self.asset_evidence_source_protocol_sha256 is None
+                or self.asset_evidence_expected_sha256 is None
+            ):
+                raise ValueError("asset-evidence reader authorization requires sealed evidence digests.")
+        elif (
+            self.asset_evidence_source_protocol_sha256 is not None
+            or self.asset_evidence_expected_sha256 is not None
+        ):
+            raise ValueError("disabled asset-evidence authorization cannot carry evidence digests.")
 
 
 @dataclass(frozen=True)
@@ -132,6 +229,10 @@ class IndependentV2ValidationAssetEvidenceRequirement:
     manifest_sha256: str
     ordered_recording_keys_sha256: str
     recording_keys: tuple[str, ...]
+    builder_authorized_now: bool
+    reader_authorized_now: bool
+    source_evidence_protocol_sha256: str | None
+    expected_evidence_sha256: str | None
     asset_types: tuple[str, ...] = ("audio", "labels")
 
     def __post_init__(self) -> None:
@@ -142,6 +243,15 @@ class IndependentV2ValidationAssetEvidenceRequirement:
         )
         if self.asset_types != ("audio", "labels"):
             raise ValueError("validation asset evidence must bind audio and labels only.")
+        if (
+            type(self.builder_authorized_now) is not bool
+            or type(self.reader_authorized_now) is not bool
+        ):
+            raise ValueError("validation asset-evidence authorization flags must be bool.")
+        for field in ("source_evidence_protocol_sha256", "expected_evidence_sha256"):
+            value = getattr(self, field)
+            if value is not None:
+                _require_sha256(value, field)
         if (
             len(self.recording_keys) != 30
             or len(set(self.recording_keys)) != 30
@@ -159,8 +269,10 @@ class IndependentV2ValidationAssetEvidenceRequirement:
             "ordered_recording_keys_sha256": self.ordered_recording_keys_sha256,
             "recording_keys": list(self.recording_keys),
             "asset_types": list(self.asset_types),
-            "builder_authorized_now": False,
-            "reader_authorized_now": False,
+            "builder_authorized_now": self.builder_authorized_now,
+            "reader_authorized_now": self.reader_authorized_now,
+            "source_evidence_protocol_sha256": self.source_evidence_protocol_sha256,
+            "expected_evidence_sha256": self.expected_evidence_sha256,
         }
 
 
@@ -168,14 +280,23 @@ def validation_asset_evidence_requirement(
     cohort: IndependentV2ValidationCohort,
 ) -> IndependentV2ValidationAssetEvidenceRequirement:
     """Return the immutable identity envelope; do not build or read evidence."""
-    if not isinstance(cohort, IndependentV2ValidationCohort):
-        raise ValueError("cohort must be IndependentV2ValidationCohort.")
-    return IndependentV2ValidationAssetEvidenceRequirement(
+    _require_sealed_independent_v2_validation_cohort(cohort)
+    requirement = IndependentV2ValidationAssetEvidenceRequirement(
         protocol_sha256=cohort.protocol_sha256,
         manifest_sha256=cohort.manifest_sha256,
         ordered_recording_keys_sha256=_ordered_recording_keys_sha256(cohort.recording_keys),
         recording_keys=cohort.recording_keys,
+        builder_authorized_now=cohort.asset_evidence_builder_authorized,
+        reader_authorized_now=cohort.asset_evidence_reader_authorized,
+        source_evidence_protocol_sha256=(
+            cohort.protocol_sha256
+            if cohort.asset_evidence_builder_authorized
+            else cohort.asset_evidence_source_protocol_sha256
+        ),
+        expected_evidence_sha256=cohort.asset_evidence_expected_sha256,
     )
+    _register_identity(_ASSET_EVIDENCE_REQUIREMENTS, requirement)
+    return requirement
 
 
 def _load_exact_json(path: Path, expected_sha256: object, name: str) -> tuple[Mapping[str, object], str]:
@@ -445,10 +566,34 @@ def derive_independent_v2_validation_cohort(
             "ordered_recording_keys_sha256",
             "recording_keys",
         )
-        or evidence_contract.get("builder_authorized_now") is not False
-        or evidence_contract.get("reader_authorized_now") is not False
+        or type(evidence_contract.get("builder_authorized_now")) is not bool
+        or type(evidence_contract.get("reader_authorized_now")) is not bool
     ):
         raise ValueError("independent V2 validation asset-evidence contract changed.")
+    builder_authorized = evidence_contract["builder_authorized_now"]
+    reader_authorized = evidence_contract["reader_authorized_now"]
+    source_evidence_protocol_sha256 = evidence_contract.get(
+        "source_evidence_protocol_sha256"
+    )
+    expected_evidence_sha256 = evidence_contract.get("expected_evidence_sha256")
+    if builder_authorized:
+        if (
+            reader_authorized
+            or source_evidence_protocol_sha256 is not None
+            or expected_evidence_sha256 is not None
+        ):
+            raise ValueError("asset-evidence builder authorization contract is invalid.")
+    elif reader_authorized:
+        _require_sha256(
+            source_evidence_protocol_sha256,
+            "source_evidence_protocol_sha256",
+        )
+        _require_sha256(expected_evidence_sha256, "expected_evidence_sha256")
+    elif (
+        source_evidence_protocol_sha256 is not None
+        or expected_evidence_sha256 is not None
+    ):
+        raise ValueError("disabled asset-evidence contract must not pin evidence digests.")
     execution = _require_mapping(protocol.get("future_execution_contract"), "future_execution_contract")
     if (
         execution.get("independent_group_count") != 20
@@ -499,6 +644,10 @@ def derive_independent_v2_validation_cohort(
         leakage_groups=groups,
         recordings_per_dataset=tuple(sorted(counts.items())),
         independent_group_count=len(groups),
+        asset_evidence_builder_authorized=builder_authorized,
+        asset_evidence_reader_authorized=reader_authorized,
+        asset_evidence_source_protocol_sha256=source_evidence_protocol_sha256,
+        asset_evidence_expected_sha256=expected_evidence_sha256,
     )
 
 
@@ -646,7 +795,7 @@ def load_sealed_independent_v2_validation_cohort(
     boundary = _require_mapping(protocol.get("independence_boundary"), "independence_boundary")
     history, history_sha256 = _load_historical_selection(repository_root, boundary)
     manifest_items, manifest_sha256 = load_decoder_candidate_manifest(manifest_path)
-    return derive_independent_v2_validation_cohort(
+    cohort = derive_independent_v2_validation_cohort(
         protocol,
         protocol_sha256=protocol_sha256,
         manifest_items=manifest_items,
@@ -654,3 +803,5 @@ def load_sealed_independent_v2_validation_cohort(
         historical_recording_keys=history,
         historical_selection_sha256=history_sha256,
     )
+    _register_identity(_SEALED_INDEPENDENT_V2_COHORTS, cohort)
+    return cohort

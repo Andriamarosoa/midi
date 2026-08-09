@@ -131,7 +131,9 @@
       "recording_keys"
     ],
     "builder_authorized_now": false,
-    "reader_authorized_now": false
+    "reader_authorized_now": false,
+    "source_evidence_protocol_sha256": null,
+    "expected_evidence_sha256": null
   },
   "future_execution_contract": {
     "single_cpu_job": true,
