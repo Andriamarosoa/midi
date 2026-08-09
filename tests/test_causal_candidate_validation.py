@@ -15,7 +15,12 @@ from src.polyphonic.causal_candidate_validation import (
     infer_once_then_decode_ab,
     load_sealed_validation_contract,
 )
-from src.polyphonic.decoder import PolyphonicDecoderConfig
+from src.polyphonic.decoder import (
+    CAUSAL_CANDIDATE_GATE_POST_RANKING_PRE_NOTEON,
+    CAUSAL_CANDIDATE_GATE_PRE_RANKING,
+    CausalCandidateGateInput,
+    PolyphonicDecoderConfig,
+)
 from src.polyphonic.evaluate_events import (
     NoteInterval,
     aggregate_strictly_causal_noteon_metrics,
@@ -60,6 +65,7 @@ class CausalCandidateValidationTests(unittest.TestCase):
             audio_active=np.asarray([True]),
             audio_onset=np.asarray([True]),
             candidate_gate=self._gate(0.0, seen),
+            candidate_gate_placement=CAUSAL_CANDIDATE_GATE_PRE_RANKING,
         )
         self.assertEqual(calls, 1)
         self.assertIsNot(result.reference_decoder, result.candidate_decoder)
@@ -74,6 +80,88 @@ class CausalCandidateValidationTests(unittest.TestCase):
         self.assertAlmostEqual(float(seen[0][0, 2]), 1.8)
         self.assertEqual(float(seen[0][0, 4]), 0.0)
         self.assertEqual(float(seen[0][0, 7]), 1.0)
+
+    def test_v2_ab_path_requires_explicit_known_placement_before_inference(self) -> None:
+        config = PolyphonicDecoderConfig(
+            midi_min=60, midi_max=60, frame_on_threshold=0.5,
+            strong_frame_threshold=0.8, frame_off_threshold=0.25,
+            onset_threshold=0.5, activation_frames=1, release_frames=1,
+            minimum_retrigger_frames=1, silence_release_frames=1,
+            maximum_polyphony=1, harmonic_support_threshold=0.0,
+        )
+        for placement, message in ((None, "requires an explicit candidate gate placement"), ("after_noteon", "requires an explicit known gate placement")):
+            with self.subTest(placement=placement):
+                calls = 0
+
+                def inference() -> dict[str, np.ndarray]:
+                    nonlocal calls
+                    calls += 1
+                    return {
+                        "frame": np.asarray([[0.9]], dtype=np.float32),
+                        "onset": np.asarray([[0.9]], dtype=np.float32),
+                        "harmonic_amplitude": np.zeros((1, 1, 1), dtype=np.float32),
+                    }
+
+                with self.assertRaisesRegex(ValueError, message):
+                    infer_once_then_decode_ab(
+                        transcription_inference=inference,
+                        config=config,
+                        audio_active=np.asarray([True]),
+                        audio_onset=np.asarray([True]),
+                        candidate_gate=self._gate(0.0),
+                        candidate_gate_placement=placement,
+                    )
+                self.assertEqual(calls, 0)
+
+    def test_v2_ab_path_gates_only_selected_candidates_after_shared_inference(
+        self,
+    ) -> None:
+        calls = 0
+        seen: list[CausalCandidateGateInput] = []
+
+        def inference() -> dict[str, np.ndarray]:
+            nonlocal calls
+            calls += 1
+            return {
+                "frame": np.asarray([[0.99, 0.90, 0.80]], dtype=np.float32),
+                "onset": np.asarray([[0.99, 0.90, 0.80]], dtype=np.float32),
+                "harmonic_amplitude": np.zeros((1, 3, 1), dtype=np.float32),
+            }
+
+        def reject_top(values: CausalCandidateGateInput) -> bool:
+            seen.append(values)
+            return values.candidate_score > 1.9
+
+        config = PolyphonicDecoderConfig(
+            midi_min=60, midi_max=62, frame_on_threshold=0.5,
+            strong_frame_threshold=0.8, frame_off_threshold=0.25,
+            onset_threshold=0.5, activation_frames=1, release_frames=1,
+            minimum_retrigger_frames=1, silence_release_frames=1,
+            maximum_polyphony=2, harmonic_support_threshold=0.0,
+        )
+        result = infer_once_then_decode_ab(
+            transcription_inference=inference,
+            config=config,
+            audio_active=np.asarray([True]),
+            audio_onset=np.asarray([True]),
+            candidate_gate=reject_top,
+            candidate_gate_placement=(
+                CAUSAL_CANDIDATE_GATE_POST_RANKING_PRE_NOTEON
+            ),
+        )
+
+        self.assertEqual(calls, 1)
+        self.assertEqual(
+            [event.pitch for event in result.reference_events if event.kind == "note_on"],
+            [60, 61],
+        )
+        self.assertEqual(
+            [event.pitch for event in result.candidate_events if event.kind == "note_on"],
+            [61],
+        )
+        self.assertEqual(
+            [round(values.candidate_score, 2) for values in seen], [1.98, 1.8],
+        )
 
     def test_preflight_rejects_artifact_mismatch_before_any_inference(self) -> None:
         root = Path(__file__).resolve().parents[1]

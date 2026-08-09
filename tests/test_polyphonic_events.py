@@ -10,7 +10,12 @@ import numpy as np
 
 from src.polyphonic.causal_event_metrics import CausalMetricGate
 from src.polyphonic.data import ManifestItem
-from src.polyphonic.decoder import PolyphonicDecoderConfig, PolyphonicMidiEvent
+from src.polyphonic.decoder import (
+    CAUSAL_CANDIDATE_GATE_POST_RANKING_PRE_NOTEON,
+    CausalCandidateGateInput,
+    PolyphonicDecoderConfig,
+    PolyphonicMidiEvent,
+)
 from src.polyphonic.evaluate_events import (
     NoteInterval,
     _aggregate_independent_note_gate,
@@ -22,6 +27,7 @@ from src.polyphonic.evaluate_events import (
     aggregate_strictly_causal_noteon_metrics,
     build_strictly_causal_noteon_clip,
     decode_probabilities,
+    evaluate_events,
     events_to_notes,
     match_notes,
     note_metrics,
@@ -30,6 +36,83 @@ from src.polyphonic.evaluate_events import (
 
 
 class PolyphonicEventEvaluationTests(unittest.TestCase):
+    def test_causal_candidate_evaluator_requires_placement_before_config_or_model(
+        self,
+    ) -> None:
+        with self.assertRaisesRegex(ValueError, "requires an explicit known gate placement"):
+            evaluate_events(
+                run_dir=Path("unused-run-directory"),
+                split="validation",
+                causal_candidate_gate_factory=lambda: lambda _: False,
+            )
+
+    def test_causal_candidate_decode_requires_explicit_gate_placement(self) -> None:
+        config = PolyphonicDecoderConfig(
+            midi_min=60, midi_max=60, frame_on_threshold=0.5,
+            strong_frame_threshold=0.8, frame_off_threshold=0.25,
+            onset_threshold=0.5, activation_frames=1, release_frames=1,
+            minimum_retrigger_frames=1, silence_release_frames=1,
+            maximum_polyphony=1, harmonic_support_threshold=0.0,
+        )
+        with self.assertRaisesRegex(ValueError, "requires an explicit gate placement"):
+            decode_probabilities(
+                np.asarray([[0.9]], dtype=np.float32),
+                np.asarray([[0.9]], dtype=np.float32),
+                np.zeros((1, 1, 1), dtype=np.float32),
+                config,
+                44_100,
+                256,
+                causal_candidate_gate=lambda _: False,
+            )
+        with self.assertRaisesRegex(ValueError, "placement requires a causal candidate gate"):
+            decode_probabilities(
+                np.asarray([[0.9]], dtype=np.float32),
+                np.asarray([[0.9]], dtype=np.float32),
+                np.zeros((1, 1, 1), dtype=np.float32),
+                config,
+                44_100,
+                256,
+                causal_candidate_gate_placement=(
+                    CAUSAL_CANDIDATE_GATE_POST_RANKING_PRE_NOTEON
+                ),
+            )
+
+    def test_causal_candidate_decode_propagates_post_selection_v2_placement(
+        self,
+    ) -> None:
+        seen: list[CausalCandidateGateInput] = []
+
+        def reject_top(values: CausalCandidateGateInput) -> bool:
+            seen.append(values)
+            return values.candidate_score > 1.9
+
+        config = PolyphonicDecoderConfig(
+            midi_min=60, midi_max=62, frame_on_threshold=0.5,
+            strong_frame_threshold=0.8, frame_off_threshold=0.25,
+            onset_threshold=0.5, activation_frames=1, release_frames=1,
+            minimum_retrigger_frames=1, silence_release_frames=1,
+            maximum_polyphony=2, harmonic_support_threshold=0.0,
+        )
+        notes, _ = decode_probabilities(
+            np.asarray([[0.99, 0.90, 0.80], [0.0, 0.0, 0.0]], dtype=np.float32),
+            np.asarray([[0.99, 0.90, 0.80], [0.0, 0.0, 0.0]], dtype=np.float32),
+            np.zeros((2, 3, 1), dtype=np.float32),
+            config,
+            44_100,
+            256,
+            audio_active=np.asarray([True, False]),
+            audio_onset=np.asarray([True, False]),
+            causal_candidate_gate=reject_top,
+            causal_candidate_gate_placement=(
+                CAUSAL_CANDIDATE_GATE_POST_RANKING_PRE_NOTEON
+            ),
+        )
+
+        self.assertEqual([note.pitch for note in notes], [61])
+        self.assertEqual(
+            [round(values.candidate_score, 2) for values in seen], [1.98, 1.8],
+        )
+
     def test_sealed_decoder_config_does_not_require_thresholds_json(self) -> None:
         root = Path(__file__).resolve().parents[1]
         with tempfile.TemporaryDirectory() as directory:

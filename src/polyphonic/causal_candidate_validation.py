@@ -19,7 +19,14 @@ from typing import Callable, Mapping, Sequence
 import numpy as np
 
 from .causal_candidate_fit import CAUSAL_FEATURES, ENCODED_FEATURES, FitStandardizer
-from .decoder import CausalCandidateGateInput, PolyphonicDecoder, PolyphonicDecoderConfig, PolyphonicMidiEvent
+from .decoder import (
+    CAUSAL_CANDIDATE_GATE_POST_RANKING_PRE_NOTEON,
+    CAUSAL_CANDIDATE_GATE_PRE_RANKING,
+    CausalCandidateGateInput,
+    PolyphonicDecoder,
+    PolyphonicDecoderConfig,
+    PolyphonicMidiEvent,
+)
 
 
 SEALED_POLICY_RELATIVE_PATH = Path("configs/causal_candidate_fit_v1_validation_ab_policy.json")
@@ -224,6 +231,23 @@ class ABDecodedEvents:
     candidate_decoder: PolyphonicDecoder
 
 
+def _require_explicit_candidate_gate_placement(
+    candidate_gate_placement: str | None,
+) -> str:
+    if candidate_gate_placement is None:
+        raise ValueError(
+            "Causal candidate A/B requires an explicit candidate gate placement."
+        )
+    if candidate_gate_placement not in {
+        CAUSAL_CANDIDATE_GATE_PRE_RANKING,
+        CAUSAL_CANDIDATE_GATE_POST_RANKING_PRE_NOTEON,
+    }:
+        raise ValueError(
+            "Causal candidate A/B requires an explicit known gate placement."
+        )
+    return candidate_gate_placement
+
+
 def decode_shared_prediction_ab(
     *,
     frame: np.ndarray,
@@ -233,8 +257,12 @@ def decode_shared_prediction_ab(
     audio_active: np.ndarray,
     audio_onset: np.ndarray,
     candidate_gate: CausalCandidateGate,
+    candidate_gate_placement: str | None = None,
 ) -> ABDecodedEvents:
     """Decode one shared prediction stream through independent A/B states."""
+    candidate_gate_placement = _require_explicit_candidate_gate_placement(
+        candidate_gate_placement
+    )
     frame = np.asarray(frame, dtype=np.float32)
     onset = np.asarray(onset, dtype=np.float32)
     harmonic_amplitude = np.asarray(harmonic_amplitude, dtype=np.float32)
@@ -243,7 +271,11 @@ def decode_shared_prediction_ab(
     if frame.ndim != 2 or onset.shape != frame.shape or active.shape != (len(frame),) or attacks.shape != (len(frame),):
         raise ValueError("A/B decoder inputs have incompatible frame dimensions.")
     reference = PolyphonicDecoder(config)
-    candidate = PolyphonicDecoder(config, causal_candidate_gate=candidate_gate)
+    candidate = PolyphonicDecoder(
+        config,
+        causal_candidate_gate=candidate_gate,
+        causal_candidate_gate_placement=candidate_gate_placement,
+    )
     reference_events: list[PolyphonicMidiEvent] = []
     candidate_events: list[PolyphonicMidiEvent] = []
     for index in range(len(frame)):
@@ -267,8 +299,12 @@ def infer_once_then_decode_ab(
     audio_active: np.ndarray,
     audio_onset: np.ndarray,
     candidate_gate: CausalCandidateGate,
+    candidate_gate_placement: str | None = None,
 ) -> ABDecodedEvents:
     """Invoke transcription exactly once, then fork only decoder state."""
+    candidate_gate_placement = _require_explicit_candidate_gate_placement(
+        candidate_gate_placement
+    )
     prediction = transcription_inference()
     if not isinstance(prediction, Mapping):
         raise ValueError("Transcription inference must return a mapping.")
@@ -283,6 +319,7 @@ def infer_once_then_decode_ab(
         audio_active=audio_active,
         audio_onset=audio_onset,
         candidate_gate=candidate_gate,
+        candidate_gate_placement=candidate_gate_placement,
     )
 
 
@@ -359,6 +396,7 @@ def evaluate_sealed_causal_candidate_ab(
         report_suffix=report_suffix,
         config_path=evaluation_config_path,
         causal_candidate_gate_factory=gate_factory,
+        causal_candidate_gate_placement=CAUSAL_CANDIDATE_GATE_PRE_RANKING,
         causal_candidate_selection_path=selection_path,
         write_report=False,
     )

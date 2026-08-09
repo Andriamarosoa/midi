@@ -43,6 +43,8 @@ from src.polyphonic.data import (
 )
 from src.polyphonic.keras_compat import predict_compat
 from src.polyphonic.decoder import (
+    CAUSAL_CANDIDATE_GATE_POST_RANKING_PRE_NOTEON,
+    CAUSAL_CANDIDATE_GATE_PRE_RANKING,
     CausalCandidateGateInput,
     PolyphonicDecoder,
     PolyphonicDecoderConfig,
@@ -548,11 +550,25 @@ def decode_probabilities(
     independent_note_gate_diagnostics: dict[str, object] | None = None,
     independent_note_diagnostic_thresholds: tuple[float, ...] = (),
     causal_candidate_gate: Callable[[CausalCandidateGateInput], bool] | None = None,
+    causal_candidate_gate_placement: str | None = None,
 ) -> tuple[list[NoteInterval], int]:
+    if causal_candidate_gate is None and causal_candidate_gate_placement is not None:
+        raise ValueError(
+            "A causal candidate gate placement requires a causal candidate gate."
+        )
+    if causal_candidate_gate is not None and causal_candidate_gate_placement is None:
+        raise ValueError(
+            "Causal candidate decoding requires an explicit gate placement."
+        )
     decoder = PolyphonicDecoder(
         config,
         independent_note_diagnostic_thresholds=independent_note_diagnostic_thresholds,
         causal_candidate_gate=causal_candidate_gate,
+        causal_candidate_gate_placement=(
+            CAUSAL_CANDIDATE_GATE_PRE_RANKING
+            if causal_candidate_gate_placement is None
+            else causal_candidate_gate_placement
+        ),
     )
     events: list[PolyphonicMidiEvent] = []
     retriggers = 0
@@ -789,9 +805,22 @@ def evaluate_events(
     paired_decoder_config_path: Path | None = None,
     expected_selection_path: Path | None = None,
     causal_candidate_gate_factory: Callable[[], Callable[[CausalCandidateGateInput], bool]] | None = None,
+    causal_candidate_gate_placement: str | None = None,
     causal_candidate_selection_path: Path | None = None,
     write_report: bool = True,
 ) -> dict[str, object]:
+    if causal_candidate_gate_factory is None:
+        if causal_candidate_gate_placement is not None:
+            raise ValueError(
+                "A causal candidate gate placement requires a candidate gate factory."
+            )
+    elif causal_candidate_gate_placement not in {
+        CAUSAL_CANDIDATE_GATE_PRE_RANKING,
+        CAUSAL_CANDIDATE_GATE_POST_RANKING_PRE_NOTEON,
+    }:
+        raise ValueError(
+            "Causal candidate A/B requires an explicit known gate placement."
+        )
     if split == "test":
         if not allow_locked_test_after_final_selection or final_selection_path is None:
             raise PermissionError(
@@ -984,6 +1013,7 @@ def evaluate_events(
                     prediction.get("independent_note"), candidate_gate,
                     INDEPENDENT_NOTE_DIAGNOSTIC_THRESHOLDS,
                     causal_candidate_gate,
+                    causal_candidate_gate_placement,
                 )
         finally:
             corpus.close()
@@ -1149,6 +1179,7 @@ def evaluate_events(
             "independent_decoder_state_after_gate_decisions": (
                 causal_candidate_gate_factory is not None
             ),
+            "causal_candidate_gate_placement": causal_candidate_gate_placement,
             "reference_config": str(configured_decoder),
             "candidate_config": str(candidate_config_path),
             "reference_config_sha256": _sha256_file(configured_decoder),

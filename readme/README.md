@@ -17,8 +17,19 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-09`.
-- Étape : `causal_candidate_v2_synthetic_implementation`.
-- Statut : `terminé — V2 implémentée et vérifiée synthétiquement; revue externe requise avant tout calcul réel`.
+- Étape : `causal_candidate_v2_synthetic_integration`.
+- Statut : `terminé — V2 et son branchement A/B sont vérifiés synthétiquement; revue externe requise avant tout calcul réel`.
+- Intégration A/B V2 sans actif réel : chaque chemin avec une porte causale doit
+  désormais déclarer explicitement son placement avant toute inférence. Le
+  runner scellé V1 passe explicitement `pre_ranking`, conservant son expérience
+  historique. Le chemin candidat V2 transmet explicitement
+  `post_ranking_pre_noteon` jusqu'à `PolyphonicDecoder`; une omission ou un
+  placement inconnu échoue. Les preuves synthétiques vérifient une seule
+  inférence, l'appel de la porte uniquement sur les deux candidats sélectionnés
+  parmi trois, le rejet du premier et l'absence de backfill. `51` tests ciblés
+  A/B/décodeur en `1,029 s` et `30` tests de provenance/minage en `0,846 s`
+  passent. Rapport :
+  `readme/results/2026-08-09_causal-candidate-v2-synthetic-integration.md`.
 - Implémentation V2 sans actif réel : `PolyphonicDecoder` conserve le placement
   V1 `pre_ranking` par défaut et ajoute uniquement
   `post_ranking_pre_noteon`. Dans les chemins audio-aware et legacy, V2
@@ -819,6 +830,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-09 — relance CPU A/B historique V1, résultat non autorisant](results/2026-08-09_causal-candidate-validation-ab-v1-run.md)
 - [2026-08-09 — hypothèse V2 de porte causale post-ranking](results/2026-08-09_causal-candidate-v2-post-ranking-hypothesis.md)
 - [2026-08-09 — implémentation synthétique de la porte causale V2](results/2026-08-09_causal-candidate-v2-synthetic-implementation.md)
+- [2026-08-09 — intégration A/B synthétique explicite de la porte V2](results/2026-08-09_causal-candidate-v2-synthetic-integration.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.

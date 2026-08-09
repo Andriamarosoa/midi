@@ -1,14 +1,13 @@
 {
   "schema_version": 1,
   "purpose": "causal_candidate_fit_v2_post_ranking_pre_noteon_contract",
-  "status": "implemented_synthetic_only_pending_external_review",
+  "status": "synthetic_decoder_and_ab_integration_pending_external_review",
   "locked_test_used": false,
   "authorization_scope": {
     "allowed_now": [
       "external_review"
     ],
     "forbidden_now": [
-      "decoder_implementation",
       "real_audio_or_label_access",
       "model_loading",
       "fit",
@@ -149,5 +148,5 @@
     "retrigger_behavior_is_unchanged",
     "no_new_lookahead_buffering_or_hop_latency"
   ],
-  "next_action": "External review of this contract only. Any implementation requires separate authorization and must remain synthetic/train-only until separately approved."
+  "next_action": "External review of the synthetic V2 decoder and A/B integration only. No model, artifact, data access, historical validation, fit, calibration, export, live use, or locked test is authorized."
 }
