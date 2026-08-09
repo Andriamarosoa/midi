@@ -17,8 +17,19 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `causal_candidate_v2_independent_validation_attempt4_closed_inconclusive`.
-- Statut : `terminé — post-claim timeout, phase scientifique indéterminée, V2 inconclusive fail-closed`.
+- Étape : `decoder_state_contamination_h3_synthetic_diagnostic`.
+- Statut : `terminé — state_contamination_demonstrated, correction non implémentée`.
+- Diagnostic synthétique H3 positif : deux décodeurs identiques reçoivent une
+  perturbation normale uniquement à `t0`, puis des entrées strictement
+  identiques dès `t1`. Le faux MIDI 60 persistant dans B provoque deux
+  divergences futures indépendantes : il consomme l'unique slot de polyphonie
+  et empêche MIDI 61, puis il devient la base active de H2, fait passer le
+  support harmonique de MIDI 72 de `0.0` à `1.0` et empêche son émission.
+  Première divergence : `t1`; verdict : `state_contamination_demonstrated`.
+  Les 26 tests synthétiques ciblés passent en `0,024 s`. Aucun comportement
+  production n'a été modifié; aucune correction, V3, donnée réelle, TensorFlow
+  ou métrique V2 n'a été exécutée. Rapport :
+  `readme/results/2026-08-10_decoder-state-contamination-h3-synthetic-diagnostic.md`.
 - Clôture provenance-only Attempt4 : l'unique exécution autorisée au commit
   `df2a2a0641d7897195ee0712002bcc48e97858e6` a créé son marker persistant,
   acquis le lease et créé sa destination, puis a atteint le timeout externe
