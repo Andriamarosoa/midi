@@ -1,0 +1,234 @@
+{
+  "schema_version": 1,
+  "purpose": "provisional_resolution_age1_persistence_h7_hypothesis_contract",
+  "status": "provisional_resolution_age1_persistence_hypothesis_defined",
+  "real_computation_authorized": false,
+  "locked_test_used": false,
+  "scope": {
+    "contract_only": true,
+    "signal_demonstrated": false,
+    "target_extracted": false,
+    "cohort_selected": false,
+    "execution_authorized": false,
+    "resolver_implemented": false,
+    "threshold_selected": false,
+    "policy_validated": false,
+    "v3_authorized": false
+  },
+  "hypothesis": "For an emitted NoteOn, same-pitch network frame probability at exactly age_frames=1 contains useful information about whether that NoteOn matches a real causal reference onset.",
+  "signals": {
+    "primary": {
+      "name": "S1",
+      "definition": "current_frame_probability",
+      "required_age_frames": 1,
+      "orientation": "higher_is_more_likely_true_noteon",
+      "may_be_combined_with_other_fields": false
+    },
+    "baseline": {
+      "name": "S0",
+      "definition": "frame_probability_at_noteon",
+      "role": "descriptive_comparator_only",
+      "gating": false
+    },
+    "secondary": {
+      "name": "D1",
+      "definition": "current_frame_probability_minus_frame_probability_at_noteon",
+      "role": "mechanistic_decay_diagnostic_only",
+      "may_rescue_negative_primary": false
+    }
+  },
+  "age_contract": {
+    "required_age_frames": 1,
+    "requires_actually_observed_sequential_decoder_frame": true,
+    "interpolation_allowed": false,
+    "later_age_substitution_allowed": false,
+    "clock_jump_past_age1_status": "age1_observation_unavailable",
+    "attrition_must_be_reported": true,
+    "other_age_search_authorized": false
+  },
+  "forbidden_signal_inputs": [
+    "audio_onset_available",
+    "audio_onset_recent",
+    "harmonic_support",
+    "emitted_polyphony",
+    "contextual_polyphony",
+    "current_onset_probability",
+    "onset_probability_at_noteon",
+    "candidate_score_at_noteon",
+    "candidate_reason_at_noteon",
+    "any_other_h5_field",
+    "feature_interaction",
+    "classifier_or_learned_combination"
+  ],
+  "target_contract": {
+    "target_name": "true_noteon",
+    "resolver_access": false,
+    "offline_diagnostic_only": true,
+    "source_commit": "1c89e30bbf748e2d91013395a16fa0e6872d5e2f",
+    "source_code": [
+      {
+        "path": "src/polyphonic/evaluate_events.py",
+        "git_blob": "c63b9751e5acef49fb51b5e2a8264b00d6e60893",
+        "functions": [
+          "truth_notes"
+        ],
+        "contract": "references include only note_evaluation_valid rows with end greater than start"
+      },
+      {
+        "path": "src/polyphonic/decoder_candidate_labels.py",
+        "git_blob": "98c3f2e87b89df599e71068ab4ae874f69172c5a",
+        "functions": [
+          "decoder_event_time_s",
+          "_event_noteon_reasons",
+          "_event_matchability",
+          "label_emitted_decoder_candidates"
+        ],
+        "contract": "an emitted event at frame i is timed at (i+1)*hop_size/sample_rate; invalid-label or outside-audio frames are excluded rather than made negative; the full emitted NoteOn flow consumes references"
+      },
+      {
+        "path": "src/polyphonic/causal_event_metrics.py",
+        "git_blob": "42f7954b75b0994f43d7f59c62c1ff1b04c0a81d",
+        "functions": [
+          "match_causal_note_ons"
+        ],
+        "contract": "strictly causal same-pitch one-to-one matching with fixed maximum latency"
+      }
+    ],
+    "maximum_latency_ms": 250.0,
+    "matching_semantics": [
+      "process_predictions_in_chronological_order",
+      "reference_is_eligible_only_if_same_pitch_and_reference_start_not_after_prediction_time",
+      "eligible_latency_is_nonnegative_and_at_most_250ms_with_existing_code_epsilon",
+      "latest_pending_same_pitch_reference_wins",
+      "older_pending_same_pitch_references_are_cleared_after_a_match",
+      "each_prediction_and_reference_is_used_at_most_once"
+    ],
+    "label_mapping": {
+      "prediction_index_in_matches": 1,
+      "prediction_index_in_false_prediction_indices": 0
+    },
+    "fail_closed_or_excluded_cases": [
+      "invalid_frame_mask",
+      "event_outside_audio_duration",
+      "duplicate_noteon_frame_pitch_coordinate",
+      "prediction_not_partitioned_between_match_and_false",
+      "missing_or_invalid_reference_arrays",
+      "malformed_or_nonfinite_event_timing"
+    ],
+    "new_truth_rule_allowed": false,
+    "failure_status_if_exact_mapping_is_impossible": "target_definition_requires_separate_contract"
+  },
+  "data_contract": {
+    "future_data_class": "development_or_discovery_only_under_separate_authorization",
+    "future_cohort_selection": null,
+    "recording_identities": null,
+    "manifest_sha256": null,
+    "asset_hashes": null,
+    "consumed_independent_v2_cohort_forbidden": true,
+    "locked_test_forbidden": true,
+    "data_access_authorized_now": false
+  },
+  "grouping_contract": {
+    "required_before_execution": true,
+    "grouping_function_path": "src/polyphonic/decoder_candidate_provenance.py",
+    "grouping_function_git_blob": "e43187b4e8ba0775a74114faf406703dd6c3187c",
+    "grouping_function": "leakage_group_key",
+    "grouping_semantics": "corpus-aware player or performance group provenance; all derived captures of one underlying performance remain together",
+    "row_or_noteon_level_grouping_forbidden": true,
+    "future_execution_preparation_must_record": [
+      "exact_grouping_field_name",
+      "grouping_provenance",
+      "recording_count",
+      "independent_group_count",
+      "recordings_per_group",
+      "corpus_or_category_per_group",
+      "shared_performance_relationships"
+    ],
+    "failure_status_if_unproven": "grouping_identity_not_established"
+  },
+  "primary_metric": {
+    "metric": "ROC_AUC",
+    "score": "S1",
+    "target": "true_noteon",
+    "orientation": "higher_S1_predicts_true_noteon",
+    "positive_verdict": "age1_persistence_signal_demonstrated",
+    "positive_requires_all": {
+      "global_roc_auc_minimum_inclusive": 0.60,
+      "group_resampled_95pct_ci_lower_bound_strictly_greater_than": 0.50
+    },
+    "negative_verdict": "age1_persistence_signal_not_demonstrated",
+    "negative_if_any": [
+      "global_roc_auc_below_0.60",
+      "group_resampled_95pct_ci_lower_bound_at_or_below_0.50"
+    ],
+    "secondary_can_change_verdict": false
+  },
+  "bootstrap_contract": {
+    "method": "group_resampled_percentile_bootstrap",
+    "group_count_symbol": "G",
+    "replicate_sampling": "sample_exactly_G_group_ids_with_replacement_and_include_all_observations_from_each_sampled_group_preserving_multiplicity",
+    "replicate_metric": "ROC_AUC_S1_true_noteon",
+    "single_class_replicate": "invalid_excluded_from_percentiles",
+    "confidence_interval_percentiles": [
+      2.5,
+      97.5
+    ],
+    "row_frame_noteon_or_recording_bootstrap_substitution_allowed": false,
+    "future_report_fields": [
+      "requested_replicate_count",
+      "valid_replicate_count",
+      "invalid_single_class_replicate_count",
+      "random_seed",
+      "bootstrap_implementation_identity"
+    ],
+    "replicate_count": null,
+    "random_seed": null,
+    "minimum_valid_replicates": null,
+    "retry_after_observation_allowed": false,
+    "failure_status": "group_resampling_inconclusive"
+  },
+  "per_corpus_contract": {
+    "report_when_both_target_classes_exist": true,
+    "single_class_status": "auc_unavailable_single_class",
+    "descriptive_non_gating": true,
+    "post_observation_pooling_or_criterion_change_allowed": false
+  },
+  "attrition_contract": {
+    "required_counts": [
+      "emitted_noteons_initially_considered",
+      "noteons_with_exact_age1_observation",
+      "noteons_unavailable_due_to_decoder_clock_skip",
+      "noteons_excluded_as_ambiguous_or_unmatchable",
+      "malformed_or_nonfinite_signal_cases"
+    ],
+    "missing_signal_imputation_allowed": false,
+    "later_age_substitution_allowed": false,
+    "minimum_valid_age1_observations": null
+  },
+  "inconclusive_statuses": {
+    "target_definition_requires_separate_contract": "exact frozen causal per-event target unavailable",
+    "grouping_identity_not_established": "independent grouping provenance unavailable",
+    "group_resampling_inconclusive": "preregistered minimum valid bootstrap replicates unmet",
+    "age1_signal_insufficient_valid_observations": "preregistered minimum age1 sample unmet",
+    "age1_signal_single_class": "global eligible target has one class",
+    "age1_signal_execution_invalid": "malformed missing nonfinite output or frozen-contract violation"
+  },
+  "post_result_rules": {
+    "negative_is_terminal_for_h7": true,
+    "inconclusive_triggers_automatic_retry": false,
+    "age_search_allowed": false,
+    "alternate_signal_allowed": false,
+    "field_combination_allowed": false,
+    "classifier_or_threshold_fit_allowed": false,
+    "grouping_or_truth_redefinition_allowed": false,
+    "same_cohort_optimization_rerun_allowed": false
+  },
+  "unresolved_execution_parameters": {
+    "future_cohort_selection": null,
+    "bootstrap_replicate_count": null,
+    "bootstrap_random_seed": null,
+    "minimum_valid_age1_observation_count": null,
+    "minimum_valid_bootstrap_replicate_count": null
+  },
+  "next_action": "External review of this H7 hypothesis contract only; a separate preparation contract must seal cohort, groups, assets and unresolved execution parameters before any metric is computed."
+}

@@ -17,8 +17,23 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `provisional_resolution_h5_h6_synthetic_conformance`.
-- Statut : `terminé — provisional_resolution_h5_synthetic_conformance_demonstrated, aucun signal de résolution défini`.
+- Étape : `provisional_resolution_age1_persistence_h7_hypothesis_contract`.
+- Statut : `terminé — provisional_resolution_age1_persistence_hypothesis_defined, aucune exécution autorisée`.
+- Hypothèse H7 préenregistrée sans données ni calcul : le seul signal primaire
+  futur est `S1=current_frame_probability` du même pitch à `age_frames=1`;
+  `S0=frame_probability_at_noteon` reste descriptif et `D1=S1-S0` uniquement
+  mécanistique. Aucun autre champ H5, audio, onset, harmonique, polyphonie,
+  score, raison, interaction ou modèle ne peut filtrer ou sauver H7. Le target
+  réutilise le matcher causal one-to-one existant, same-pitch, sans référence
+  future et à latence maximale `250 ms`, avec ses blobs Git figés. La future
+  décision exige `ROC-AUC >= 0,60` et borne basse de l'IC 95 % bootstrap par
+  groupes `> 0,50`. Le grouping doit provenir de `leakage_group_key`; bootstrap
+  ligne/frame/NoteOn/recording interdit. Cohorte, actifs, nombre de réplicats,
+  seed et minimums valides restent non résolus. La cohorte V2 consommée et le
+  test verrouillé restent interdits. Contrat :
+  `configs/provisional_resolution_age1_persistence_h7_hypothesis_contract.json`.
+  Rapport :
+  `readme/results/2026-08-10_provisional-resolution-age1-persistence-h7-hypothesis-contract.md`.
 - Conformance synthétique H6 positive : `ProvisionalObservation` est désormais
   une dataclass immuable contenant exactement les 15 champs H5. Les preuves
   `*_at_noteon` sont gelées à l'émission et toutes les observations d'une frame
