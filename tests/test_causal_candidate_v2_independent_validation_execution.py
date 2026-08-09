@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import inspect
 import subprocess
 import sys
 import tempfile
@@ -23,6 +24,71 @@ class IndependentV2ExecutionRunnerTests(unittest.TestCase):
             "import src.polyphonic.run_causal_candidate_v2_independent_validation_execution; "
             "raise SystemExit(int('tensorflow' in sys.modules))"
         )
+        result = subprocess.run(
+            [sys.executable, "-c", code],
+            cwd=Path(__file__).resolve().parents[1],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_production_manifest_snapshot_is_tensorflow_free(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            manifest = root / "manifest.csv"
+            manifest.write_text(
+                "source_id,dataset_id,player_id,group_id,split,audio_path,audio_member,labels_path,capture_id,license_id\n"
+                "s,d,p,g,validation,a.wav,,l.npz,c,license\n",
+                encoding="utf-8",
+            )
+            adapter = runner._ProductionScientificAdapter.__new__(runner._ProductionScientificAdapter)
+            before = "tensorflow" in sys.modules
+            snapshot = adapter.manifest_snapshot(manifest)
+            self.assertEqual(snapshot.manifest_path, manifest.resolve())
+            self.assertEqual("tensorflow" in sys.modules, before)
+            self.assertNotIn("src.polyphonic.data", inspect.getsource(adapter.manifest_snapshot))
+
+    def test_runtime_configures_cpu_before_tensorflow_bearing_imports(self) -> None:
+        source = inspect.getsource(runner._ProductionScientificAdapter.prepare_runtime_after_all_gates)
+        configure_call = source.index("tf = configure_sealed_validation_cpu_tensorflow()")
+        self.assertLess(configure_call, source.index("from .evaluate_events"))
+        self.assertLess(configure_call, source.index("from .data"))
+        self.assertLess(configure_call, source.index("from .keras_compat"))
+        open_source = inspect.getsource(runner._ProductionScientificAdapter.open_exact_item)
+        self.assertNotIn("from .data", open_source)
+
+    def test_runtime_prepare_uses_mock_cpu_config_without_real_tensorflow(self) -> None:
+        code = r'''
+import os, sys, types
+from src.polyphonic import causal_candidate_validation as validation
+from src.polyphonic import run_causal_candidate_v2_independent_validation_execution as runner
+calls = []
+fake_tf = types.ModuleType("tensorflow")
+def configure():
+    calls.append("configure")
+    sys.modules["tensorflow"] = fake_tf
+    return fake_tf
+validation.configure_sealed_validation_cpu_tensorflow = configure
+data = types.ModuleType("src.polyphonic.data")
+data.PolyphonicCorpus = object
+data.PolyphonicSequence = object
+evaluation = types.ModuleType("src.polyphonic.evaluate_events")
+evaluation._load_evaluation_decoder_config = object
+keras = types.ModuleType("src.polyphonic.keras_compat")
+keras.load_polyphonic_checkpoint = object
+keras.predict_compat = object
+sys.modules["src.polyphonic.data"] = data
+sys.modules["src.polyphonic.evaluate_events"] = evaluation
+sys.modules["src.polyphonic.keras_compat"] = keras
+os.environ["MIDI_FORCE_CPU"] = "1"
+adapter = runner._ProductionScientificAdapter.__new__(runner._ProductionScientificAdapter)
+adapter._dependencies = None
+adapter._runtime = None
+adapter.prepare_runtime_after_all_gates()
+assert calls == ["configure"]
+assert adapter._dependencies["tf"] is fake_tf
+'''
         result = subprocess.run(
             [sys.executable, "-c", code],
             cwd=Path(__file__).resolve().parents[1],
@@ -65,6 +131,30 @@ class IndependentV2ExecutionRunnerTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(RuntimeError, "not authorized"):
             runner.run_authorized_independent_v2(Path(__file__).resolve().parents[1], forged)
+
+    def test_public_capability_is_consumed_before_builder_and_cannot_be_reused(self) -> None:
+        capability = runner.IndependentV2OneJobCapability(
+            runner_commit="a" * 40,
+            execution_contract_sha256="b" * 64,
+            device="cpu",
+            wall_timeout_seconds=900,
+            job_id="one-shot",
+            destination="tmp/fresh",
+            stop_after_report=True,
+            locked_test_used=False,
+            single_execution_authorization=True,
+        )
+        runner._ONE_JOB_CAPABILITIES[id(capability)] = weakref.ref(capability)
+        self.addCleanup(runner._ONE_JOB_CAPABILITIES.pop, id(capability), None)
+        self.addCleanup(runner._CLAIMED_ONE_JOB_CAPABILITIES.pop, id(capability), None)
+        with mock.patch.object(
+            runner, "_build_production_execution_paths", side_effect=RuntimeError("builder failed")
+        ) as builder:
+            with self.assertRaisesRegex(RuntimeError, "builder failed"):
+                runner.run_authorized_independent_v2(Path(__file__).resolve().parents[1], capability)
+            with self.assertRaisesRegex(RuntimeError, "already claimed"):
+                runner.run_authorized_independent_v2(Path(__file__).resolve().parents[1], capability)
+        builder.assert_called_once()
 
     def test_state_machine_is_one_shot(self) -> None:
         state = runner.OneShotStateMachine()
@@ -212,7 +302,9 @@ class IndependentV2ExecutionRunnerTests(unittest.TestCase):
             locked_test_used=False, single_execution_authorization=True,
         )
         runner._ONE_JOB_CAPABILITIES[id(cap)] = weakref.ref(cap)
+        runner._CLAIMED_ONE_JOB_CAPABILITIES[id(cap)] = weakref.ref(cap)
         self.addCleanup(runner._ONE_JOB_CAPABILITIES.pop, id(cap), None)
+        self.addCleanup(runner._CLAIMED_ONE_JOB_CAPABILITIES.pop, id(cap), None)
         decision_rules = {
             "automatic_promotion": False,
             "all_rules_must_pass_for_positive_independent_evidence": True,
@@ -279,7 +371,9 @@ class IndependentV2ExecutionRunnerTests(unittest.TestCase):
                 events.append("items")
                 self.outer.assertIs(actual_cohort, cohort); self.outer.assertIs(actual_snapshot, snapshot)
                 return items
+            def prepare_runtime_after_all_gates(self): events.append("prepare_runtime")
             def open_exact_item(self, item): events.append(("open", asset_evidence.canonical_recording_key(item))); return item
+            def close_exact_item(self, opened): events.append(("close", asset_evidence.canonical_recording_key(opened)))
             def infer_once(self, opened): value = object(); events.append(("infer", opened, value)); return value
             def audio_masks_once(self, opened): value = object(); events.append(("masks", opened, value)); return value
             def decode_ab(self, prediction, masks):
@@ -336,7 +430,20 @@ class IndependentV2ExecutionRunnerTests(unittest.TestCase):
         first_decode = next(i for i, event in enumerate(events) if isinstance(event, tuple) and event[0] == "decode")
         first_accumulate = next(i for i, event in enumerate(events) if isinstance(event, tuple) and event[0] == "accumulate")
         self.assertLess(events.index(("phase", runner.OneShotPhase.SCIENTIFIC_ASSET_OPENED)), first_open)
-        self.assertEqual(sum(isinstance(event, tuple) and event[0] in {"verify_audio", "verify_label"} for event in events[:first_open]), 60)
+        self.assertEqual(sum(isinstance(event, tuple) and event[0] in {"verify_audio", "verify_label"} for event in events), 60)
+        self.assertEqual(sum(isinstance(event, tuple) and event[0] in {"verify_audio", "verify_label"} for event in events[:first_open]), 2)
+        self.assertLess(events.index("lease_enter"), events.index("prepare_runtime"))
+        self.assertLess(events.index("prepare_runtime"), first_open)
+        self.assertEqual(events[first_open - 3][0], "verify_audio")
+        self.assertEqual(events[first_open - 2][0], "verify_label")
+        for index, event in enumerate(events):
+            if isinstance(event, tuple) and event[0] == "open":
+                prior_verifications = [
+                    row[0] for row in events[max(0, index - 3):index]
+                    if isinstance(row, tuple) and row[0] in {"verify_audio", "verify_label"}
+                ]
+                self.assertEqual(prior_verifications, ["verify_audio", "verify_label"])
+        self.assertEqual(sum(isinstance(event, tuple) and event[0] == "close" for event in events), 30)
         self.assertLess(events.index(("phase", runner.OneShotPhase.INFERENCE_STARTED)), first_infer)
         self.assertLess(events.index(("phase", runner.OneShotPhase.AB_METRIC_PRODUCED)), first_accumulate)
         self.assertLess(first_decode, events.index(("phase", runner.OneShotPhase.AB_METRIC_PRODUCED)))
@@ -418,6 +525,27 @@ class IndependentV2ExecutionRunnerTests(unittest.TestCase):
                 runner._run_sealed_independent_v2_execution(paths, cap, system_probe=probe, scientific_adapter=adapter)
         self.assertIn(runner.OneShotPhase.AB_METRIC_PRODUCED, phases)
         self.assertNotIn(runner.OneShotPhase.REPORT_WRITTEN, phases)
+        self.assertEqual(sum(isinstance(event, tuple) and event[0] == "close" for event in events), 1)
+
+    def test_opened_item_is_closed_for_every_scientific_failure_stage(self) -> None:
+        for method_name in ("infer_once", "audio_masks_once", "decode_ab", "accumulate"):
+            with self.subTest(method_name=method_name):
+                paths, cap, probe, adapter, events, _ = self._sealed_execution()
+                original = getattr(adapter, method_name)
+
+                def fail(*args, _original=original, **kwargs):
+                    del args, kwargs, _original
+                    raise RuntimeError(f"{method_name} failed")
+
+                setattr(adapter, method_name, fail)
+                with self.assertRaisesRegex(RuntimeError, f"{method_name} failed"):
+                    runner._run_sealed_independent_v2_execution(
+                        paths, cap, system_probe=probe, scientific_adapter=adapter,
+                    )
+                self.assertEqual(
+                    sum(isinstance(event, tuple) and event[0] == "close" for event in events),
+                    1,
+                )
 
     def test_public_entry_rejects_forged_capability_before_builders(self) -> None:
         forged = runner.IndependentV2OneJobCapability(

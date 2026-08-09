@@ -17,8 +17,19 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `causal_candidate_v2_independent_validation_execution_boundary_pending_external_review`.
-- Statut : `en cours — frontière d'exécution directe V2 fermée et testée sans factory one-job ni calcul réel; revue externe requise`.
+- Étape : `causal_candidate_v2_independent_validation_pre_science_boundary_pending_external_review`.
+- Statut : `en cours — correctif pre-science V2 terminé et testé sans factory one-job ni calcul réel; revue externe requise`.
+- Correctif pre-science du runner indépendant : le manifeste attesté est
+  désormais chargé directement par le lecteur sans TensorFlow; une primitive
+  explicite prépare le runtime CPU seulement après contrat, Git, cohorte,
+  preuve globale des 60 actifs, six SHA et lease atomique. La configuration
+  CPU précède strictement les imports `data`/`evaluate_events`; chaque paire
+  audio/labels est rehachée immédiatement avant l'ouverture du même objet et
+  son corpus est fermé dans un `finally`. La capability one-job attestée sera
+  revendiquée atomiquement dès la première invocation publique et ne pourra
+  jamais être réutilisée, même après un échec pre-lease. Toujours aucune
+  factory d'autorisation ni exécution réelle. `83` tests synthétiques passent
+  en `8,288 s`; revue externe requise avant l'artefact d'autorisation séparé.
 - Anomalie pré-métrique V2 vérifiée : le job unique
   `causal-candidate-v2-train-dev-cpu-20260809`, lancé au commit approuvé
   `ddd15be4fbf7e47205a0025f80821e2446ef9720` avec CPU et `900 s`, termine

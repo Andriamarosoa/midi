@@ -17,6 +17,8 @@ import math
 import os
 from pathlib import Path
 import subprocess
+import sys
+import threading
 from typing import Mapping, Protocol, Sequence
 import weakref
 
@@ -29,6 +31,8 @@ from .causal_candidate_v2_independent_validation_execution_contract import (
 
 
 _ONE_JOB_CAPABILITIES: dict[int, weakref.ReferenceType[object]] = {}
+_CLAIMED_ONE_JOB_CAPABILITIES: dict[int, weakref.ReferenceType[object]] = {}
+_ONE_JOB_CAPABILITY_CLAIM_LOCK = threading.Lock()
 
 REPORT_VIEWS = ("reference", "candidate", "delta_candidate_minus_reference")
 REPORT_GRANULARITIES = ("global", "per_dataset", "per_recording", "per_independent_leakage_group")
@@ -224,7 +228,9 @@ class IndependentV2SystemProbe(Protocol):
 class IndependentV2ScientificAdapter(Protocol):
     def manifest_snapshot(self, path: Path) -> object: ...
     def items(self, cohort: object, snapshot: object) -> Sequence[object]: ...
+    def prepare_runtime_after_all_gates(self) -> None: ...
     def open_exact_item(self, item: object) -> object: ...
+    def close_exact_item(self, opened: object) -> None: ...
     def infer_once(self, opened: object) -> object: ...
     def audio_masks_once(self, opened: object) -> object: ...
     def decode_ab(self, predictions: object, masks: object) -> object: ...
@@ -272,10 +278,13 @@ class _ProductionScientificAdapter:
         self._records: list[Mapping[str, object]] = []
         self._current: object | None = None
         self._prediction: Mapping[str, object] | None = None
+        self._dependencies: Mapping[str, object] | None = None
         self._runtime: Mapping[str, object] | None = None
 
     def manifest_snapshot(self, path: Path) -> object:
-        from .data import load_manifest_snapshot
+        # This reader is deliberately TensorFlow-free.  Importing ``data`` here
+        # would import TensorFlow before the evidence and frozen-artifact gates.
+        from .manifest_snapshot import load_manifest_snapshot
         return load_manifest_snapshot(path)
 
     def items(self, cohort: object, snapshot: object) -> Sequence[object]:
@@ -284,26 +293,75 @@ class _ProductionScientificAdapter:
         indexed = {canonical_recording_key(item): item for item in snapshot.items}
         return tuple(indexed[key] for key in cohort.recording_keys)
 
+    def prepare_runtime_after_all_gates(self) -> None:
+        """Configure CPU TensorFlow once, before any TF-bearing import."""
+
+        if self._dependencies is not None:
+            raise RuntimeError("independent V2 runtime was already prepared")
+        if "tensorflow" in sys.modules:
+            raise RuntimeError("TensorFlow was imported before all independent V2 gates")
+        if os.environ.get("MIDI_FORCE_CPU") != "1":
+            raise RuntimeError("independent V2 runtime requires MIDI_FORCE_CPU=1")
+        from .causal_candidate_validation import configure_sealed_validation_cpu_tensorflow
+
+        tf = configure_sealed_validation_cpu_tensorflow()
+        # Every module below is imported only after the sealed CPU preflight.
+        import numpy as np
+        import yaml
+        from .causal_candidate_fit import CAUSAL_FEATURES, ENCODED_FEATURES, FitStandardizer
+        from .causal_candidate_validation import CausalCandidateGate
+        from .data import PolyphonicCorpus, PolyphonicSequence
+        from .evaluate_events import _load_evaluation_decoder_config
+        from .keras_compat import load_polyphonic_checkpoint, predict_compat
+
+        self._dependencies = {
+            "tf": tf,
+            "np": np,
+            "yaml": yaml,
+            "causal_features": CAUSAL_FEATURES,
+            "encoded_features": ENCODED_FEATURES,
+            "standardizer_type": FitStandardizer,
+            "gate_type": CausalCandidateGate,
+            "corpus_type": PolyphonicCorpus,
+            "sequence_type": PolyphonicSequence,
+            "load_decoder_config": _load_evaluation_decoder_config,
+            "load_checkpoint": load_polyphonic_checkpoint,
+            "predict": predict_compat,
+        }
+
     def open_exact_item(self, item: object) -> object:
-        from .data import PolyphonicCorpus
+        if self._dependencies is None:
+            raise RuntimeError("independent V2 runtime must be prepared before opening assets")
+        PolyphonicCorpus = self._dependencies["corpus_type"]
         context = PolyphonicCorpus([item])
         corpus = context.__enter__()
         opened = {"item": item, "context": context, "corpus": corpus}
         self._current = opened
         return opened
 
+    def close_exact_item(self, opened: object) -> None:
+        if not isinstance(opened, Mapping) or "context" not in opened:
+            raise ValueError("invalid independent V2 opened-item handle")
+        opened["context"].__exit__(None, None, None)
+        if self._current is opened:
+            self._current = None
+        self._prediction = None
+
     def _ensure_runtime(self) -> Mapping[str, object]:
         if self._runtime is not None:
             return self._runtime
-        import numpy as np
-        import yaml
-        from .causal_candidate_fit import CAUSAL_FEATURES, ENCODED_FEATURES, FitStandardizer
-        from .causal_candidate_validation import CausalCandidateGate
-        from .evaluate_events import _load_evaluation_decoder_config
-        from .keras_compat import load_polyphonic_checkpoint
-        from .run_causal_candidate_v2_train_dev_diagnostic import configure_sealed_validation_cpu_tensorflow
-
-        tf = configure_sealed_validation_cpu_tensorflow()
+        if self._dependencies is None:
+            raise RuntimeError("independent V2 runtime dependencies were not prepared")
+        dependencies = self._dependencies
+        tf = dependencies["tf"]
+        np = dependencies["np"]
+        yaml = dependencies["yaml"]
+        CAUSAL_FEATURES = dependencies["causal_features"]
+        ENCODED_FEATURES = dependencies["encoded_features"]
+        FitStandardizer = dependencies["standardizer_type"]
+        CausalCandidateGate = dependencies["gate_type"]
+        _load_evaluation_decoder_config = dependencies["load_decoder_config"]
+        load_polyphonic_checkpoint = dependencies["load_checkpoint"]
         config = yaml.safe_load(self.paths.evaluation_config_path.read_text(encoding="utf-8"))
         if not isinstance(config, Mapping):
             raise ValueError("independent V2 evaluation YAML must be an object")
@@ -352,11 +410,11 @@ class _ProductionScientificAdapter:
         return self._runtime
 
     def infer_once(self, opened: object) -> object:
-        import numpy as np
-        from .data import PolyphonicSequence
-        from .keras_compat import predict_compat
-
         runtime = self._ensure_runtime()
+        dependencies = self._dependencies
+        np = dependencies["np"]
+        PolyphonicSequence = dependencies["sequence_type"]
+        predict_compat = dependencies["predict"]
         corpus = opened["corpus"]
         arrays = corpus.labels[0].arrays
         config = runtime["config"]
@@ -444,10 +502,6 @@ class _ProductionScientificAdapter:
 
     def accumulate(self, result: object) -> None:
         self._records.append(result)
-        opened = self._current
-        opened["context"].__exit__(None, None, None)
-        self._current = None
-        self._prediction = None
 
     @staticmethod
     def _sum_diagnostics(rows: Sequence[Mapping[str, object]]) -> dict[str, int]:
@@ -587,7 +641,7 @@ def _build_production_execution_paths(repository_root: Path, capability: Indepen
 
 def _run_sealed_independent_v2_execution(paths: IndependentV2ExecutionPaths, capability: object, *, system_probe: IndependentV2SystemProbe, scientific_adapter: IndependentV2ScientificAdapter) -> Mapping[str, object]:
     """Single direct future production sequence, injectable only for synthetic tests."""
-    cap = require_sealed_one_job_capability(capability)
+    cap = require_claimed_sealed_one_job_capability(capability)
     contract = _require_execution_contract(paths.repository_root)
     capability_destination = Path(cap.destination)
     if not capability_destination.is_absolute():
@@ -624,19 +678,22 @@ def _run_sealed_independent_v2_execution(paths: IndependentV2ExecutionPaths, cap
         raise RuntimeError("independent V2 execution leakage groups differ from the sealed cohort")
     state = OneShotStateMachine()
     with system_probe.acquire_lease(paths.lock_path, paths.destination):
+        scientific_adapter.prepare_runtime_after_all_gates()
         for item in items:
             verify_independent_v2_validation_audio_asset_for_item(evidence, item)
             verify_independent_v2_validation_label_asset_for_item(evidence, item)
-        for item in items:
             if state.phase == OneShotPhase.PRE_SCIENCE: state.advance(OneShotPhase.SCIENTIFIC_ASSET_OPENED)
             opened = scientific_adapter.open_exact_item(item)
-            if state.phase == OneShotPhase.SCIENTIFIC_ASSET_OPENED: state.advance(OneShotPhase.INFERENCE_STARTED)
-            predictions = scientific_adapter.infer_once(opened)
-            masks = scientific_adapter.audio_masks_once(opened)
-            result = scientific_adapter.decode_ab(predictions, masks)
-            if state.phase == OneShotPhase.INFERENCE_STARTED: state.advance(OneShotPhase.AB_METRIC_PRODUCED)
-            if not state.cohort_consumed: raise AssertionError("first A/B result must consume cohort")
-            scientific_adapter.accumulate(result)
+            try:
+                if state.phase == OneShotPhase.SCIENTIFIC_ASSET_OPENED: state.advance(OneShotPhase.INFERENCE_STARTED)
+                predictions = scientific_adapter.infer_once(opened)
+                masks = scientific_adapter.audio_masks_once(opened)
+                result = scientific_adapter.decode_ab(predictions, masks)
+                if state.phase == OneShotPhase.INFERENCE_STARTED: state.advance(OneShotPhase.AB_METRIC_PRODUCED)
+                if not state.cohort_consumed: raise AssertionError("first A/B result must consume cohort")
+                scientific_adapter.accumulate(result)
+            finally:
+                scientific_adapter.close_exact_item(opened)
         report = dict(scientific_adapter.final_report())
         report["provenance_values"] = {
             "git_commit": cap.runner_commit,
@@ -718,6 +775,30 @@ def require_sealed_one_job_capability(value: object) -> IndependentV2OneJobCapab
     return value
 
 
+def claim_sealed_one_job_capability(value: object) -> IndependentV2OneJobCapability:
+    """Consume an attested authorization before any execution-side builder.
+
+    A failed first attempt is still an attempt: the same identity-attested
+    object can never be reused after a preflight, lease, or scientific error.
+    """
+
+    with _ONE_JOB_CAPABILITY_CLAIM_LOCK:
+        checked = require_sealed_one_job_capability(value)
+        reference = _CLAIMED_ONE_JOB_CAPABILITIES.get(id(checked))
+        if reference is not None and reference() is checked:
+            raise RuntimeError("Fail closed: independent V2 one-job capability was already claimed.")
+        _CLAIMED_ONE_JOB_CAPABILITIES[id(checked)] = weakref.ref(checked)
+        return checked
+
+
+def require_claimed_sealed_one_job_capability(value: object) -> IndependentV2OneJobCapability:
+    checked = require_sealed_one_job_capability(value)
+    reference = _CLAIMED_ONE_JOB_CAPABILITIES.get(id(checked))
+    if reference is None or reference() is not checked:
+        raise RuntimeError("Fail closed: independent V2 one-job capability was not claimed.")
+    return checked
+
+
 def _require_execution_contract(repository_root: Path) -> IndependentV2ExecutionContract:
     contract = load_sealed_independent_v2_execution_contract(repository_root)
     return require_sealed_independent_v2_execution_contract(contract)
@@ -729,7 +810,7 @@ def run_authorized_independent_v2(
 ) -> Mapping[str, object]:
     """Guard the future scientific path; the capability factory is absent."""
 
-    checked = require_sealed_one_job_capability(capability)
+    checked = claim_sealed_one_job_capability(capability)
     paths = _build_production_execution_paths(repository_root, checked)
     probe = _ProductionSystemProbe()
     adapter = _ProductionScientificAdapter(paths)
@@ -759,6 +840,7 @@ __all__ = [
     "REPORT_PROVENANCE",
     "REPORT_VIEWS",
     "evaluate_future_report_decision",
+    "claim_sealed_one_job_capability",
     "classify_failure",
     "validate_frozen_artifact_hashes",
     "validate_future_report",
