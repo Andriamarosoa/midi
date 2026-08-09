@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "purpose": "causal_candidate_fit_v2_post_ranking_pre_noteon_contract",
+  "status": "preregistered_contract_only_not_implemented",
+  "locked_test_used": false,
+  "authorization_scope": {
+    "allowed_now": [
+      "versioned_contract_only",
+      "external_review"
+    ],
+    "forbidden_now": [
+      "decoder_implementation",
+      "real_audio_or_label_access",
+      "model_loading",
+      "fit",
+      "recalibration",
+      "threshold_search",
+      "historical_validation_ab",
+      "export",
+      "live",
+      "locked_test"
+    ]
+  },
+  "v1_motivating_observation": {
+    "report_commit": "f893aa55e6e5b00eddda7b4833a8cf4775c9f511",
+    "raw_report_sha256": "8f048ad173015c2a89d3cde5ca106cc45c6bad05f6023f36c92ba4e12c28d1c3",
+    "historical_validation_recordings": 12,
+    "candidate_gate_threshold": 0.31,
+    "eligible_candidates": 711,
+    "rejected_candidates": 9,
+    "final_midi_event_delta": 0,
+    "interpretation": "The V1 learned signal may be useful for selected NoteOns but was applied before ranking and maximum-polyphony selection."
+  },
+  "frozen_v1_artifacts": {
+    "fit_runner_commit": "578a9d6583b2e5a68a312bd8dccf8e19a77b58b7",
+    "fit_report_sha256": "b8148fade0d72c6d20d64f31fbaf9983b748997ba16f5664c525bcc41ae9b759",
+    "model_sha256": "b9320cd004ed686720e282e4338c4a6413c2ef3dd701d421de3533f710d8a59e",
+    "standardizer_sha256": "0600aa1aa75eb008f04e299de3ffe9d7b6b0a722b177750b42e0967740df5e3b",
+    "threshold": 0.31,
+    "transcription_checkpoint_sha256": "1ce8ac44ca7156d4bc058b5b37580805f2ab6536b380636c04b9a31b1a411325",
+    "evaluation_config_sha256": "245285783eb395e1c16f9773cf9a15565510ba289467d63ad6a7d725bae19804",
+    "reference_decoder_config_sha256": "c16be48271912c99c4237345e8406e39b88490b5565047757f6ca9e905615f96",
+    "manifest_sha256": "b28cb17cfb80a82860ab44635b2c6d05718243e027a8fc8199fe72e27f1b8ed7"
+  },
+  "model_input_contract": {
+    "raw_causal_features": [
+      "frame_probability",
+      "onset_probability",
+      "candidate_score",
+      "candidate_reason",
+      "harmonic_support",
+      "audio_onset_available",
+      "audio_onset_recent",
+      "active_polyphony"
+    ],
+    "encoded_feature_names": [
+      "frame_probability",
+      "onset_probability",
+      "candidate_score",
+      "harmonic_support",
+      "log1p_active_polyphony",
+      "audio_onset_available",
+      "audio_onset_recent",
+      "candidate_reason=model_onset",
+      "candidate_reason=frame_attack",
+      "candidate_reason=frame_fallback",
+      "candidate_reason=legacy",
+      "candidate_reason=chord_completion"
+    ],
+    "feature_snapshot_time": "before_ranking_and_selection_from_the_candidate_decoder_causal_state",
+    "forbidden_inputs": [
+      "post_gate_rank",
+      "post_gate_selected",
+      "emitted_noteon",
+      "event_id",
+      "target",
+      "provenance",
+      "future_frames",
+      "post_mutation_decoder_state"
+    ]
+  },
+  "decoder_placement": {
+    "reference_pipeline": [
+      "candidate_generation",
+      "existing_base_eligibility_checks",
+      "ranking",
+      "maximum_polyphony_selection",
+      "state_mutation",
+      "noteon_emission"
+    ],
+    "v2_candidate_pipeline": [
+      "candidate_generation",
+      "existing_base_eligibility_checks",
+      "ranking",
+      "maximum_polyphony_selection",
+      "causal_gate_v1",
+      "state_mutation_for_accepted_selected_candidates_only",
+      "noteon_emission_for_accepted_selected_candidates_only"
+    ],
+    "gate_population": "selected candidates that are causal-gate eligible under the unchanged V1 eligibility definition",
+    "retrigger_policy": "unchanged_and_outside_the_v2_gate_population",
+    "same_hop_backfill_after_rejection": false,
+    "selection_is_fixed_before_gate": true
+  },
+  "rejection_semantics": {
+    "emits_noteon": false,
+    "marks_pitch_active": false,
+    "occupies_maximum_polyphony_slot": false,
+    "performs_emitted_note_state_resets": false,
+    "contributes_chord_protection": false,
+    "reranks_or_backfills_same_hop": false,
+    "activation_evidence_is_not_reset_as_if_emitted": true,
+    "accepted_selected_candidates_follow_the_unchanged_reference_state_mutation_order": true
+  },
+  "causality_and_latency_contract": {
+    "new_lookahead": false,
+    "new_audio_buffering": false,
+    "new_hop_delay": false,
+    "feature_values_must_remain_defined_without_future_information": true
+  },
+  "historical_validation_integrity": {
+    "selection_path": "configs/causal_candidate_fit_v1_validation_selection_12.json",
+    "selection_sha256": "8c3cf53c7f5dcf086b70767e28499c3164aa307059652a6d0a2fc87159f9dcbc",
+    "historical_validation_is_not_independent_for_v2": true,
+    "execution_on_that_cohort_authorized_by_this_contract": false,
+    "future_use_requires_separate_authorization": true,
+    "future_interpretation_if_authorized": "exploratory_only_not_threshold_or_model_selection"
+  },
+  "required_synthetic_proofs_before_any_real_execution": [
+    "disabled_v2_path_is_event_and_state_identical_to_reference",
+    "ranking_and_maximum_polyphony_selection_complete_before_v2_gate",
+    "rejected_selected_candidate_emits_no_noteon_and_mutates_no_emitted_note_state",
+    "rejected_selected_candidate_consumes_no_slot_and_causes_no_same_hop_backfill",
+    "rejected_selected_candidate_does_not_contribute_chord_protection",
+    "v2_feature_vector_is_exactly_the_frozen_v1_vector_and_contains_no_post_gate_information",
+    "retrigger_behavior_is_unchanged",
+    "no_new_lookahead_buffering_or_hop_latency"
+  ],
+  "next_action": "External review of this contract only. Any implementation requires separate authorization and must remain synthetic/train-only until separately approved."
+}

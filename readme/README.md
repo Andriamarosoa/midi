@@ -17,8 +17,23 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-09`.
-- Étape : `causal_candidate_validation_ab_v1`.
-- Statut : `terminé — V1 clôturée comme résultat négatif non promu après revue externe`.
+- Étape : `causal_candidate_v2_post_ranking_pre_noteon_contract`.
+- Statut : `terminé — contrat V2 préenregistré, sans implémentation ni calcul; revue externe requise`.
+- Nouvelle hypothèse V2 explicitement autorisée sous forme documentaire
+  uniquement : la tête causale V1, son standardiseur, ses 12 features et le
+  seuil gelé `0,31` restent inchangés. Seul le placement futur est défini :
+  après ranking et sélection `maximum_polyphony`, juste avant toute mutation
+  d'état et tout `NoteOn`. Un candidat sélectionné mais rejeté ne devient pas
+  actif, ne consomme pas de place, ne déclenche aucune protection d'accord et
+  ne provoque aucun backfill dans le même hop. Les features restent celles de
+  V1, figées depuis l'état causal pré-ranking, sans information post-porte ni
+  future. Les retriggers restent inchangés. Les 12 prises validation ayant
+  déjà révélé le défaut V1, elles sont explicitement interdites dans ce contrat
+  V2 et ne pourront être employées plus tard qu'avec une autorisation distincte
+  et une interprétation exploratoire. Aucun modèle, actif, inférence, fit,
+  recalibration, recherche de seuil, validation, export, live ou test verrouillé
+  n'a été ouvert ou exécuté. Rapport :
+  `readme/results/2026-08-09_causal-candidate-v2-post-ranking-hypothesis.md`.
 - Résultat terminal vérifié : l'unique job CPU
   `causal-candidate-fit-v1-cpu-20260809` termine avec `exit_code=0`,
   `complete_non_authorizing`, 14 époques enregistrées et meilleure époque 9,
@@ -782,6 +797,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-09 — contrat d'invocation A/B historique du filtre causal V1](results/2026-08-09_causal-candidate-validation-ab-invocation-contract.md)
 - [2026-08-09 — correctif pré-métrique du contrat A/B historique](results/2026-08-09_causal-candidate-validation-ab-threshold-contract-fix.md)
 - [2026-08-09 — relance CPU A/B historique V1, résultat non autorisant](results/2026-08-09_causal-candidate-validation-ab-v1-run.md)
+- [2026-08-09 — hypothèse V2 de porte causale post-ranking](results/2026-08-09_causal-candidate-v2-post-ranking-hypothesis.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.
