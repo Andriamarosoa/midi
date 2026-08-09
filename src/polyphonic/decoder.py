@@ -20,6 +20,14 @@ _CAUSAL_CANDIDATE_GATE_PLACEMENTS = frozenset((
     CAUSAL_CANDIDATE_GATE_PRE_RANKING,
     CAUSAL_CANDIDATE_GATE_POST_RANKING_PRE_NOTEON,
 ))
+PROVISIONAL_HOLD = "HOLD"
+PROVISIONAL_CONFIRM = "CONFIRM"
+PROVISIONAL_REJECT = "REJECT"
+_PROVISIONAL_RESOLUTIONS = frozenset((
+    PROVISIONAL_HOLD,
+    PROVISIONAL_CONFIRM,
+    PROVISIONAL_REJECT,
+))
 
 
 @dataclass(frozen=True)
@@ -43,6 +51,14 @@ class CausalCandidateGateInput:
     audio_onset_available: bool
     audio_onset_recent: bool
     active_polyphony: int
+
+
+@dataclass(frozen=True)
+class ProvisionalStateInput:
+    """Identity and causal clock for an explicitly opt-in H4 resolver."""
+
+    pitch: int
+    frame_index: int
 
 
 @dataclass(frozen=True)
@@ -196,6 +212,7 @@ class PolyphonicDecoder:
         candidate_collector: DecoderCandidateCollector | None = None,
         causal_candidate_gate: Callable[[CausalCandidateGateInput], bool] | None = None,
         causal_candidate_gate_placement: str = CAUSAL_CANDIDATE_GATE_PRE_RANKING,
+        provisional_state_resolver: Callable[[ProvisionalStateInput], str] | None = None,
     ) -> None:
         if causal_candidate_gate_placement not in _CAUSAL_CANDIDATE_GATE_PLACEMENTS:
             raise ValueError(
@@ -206,9 +223,11 @@ class PolyphonicDecoder:
         self._candidate_collector = candidate_collector
         self._causal_candidate_gate = causal_candidate_gate
         self._causal_candidate_gate_placement = causal_candidate_gate_placement
+        self._provisional_state_resolver = provisional_state_resolver
         self._candidate_collection_error: str | None = None
         self.classes = config.midi_max - config.midi_min + 1
         self.active = np.zeros(self.classes, dtype=np.bool_)
+        self.provisional_active = np.zeros(self.classes, dtype=np.bool_)
         self.activation_count = np.zeros(self.classes, dtype=np.int16)
         self.release_count = np.zeros(self.classes, dtype=np.int16)
         self.last_note_on = np.full(self.classes, -10**9, dtype=np.int64)
@@ -281,6 +300,83 @@ class PolyphonicDecoder:
                 float(harmonic_amplitude[base_index, harmonic_index]),
             )
         return float(np.clip(support, 0.0, 1.0))
+
+    @property
+    def contextual_active(self) -> np.ndarray:
+        """Notes allowed to influence future decisions under opt-in H4."""
+        if self._provisional_state_resolver is None:
+            return self.active
+        return self.active & ~self.provisional_active
+
+    def _contextual_polyphony(self) -> int:
+        return int(np.sum(self.contextual_active))
+
+    def _clear_pitch_state(self, class_index: int) -> None:
+        self.active[class_index] = False
+        self.provisional_active[class_index] = False
+        self.activation_count[class_index] = 0
+        self.attack_activation_pending[class_index] = False
+        self.release_count[class_index] = 0
+        self.chord_release_grace[class_index] = 0
+
+    def _resolve_provisional_states(
+        self,
+        events: list[PolyphonicMidiEvent],
+    ) -> None:
+        resolver = self._provisional_state_resolver
+        if resolver is None:
+            return
+        for class_index in np.flatnonzero(self.active & self.provisional_active):
+            class_index = int(class_index)
+            pitch = self.config.midi_min + class_index
+            resolution = resolver(ProvisionalStateInput(
+                pitch=pitch,
+                frame_index=self.frame_index,
+            ))
+            if resolution not in _PROVISIONAL_RESOLUTIONS:
+                raise ValueError(
+                    "Provisional resolver must return HOLD, CONFIRM, or REJECT."
+                )
+            if resolution == PROVISIONAL_HOLD:
+                continue
+            if resolution == PROVISIONAL_CONFIRM:
+                self.provisional_active[class_index] = False
+                continue
+            self._clear_pitch_state(class_index)
+            events.append(PolyphonicMidiEvent(
+                "note_off", pitch, 0, self.frame_index, "provisional_reject"
+            ))
+
+    def _preempt_provisional_slots(
+        self,
+        new_note_count: int,
+        events: list[PolyphonicMidiEvent],
+    ) -> None:
+        overflow = max(
+            0,
+            int(np.sum(self.active)) + int(new_note_count)
+            - self.config.maximum_polyphony,
+        )
+        if overflow <= 0:
+            return
+        provisional = sorted(
+            (int(index) for index in np.flatnonzero(
+                self.active & self.provisional_active
+            )),
+            key=lambda index: (int(self.last_note_on[index]), index),
+        )
+        if len(provisional) < overflow:
+            raise RuntimeError("Insufficient provisional slots for safe preemption.")
+        for class_index in provisional[:overflow]:
+            pitch = self.config.midi_min + class_index
+            self._clear_pitch_state(class_index)
+            events.append(PolyphonicMidiEvent(
+                "note_off", pitch, 0, self.frame_index, "provisional_preempt"
+            ))
+
+    def _mark_new_note_provisional(self, class_index: int) -> None:
+        if self._provisional_state_resolver is not None:
+            self.provisional_active[class_index] = True
 
     def _recent_audio_onset(self) -> bool:
         return bool(
@@ -506,7 +602,7 @@ class PolyphonicDecoder:
         support = self._harmonic_support(
             class_index,
             harmonic_amplitude,
-            self.active,
+            self.contextual_active,
         )
         return min(
             self.config.strong_frame_threshold,
@@ -633,6 +729,8 @@ class PolyphonicDecoder:
         else:
             self.silence_count = 0
 
+        self._resolve_provisional_states(events)
+
         # Release/retrigger currently active notes first.
         for class_index in np.flatnonzero(self.active):
             class_index = int(class_index)
@@ -649,7 +747,12 @@ class PolyphonicDecoder:
             else:
                 self.release_count[class_index] = 0
             if self.release_count[class_index] >= self.config.release_frames:
+                # Preserve the historical release transition exactly when H4
+                # is disabled.  In particular, natural release did not clear
+                # chord_release_grace; the H4-only provisional bit is the only
+                # additional state that must be forgotten here.
                 self.active[class_index] = False
+                self.provisional_active[class_index] = False
                 self.release_count[class_index] = 0
                 self.activation_count[class_index] = 0
                 self.attack_activation_pending[class_index] = False
@@ -683,7 +786,9 @@ class PolyphonicDecoder:
         protected = self.chord_release_grace > 0
         self.chord_release_grace[protected] -= 1
 
-        available = self.config.maximum_polyphony - int(np.sum(self.active))
+        available = (
+            self.config.maximum_polyphony - self._contextual_polyphony()
+        )
         if available <= 0:
             self.activation_count[~self.active] = 0
             self.attack_activation_pending[~self.active] = False
@@ -704,7 +809,7 @@ class PolyphonicDecoder:
                 [] if legacy_traces is not None else None
             )
             active_polyphony = (
-                int(np.sum(self.active)) if legacy_traces is not None else 0
+                self._contextual_polyphony() if legacy_traces is not None else 0
             )
             for class_index in np.flatnonzero(~self.active):
                 class_index = int(class_index)
@@ -718,7 +823,7 @@ class PolyphonicDecoder:
                     and frame[class_index] >= self.config.frame_on_threshold
                 )
                 support = self._harmonic_support(
-                    class_index, harmonic_amplitude, self.active
+                    class_index, harmonic_amplitude, self.contextual_active
                 )
                 candidate_score: float | None = None
                 gate_eligible = False
@@ -759,7 +864,7 @@ class PolyphonicDecoder:
                         onset_probability=float(onset[class_index]),
                         harmonic_support=support,
                         audio_onset_recent=False,
-                        active_polyphony=int(np.sum(self.active)),
+                        active_polyphony=self._contextual_polyphony(),
                     ):
                         self.activation_count[class_index] = 0
                         if trace is not None:
@@ -821,7 +926,7 @@ class PolyphonicDecoder:
                             onset_probability=float(onset[class_index]),
                             harmonic_support=support,
                             audio_onset_recent=False,
-                            active_polyphony=int(np.sum(self.active)),
+                            active_polyphony=self._contextual_polyphony(),
                         )
                     if legacy_traces is not None and trace is None:
                         gate_eligible = bool(
@@ -872,6 +977,7 @@ class PolyphonicDecoder:
                         )
                     continue
                 accepted_legacy.append((rank, class_index))
+            self._preempt_provisional_slots(len(accepted_legacy), events)
             for rank, class_index in accepted_legacy:
                 pitch = self.config.midi_min + class_index
                 velocity = self._velocity(
@@ -883,6 +989,7 @@ class PolyphonicDecoder:
                 self.release_count[class_index] = 0
                 self.chord_release_grace[class_index] = 0
                 self.last_note_on[class_index] = self.frame_index
+                self._mark_new_note_provisional(class_index)
                 events.append(PolyphonicMidiEvent(
                     "note_on", pitch, velocity, self.frame_index, "legacy"
                 ))
@@ -961,7 +1068,7 @@ class PolyphonicDecoder:
         # its fundamental from bypassing each other simply because neither was
         # active before the call.  A pitch-specific model onset remains an
         # escape hatch for intentional octave chords and natural harmonics.
-        base_mask = self.active.copy()
+        base_mask = self.contextual_active.copy()
         for _, class_index, _, _ in provisional:
             base_mask[class_index] = True
         candidates: list[
@@ -979,7 +1086,7 @@ class PolyphonicDecoder:
             [] if candidate_traces is not None else None
         )
         active_polyphony = (
-            int(np.sum(self.active)) if candidate_traces is not None else 0
+            self._contextual_polyphony() if candidate_traces is not None else 0
         )
         for score, class_index, direct_onset, reason in provisional:
             support = self._harmonic_support(
@@ -1016,7 +1123,7 @@ class PolyphonicDecoder:
                     onset_probability=float(onset[class_index]),
                     harmonic_support=support,
                     audio_onset_recent=self._recent_audio_onset(),
-                    active_polyphony=int(np.sum(self.active)),
+                    active_polyphony=self._contextual_polyphony(),
                 )
             if (
                 self._causal_candidate_gate is not None
@@ -1030,7 +1137,7 @@ class PolyphonicDecoder:
                     onset_probability=float(onset[class_index]),
                     harmonic_support=support,
                     audio_onset_recent=self._recent_audio_onset(),
-                    active_polyphony=int(np.sum(self.active)),
+                    active_polyphony=self._contextual_polyphony(),
                 )
             ):
                 self.activation_count[class_index] = 0
@@ -1122,6 +1229,7 @@ class PolyphonicDecoder:
                     )
                 continue
             accepted_selected.append((rank, candidate))
+        self._preempt_provisional_slots(len(accepted_selected), events)
         protected_chord = bool(
             self._recent_audio_onset()
             and sum(bool(item[3]) for _, item in accepted_selected) >= 2
@@ -1139,6 +1247,7 @@ class PolyphonicDecoder:
                 else 0
             )
             self.last_note_on[class_index] = self.frame_index
+            self._mark_new_note_provisional(class_index)
             events.append(PolyphonicMidiEvent(
                 "note_on", pitch, velocity, self.frame_index, reason
             ))
@@ -1174,6 +1283,7 @@ class PolyphonicDecoder:
             for index in np.flatnonzero(self.active)
         ]
         self.active[:] = False
+        self.provisional_active[:] = False
         self.activation_count[:] = 0
         self.attack_activation_pending[:] = False
         self.release_count[:] = 0

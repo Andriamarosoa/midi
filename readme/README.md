@@ -17,18 +17,27 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `decoder_state_contamination_h3_synthetic_diagnostic`.
-- Statut : `terminé — state_contamination_demonstrated, correction non implémentée`.
-- Diagnostic synthétique H3 positif : deux décodeurs identiques reçoivent une
-  perturbation normale uniquement à `t0`, puis des entrées strictement
-  identiques dès `t1`. Le faux MIDI 60 persistant dans B provoque deux
-  divergences futures indépendantes : il consomme l'unique slot de polyphonie
-  et empêche MIDI 61, puis il devient la base active de H2, fait passer le
-  support harmonique de MIDI 72 de `0.0` à `1.0` et empêche son émission.
-  Première divergence : `t1`; verdict : `state_contamination_demonstrated`.
-  Les 26 tests synthétiques ciblés passent en `0,024 s`. Aucun comportement
-  production n'a été modifié; aucune correction, V3, donnée réelle, TensorFlow
-  ou métrique V2 n'a été exécutée. Rapport :
+- Étape : `decoder_provisional_state_isolation_h4_synthetic_intervention`.
+- Statut : `terminé — provisional_state_isolation_architecture_demonstrated, politique de confirmation non définie`.
+- Prototype synthétique H4 positif et strictement opt-in : chaque nouveau
+  `NoteOn` peut être conservé comme état émis provisoire, tandis que le contexte
+  harmonique et le budget de sélection n'utilisent que les notes confirmées.
+  Une résolution injectée `HOLD/CONFIRM/REJECT` permet de tester l'architecture
+  sans modèle ni données. Dans le scénario de polyphonie H3, le faux MIDI 60
+  est préempté par un `NoteOff` avant que MIDI 61 soit émis dans la même frame,
+  sans backfill ni dépassement du maximum. Dans le scénario harmonique H3, le
+  faux MIDI 60 provisoire ne devient plus une base H2 : A et B gardent un
+  support `0.0` et émettent toutes deux MIDI 72. `CONFIRM` contextualise la note
+  sans second `NoteOn`; `REJECT` émet un `NoteOff` et nettoie l'état. Lorsque
+  H4 est absent, les chemins legacy et audio-aware conservent leur comportement
+  historique. Aucun resolver réel, politique de confirmation, donnée, audio,
+  TensorFlow, modèle V1/V2, fit ou validation n'a été utilisé. Rapport :
+  `readme/results/2026-08-10_decoder-provisional-state-isolation-h4-synthetic-intervention.md`.
+- Le diagnostic H3 précédent reste la preuve causale motivant H4 : deux
+  décodeurs identiques reçoivent une perturbation normale uniquement à `t0`,
+  puis des entrées strictement identiques dès `t1`. Le faux MIDI 60 persistant
+  dans B consomme l'unique slot de polyphonie et devient une base harmonique H2.
+  Verdict : `state_contamination_demonstrated`. Rapport :
   `readme/results/2026-08-10_decoder-state-contamination-h3-synthetic-diagnostic.md`.
 - Clôture provenance-only Attempt4 : l'unique exécution autorisée au commit
   `df2a2a0641d7897195ee0712002bcc48e97858e6` a créé son marker persistant,
