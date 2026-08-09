@@ -1,0 +1,243 @@
+{
+  "schema_version": 1,
+  "purpose": "causal_provisional_resolution_evidence_contract_h5",
+  "status": "provisional_resolution_evidence_contract_defined",
+  "locked_test_used": false,
+  "scope": {
+    "contract_only": true,
+    "performance_hypothesis": false,
+    "resolver_implemented": false,
+    "resolver_validated": false,
+    "policy_validated": false,
+    "v3": false,
+    "real_computation_authorized": false
+  },
+  "causal_clock": {
+    "noteon_frame": [
+      "NOTE_ON_EMITTED",
+      "PROVISIONAL"
+    ],
+    "later_frame": [
+      "current_frame_network_and_audio_evidence_available",
+      "immutable_observation_built_by_decoder",
+      "OBSERVATION_AVAILABLE",
+      "all_provisional_decisions_computed_and_validated_atomically",
+      "HOLD_or_CONFIRM_or_REJECT",
+      "existing_same_frame_decoder_transitions_continue"
+    ],
+    "resolution_point": "after_current_frame_probabilities_and_causal_audio_evidence_are_available_but_before_release_retrigger_candidate_generation_harmonic_context_ranking_or_new_noteon_mutations_for_that_frame",
+    "future_frame_access": false,
+    "confirm_context_effective_from": "immediately_after_atomic_resolution_at_the_defined_resolution_point_of_current_frame",
+    "reject_noteoff_order": "at_atomic_resolution_before_any_later_same_frame_noteon",
+    "maximum_age_frames": null,
+    "maximum_age_status": "unresolved_parameter_requires_separate_contract_not_optimization_here"
+  },
+  "observation_type": {
+    "name": "ProvisionalObservation",
+    "immutable": true,
+    "constructed_only_by_decoder": true,
+    "complete_closed_schema": true,
+    "resolver_receives_decoder_object": false,
+    "resolver_receives_file_or_network_capability": false,
+    "resolver_hidden_mutable_state_allowed": false
+  },
+  "observations": [
+    {
+      "name": "pitch",
+      "status": "allowed",
+      "provenance": "decoder_midi_class_identity_frozen_when_noteon_is_emitted",
+      "availability": "noteon_frame_and_every_later_observation",
+      "temporal_mode": "frozen_at_noteon",
+      "causal_argument": "identity_exists_before_resolution_and_contains_no future evidence"
+    },
+    {
+      "name": "note_on_frame",
+      "status": "allowed",
+      "provenance": "decoder_frame_index_frozen_when_noteon_is_emitted",
+      "availability": "noteon_frame_and_every_later_observation",
+      "temporal_mode": "frozen_at_noteon",
+      "causal_argument": "timestamp is recorded at emission"
+    },
+    {
+      "name": "current_frame",
+      "status": "allowed",
+      "provenance": "decoder_current_frame_index",
+      "availability": "current_observation_only",
+      "temporal_mode": "current_frame",
+      "causal_argument": "equals resolution frame and never exceeds it"
+    },
+    {
+      "name": "age_frames",
+      "status": "allowed",
+      "provenance": "current_frame_minus_note_on_frame_computed_by_decoder",
+      "availability": "current_observation_only",
+      "temporal_mode": "current_frame_derived",
+      "causal_argument": "derived only from two causal frame indexes"
+    },
+    {
+      "name": "candidate_reason_at_noteon",
+      "status": "allowed",
+      "provenance": "pre_noteon_candidate_snapshot_that_caused_emission",
+      "availability": "frozen_at_noteon_then_replayed_in_later_observations",
+      "temporal_mode": "frozen_at_noteon",
+      "causal_argument": "was available before the emitted noteon"
+    },
+    {
+      "name": "candidate_score_at_noteon",
+      "status": "allowed",
+      "provenance": "pre_noteon_candidate_snapshot_that_caused_emission",
+      "availability": "frozen_at_noteon_then_replayed_in_later_observations",
+      "temporal_mode": "frozen_at_noteon",
+      "causal_argument": "was available before the emitted noteon"
+    },
+    {
+      "name": "frame_probability_at_noteon",
+      "status": "allowed",
+      "provenance": "network_frame_probability_in_pre_noteon_candidate_snapshot",
+      "availability": "frozen_at_noteon_then_replayed_in_later_observations",
+      "temporal_mode": "frozen_at_noteon",
+      "causal_argument": "same-frame probability existed before emission"
+    },
+    {
+      "name": "onset_probability_at_noteon",
+      "status": "allowed",
+      "provenance": "network_onset_probability_in_pre_noteon_candidate_snapshot",
+      "availability": "frozen_at_noteon_then_replayed_in_later_observations",
+      "temporal_mode": "frozen_at_noteon",
+      "causal_argument": "same-frame probability existed before emission"
+    },
+    {
+      "name": "current_frame_probability",
+      "status": "allowed",
+      "provenance": "network_frame_probability_for_same_pitch_at_current_frame",
+      "availability": "after_current_frame_network_output_before_resolution",
+      "temporal_mode": "current_frame",
+      "causal_argument": "uses current network output and no later frame"
+    },
+    {
+      "name": "current_onset_probability",
+      "status": "allowed",
+      "provenance": "network_onset_probability_for_same_pitch_at_current_frame",
+      "availability": "after_current_frame_network_output_before_resolution",
+      "temporal_mode": "current_frame",
+      "causal_argument": "uses current network output and no later frame"
+    },
+    {
+      "name": "audio_onset_available",
+      "status": "allowed",
+      "provenance": "decoder_audio_evidence_availability_for_current_hop",
+      "availability": "after_current_hop_audio_evidence_update_before_resolution",
+      "temporal_mode": "current_frame",
+      "causal_argument": "describes only evidence available by current hop"
+    },
+    {
+      "name": "audio_onset_recent",
+      "status": "allowed",
+      "provenance": "decoder_causal_lookback_ending_at_current_hop",
+      "availability": "after_current_hop_audio_evidence_update_before_resolution",
+      "temporal_mode": "current_frame_derived",
+      "causal_argument": "lookback ends at current hop and has no lookahead"
+    },
+    {
+      "name": "harmonic_support",
+      "status": "allowed",
+      "provenance": "decoder_harmonic_support_for_pitch_using_contextual_active_only",
+      "availability": "after_current_frame_inputs_before_resolution",
+      "temporal_mode": "current_frame_derived",
+      "causal_argument": "uses current harmonic evidence and confirmed context only"
+    },
+    {
+      "name": "emitted_polyphony",
+      "status": "allowed",
+      "provenance": "count_of_decoder_emitted_active_immediately_before_atomic_resolution",
+      "availability": "resolution_point",
+      "temporal_mode": "current_frame_state",
+      "causal_argument": "counts only already emitted notes"
+    },
+    {
+      "name": "contextual_polyphony",
+      "status": "allowed",
+      "provenance": "count_of_decoder_contextual_active_immediately_before_atomic_resolution",
+      "availability": "resolution_point",
+      "temporal_mode": "current_frame_state",
+      "causal_argument": "counts only previously confirmed emitted notes"
+    }
+  ],
+  "rejected_observations": [
+    "ground_truth_labels",
+    "reference_midi",
+    "truth_matching_or_target",
+    "future_frames",
+    "future_audio",
+    "future_network_outputs",
+    "post_event_metrics",
+    "validation_results",
+    "independent_v2_cohort_information",
+    "arbitrary_decoder_object_access",
+    "file_access",
+    "network_access",
+    "external_model_inference",
+    "hidden_mutable_resolver_state",
+    "post_resolution_or_post_noteon_same_frame_state"
+  ],
+  "resolution_invariants": {
+    "HOLD": {
+      "midi_events": [],
+      "emitted": true,
+      "provisional": true,
+      "contextual": false
+    },
+    "CONFIRM": {
+      "new_noteon": false,
+      "emitted": true,
+      "provisional": false,
+      "contextual": true
+    },
+    "REJECT": {
+      "noteoff_count": 1,
+      "emitted": false,
+      "provisional": false,
+      "contextual": false,
+      "future_state_cleanup_required": true
+    },
+    "PREEMPT": {
+      "distinct_from_reject": true,
+      "noteoff_before_replacement_noteon": true,
+      "emitted_polyphony_never_exceeds_maximum_polyphony": true
+    }
+  },
+  "resolver_error_contract": {
+    "covered_errors": [
+      "exception",
+      "invalid_result",
+      "non_finite_numeric_observation",
+      "missing_required_field"
+    ],
+    "validation_is_atomic_across_all_provisional_notes_in_frame": true,
+    "partial_resolution_mutation_allowed": false,
+    "automatic_hold_fallback_allowed": false,
+    "midi_event_on_resolution_error": false,
+    "required_behavior": "raise_before_resolution_mutation_and_delegate_runtime_safety_to_a_separately_reviewed_caller_contract"
+  },
+  "population_contract": {
+    "synthetic_h4_marks_all_new_noteons": true,
+    "production_population_decided": false,
+    "allowed_population": null,
+    "status": "unresolved_requires_separate_contract_without_optimization"
+  },
+  "composition_contract": {
+    "h4_with_causal_candidate_gate_v1_or_v2": "unsupported_pending_separate_contract",
+    "h4_with_independent_note_threshold": "unsupported_pending_separate_contract",
+    "h4_with_both_existing_gates": "unsupported_pending_separate_contract",
+    "silent_composition_allowed": false,
+    "active_polyphony_semantics_under_h4": "contextual_polyphony_only_for_h4_context_and_must_not_silently_replace_emitted_polyphony_for_an_existing_gate"
+  },
+  "unresolved_decision_parameters": {
+    "confirmation_threshold": null,
+    "rejection_threshold": null,
+    "maximum_provisional_age_frames": null,
+    "eligible_noteon_population": null,
+    "resolver_failure_runtime_policy": null
+  },
+  "next_action": "External review of this evidence contract only. A future confirmation-signal hypothesis requires a separate contract; no implementation or real computation is authorized."
+}

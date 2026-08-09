@@ -17,8 +17,21 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `decoder_provisional_state_isolation_h4_synthetic_intervention`.
-- Statut : `terminé — provisional_state_isolation_architecture_demonstrated, politique de confirmation non définie`.
+- Étape : `provisional_resolution_evidence_h5_contract`.
+- Statut : `terminé — provisional_resolution_evidence_contract_defined, aucune politique implémentée`.
+- Contrat causal H5 défini sans calcul : le futur resolver ne pourra recevoir
+  qu'une `ProvisionalObservation` immuable et construite par le décodeur au
+  point causal courant. Quinze champs sont classés par provenance, disponibilité
+  et temporalité; labels, vérité MIDI, futur, métriques, cohorte V2, accès au
+  décodeur, fichiers, réseau, modèle externe et état caché sont interdits.
+  `HOLD/CONFIRM/REJECT/PREEMPT`, les erreurs atomiques et l'ordre intra-frame
+  sont formalisés. Les seuils, la durée maximale, la population éligible et la
+  stratégie runtime d'erreur restent non résolus. H4 + causal gate V1/V2 et H4
+  + `independent_note_threshold` sont explicitement
+  `unsupported_pending_separate_contract`. Aucun code fonctionnel du décodeur,
+  donnée, modèle ou calcul scientifique n'est inclus. Contrat :
+  `configs/provisional_resolution_evidence_contract_h5.json`. Rapport :
+  `readme/results/2026-08-10_provisional-resolution-evidence-h5-contract.md`.
 - Prototype synthétique H4 positif et strictement opt-in : chaque nouveau
   `NoteOn` peut être conservé comme état émis provisoire, tandis que le contexte
   harmonique et le budget de sélection n'utilisent que les notes confirmées.
