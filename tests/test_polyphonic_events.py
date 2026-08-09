@@ -15,6 +15,7 @@ from src.polyphonic.evaluate_events import (
     NoteInterval,
     _aggregate_independent_note_gate,
     _audio_duration_s,
+    _load_evaluation_decoder_config,
     _load_paired_decoder_configs,
     _low_midi_metrics,
     aggregate_dataset_note_metrics,
@@ -29,6 +30,50 @@ from src.polyphonic.evaluate_events import (
 
 
 class PolyphonicEventEvaluationTests(unittest.TestCase):
+    def test_sealed_decoder_config_does_not_require_thresholds_json(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        with tempfile.TemporaryDirectory() as directory:
+            run_dir = Path(directory) / "fresh-run"
+            run_dir.mkdir()
+            decoder = _load_evaluation_decoder_config(
+                root / "configs" / "independent_note_decoder_reference.json",
+                thresholds_path=None,
+                run_dir=run_dir,
+            )
+        self.assertIsNone(decoder.independent_note_threshold)
+
+    def test_legacy_decoder_fallback_still_uses_explicit_thresholds(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            run_dir = Path(directory) / "legacy-run"
+            run_dir.mkdir()
+            thresholds = run_dir / "thresholds.json"
+            thresholds.write_text(
+                json.dumps({"frame": 0.45, "onset": 0.55}),
+                encoding="utf-8",
+            )
+            decoder = _load_evaluation_decoder_config(
+                run_dir / "missing_decoder_config.json",
+                thresholds_path=None,
+                run_dir=run_dir,
+            )
+        self.assertEqual(decoder.frame_on_threshold, 0.45)
+        self.assertEqual(decoder.onset_threshold, 0.55)
+
+    def test_decoder_contract_is_loaded_before_transcription_checkpoint(self) -> None:
+        source_path = (
+            Path(__file__).resolve().parents[1]
+            / "src" / "polyphonic" / "evaluate_events.py"
+        )
+        source = source_path.read_text(encoding="utf-8")
+        self.assertLess(
+            source.index("decoder_config = _load_evaluation_decoder_config("),
+            source.index("manifest_items = load_manifest("),
+        )
+        self.assertLess(
+            source.index("decoder_config = _load_evaluation_decoder_config("),
+            source.index("model = load_polyphonic_checkpoint(checkpoint)"),
+        )
+
     def test_paired_decoder_configs_allow_only_gate_threshold(self) -> None:
         root = Path(__file__).resolve().parents[1]
         reference, candidate = _load_paired_decoder_configs(

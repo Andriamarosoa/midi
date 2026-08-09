@@ -743,6 +743,35 @@ def _load_paired_decoder_configs(
     )
 
 
+def _load_evaluation_decoder_config(
+    configured_decoder: Path,
+    *,
+    thresholds_path: Path | None,
+    run_dir: Path,
+) -> PolyphonicDecoderConfig:
+    """Load a sealed decoder config without requiring obsolete thresholds.
+
+    A configured decoder contains its frame/onset thresholds already.  Reading
+    ``run_dir/thresholds.json`` in that case both adds a false input dependency
+    and can occur after a real checkpoint has been loaded.
+    """
+    if configured_decoder.is_file():
+        values = json.loads(configured_decoder.read_text(encoding="utf-8"))
+        if not isinstance(values, dict):
+            raise ValueError("Decoder configuration must contain an object.")
+        return PolyphonicDecoderConfig(**values)
+    thresholds = json.loads(
+        (thresholds_path or (run_dir / "thresholds.json")).read_text(
+            encoding="utf-8"
+        )
+    )
+    if not isinstance(thresholds, dict):
+        raise ValueError("Evaluation thresholds must contain an object.")
+    return default_decoder_config(
+        float(thresholds["frame"]), float(thresholds["onset"])
+    )
+
+
 def evaluate_events(
     run_dir: Path,
     split: str,
@@ -801,12 +830,11 @@ def evaluate_events(
                 (resolved_config_path.parent.parent / manifest).resolve()
             )
     configured_decoder = decoder_config_path or (run_dir / "decoder_config.json")
-    thresholds = (
-        {} if configured_decoder.is_file() else json.loads(
-            (thresholds_path or (run_dir / "thresholds.json")).read_text(
-                encoding="utf-8"
-            )
-        )
+    # Validate decoder settings before even reading the manifest or checkpoint.
+    decoder_config = _load_evaluation_decoder_config(
+        configured_decoder,
+        thresholds_path=thresholds_path,
+        run_dir=run_dir,
     )
     manifest_items = load_manifest(Path(config["dataset"]["manifest"]))
     eligible_items = [
@@ -871,16 +899,6 @@ def evaluate_events(
             model.get_layer("independent_note").output
         )
     inference_model = tf.keras.Model(model.inputs, inference_outputs)
-    frame_threshold = float(thresholds["frame"])
-    onset_threshold = float(thresholds["onset"])
-    if configured_decoder.is_file():
-        decoder_config = PolyphonicDecoderConfig(**json.loads(
-            configured_decoder.read_text(encoding="utf-8")
-        ))
-    else:
-        decoder_config = default_decoder_config(
-            frame_threshold, onset_threshold,
-        )
     paired_candidate_config: PolyphonicDecoderConfig | None = None
     if paired_decoder_config_path is not None:
         if preflight_pair is None:

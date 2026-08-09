@@ -17,8 +17,8 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-09`.
-- Étape : `causal_candidate_validation_ab_invocation_contract`.
-- Statut : `terminé — invocation A/B scellée implémentée; revue externe finale requise avant toute exécution validation`.
+- Étape : `causal_candidate_validation_ab_threshold-contract-fix`.
+- Statut : `terminé — anomalie pré-métrique corrigée; revue externe requise avant toute unique relance validation`.
 - Résultat terminal vérifié : l'unique job CPU
   `causal-candidate-fit-v1-cpu-20260809` termine avec `exit_code=0`,
   `complete_non_authorizing`, 14 époques enregistrées et meilleure époque 9,
@@ -79,6 +79,21 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   La revue externe finale de cette invocation est la seule action préalable à
   une commande Mac. Rapport :
   `readme/results/2026-08-09_causal-candidate-validation-ab-invocation-contract.md`.
+- Anomalie vérifiée de l'unique invocation A/B : le job CPU
+  `causal-candidate-validation-ab-cpu-20260809`, au commit
+  `4ab4f1ecâ€¦`, a terminé `exited_nonzero` à `2026-08-09T22:34:34Z` après le
+  préflight worker, les huit SHA et le chargement du checkpoint, mais avant
+  toute boucle/inférence sur les 12 prises. Cause : `evaluate_events` lisait
+  inconditionnellement `thresholds["frame"]` alors que le décodeur scellé
+  contient déjà les seuils et qu'aucun `thresholds.json` n'est autorisé dans la
+  destination fraîche. Aucun rapport, audio/label, métrique, export, live ou
+  test verrouillé n'a été produit; la destination A/B reste absente et le
+  verrou est libéré. Correctif sans calcul : la configuration décodeur est
+  maintenant résolue avant manifeste/checkpoint et ne lit les thresholds que
+  si aucun décodeur explicite n'existe. `py_compile` et 54 tests ciblés passent
+  en `8,912 s`. Une nouvelle revue externe est obligatoire avant toute unique
+  relance. Rapport :
+  `readme/results/2026-08-09_causal-candidate-validation-ab-threshold-contract-fix.md`.
 - Résultat vérifié : le job Mac
   `decoder-candidate-guitarset-v3-cpu-20260809` a terminé avec `exit_code=0`
   et l'état `complete_non_authorizing` au commit
@@ -304,11 +319,11 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 ## Prochaine action réelle
 
-1. Faire relire l'invocation A/B : module sans CLI, huit chemins internes,
-   CR historique non transporté, commit exact, CPU/900 s, destination fraîche
-   et absence d'options libres.
-2. Après seule approbation explicite de cette invocation, synchroniser le
-   commit revu sur le Mac et autoriser séparément l'unique passe CPU historique.
+1. Faire relire le correctif pré-métrique A/B : priorité au décodeur scellé,
+   absence de `thresholds.json`, résolution avant manifeste/checkpoint et
+   conservation stricte des huit SHA, de la cohorte et du seuil `0,31`.
+2. Après seule approbation explicite du correctif, synchroniser son commit sur
+   le Mac et autoriser séparément une unique relance CPU historique.
 3. Conserver le test verrouillé fermé : aucun nouveau fit, recalibration,
    validation, export, live ou sélection/promotion de seuil n'est autorisé à
    cette étape.
@@ -743,6 +758,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-09 — correctif de transport et préinscription A/B historique V1](results/2026-08-09_causal-candidate-fit-v1-transport-and-validation-preregistration.md)
 - [2026-08-09 — implémentation A/B historique du filtre causal V1](results/2026-08-09_causal-candidate-validation-ab-implementation.md)
 - [2026-08-09 — contrat d'invocation A/B historique du filtre causal V1](results/2026-08-09_causal-candidate-validation-ab-invocation-contract.md)
+- [2026-08-09 — correctif pré-métrique du contrat A/B historique](results/2026-08-09_causal-candidate-validation-ab-threshold-contract-fix.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.
