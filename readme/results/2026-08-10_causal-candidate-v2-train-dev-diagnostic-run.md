@@ -84,8 +84,9 @@ ci-dessous permettent d'interpréter l'effet.
 | Faux NoteOn d'octave | 1 569 | 1 566 | -3 |
 
 La tranche MIDI `40–51` est strictement inchangée : `577` appariements,
-`2 968` faux positifs et F1 `0,21096892` dans les deux branches. Le p90 gagne
-seulement `0,26519 ms`, inférieur à un hop de `5,80499 ms`.
+`2 968` faux positifs et F1 `0,21096892` dans les deux branches. Le p90
+augmente légèrement de `0,26519 ms` — une dégradation, inférieure à un hop de
+`5,80499 ms`.
 
 ## Résultats par corpus
 
