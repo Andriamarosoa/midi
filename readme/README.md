@@ -16,10 +16,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-08-09T04:12:42+04:00`.
-- Étape : `decoder_candidate_policy_a_preregistration`.
-- Statut : `terminé : plan v2 et registre réels créés sur Mac; revue externe
-  obligatoire avant tout minage`.
+- Mise à jour : `2026-08-09T04:31:00+04:00`.
+- Étape : `decoder_candidate_bounded_train_only_mining`.
+- Statut : `en cours : mineur CPU train-only borné implémenté; revue externe du
+  code obligatoire avant l'unique exécution Mac`.
 - Résultat scientifique conservé : la tête `independent_note` précédente reste
   un résultat négatif, saturé près de 1, et ne doit promouvoir ni checkpoint ni
   seuil. Le test verrouillé reste fermé.
@@ -49,8 +49,9 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   constructeur et l'audio juste avant son véritable chargement paresseux par
   `corpus.audio()`; le chemin `.npy` protégé ne conserve pas de `mmap` après
   cette vérification. Une couverture incomplète, un fichier modifié, un wrapper
-  forgé ou des octets du registre modifiés échouent fermé. Aucune preuve réelle
-  n'a encore été créée.
+  forgé ou des octets du registre modifiés échouent fermé. La preuve réelle
+  Policy A de 541 actifs est enregistrée; aucun actif n'a encore été ouvert par
+  un replay de minage.
 - Chaque ligne future porte la provenance immuable complète : `source_id`,
   `dataset_id`, `group_id`, `capture_id`, clé de fuite et partition. Les lots
   portant un autre manifeste/plan, une prise rejouée, un `event_id` dupliqué ou
@@ -109,6 +110,11 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   GAPS synthétiques vérifient l'exclusion train déterministe, la persistance
   exacte des captures exclues, le refus d'un sous-ensemble manuel et
   l'impossibilité de construire leur collecteur.
+- Vérification du mineur borné Windows : les 39 tests ciblés passent en
+  `1,044 s`; la suite générale passe ensuite à **458 tests en 38,309 s**
+  (trois ignorés). Les éventuelles mini-époques visibles dans cette seconde
+  suite sont uniquement des fixtures synthétiques historiques : aucun WAV,
+  label, checkpoint ou artefact réel Policy A n'a été ouvert.
 - Préinscription Policy A Mac terminée au commit `8190e3bf` : manifeste stable
   `b28cb17…` avant/après, validation historique inchangée (`182` lignes),
   `31` exclusions `gaps_poly_mix` couvrant les dix joueurs attendus, `541`
@@ -125,6 +131,15 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   minage ou test verrouillé n'existe. Le choix utilisateur A conserve cette
   validation; il ne modifie ni le manifeste ni les données et prépare seulement
   l'exclusion déterministe versionnée des prises train concernées.
+- Autorisation externe de la préinscription Policy A (`8143f016…`) : le premier
+  minage peut uniquement produire un corpus candidat et ses compteurs de
+  provenance, sans fit ni validation. Le mineur versionné fige sept empreintes
+  (manifeste, plan, registre, checkpoint de transcription, YAML, décodeur,
+  politique audio), exige CPU et un commit Git propre exact, puis limite le
+  rejeu à 12 prises canoniques train (`1 × corpus × fit/dev/calibration`). Il
+  écrit atomiquement sous `data/processed`, refuse toute perte de collecte et
+  marque `fit_authorized=false`. **Aucun minage réel n'a encore été lancé : la
+  revue externe de cette implémentation est la porte suivante.**
 - `locked_test_used=false`; aucun entraînement, minage, calcul validation,
   export ou live n'a été exécuté.
 - Rapports :
@@ -145,12 +160,13 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 ## Prochaine action réelle
 
-1. Faire relire la préinscription Policy A : SHA du manifeste/plan/registre,
-   31 exclusions GAPS, 541 entrées, partitions et couverture exacte.
-2. Ne promouvoir ni checkpoint ni seuil, et ne lancer aucun minage avant
-   approbation explicite de cette revue.
-3. Conserver le test verrouillé fermé; aucun entraînement, validation, export
-   ou live n'est autorisé par cette étape.
+1. Faire relire le mineur borné : provenance avant TensorFlow, CPU strict,
+   sélection immuable de 12 prises, liaison audio/labels et absence de tout fit.
+2. Après approbation seulement, synchroniser le commit revu sur le Mac puis
+   exécuter une unique passe train-only bornée. Inspecter les compteurs avant
+   toute discussion d'entraînement.
+3. Conserver le test verrouillé fermé; aucun entraînement, validation, export,
+   live ou sélection de seuil n'est autorisé par cette étape.
 
 ## État archivé — dual-stream du 30 juillet (remplacé)
 
@@ -410,8 +426,14 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
   `a8347e4e…`, registre SHA `12dd74f2…`, aucune exclusion dans le registre et
   `locked_test_used=false`. Les trois artefacts bruts locaux et leur SHA sont
   archivés dans le rapport du 2026-08-09. Aucun replay, collecteur, minage,
-  entraînement, validation, export, live ou test verrouillé n'a démarré. Une
-  revue externe de cette préinscription est obligatoire avant toute suite.
+  entraînement, validation, export, live ou test verrouillé n'a démarré. La
+  revue externe de cette préinscription est maintenant approuvée. Un mineur
+  train-only borné est implémenté sans calcul réel : CPU obligatoire, commit
+  Git exact/worktree propre, sept SHA avant TensorFlow, 12 prises
+  préassignées, écriture atomique sous `data/processed`, aucune perte tolérée
+  et `fit_authorized=false`. La revue externe du code du mineur est obligatoire
+  avant l'unique replay Mac; aucun fit, validation, export, live ou test
+  verrouillé n'est autorisé.
 <!-- PROJECT_TASK:decoder_candidate_asset_evidence_contract:END -->
 <!-- JOURNAL_END -->
 ## Rapports détaillés
@@ -437,6 +459,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-08 — préinscription bloquée par le chevauchement GAPS](results/2026-08-08_decoder-candidate-preregistration-blocked-by-gaps-leakage.md)
 - [2026-08-09 — contrat de politique A pour le chevauchement GAPS](results/2026-08-09_decoder-candidate-gaps-policy-a-contract.md)
 - [2026-08-09 — préinscription réelle Policy A](results/2026-08-09_decoder-candidate-policy-a-preregistration.md)
+- [2026-08-09 — mineur borné de candidats du décodeur](results/2026-08-09_decoder-candidate-bounded-miner.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.
