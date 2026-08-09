@@ -8,7 +8,7 @@
   "checkpoint_sha256": "1ce8ac44ca7156d4bc058b5b37580805f2ab6536b380636c04b9a31b1a411325",
   "model_config_sha256": "245285783eb395e1c16f9773cf9a15565510ba289467d63ad6a7d725bae19804",
   "decoder_config_sha256": "c16be48271912c99c4237345e8406e39b88490b5565047757f6ca9e905615f96",
-  "audio_evidence_config_sha256": "bf4c731e9289bc88beaa85c87a7e19622f7cc4ec217de491c700a7282e0e0651c",
+  "audio_evidence_config_sha256": "45edbb712415c5b62f10a1405678fc28cee083891131108b2875ce8f71abcd3e",
   "dataset_ids": [
     "gaps_poly_mix",
     "guitar_techs_poly_directinput",

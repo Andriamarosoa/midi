@@ -16,11 +16,11 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-08-09T08:57:02+04:00`.
+- Mise à jour : `2026-08-09T09:20:51+04:00`.
 - Étape : `decoder_candidate_bounded_train_only_mining`.
-- Statut : `en cours : les deux bloqueurs de la revue externe de 0e124352 sont
-  corrigés et testés sans calcul réel; revue externe du correctif obligatoire
-  avant l'unique exécution Mac`.
+- Statut : `en cours : la revue de 9ed93e7 approuve le minage, mais le
+  préflight Mac a révélé une empreinte CRLF/LF non portable; correctif sans
+  replay à revoir avant l'unique exécution Mac`.
 - Résultat scientifique conservé : la tête `independent_note` précédente reste
   un résultat négatif, saturé près de 1, et ne doit promouvoir ni checkpoint ni
   seuil. Le test verrouillé reste fermé.
@@ -126,6 +126,15 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   échoue avec `tensorflow` absent de `sys.modules`. Aucun actif Policy A,
   checkpoint réel, inférence, replay, collecteur ou artefact n'a été ouvert ou
   produit par ce correctif.
+- Anomalie de préflight Mac après l'approbation de `9ed93e7` : six empreintes
+  scellées concordent, mais la politique audio versionnée vaut `bf4c…` dans le
+  checkout Windows CRLF et `45ed…` dans le blob Git / checkout macOS LF. Le
+  job s'est arrêté avant TensorFlow, contexte, checkpoint, actif, replay ou
+  écriture. Le correctif force LF pour les quatre configurations versionnées
+  scellées et remplace l'empreinte audio par le SHA canonique Git `45ed…`.
+  `py_compile`, `git diff --check` et **42 tests ciblés en 1,721 s** passent;
+  une revue externe du correctif est obligatoire avant une nouvelle
+  synchronisation et l'unique minage.
 - Préinscription Policy A Mac terminée au commit `8190e3bf` : manifeste stable
   `b28cb17…` avant/après, validation historique inchangée (`182` lignes),
   `31` exclusions `gaps_poly_mix` couvrant les dix joueurs attendus, `541`
@@ -171,9 +180,9 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 ## Prochaine action réelle
 
-1. Faire relire le correctif du mineur borné : SHA Git à 40 caractères,
-   provenance complète avant TensorFlow, CPU strict, sélection immuable de 12
-   prises, liaison audio/labels et absence de tout fit.
+1. Faire relire le correctif portable CRLF/LF des configurations scellées ; il
+   doit préserver les mêmes sept artefacts logiques, le CPU strict, les 12
+   prises et l'absence de tout fit.
 2. Après approbation seulement, synchroniser le commit revu sur le Mac puis
    exécuter une unique passe train-only bornée. Inspecter les compteurs avant
    toute discussion d'entraînement.
@@ -454,7 +463,15 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
   Aucun actif Policy A, checkpoint réel, inférence, replay, collecteur, minage,
   entraînement, validation, export, live ou test verrouillé n'a été exécuté.
   Une dernière revue externe de ce correctif est obligatoire avant l'unique
-  replay Mac.
+  replay Mac. Après l'approbation de `9ed93e7`, le préflight Mac a trouvé une
+  nouvelle divergence avant tout CLI ou import TensorFlow : la politique audio
+  versionnée était hachée en CRLF sur Windows (`bf4c…`) mais en LF sur macOS,
+  comme le blob Git (`45ed…`). Les six autres entrées sont conformes; aucun
+  actif, checkpoint, contexte, replay ni sortie n'a été ouvert ou produit. Le
+  correctif impose LF pour les quatre configurations versionnées scellées et
+  adopte `45ed…` dans le protocole. `py_compile`, `git diff --check` et 42
+  tests ciblés passent en 1,721 s. La revue externe de ce correctif portable
+  reste obligatoire avant le minage CPU unique.
 <!-- PROJECT_TASK:decoder_candidate_asset_evidence_contract:END -->
 <!-- JOURNAL_END -->
 ## Rapports détaillés
@@ -482,6 +499,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-09 — préinscription réelle Policy A](results/2026-08-09_decoder-candidate-policy-a-preregistration.md)
 - [2026-08-09 — mineur borné de candidats du décodeur](results/2026-08-09_decoder-candidate-bounded-miner.md)
 - [2026-08-09 — correctif du préflight du mineur borné](results/2026-08-09_decoder-candidate-bounded-miner-preflight-fix.md)
+- [2026-08-09 — correctif CRLF/LF du préflight du mineur borné](results/2026-08-09_decoder-candidate-bounded-miner-eol-preflight-fix.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.

@@ -182,6 +182,22 @@ class BoundedCandidateMiningTests(unittest.TestCase):
             with self.assertRaisesRegex(PermissionError, "locked test"):
                 BoundedMiningProtocol.from_path(paths["protocol"])
 
+    def test_versioned_audio_policy_uses_a_cross_host_lf_digest(self) -> None:
+        """The sealed versioned configs must not vary with CRLF/LF checkout."""
+        repository = Path(__file__).resolve().parents[1]
+        protocol = BoundedMiningProtocol.from_path(
+            repository / "configs" / "decoder_candidate_bounded_mining_v1.json"
+        )
+        self.assertEqual(
+            protocol.audio_evidence_config_sha256,
+            "45edbb712415c5b62f10a1405678fc28cee083891131108b2875ce8f71abcd3e",
+        )
+        attributes = (repository / ".gitattributes").read_text(encoding="utf-8")
+        self.assertIn(
+            "configs/polyphonic_audio_evidence_adaptive_temporal.json text eol=lf",
+            attributes,
+        )
+
     def test_git_preflight_accepts_the_real_40_character_commit_shape(self) -> None:
         """Exercise the implementation, rather than mocking the preflight itself."""
         expected = "0e124352f52637d3a895b615c771ee14b0de09e5"

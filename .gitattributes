@@ -1,1 +1,9 @@
 *.sh text eol=lf
+
+# The bounded candidate-mining protocol seals these versioned text files by
+# their raw SHA-256 bytes.  Keep their checkout representation identical on
+# Windows and macOS so a sealed protocol cannot fail solely due to CRLF/LF.
+configs/decoder_candidate_bounded_mining_v1.json text eol=lf
+configs/polyphonic_dual_stream_bass_independent_note.yaml text eol=lf
+configs/independent_note_decoder_reference.json text eol=lf
+configs/polyphonic_audio_evidence_adaptive_temporal.json text eol=lf
