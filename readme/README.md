@@ -17,10 +17,24 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-09`.
-- Étape : `causal_candidate_v2_post_ranking_pre_noteon_contract`.
-- Statut : `terminé — contrat V2 préenregistré, sans implémentation ni calcul; revue externe requise`.
-- Nouvelle hypothèse V2 explicitement autorisée sous forme documentaire
-  uniquement : la tête causale V1, son standardiseur, ses 12 features et le
+- Étape : `causal_candidate_v2_synthetic_implementation`.
+- Statut : `terminé — V2 implémentée et vérifiée synthétiquement; revue externe requise avant tout calcul réel`.
+- Implémentation V2 sans actif réel : `PolyphonicDecoder` conserve le placement
+  V1 `pre_ranking` par défaut et ajoute uniquement
+  `post_ranking_pre_noteon`. Dans les chemins audio-aware et legacy, V2
+  conserve un snapshot V1 figé après pré-ranking, classe puis sélectionne les
+  candidats, applique la porte seulement aux sélectionnés, puis ne mute/émet
+  que les acceptés. Un rejet conserve `activation_count` et
+  `attack_activation_pending`, n'a aucune place active persistante, garde sa
+  position de sélection sans backfill et n'entre pas dans `protected_chord`.
+  Les tests synthétiques ciblés passent : `46` en `0,422 s` puis `30` en
+  `0,769 s` (76 au total), sans
+  modèle V1, standardiseur, actif projet, fit, calibration, validation,
+  export, live ni test verrouillé. Aucune mesure de latence réelle n'est faite;
+  V2 n'ajoute toutefois ni lookahead, buffer ni hop par construction. Rapport :
+  `readme/results/2026-08-09_causal-candidate-v2-synthetic-implementation.md`.
+- Contrat V2 préenregistré et désormais implémenté synthétiquement : la tête
+  causale V1, son standardiseur, ses 12 features et le
   seuil gelé `0,31` restent inchangés. Seul le placement futur est défini :
   après ranking et sélection `maximum_polyphony`, juste avant les seules
   mutations liées à l'acceptation/émission d'un nouveau `NoteOn`. Les mises à
@@ -804,6 +818,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-09 — correctif pré-métrique du contrat A/B historique](results/2026-08-09_causal-candidate-validation-ab-threshold-contract-fix.md)
 - [2026-08-09 — relance CPU A/B historique V1, résultat non autorisant](results/2026-08-09_causal-candidate-validation-ab-v1-run.md)
 - [2026-08-09 — hypothèse V2 de porte causale post-ranking](results/2026-08-09_causal-candidate-v2-post-ranking-hypothesis.md)
+- [2026-08-09 — implémentation synthétique de la porte causale V2](results/2026-08-09_causal-candidate-v2-synthetic-implementation.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.

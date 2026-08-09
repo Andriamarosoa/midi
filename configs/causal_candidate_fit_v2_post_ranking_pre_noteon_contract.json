@@ -1,11 +1,10 @@
 {
   "schema_version": 1,
   "purpose": "causal_candidate_fit_v2_post_ranking_pre_noteon_contract",
-  "status": "preregistered_contract_only_not_implemented",
+  "status": "implemented_synthetic_only_pending_external_review",
   "locked_test_used": false,
   "authorization_scope": {
     "allowed_now": [
-      "versioned_contract_only",
       "external_review"
     ],
     "forbidden_now": [

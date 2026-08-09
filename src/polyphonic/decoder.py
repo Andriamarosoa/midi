@@ -12,6 +12,16 @@ import numpy as np
 from .decoder_candidate_mining import DecoderCandidateCollector
 
 
+CAUSAL_CANDIDATE_GATE_PRE_RANKING = "pre_ranking"
+CAUSAL_CANDIDATE_GATE_POST_RANKING_PRE_NOTEON = (
+    "post_ranking_pre_noteon"
+)
+_CAUSAL_CANDIDATE_GATE_PLACEMENTS = frozenset((
+    CAUSAL_CANDIDATE_GATE_PRE_RANKING,
+    CAUSAL_CANDIDATE_GATE_POST_RANKING_PRE_NOTEON,
+))
+
+
 @dataclass(frozen=True)
 class PolyphonicMidiEvent:
     kind: str
@@ -23,7 +33,7 @@ class PolyphonicMidiEvent:
 
 @dataclass(frozen=True)
 class CausalCandidateGateInput:
-    """Values observed immediately before an optional causal candidate gate."""
+    """Values frozen after pre-ranking updates for an optional candidate gate."""
 
     frame_probability: float
     onset_probability: float
@@ -185,10 +195,17 @@ class PolyphonicDecoder:
         *,
         candidate_collector: DecoderCandidateCollector | None = None,
         causal_candidate_gate: Callable[[CausalCandidateGateInput], bool] | None = None,
+        causal_candidate_gate_placement: str = CAUSAL_CANDIDATE_GATE_PRE_RANKING,
     ) -> None:
+        if causal_candidate_gate_placement not in _CAUSAL_CANDIDATE_GATE_PLACEMENTS:
+            raise ValueError(
+                "Unknown causal candidate gate placement: "
+                f"{causal_candidate_gate_placement!r}."
+            )
         self.config = config
         self._candidate_collector = candidate_collector
         self._causal_candidate_gate = causal_candidate_gate
+        self._causal_candidate_gate_placement = causal_candidate_gate_placement
         self._candidate_collection_error: str | None = None
         self.classes = config.midi_max - config.midi_min + 1
         self.active = np.zeros(self.classes, dtype=np.bool_)
@@ -302,6 +319,29 @@ class PolyphonicDecoder:
             self._independent_note_diagnostic_values.append(value)
         return rejected
 
+    def _causal_candidate_gate_input(
+        self,
+        *,
+        candidate_reason: str,
+        candidate_score: float,
+        frame_probability: float,
+        onset_probability: float,
+        harmonic_support: float,
+        audio_onset_recent: bool,
+        active_polyphony: int,
+    ) -> CausalCandidateGateInput:
+        """Freeze V1-compatible values before ranking and selection."""
+        return CausalCandidateGateInput(
+            frame_probability=float(frame_probability),
+            onset_probability=float(onset_probability),
+            candidate_score=float(candidate_score),
+            candidate_reason=str(candidate_reason),
+            harmonic_support=float(harmonic_support),
+            audio_onset_available=bool(self.audio_onset_available),
+            audio_onset_recent=bool(audio_onset_recent),
+            active_polyphony=int(active_polyphony),
+        )
+
     def _reject_causal_candidate(
         self,
         *,
@@ -313,19 +353,29 @@ class PolyphonicDecoder:
         audio_onset_recent: bool,
         active_polyphony: int,
     ) -> bool:
-        """Run an optional head on values frozen before ranking/selection."""
+        """Run the V1 placement on values frozen before ranking/selection."""
         if self._causal_candidate_gate is None:
             return False
-        return bool(self._causal_candidate_gate(CausalCandidateGateInput(
-            frame_probability=float(frame_probability),
-            onset_probability=float(onset_probability),
-            candidate_score=float(candidate_score),
-            candidate_reason=str(candidate_reason),
-            harmonic_support=float(harmonic_support),
-            audio_onset_available=bool(self.audio_onset_available),
-            audio_onset_recent=bool(audio_onset_recent),
-            active_polyphony=int(active_polyphony),
+        return bool(self._causal_candidate_gate(self._causal_candidate_gate_input(
+            candidate_reason=candidate_reason,
+            candidate_score=candidate_score,
+            frame_probability=frame_probability,
+            onset_probability=onset_probability,
+            harmonic_support=harmonic_support,
+            audio_onset_recent=audio_onset_recent,
+            active_polyphony=active_polyphony,
         )))
+
+    def _reject_post_ranking_causal_candidate(
+        self,
+        snapshot: CausalCandidateGateInput | None,
+    ) -> bool:
+        """Apply V2 only to an already-selected candidate's frozen snapshot."""
+        return bool(
+            snapshot is not None
+            and self._causal_candidate_gate is not None
+            and self._causal_candidate_gate(snapshot)
+        )
 
     def _capture_candidate_trace(
         self,
@@ -639,7 +689,9 @@ class PolyphonicDecoder:
             self.attack_activation_pending[~self.active] = False
             return events
         if not self.audio_onset_available:
-            legacy_candidates: list[tuple[float, int]] = []
+            legacy_candidates: list[
+                tuple[float, int, CausalCandidateGateInput | None]
+            ] = []
             legacy_traces: dict[int, _DecoderCandidateTrace] | None = (
                 {}
                 if (
@@ -692,6 +744,8 @@ class PolyphonicDecoder:
                         )
                 if (
                     self._causal_candidate_gate is not None
+                    and self._causal_candidate_gate_placement
+                    == CAUSAL_CANDIDATE_GATE_PRE_RANKING
                     and support >= self.config.harmonic_support_threshold
                 ):
                     if candidate_score is None:
@@ -753,6 +807,22 @@ class PolyphonicDecoder:
                         candidate_score = float(
                             frame[class_index] + onset[class_index]
                         )
+                    causal_gate_snapshot = None
+                    if (
+                        self._causal_candidate_gate is not None
+                        and self._causal_candidate_gate_placement
+                        == CAUSAL_CANDIDATE_GATE_POST_RANKING_PRE_NOTEON
+                        and support >= self.config.harmonic_support_threshold
+                    ):
+                        causal_gate_snapshot = self._causal_candidate_gate_input(
+                            candidate_reason="legacy",
+                            candidate_score=candidate_score,
+                            frame_probability=float(frame[class_index]),
+                            onset_probability=float(onset[class_index]),
+                            harmonic_support=support,
+                            audio_onset_recent=False,
+                            active_polyphony=int(np.sum(self.active)),
+                        )
                     if legacy_traces is not None and trace is None:
                         gate_eligible = bool(
                             support >= self.config.harmonic_support_threshold
@@ -771,6 +841,7 @@ class PolyphonicDecoder:
                     legacy_candidates.append((
                         candidate_score,
                         class_index,
+                        causal_gate_snapshot,
                     ))
                     if legacy_traces is not None and trace is not None:
                         legacy_traces[class_index] = trace
@@ -784,7 +855,24 @@ class PolyphonicDecoder:
                     )
             legacy_ranked = sorted(legacy_candidates, reverse=True)
             selected_legacy = legacy_ranked[:max(0, available)]
-            for rank, (_, class_index) in enumerate(selected_legacy):
+            accepted_legacy: list[tuple[int, int]] = []
+            for rank, (_, class_index, causal_gate_snapshot) in enumerate(
+                selected_legacy
+            ):
+                if self._reject_post_ranking_causal_candidate(
+                    causal_gate_snapshot
+                ):
+                    if legacy_traces is not None:
+                        self._complete_candidate_trace(
+                            legacy_completed,
+                            legacy_traces.get(class_index),
+                            post_gate_rank=rank,
+                            post_gate_selected=False,
+                            emitted_noteon=False,
+                        )
+                    continue
+                accepted_legacy.append((rank, class_index))
+            for rank, class_index in accepted_legacy:
                 pitch = self.config.midi_min + class_index
                 velocity = self._velocity(
                     frame[class_index], onset[class_index]
@@ -807,7 +895,7 @@ class PolyphonicDecoder:
                         emitted_noteon=True,
                     )
             if legacy_traces is not None:
-                for rank, (_, class_index) in enumerate(
+                for rank, (_, class_index, _) in enumerate(
                     legacy_ranked[len(selected_legacy):],
                     start=len(selected_legacy),
                 ):
@@ -876,7 +964,9 @@ class PolyphonicDecoder:
         base_mask = self.active.copy()
         for _, class_index, _, _ in provisional:
             base_mask[class_index] = True
-        candidates: list[tuple[float, int, str, bool]] = []
+        candidates: list[
+            tuple[float, int, str, bool, CausalCandidateGateInput | None]
+        ] = []
         candidate_traces: dict[int, _DecoderCandidateTrace] | None = (
             {}
             if (
@@ -912,8 +1002,26 @@ class PolyphonicDecoder:
                     active_polyphony=active_polyphony,
                     gate_eligible=gate_eligible,
                 )
+            causal_gate_snapshot = None
             if (
                 self._causal_candidate_gate is not None
+                and self._causal_candidate_gate_placement
+                == CAUSAL_CANDIDATE_GATE_POST_RANKING_PRE_NOTEON
+                and support >= self.config.harmonic_support_threshold
+            ):
+                causal_gate_snapshot = self._causal_candidate_gate_input(
+                    candidate_reason=reason,
+                    candidate_score=score,
+                    frame_probability=float(frame[class_index]),
+                    onset_probability=float(onset[class_index]),
+                    harmonic_support=support,
+                    audio_onset_recent=self._recent_audio_onset(),
+                    active_polyphony=int(np.sum(self.active)),
+                )
+            if (
+                self._causal_candidate_gate is not None
+                and self._causal_candidate_gate_placement
+                == CAUSAL_CANDIDATE_GATE_PRE_RANKING
                 and support >= self.config.harmonic_support_threshold
                 and self._reject_causal_candidate(
                     candidate_reason=reason,
@@ -987,17 +1095,38 @@ class PolyphonicDecoder:
                     continue
                 score -= self.config.harmonic_suppression_strength * support
                 reason = "harmonic_strong_frame"
-            candidates.append((score, class_index, reason, direct_onset))
+            candidates.append((
+                score,
+                class_index,
+                reason,
+                direct_onset,
+                causal_gate_snapshot,
+            ))
             if candidate_traces is not None and trace is not None:
                 candidate_traces[class_index] = trace
 
         ranked = sorted(candidates, key=lambda item: (-item[0], item[1]))
         selected = ranked[:max(0, available)]
+        accepted_selected: list[tuple[int, tuple[
+            float, int, str, bool, CausalCandidateGateInput | None
+        ]]] = []
+        for rank, candidate in enumerate(selected):
+            if self._reject_post_ranking_causal_candidate(candidate[4]):
+                if candidate_traces is not None:
+                    self._complete_candidate_trace(
+                        completed_traces,
+                        candidate_traces.get(candidate[1]),
+                        post_gate_rank=rank,
+                        post_gate_selected=False,
+                        emitted_noteon=False,
+                    )
+                continue
+            accepted_selected.append((rank, candidate))
         protected_chord = bool(
             self._recent_audio_onset()
-            and sum(bool(item[3]) for item in selected) >= 2
+            and sum(bool(item[3]) for _, item in accepted_selected) >= 2
         )
-        for rank, (_, class_index, reason, direct_onset) in enumerate(selected):
+        for rank, (_, class_index, reason, direct_onset, _) in accepted_selected:
             pitch = self.config.midi_min + class_index
             velocity = self._velocity(frame[class_index], onset[class_index])
             self.active[class_index] = True
@@ -1022,7 +1151,7 @@ class PolyphonicDecoder:
                     emitted_noteon=True,
                 )
         if candidate_traces is not None:
-            for rank, (_, class_index, _, _) in enumerate(
+            for rank, (_, class_index, _, _, _) in enumerate(
                 ranked[len(selected):],
                 start=len(selected),
             ):
