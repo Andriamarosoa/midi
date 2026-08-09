@@ -41,6 +41,8 @@ if TYPE_CHECKING:
 
 BOUNDED_MINING_SCHEMA_VERSION = 1
 BOUNDED_MINING_PURPOSE = "decoder_candidate_bounded_train_only_mining_v1"
+EXTENDED_MINING_SCHEMA_VERSION = 2
+EXTENDED_MINING_PURPOSE = "decoder_candidate_extended_train_only_mining_v2"
 _PARTITIONS = ("fit", "dev", "calibration")
 
 
@@ -93,11 +95,31 @@ class BoundedMiningProtocol:
     dataset_ids: tuple[str, ...]
     recordings_per_dataset_partition: int
     maximum_attempts_per_recording: int
+    schema_version: int = BOUNDED_MINING_SCHEMA_VERSION
+    purpose: str = BOUNDED_MINING_PURPOSE
+    minimum_targets_per_dataset_partition_class: int | None = None
+    minimum_targets_per_partition_class: int | None = None
+
+    def __post_init__(self) -> None:
+        minima = (
+            self.minimum_targets_per_dataset_partition_class,
+            self.minimum_targets_per_partition_class,
+        )
+        if self.schema_version == BOUNDED_MINING_SCHEMA_VERSION:
+            if self.purpose != BOUNDED_MINING_PURPOSE or minima != (None, None):
+                raise ValueError("schema 1 protocol cannot declare representation minima.")
+        elif self.schema_version == EXTENDED_MINING_SCHEMA_VERSION:
+            if self.purpose != EXTENDED_MINING_PURPOSE:
+                raise ValueError("schema 2 protocol requires the extended purpose.")
+            if any(type(value) is not int or value <= 0 for value in minima):
+                raise ValueError("schema 2 protocol requires positive representation minima.")
+        else:
+            raise ValueError("unsupported bounded mining protocol schema.")
 
     @classmethod
     def from_path(cls, path: Path) -> "BoundedMiningProtocol":
         payload = _read_json_object(path, description="bounded mining protocol")
-        required = {
+        base_fields = {
             "schema_version",
             "purpose",
             "locked_test_used",
@@ -112,14 +134,33 @@ class BoundedMiningProtocol:
             "recordings_per_dataset_partition",
             "maximum_attempts_per_recording",
         }
+        schema_version = payload.get("schema_version")
+        if type(schema_version) is not int:
+            raise ValueError("unsupported bounded mining protocol schema.")
+        if schema_version == BOUNDED_MINING_SCHEMA_VERSION:
+            required = base_fields
+            purpose = BOUNDED_MINING_PURPOSE
+            minimum_per_cell = None
+            minimum_per_partition = None
+        elif schema_version == EXTENDED_MINING_SCHEMA_VERSION:
+            required = base_fields | {
+                "minimum_targets_per_dataset_partition_class",
+                "minimum_targets_per_partition_class",
+            }
+            purpose = EXTENDED_MINING_PURPOSE
+            minimum_per_cell = payload.get("minimum_targets_per_dataset_partition_class")
+            minimum_per_partition = payload.get("minimum_targets_per_partition_class")
+            for name, value in (
+                ("minimum_targets_per_dataset_partition_class", minimum_per_cell),
+                ("minimum_targets_per_partition_class", minimum_per_partition),
+            ):
+                if type(value) is not int or value <= 0:
+                    raise ValueError(f"{name} must be a positive JSON-native integer.")
+        else:
+            raise ValueError("unsupported bounded mining protocol schema.")
         if set(payload) != required:
             raise ValueError("bounded mining protocol has unexpected or missing fields.")
-        if (
-            type(payload["schema_version"]) is not int
-            or payload["schema_version"] != BOUNDED_MINING_SCHEMA_VERSION
-        ):
-            raise ValueError("unsupported bounded mining protocol schema.")
-        if payload["purpose"] != BOUNDED_MINING_PURPOSE:
+        if payload["purpose"] != purpose:
             raise ValueError("invalid bounded mining protocol purpose.")
         if payload["locked_test_used"] is not False:
             raise PermissionError("bounded mining protocol must keep the locked test closed.")
@@ -153,6 +194,10 @@ class BoundedMiningProtocol:
             dataset_ids=tuple(datasets),
             recordings_per_dataset_partition=payload["recordings_per_dataset_partition"],
             maximum_attempts_per_recording=payload["maximum_attempts_per_recording"],
+            schema_version=schema_version,
+            purpose=purpose,
+            minimum_targets_per_dataset_partition_class=minimum_per_cell,
+            minimum_targets_per_partition_class=minimum_per_partition,
         )
 
 
@@ -246,7 +291,7 @@ def _select_bounded_items(
     context: "DecoderCandidateMiningContext",
     protocol: BoundedMiningProtocol,
 ) -> tuple["ManifestItem", ...]:
-    """Choose a fixed, one-per-corpus-per-partition diagnostic population."""
+    """Choose a fixed canonical population for every corpus/partition cell."""
     selected: list["ManifestItem"] = []
     for partition in _PARTITIONS:
         items = context.items_for_partition(partition)
@@ -413,6 +458,59 @@ def _counter_json(counters: DecoderCandidateMiningCounters) -> dict[str, object]
     return asdict(counters)
 
 
+def _representation_gate(
+    protocol: BoundedMiningProtocol,
+    counters: DecoderCandidateMiningCounters,
+) -> dict[str, object]:
+    """Report the preregistered coverage gate without authorizing any fit."""
+    per_cell = protocol.minimum_targets_per_dataset_partition_class
+    per_partition = protocol.minimum_targets_per_partition_class
+    if per_cell is None or per_partition is None:
+        if per_cell is not None or per_partition is not None:
+            raise AssertionError("representation minima must be both present or absent.")
+        return {"required": False, "passed": None, "shortfalls": []}
+    observed = {
+        (dataset_id, partition, target): count
+        for dataset_id, partition, target, count
+        in counters.dataset_partition_target_counts
+    }
+    shortfalls: list[dict[str, object]] = []
+    for dataset_id in protocol.dataset_ids:
+        for partition in _PARTITIONS:
+            for target in (0, 1):
+                actual = observed.get((dataset_id, partition, target), 0)
+                if actual < per_cell:
+                    shortfalls.append({
+                        "scope": "dataset_partition_target",
+                        "dataset_id": dataset_id,
+                        "partition": partition,
+                        "target": target,
+                        "actual": actual,
+                        "minimum": per_cell,
+                    })
+    for partition in _PARTITIONS:
+        for target in (0, 1):
+            actual = sum(
+                observed.get((dataset_id, partition, target), 0)
+                for dataset_id in protocol.dataset_ids
+            )
+            if actual < per_partition:
+                shortfalls.append({
+                    "scope": "partition_target",
+                    "partition": partition,
+                    "target": target,
+                    "actual": actual,
+                    "minimum": per_partition,
+                })
+    return {
+        "required": True,
+        "passed": not shortfalls,
+        "minimum_targets_per_dataset_partition_class": per_cell,
+        "minimum_targets_per_partition_class": per_partition,
+        "shortfalls": shortfalls,
+    }
+
+
 def _write_json(path: Path, payload: Mapping[str, object]) -> None:
     path.write_text(
         json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
@@ -510,6 +608,7 @@ def run_bounded_train_only_mining(
         candidate_rows.extend(rows)
         recording_reports.append(recording_report)
     counters = DecoderCandidateMiningCounters.from_batches(batches)
+    representation_gate = _representation_gate(protocol, counters)
     by_partition = {
         partition: _counter_json(DecoderCandidateMiningCounters.from_batches(
             batch for batch in batches if batch.partition == partition
@@ -525,7 +624,7 @@ def run_bounded_train_only_mining(
         _write_candidate_rows(rows_path, candidate_rows)
         report = {
             "schema_version": 1,
-            "purpose": BOUNDED_MINING_PURPOSE,
+            "purpose": protocol.purpose,
             "status": "complete_non_authorizing",
             "locked_test_used": False,
             "implementation_commit": commit,
@@ -540,7 +639,7 @@ def run_bounded_train_only_mining(
                 "audio_evidence_config": str(audio_evidence_config_path.resolve(strict=True)),
             },
             "selection": {
-                "policy": "first_canonical_plan_item_per_dataset_partition_v1",
+                "policy": "first_canonical_plan_items_per_dataset_partition_v1",
                 "recordings": [
                     {
                         "dataset_id": item.dataset_id,
@@ -559,6 +658,7 @@ def run_bounded_train_only_mining(
             },
             "counters": _counter_json(counters),
             "counters_by_partition": by_partition,
+            "representation_gate": representation_gate,
             "recordings": recording_reports,
             "fit_authorized": False,
             "next_action": (

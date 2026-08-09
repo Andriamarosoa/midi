@@ -479,10 +479,19 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
   (`3ad78ede…`) sont intègres. Ils contiennent 12 prises préinscrites, 429
   candidats supervisés (`94` positifs causaux, `335` faux NoteOn), zéro perte
   de collecte et aucun motif non instrumenté autre que 169 retriggers exclus.
-  Ce résultat est **non autorisant** (`fit_authorized=false`) : la distribution
-  par corpus/partition, notamment les petites cellules GuitarSet, doit être
-  revue par ChatGPT avant toute nouvelle hypothèse. Aucun fit, calibration,
-  validation, sélection de seuil, export, live ou test verrouillé n'est permis.
+  La revue externe de `83afcf34` approuve le pilote, mais confirme qu'il est
+  insuffisant pour le fit : `fit` ne contient que 123 exemples, dont 23
+  positifs, et certaines cellules GuitarSet n'ont qu'une classe. Le résultat
+  reste **non autorisant** (`fit_authorized=false`). Le prochain contrat,
+  également sans calcul, fixe six prises canoniques par corpus et partition
+  (72 prises) et des seuils préenregistrés de représentation avant toute revue
+  ultérieure, publiés automatiquement comme une porte non autorisante. Il
+  complète aussi la réconciliation future du flux complet avec
+  les compteurs `full_flow_invalid_frame` et `full_flow_outside_audio`. Les 45
+  tests synthétiques ciblés, `py_compile` et `git diff --check` passent. La
+  revue ChatGPT de ce nouveau contrat est obligatoire avant tout second minage.
+  Aucun fit, calibration, validation, sélection de seuil, export, live ou test
+  verrouillé n'est permis.
 <!-- PROJECT_TASK:decoder_candidate_asset_evidence_contract:END -->
 <!-- JOURNAL_END -->
 ## Rapports détaillés
@@ -512,6 +521,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-09 — correctif du préflight du mineur borné](results/2026-08-09_decoder-candidate-bounded-miner-preflight-fix.md)
 - [2026-08-09 — correctif CRLF/LF du préflight du mineur borné](results/2026-08-09_decoder-candidate-bounded-miner-eol-preflight-fix.md)
 - [2026-08-09 — passe CPU du mineur borné Policy A](results/2026-08-09_decoder-candidate-bounded-mining-run.md)
+- [2026-08-09 — contrat d'extension Policy A à six prises par cellule](results/2026-08-09_decoder-candidate-expanded-policy-a-contract.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.

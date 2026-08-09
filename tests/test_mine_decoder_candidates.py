@@ -16,8 +16,10 @@ from unittest.mock import patch
 from src.polyphonic.decoder_candidate_labels import CausalCandidateLabelBatch
 from src.polyphonic.mine_decoder_candidates import (
     BOUNDED_MINING_PURPOSE,
+    EXTENDED_MINING_PURPOSE,
     BoundedMiningProtocol,
     _require_expected_git_commit,
+    _representation_gate,
     _select_bounded_items,
     run_bounded_train_only_mining,
 )
@@ -33,11 +35,11 @@ PARTITIONS = ("fit", "dev", "calibration")
 
 
 class _Item:
-    def __init__(self, dataset_id: str, partition: str) -> None:
+    def __init__(self, dataset_id: str, partition: str, ordinal: int = 0) -> None:
         self.dataset_id = dataset_id
-        self.source_id = f"{partition}-{dataset_id}-source"
-        self.group_id = f"{partition}-{dataset_id}-group"
-        self.capture_id = f"{partition}-{dataset_id}-capture"
+        self.source_id = f"{partition}-{dataset_id}-{ordinal}-source"
+        self.group_id = f"{partition}-{dataset_id}-{ordinal}-group"
+        self.capture_id = f"{partition}-{dataset_id}-{ordinal}-capture"
 
 
 class _Provenance:
@@ -51,13 +53,24 @@ class _Snapshot:
 
 
 class _Context:
-    def __init__(self, *, manifest_sha256: str, plan_sha256: str, evidence_sha256: str) -> None:
+    def __init__(
+        self,
+        *,
+        manifest_sha256: str,
+        plan_sha256: str,
+        evidence_sha256: str,
+        items_per_dataset_partition: int = 1,
+    ) -> None:
         self.snapshot = type("Snapshot", (), {"manifest_sha256": manifest_sha256})()
         self.persisted_plan = type("Plan", (), {"sha256": plan_sha256})()
         self.persisted_asset_evidence = type("Evidence", (), {"sha256": evidence_sha256})()
         self.validated_snapshot = _Snapshot()
         self._items = {
-            partition: tuple(_Item(dataset, partition) for dataset in DATASETS)
+            partition: tuple(
+                _Item(dataset, partition, ordinal)
+                for dataset in DATASETS
+                for ordinal in range(items_per_dataset_partition)
+            )
             for partition in PARTITIONS
         }
 
@@ -81,6 +94,8 @@ def _batch(item: _Item, partition: str, *, manifest: str, plan: str) -> CausalCa
         dropped_attempts=0,
         decoder_noteons=0,
         causal_matchable_decoder_noteons=0,
+        full_flow_invalid_frame=0,
+        full_flow_outside_audio=0,
         causal_false_decoder_noteons=0,
         instrumented_decoder_noteons=0,
         uninstrumented_decoder_noteons=0,
@@ -198,6 +213,78 @@ class BoundedCandidateMiningTests(unittest.TestCase):
             attributes,
         )
 
+    def test_extended_policy_a_protocol_is_six_deterministic_items_per_cell(self) -> None:
+        repository = Path(__file__).resolve().parents[1]
+        baseline = BoundedMiningProtocol.from_path(
+            repository / "configs" / "decoder_candidate_bounded_mining_v1.json"
+        )
+        extended = BoundedMiningProtocol.from_path(
+            repository / "configs" / "decoder_candidate_extended_policy_a_6percell.json"
+        )
+        self.assertEqual(extended.recordings_per_dataset_partition, 6)
+        self.assertEqual(extended.maximum_attempts_per_recording, 65536)
+        self.assertEqual(extended.schema_version, 2)
+        self.assertEqual(extended.purpose, EXTENDED_MINING_PURPOSE)
+        self.assertEqual(extended.minimum_targets_per_dataset_partition_class, 8)
+        self.assertEqual(extended.minimum_targets_per_partition_class, 75)
+        self.assertEqual(extended.dataset_ids, baseline.dataset_ids)
+        for field in (
+            "manifest_sha256",
+            "partition_plan_sha256",
+            "asset_evidence_sha256",
+            "checkpoint_sha256",
+            "model_config_sha256",
+            "decoder_config_sha256",
+            "audio_evidence_config_sha256",
+        ):
+            self.assertEqual(getattr(extended, field), getattr(baseline, field))
+        attributes = (repository / ".gitattributes").read_text(encoding="utf-8")
+        self.assertIn(
+            "configs/decoder_candidate_extended_policy_a_6percell.json text eol=lf",
+            attributes,
+        )
+
+    def test_extended_protocol_reports_coverage_shortfalls_without_authorizing_fit(self) -> None:
+        repository = Path(__file__).resolve().parents[1]
+        protocol = BoundedMiningProtocol.from_path(
+            repository / "configs" / "decoder_candidate_extended_policy_a_6percell.json"
+        )
+        balanced = SimpleNamespace(
+            dataset_partition_target_counts=tuple(
+                (dataset, partition, target, 75)
+                for dataset in DATASETS
+                for partition in PARTITIONS
+                for target in (0, 1)
+            )
+        )
+        self.assertEqual(_representation_gate(protocol, balanced), {
+            "required": True,
+            "passed": True,
+            "minimum_targets_per_dataset_partition_class": 8,
+            "minimum_targets_per_partition_class": 75,
+            "shortfalls": [],
+        })
+        insufficient = SimpleNamespace(
+            dataset_partition_target_counts=tuple(
+                (dataset, partition, target, 8)
+                for dataset in DATASETS
+                for partition in PARTITIONS
+                for target in (0, 1)
+                if not (dataset == "guitarset_poly_mix" and partition == "fit" and target == 1)
+            )
+        )
+        gate = _representation_gate(protocol, insufficient)
+        self.assertTrue(gate["required"])
+        self.assertFalse(gate["passed"])
+        self.assertIn({
+            "scope": "dataset_partition_target",
+            "dataset_id": "guitarset_poly_mix",
+            "partition": "fit",
+            "target": 1,
+            "actual": 0,
+            "minimum": 8,
+        }, gate["shortfalls"])
+
     def test_git_preflight_accepts_the_real_40_character_commit_shape(self) -> None:
         """Exercise the implementation, rather than mocking the preflight itself."""
         expected = "0e124352f52637d3a895b615c771ee14b0de09e5"
@@ -310,6 +397,38 @@ assert 'tensorflow' not in sys.modules
             [(item.source_id.split("-", 1)[0], item.dataset_id) for item in selected],
             [(partition, dataset) for partition in PARTITIONS for dataset in DATASETS],
         )
+
+    def test_selection_scales_deterministically_to_each_protocol_cell(self) -> None:
+        protocol = BoundedMiningProtocol(
+            manifest_sha256="a" * 64,
+            partition_plan_sha256="b" * 64,
+            asset_evidence_sha256="c" * 64,
+            checkpoint_sha256="d" * 64,
+            model_config_sha256="e" * 64,
+            decoder_config_sha256="f" * 64,
+            audio_evidence_config_sha256="1" * 64,
+            dataset_ids=DATASETS,
+            recordings_per_dataset_partition=3,
+            maximum_attempts_per_recording=8,
+        )
+        context = _Context(
+            manifest_sha256="a" * 64,
+            plan_sha256="b" * 64,
+            evidence_sha256="c" * 64,
+            items_per_dataset_partition=3,
+        )
+        selected = _select_bounded_items(context, protocol)
+        self.assertEqual(len(selected), 36)
+        for partition in PARTITIONS:
+            for dataset in DATASETS:
+                self.assertEqual(
+                    [item.source_id for item in selected
+                     if item.dataset_id == dataset and item.source_id.startswith(partition)],
+                    [
+                        f"{partition}-{dataset}-{ordinal}-source"
+                        for ordinal in range(3)
+                    ],
+                )
 
     def test_sha_mismatch_fails_before_tensorflow_or_model_load(self) -> None:
         with TemporaryDirectory() as temporary:

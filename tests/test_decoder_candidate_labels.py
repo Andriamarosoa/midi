@@ -184,6 +184,8 @@ class DecoderCandidateLabelsTests(unittest.TestCase):
         self.assertEqual(result.labels, ())
         self.assertEqual(result.excluded_invalid_frame, 1)
         self.assertEqual(result.excluded_outside_audio, 1)
+        self.assertEqual(result.full_flow_invalid_frame, 1)
+        self.assertEqual(result.full_flow_outside_audio, 1)
         self.assertEqual(result.negative_targets, 0)
 
     def test_retrigger_is_counted_but_another_missing_trace_fails_closed(self) -> None:
@@ -302,6 +304,15 @@ class DecoderCandidateLabelsTests(unittest.TestCase):
         # frame that the label contract itself marks invalid.
         self.assertEqual(invalid_retrigger.labels[0].causal_noteon_target, 1)
         self.assertEqual(invalid_retrigger.causal_matchable_decoder_noteons, 1)
+        self.assertEqual(invalid_retrigger.full_flow_invalid_frame, 1)
+        self.assertEqual(invalid_retrigger.full_flow_outside_audio, 0)
+        invalid_retrigger_counters = DecoderCandidateMiningCounters.from_batches(
+            (invalid_retrigger,)
+        )
+        self.assertEqual(invalid_retrigger_counters.decoder_noteons, 2)
+        self.assertEqual(invalid_retrigger_counters.causal_matchable_decoder_noteons, 1)
+        self.assertEqual(invalid_retrigger_counters.full_flow_invalid_frame, 1)
+        self.assertEqual(invalid_retrigger_counters.full_flow_outside_audio, 0)
 
     def test_overflow_collection_error_and_missing_event_are_never_labeled(self) -> None:
         attempt = _attempt()

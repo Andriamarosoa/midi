@@ -1,0 +1,22 @@
+{
+  "schema_version": 2,
+  "purpose": "decoder_candidate_extended_train_only_mining_v2",
+  "locked_test_used": false,
+  "manifest_sha256": "b28cb17cfb80a82860ab44635b2c6d05718243e027a8fc8199fe72e27f1b8ed7",
+  "partition_plan_sha256": "a8347e4e6300dc59b48eab253186fd60ae21cd769fa21d647db4d7e0893685f4",
+  "asset_evidence_sha256": "12dd74f2c868d884f9189e1c8d07c1e7e1cec4e984fda5a68ce434c05e586507",
+  "checkpoint_sha256": "1ce8ac44ca7156d4bc058b5b37580805f2ab6536b380636c04b9a31b1a411325",
+  "model_config_sha256": "245285783eb395e1c16f9773cf9a15565510ba289467d63ad6a7d725bae19804",
+  "decoder_config_sha256": "c16be48271912c99c4237345e8406e39b88490b5565047757f6ca9e905615f96",
+  "audio_evidence_config_sha256": "45edbb712415c5b62f10a1405678fc28cee083891131108b2875ce8f71abcd3e",
+  "dataset_ids": [
+    "gaps_poly_mix",
+    "guitar_techs_poly_directinput",
+    "guitar_techs_poly_micamp",
+    "guitarset_poly_mix"
+  ],
+  "recordings_per_dataset_partition": 6,
+  "maximum_attempts_per_recording": 65536,
+  "minimum_targets_per_dataset_partition_class": 8,
+  "minimum_targets_per_partition_class": 75
+}

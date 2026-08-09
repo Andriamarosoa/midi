@@ -188,6 +188,8 @@ class CausalCandidateLabelBatch:
     dropped_attempts: int
     decoder_noteons: int
     causal_matchable_decoder_noteons: int
+    full_flow_invalid_frame: int
+    full_flow_outside_audio: int
     causal_false_decoder_noteons: int
     instrumented_decoder_noteons: int
     uninstrumented_decoder_noteons: int
@@ -214,6 +216,7 @@ class CausalCandidateLabelBatch:
         for name in (
             "total_attempts", "retained_attempts", "dropped_attempts",
             "decoder_noteons", "causal_matchable_decoder_noteons",
+            "full_flow_invalid_frame", "full_flow_outside_audio",
             "causal_false_decoder_noteons", "instrumented_decoder_noteons",
             "uninstrumented_decoder_noteons", "gate_eligible_emitted_noteons",
             "excluded_invalid_frame", "excluded_outside_audio",
@@ -245,8 +248,14 @@ class CausalCandidateLabelBatch:
             self.instrumented_decoder_noteons + self.uninstrumented_decoder_noteons
         ):
             raise ValueError("decoder NoteOn counters must reconcile instrumentation.")
-        if self.causal_matchable_decoder_noteons > self.decoder_noteons:
-            raise ValueError("causal matcher cannot observe more NoteOns than the decoder emitted.")
+        if self.decoder_noteons != (
+            self.causal_matchable_decoder_noteons
+            + self.full_flow_invalid_frame
+            + self.full_flow_outside_audio
+        ):
+            raise ValueError(
+                "full-flow NoteOn counters must partition decoder emissions."
+            )
         if self.causal_matchable_decoder_noteons != (
             self.matched_reference_noteons + self.causal_false_decoder_noteons
         ):
@@ -257,6 +266,13 @@ class CausalCandidateLabelBatch:
             + self.excluded_outside_audio
         ):
             raise ValueError("supervision counters must reconcile emitted NoteOns.")
+        if (
+            self.excluded_invalid_frame > self.full_flow_invalid_frame
+            or self.excluded_outside_audio > self.full_flow_outside_audio
+        ):
+            raise ValueError(
+                "gate-eligible exclusions cannot exceed full-flow exclusions."
+            )
         positives = sum(label.causal_noteon_target for label in self.labels)
         if self.matched_reference_noteons < positives:
             raise ValueError("full-flow matches cannot be fewer than positive targets.")
@@ -337,6 +353,8 @@ class DecoderCandidateMiningCounters:
     dropped_attempts: int
     decoder_noteons: int
     causal_matchable_decoder_noteons: int
+    full_flow_invalid_frame: int
+    full_flow_outside_audio: int
     causal_false_decoder_noteons: int
     instrumented_decoder_noteons: int
     uninstrumented_decoder_noteons: int
@@ -400,6 +418,8 @@ class DecoderCandidateMiningCounters:
             "dropped_attempts",
             "decoder_noteons",
             "causal_matchable_decoder_noteons",
+            "full_flow_invalid_frame",
+            "full_flow_outside_audio",
             "causal_false_decoder_noteons",
             "instrumented_decoder_noteons",
             "uninstrumented_decoder_noteons",
@@ -426,8 +446,14 @@ class DecoderCandidateMiningCounters:
             self.instrumented_decoder_noteons + self.uninstrumented_decoder_noteons
         ):
             raise ValueError("decoder NoteOn counters must reconcile instrumentation.")
-        if self.causal_matchable_decoder_noteons > self.decoder_noteons:
-            raise ValueError("causal matcher cannot observe more NoteOns than the decoder emitted.")
+        if self.decoder_noteons != (
+            self.causal_matchable_decoder_noteons
+            + self.full_flow_invalid_frame
+            + self.full_flow_outside_audio
+        ):
+            raise ValueError(
+                "full-flow NoteOn counters must partition decoder emissions."
+            )
         if self.causal_matchable_decoder_noteons != (
             self.matched_reference_noteons + self.causal_false_decoder_noteons
         ):
@@ -453,6 +479,13 @@ class DecoderCandidateMiningCounters:
             + self.excluded_outside_audio
         ):
             raise ValueError("supervision counters must reconcile emitted NoteOns.")
+        if (
+            self.excluded_invalid_frame > self.full_flow_invalid_frame
+            or self.excluded_outside_audio > self.full_flow_outside_audio
+        ):
+            raise ValueError(
+                "gate-eligible exclusions cannot exceed full-flow exclusions."
+            )
         if self.supervised_noteons != self.positive_targets + self.negative_targets:
             raise ValueError("supervised targets must reconcile positives and negatives.")
         if self.reference_noteons != (
@@ -525,6 +558,12 @@ class DecoderCandidateMiningCounters:
             decoder_noteons=sum(batch.decoder_noteons for batch in values),
             causal_matchable_decoder_noteons=sum(
                 batch.causal_matchable_decoder_noteons for batch in values
+            ),
+            full_flow_invalid_frame=sum(
+                batch.full_flow_invalid_frame for batch in values
+            ),
+            full_flow_outside_audio=sum(
+                batch.full_flow_outside_audio for batch in values
             ),
             causal_false_decoder_noteons=sum(
                 batch.causal_false_decoder_noteons for batch in values
@@ -742,15 +781,27 @@ def label_emitted_decoder_candidates(
                 "Fail closed: trainable emitted candidate has no matching decoder NoteOn."
             )
 
-    matchable_event_coordinates = tuple(
-        coordinate
-        for coordinate in sorted(event_reasons)
-        if _event_matchability(
+    full_flow_matchability = {
+        coordinate: _event_matchability(
             coordinate[0],
             valid=valid,
             hop_size=hop_size,
             audio_frames=audio_frames,
-        ) == "matchable"
+        )
+        for coordinate in event_reasons
+    }
+    matchable_event_coordinates = tuple(
+        coordinate
+        for coordinate in sorted(event_reasons)
+        if full_flow_matchability[coordinate] == "matchable"
+    )
+    full_flow_invalid_frame = sum(
+        matchability == "invalid_frame"
+        for matchability in full_flow_matchability.values()
+    )
+    full_flow_outside_audio = sum(
+        matchability == "outside_audio"
+        for matchability in full_flow_matchability.values()
     )
     matching_predictions = tuple(
         NoteOnPrediction(
@@ -827,6 +878,8 @@ def label_emitted_decoder_candidates(
         dropped_attempts=batch.dropped_attempts,
         decoder_noteons=len(event_reasons),
         causal_matchable_decoder_noteons=len(matchable_event_coordinates),
+        full_flow_invalid_frame=full_flow_invalid_frame,
+        full_flow_outside_audio=full_flow_outside_audio,
         causal_false_decoder_noteons=len(result.false_prediction_indices),
         instrumented_decoder_noteons=sum(instrumented_coordinates.values()),
         uninstrumented_decoder_noteons=uninstrumented,
