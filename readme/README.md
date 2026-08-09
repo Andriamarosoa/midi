@@ -18,7 +18,7 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 - Mise à jour : `2026-08-09`.
 - Étape : `causal_candidate_v2_train_dev_diagnostic_runner_integration`.
-- Statut : `anomalie — la matérialisation autorisée reste bloquée car les deux octets sources préenregistrés sont introuvables; aucune reconstruction ni reprise n'est autorisée`.
+- Statut : `terminé — les deux octets sources historiques sont retrouvés et vérifiés par SHA; revue requise avant leur seule copie binaire vers le worker Mac`.
 - Anomalie pré-métrique V2 vérifiée : le job unique
   `causal-candidate-v2-train-dev-cpu-20260809`, lancé au commit approuvé
   `ddd15be4fbf7e47205a0025f80821e2446ef9720` avec CPU et `900 s`, termine
@@ -43,6 +43,16 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   seront pas régénérés : fournir les deux originaux depuis une sauvegarde ou
   indiquer leur emplacement est nécessaire avant une nouvelle revue. Rapport :
   `readme/results/2026-08-10_causal-candidate-v2-artifact-materialization-blocked.md`.
+- Récupération source, lecture seule : les deux originaux sont retrouvés dans
+  l'ancien checkout Mac `/Users/amcarene/midi/tmp/local/decoder_candidate_policy_a_preregistration_20260809/`.
+  Le plan fait `145 859` octets et son SHA-256 est exactement
+  `a8347e4e6300dc59b48eab253186fd60ae21cd769fa21d647db4d7e0893685f4`; le
+  registre fait `198 950` octets et son SHA-256 est exactement
+  `12dd74f2c868d884f9189e1c8d07c1e7e1cec4e984fda5a68ce434c05e586507`.
+  Aucun dossier destination, copie, reformatage ou lancement V2 n'a suivi.
+  La prochaine action est uniquement une revue de cette preuve avant une copie
+  binaire atomique vers `midi-worker/repository/tmp/local`. Rapport :
+  `readme/results/2026-08-10_causal-candidate-v2-artifact-source-recovered.md`.
 - Correctif d'intégration V2 sans calcul : le worker Windows n'autorise
   désormais l'accusé dédié qu'au module exact
   `src.polyphonic.run_causal_candidate_v2_train_dev_diagnostic`, avec CPU,
@@ -893,6 +903,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-09 — implémentation du runner V2 train-only dev](results/2026-08-09_causal-candidate-v2-train-dev-diagnostic-runner-implementation.md)
 - [2026-08-10 — anomalie de préflight V2, artefacts locaux Mac absents](results/2026-08-10_causal-candidate-v2-train-dev-preflight-missing-local-artifacts.md)
 - [2026-08-10 — matérialisation V2 bloquée, octets sources absents](results/2026-08-10_causal-candidate-v2-artifact-materialization-blocked.md)
+- [2026-08-10 — sources exactes V2 retrouvées, copie encore interdite](results/2026-08-10_causal-candidate-v2-artifact-source-recovered.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.
