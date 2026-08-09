@@ -16,10 +16,11 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-08-09T04:31:00+04:00`.
+- Mise à jour : `2026-08-09T08:57:02+04:00`.
 - Étape : `decoder_candidate_bounded_train_only_mining`.
-- Statut : `en cours : mineur CPU train-only borné implémenté; revue externe du
-  code obligatoire avant l'unique exécution Mac`.
+- Statut : `en cours : les deux bloqueurs de la revue externe de 0e124352 sont
+  corrigés et testés sans calcul réel; revue externe du correctif obligatoire
+  avant l'unique exécution Mac`.
 - Résultat scientifique conservé : la tête `independent_note` précédente reste
   un résultat négatif, saturé près de 1, et ne doit promouvoir ni checkpoint ni
   seuil. Le test verrouillé reste fermé.
@@ -110,11 +111,21 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   GAPS synthétiques vérifient l'exclusion train déterministe, la persistance
   exacte des captures exclues, le refus d'un sous-ensemble manuel et
   l'impossibilité de construire leur collecteur.
-- Vérification du mineur borné Windows : les 39 tests ciblés passent en
+- Vérification initiale du mineur borné Windows : les 39 tests ciblés passent en
   `1,044 s`; la suite générale passe ensuite à **458 tests en 38,309 s**
   (trois ignorés). Les éventuelles mini-époques visibles dans cette seconde
   suite sont uniquement des fixtures synthétiques historiques : aucun WAV,
   label, checkpoint ou artefact réel Policy A n'a été ouvert.
+- Correctif de préflight du mineur borné Windows : la revue externe de
+  `0e124352…` a relevé (a) la confusion entre SHA Git à 40 caractères et
+  SHA-256, et (b) l'import de TensorFlow via `data.py` avant les empreintes.
+  Le CLI charge désormais `data`/le contexte uniquement après les sept SHA,
+  le lien YAML-manifeste et le préflight CPU; le SHA Git possède son validateur
+  dédié. `py_compile`, `git diff --check` et **41 tests ciblés en 2,025 s**
+  passent, dont un sous-processus vierge prouvant qu'un checkpoint substitué
+  échoue avec `tensorflow` absent de `sys.modules`. Aucun actif Policy A,
+  checkpoint réel, inférence, replay, collecteur ou artefact n'a été ouvert ou
+  produit par ce correctif.
 - Préinscription Policy A Mac terminée au commit `8190e3bf` : manifeste stable
   `b28cb17…` avant/après, validation historique inchangée (`182` lignes),
   `31` exclusions `gaps_poly_mix` couvrant les dix joueurs attendus, `541`
@@ -160,8 +171,9 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 ## Prochaine action réelle
 
-1. Faire relire le mineur borné : provenance avant TensorFlow, CPU strict,
-   sélection immuable de 12 prises, liaison audio/labels et absence de tout fit.
+1. Faire relire le correctif du mineur borné : SHA Git à 40 caractères,
+   provenance complète avant TensorFlow, CPU strict, sélection immuable de 12
+   prises, liaison audio/labels et absence de tout fit.
 2. Après approbation seulement, synchroniser le commit revu sur le Mac puis
    exécuter une unique passe train-only bornée. Inspecter les compteurs avant
    toute discussion d'entraînement.
@@ -431,9 +443,18 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
   train-only borné est implémenté sans calcul réel : CPU obligatoire, commit
   Git exact/worktree propre, sept SHA avant TensorFlow, 12 prises
   préassignées, écriture atomique sous `data/processed`, aucune perte tolérée
-  et `fit_authorized=false`. La revue externe du code du mineur est obligatoire
-  avant l'unique replay Mac; aucun fit, validation, export, live ou test
-  verrouillé n'est autorisé.
+  et `fit_authorized=false`. La revue externe de `0e124352…` a ensuite trouvé
+  deux défauts avant le premier replay : le SHA Git à 40 caractères était
+  vérifié comme un SHA-256, et `data.py` importait TensorFlow au chargement du
+  CLI avant les empreintes. Le correctif diffère les imports runtime
+  `data`/contexte/Keras après les sept empreintes, le lien YAML-manifeste et le
+  préflight CPU; il ajoute une validation Git dédiée et un test frais qui
+  confirme qu'un mauvais SHA de checkpoint échoue avec TensorFlow absent.
+  `py_compile`, `git diff --check` et 41 tests ciblés passent en 2,025 s.
+  Aucun actif Policy A, checkpoint réel, inférence, replay, collecteur, minage,
+  entraînement, validation, export, live ou test verrouillé n'a été exécuté.
+  Une dernière revue externe de ce correctif est obligatoire avant l'unique
+  replay Mac.
 <!-- PROJECT_TASK:decoder_candidate_asset_evidence_contract:END -->
 <!-- JOURNAL_END -->
 ## Rapports détaillés
@@ -460,6 +481,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-09 — contrat de politique A pour le chevauchement GAPS](results/2026-08-09_decoder-candidate-gaps-policy-a-contract.md)
 - [2026-08-09 — préinscription réelle Policy A](results/2026-08-09_decoder-candidate-policy-a-preregistration.md)
 - [2026-08-09 — mineur borné de candidats du décodeur](results/2026-08-09_decoder-candidate-bounded-miner.md)
+- [2026-08-09 — correctif du préflight du mineur borné](results/2026-08-09_decoder-candidate-bounded-miner-preflight-fix.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.

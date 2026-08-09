@@ -12,16 +12,16 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
-from typing import Any, Mapping, Sequence
+from typing import TYPE_CHECKING, Any, Mapping, Sequence
 
 import numpy as np
 import yaml
 
 from .audio_evidence import offline_audio_evidence_masks
-from .data import ManifestItem, PolyphonicSequence
 from .decoder import PolyphonicDecoder, PolyphonicDecoderConfig, PolyphonicMidiEvent
 from .decoder_candidate_labels import (
     CausalCandidateLabelBatch,
@@ -30,11 +30,13 @@ from .decoder_candidate_labels import (
     label_emitted_decoder_candidates,
     require_candidate_mining_baseline_decoder_config,
 )
-from .decoder_candidate_miner import (
-    DecoderCandidateMiningContext,
-    load_decoder_candidate_mining_context,
-)
-from .keras_compat import load_polyphonic_checkpoint, predict_compat
+
+if TYPE_CHECKING:
+    # ``data`` imports TensorFlow.  These imports are deliberately type-only:
+    # all immutable provenance checks and the CPU preflight must happen before
+    # TensorFlow can enter ``sys.modules``.
+    from .data import ManifestItem
+    from .decoder_candidate_miner import DecoderCandidateMiningContext
 
 
 BOUNDED_MINING_SCHEMA_VERSION = 1
@@ -67,6 +69,13 @@ def _require_sha256(value: object, *, name: str) -> str:
         or any(character not in "0123456789abcdef" for character in value)
     ):
         raise ValueError(f"{name} must be a lowercase SHA-256 digest.")
+    return value
+
+
+def _require_git_commit(value: object, *, name: str) -> str:
+    """Validate a full lowercase Git object ID, not a SHA-256 digest."""
+    if not isinstance(value, str) or re.fullmatch(r"[0-9a-f]{40}", value) is None:
+        raise ValueError(f"{name} must be a lowercase 40-character Git commit SHA.")
     return value
 
 
@@ -152,7 +161,7 @@ def _repository_root() -> Path:
 
 
 def _require_expected_git_commit(expected: str, *, repository_root: Path) -> str:
-    _require_sha256(expected, name="expected_git_commit")
+    expected = _require_git_commit(expected, name="expected_git_commit")
     head = subprocess.check_output(
         ["git", "rev-parse", "HEAD"], cwd=repository_root, text=True
     ).strip()
@@ -192,6 +201,9 @@ def _require_cpu_tensorflow() -> Any:
 
 
 def _load_inference_model(checkpoint: Path, tensorflow: Any) -> Any:
+    # Keras model construction remains behind the CPU preflight as well.
+    from .keras_compat import load_polyphonic_checkpoint
+
     model = load_polyphonic_checkpoint(checkpoint)
     output_names = ("frame", "onset", "harmonic_amplitude")
     names = {layer.name for layer in model.layers}
@@ -201,6 +213,22 @@ def _load_inference_model(checkpoint: Path, tensorflow: Any) -> Any:
     return tensorflow.keras.Model(
         model.inputs,
         {name: model.get_layer(name).output for name in output_names},
+    )
+
+
+def _load_mining_context(
+    *,
+    manifest_path: Path,
+    partition_plan_path: Path,
+    asset_evidence_path: Path,
+) -> "DecoderCandidateMiningContext":
+    """Cross the dataset/TensorFlow import boundary after CPU preflight."""
+    from .decoder_candidate_miner import load_decoder_candidate_mining_context
+
+    return load_decoder_candidate_mining_context(
+        manifest_path=manifest_path,
+        partition_plan_path=partition_plan_path,
+        asset_evidence_path=asset_evidence_path,
     )
 
 
@@ -215,14 +243,14 @@ def _resolve_model_manifest(model_config: Mapping[str, object], config_path: Pat
 
 
 def _select_bounded_items(
-    context: DecoderCandidateMiningContext,
+    context: "DecoderCandidateMiningContext",
     protocol: BoundedMiningProtocol,
-) -> tuple[ManifestItem, ...]:
+) -> tuple["ManifestItem", ...]:
     """Choose a fixed, one-per-corpus-per-partition diagnostic population."""
-    selected: list[ManifestItem] = []
+    selected: list["ManifestItem"] = []
     for partition in _PARTITIONS:
         items = context.items_for_partition(partition)
-        by_dataset: dict[str, list[ManifestItem]] = {}
+        by_dataset: dict[str, list["ManifestItem"]] = {}
         for item in items:
             by_dataset.setdefault(str(item.dataset_id), []).append(item)
         if tuple(sorted(by_dataset)) != protocol.dataset_ids:
@@ -292,14 +320,19 @@ def _require_protocol_inputs(
 
 def _predict_recording(
     inference_model: Any,
-    context: DecoderCandidateMiningContext,
-    item: ManifestItem,
+    context: "DecoderCandidateMiningContext",
+    item: "ManifestItem",
     *,
     model_config: Mapping[str, object],
     decoder_config: PolyphonicDecoderConfig,
     audio_evidence_config: Mapping[str, object],
     maximum_attempts: int,
 ) -> tuple[CausalCandidateLabelBatch, list[dict[str, object]], dict[str, object]]:
+    # Both imports transitively depend on ``data``/TensorFlow.  They must stay
+    # after the sealed file checks and ``_require_cpu_tensorflow()``.
+    from .data import PolyphonicSequence
+    from .keras_compat import predict_compat
+
     dataset = model_config["dataset"]
     train = model_config["train"]
     if not isinstance(dataset, Mapping) or not isinstance(train, Mapping):
@@ -438,7 +471,12 @@ def run_bounded_train_only_mining(
     )
     if _resolve_model_manifest(model_config, model_config_path) != manifest_path.resolve(strict=True):
         raise RuntimeError("Fail closed: model config manifest differs from the sealed mining manifest.")
-    context = load_decoder_candidate_mining_context(
+
+    # This is intentionally the first point at which TensorFlow may be
+    # imported.  The protocol, seven sealed file digests, and the model-YAML
+    # manifest binding above are all pure-Python checks.
+    tensorflow = _require_cpu_tensorflow()
+    context = _load_mining_context(
         manifest_path=manifest_path,
         partition_plan_path=partition_plan_path,
         asset_evidence_path=asset_evidence_path,
@@ -454,7 +492,6 @@ def run_bounded_train_only_mining(
         raise RuntimeError("Fail closed: validated context asset evidence differs from protocol.")
     selected = _select_bounded_items(context, protocol)
 
-    tensorflow = _require_cpu_tensorflow()
     inference_model = _load_inference_model(checkpoint_path.resolve(strict=True), tensorflow)
     batches: list[CausalCandidateLabelBatch] = []
     candidate_rows: list[dict[str, object]] = []

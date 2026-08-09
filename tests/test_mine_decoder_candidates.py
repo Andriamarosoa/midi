@@ -4,15 +4,20 @@ from __future__ import annotations
 from dataclasses import asdict
 import hashlib
 import json
+import os
 from pathlib import Path
+import subprocess
+import sys
 from tempfile import TemporaryDirectory
 import unittest
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from src.polyphonic.decoder_candidate_labels import CausalCandidateLabelBatch
 from src.polyphonic.mine_decoder_candidates import (
     BOUNDED_MINING_PURPOSE,
     BoundedMiningProtocol,
+    _require_expected_git_commit,
     _select_bounded_items,
     run_bounded_train_only_mining,
 )
@@ -91,6 +96,20 @@ def _batch(item: _Item, partition: str, *, manifest: str, plan: str) -> CausalCa
 
 
 class BoundedCandidateMiningTests(unittest.TestCase):
+    @staticmethod
+    def _initialize_clean_git_repository(root: Path) -> str:
+        """Make a minimal clean repository while ignoring generated fixtures."""
+        (root / ".gitignore").write_text("*\n!.gitignore\n", encoding="utf-8")
+        for command in (
+            ("git", "init", "--quiet"),
+            ("git", "add", ".gitignore"),
+            ("git", "-c", "user.name=Bounded Test", "-c", "user.email=test@example.invalid", "commit", "--quiet", "-m", "fixture"),
+        ):
+            subprocess.run(command, cwd=root, check=True, capture_output=True, text=True)
+        return subprocess.check_output(
+            ("git", "rev-parse", "HEAD"), cwd=root, text=True
+        ).strip()
+
     def _write_inputs(self, root: Path, *, checkpoint_contents: bytes = b"checkpoint") -> dict[str, Path]:
         manifest = root / "manifest.csv"
         manifest.write_text("placeholder\n", encoding="utf-8")
@@ -162,6 +181,94 @@ class BoundedCandidateMiningTests(unittest.TestCase):
             paths["protocol"].write_text(json.dumps(payload), encoding="utf-8")
             with self.assertRaisesRegex(PermissionError, "locked test"):
                 BoundedMiningProtocol.from_path(paths["protocol"])
+
+    def test_git_preflight_accepts_the_real_40_character_commit_shape(self) -> None:
+        """Exercise the implementation, rather than mocking the preflight itself."""
+        expected = "0e124352f52637d3a895b615c771ee14b0de09e5"
+
+        def check_output(command, **_kwargs):
+            if tuple(command[:3]) == ("git", "rev-parse", "HEAD"):
+                return expected
+            if tuple(command[:3]) == ("git", "ls-files", "--others"):
+                return ""
+            self.fail(f"unexpected Git command: {command!r}")
+
+        with patch(
+            "src.polyphonic.mine_decoder_candidates.subprocess.check_output",
+            side_effect=check_output,
+        ), patch(
+            "src.polyphonic.mine_decoder_candidates.subprocess.run",
+            return_value=SimpleNamespace(returncode=0),
+        ):
+            self.assertEqual(
+                _require_expected_git_commit(expected, repository_root=Path(".")),
+                expected,
+            )
+
+    def test_bad_digest_preflight_fails_before_tensorflow_is_imported(self) -> None:
+        """Run a fresh interpreter through the real preflight without TensorFlow.
+
+        The checkpoint is deliberately replaced after its protocol digest is
+        recorded.  A correct pure-Python preflight rejects it before the CPU
+        import boundary, proving that neither importing this CLI nor this
+        provenance error loads TensorFlow.
+        """
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "data" / "processed").mkdir(parents=True)
+            commit = self._initialize_clean_git_repository(root)
+            paths = self._write_inputs(root)
+            paths["checkpoint"].write_bytes(b"substituted checkpoint")
+            output = root / "data" / "processed" / "bounded"
+            script = """
+import os
+from pathlib import Path
+import sys
+from src.polyphonic.mine_decoder_candidates import run_bounded_train_only_mining
+
+assert 'tensorflow' not in sys.modules
+try:
+    run_bounded_train_only_mining(
+        manifest_path=Path(os.environ['MINER_MANIFEST']),
+        partition_plan_path=Path(os.environ['MINER_PLAN']),
+        asset_evidence_path=Path(os.environ['MINER_EVIDENCE']),
+        checkpoint_path=Path(os.environ['MINER_CHECKPOINT']),
+        model_config_path=Path(os.environ['MINER_MODEL']),
+        decoder_config_path=Path(os.environ['MINER_DECODER']),
+        audio_evidence_config_path=Path(os.environ['MINER_AUDIO']),
+        protocol_path=Path(os.environ['MINER_PROTOCOL']),
+        output_dir=Path(os.environ['MINER_OUTPUT']),
+        expected_git_commit=os.environ['MINER_COMMIT'],
+        repository_root=Path(os.environ['MINER_ROOT']),
+    )
+except RuntimeError as error:
+    assert 'checkpoint_sha256' in str(error), repr(error)
+else:
+    raise AssertionError('substituted checkpoint unexpectedly passed preflight')
+assert 'tensorflow' not in sys.modules
+"""
+            environment = dict(os.environ)
+            environment.update({
+                "MINER_ROOT": str(root),
+                "MINER_MANIFEST": str(paths["manifest"]),
+                "MINER_PLAN": str(paths["plan"]),
+                "MINER_EVIDENCE": str(paths["evidence"]),
+                "MINER_CHECKPOINT": str(paths["checkpoint"]),
+                "MINER_MODEL": str(paths["model"]),
+                "MINER_DECODER": str(paths["decoder"]),
+                "MINER_AUDIO": str(paths["audio"]),
+                "MINER_PROTOCOL": str(paths["protocol"]),
+                "MINER_OUTPUT": str(output),
+                "MINER_COMMIT": commit,
+            })
+            result = subprocess.run(
+                (sys.executable, "-c", script),
+                cwd=Path(__file__).resolve().parents[1],
+                env=environment,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
 
     def test_selection_is_exactly_one_canonical_item_per_dataset_partition(self) -> None:
         protocol = BoundedMiningProtocol(
@@ -250,7 +357,7 @@ class BoundedCandidateMiningTests(unittest.TestCase):
                 "src.polyphonic.mine_decoder_candidates._require_expected_git_commit",
                 return_value="e" * 64,
             ), patch(
-                "src.polyphonic.mine_decoder_candidates.load_decoder_candidate_mining_context",
+                "src.polyphonic.mine_decoder_candidates._load_mining_context",
                 return_value=context,
             ), patch(
                 "src.polyphonic.mine_decoder_candidates._require_cpu_tensorflow",
