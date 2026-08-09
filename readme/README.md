@@ -18,7 +18,7 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 - Mise à jour : `2026-08-09`.
 - Étape : `causal_candidate_validation_ab_v1`.
-- Statut : `terminé — unique relance CPU A/B exécutée; résultat négatif non autorisant, revue externe requise`.
+- Statut : `terminé — V1 clôturée comme résultat négatif non promu après revue externe`.
 - Résultat terminal vérifié : l'unique job CPU
   `causal-candidate-fit-v1-cpu-20260809` termine avec `exit_code=0`,
   `complete_non_authorizing`, 14 époques enregistrées et meilleure époque 9,
@@ -109,6 +109,14 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   recalibration, recherche de seuil, export, live ou test verrouillé n'est
   autorisé. Rapport :
   `readme/results/2026-08-09_causal-candidate-validation-ab-v1-run.md`.
+- Revue externe de `f893aa55…` : résultat approuvé et V1 formellement clôturée.
+  Les 9 rejets internes sont réels, mais `0/4247` événement MIDI final a changé.
+  Cette absence de transfert entre la population entraînée (NoteOn émis) et la
+  population vue avant ranking est désormais une limite observée, non une raison
+  de régler à nouveau le seuil. Une porte éventuelle après ranking/sélection,
+  juste avant NoteOn, serait une nouvelle hypothèse architecturale à
+  préenregistrer séparément ; aucune implémentation ni calcul ne suit cette
+  revue.
 - Résultat vérifié : le job Mac
   `decoder-candidate-guitarset-v3-cpu-20260809` a terminé avec `exit_code=0`
   et l'état `complete_non_authorizing` au commit
@@ -334,12 +342,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 ## Prochaine action réelle
 
-1. Faire relire le rapport terminal A/B : vérifier le SHA du JSON brut, les
-   12 résultats appariés, les huit empreintes, les 9 rejets internes et
-   l'absence mesurée de gain événementiel.
-2. Clore cette variante V1 comme non promue tant que cette revue n'a pas défini
-   une nouvelle hypothèse distincte, sans modifier le seuil `0,31` à partir de
-   ce résultat unique.
+1. Variante V1 close : ne pas modifier le seuil `0,31`, ne pas refaire son fit
+   et ne pas relancer cette validation.
+2. Attendre une décision explicite avant de préenregistrer une hypothèse
+   distincte de porte après ranking/sélection, juste avant l'émission NoteOn.
 3. Conserver le test verrouillé fermé : aucun nouveau fit, recalibration,
    validation, export, live ou sélection/promotion de seuil n'est autorisé à
    cette étape.

@@ -149,7 +149,20 @@ pris neuf décisions internes mais n'a apporté aucun gain événementiel mesur�
 sur les 12 prises validation fixées. Elle ne justifie aucune promotion du
 modèle, du standardiseur ou du seuil, ni une nouvelle relance de cette policy.
 
-La seule action suivante est une revue externe de ce rapport et la définition
-d'une hypothèse distincte si nécessaire. Aucun nouveau fit, recalibrage,
-recherche de seuil, validation supplémentaire, export, live ou test verrouillé
-ne doit être exécuté avant cette décision.
+## Revue externe et clôture
+
+La revue externe de `f893aa55e6e5b00eddda7b4833a8cf4775c9f511` approuve le
+rapport et clôt formellement V1 comme variante non promue. Elle confirme que
+les neuf rejets sont réels, mais que leur absence d'effet sur le MIDI est le
+constat expérimental déterminant.
+
+L'interprétation retenue est un décalage plausible de population : les cibles
+du fit étaient les candidats ayant réellement émis un NoteOn, tandis que la
+porte V1 voyait tous les candidats internes éligibles avant le ranking et la
+sélection. La revue ne permet ni d'augmenter le seuil, ni de refaire le fit,
+ni de rejouer l'A/B à partir de cette validation.
+
+Une porte éventuelle placée **après ranking et sélection, juste avant
+l'émission NoteOn**, constituerait une hypothèse architecturale distincte. Elle
+devra être préenregistrée, revue et autorisée séparément : aucun code ni calcul
+ne sont déclenchés par cette clôture. Le test verrouillé demeure fermé.
