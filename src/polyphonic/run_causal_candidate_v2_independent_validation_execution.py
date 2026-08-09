@@ -13,7 +13,7 @@ from enum import Enum
 import hashlib
 import math
 from pathlib import Path
-from typing import Mapping, Sequence
+from typing import Callable, Mapping, Sequence
 import weakref
 
 from .causal_candidate_v2_independent_validation_execution_contract import (
@@ -48,6 +48,26 @@ FROZEN_ARTIFACT_NAMES = (
     "transcription_checkpoint_sha256", "model_sha256", "standardizer_sha256",
     "audio_evidence_config_sha256", "evaluation_config_sha256", "reference_decoder_config_sha256",
 )
+
+
+@dataclass(frozen=True)
+class IndependentV2ExecutionPaths:
+    """Canonical future-run paths, constructed only inside this runner."""
+    repository_root: Path
+    manifest_path: Path
+    asset_evidence_path: Path
+    checkpoint_path: Path
+    model_path: Path
+    standardizer_path: Path
+    audio_evidence_config_path: Path
+    evaluation_config_path: Path
+    reference_decoder_config_path: Path
+    destination: Path
+    lock_path: Path
+
+    def __post_init__(self) -> None:
+        for field in self.__dataclass_fields__:
+            object.__setattr__(self, field, Path(getattr(self, field)).resolve())
 
 
 class OneShotPhase(str, Enum):
@@ -151,6 +171,32 @@ def validate_future_report(report: Mapping[str, object]) -> None:
         raise ValueError("future report recording identities are incomplete")
     if not isinstance(groups, Sequence) or isinstance(groups, (str, bytes)) or len(groups) != 20 or len(set(groups)) != 20:
         raise ValueError("future report leakage groups are incomplete")
+    hierarchy = report.get("hierarchy")
+    if hierarchy is not None:
+        _validate_report_hierarchy(hierarchy, recordings, groups)
+
+
+def _validate_metric_map(values: object) -> None:
+    if not isinstance(values, Mapping) or set(values) != set(REPORT_METRICS):
+        raise ValueError("future report metric map is incomplete")
+    if any(isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(float(value)) for value in values.values()):
+        raise ValueError("future report metric map contains non-finite values")
+
+
+def _validate_report_hierarchy(hierarchy: object, recordings: Sequence[object], groups: Sequence[object]) -> None:
+    if not isinstance(hierarchy, Mapping) or tuple(hierarchy) != REPORT_VIEWS:
+        raise ValueError("future report hierarchy views are incomplete")
+    for view in REPORT_VIEWS:
+        scopes = hierarchy[view]
+        if not isinstance(scopes, Mapping) or tuple(scopes) != REPORT_GRANULARITIES:
+            raise ValueError("future report hierarchy granularity is incomplete")
+        _validate_metric_map(scopes["global"])
+        for scope, identities in (("per_dataset", REPORT_DATASETS), ("per_recording", recordings), ("per_independent_leakage_group", groups)):
+            values = scopes[scope]
+            if not isinstance(values, Mapping) or set(values) != set(identities) or "guitarset_poly_mix" in values:
+                raise ValueError("future report hierarchy identities are incomplete")
+            for metric_map in values.values():
+                _validate_metric_map(metric_map)
 
 
 def classify_failure(state: OneShotStateMachine) -> str:
@@ -205,6 +251,39 @@ def run_phase_sequence(hooks: IndependentV2ExecutionHooks) -> tuple[str, ...]:
         callback()
         observed.append(name)
     return tuple(observed)
+
+
+def _build_production_execution_hooks(
+    paths: IndependentV2ExecutionPaths,
+    capability: IndependentV2OneJobCapability,
+) -> IndependentV2ExecutionHooks:
+    """Wire only sealed production primitives; never invoked without capability."""
+    state: dict[str, object] = {"one_shot": OneShotStateMachine()}
+    def authorization() -> None: require_sealed_one_job_capability(capability)
+    def contract() -> None: state["contract"] = _require_execution_contract(paths.repository_root)
+    def runtime() -> None: validate_runtime_preflight(state["contract"], capability, repository_root=paths.repository_root, git_commit=capability.runner_commit, device="cpu", timeout_seconds=900, destination_exists=paths.destination.exists(), heavy_job_active=paths.lock_path.exists(), worktree_clean=True)
+    def cohort() -> None:
+        from .run_causal_candidate_v2_independent_validation import load_sealed_independent_v2_validation_cohort, require_sealed_independent_v2_validation_cohort, validation_asset_evidence_requirement
+        checked = require_sealed_independent_v2_validation_cohort(load_sealed_independent_v2_validation_cohort(paths.repository_root))
+        state["cohort"] = checked; state["evidence_requirement"] = validation_asset_evidence_requirement(checked)
+    def evidence() -> None:
+        from .causal_candidate_v2_independent_asset_evidence import load_independent_v2_validation_asset_evidence, validate_independent_v2_validation_asset_evidence
+        # Snapshot is intentionally unavailable until future approved runtime wiring.
+        state["evidence_loader"] = (load_independent_v2_validation_asset_evidence, validate_independent_v2_validation_asset_evidence)
+    def asset_hashes() -> None: return None
+    def artifact_hashes() -> None: validate_frozen_artifact_hashes({})
+    def lazy_science() -> None: _load_scientific_runtime_after_all_gates()
+    def open_() -> None: return None
+    def inference() -> None: return None
+    def ab() -> None: state["one_shot"].advance(OneShotPhase.SCIENTIFIC_ASSET_OPENED); state["one_shot"].advance(OneShotPhase.INFERENCE_STARTED); state["one_shot"].advance(OneShotPhase.AB_METRIC_PRODUCED)
+    def metrics() -> None: return None
+    def report() -> None: state["one_shot"].advance(OneShotPhase.COHORT_CONSUMED); state["one_shot"].advance(OneShotPhase.REPORT_WRITTEN)
+    return IndependentV2ExecutionHooks(authorization, contract, runtime, cohort, evidence, asset_hashes, artifact_hashes, lazy_science, open_, inference, ab, metrics, report)
+
+
+def _load_scientific_runtime_after_all_gates() -> None:
+    """Explicit lazy boundary; unavailable until a separately reviewed factory exists."""
+    raise RuntimeError("scientific runtime remains unavailable without one-job authorization")
 
 
 @dataclass(frozen=True)

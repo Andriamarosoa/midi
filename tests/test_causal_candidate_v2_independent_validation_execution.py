@@ -115,6 +115,36 @@ class IndependentV2ExecutionRunnerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "non-finite"):
             runner.validate_future_report(report)
 
+    def test_hierarchical_report_is_fail_closed(self) -> None:
+        recordings = [f"recording-{i}" for i in range(30)]
+        groups = [f"group-{i}" for i in range(20)]
+        metric_map = {name: 0.0 for name in runner.REPORT_METRICS}
+        hierarchy = {
+            view: {
+                "global": dict(metric_map),
+                "per_dataset": {name: dict(metric_map) for name in runner.REPORT_DATASETS},
+                "per_recording": {name: dict(metric_map) for name in recordings},
+                "per_independent_leakage_group": {name: dict(metric_map) for name in groups},
+            } for view in runner.REPORT_VIEWS
+        }
+        base = {
+            "views": runner.REPORT_VIEWS, "granularity": runner.REPORT_GRANULARITIES,
+            "datasets": runner.REPORT_DATASETS, "recording_count": 30, "independent_group_count": 20,
+            "metrics": runner.REPORT_METRICS, "provenance": runner.REPORT_PROVENANCE,
+            "locked_test_used": False, "numeric_values": metric_map,
+            "recording_identities": recordings, "independent_leakage_groups": groups, "hierarchy": hierarchy,
+        }
+        runner.validate_future_report(base)
+        broken = dict(base)
+        broken_hierarchy = dict(hierarchy)
+        broken_hierarchy["reference"] = dict(hierarchy["reference"])
+        broken_global = dict(hierarchy["reference"]["global"])
+        broken_global.pop(runner.REPORT_METRICS[0])
+        broken_hierarchy["reference"]["global"] = broken_global
+        broken["hierarchy"] = broken_hierarchy
+        with self.assertRaisesRegex(ValueError, "metric map"):
+            runner.validate_future_report(broken)
+
     def test_frozen_artifact_hashes_reject_mutation(self) -> None:
         raw = b"synthetic"
         with self.assertRaisesRegex(ValueError, "SHA mismatch"):
