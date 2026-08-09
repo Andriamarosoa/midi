@@ -16,10 +16,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-08-09T03:55:43+04:00`.
-- Étape : `decoder_candidate_gaps_policy_a_contract`.
-- Statut : `en revue : politique A codée et testée synthétiquement; la
-  validation historique est préservée et aucun plan réel n'a encore été créé`.
+- Mise à jour : `2026-08-09T04:12:42+04:00`.
+- Étape : `decoder_candidate_policy_a_preregistration`.
+- Statut : `terminé : plan v2 et registre réels créés sur Mac; revue externe
+  obligatoire avant tout minage`.
 - Résultat scientifique conservé : la tête `independent_note` précédente reste
   un résultat négatif, saturé près de 1, et ne doit promouvoir ni checkpoint ni
   seuil. Le test verrouillé reste fermé.
@@ -109,6 +109,13 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   GAPS synthétiques vérifient l'exclusion train déterministe, la persistance
   exacte des captures exclues, le refus d'un sous-ensemble manuel et
   l'impossibilité de construire leur collecteur.
+- Préinscription Policy A Mac terminée au commit `8190e3bf` : manifeste stable
+  `b28cb17…` avant/après, validation historique inchangée (`182` lignes),
+  `31` exclusions `gaps_poly_mix` couvrant les dix joueurs attendus, `541`
+  prises planifiées et `541` entrées de registre. SHA plan v2
+  `a8347e4e…` ; SHA registre `12dd74f2…`. Aucune exclusion n'est dans le
+  registre, `locked_test_used=false`, et aucun replay/minage/entraînement ou
+  autre calcul scientifique n'a démarré.
 - Préinscription Mac de `d16b25f7` : le checkout est synchronisé et inactif,
   mais le garde group-safe a refusé le manifeste
   `b28cb17cfb80a82860ab44635b2c6d05718243e027a8fc8199fe72e27f1b8ed7` avant
@@ -133,19 +140,16 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   et `readme/results/2026-08-08_decoder-candidate-asset-evidence-contract.md`,
   puis `readme/results/2026-08-08_decoder-candidate-asset-evidence-lazy-audio-fix.md`
   et `readme/results/2026-08-08_decoder-candidate-preregistration-blocked-by-gaps-leakage.md`,
-  puis `readme/results/2026-08-09_decoder-candidate-gaps-policy-a-contract.md`.
+  puis `readme/results/2026-08-09_decoder-candidate-gaps-policy-a-contract.md`
+  et `readme/results/2026-08-09_decoder-candidate-policy-a-preregistration.md`.
 
 ## Prochaine action réelle
 
-1. Faire relire le contrat de politique A : exclusion automatique et versionnée
-   des prises train GAPS/groupes présents dans validation, sans modification de
-   cette validation ni filtrage manuel.
-2. Après approbation explicite seulement, préinscrire une seule fois sur le Mac
-   le plan et le registre d'actifs immuables depuis le manifeste complet; faire
-   relire leurs SHA, les 31 exclusions attendues, partitions et couverture.
-3. Ne promouvoir ni checkpoint ni seuil, et ne lancer aucun minage avant la
-   revue de cette future préinscription réussie.
-4. Conserver le test verrouillé fermé; aucun entraînement, validation, export
+1. Faire relire la préinscription Policy A : SHA du manifeste/plan/registre,
+   31 exclusions GAPS, 541 entrées, partitions et couverture exacte.
+2. Ne promouvoir ni checkpoint ni seuil, et ne lancer aucun minage avant
+   approbation explicite de cette revue.
+3. Conserver le test verrouillé fermé; aucun entraînement, validation, export
    ou live n'est autorisé par cette étape.
 
 ## État archivé — dual-stream du 30 juillet (remplacé)
@@ -370,7 +374,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
   minage.
 <!-- PROJECT_TASK:decoder_candidate_provenance_contract:END -->
 <!-- PROJECT_TASK:decoder_candidate_asset_evidence_contract:START -->
-- 2026-08-08 — **en revue** — `decoder_candidate_asset_evidence_contract` :
+- 2026-08-08 — **terminé** — `decoder_candidate_asset_evidence_contract` :
   ajout sans calcul scientifique d'un registre canonique d'empreintes pour les
   actifs que le futur mineur pourrait ouvrir. Chaque entrée train lie identité
   physique, partition préassignée, `audio_member`, taille et SHA-256 du
@@ -399,8 +403,15 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
   fournie manuellement échoue, et les objets exposés au futur contexte ne
   couvrent que les prises planifiées. Tests synthétiques uniquement; aucun plan
   réel, registre, actif projet, minage, entraînement, validation, export, live
-  ou test verrouillé n'a été exécuté. Revue externe requise avant une nouvelle
-  préinscription Mac.
+  ou test verrouillé n'a été exécuté. La revue externe de `8190e3b` a ensuite
+  autorisé l'unique préinscription réelle. Elle a réussi sur le Mac au même
+  commit : manifeste `b28cb17…` stable avant/après, `31` exclusions GAPS/10
+  joueurs, `541` captures planifiées et `541` entrées d'actifs, plan v2 SHA
+  `a8347e4e…`, registre SHA `12dd74f2…`, aucune exclusion dans le registre et
+  `locked_test_used=false`. Les trois artefacts bruts locaux et leur SHA sont
+  archivés dans le rapport du 2026-08-09. Aucun replay, collecteur, minage,
+  entraînement, validation, export, live ou test verrouillé n'a démarré. Une
+  revue externe de cette préinscription est obligatoire avant toute suite.
 <!-- PROJECT_TASK:decoder_candidate_asset_evidence_contract:END -->
 <!-- JOURNAL_END -->
 ## Rapports détaillés
@@ -425,6 +436,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-08 — correctif de lecture paresseuse des actifs candidats](results/2026-08-08_decoder-candidate-asset-evidence-lazy-audio-fix.md)
 - [2026-08-08 — préinscription bloquée par le chevauchement GAPS](results/2026-08-08_decoder-candidate-preregistration-blocked-by-gaps-leakage.md)
 - [2026-08-09 — contrat de politique A pour le chevauchement GAPS](results/2026-08-09_decoder-candidate-gaps-policy-a-contract.md)
+- [2026-08-09 — préinscription réelle Policy A](results/2026-08-09_decoder-candidate-policy-a-preregistration.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.
