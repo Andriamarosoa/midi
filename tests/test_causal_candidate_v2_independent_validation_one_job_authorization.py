@@ -118,6 +118,219 @@ class IndependentV2OneJobAuthorizationTests(unittest.TestCase):
         self.assertFalse(marker.exists())
         run.assert_not_called()
 
+
+class IndependentV2Attempt2AuthorizationTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
+        self.root = Path(self.temporary.name)
+        request = self.root / authorization.ATTEMPT2_AUTHORIZATION_REQUEST_RELATIVE_PATH
+        request.parent.mkdir(parents=True)
+        source = (
+            Path(__file__).resolve().parents[1]
+            / authorization.ATTEMPT2_AUTHORIZATION_REQUEST_RELATIVE_PATH
+        )
+        request.write_bytes(source.read_bytes())
+        self.head = "a" * 40
+        self.old_marker = self.root / authorization.PERSISTENT_CLAIM_RELATIVE_PATH
+        self.old_marker.parent.mkdir(parents=True, exist_ok=True)
+        self.old_marker.write_bytes(b"historical-attempt1-marker-must-remain")
+        self.old_approval = self.root / authorization.EXTERNAL_APPROVAL_RELATIVE_PATH
+        self.old_approval.write_bytes(b"historical-attempt1-approval-must-not-authorize-attempt2")
+        self._previous_force_cpu = os.environ.get("MIDI_FORCE_CPU")
+        self.addCleanup(self._restore_force_cpu)
+        self._registry_before = set(runner._ONE_JOB_CAPABILITIES)
+        self.addCleanup(self._clean_registry)
+
+    def _clean_registry(self) -> None:
+        for key in set(runner._ONE_JOB_CAPABILITIES) - self._registry_before:
+            runner._ONE_JOB_CAPABILITIES.pop(key, None)
+            runner._CLAIMED_ONE_JOB_CAPABILITIES.pop(key, None)
+
+    def _restore_force_cpu(self) -> None:
+        if self._previous_force_cpu is None:
+            os.environ.pop("MIDI_FORCE_CPU", None)
+        else:
+            os.environ["MIDI_FORCE_CPU"] = self._previous_force_cpu
+
+    @staticmethod
+    def _canonical(payload: object) -> bytes:
+        return (
+            json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+            + "\n"
+        ).encode("utf-8")
+
+    def _approval_payload(self, **overrides):
+        payload = {
+            "schema_version": 1,
+            "purpose": "causal_candidate_v2_independent_validation_attempt2_external_review_approval",
+            "authorization_request_sha256": authorization.ATTEMPT2_AUTHORIZATION_REQUEST_SHA256,
+            "reviewed_runner_commit": authorization.ATTEMPT2_REVIEWED_RUNNER_COMMIT,
+            "authorized_execution_commit": self.head,
+            "approved_for_exactly_one_execution": True,
+            "locked_test_used": False,
+        }
+        payload.update(overrides)
+        return payload
+
+    def _write_approval(self, payload=None, *, raw=None) -> Path:
+        path = self.root / authorization.ATTEMPT2_EXTERNAL_APPROVAL_RELATIVE_PATH
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(
+            raw if raw is not None else self._canonical(payload or self._approval_payload())
+        )
+        return path
+
+    def _git_patches(self, *, head=None, clean=True, changed=None, runner_unchanged=True):
+        return (
+            mock.patch.object(authorization, "_git_head", return_value=head or self.head),
+            mock.patch.object(authorization, "_git_worktree_clean", return_value=clean),
+            mock.patch.object(
+                authorization,
+                "_attempt2_git_diff_names",
+                return_value=(
+                    authorization.ATTEMPT2_AUTHORIZATION_STEP_PATHS
+                    if changed is None
+                    else frozenset(changed)
+                ),
+            ),
+            mock.patch.object(
+                authorization,
+                "_attempt2_runner_blob_unchanged",
+                return_value=runner_unchanged,
+            ),
+            mock.patch.object(authorization, "_tensorflow_imported", return_value=False),
+        )
+
+    def test_request_is_exact_and_attempt1_state_does_not_authorize_attempt2(self) -> None:
+        payload = authorization.load_sealed_attempt2_authorization_request(self.root)
+        request = self.root / authorization.ATTEMPT2_AUTHORIZATION_REQUEST_RELATIVE_PATH
+        self.assertEqual(
+            hashlib.sha256(request.read_bytes()).hexdigest(),
+            authorization.ATTEMPT2_AUTHORIZATION_REQUEST_SHA256,
+        )
+        self.assertEqual(
+            payload["prior_attempt_classification"],
+            "premetric_infrastructure_failure",
+        )
+        self.assertTrue(payload["prior_authorization_consumed"])
+        self.assertTrue(self.old_marker.is_file())
+        self.assertTrue(self.old_approval.is_file())
+
+    def test_attempt2_approval_absent_fails_before_attempt2_marker(self) -> None:
+        marker = self.root / authorization.ATTEMPT2_PERSISTENT_CLAIM_RELATIVE_PATH
+        with mock.patch.object(runner, "run_authorized_independent_v2") as run:
+            with self.assertRaisesRegex(RuntimeError, "attempt2.*approval file is absent"):
+                authorization.execute_externally_approved_independent_v2_attempt2_once(
+                    self.root
+                )
+        self.assertFalse(marker.exists())
+        self.assertTrue(self.old_marker.is_file())
+        run.assert_not_called()
+
+    def test_attempt1_approval_cannot_authorize_attempt2(self) -> None:
+        attempt1_payload = {
+            "schema_version": 1,
+            "purpose": "causal_candidate_v2_independent_validation_external_review_approval",
+            "authorization_request_sha256": authorization.AUTHORIZATION_REQUEST_SHA256,
+            "reviewed_runner_commit": authorization.REVIEWED_RUNNER_COMMIT,
+            "authorized_execution_commit": self.head,
+            "approved_for_exactly_one_execution": True,
+            "locked_test_used": False,
+        }
+        self._write_approval(attempt1_payload)
+        with self.assertRaisesRegex(ValueError, "attempt2.*values are not sealed"):
+            authorization.execute_externally_approved_independent_v2_attempt2_once(
+                self.root
+            )
+        self.assertFalse(
+            (self.root / authorization.ATTEMPT2_PERSISTENT_CLAIM_RELATIVE_PATH).exists()
+        )
+
+    def test_attempt2_wrong_commit_fails_before_marker(self) -> None:
+        self._write_approval()
+        patches = self._git_patches(head="b" * 40)
+        with patches[0], patches[1], patches[2], patches[3], patches[4]:
+            with self.assertRaisesRegex(ValueError, "does not authorize current HEAD"):
+                authorization.execute_externally_approved_independent_v2_attempt2_once(
+                    self.root
+                )
+        self.assertFalse(
+            (self.root / authorization.ATTEMPT2_PERSISTENT_CLAIM_RELATIVE_PATH).exists()
+        )
+
+    def test_attempt2_happy_path_claims_distinct_marker_and_calls_runner_once(self) -> None:
+        approval_path = self._write_approval()
+        marker = self.root / authorization.ATTEMPT2_PERSISTENT_CLAIM_RELATIVE_PATH
+        captured = []
+
+        def run(root, capability):
+            self.assertTrue(marker.is_file())
+            self.assertTrue(self.old_marker.is_file())
+            self.assertIn(id(capability), runner._ONE_JOB_CAPABILITIES)
+            captured.append(capability)
+            return {"synthetic_attempt2": True}
+
+        patches = self._git_patches()
+        with patches[0], patches[1], patches[2], patches[3], patches[4], \
+                mock.patch.object(
+                    runner, "run_authorized_independent_v2", side_effect=run
+                ) as mocked:
+            result = authorization.execute_externally_approved_independent_v2_attempt2_once(
+                self.root
+            )
+        self.assertEqual(result, {"synthetic_attempt2": True})
+        mocked.assert_called_once()
+        capability = captured[0]
+        self.assertEqual(capability.runner_commit, self.head)
+        self.assertEqual(capability.job_id, authorization.ATTEMPT2_JOB_ID)
+        self.assertEqual(capability.destination, authorization.ATTEMPT2_DESTINATION)
+        self.assertEqual(capability.device, "cpu")
+        self.assertEqual(capability.wall_timeout_seconds, 900)
+        self.assertTrue(capability.stop_after_report)
+        self.assertFalse(capability.locked_test_used)
+        marker_payload = json.loads(marker.read_text(encoding="utf-8"))
+        self.assertEqual(
+            marker_payload["authorization_request_sha256"],
+            authorization.ATTEMPT2_AUTHORIZATION_REQUEST_SHA256,
+        )
+        self.assertEqual(
+            marker_payload["external_approval_sha256"],
+            hashlib.sha256(approval_path.read_bytes()).hexdigest(),
+        )
+        self.assertTrue(marker_payload["prior_authorization_consumed"])
+
+    def test_attempt2_marker_is_o_excl_and_persistent_after_failure(self) -> None:
+        self._write_approval()
+        patches = self._git_patches()
+        with patches[0], patches[1], patches[2], patches[3], patches[4], \
+                mock.patch.object(
+                    runner,
+                    "run_authorized_independent_v2",
+                    side_effect=RuntimeError("synthetic attempt2 post-claim failure"),
+                ) as run:
+            with self.assertRaisesRegex(RuntimeError, "post-claim failure"):
+                authorization.execute_externally_approved_independent_v2_attempt2_once(
+                    self.root
+                )
+            marker = self.root / authorization.ATTEMPT2_PERSISTENT_CLAIM_RELATIVE_PATH
+            self.assertTrue(marker.is_file())
+            with self.assertRaises(FileExistsError):
+                authorization.execute_externally_approved_independent_v2_attempt2_once(
+                    self.root
+                )
+        run.assert_called_once()
+
+
+class IndependentV2OneJobAuthorizationContinuationTests(unittest.TestCase):
+    setUp = IndependentV2OneJobAuthorizationTests.setUp
+    _clean_registry = IndependentV2OneJobAuthorizationTests._clean_registry
+    _restore_force_cpu = IndependentV2OneJobAuthorizationTests._restore_force_cpu
+    _canonical = staticmethod(IndependentV2OneJobAuthorizationTests._canonical)
+    _approval_payload = IndependentV2OneJobAuthorizationTests._approval_payload
+    _write_approval = IndependentV2OneJobAuthorizationTests._write_approval
+    _git_patches = IndependentV2OneJobAuthorizationTests._git_patches
+
     def test_malformed_or_mismatched_approval_fails_before_marker(self) -> None:
         cases = (
             (None, b"{\n", "valid UTF-8 JSON"),

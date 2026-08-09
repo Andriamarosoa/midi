@@ -37,6 +37,24 @@ RUNNER_RELATIVE_PATH = Path(
 JOB_ID = "causal-candidate-v2-independent-cpu-20260810"
 DESTINATION = "tmp/local/causal_candidate_v2_independent_validation_execution_20260810"
 
+ATTEMPT2_REVIEWED_RUNNER_COMMIT = "c78b1e1cbcee8f7bf7fffe358ea8a19a4392e0b9"
+ATTEMPT2_AUTHORIZATION_REQUEST_SHA256 = (
+    "5c8a9ef2dc591d44395e761cda8967abf0cf5258504554af10166b1d42ea86ef"
+)
+ATTEMPT2_AUTHORIZATION_REQUEST_RELATIVE_PATH = Path(
+    "configs/causal_candidate_v2_independent_validation_attempt2_authorization_request.json"
+)
+ATTEMPT2_EXTERNAL_APPROVAL_RELATIVE_PATH = Path(
+    "tmp/local/causal_candidate_v2_independent_validation_external_review_approval_20260810_attempt2.json"
+)
+ATTEMPT2_PERSISTENT_CLAIM_RELATIVE_PATH = Path(
+    "tmp/local/causal_candidate_v2_independent_validation_one_job_20260810_attempt2.claimed.json"
+)
+ATTEMPT2_JOB_ID = "causal-candidate-v2-independent-cpu-20260810-attempt2"
+ATTEMPT2_DESTINATION = (
+    "tmp/local/causal_candidate_v2_independent_validation_execution_20260810_attempt2"
+)
+
 AUTHORIZATION_STEP_PATHS = frozenset(
     {
         ".gitattributes",
@@ -45,6 +63,17 @@ AUTHORIZATION_STEP_PATHS = frozenset(
         "tests/test_causal_candidate_v2_independent_validation_one_job_authorization.py",
         "readme/README.md",
         "readme/results/2026-08-10_causal-candidate-v2-independent-validation-one-job-authorization-request.md",
+    }
+)
+
+ATTEMPT2_AUTHORIZATION_STEP_PATHS = frozenset(
+    {
+        ".gitattributes",
+        ATTEMPT2_AUTHORIZATION_REQUEST_RELATIVE_PATH.as_posix(),
+        "src/polyphonic/causal_candidate_v2_independent_validation_one_job_authorization.py",
+        "tests/test_causal_candidate_v2_independent_validation_one_job_authorization.py",
+        "readme/README.md",
+        "readme/results/2026-08-10_causal-candidate-v2-independent-validation-attempt2-authorization-request.md",
     }
 )
 
@@ -64,6 +93,9 @@ _APPROVAL_KEYS = frozenset(
         "reviewed_runner_commit", "authorized_execution_commit",
         "approved_for_exactly_one_execution", "locked_test_used",
     }
+)
+_ATTEMPT2_REQUEST_KEYS = _REQUEST_KEYS | frozenset(
+    {"prior_attempt_classification", "prior_authorization_consumed"}
 )
 
 
@@ -296,11 +328,222 @@ def execute_externally_approved_independent_v2_once(
     return runner.run_authorized_independent_v2(root, capability)
 
 
+def _require_exact_attempt2_request(payload: Mapping[str, object]) -> None:
+    if set(payload) != _ATTEMPT2_REQUEST_KEYS:
+        raise ValueError("attempt2 authorization request schema is not exact")
+    expected = {
+        "schema_version": 1,
+        "purpose": "causal_candidate_v2_independent_validation_attempt2_authorization_request",
+        "status": "pending_external_review",
+        "reviewed_runner_commit": ATTEMPT2_REVIEWED_RUNNER_COMMIT,
+        "execution_contract_sha256": EXECUTION_CONTRACT_SHA256,
+        "asset_evidence_sha256": ASSET_EVIDENCE_SHA256,
+        "device": "cpu",
+        "wall_timeout_seconds": 900,
+        "job_id": ATTEMPT2_JOB_ID,
+        "destination": ATTEMPT2_DESTINATION,
+        "stop_after_report": True,
+        "locked_test_used": False,
+        "single_execution_authorization": True,
+        "automatic_retry": False,
+        "automatic_promotion": False,
+        "external_approval_relative_path": ATTEMPT2_EXTERNAL_APPROVAL_RELATIVE_PATH.as_posix(),
+        "persistent_claim_marker_relative_path": ATTEMPT2_PERSISTENT_CLAIM_RELATIVE_PATH.as_posix(),
+        "prior_attempt_classification": "premetric_infrastructure_failure",
+        "prior_authorization_consumed": True,
+    }
+    if (
+        dict(payload) != expected
+        or type(payload.get("schema_version")) is not int
+        or type(payload.get("wall_timeout_seconds")) is not int
+        or any(
+            type(payload.get(name)) is not bool
+            for name in (
+                "stop_after_report", "locked_test_used",
+                "single_execution_authorization", "automatic_retry",
+                "automatic_promotion", "prior_authorization_consumed",
+            )
+        )
+    ):
+        raise ValueError("attempt2 authorization request values are not sealed")
+
+
+def load_sealed_attempt2_authorization_request(
+    repository_root: Path,
+) -> Mapping[str, object]:
+    root = Path(repository_root).resolve(strict=True)
+    expected_path = root / ATTEMPT2_AUTHORIZATION_REQUEST_RELATIVE_PATH
+    if expected_path.is_symlink() or expected_path.resolve(strict=True) != expected_path.absolute():
+        raise ValueError("attempt2 authorization request path is not canonical")
+    raw = expected_path.read_bytes()
+    if hashlib.sha256(raw).hexdigest() != ATTEMPT2_AUTHORIZATION_REQUEST_SHA256:
+        raise ValueError("attempt2 authorization request SHA-256 mismatch")
+    payload = _parse_canonical_json(raw, label="attempt2 authorization request")
+    _require_exact_attempt2_request(payload)
+    return payload
+
+
+def _load_attempt2_external_approval(
+    repository_root: Path,
+    request: Mapping[str, object],
+) -> tuple[Mapping[str, object], str]:
+    root = Path(repository_root).resolve(strict=True)
+    path = root / ATTEMPT2_EXTERNAL_APPROVAL_RELATIVE_PATH
+    if not path.is_file():
+        raise RuntimeError("attempt2 external review approval file is absent")
+    if path.is_symlink() or path.resolve(strict=True) != path.absolute():
+        raise ValueError("attempt2 external review approval path is not canonical")
+    raw = path.read_bytes()
+    payload = _parse_canonical_json(raw, label="attempt2 external review approval")
+    if set(payload) != _APPROVAL_KEYS:
+        raise ValueError("attempt2 external review approval schema is not exact")
+    authorized_commit = payload.get("authorized_execution_commit")
+    if not isinstance(authorized_commit, str) or len(authorized_commit) != 40 or any(
+        character not in "0123456789abcdef" for character in authorized_commit
+    ):
+        raise ValueError("attempt2 authorized execution commit is not a lowercase Git SHA")
+    if (
+        type(payload.get("schema_version")) is not int
+        or payload.get("schema_version") != 1
+        or payload.get("purpose")
+        != "causal_candidate_v2_independent_validation_attempt2_external_review_approval"
+        or payload.get("authorization_request_sha256")
+        != ATTEMPT2_AUTHORIZATION_REQUEST_SHA256
+        or payload.get("reviewed_runner_commit") != ATTEMPT2_REVIEWED_RUNNER_COMMIT
+        or type(payload.get("approved_for_exactly_one_execution")) is not bool
+        or payload.get("approved_for_exactly_one_execution") is not True
+        or type(payload.get("locked_test_used")) is not bool
+        or payload.get("locked_test_used") is not False
+        or request.get("reviewed_runner_commit") != ATTEMPT2_REVIEWED_RUNNER_COMMIT
+    ):
+        raise ValueError("attempt2 external review approval values are not sealed")
+    return payload, hashlib.sha256(raw).hexdigest()
+
+
+def _attempt2_git_diff_names(repository_root: Path, head: str) -> frozenset[str]:
+    return frozenset(
+        line.strip().replace("\\", "/")
+        for line in _git(
+            repository_root,
+            "diff",
+            "--name-only",
+            ATTEMPT2_REVIEWED_RUNNER_COMMIT,
+            head,
+        ).splitlines()
+        if line.strip()
+    )
+
+
+def _attempt2_runner_blob_unchanged(repository_root: Path, head: str) -> bool:
+    reviewed = subprocess.run(
+        [
+            "git", "-C", str(repository_root), "show",
+            f"{ATTEMPT2_REVIEWED_RUNNER_COMMIT}:{RUNNER_RELATIVE_PATH.as_posix()}",
+        ],
+        check=True,
+        capture_output=True,
+    ).stdout
+    current = subprocess.run(
+        ["git", "-C", str(repository_root), "show", f"{head}:{RUNNER_RELATIVE_PATH.as_posix()}"],
+        check=True,
+        capture_output=True,
+    ).stdout
+    return reviewed == current
+
+
+def _verify_attempt2_git_boundary(
+    repository_root: Path,
+    approval: Mapping[str, object],
+) -> str:
+    head = _git_head(repository_root)
+    if approval.get("authorized_execution_commit") != head:
+        raise ValueError("attempt2 external approval does not authorize current HEAD")
+    if not _git_worktree_clean(repository_root):
+        raise RuntimeError("attempt2 authorization requires a clean worktree")
+    if _attempt2_git_diff_names(repository_root, head) != ATTEMPT2_AUTHORIZATION_STEP_PATHS:
+        raise RuntimeError("attempt2 authorization commit contains an unexpected changed file set")
+    if not _attempt2_runner_blob_unchanged(repository_root, head):
+        raise RuntimeError("approved independent V2 runner changed after attempt2 review")
+    return head
+
+
+def _create_attempt2_persistent_claim_marker(
+    repository_root: Path,
+    *,
+    external_approval_sha256: str,
+    authorized_execution_commit: str,
+) -> Path:
+    root = Path(repository_root).resolve(strict=True)
+    marker = root / ATTEMPT2_PERSISTENT_CLAIM_RELATIVE_PATH
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    if marker.parent.resolve(strict=True) != marker.parent.absolute():
+        raise ValueError("attempt2 persistent claim marker directory is not canonical")
+    payload = {
+        "authorization_request_sha256": ATTEMPT2_AUTHORIZATION_REQUEST_SHA256,
+        "authorized_execution_commit": authorized_execution_commit,
+        "claimed_at_utc": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        "external_approval_sha256": external_approval_sha256,
+        "job_id": ATTEMPT2_JOB_ID,
+        "prior_authorization_consumed": True,
+    }
+    descriptor = os.open(marker, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    try:
+        with os.fdopen(descriptor, "wb", closefd=True) as handle:
+            handle.write(_canonical_json_bytes(payload))
+            handle.flush()
+            os.fsync(handle.fileno())
+    except BaseException:
+        # The attempt2 marker is deliberately retained after every claim failure.
+        raise
+    return marker
+
+
+def execute_externally_approved_independent_v2_attempt2_once(
+    repository_root: Path,
+) -> Mapping[str, object]:
+    """Consume only an attempt2 approval and invoke the reviewed runner once."""
+
+    root = Path(repository_root).resolve(strict=True)
+    request = load_sealed_attempt2_authorization_request(root)
+    approval, approval_sha256 = _load_attempt2_external_approval(root, request)
+    authorized_commit = _verify_attempt2_git_boundary(root, approval)
+    _create_attempt2_persistent_claim_marker(
+        root,
+        external_approval_sha256=approval_sha256,
+        authorized_execution_commit=authorized_commit,
+    )
+
+    from . import run_causal_candidate_v2_independent_validation_execution as runner
+
+    capability = runner.IndependentV2OneJobCapability(
+        runner_commit=authorized_commit,
+        execution_contract_sha256=EXECUTION_CONTRACT_SHA256,
+        device="cpu",
+        wall_timeout_seconds=900,
+        job_id=ATTEMPT2_JOB_ID,
+        destination=ATTEMPT2_DESTINATION,
+        stop_after_report=True,
+        locked_test_used=False,
+        single_execution_authorization=True,
+    )
+    runner._ONE_JOB_CAPABILITIES[id(capability)] = weakref.ref(capability)
+    os.environ["MIDI_FORCE_CPU"] = "1"
+    if _tensorflow_imported():
+        raise RuntimeError("TensorFlow was imported before attempt2 runner invocation")
+    return runner.run_authorized_independent_v2(root, capability)
+
+
 __all__ = [
+    "ATTEMPT2_AUTHORIZATION_REQUEST_RELATIVE_PATH",
+    "ATTEMPT2_AUTHORIZATION_REQUEST_SHA256",
+    "ATTEMPT2_EXTERNAL_APPROVAL_RELATIVE_PATH",
+    "ATTEMPT2_PERSISTENT_CLAIM_RELATIVE_PATH",
     "AUTHORIZATION_REQUEST_RELATIVE_PATH",
     "AUTHORIZATION_REQUEST_SHA256",
     "EXTERNAL_APPROVAL_RELATIVE_PATH",
     "PERSISTENT_CLAIM_RELATIVE_PATH",
     "execute_externally_approved_independent_v2_once",
+    "execute_externally_approved_independent_v2_attempt2_once",
+    "load_sealed_attempt2_authorization_request",
     "load_sealed_authorization_request",
 ]

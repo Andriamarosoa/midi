@@ -17,8 +17,18 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `causal_candidate_v2_independent_validation_premetric_infrastructure_failure_under_correction`.
-- Statut : `en cours — autorisation one-job consommée par un échec d'infrastructure pré-métrique; correctif execution-only sans nouveau calcul`.
+- Étape : `causal_candidate_v2_independent_validation_attempt2_authorization_pending_external_review`.
+- Statut : `en cours — evidence gate c78b1e1c approuvé; nouvelle demande one-job attempt2 créée mais inexécutable sans approval externe distincte`.
+- Demande d'autorisation attempt2, sans exécution : après approbation du
+  correctif evidence-gate `c78b1e1cbcee8f7bf7fffe358ea8a19a4392e0b9`,
+  une nouvelle demande canonique scelle le job
+  `causal-candidate-v2-independent-cpu-20260810-attempt2`, sa destination,
+  son futur approval et son marker, tous distincts de la tentative 1. Elle
+  reste liée au même contrat d'exécution, à la même evidence et au runner
+  approuvé `c78b1e1c`; elle ne modifie aucune science. L'approval attempt2 est
+  absent : aucun marker attempt2, capability, worker ou calcul n'est possible.
+  L'ancien marker reste présent, immuable et définitivement consommé. Rapport :
+  `readme/results/2026-08-10_causal-candidate-v2-independent-validation-attempt2-authorization-request.md`.
 - Incident pré-métrique du job indépendant V2 : l'unique autorisation du commit
   `78f46628f430b9cdbe0e2b9ea042f05d0b141762` a été revendiquée, puis le
   runner s'est arrêté avant TensorFlow et avant toute ouverture d'actif avec
@@ -30,7 +40,9 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   consommée. L'autorisation, elle, est consommée. Le correctif en cours ajoute
   uniquement une capability d'évidence spécifique à l'exécution, tout en
   maintenant fermé le lecteur générique. Aucun retry, nouveau job, approval,
-  marqueur, actif réel, TensorFlow, inférence ou métrique n'est autorisé.
+  marqueur, actif réel, TensorFlow, inférence ou métrique n'était autorisé par
+  ce correctif. Le commit `c78b1e1c` est désormais approuvé; seule la demande
+  distincte attempt2 ci-dessus est en revue, sans autoriser son exécution.
   Rapport :
   `readme/results/2026-08-10_causal-candidate-v2-independent-validation-premetric-infrastructure-failure.md`.
 - Jalon historique d'autorisation indépendante V2, désormais consommé : le runner gelé
