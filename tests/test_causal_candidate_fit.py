@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from pathlib import Path
+import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -93,6 +96,25 @@ def _six_cells(partition: str) -> list[CandidateFitRow]:
 
 
 class CausalCandidateFitTests(unittest.TestCase):
+    def test_cpu_configuration_masks_any_tensorflow_gpu_in_a_fresh_process(self) -> None:
+        code = (
+            "from src.polyphonic.causal_candidate_fit import "
+            "configure_deterministic_cpu_tensorflow; "
+            "tf = configure_deterministic_cpu_tensorflow(); "
+            "assert not tf.config.list_logical_devices('GPU')"
+        )
+        environment = dict(os.environ)
+        environment["MIDI_FORCE_CPU"] = "1"
+        result = subprocess.run(
+            [sys.executable, "-B", "-c", code],
+            cwd=Path(__file__).resolve().parents[1],
+            env=environment,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_projection_is_exactly_twelve_pre_gate_values(self) -> None:
         self.assertEqual(CAUSAL_FEATURES, (
             "frame_probability",

@@ -16,9 +16,9 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-08-09T13:22:12+04:00`.
-- Étape : `decoder_candidate_fit_protocol_implementation_v1`.
-- Statut : `terminé — protocole implémenté sans fit, en attente de revue externe`.
+- Mise à jour : `2026-08-09T13:40:57+04:00`.
+- Étape : `decoder_candidate_fit_runner_implementation_v1`.
+- Statut : `terminé — runner implémenté sans fit, en attente de revue externe`.
 - Résultat vérifié : le job Mac
   `decoder-candidate-guitarset-v3-cpu-20260809` a terminé avec `exit_code=0`
   et l'état `complete_non_authorizing` au commit
@@ -51,6 +51,17 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   verrouillé n'a été exécuté. La revue externe de cette implémentation est la
   seule action préalable à toute autorisation distincte de fit. Rapport :
   `readme/results/2026-08-09_decoder-candidate-fit-protocol-implementation.md`.
+- Revue externe de `76ebf937` : l'implémentation V1 est approuvée, sans
+  autoriser un job Mac. Le runner maintenant ajouté ne possède aucun réglage
+  de spec ou de poids, exige un accusé d'exécution, CPU, Git exact et les
+  artefacts V3 scellés. Il entraîne uniquement `fit`, observe `dev` hors
+  gradients pour choisir l'époque par BCE hors L2, et n'ouvre calibration
+  qu'après le verdict dev. Il persistera le standardiseur lié au modèle et
+  appliquera un budget de 15 min ; les 47 tests synthétiques ciblés passent en
+  `5,388 s`. Aucun fit, artefact V3 réel, calibration, validation, export,
+  live ni test verrouillé n'a été exécuté. Une nouvelle revue externe du
+  runner est obligatoire. Rapport :
+  `readme/results/2026-08-09_decoder-candidate-fit-runner-implementation.md`.
 - Résultat vérifié : le job Mac `decoder-candidate-extended-mining-cpu-20260809`
   a terminé sans erreur au commit `42a88b0d…`, avec `locked_test_used=false`,
   3 057 candidats supervisés (639 positifs, 2 418 négatifs), zéro perte et
@@ -233,11 +244,11 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 ## Prochaine action réelle
 
-1. Faire relire l'implémentation V1 : préflight des artefacts, projection des
-   features, pondération locale, BCE dev hors L2, reproductibilité et parité de
-   sauvegarde/rechargement.
-2. N'autoriser un unique fit CPU train-only qu'après une revue externe
-   explicite ; aucun fit ne découle de ce commit d'implémentation seul.
+1. Faire relire le runner V1 : verrou de spec/poids, préflight, Git/CPU,
+   budget de 15 min, séparation stricte fit/dev/calibration et persistance du
+   standardiseur avec le modèle.
+2. N'autoriser un unique fit CPU train-only qu'après une revue externe et une
+   autorisation explicites ; aucun fit ne découle de ce commit seul.
 3. Conserver le test verrouillé fermé : aucun fit, calibration, validation,
    export, live ou sélection de seuil n'est autorisé à cette étape.
 
@@ -607,9 +618,19 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
   passent en `2,015 s`; `rg` confirme l'absence de tout appel `fit(` dans ce
   module. Aucun artefact V3 réel, fit, calibration, validation, export, live ou
   test verrouillé n'a été utilisé. Une nouvelle revue externe est obligatoire
-  avant toute décision de fit. Rapport :
+  avant toute décision de fit. La revue de `76ebf937` approuve le protocole V1
+  et autorise seulement un runner sans exécution. Ce runner n'accepte aucun
+  poids ni hyperparamètre externe, exige l'accusé `DECODER_CANDIDATE_FIT_EXECUTE=1`,
+  Git propre exact, CPU, artefacts V3 hachés et destination fraîche ; il limite
+  l'entraînement à `fit`, évalue dev par inférence/BCE hors L2, ne calibre
+  qu'après dev et persiste le standardiseur lié au modèle. Compilation,
+  `git diff --check` et 47 tests synthétiques ciblés passent en `5,388 s`.
+  Aucun job Mac, fit, calibration, validation, export, live ou test verrouillé
+  n'a été lancé. Une revue externe supplémentaire du runner est obligatoire.
+  Rapports :
   `readme/results/2026-08-09_decoder-candidate-fit-hypothesis-v1.md`, puis
-  `readme/results/2026-08-09_decoder-candidate-fit-protocol-implementation.md`.
+  `readme/results/2026-08-09_decoder-candidate-fit-protocol-implementation.md`,
+  puis `readme/results/2026-08-09_decoder-candidate-fit-runner-implementation.md`.
 <!-- PROJECT_TASK:decoder_candidate_asset_evidence_contract:END -->
 <!-- JOURNAL_END -->
 ## Rapports détaillés
@@ -646,6 +667,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-09 — minage CPU V3 GuitarSet, porte passée mais non autorisant](results/2026-08-09_decoder-candidate-guitarset-v3-mining-run.md)
 - [2026-08-09 — hypothèse V1 de fit du filtre causal de candidats](results/2026-08-09_decoder-candidate-fit-hypothesis-v1.md)
 - [2026-08-09 — implémentation V1 du protocole de fit causal](results/2026-08-09_decoder-candidate-fit-protocol-implementation.md)
+- [2026-08-09 — implémentation du runner V1 de fit causal](results/2026-08-09_decoder-candidate-fit-runner-implementation.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.

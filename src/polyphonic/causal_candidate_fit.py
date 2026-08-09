@@ -735,6 +735,9 @@ def configure_deterministic_cpu_tensorflow(seed: int = 47):
         raise ValueError("seed must be a non-negative integer.")
     if os.environ.get("MIDI_FORCE_CPU") != "1":
         raise RuntimeError("Fail closed: candidate fit requires MIDI_FORCE_CPU=1.")
+    # This has to precede the import for CUDA builds.  TensorFlow Metal still
+    # needs the explicit visibility call below after import.
+    os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
     if "tensorflow" in sys.modules:
         raise RuntimeError(
             "Fail closed: TensorFlow must be configured before it is imported."
@@ -751,7 +754,13 @@ def configure_deterministic_cpu_tensorflow(seed: int = 47):
         raise RuntimeError("candidate fit requires NumPy and TensorFlow.") from error
     np.random.seed(seed)
     tf.keras.utils.set_random_seed(seed)
-    if tf.config.list_physical_devices("GPU"):
+    try:
+        tf.config.set_visible_devices([], "GPU")
+    except RuntimeError as error:
+        raise RuntimeError(
+            "Fail closed: TensorFlow GPU visibility was initialized before CPU preflight."
+        ) from error
+    if tf.config.list_logical_devices("GPU"):
         raise RuntimeError("Fail closed: candidate fit must not expose a TensorFlow GPU.")
     try:
         tf.config.experimental.enable_op_determinism()
