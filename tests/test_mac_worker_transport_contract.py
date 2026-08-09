@@ -117,6 +117,92 @@ class MacWorkerTransportContractTests(unittest.TestCase):
         )
         self.assertIn("mac-worker-stdin-terminator", SOURCE)
 
+    def test_sealed_validation_acknowledgement_is_cpu_only_and_argument_free(self) -> None:
+        self.assertIn("[switch]$CausalCandidateValidationExecute", SOURCE)
+        self.assertIn('"DECODER_CANDIDATE_VALIDATION_EXECUTE=1 "', SOURCE)
+        self.assertIn('"src.polyphonic.run_causal_candidate_validation"', SOURCE)
+        self.assertIn("$ModuleArgs.Count -ne 0", SOURCE)
+        self.assertIn('$Device -ne "cpu" -or $WallTimeoutSeconds -ne 900', SOURCE)
+        self.assertIn("-ExpectedCommit equal to the current full Git commit", SOURCE)
+        self.assertIn("Sealed causal validation is CPU-only", RUNNER)
+        self.assertIn("Sealed causal validation accepts no module arguments", RUNNER)
+        self.assertIn("REMOTE_SEALED_VALIDATION_PREFLIGHT", RUNNER)
+        preflight = RUNNER[RUNNER.index("controlled_modules = {"):]
+        self.assertLess(
+            preflight.index("if module == validation_module:"),
+            preflight.index("import tensorflow as tf"),
+        )
+
+    @unittest.skipUnless(POWERSHELL, "PowerShell is required")
+    def test_sealed_validation_start_rejects_free_invocation_before_ssh(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            config = pathlib.Path(directory) / "worker.json"
+            config.write_text(
+                json.dumps(
+                    {
+                        "host": "invalid.local",
+                        "user": "nobody",
+                        "port": 22,
+                        "remote_root": "/Users/nobody/midi-worker",
+                        "identity_file": "",
+                        "local_workspace_root": str(ROOT),
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            base = [
+                POWERSHELL,
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(ROOT / "MAC_WORKER.ps1"),
+                "start",
+                "-Module",
+                "src.polyphonic.run_causal_candidate_validation",
+                "-ConfigPath",
+                str(config),
+            ]
+            missing_ack = subprocess.run(
+                base,
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                timeout=30,
+                check=False,
+            )
+            self.assertNotEqual(missing_ack.returncode, 0)
+            self.assertIn(
+                "requires -CausalCandidateValidationExecute",
+                missing_ack.stdout + missing_ack.stderr,
+            )
+            commit = subprocess.check_output(
+                ["git", "-C", str(ROOT), "rev-parse", "HEAD"], text=True
+            ).strip()
+            invalid_device = subprocess.run(
+                base
+                + [
+                    "-CausalCandidateValidationExecute",
+                    "-ExpectedCommit",
+                    commit,
+                    "-Device",
+                    "metal",
+                    "-WallTimeoutSeconds",
+                    "900",
+                ],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                timeout=30,
+                check=False,
+            )
+            self.assertNotEqual(invalid_device.returncode, 0)
+            self.assertIn(
+                "requires -Device cpu and -WallTimeoutSeconds 900",
+                invalid_device.stdout + invalid_device.stderr,
+            )
+
     @unittest.skipUnless(BASH, "Bash is required")
     def test_remote_start_rejects_cr_in_final_argument_before_launch(self) -> None:
         command = (

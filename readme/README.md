@@ -17,8 +17,8 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-09`.
-- Étape : `causal_candidate_validation_ab_implementation`.
-- Statut : `terminé — évaluateur A/B scellé implémenté; revue externe requise avant toute exécution validation`.
+- Étape : `causal_candidate_validation_ab_invocation_contract`.
+- Statut : `terminé — invocation A/B scellée implémentée; revue externe finale requise avant toute exécution validation`.
 - Résultat terminal vérifié : l'unique job CPU
   `causal-candidate-fit-v1-cpu-20260809` termine avec `exit_code=0`,
   `complete_non_authorizing`, 14 époques enregistrées et meilleure époque 9,
@@ -65,6 +65,20 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   synthétique ciblé passe `66` tests en `8,147 s`; aucune prise validation ni
   actif réel n'a été ouvert. Une nouvelle revue externe reste obligatoire avant
   toute exécution Mac.
+- Invocation Mac sans calcul : le module
+  `src.polyphonic.run_causal_candidate_validation` ne possède aucun CLI et
+  construit exclusivement en interne les huit chemins scellés, y compris le
+  dossier historique à suffixe CR sans jamais le transmettre au shell. Le worker
+  n'accepte cette seule exécution que via l'accusé dédié, sans argument de
+  module, avec CPU, exactement `900` s et un commit Git complet égal au HEAD
+  local. Son préflight spécifique ne charge pas TensorFlow : le runner vérifie
+  d'abord les huit SHA puis impose CPU avant l'import. La destination est neuve
+  par construction. `py_compile`, les parseurs PowerShell/Bash et 26 tests
+  ciblés passent; aucun actif, checkpoint, prise validation, inférence,
+  validation, export, live ou test verrouillé n'a été ouvert ou exécuté.
+  La revue externe finale de cette invocation est la seule action préalable à
+  une commande Mac. Rapport :
+  `readme/results/2026-08-09_causal-candidate-validation-ab-invocation-contract.md`.
 - Résultat vérifié : le job Mac
   `decoder-candidate-guitarset-v3-cpu-20260809` a terminé avec `exit_code=0`
   et l'état `complete_non_authorizing` au commit
@@ -290,10 +304,11 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 ## Prochaine action réelle
 
-1. Faire relire le correctif A/B : métrique causale réelle, huit SHA scellés,
-   `onset_offset` pairé, prédiction/masques partagés et double état causal.
-2. Après seule approbation explicite, définir l'invocation Mac scellée et une
-   autorisation séparée de l'unique passe CPU historique.
+1. Faire relire l'invocation A/B : module sans CLI, huit chemins internes,
+   CR historique non transporté, commit exact, CPU/900 s, destination fraîche
+   et absence d'options libres.
+2. Après seule approbation explicite de cette invocation, synchroniser le
+   commit revu sur le Mac et autoriser séparément l'unique passe CPU historique.
 3. Conserver le test verrouillé fermé : aucun nouveau fit, recalibration,
    validation, export, live ou sélection/promotion de seuil n'est autorisé à
    cette étape.
@@ -727,6 +742,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-09 — implémentation du runner V1 de fit causal](results/2026-08-09_decoder-candidate-fit-runner-implementation.md)
 - [2026-08-09 — correctif de transport et préinscription A/B historique V1](results/2026-08-09_causal-candidate-fit-v1-transport-and-validation-preregistration.md)
 - [2026-08-09 — implémentation A/B historique du filtre causal V1](results/2026-08-09_causal-candidate-validation-ab-implementation.md)
+- [2026-08-09 — contrat d'invocation A/B historique du filtre causal V1](results/2026-08-09_causal-candidate-validation-ab-invocation-contract.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.

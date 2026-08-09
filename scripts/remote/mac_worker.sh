@@ -315,7 +315,6 @@ import json
 import pathlib
 import sys
 import yaml
-import tensorflow as tf
 
 device = sys.argv[1]
 module = sys.argv[2]
@@ -323,16 +322,29 @@ workspace = pathlib.Path(sys.argv[3]).resolve(strict=True)
 worker_root = pathlib.Path(sys.argv[4]).resolve(strict=True)
 wall_timeout_seconds = int(sys.argv[5])
 arguments = sys.argv[6:]
-if tf.__version__ != "2.15.1":
-    raise SystemExit(f"Expected TensorFlow 2.15.1, got {tf.__version__}")
-if device == "metal" and not tf.config.list_physical_devices("GPU"):
-    raise SystemExit("Apple Metal GPU is unavailable")
 controlled_modules = {
     "src.polyphonic.train",
     "src.polyphonic.smoke_neural_independent_note",
 }
+validation_module = "src.polyphonic.run_causal_candidate_validation"
+if module == validation_module:
+    if device != "cpu":
+        raise SystemExit("Sealed causal validation is CPU-only")
+    if wall_timeout_seconds != 900:
+        raise SystemExit("Sealed causal validation requires exactly a 900-second wall timeout")
+    if arguments:
+        raise SystemExit("Sealed causal validation accepts no module arguments")
+    print("REMOTE_SEALED_VALIDATION_PREFLIGHT module=causal_candidate_validation cpu=1 timeout=900")
+    raise SystemExit(0)
 if module not in controlled_modules:
     raise SystemExit(0)
+
+import tensorflow as tf
+
+if tf.__version__ != "2.15.1":
+    raise SystemExit(f"Expected TensorFlow 2.15.1, got {tf.__version__}")
+if device == "metal" and not tf.config.list_physical_devices("GPU"):
+    raise SystemExit("Apple Metal GPU is unavailable")
 
 
 def option_value(name: str, *, required: bool = False):

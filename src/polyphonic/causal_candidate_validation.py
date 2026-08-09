@@ -11,7 +11,9 @@ from dataclasses import dataclass
 import hashlib
 import json
 import math
+import os
 from pathlib import Path
+import sys
 from typing import Callable, Mapping, Sequence
 
 import numpy as np
@@ -33,6 +35,30 @@ def _sha256(path: Path) -> str:
 def _require_sha(path: Path, expected: str, name: str) -> None:
     if not path.is_file() or _sha256(path) != expected:
         raise ValueError(f"{name} SHA-256 mismatch.")
+
+
+def configure_sealed_validation_cpu_tensorflow():
+    """Import TensorFlow only after the eight-artifact A/B preflight."""
+    if os.environ.get("MIDI_FORCE_CPU") != "1":
+        raise RuntimeError("Fail closed: sealed causal validation requires MIDI_FORCE_CPU=1.")
+    if "tensorflow" in sys.modules:
+        raise RuntimeError(
+            "Fail closed: TensorFlow must not be imported before the sealed A/B preflight."
+        )
+    os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+    try:
+        import tensorflow as tf
+    except ImportError as error:
+        raise RuntimeError("Sealed causal validation requires TensorFlow.") from error
+    try:
+        tf.config.set_visible_devices([], "GPU")
+    except RuntimeError as error:
+        raise RuntimeError(
+            "Fail closed: TensorFlow GPU visibility was initialized before CPU preflight."
+        ) from error
+    if tf.config.list_logical_devices("GPU"):
+        raise RuntimeError("Fail closed: sealed causal validation must not expose a GPU.")
+    return tf
 
 
 @dataclass(frozen=True)
@@ -307,8 +333,8 @@ def evaluate_sealed_causal_candidate_ab(
     threshold = candidate_gate.get("threshold")
     if isinstance(threshold, bool) or not isinstance(threshold, (int, float)):
         raise ValueError("Sealed A/B candidate threshold is invalid.")
-    # Delayed imports preserve the no-TensorFlow-before-preflight boundary.
-    import tensorflow as tf
+    # This remains after all eight SHA-256 checks in the sealed contract.
+    tf = configure_sealed_validation_cpu_tensorflow()
     from .evaluate_events import evaluate_events
 
     head = tf.keras.models.load_model(model_path, compile=False)

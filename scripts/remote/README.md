@@ -112,6 +112,20 @@ annotes `independent_note` et `harmonic_only`. Elle ne prouve pas encore une
 baisse des faux `NoteOn`; cette preuve exige ensuite une comparaison appariee
 du decodeur sur validation, jamais le test verrouille.
 
+## Validation A/B causale scellée
+
+Le module `src.polyphonic.run_causal_candidate_validation` n'accepte aucun
+argument et ne doit jamais être appelé directement. Le worker n'accepte son
+accusé d'exécution dédié que pour CPU, un timeout externe de 900 secondes, zéro
+argument de module et un commit Git complet identique au commit local demandé.
+Il conserve les chemins des huit artefacts, les 12 prises validation et le
+suffixe CR historique entièrement dans le module Python ; aucun de ces éléments
+n'est passé par la ligne de commande.
+
+Cette invocation reste soumise à une revue externe finale. Ne pas lancer de
+commande A/B, ni de validation, export, live ou test verrouillé, sans cette
+approbation explicite.
+
 ## Porte CPU contre Metal
 
 Apple indique qu'un petit modèle ou un petit batch peut être plus rapide sur

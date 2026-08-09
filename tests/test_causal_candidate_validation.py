@@ -3,12 +3,14 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 import unittest
+from unittest import mock
 
 import numpy as np
 
 from src.polyphonic.causal_candidate_fit import FitStandardizer
 from src.polyphonic.causal_candidate_validation import (
     CausalCandidateGate,
+    configure_sealed_validation_cpu_tensorflow,
     evaluate_preregistered_ab_decision,
     infer_once_then_decode_ab,
     load_sealed_validation_contract,
@@ -91,6 +93,13 @@ class CausalCandidateValidationTests(unittest.TestCase):
                     evaluation_config_path=bad_model,
                     decoder_config_path=bad_model,
                 )
+
+    def test_cpu_preflight_rejects_missing_worker_acknowledgement(self) -> None:
+        # The environment guard is intentionally evaluated before TensorFlow
+        # can be imported.  This keeps a manually invoked module fail-closed.
+        with mock.patch.dict("os.environ", {"MIDI_FORCE_CPU": "0"}, clear=False):
+            with self.assertRaisesRegex(RuntimeError, "MIDI_FORCE_CPU=1"):
+                configure_sealed_validation_cpu_tensorflow()
 
     def test_decision_uses_real_causal_aggregate_schema(self) -> None:
         rules = {

@@ -20,6 +20,8 @@ param(
     [string]$Module,
     [string[]]$ModuleArgs = @(),
     [switch]$CausalCandidateFitExecute,
+    [switch]$CausalCandidateValidationExecute,
+    [string]$ExpectedCommit,
     [ValidateSet("cpu", "metal")]
     [string]$Device = "metal",
     [string]$JobId,
@@ -282,8 +284,12 @@ function Complete-RemoteUpload(
 function Invoke-Worker(
     $Config,
     [string[]]$Arguments,
-    [switch]$CausalCandidateFitExecute
+    [switch]$CausalCandidateFitExecute,
+    [switch]$CausalCandidateValidationExecute
 ) {
+    if ($CausalCandidateFitExecute -and $CausalCandidateValidationExecute) {
+        throw "Only one causal execution acknowledgement is allowed."
+    }
     $script = "$($Config.remote_root)/bin/mac_worker.sh"
     $quoted = @((Quote-Posix $script)) + ($Arguments | ForEach-Object { Quote-Posix ([string]$_) })
     # The acknowledgement is deliberately a single, module-specific literal;
@@ -292,6 +298,9 @@ function Invoke-Worker(
     # become part of the final --output-dir or other worker argument.
     $environmentPrefix = if ($CausalCandidateFitExecute) {
         "DECODER_CANDIDATE_FIT_EXECUTE=1 "
+    }
+    elseif ($CausalCandidateValidationExecute) {
+        "DECODER_CANDIDATE_VALIDATION_EXECUTE=1 "
     }
     else {
         ""
@@ -646,17 +655,42 @@ if ($Action -eq "bootstrap") {
 if ($Action -eq "start") {
     if (-not $Module) { throw "start requires -Module." }
     $causalFitModule = "src.polyphonic.run_causal_candidate_fit"
+    $causalValidationModule = "src.polyphonic.run_causal_candidate_validation"
+    if ($CausalCandidateFitExecute -and $CausalCandidateValidationExecute) {
+        throw "Only one causal execution acknowledgement is allowed."
+    }
     if ($CausalCandidateFitExecute -and $Module -ne $causalFitModule) {
         throw "-CausalCandidateFitExecute is allowed only for $causalFitModule."
     }
     if ($Module -eq $causalFitModule -and -not $CausalCandidateFitExecute) {
         throw "$causalFitModule requires -CausalCandidateFitExecute."
     }
+    if ($CausalCandidateValidationExecute -and $Module -ne $causalValidationModule) {
+        throw "-CausalCandidateValidationExecute is allowed only for $causalValidationModule."
+    }
+    if ($Module -eq $causalValidationModule -and -not $CausalCandidateValidationExecute) {
+        throw "$causalValidationModule requires -CausalCandidateValidationExecute."
+    }
+    if ($Module -eq $causalValidationModule) {
+        if ($ModuleArgs.Count -ne 0) {
+            throw "$causalValidationModule accepts no module arguments."
+        }
+        if ($Device -ne "cpu" -or $WallTimeoutSeconds -ne 900) {
+            throw "$causalValidationModule requires -Device cpu and -WallTimeoutSeconds 900."
+        }
+        if ($ExpectedCommit -notmatch '^[0-9a-f]{40}$' -or $ExpectedCommit -ne $commit) {
+            throw "$causalValidationModule requires -ExpectedCommit equal to the current full Git commit."
+        }
+    }
+    elseif ($ExpectedCommit) {
+        throw "-ExpectedCommit is reserved for $causalValidationModule."
+    }
     if (-not $JobId) { $JobId = "job-" + (Get-Date -Format "yyyyMMdd-HHmmss") }
     Invoke-Worker $config (@(
         "start", [string]$config.remote_root, $commit, $JobId, $Device,
         [string]$WallTimeoutSeconds, $Module
-    ) + $ModuleArgs) -CausalCandidateFitExecute:$CausalCandidateFitExecute
+    ) + $ModuleArgs) -CausalCandidateFitExecute:$CausalCandidateFitExecute `
+        -CausalCandidateValidationExecute:$CausalCandidateValidationExecute
     exit 0
 }
 
