@@ -425,5 +425,274 @@ class IndependentV2OneJobAuthorizationContinuationTests(unittest.TestCase):
         run.assert_not_called()
 
 
+class IndependentV2Attempt3AuthorizationTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
+        self.root = Path(self.temporary.name)
+        request = self.root / authorization.ATTEMPT3_AUTHORIZATION_REQUEST_RELATIVE_PATH
+        request.parent.mkdir(parents=True)
+        source = (
+            Path(__file__).resolve().parents[1]
+            / authorization.ATTEMPT3_AUTHORIZATION_REQUEST_RELATIVE_PATH
+        )
+        request.write_bytes(source.read_bytes())
+        self.head = "c" * 40
+        for marker_path in (
+            authorization.PERSISTENT_CLAIM_RELATIVE_PATH,
+            authorization.ATTEMPT2_PERSISTENT_CLAIM_RELATIVE_PATH,
+        ):
+            marker = self.root / marker_path
+            marker.parent.mkdir(parents=True, exist_ok=True)
+            marker.write_bytes(b"historical-consumed-marker")
+        for approval_path in (
+            authorization.EXTERNAL_APPROVAL_RELATIVE_PATH,
+            authorization.ATTEMPT2_EXTERNAL_APPROVAL_RELATIVE_PATH,
+        ):
+            approval = self.root / approval_path
+            approval.parent.mkdir(parents=True, exist_ok=True)
+            approval.write_bytes(b"historical-approval-without-attempt3-authority")
+        self._previous_force_cpu = os.environ.get("MIDI_FORCE_CPU")
+        self.addCleanup(self._restore_force_cpu)
+        self._registry_before = set(runner._ONE_JOB_CAPABILITIES)
+        self.addCleanup(self._clean_registry)
+
+    def _clean_registry(self) -> None:
+        for key in set(runner._ONE_JOB_CAPABILITIES) - self._registry_before:
+            runner._ONE_JOB_CAPABILITIES.pop(key, None)
+            runner._CLAIMED_ONE_JOB_CAPABILITIES.pop(key, None)
+
+    def _restore_force_cpu(self) -> None:
+        if self._previous_force_cpu is None:
+            os.environ.pop("MIDI_FORCE_CPU", None)
+        else:
+            os.environ["MIDI_FORCE_CPU"] = self._previous_force_cpu
+
+    @staticmethod
+    def _canonical(payload: object) -> bytes:
+        return (
+            json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+            + "\n"
+        ).encode("utf-8")
+
+    def _approval_payload(self, **overrides):
+        payload = {
+            "schema_version": 1,
+            "purpose": "causal_candidate_v2_independent_validation_attempt3_external_review_approval",
+            "authorization_request_sha256": authorization.ATTEMPT3_AUTHORIZATION_REQUEST_SHA256,
+            "reviewed_runner_commit": authorization.ATTEMPT3_REVIEWED_RUNNER_COMMIT,
+            "authorized_execution_commit": self.head,
+            "approved_for_exactly_one_execution": True,
+            "locked_test_used": False,
+        }
+        payload.update(overrides)
+        return payload
+
+    def _write_approval(self, payload=None) -> Path:
+        path = self.root / authorization.ATTEMPT3_EXTERNAL_APPROVAL_RELATIVE_PATH
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(self._canonical(payload or self._approval_payload()))
+        return path
+
+    def _git_patches(self, *, head=None, clean=True, changed=None, runner_unchanged=True):
+        return (
+            mock.patch.object(authorization, "_git_head", return_value=head or self.head),
+            mock.patch.object(authorization, "_git_worktree_clean", return_value=clean),
+            mock.patch.object(
+                authorization,
+                "_attempt3_git_diff_names",
+                return_value=(
+                    authorization.ATTEMPT3_AUTHORIZATION_STEP_PATHS
+                    if changed is None
+                    else frozenset(changed)
+                ),
+            ),
+            mock.patch.object(
+                authorization,
+                "_attempt3_runner_blob_unchanged",
+                return_value=runner_unchanged,
+            ),
+            mock.patch.object(authorization, "_tensorflow_imported", return_value=False),
+        )
+
+    def test_request_seals_both_failures_and_unconsumed_scientific_cohort(self) -> None:
+        payload = authorization.load_sealed_attempt3_authorization_request(self.root)
+        request = self.root / authorization.ATTEMPT3_AUTHORIZATION_REQUEST_RELATIVE_PATH
+        self.assertEqual(
+            hashlib.sha256(request.read_bytes()).hexdigest(),
+            authorization.ATTEMPT3_AUTHORIZATION_REQUEST_SHA256,
+        )
+        self.assertTrue(payload["attempt1_authorization_consumed"])
+        self.assertTrue(payload["attempt2_authorization_consumed"])
+        self.assertEqual(payload["attempt1_classification"], "premetric_infrastructure_failure")
+        self.assertEqual(payload["attempt2_classification"], "premetric_infrastructure_failure")
+        self.assertFalse(payload["scientific_cohort_consumed"])
+        self.assertFalse(payload["ab_metrics_produced"])
+        self.assertFalse(payload["ab_metrics_observed"])
+        self.assertTrue(payload["worker_registry_materialized"])
+
+    def test_old_markers_and_approvals_never_authorize_attempt3(self) -> None:
+        self.assertTrue((self.root / authorization.PERSISTENT_CLAIM_RELATIVE_PATH).is_file())
+        self.assertTrue((self.root / authorization.ATTEMPT2_PERSISTENT_CLAIM_RELATIVE_PATH).is_file())
+        marker3 = self.root / authorization.ATTEMPT3_PERSISTENT_CLAIM_RELATIVE_PATH
+        with self.assertRaisesRegex(RuntimeError, "attempt3.*approval file is absent"):
+            authorization.execute_externally_approved_independent_v2_attempt3_once(self.root)
+        self.assertFalse(marker3.exists())
+
+        old_payloads = (
+            {
+                "schema_version": 1,
+                "purpose": "causal_candidate_v2_independent_validation_external_review_approval",
+                "authorization_request_sha256": authorization.AUTHORIZATION_REQUEST_SHA256,
+                "reviewed_runner_commit": authorization.REVIEWED_RUNNER_COMMIT,
+                "authorized_execution_commit": self.head,
+                "approved_for_exactly_one_execution": True,
+                "locked_test_used": False,
+            },
+            {
+                "schema_version": 1,
+                "purpose": "causal_candidate_v2_independent_validation_attempt2_external_review_approval",
+                "authorization_request_sha256": authorization.ATTEMPT2_AUTHORIZATION_REQUEST_SHA256,
+                "reviewed_runner_commit": authorization.ATTEMPT2_REVIEWED_RUNNER_COMMIT,
+                "authorized_execution_commit": self.head,
+                "approved_for_exactly_one_execution": True,
+                "locked_test_used": False,
+            },
+        )
+        for payload in old_payloads:
+            with self.subTest(purpose=payload["purpose"]):
+                self._write_approval(payload)
+                with self.assertRaisesRegex(ValueError, "attempt3.*values are not sealed"):
+                    authorization.execute_externally_approved_independent_v2_attempt3_once(
+                        self.root
+                    )
+                self.assertFalse(marker3.exists())
+
+    def test_worker_registry_absent_or_wrong_fails_before_marker(self) -> None:
+        self._write_approval()
+        marker = self.root / authorization.ATTEMPT3_PERSISTENT_CLAIM_RELATIVE_PATH
+        patches = self._git_patches()
+        with patches[0], patches[1], patches[2], patches[3], patches[4]:
+            with self.assertRaisesRegex(RuntimeError, "registry is absent"):
+                authorization.execute_externally_approved_independent_v2_attempt3_once(
+                    self.root
+                )
+        self.assertFalse(marker.exists())
+
+        registry = self.root / authorization.ATTEMPT3_WORKER_REGISTRY_RELATIVE_PATH
+        registry.parent.mkdir(parents=True, exist_ok=True)
+        registry.write_bytes(b"synthetic wrong registry bytes")
+        patches = self._git_patches()
+        with patches[0], patches[1], patches[2], patches[3], patches[4]:
+            with self.assertRaisesRegex(RuntimeError, "SHA-256 mismatch"):
+                authorization.execute_externally_approved_independent_v2_attempt3_once(
+                    self.root
+                )
+        self.assertFalse(marker.exists())
+
+    def test_good_synthetic_registry_is_byte_checked_without_tensorflow(self) -> None:
+        registry = self.root / authorization.ATTEMPT3_WORKER_REGISTRY_RELATIVE_PATH
+        registry.parent.mkdir(parents=True, exist_ok=True)
+        raw = b"synthetic registry only; no project asset"
+        registry.write_bytes(raw)
+        with mock.patch.object(
+            authorization,
+            "ATTEMPT3_WORKER_REGISTRY_SHA256",
+            hashlib.sha256(raw).hexdigest(),
+        ):
+            checked = authorization._require_attempt3_worker_registry(self.root)
+        self.assertEqual(checked, registry.resolve())
+        self.assertNotIn("tensorflow", sys.modules)
+
+    def test_git_boundary_rejects_wrong_head_diff_or_runner_before_marker(self) -> None:
+        self._write_approval()
+        cases = (
+            ({"head": "d" * 40}, "current HEAD"),
+            ({"changed": {"unexpected.py"}}, "unexpected changed file set"),
+            ({"runner_unchanged": False}, "runner changed"),
+        )
+        for options, message in cases:
+            with self.subTest(message=message):
+                patches = self._git_patches(**options)
+                with patches[0], patches[1], patches[2], patches[3], patches[4]:
+                    with self.assertRaisesRegex((ValueError, RuntimeError), message):
+                        authorization.execute_externally_approved_independent_v2_attempt3_once(
+                            self.root
+                        )
+                self.assertFalse(
+                    (self.root / authorization.ATTEMPT3_PERSISTENT_CLAIM_RELATIVE_PATH).exists()
+                )
+
+    def test_happy_path_checks_registry_before_marker_and_calls_runner_once(self) -> None:
+        approval = self._write_approval()
+        marker = self.root / authorization.ATTEMPT3_PERSISTENT_CLAIM_RELATIVE_PATH
+        order = []
+        captured = []
+
+        def check_registry(root):
+            self.assertFalse(marker.exists())
+            order.append("registry")
+            return root / authorization.ATTEMPT3_WORKER_REGISTRY_RELATIVE_PATH
+
+        original_marker = authorization._create_attempt3_persistent_claim_marker
+
+        def create_marker(*args, **kwargs):
+            order.append("marker")
+            return original_marker(*args, **kwargs)
+
+        def run(root, capability):
+            order.append("runner")
+            self.assertTrue(marker.is_file())
+            captured.append(capability)
+            return {"synthetic_attempt3": True}
+
+        patches = self._git_patches()
+        with patches[0], patches[1], patches[2], patches[3], patches[4], \
+                mock.patch.object(authorization, "_require_attempt3_worker_registry", side_effect=check_registry), \
+                mock.patch.object(authorization, "_create_attempt3_persistent_claim_marker", side_effect=create_marker), \
+                mock.patch.object(runner, "run_authorized_independent_v2", side_effect=run) as mocked:
+            result = authorization.execute_externally_approved_independent_v2_attempt3_once(
+                self.root
+            )
+        self.assertEqual(result, {"synthetic_attempt3": True})
+        self.assertEqual(order, ["registry", "marker", "runner"])
+        mocked.assert_called_once()
+        capability = captured[0]
+        self.assertEqual(capability.job_id, authorization.ATTEMPT3_JOB_ID)
+        self.assertEqual(capability.destination, authorization.ATTEMPT3_DESTINATION)
+        self.assertEqual(capability.runner_commit, self.head)
+        marker_payload = json.loads(marker.read_text(encoding="utf-8"))
+        self.assertEqual(
+            marker_payload["external_approval_sha256"],
+            hashlib.sha256(approval.read_bytes()).hexdigest(),
+        )
+        self.assertEqual(
+            marker_payload["worker_registry_sha256"],
+            authorization.ATTEMPT3_WORKER_REGISTRY_SHA256,
+        )
+
+    def test_attempt3_marker_is_o_excl_and_persistent_after_failure(self) -> None:
+        self._write_approval()
+        patches = self._git_patches()
+        with patches[0], patches[1], patches[2], patches[3], patches[4], \
+                mock.patch.object(authorization, "_require_attempt3_worker_registry"), \
+                mock.patch.object(
+                    runner,
+                    "run_authorized_independent_v2",
+                    side_effect=RuntimeError("synthetic attempt3 post-claim failure"),
+                ) as run:
+            with self.assertRaisesRegex(RuntimeError, "post-claim failure"):
+                authorization.execute_externally_approved_independent_v2_attempt3_once(
+                    self.root
+                )
+            marker = self.root / authorization.ATTEMPT3_PERSISTENT_CLAIM_RELATIVE_PATH
+            self.assertTrue(marker.is_file())
+            with self.assertRaises(FileExistsError):
+                authorization.execute_externally_approved_independent_v2_attempt3_once(
+                    self.root
+                )
+        run.assert_called_once()
+
+
 if __name__ == "__main__":
     unittest.main()

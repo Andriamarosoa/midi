@@ -55,6 +55,28 @@ ATTEMPT2_DESTINATION = (
     "tmp/local/causal_candidate_v2_independent_validation_execution_20260810_attempt2"
 )
 
+ATTEMPT3_REVIEWED_RUNNER_COMMIT = "c78b1e1cbcee8f7bf7fffe358ea8a19a4392e0b9"
+ATTEMPT3_AUTHORIZATION_REQUEST_SHA256 = (
+    "8856fbf5a6f5a981395d0b74cf0b9128b7d24e03fbba88b800e9d315e8c5df5f"
+)
+ATTEMPT3_AUTHORIZATION_REQUEST_RELATIVE_PATH = Path(
+    "configs/causal_candidate_v2_independent_validation_attempt3_authorization_request.json"
+)
+ATTEMPT3_EXTERNAL_APPROVAL_RELATIVE_PATH = Path(
+    "tmp/local/causal_candidate_v2_independent_validation_external_review_approval_20260810_attempt3.json"
+)
+ATTEMPT3_PERSISTENT_CLAIM_RELATIVE_PATH = Path(
+    "tmp/local/causal_candidate_v2_independent_validation_one_job_20260810_attempt3.claimed.json"
+)
+ATTEMPT3_WORKER_REGISTRY_RELATIVE_PATH = Path(
+    "tmp/local/causal_candidate_v2_independent_validation_asset_evidence_20260810.json"
+)
+ATTEMPT3_WORKER_REGISTRY_SHA256 = ASSET_EVIDENCE_SHA256
+ATTEMPT3_JOB_ID = "causal-candidate-v2-independent-cpu-20260810-attempt3"
+ATTEMPT3_DESTINATION = (
+    "tmp/local/causal_candidate_v2_independent_validation_execution_20260810_attempt3"
+)
+
 AUTHORIZATION_STEP_PATHS = frozenset(
     {
         ".gitattributes",
@@ -77,6 +99,17 @@ ATTEMPT2_AUTHORIZATION_STEP_PATHS = frozenset(
     }
 )
 
+ATTEMPT3_AUTHORIZATION_STEP_PATHS = frozenset(
+    {
+        ".gitattributes",
+        ATTEMPT3_AUTHORIZATION_REQUEST_RELATIVE_PATH.as_posix(),
+        "src/polyphonic/causal_candidate_v2_independent_validation_one_job_authorization.py",
+        "tests/test_causal_candidate_v2_independent_validation_one_job_authorization.py",
+        "readme/README.md",
+        "readme/results/2026-08-10_causal-candidate-v2-independent-validation-attempt2-premetric-infrastructure-failure.md",
+    }
+)
+
 _REQUEST_KEYS = frozenset(
     {
         "schema_version", "purpose", "status", "reviewed_runner_commit",
@@ -96,6 +129,15 @@ _APPROVAL_KEYS = frozenset(
 )
 _ATTEMPT2_REQUEST_KEYS = _REQUEST_KEYS | frozenset(
     {"prior_attempt_classification", "prior_authorization_consumed"}
+)
+_ATTEMPT3_REQUEST_KEYS = _REQUEST_KEYS | frozenset(
+    {
+        "attempt1_authorization_consumed", "attempt1_classification",
+        "attempt2_authorization_consumed", "attempt2_classification",
+        "scientific_cohort_consumed", "ab_metrics_produced",
+        "ab_metrics_observed", "worker_registry_materialized",
+        "worker_registry_relative_path", "worker_registry_sha256",
+    }
 )
 
 
@@ -533,7 +575,241 @@ def execute_externally_approved_independent_v2_attempt2_once(
     return runner.run_authorized_independent_v2(root, capability)
 
 
+def _require_exact_attempt3_request(payload: Mapping[str, object]) -> None:
+    if set(payload) != _ATTEMPT3_REQUEST_KEYS:
+        raise ValueError("attempt3 authorization request schema is not exact")
+    expected = {
+        "schema_version": 1,
+        "purpose": "causal_candidate_v2_independent_validation_attempt3_authorization_request",
+        "status": "pending_external_review",
+        "reviewed_runner_commit": ATTEMPT3_REVIEWED_RUNNER_COMMIT,
+        "execution_contract_sha256": EXECUTION_CONTRACT_SHA256,
+        "asset_evidence_sha256": ASSET_EVIDENCE_SHA256,
+        "device": "cpu",
+        "wall_timeout_seconds": 900,
+        "job_id": ATTEMPT3_JOB_ID,
+        "destination": ATTEMPT3_DESTINATION,
+        "stop_after_report": True,
+        "locked_test_used": False,
+        "single_execution_authorization": True,
+        "automatic_retry": False,
+        "automatic_promotion": False,
+        "external_approval_relative_path": ATTEMPT3_EXTERNAL_APPROVAL_RELATIVE_PATH.as_posix(),
+        "persistent_claim_marker_relative_path": ATTEMPT3_PERSISTENT_CLAIM_RELATIVE_PATH.as_posix(),
+        "attempt1_authorization_consumed": True,
+        "attempt1_classification": "premetric_infrastructure_failure",
+        "attempt2_authorization_consumed": True,
+        "attempt2_classification": "premetric_infrastructure_failure",
+        "scientific_cohort_consumed": False,
+        "ab_metrics_produced": False,
+        "ab_metrics_observed": False,
+        "worker_registry_materialized": True,
+        "worker_registry_relative_path": ATTEMPT3_WORKER_REGISTRY_RELATIVE_PATH.as_posix(),
+        "worker_registry_sha256": ATTEMPT3_WORKER_REGISTRY_SHA256,
+    }
+    boolean_fields = (
+        "stop_after_report", "locked_test_used", "single_execution_authorization",
+        "automatic_retry", "automatic_promotion",
+        "attempt1_authorization_consumed", "attempt2_authorization_consumed",
+        "scientific_cohort_consumed", "ab_metrics_produced", "ab_metrics_observed",
+        "worker_registry_materialized",
+    )
+    if (
+        dict(payload) != expected
+        or type(payload.get("schema_version")) is not int
+        or type(payload.get("wall_timeout_seconds")) is not int
+        or any(type(payload.get(name)) is not bool for name in boolean_fields)
+    ):
+        raise ValueError("attempt3 authorization request values are not sealed")
+
+
+def load_sealed_attempt3_authorization_request(
+    repository_root: Path,
+) -> Mapping[str, object]:
+    root = Path(repository_root).resolve(strict=True)
+    expected_path = root / ATTEMPT3_AUTHORIZATION_REQUEST_RELATIVE_PATH
+    if expected_path.is_symlink() or expected_path.resolve(strict=True) != expected_path.absolute():
+        raise ValueError("attempt3 authorization request path is not canonical")
+    raw = expected_path.read_bytes()
+    if hashlib.sha256(raw).hexdigest() != ATTEMPT3_AUTHORIZATION_REQUEST_SHA256:
+        raise ValueError("attempt3 authorization request SHA-256 mismatch")
+    payload = _parse_canonical_json(raw, label="attempt3 authorization request")
+    _require_exact_attempt3_request(payload)
+    return payload
+
+
+def _load_attempt3_external_approval(
+    repository_root: Path,
+    request: Mapping[str, object],
+) -> tuple[Mapping[str, object], str]:
+    root = Path(repository_root).resolve(strict=True)
+    path = root / ATTEMPT3_EXTERNAL_APPROVAL_RELATIVE_PATH
+    if not path.is_file():
+        raise RuntimeError("attempt3 external review approval file is absent")
+    if path.is_symlink() or path.resolve(strict=True) != path.absolute():
+        raise ValueError("attempt3 external review approval path is not canonical")
+    raw = path.read_bytes()
+    payload = _parse_canonical_json(raw, label="attempt3 external review approval")
+    if set(payload) != _APPROVAL_KEYS:
+        raise ValueError("attempt3 external review approval schema is not exact")
+    authorized_commit = payload.get("authorized_execution_commit")
+    if not isinstance(authorized_commit, str) or len(authorized_commit) != 40 or any(
+        character not in "0123456789abcdef" for character in authorized_commit
+    ):
+        raise ValueError("attempt3 authorized execution commit is not a lowercase Git SHA")
+    if (
+        type(payload.get("schema_version")) is not int
+        or payload.get("schema_version") != 1
+        or payload.get("purpose")
+        != "causal_candidate_v2_independent_validation_attempt3_external_review_approval"
+        or payload.get("authorization_request_sha256")
+        != ATTEMPT3_AUTHORIZATION_REQUEST_SHA256
+        or payload.get("reviewed_runner_commit") != ATTEMPT3_REVIEWED_RUNNER_COMMIT
+        or type(payload.get("approved_for_exactly_one_execution")) is not bool
+        or payload.get("approved_for_exactly_one_execution") is not True
+        or type(payload.get("locked_test_used")) is not bool
+        or payload.get("locked_test_used") is not False
+        or request.get("reviewed_runner_commit") != ATTEMPT3_REVIEWED_RUNNER_COMMIT
+    ):
+        raise ValueError("attempt3 external review approval values are not sealed")
+    return payload, hashlib.sha256(raw).hexdigest()
+
+
+def _attempt3_git_diff_names(repository_root: Path, head: str) -> frozenset[str]:
+    return frozenset(
+        line.strip().replace("\\", "/")
+        for line in _git(
+            repository_root,
+            "diff",
+            "--name-only",
+            "0a622e030d9be7add9ed4e2e78e0f1b7366683d3",
+            head,
+        ).splitlines()
+        if line.strip()
+    )
+
+
+def _attempt3_runner_blob_unchanged(repository_root: Path, head: str) -> bool:
+    reviewed = subprocess.run(
+        [
+            "git", "-C", str(repository_root), "show",
+            f"{ATTEMPT3_REVIEWED_RUNNER_COMMIT}:{RUNNER_RELATIVE_PATH.as_posix()}",
+        ],
+        check=True,
+        capture_output=True,
+    ).stdout
+    current = subprocess.run(
+        ["git", "-C", str(repository_root), "show", f"{head}:{RUNNER_RELATIVE_PATH.as_posix()}"],
+        check=True,
+        capture_output=True,
+    ).stdout
+    return reviewed == current
+
+
+def _verify_attempt3_git_boundary(
+    repository_root: Path,
+    approval: Mapping[str, object],
+) -> str:
+    head = _git_head(repository_root)
+    if approval.get("authorized_execution_commit") != head:
+        raise ValueError("attempt3 external approval does not authorize current HEAD")
+    if not _git_worktree_clean(repository_root):
+        raise RuntimeError("attempt3 authorization requires a clean worktree")
+    if _attempt3_git_diff_names(repository_root, head) != ATTEMPT3_AUTHORIZATION_STEP_PATHS:
+        raise RuntimeError("attempt3 authorization commit contains an unexpected changed file set")
+    if not _attempt3_runner_blob_unchanged(repository_root, head):
+        raise RuntimeError("approved independent V2 runner changed after attempt3 review")
+    return head
+
+
+def _require_attempt3_worker_registry(repository_root: Path) -> Path:
+    """Byte-check the known infrastructure dependency before consuming attempt3."""
+
+    root = Path(repository_root).resolve(strict=True)
+    candidate = root / ATTEMPT3_WORKER_REGISTRY_RELATIVE_PATH
+    if candidate.is_symlink() or not candidate.is_file():
+        raise RuntimeError("attempt3 worker evidence registry is absent or non-regular")
+    if candidate.resolve(strict=True) != candidate.absolute():
+        raise ValueError("attempt3 worker evidence registry path is not canonical")
+    digest = hashlib.sha256(candidate.read_bytes()).hexdigest()
+    if digest != ATTEMPT3_WORKER_REGISTRY_SHA256:
+        raise RuntimeError("attempt3 worker evidence registry SHA-256 mismatch")
+    return candidate
+
+
+def _create_attempt3_persistent_claim_marker(
+    repository_root: Path,
+    *,
+    external_approval_sha256: str,
+    authorized_execution_commit: str,
+) -> Path:
+    root = Path(repository_root).resolve(strict=True)
+    marker = root / ATTEMPT3_PERSISTENT_CLAIM_RELATIVE_PATH
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    if marker.parent.resolve(strict=True) != marker.parent.absolute():
+        raise ValueError("attempt3 persistent claim marker directory is not canonical")
+    payload = {
+        "authorization_request_sha256": ATTEMPT3_AUTHORIZATION_REQUEST_SHA256,
+        "authorized_execution_commit": authorized_execution_commit,
+        "claimed_at_utc": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        "external_approval_sha256": external_approval_sha256,
+        "job_id": ATTEMPT3_JOB_ID,
+        "attempt1_authorization_consumed": True,
+        "attempt2_authorization_consumed": True,
+        "worker_registry_sha256": ATTEMPT3_WORKER_REGISTRY_SHA256,
+    }
+    descriptor = os.open(marker, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    try:
+        with os.fdopen(descriptor, "wb", closefd=True) as handle:
+            handle.write(_canonical_json_bytes(payload))
+            handle.flush()
+            os.fsync(handle.fileno())
+    except BaseException:
+        raise
+    return marker
+
+
+def execute_externally_approved_independent_v2_attempt3_once(
+    repository_root: Path,
+) -> Mapping[str, object]:
+    """Consume attempt3 only after all known infrastructure is byte-verified."""
+
+    root = Path(repository_root).resolve(strict=True)
+    request = load_sealed_attempt3_authorization_request(root)
+    approval, approval_sha256 = _load_attempt3_external_approval(root, request)
+    authorized_commit = _verify_attempt3_git_boundary(root, approval)
+    _require_attempt3_worker_registry(root)
+    _create_attempt3_persistent_claim_marker(
+        root,
+        external_approval_sha256=approval_sha256,
+        authorized_execution_commit=authorized_commit,
+    )
+
+    from . import run_causal_candidate_v2_independent_validation_execution as runner
+
+    capability = runner.IndependentV2OneJobCapability(
+        runner_commit=authorized_commit,
+        execution_contract_sha256=EXECUTION_CONTRACT_SHA256,
+        device="cpu",
+        wall_timeout_seconds=900,
+        job_id=ATTEMPT3_JOB_ID,
+        destination=ATTEMPT3_DESTINATION,
+        stop_after_report=True,
+        locked_test_used=False,
+        single_execution_authorization=True,
+    )
+    runner._ONE_JOB_CAPABILITIES[id(capability)] = weakref.ref(capability)
+    os.environ["MIDI_FORCE_CPU"] = "1"
+    if _tensorflow_imported():
+        raise RuntimeError("TensorFlow was imported before attempt3 runner invocation")
+    return runner.run_authorized_independent_v2(root, capability)
+
+
 __all__ = [
+    "ATTEMPT3_AUTHORIZATION_REQUEST_RELATIVE_PATH",
+    "ATTEMPT3_AUTHORIZATION_REQUEST_SHA256",
+    "ATTEMPT3_EXTERNAL_APPROVAL_RELATIVE_PATH",
+    "ATTEMPT3_PERSISTENT_CLAIM_RELATIVE_PATH",
     "ATTEMPT2_AUTHORIZATION_REQUEST_RELATIVE_PATH",
     "ATTEMPT2_AUTHORIZATION_REQUEST_SHA256",
     "ATTEMPT2_EXTERNAL_APPROVAL_RELATIVE_PATH",
@@ -544,6 +820,8 @@ __all__ = [
     "PERSISTENT_CLAIM_RELATIVE_PATH",
     "execute_externally_approved_independent_v2_once",
     "execute_externally_approved_independent_v2_attempt2_once",
+    "execute_externally_approved_independent_v2_attempt3_once",
+    "load_sealed_attempt3_authorization_request",
     "load_sealed_attempt2_authorization_request",
     "load_sealed_authorization_request",
 ]

@@ -17,18 +17,24 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `causal_candidate_v2_independent_validation_attempt2_authorization_pending_external_review`.
-- Statut : `en cours — evidence gate c78b1e1c approuvé; nouvelle demande one-job attempt2 créée mais inexécutable sans approval externe distincte`.
-- Demande d'autorisation attempt2, sans exécution : après approbation du
-  correctif evidence-gate `c78b1e1cbcee8f7bf7fffe358ea8a19a4392e0b9`,
-  une nouvelle demande canonique scelle le job
-  `causal-candidate-v2-independent-cpu-20260810-attempt2`, sa destination,
-  son futur approval et son marker, tous distincts de la tentative 1. Elle
-  reste liée au même contrat d'exécution, à la même evidence et au runner
-  approuvé `c78b1e1c`; elle ne modifie aucune science. L'approval attempt2 est
-  absent : aucun marker attempt2, capability, worker ou calcul n'est possible.
-  L'ancien marker reste présent, immuable et définitivement consommé. Rapport :
-  `readme/results/2026-08-10_causal-candidate-v2-independent-validation-attempt2-authorization-request.md`.
+- Étape : `causal_candidate_v2_independent_validation_attempt3_authorization_pending_external_review`.
+- Statut : `en cours — attempt2 classée premetric_infrastructure_failure; registre worker matérialisé; demande attempt3 créée sans autoriser son exécution`.
+- Demande d'autorisation attempt3, sans exécution : attempt2 a consommé son
+  approval et son marker, puis s'est arrêtée avant TensorFlow et avant tout
+  actif scientifique parce que le registre d'evidence attendu était absent du
+  checkout worker. Sa destination et le verrou sont restés absents; aucune
+  métrique A/B n'a été produite ou observée et la cohorte scientifique reste
+  non consommée. Le registre historique a ensuite été matérialisé au chemin
+  exact du worker, avec SHA-256
+  `10307a642185b3ef64a15a1120ec44ea4460c5875018b02fdaa7a18512822aee`.
+  Une nouvelle demande canonique scelle le job
+  `causal-candidate-v2-independent-cpu-20260810-attempt3`, sa destination, son
+  futur approval et son marker, tous distincts des tentatives 1 et 2. Avant de
+  créer le marker attempt3, le module TensorFlow-free exige désormais que ce
+  registre existe au chemin exact et que ses octets correspondent au SHA
+  scellé. Aucun approval, marker, worker ou calcul attempt3 n'existe encore.
+  Rapport :
+  `readme/results/2026-08-10_causal-candidate-v2-independent-validation-attempt2-premetric-infrastructure-failure.md`.
 - Incident pré-métrique du job indépendant V2 : l'unique autorisation du commit
   `78f46628f430b9cdbe0e2b9ea042f05d0b141762` a été revendiquée, puis le
   runner s'est arrêté avant TensorFlow et avant toute ouverture d'actif avec
