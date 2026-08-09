@@ -43,6 +43,8 @@ BOUNDED_MINING_SCHEMA_VERSION = 1
 BOUNDED_MINING_PURPOSE = "decoder_candidate_bounded_train_only_mining_v1"
 EXTENDED_MINING_SCHEMA_VERSION = 2
 EXTENDED_MINING_PURPOSE = "decoder_candidate_extended_train_only_mining_v2"
+GUITARSET_EXPANSION_MINING_SCHEMA_VERSION = 3
+GUITARSET_EXPANSION_MINING_PURPOSE = "decoder_candidate_guitarset_expansion_train_only_mining_v3"
 _PARTITIONS = ("fit", "dev", "calibration")
 
 
@@ -93,7 +95,7 @@ class BoundedMiningProtocol:
     decoder_config_sha256: str
     audio_evidence_config_sha256: str
     dataset_ids: tuple[str, ...]
-    recordings_per_dataset_partition: int
+    recordings_per_dataset_partition: int | tuple[tuple[str, int], ...]
     maximum_attempts_per_recording: int
     schema_version: int = BOUNDED_MINING_SCHEMA_VERSION
     purpose: str = BOUNDED_MINING_PURPOSE
@@ -101,6 +103,8 @@ class BoundedMiningProtocol:
     minimum_targets_per_partition_class: int | None = None
 
     def __post_init__(self) -> None:
+        if type(self.schema_version) is not int:
+            raise ValueError("bounded mining protocol schema must be a JSON-native integer.")
         minima = (
             self.minimum_targets_per_dataset_partition_class,
             self.minimum_targets_per_partition_class,
@@ -113,8 +117,39 @@ class BoundedMiningProtocol:
                 raise ValueError("schema 2 protocol requires the extended purpose.")
             if any(type(value) is not int or value <= 0 for value in minima):
                 raise ValueError("schema 2 protocol requires positive representation minima.")
+        elif self.schema_version == GUITARSET_EXPANSION_MINING_SCHEMA_VERSION:
+            if self.purpose != GUITARSET_EXPANSION_MINING_PURPOSE:
+                raise ValueError("schema 3 protocol requires the GuitarSet expansion purpose.")
+            if any(type(value) is not int or value <= 0 for value in minima):
+                raise ValueError("schema 3 protocol requires positive representation minima.")
+            counts = self.recordings_per_dataset_partition
+            if (
+                type(counts) is not tuple
+                or tuple(dataset_id for dataset_id, _ in counts) != self.dataset_ids
+                or any(type(count) is not int or count <= 0 for _, count in counts)
+            ):
+                raise ValueError(
+                    "schema 3 protocol requires positive per-dataset recording counts."
+                )
         else:
             raise ValueError("unsupported bounded mining protocol schema.")
+        if self.schema_version != GUITARSET_EXPANSION_MINING_SCHEMA_VERSION and (
+            type(self.recordings_per_dataset_partition) is not int
+            or self.recordings_per_dataset_partition <= 0
+        ):
+            raise ValueError(
+                "schemas 1 and 2 require a positive uniform recording count."
+            )
+
+    def recordings_for_dataset(self, dataset_id: str) -> int:
+        """Return the preregistered canonical count for one corpus."""
+        counts = self.recordings_per_dataset_partition
+        if type(counts) is int:
+            return counts
+        for candidate_dataset_id, count in counts:
+            if candidate_dataset_id == dataset_id:
+                return count
+        raise RuntimeError("bounded mining protocol lacks a dataset recording count.")
 
     @classmethod
     def from_path(cls, path: Path) -> "BoundedMiningProtocol":
@@ -156,6 +191,20 @@ class BoundedMiningProtocol:
             ):
                 if type(value) is not int or value <= 0:
                     raise ValueError(f"{name} must be a positive JSON-native integer.")
+        elif schema_version == GUITARSET_EXPANSION_MINING_SCHEMA_VERSION:
+            required = base_fields | {
+                "minimum_targets_per_dataset_partition_class",
+                "minimum_targets_per_partition_class",
+            }
+            purpose = GUITARSET_EXPANSION_MINING_PURPOSE
+            minimum_per_cell = payload.get("minimum_targets_per_dataset_partition_class")
+            minimum_per_partition = payload.get("minimum_targets_per_partition_class")
+            for name, value in (
+                ("minimum_targets_per_dataset_partition_class", minimum_per_cell),
+                ("minimum_targets_per_partition_class", minimum_per_partition),
+            ):
+                if type(value) is not int or value <= 0:
+                    raise ValueError(f"{name} must be a positive JSON-native integer.")
         else:
             raise ValueError("unsupported bounded mining protocol schema.")
         if set(payload) != required:
@@ -172,12 +221,31 @@ class BoundedMiningProtocol:
             or datasets != sorted(set(datasets))
         ):
             raise ValueError("dataset_ids must be a non-empty sorted unique JSON list.")
-        for name in (
-            "recordings_per_dataset_partition",
-            "maximum_attempts_per_recording",
-        ):
-            if type(payload[name]) is not int or payload[name] <= 0:
-                raise ValueError(f"{name} must be a positive JSON-native integer.")
+        if schema_version == GUITARSET_EXPANSION_MINING_SCHEMA_VERSION:
+            raw_counts = payload["recordings_per_dataset_partition"]
+            if (
+                not isinstance(raw_counts, dict)
+                or tuple(raw_counts) != tuple(datasets)
+                or any(type(raw_counts[dataset_id]) is not int or raw_counts[dataset_id] <= 0
+                       for dataset_id in datasets)
+            ):
+                raise ValueError(
+                    "schema 3 recordings_per_dataset_partition must be an ordered "
+                    "positive count for every dataset."
+                )
+            recording_counts: int | tuple[tuple[str, int], ...] = tuple(
+                (dataset_id, raw_counts[dataset_id]) for dataset_id in datasets
+            )
+        else:
+            recording_counts = payload["recordings_per_dataset_partition"]
+            if type(recording_counts) is not int or recording_counts <= 0:
+                raise ValueError(
+                    "recordings_per_dataset_partition must be a positive JSON-native integer."
+                )
+        if type(payload["maximum_attempts_per_recording"]) is not int or payload[
+            "maximum_attempts_per_recording"
+        ] <= 0:
+            raise ValueError("maximum_attempts_per_recording must be a positive JSON-native integer.")
         return cls(
             **{
                 name: _require_sha256(payload[name], name=name)
@@ -192,7 +260,7 @@ class BoundedMiningProtocol:
                 )
             },
             dataset_ids=tuple(datasets),
-            recordings_per_dataset_partition=payload["recordings_per_dataset_partition"],
+            recordings_per_dataset_partition=recording_counts,
             maximum_attempts_per_recording=payload["maximum_attempts_per_recording"],
             schema_version=schema_version,
             purpose=purpose,
@@ -311,13 +379,17 @@ def _select_bounded_items(
                     str(item.capture_id),
                 ),
             )
-            if len(eligible) < protocol.recordings_per_dataset_partition:
+            count = protocol.recordings_for_dataset(dataset_id)
+            if len(eligible) < count:
                 raise RuntimeError(
                     "Fail closed: plan has fewer recordings than the fixed bounded "
                     f"population for {partition}/{dataset_id}."
                 )
-            selected.extend(eligible[:protocol.recordings_per_dataset_partition])
-    expected = len(_PARTITIONS) * len(protocol.dataset_ids) * protocol.recordings_per_dataset_partition
+            selected.extend(eligible[:count])
+    expected = len(_PARTITIONS) * sum(
+        protocol.recordings_for_dataset(dataset_id)
+        for dataset_id in protocol.dataset_ids
+    )
     if len(selected) != expected:
         raise AssertionError("bounded selection did not reconcile its fixed size.")
     identities = [
@@ -458,6 +530,15 @@ def _counter_json(counters: DecoderCandidateMiningCounters) -> dict[str, object]
     return asdict(counters)
 
 
+def _protocol_json(protocol: BoundedMiningProtocol) -> dict[str, object]:
+    """Serialize schema 3's per-corpus counts without losing their JSON shape."""
+    payload = asdict(protocol)
+    counts = protocol.recordings_per_dataset_partition
+    if type(counts) is tuple:
+        payload["recordings_per_dataset_partition"] = dict(counts)
+    return payload
+
+
 def _representation_gate(
     protocol: BoundedMiningProtocol,
     counters: DecoderCandidateMiningCounters,
@@ -538,7 +619,7 @@ def run_bounded_train_only_mining(
     expected_git_commit: str,
     repository_root: Path | None = None,
 ) -> dict[str, object]:
-    """Mine the fixed 12-recording train-only diagnostic population once.
+    """Mine one fixed protocol-selected train-only diagnostic population.
 
     The output is a non-authorizing diagnostic candidate corpus.  A separate,
     reviewed future step would be required to fit any model from it.
@@ -628,7 +709,7 @@ def run_bounded_train_only_mining(
             "status": "complete_non_authorizing",
             "locked_test_used": False,
             "implementation_commit": commit,
-            "protocol": asdict(protocol),
+            "protocol": _protocol_json(protocol),
             "input_paths": {
                 "manifest": str(manifest_path.resolve(strict=True)),
                 "partition_plan": str(partition_plan_path.resolve(strict=True)),

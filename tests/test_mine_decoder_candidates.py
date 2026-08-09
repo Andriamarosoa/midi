@@ -17,6 +17,8 @@ from src.polyphonic.decoder_candidate_labels import CausalCandidateLabelBatch
 from src.polyphonic.mine_decoder_candidates import (
     BOUNDED_MINING_PURPOSE,
     EXTENDED_MINING_PURPOSE,
+    GUITARSET_EXPANSION_MINING_PURPOSE,
+    GUITARSET_EXPANSION_MINING_SCHEMA_VERSION,
     BoundedMiningProtocol,
     _require_expected_git_commit,
     _representation_gate,
@@ -244,6 +246,58 @@ class BoundedCandidateMiningTests(unittest.TestCase):
             attributes,
         )
 
+    def test_guitarset_expansion_protocol_extends_only_its_fixed_canonical_count(self) -> None:
+        repository = Path(__file__).resolve().parents[1]
+        baseline = BoundedMiningProtocol.from_path(
+            repository / "configs" / "decoder_candidate_extended_policy_a_6percell.json"
+        )
+        expansion = BoundedMiningProtocol.from_path(
+            repository / "configs" / "decoder_candidate_guitarset_expansion_policy_a_v3.json"
+        )
+        self.assertEqual(expansion.schema_version, GUITARSET_EXPANSION_MINING_SCHEMA_VERSION)
+        self.assertEqual(expansion.purpose, GUITARSET_EXPANSION_MINING_PURPOSE)
+        self.assertEqual(expansion.recordings_for_dataset("gaps_poly_mix"), 6)
+        self.assertEqual(
+            expansion.recordings_for_dataset("guitar_techs_poly_directinput"), 6
+        )
+        self.assertEqual(expansion.recordings_for_dataset("guitar_techs_poly_micamp"), 6)
+        self.assertEqual(expansion.recordings_for_dataset("guitarset_poly_mix"), 12)
+        self.assertEqual(
+            sum(expansion.recordings_for_dataset(dataset) for dataset in DATASETS), 30
+        )
+        self.assertEqual(expansion.minimum_targets_per_dataset_partition_class, 8)
+        self.assertEqual(expansion.minimum_targets_per_partition_class, 75)
+        for field in (
+            "manifest_sha256",
+            "partition_plan_sha256",
+            "asset_evidence_sha256",
+            "checkpoint_sha256",
+            "model_config_sha256",
+            "decoder_config_sha256",
+            "audio_evidence_config_sha256",
+        ):
+            self.assertEqual(getattr(expansion, field), getattr(baseline, field))
+        attributes = (repository / ".gitattributes").read_text(encoding="utf-8")
+        self.assertIn(
+            "configs/decoder_candidate_guitarset_expansion_policy_a_v3.json text eol=lf",
+            attributes,
+        )
+
+    def test_schema_three_rejects_missing_or_noncanonical_dataset_counts(self) -> None:
+        repository = Path(__file__).resolve().parents[1]
+        source = repository / "configs" / "decoder_candidate_guitarset_expansion_policy_a_v3.json"
+        payload = json.loads(source.read_text(encoding="utf-8"))
+        payload["recordings_per_dataset_partition"] = {
+            "guitarset_poly_mix": 12,
+            "gaps_poly_mix": 6,
+            "guitar_techs_poly_directinput": 6,
+        }
+        with TemporaryDirectory() as temporary:
+            invalid = Path(temporary) / "protocol.json"
+            invalid.write_text(json.dumps(payload), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "ordered positive count"):
+                BoundedMiningProtocol.from_path(invalid)
+
     def test_extended_protocol_reports_coverage_shortfalls_without_authorizing_fit(self) -> None:
         repository = Path(__file__).resolve().parents[1]
         protocol = BoundedMiningProtocol.from_path(
@@ -428,6 +482,50 @@ assert 'tensorflow' not in sys.modules
                         f"{partition}-{dataset}-{ordinal}-source"
                         for ordinal in range(3)
                     ],
+                )
+
+    def test_selection_expands_guitarset_without_reordering_other_corpus_cells(self) -> None:
+        protocol = BoundedMiningProtocol(
+            manifest_sha256="a" * 64,
+            partition_plan_sha256="b" * 64,
+            asset_evidence_sha256="c" * 64,
+            checkpoint_sha256="d" * 64,
+            model_config_sha256="e" * 64,
+            decoder_config_sha256="f" * 64,
+            audio_evidence_config_sha256="1" * 64,
+            dataset_ids=DATASETS,
+            recordings_per_dataset_partition=tuple(
+                (dataset, 12 if dataset == "guitarset_poly_mix" else 6)
+                for dataset in DATASETS
+            ),
+            maximum_attempts_per_recording=8,
+            schema_version=GUITARSET_EXPANSION_MINING_SCHEMA_VERSION,
+            purpose=GUITARSET_EXPANSION_MINING_PURPOSE,
+            minimum_targets_per_dataset_partition_class=8,
+            minimum_targets_per_partition_class=75,
+        )
+        context = _Context(
+            manifest_sha256="a" * 64,
+            plan_sha256="b" * 64,
+            evidence_sha256="c" * 64,
+            items_per_dataset_partition=12,
+        )
+        selected = _select_bounded_items(context, protocol)
+        self.assertEqual(len(selected), 90)
+        for partition in PARTITIONS:
+            for dataset in DATASETS:
+                expected_count = 12 if dataset == "guitarset_poly_mix" else 6
+                cell = [
+                    item.source_id for item in selected
+                    if item.dataset_id == dataset and item.source_id.startswith(partition)
+                ]
+                self.assertEqual(len(cell), expected_count)
+                self.assertEqual(
+                    set(cell),
+                    set(sorted(
+                        f"{partition}-{dataset}-{ordinal}-source"
+                        for ordinal in range(12)
+                    )[:expected_count]),
                 )
 
     def test_sha_mismatch_fails_before_tensorflow_or_model_load(self) -> None:

@@ -16,10 +16,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-08-09T22:18:38+04:00`.
-- Étape : `decoder_candidate_extended_train_only_mining`.
-- Statut : `terminé — passe CPU de 72 prises complète, mais porte de
-  représentation refusée ; aucun fit autorisé`.
+- Mise à jour : `2026-08-09T11:40:11+04:00`.
+- Étape : `decoder_candidate_guitarset_expansion_hypothesis`.
+- Statut : `en cours — contrat v3 de 90 prises implémenté ; revue externe
+  requise avant tout replay CPU`.
 - Résultat vérifié : le job Mac `decoder-candidate-extended-mining-cpu-20260809`
   a terminé sans erreur au commit `42a88b0d…`, avec `locked_test_used=false`,
   3 057 candidats supervisés (639 positifs, 2 418 négatifs), zéro perte et
@@ -28,6 +28,11 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   Aucun fit, calibration, validation, export, live, choix de seuil ou test
   verrouillé n'est donc autorisé. Rapport :
   `readme/results/2026-08-09_decoder-candidate-extended-mining-run.md`.
+- Hypothèse suivante, sans calcul : le contrat v3 conserve les mêmes sept SHA,
+  la porte à 8 et la Policy A, mais fixe une population unifiée de 90 prises
+  (6 par cellule sauf GuitarSet à 12 par partition). Il ne réinterprète pas le
+  seuil après observation et ne lance rien automatiquement. Rapport :
+  `readme/results/2026-08-09_decoder-candidate-guitarset-expansion-hypothesis.md`.
 - Résultat scientifique conservé : la tête `independent_note` précédente reste
   un résultat négatif, saturé près de 1, et ne doit promouvoir ni checkpoint ni
   seuil. Le test verrouillé reste fermé.
@@ -58,8 +63,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `corpus.audio()`; le chemin `.npy` protégé ne conserve pas de `mmap` après
   cette vérification. Une couverture incomplète, un fichier modifié, un wrapper
   forgé ou des octets du registre modifiés échouent fermé. La preuve réelle
-  Policy A de 541 actifs est enregistrée; aucun actif n'a encore été ouvert par
-  un replay de minage.
+  Policy A de 541 actifs est enregistrée. Les deux replays train-only approuvés
+  (12 puis 72 prises) ont ouvert uniquement leurs actifs sélectionnés après
+  revalidation du registre ; ce texte remplace l'ancienne assertion, devenue
+  obsolète, qu'aucun actif n'avait encore été ouvert.
 - Chaque ligne future porte la provenance immuable complète : `source_id`,
   `dataset_id`, `group_id`, `capture_id`, clé de fuite et partition. Les lots
   portant un autre manifeste/plan, une prise rejouée, un `event_id` dupliqué ou
@@ -187,13 +194,11 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 ## Prochaine action réelle
 
-1. Faire relire le rapport du minage étendu : intégrité des deux artefacts,
-   24 cellules corpus × partition × cible, trois prises GuitarSet sans
-   candidat supervisé, groupes partagés Guitar-TECHS et les deux manques de la
-   porte.
-2. Définir seulement après revue une hypothèse nouvelle, train-only et
-   préenregistrée. Le résultat courant ne permet pas d'assouplir rétroactivement
-   la porte ni de relancer automatiquement.
+1. Faire relire le contrat v3 : table de comptes par corpus, sélection canonique
+   de 90 prises, sept SHA inchangés, porte à 8 inchangée et absence de fit.
+2. Après approbation seulement, synchroniser le commit revu sur le Mac puis
+   préflight une unique passe CPU train-only de 90 prises ; arrêter l'étape
+   après son corpus candidat et son rapport.
 3. Conserver le test verrouillé fermé : aucun fit, calibration, validation,
    export, live ou sélection de seuil n'est autorisé à cette étape.
 
@@ -514,6 +519,19 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
   suivante est la revue humaine du rapport
   `readme/results/2026-08-09_decoder-candidate-extended-mining-run.md` avant
   de définir une hypothèse distincte.
+- Hypothèse v3 désormais implémentée, sans calcul :
+  `configs/decoder_candidate_guitarset_expansion_policy_a_v3.json` scelle à
+  nouveau les mêmes entrées et fixe 90 prises canoniques, soit 6 par
+  corpus × partition sauf 12 pour GuitarSet. Les premiers six GuitarSet sont
+  conservés et les six suivants par partition sont ajoutés dans le même corpus
+  candidat futur ; la porte reste à 8 et `fit_authorized=false` reste
+  inconditionnel. Les schémas précédents gardent leur sélection uniforme et le
+  schéma 3 refuse une table de comptes incomplète. Compilation, `git diff
+  --check` et 67 tests synthétiques ciblés passent en 2,157 s. Aucune donnée
+  projet, inférence, minage, fit, calibration, validation, export, live ou test
+  verrouillé n'a été exécuté. La revue externe du contrat v3 est obligatoire
+  avant toute synchronisation Mac ou nouveau replay. Rapport :
+  `readme/results/2026-08-09_decoder-candidate-guitarset-expansion-hypothesis.md`.
 <!-- PROJECT_TASK:decoder_candidate_asset_evidence_contract:END -->
 <!-- JOURNAL_END -->
 ## Rapports détaillés
@@ -545,6 +563,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-09 — passe CPU du mineur borné Policy A](results/2026-08-09_decoder-candidate-bounded-mining-run.md)
 - [2026-08-09 — contrat d'extension Policy A à six prises par cellule](results/2026-08-09_decoder-candidate-expanded-policy-a-contract.md)
 - [2026-08-09 — passe CPU étendue Policy A, porte refusée](results/2026-08-09_decoder-candidate-extended-mining-run.md)
+- [2026-08-09 — hypothèse d'extension GuitarSet canonique](results/2026-08-09_decoder-candidate-guitarset-expansion-hypothesis.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.
