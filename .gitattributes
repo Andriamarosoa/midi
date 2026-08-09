@@ -12,3 +12,4 @@ configs/polyphonic_audio_evidence_adaptive_temporal.json text eol=lf
 configs/causal_candidate_fit_v1_validation_selection_12.json text eol=lf
 configs/causal_candidate_fit_v1_validation_ab_policy.json text eol=lf
 configs/causal_candidate_fit_v2_post_ranking_pre_noteon_contract.json text eol=lf
+configs/causal_candidate_fit_v2_train_dev_diagnostic_protocol.json text eol=lf

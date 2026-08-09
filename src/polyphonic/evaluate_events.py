@@ -807,8 +807,46 @@ def evaluate_events(
     causal_candidate_gate_factory: Callable[[], Callable[[CausalCandidateGateInput], bool]] | None = None,
     causal_candidate_gate_placement: str | None = None,
     causal_candidate_selection_path: Path | None = None,
+    sealed_train_only_items: Sequence[ManifestItem] | None = None,
+    sealed_train_only_corpus_opener: Callable[[ManifestItem], object] | None = None,
     write_report: bool = True,
 ) -> dict[str, object]:
+    """Evaluate note events, including one capability-bound train-only A/B.
+
+    ``sealed_train_only_items`` is intentionally not a general selection
+    mechanism.  It is available only to a separately sealed runner which
+    derives exact ``ManifestItem`` objects from an attested train-only plan and
+    supplies the matching context-managed corpus opener.  This keeps asset
+    verification at the context boundary rather than reconstructing a second,
+    path-only manifest selection inside this evaluator.
+    """
+    if (sealed_train_only_items is None) != (sealed_train_only_corpus_opener is None):
+        raise ValueError(
+            "Sealed train-only evaluation requires both items and a corpus opener."
+        )
+    sealed_train_only = sealed_train_only_items is not None
+    if sealed_train_only:
+        if causal_candidate_gate_factory is None:
+            raise ValueError("Sealed train-only evaluation requires a candidate gate.")
+        if split != "train" or dataset_id is not None:
+            raise PermissionError(
+                "Sealed train-only causal candidate evaluation requires split=train "
+                "without a dataset override."
+            )
+        if causal_candidate_selection_path is not None:
+            raise ValueError(
+                "Sealed train-only evaluation derives its cohort from the persisted plan."
+            )
+        if not sealed_train_only_items:
+            raise ValueError("Sealed train-only evaluation requires a non-empty cohort.")
+        if any(item.split != "train" for item in sealed_train_only_items):
+            raise PermissionError(
+                "Sealed train-only evaluation received a non-train manifest item."
+            )
+        if maximum_recordings not in (None, len(sealed_train_only_items)):
+            raise ValueError(
+                "Sealed train-only evaluation cohort size is derived, not caller-selected."
+            )
     if causal_candidate_gate_factory is None:
         if causal_candidate_gate_placement is not None:
             raise ValueError(
@@ -865,15 +903,23 @@ def evaluate_events(
         thresholds_path=thresholds_path,
         run_dir=run_dir,
     )
-    manifest_items = load_manifest(Path(config["dataset"]["manifest"]))
-    eligible_items = [
-        item for item in manifest_items
-        if item.split == split
-        and (dataset_id is None or item.dataset_id == dataset_id)
-    ]
-    items = select_evaluation_recordings(
-        manifest_items, split, maximum_recordings, dataset_id,
-    )
+    if sealed_train_only:
+        # These exact objects were read from one hash-attested manifest snapshot
+        # by the caller's persisted-plan context.  Do not read the manifest a
+        # second time: a fresh path-only copy could bypass asset evidence.
+        items = list(sealed_train_only_items)
+        eligible_items = list(items)
+        maximum_recordings = len(items)
+    else:
+        manifest_items = load_manifest(Path(config["dataset"]["manifest"]))
+        eligible_items = [
+            item for item in manifest_items
+            if item.split == split
+            and (dataset_id is None or item.dataset_id == dataset_id)
+        ]
+        items = select_evaluation_recordings(
+            manifest_items, split, maximum_recordings, dataset_id,
+        )
     default_checkpoint = (
         run_dir / "selected.keras"
         if (run_dir / "selected.keras").is_file()
@@ -902,19 +948,20 @@ def evaluate_events(
     if causal_candidate_gate_factory is not None:
         if paired_decoder_config_path is not None:
             raise ValueError("Causal candidate A/B cannot combine paired decoder configs.")
-        if split != "validation":
+        if not sealed_train_only and split != "validation":
             raise PermissionError("Causal candidate A/B is validation-only.")
         if audio_evidence_metadata is not None:
             raise ValueError("Causal candidate A/B forbids --audio-evidence-config.")
-        if causal_candidate_selection_path is None:
-            raise ValueError("Causal candidate A/B requires a sealed selection.")
         if not configured_decoder.is_file() or not checkpoint.is_file():
             raise FileNotFoundError("Causal candidate A/B provenance artifact missing.")
-        _assert_causal_candidate_selection(
-            causal_candidate_selection_path, Path(config["dataset"]["manifest"]), items,
-            checkpoint=checkpoint, reference_config=configured_decoder,
-            evaluation_config=resolved_config_path,
-        )
+        if not sealed_train_only:
+            if causal_candidate_selection_path is None:
+                raise ValueError("Causal candidate A/B requires a sealed selection.")
+            _assert_causal_candidate_selection(
+                causal_candidate_selection_path, Path(config["dataset"]["manifest"]), items,
+                checkpoint=checkpoint, reference_config=configured_decoder,
+                evaluation_config=resolved_config_path,
+            )
     if not checkpoint.is_file():
         raise FileNotFoundError(checkpoint)
     model = load_polyphonic_checkpoint(checkpoint)
@@ -957,22 +1004,26 @@ def evaluate_events(
     paired_causal_clips: list[ClipNoteOnData] = []
     recording_offset_s = 0.0
     for recording_index, item in enumerate(items):
-        corpus = PolyphonicCorpus([item])
-        arrays = corpus.labels[0].arrays
-        refs = np.column_stack((
-            np.zeros(len(arrays["active_bits"]), dtype=np.int32),
-            np.arange(len(arrays["active_bits"]), dtype=np.int32),
-        ))
-        sequence = PolyphonicSequence(
-            corpus,
-            batch_size=int(config["train"]["batch_size"]),
-            input_samples=int(config["dataset"]["input_samples"]),
-            normalization_gain=float(config["dataset"]["normalization_gain"]),
-            seed=0,
-            refs=refs,
-            shuffle=False,
+        corpus_context = (
+            sealed_train_only_corpus_opener(item)
+            if sealed_train_only_corpus_opener is not None
+            else PolyphonicCorpus([item])
         )
-        try:
+        with corpus_context as corpus:
+            arrays = corpus.labels[0].arrays
+            refs = np.column_stack((
+                np.zeros(len(arrays["active_bits"]), dtype=np.int32),
+                np.arange(len(arrays["active_bits"]), dtype=np.int32),
+            ))
+            sequence = PolyphonicSequence(
+                corpus,
+                batch_size=int(config["train"]["batch_size"]),
+                input_samples=int(config["dataset"]["input_samples"]),
+                normalization_gain=float(config["dataset"]["normalization_gain"]),
+                seed=0,
+                refs=refs,
+                shuffle=False,
+            )
             prediction = predict_compat(
                 inference_model, sequence, verbose=0, workers=1
             )
@@ -1015,8 +1066,6 @@ def evaluate_events(
                     causal_candidate_gate,
                     causal_candidate_gate_placement,
                 )
-        finally:
-            corpus.close()
         onset_matches = match_notes(reference, estimated)
         offset_matches = match_notes(reference, estimated, require_offset=True)
         causal_clip, causal_metrics = build_strictly_causal_noteon_clip(

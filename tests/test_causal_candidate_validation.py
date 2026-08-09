@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
+from types import SimpleNamespace
 import unittest
 from unittest import mock
 
@@ -188,6 +189,18 @@ class CausalCandidateValidationTests(unittest.TestCase):
         with mock.patch.dict("os.environ", {"MIDI_FORCE_CPU": "0"}, clear=False):
             with self.assertRaisesRegex(RuntimeError, "MIDI_FORCE_CPU=1"):
                 configure_sealed_validation_cpu_tensorflow()
+
+    def test_sealed_train_only_evaluator_rejects_a_cohort_without_a_gate_before_config_access(self) -> None:
+        from src.polyphonic.evaluate_events import evaluate_events
+
+        item = SimpleNamespace(split="train")
+        with self.assertRaisesRegex(ValueError, "requires a candidate gate"):
+            evaluate_events(
+                run_dir=Path("missing-run-dir"),
+                split="train",
+                sealed_train_only_items=(item,),
+                sealed_train_only_corpus_opener=lambda _: None,
+            )
 
     def test_decision_uses_real_causal_aggregate_schema(self) -> None:
         rules = {

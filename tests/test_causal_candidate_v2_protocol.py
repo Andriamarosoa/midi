@@ -5,6 +5,10 @@ import json
 from pathlib import Path
 import unittest
 
+from src.polyphonic.run_causal_candidate_v2_train_dev_diagnostic import (
+    V2_DIAGNOSTIC_PROTOCOL_SHA256,
+)
+
 
 class CausalCandidateV2ProtocolTests(unittest.TestCase):
     def test_train_only_dev_diagnostic_is_frozen_and_non_promotional(self) -> None:
@@ -15,7 +19,7 @@ class CausalCandidateV2ProtocolTests(unittest.TestCase):
         protocol = json.loads(protocol_path.read_text(encoding="utf-8"))
 
         self.assertEqual(
-            protocol["status"], "preregistered_contract_only_pending_external_review"
+            protocol["status"], "sealed_runner_implemented_pending_external_review"
         )
         self.assertIs(protocol["locked_test_used"], False)
         self.assertEqual(protocol["cohort"]["manifest_split"], "train")
@@ -41,6 +45,10 @@ class CausalCandidateV2ProtocolTests(unittest.TestCase):
         self.assertEqual(
             hashlib.sha256(v3_path.read_bytes()).hexdigest(),
             selection["sealed_v3_policy_sha256"],
+        )
+        self.assertEqual(
+            hashlib.sha256(protocol_path.read_bytes()).hexdigest(),
+            V2_DIAGNOSTIC_PROTOCOL_SHA256,
         )
 
     def test_v2_diagnostic_freezes_the_only_experimental_change(self) -> None:

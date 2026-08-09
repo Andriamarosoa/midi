@@ -17,9 +17,9 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-09`.
-- Étape : `causal_candidate_v2_train_dev_diagnostic_protocol`.
-- Statut : `terminé — protocole V2 train-only exploratoire préenregistré; revue externe requise avant toute implémentation ou tout calcul réel`.
-- Protocole d'exécution réelle V2, sans exécution : la première mesure proposée
+- Étape : `causal_candidate_v2_train_dev_diagnostic_runner`.
+- Statut : `terminé — runner V2 scellé implémenté et testé synthétiquement; revue externe requise avant toute exécution réelle`.
+- Runner d'exécution réelle V2, sans exécution : la première mesure proposée
   est limitée aux `30` prises canoniques V3 dont la partition préassignée est
   `dev` (`6` GAPS, `6` Guitar-TECHS DI, `6` Guitar-TECHS mic/amp, `12`
   GuitarSet). Le plan Policy A, le registre d'actifs, les artefacts V1, le
@@ -27,10 +27,17 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `post_ranking_pre_noteon` y sont gelés. Cette cohorte n'est pas indépendante,
   car elle a servi au choix de l'époque V1 : elle est explicitement
   **train-only exploratoire et non promotionnelle**, sans sélection de seuil ou
-  de modèle. Les 12 prises validation restent exclues. Aucun runner V2 ni
-  calcul n'est autorisé avant revue. `53` tests contrat/A-B/décodeur en
-  `0,405 s` et `30` tests de provenance/minage en `0,711 s` passent. Rapport :
-  `readme/results/2026-08-09_causal-candidate-v2-train-dev-diagnostic-protocol.md`.
+  de modèle. Les 12 prises validation restent exclues. Le nouveau module sans
+  CLI fixe les chemins, l'accusé worker, CPU, la tête/standardiseur V1, le
+  seuil `0,31` et le placement `post_ranking_pre_noteon`. Avant TensorFlow ou
+  un actif, il rehash le protocole LF, les artefacts V1, la politique V3, le
+  plan et le registre ; il dérive ensuite les 30 identités depuis le manifeste
+  pur, puis exige que le contexte attesté reproduise exactement cette sélection
+  avant tout chargement de modèle. Aucune exécution n'est autorisée avant revue
+  externe du runner. Compilation, `git diff --check`, `52` tests
+  A/B/V2/événements en `0,551 s` et `54` tests provenance/minage en `1,848 s`
+  passent sans ouvrir les chemins Mac scellés. Rapport :
+  `readme/results/2026-08-09_causal-candidate-v2-train-dev-diagnostic-runner-implementation.md`.
 - Intégration A/B V2 sans actif réel : chaque chemin avec une porte causale doit
   désormais déclarer explicitement son placement avant toute inférence. Le
   runner scellé V1 passe explicitement `pre_ranking`, conservant son expérience
@@ -844,6 +851,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-09 — implémentation synthétique de la porte causale V2](results/2026-08-09_causal-candidate-v2-synthetic-implementation.md)
 - [2026-08-09 — intégration A/B synthétique explicite de la porte V2](results/2026-08-09_causal-candidate-v2-synthetic-integration.md)
 - [2026-08-09 — protocole du diagnostic V2 train-only dev](results/2026-08-09_causal-candidate-v2-train-dev-diagnostic-protocol.md)
+- [2026-08-09 — implémentation du runner V2 train-only dev](results/2026-08-09_causal-candidate-v2-train-dev-diagnostic-runner-implementation.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.

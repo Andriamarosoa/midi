@@ -1,14 +1,13 @@
 {
   "schema_version": 1,
   "purpose": "causal_candidate_fit_v2_post_ranking_train_only_dev_diagnostic",
-  "status": "preregistered_contract_only_pending_external_review",
+  "status": "sealed_runner_implemented_pending_external_review",
   "locked_test_used": false,
   "authorization_scope": {
     "allowed_now": [
       "external_review"
     ],
     "forbidden_now": [
-      "runner_implementation",
       "real_audio_or_label_access",
       "model_loading",
       "fit",
@@ -119,5 +118,5 @@
     "historical_validation_reuse": false,
     "interpretation": "Descriptive train-only V2 placement evidence only. Any apparent gain, loss, or latency change requires separate review before another experiment."
   },
-  "next_action": "External review of this protocol only. No runner implementation or real V2 execution is authorized."
+  "next_action": "External review of the sealed V2 runner and its synthetic tests. No real V2 execution is authorized until that review explicitly approves the worker invocation."
 }

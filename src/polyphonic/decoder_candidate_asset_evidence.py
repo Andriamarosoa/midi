@@ -11,10 +11,16 @@ import json
 import os
 from pathlib import Path
 import re
+from typing import TYPE_CHECKING
 import weakref
 
-from .data import ManifestItem
 from .decoder_candidate_provenance import ValidatedDecoderCandidateManifestSnapshot
+
+if TYPE_CHECKING:
+    # ``data`` imports TensorFlow.  Loading or validating the serialized asset
+    # registry must remain a pure provenance operation which precedes the CPU
+    # TensorFlow preflight in every sealed runner.
+    from .data import ManifestItem
 
 
 DECODER_CANDIDATE_ASSET_EVIDENCE_SCHEMA_VERSION = 1
@@ -197,6 +203,11 @@ def build_decoder_candidate_asset_evidence(
     validated_snapshot: ValidatedDecoderCandidateManifestSnapshot,
 ) -> DecoderCandidateAssetEvidence:
     """Hash only train assets referenced by one already validated snapshot."""
+    # Asset generation is an explicitly later operation.  Keep the runtime
+    # import here so loading an existing immutable registry never imports the
+    # TensorFlow-backed data module.
+    from .data import ManifestItem
+
     items: list[DecoderCandidateAssetEvidenceEntry] = []
     digest_cache: dict[Path, tuple[int, str]] = {}
 
