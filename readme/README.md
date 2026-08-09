@@ -17,8 +17,8 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `causal_candidate_v2_independent_validation_asset_evidence_builder_authorization`.
-- Statut : `terminé — autorisation séparée et scellée du seul builder byte-level; revue externe requise avant tout hachage d'actif réel`.
+- Étape : `causal_candidate_v2_independent_validation_asset_evidence_built`.
+- Statut : `terminé — unique registre byte-level publié; builder refermé et revue externe requise avant tout lecteur ou calcul`.
 - Anomalie pré-métrique V2 vérifiée : le job unique
   `causal-candidate-v2-train-dev-cpu-20260809`, lancé au commit approuvé
   `ddd15be4fbf7e47205a0025f80821e2446ef9720` avec CPU et `900 s`, termine
@@ -150,6 +150,21 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   verrouillé restent interdits. Ce commit ne lance pas le builder et n'ouvre
   aucun actif projet. Rapport :
   `readme/results/2026-08-10_causal-candidate-v2-independent-validation-asset-evidence-builder-authorization.md`.
+- Construction unique de la preuve d'actifs V2 indépendante : après préflight
+  Mac propre au commit `e241bd8`, le builder byte-level autorisé a haché sans
+  décodage les `30` audio et `30` labels de la cohorte scellée, puis publié le
+  JSON canonique immuable à
+  `/Users/amcarene/midi/tmp/local/causal_candidate_v2_independent_validation_asset_evidence_20260810.json`.
+  Le registre fait `17 873` octets, SHA-256
+  `10307a642185b3ef64a15a1120ec44ea4460c5875018b02fdaa7a18512822aee`,
+  est lié au manifeste `b28cb17c…f1b8ed7` et au protocole builder
+  `d63655c3…9ba015`; aucun fichier `.part` ne subsiste et le worktree Mac est
+  propre. Le protocole courant est aussitôt refermé (SHA-256
+  `79c11de0…5cd0e7`, builder/reader `false/false`) afin d'interdire toute
+  seconde construction avant revue. Aucun JSON n'est lu/validé, aucun modèle,
+  checkpoint, TensorFlow, inférence, évaluation, fit, calibration, export,
+  live ou test verrouillé n'est utilisé. Rapport :
+  `readme/results/2026-08-10_causal-candidate-v2-independent-validation-asset-evidence-build.md`.
 - Correctif d'intégration V2 sans calcul : le worker Windows n'autorise
   désormais l'accusé dédié qu'au module exact
   `src.polyphonic.run_causal_candidate_v2_train_dev_diagnostic`, avec CPU,

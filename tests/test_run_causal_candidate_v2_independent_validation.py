@@ -369,7 +369,7 @@ class IndependentV2ValidationRunnerTests(unittest.TestCase):
                 reference=reference, candidate=candidate, rules=rules,
             )
 
-    def test_versioned_contract_declares_the_group_level_scope_and_builder_only_state(self) -> None:
+    def test_versioned_contract_closes_builder_after_publication_pending_review(self) -> None:
         root = Path(__file__).resolve().parents[1]
         protocol = json.loads((
             root / runner.INDEPENDENT_V2_PROTOCOL_RELATIVE_PATH
@@ -384,7 +384,7 @@ class IndependentV2ValidationRunnerTests(unittest.TestCase):
             runner.INDEPENDENT_V2_ALLOWED_NOW,
         )
         evidence_contract = protocol["validation_asset_evidence_contract"]
-        self.assertTrue(evidence_contract["builder_authorized_now"])
+        self.assertFalse(evidence_contract["builder_authorized_now"])
         self.assertFalse(evidence_contract["reader_authorized_now"])
         self.assertIsNone(evidence_contract["source_evidence_protocol_sha256"])
         self.assertIsNone(evidence_contract["expected_evidence_sha256"])

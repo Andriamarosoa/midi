@@ -1,13 +1,14 @@
 {
   "schema_version": 1,
   "purpose": "causal_candidate_fit_v2_post_ranking_independent_validation_contract",
-  "status": "independent_validation_asset_evidence_builder_authorized",
+  "status": "independent_validation_asset_evidence_built_pending_external_review",
   "locked_test_used": false,
   "authorization_scope": {
     "allowed_now": [
-      "independent_validation_asset_evidence_build"
+      "external_review"
     ],
     "forbidden_now": [
+      "independent_validation_asset_evidence_build",
       "asset_evidence_reader_or_validation",
       "asset_content_decoding",
       "model_loading",
@@ -131,7 +132,7 @@
       "ordered_recording_keys_sha256",
       "recording_keys"
     ],
-    "builder_authorized_now": true,
+    "builder_authorized_now": false,
     "reader_authorized_now": false,
     "source_evidence_protocol_sha256": null,
     "expected_evidence_sha256": null
@@ -169,5 +170,5 @@
     "guitarset_claim_forbidden": true,
     "automatic_promotion": false
   },
-  "next_action": "Execute exactly one separately reviewed, byte-level asset-evidence builder for the fixed 30-recording independent validation cohort; it may hash and atomically publish only those 30 audio and 30 label files. Reader/validation, model loading, decoding, evaluation, fit, calibration, export, live use and locked-test access remain forbidden until a separate reader protocol seals the resulting evidence SHA-256."
+  "next_action": "External review of the uniquely published independent-validation asset-evidence register only. No second builder invocation is authorized. A future reader protocol must separately seal both the register SHA-256 and the source builder-protocol SHA-256 before any registry read, validation, asset opening, model loading, evaluation, fit, calibration, export, live use or locked-test access."
 }
