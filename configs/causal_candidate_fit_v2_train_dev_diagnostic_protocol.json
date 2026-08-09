@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "purpose": "causal_candidate_fit_v2_post_ranking_train_only_dev_diagnostic",
+  "status": "preregistered_contract_only_pending_external_review",
+  "locked_test_used": false,
+  "authorization_scope": {
+    "allowed_now": [
+      "external_review"
+    ],
+    "forbidden_now": [
+      "runner_implementation",
+      "real_audio_or_label_access",
+      "model_loading",
+      "fit",
+      "recalibration",
+      "threshold_search",
+      "historical_validation_ab",
+      "export",
+      "live",
+      "locked_test"
+    ]
+  },
+  "scientific_question": "With the frozen V1 head and threshold, does post-ranking/pre-NoteOn placement change emitted MIDI events on a train-only diagnostic cohort?",
+  "cohort": {
+    "manifest_split": "train",
+    "partition": "dev",
+    "classification": "train_only_exploratory_non_promotional",
+    "independence_limit": "The V1 checkpoint epoch was chosen with this dev partition. V2 results are a placement diagnostic only, not an independent validation and not a basis for threshold, model, or product selection.",
+    "historical_validation_recordings_used": 0,
+    "historical_validation_selection_sha256": "8c3cf53c7f5dcf086b70767e28499c3164aa307059652a6d0a2fc87159f9dcbc",
+    "selection_source": {
+      "sealed_v3_policy_relative_path": "configs/decoder_candidate_guitarset_expansion_policy_a_v3.json",
+      "sealed_v3_policy_sha256": "db55930a9faadc12fb7b08e52e0baac3543e3d5cb654844ea93e0d727a563683",
+      "partition_plan_sha256": "a8347e4e6300dc59b48eab253186fd60ae21cd769fa21d647db4d7e0893685f4",
+      "asset_evidence_sha256": "12dd74f2c868d884f9189e1c8d07c1e7e1cec4e984fda5a68ce434c05e586507",
+      "selection_rule": "Use exactly the deterministic V3 canonical recordings whose preassigned partition is dev: six gaps_poly_mix, six guitar_techs_poly_directinput, six guitar_techs_poly_micamp, and twelve guitarset_poly_mix recordings.",
+      "recording_count": 30,
+      "recordings_per_dataset": {
+        "gaps_poly_mix": 6,
+        "guitar_techs_poly_directinput": 6,
+        "guitar_techs_poly_micamp": 6,
+        "guitarset_poly_mix": 12
+      },
+      "group_safety": "The persisted Policy A plan must be reloaded and attest each selected train/dev recording before any audio or label access. No manually supplied subset is permitted."
+    }
+  },
+  "frozen_v1_artifacts": {
+    "fit_runner_commit": "578a9d6583b2e5a68a312bd8dccf8e19a77b58b7",
+    "fit_report_sha256": "b8148fade0d72c6d20d64f31fbaf9983b748997ba16f5664c525bcc41ae9b759",
+    "model_sha256": "b9320cd004ed686720e282e4338c4a6413c2ef3dd701d421de3533f710d8a59e",
+    "standardizer_sha256": "0600aa1aa75eb008f04e299de3ffe9d7b6b0a722b177750b42e0967740df5e3b",
+    "threshold": 0.31,
+    "transcription_checkpoint_sha256": "1ce8ac44ca7156d4bc058b5b37580805f2ab6536b380636c04b9a31b1a411325",
+    "evaluation_config_sha256": "245285783eb395e1c16f9773cf9a15565510ba289467d63ad6a7d725bae19804",
+    "reference_decoder_config_sha256": "c16be48271912c99c4237345e8406e39b88490b5565047757f6ca9e905615f96",
+    "audio_evidence_config_sha256": "45edbb712415c5b62f10a1405678fc28cee083891131108b2875ce8f71abcd3e",
+    "manifest_sha256": "b28cb17cfb80a82860ab44635b2c6d05718243e027a8fc8199fe72e27f1b8ed7"
+  },
+  "decoder_ab_contract": {
+    "single_transcription_inference_per_recording": true,
+    "same_transcription_predictions_reused_across_ab": true,
+    "same_base_decoder_config": true,
+    "same_audio_evidence_masks_reused_across_ab": true,
+    "audio_evidence_override_forbidden": true,
+    "independent_decoder_state_after_divergence": true,
+    "reference": {
+      "causal_candidate_gate": null
+    },
+    "candidate": {
+      "causal_candidate_gate_placement": "post_ranking_pre_noteon",
+      "threshold": 0.31,
+      "head_and_standardizer": "exactly_frozen_v1_artifacts",
+      "feature_vector": "exactly_the_12_frozen_v1_pre_ranking_features",
+      "selected_population_only": true,
+      "same_hop_backfill_after_rejection": false
+    }
+  },
+  "required_preflight_for_a_future_runner": [
+    "require_a_separately_reviewed_sealed_v2_runner_before_any_execution",
+    "require_cpu_worker_acknowledgement_and_no_active_heavy_job",
+    "require_clean_exact_git_worktree_and_a_fresh_destination",
+    "verify_all_frozen_v1_artifact_hashes_before_tensorflow_or_audio_label_access",
+    "verify_sealed_v3_policy_bytes_then_reload_the_persisted_policy_a_plan_and_asset_registry",
+    "derive_and_verify_exactly_the_30_dev_recordings_from_the_sealed_v3_rule_before_model_loading",
+    "reject_any_historical_validation_or_locked_test_item_before_inference",
+    "assert_candidate_gate_placement_equals_post_ranking_pre_noteon_before_model_loading"
+  ],
+  "required_report_for_a_future_run": {
+    "provenance": [
+      "git_commit",
+      "worker_device",
+      "all_frozen_artifact_sha256",
+      "v3_policy_plan_and_asset_evidence_sha256",
+      "30_recording_identities_and_dataset_counts",
+      "candidate_gate_placement",
+      "locked_test_used"
+    ],
+    "paired_metrics": [
+      "onset",
+      "onset_offset",
+      "strictly_causal_noteon",
+      "strictly_causal_latency",
+      "retriggers",
+      "diagnostics",
+      "low_midi_40_51",
+      "causal_candidate_gate_diagnostics",
+      "paired_event_deltas"
+    ],
+    "granularity": [
+      "global",
+      "per_dataset",
+      "per_recording"
+    ],
+    "stop_after_report": true
+  },
+  "decision_policy": {
+    "automatic_promotion": false,
+    "threshold_or_model_selection": false,
+    "historical_validation_reuse": false,
+    "interpretation": "Descriptive train-only V2 placement evidence only. Any apparent gain, loss, or latency change requires separate review before another experiment."
+  },
+  "next_action": "External review of this protocol only. No runner implementation or real V2 execution is authorized."
+}

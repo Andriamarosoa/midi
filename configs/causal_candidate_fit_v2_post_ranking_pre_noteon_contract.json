@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "purpose": "causal_candidate_fit_v2_post_ranking_pre_noteon_contract",
-  "status": "synthetic_decoder_and_ab_integration_pending_external_review",
+  "status": "synthetic_decoder_and_ab_integration_externally_reviewed",
   "locked_test_used": false,
   "authorization_scope": {
     "allowed_now": [
@@ -148,5 +148,5 @@
     "retrigger_behavior_is_unchanged",
     "no_new_lookahead_buffering_or_hop_latency"
   ],
-  "next_action": "External review of the synthetic V2 decoder and A/B integration only. No model, artifact, data access, historical validation, fit, calibration, export, live use, or locked test is authorized."
+  "next_action": "The separately versioned V2 train-only dev diagnostic protocol is the next contract to review. No model, artifact, data access, historical validation, fit, calibration, export, live use, or locked test is authorized."
 }

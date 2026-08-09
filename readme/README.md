@@ -17,8 +17,20 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-09`.
-- Étape : `causal_candidate_v2_synthetic_integration`.
-- Statut : `terminé — V2 et son branchement A/B sont vérifiés synthétiquement; revue externe requise avant tout calcul réel`.
+- Étape : `causal_candidate_v2_train_dev_diagnostic_protocol`.
+- Statut : `terminé — protocole V2 train-only exploratoire préenregistré; revue externe requise avant toute implémentation ou tout calcul réel`.
+- Protocole d'exécution réelle V2, sans exécution : la première mesure proposée
+  est limitée aux `30` prises canoniques V3 dont la partition préassignée est
+  `dev` (`6` GAPS, `6` Guitar-TECHS DI, `6` Guitar-TECHS mic/amp, `12`
+  GuitarSet). Le plan Policy A, le registre d'actifs, les artefacts V1, le
+  seuil `0,31`, les masques audio et le placement
+  `post_ranking_pre_noteon` y sont gelés. Cette cohorte n'est pas indépendante,
+  car elle a servi au choix de l'époque V1 : elle est explicitement
+  **train-only exploratoire et non promotionnelle**, sans sélection de seuil ou
+  de modèle. Les 12 prises validation restent exclues. Aucun runner V2 ni
+  calcul n'est autorisé avant revue. `53` tests contrat/A-B/décodeur en
+  `0,405 s` et `30` tests de provenance/minage en `0,711 s` passent. Rapport :
+  `readme/results/2026-08-09_causal-candidate-v2-train-dev-diagnostic-protocol.md`.
 - Intégration A/B V2 sans actif réel : chaque chemin avec une porte causale doit
   désormais déclarer explicitement son placement avant toute inférence. Le
   runner scellé V1 passe explicitement `pre_ranking`, conservant son expérience
@@ -831,6 +843,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-09 — hypothèse V2 de porte causale post-ranking](results/2026-08-09_causal-candidate-v2-post-ranking-hypothesis.md)
 - [2026-08-09 — implémentation synthétique de la porte causale V2](results/2026-08-09_causal-candidate-v2-synthetic-implementation.md)
 - [2026-08-09 — intégration A/B synthétique explicite de la porte V2](results/2026-08-09_causal-candidate-v2-synthetic-integration.md)
+- [2026-08-09 — protocole du diagnostic V2 train-only dev](results/2026-08-09_causal-candidate-v2-train-dev-diagnostic-protocol.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.
