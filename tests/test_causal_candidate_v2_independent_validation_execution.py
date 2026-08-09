@@ -4,7 +4,6 @@ from pathlib import Path
 import subprocess
 import sys
 import unittest
-import hashlib
 
 from src.polyphonic import run_causal_candidate_v2_independent_validation_execution as runner
 
@@ -63,6 +62,14 @@ class IndependentV2ExecutionRunnerTests(unittest.TestCase):
         self.assertEqual(runner.phase_order()[:4], ("authorization", "contract", "runtime", "cohort"))
         self.assertEqual(runner.phase_order()[-3:], ("ab", "metrics", "report"))
 
+    def test_phase_callbacks_are_observed_in_order(self) -> None:
+        observed = []
+        hooks = runner.IndependentV2ExecutionHooks(
+            **{name: (lambda name=name: observed.append(name)) for name in runner.phase_order()}
+        )
+        self.assertEqual(runner.run_phase_sequence(hooks), runner.phase_order())
+        self.assertEqual(tuple(observed), runner.phase_order())
+
     def test_state_machine_is_one_shot(self) -> None:
         state = runner.OneShotStateMachine()
         state.advance(runner.OneShotPhase.SCIENTIFIC_ASSET_OPENED)
@@ -110,12 +117,12 @@ class IndependentV2ExecutionRunnerTests(unittest.TestCase):
 
     def test_frozen_artifact_hashes_reject_mutation(self) -> None:
         raw = b"synthetic"
-        expected = {name: hashlib.sha256(raw).hexdigest() for name in runner.FROZEN_ARTIFACT_NAMES}
-        runner.validate_frozen_artifact_hashes({name: raw for name in runner.FROZEN_ARTIFACT_NAMES}, expected)
-        broken = dict(expected)
-        broken[runner.FROZEN_ARTIFACT_NAMES[0]] = "0" * 64
         with self.assertRaisesRegex(ValueError, "SHA mismatch"):
-            runner.validate_frozen_artifact_hashes({name: raw for name in runner.FROZEN_ARTIFACT_NAMES}, broken)
+            runner.validate_frozen_artifact_hashes({name: raw for name in runner.FROZEN_ARTIFACT_NAMES})
+        broken = {name: raw for name in runner.FROZEN_ARTIFACT_NAMES}
+        broken[runner.FROZEN_ARTIFACT_NAMES[0]] = b"changed"
+        with self.assertRaisesRegex(ValueError, "SHA mismatch"):
+            runner.validate_frozen_artifact_hashes(broken)
 
 
 if __name__ == "__main__":

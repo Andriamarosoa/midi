@@ -18,6 +18,7 @@ import weakref
 
 from .causal_candidate_v2_independent_validation_execution_contract import (
     IndependentV2ExecutionContract,
+    INDEPENDENT_V2_FROZEN_ARTIFACT_SHA256,
     load_sealed_independent_v2_execution_contract,
     require_sealed_independent_v2_execution_contract,
 )
@@ -108,11 +109,12 @@ def validate_runtime_preflight(
         raise ValueError("repository root is required")
 
 
-def validate_frozen_artifact_hashes(artifacts: Mapping[str, bytes], expected: Mapping[str, str]) -> None:
+def validate_frozen_artifact_hashes(artifacts: Mapping[str, bytes]) -> None:
     for name in FROZEN_ARTIFACT_NAMES:
-        if name not in artifacts or name not in expected:
+        if name not in artifacts:
             raise ValueError(f"missing frozen artifact: {name}")
-        if hashlib.sha256(artifacts[name]).hexdigest() != expected[name]:
+        expected = INDEPENDENT_V2_FROZEN_ARTIFACT_SHA256[name]
+        if hashlib.sha256(artifacts[name]).hexdigest() != expected:
             raise ValueError(f"frozen artifact SHA mismatch: {name}")
 
 
@@ -171,6 +173,41 @@ def phase_order() -> tuple[str, ...]:
 
 
 @dataclass(frozen=True)
+class IndependentV2ExecutionHooks:
+    """Pure orchestration callbacks; scientific loading remains unreachable."""
+
+    authorization: object
+    contract: object
+    runtime: object
+    cohort: object
+    evidence: object
+    asset_hashes: object
+    artifact_hashes: object
+    lazy_science: object
+    open: object
+    inference: object
+    ab: object
+    metrics: object
+    report: object
+
+
+def run_phase_sequence(hooks: IndependentV2ExecutionHooks) -> tuple[str, ...]:
+    """Invoke the sealed phase order and return observed callbacks.
+
+    This is a testable orchestration seam.  Production scientific callbacks are
+    intentionally absent until a separately reviewed capability factory exists.
+    """
+    observed: list[str] = []
+    for name in phase_order():
+        callback = getattr(hooks, name)
+        if not callable(callback):
+            raise TypeError(f"phase callback is not callable: {name}")
+        callback()
+        observed.append(name)
+    return tuple(observed)
+
+
+@dataclass(frozen=True)
 class IndependentV2OneJobCapability:
     """Placeholder for a future factory-attested execution authorization.
 
@@ -223,8 +260,8 @@ def run_authorized_independent_v2(
 ) -> None:
     """Guard the future scientific path; the capability factory is absent."""
 
-    contract = _require_execution_contract(repository_root)
     require_sealed_one_job_capability(capability)
+    contract = _require_execution_contract(repository_root)
     if contract is None:  # pragma: no cover - defensive unreachable branch
         raise RuntimeError("Fail closed: missing execution contract.")
     raise RuntimeError(
@@ -255,6 +292,8 @@ __all__ = [
     "evaluate_future_report_decision",
     "classify_failure",
     "phase_order",
+    "IndependentV2ExecutionHooks",
+    "run_phase_sequence",
     "validate_frozen_artifact_hashes",
     "validate_future_report",
     "validate_runtime_preflight",
