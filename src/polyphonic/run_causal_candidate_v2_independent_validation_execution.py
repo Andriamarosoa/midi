@@ -13,7 +13,7 @@ from enum import Enum
 import hashlib
 import math
 from pathlib import Path
-from typing import Callable, Mapping, Sequence
+from typing import Mapping, Protocol, Sequence
 import weakref
 
 from .causal_candidate_v2_independent_validation_execution_contract import (
@@ -171,9 +171,7 @@ def validate_future_report(report: Mapping[str, object]) -> None:
         raise ValueError("future report recording identities are incomplete")
     if not isinstance(groups, Sequence) or isinstance(groups, (str, bytes)) or len(groups) != 20 or len(set(groups)) != 20:
         raise ValueError("future report leakage groups are incomplete")
-    hierarchy = report.get("hierarchy")
-    if hierarchy is not None:
-        _validate_report_hierarchy(hierarchy, recordings, groups)
+    _validate_report_hierarchy(report.get("hierarchy"), recordings, groups)
 
 
 def _validate_metric_map(values: object) -> None:
@@ -253,37 +251,56 @@ def run_phase_sequence(hooks: IndependentV2ExecutionHooks) -> tuple[str, ...]:
     return tuple(observed)
 
 
-def _build_production_execution_hooks(
-    paths: IndependentV2ExecutionPaths,
-    capability: IndependentV2OneJobCapability,
-) -> IndependentV2ExecutionHooks:
-    """Wire only sealed production primitives; never invoked without capability."""
-    state: dict[str, object] = {"one_shot": OneShotStateMachine()}
-    def authorization() -> None: require_sealed_one_job_capability(capability)
-    def contract() -> None: state["contract"] = _require_execution_contract(paths.repository_root)
-    def runtime() -> None: validate_runtime_preflight(state["contract"], capability, repository_root=paths.repository_root, git_commit=capability.runner_commit, device="cpu", timeout_seconds=900, destination_exists=paths.destination.exists(), heavy_job_active=paths.lock_path.exists(), worktree_clean=True)
-    def cohort() -> None:
-        from .run_causal_candidate_v2_independent_validation import load_sealed_independent_v2_validation_cohort, require_sealed_independent_v2_validation_cohort, validation_asset_evidence_requirement
-        checked = require_sealed_independent_v2_validation_cohort(load_sealed_independent_v2_validation_cohort(paths.repository_root))
-        state["cohort"] = checked; state["evidence_requirement"] = validation_asset_evidence_requirement(checked)
-    def evidence() -> None:
-        from .causal_candidate_v2_independent_asset_evidence import load_independent_v2_validation_asset_evidence, validate_independent_v2_validation_asset_evidence
-        # Snapshot is intentionally unavailable until future approved runtime wiring.
-        state["evidence_loader"] = (load_independent_v2_validation_asset_evidence, validate_independent_v2_validation_asset_evidence)
-    def asset_hashes() -> None: return None
-    def artifact_hashes() -> None: validate_frozen_artifact_hashes({})
-    def lazy_science() -> None: _load_scientific_runtime_after_all_gates()
-    def open_() -> None: return None
-    def inference() -> None: return None
-    def ab() -> None: state["one_shot"].advance(OneShotPhase.SCIENTIFIC_ASSET_OPENED); state["one_shot"].advance(OneShotPhase.INFERENCE_STARTED); state["one_shot"].advance(OneShotPhase.AB_METRIC_PRODUCED)
-    def metrics() -> None: return None
-    def report() -> None: state["one_shot"].advance(OneShotPhase.COHORT_CONSUMED); state["one_shot"].advance(OneShotPhase.REPORT_WRITTEN)
-    return IndependentV2ExecutionHooks(authorization, contract, runtime, cohort, evidence, asset_hashes, artifact_hashes, lazy_science, open_, inference, ab, metrics, report)
+class IndependentV2SystemProbe(Protocol):
+    def git_head(self, root: Path) -> str: ...
+    def worktree_clean(self, root: Path) -> bool: ...
+    def read_bytes(self, path: Path) -> bytes: ...
+    def destination_exists(self, path: Path) -> bool: ...
+    def heavy_job_active(self, path: Path) -> bool: ...
 
 
-def _load_scientific_runtime_after_all_gates() -> None:
-    """Explicit lazy boundary; unavailable until a separately reviewed factory exists."""
-    raise RuntimeError("scientific runtime remains unavailable without one-job authorization")
+class IndependentV2ScientificAdapter(Protocol):
+    def manifest_snapshot(self, path: Path) -> object: ...
+    def items(self, cohort: object, snapshot: object) -> Sequence[object]: ...
+    def open_exact_item(self, item: object) -> object: ...
+    def infer_once(self, opened: object) -> object: ...
+    def audio_masks_once(self, opened: object) -> object: ...
+    def decode_ab(self, predictions: object, masks: object) -> object: ...
+    def accumulate(self, result: object) -> None: ...
+    def final_report(self) -> Mapping[str, object]: ...
+
+
+def _run_sealed_independent_v2_execution(paths: IndependentV2ExecutionPaths, capability: object, *, system_probe: IndependentV2SystemProbe, scientific_adapter: IndependentV2ScientificAdapter) -> Mapping[str, object]:
+    """Single direct future production sequence, injectable only for synthetic tests."""
+    cap = require_sealed_one_job_capability(capability)
+    contract = _require_execution_contract(paths.repository_root)
+    if Path(cap.destination).resolve() != paths.destination:
+        raise ValueError("capability destination differs from sealed path")
+    validate_runtime_preflight(contract, cap, repository_root=paths.repository_root, git_commit=system_probe.git_head(paths.repository_root), device="cpu", timeout_seconds=900, destination_exists=system_probe.destination_exists(paths.destination), heavy_job_active=system_probe.heavy_job_active(paths.lock_path), worktree_clean=system_probe.worktree_clean(paths.repository_root))
+    from .run_causal_candidate_v2_independent_validation import load_sealed_independent_v2_validation_cohort, require_sealed_independent_v2_validation_cohort, validation_asset_evidence_requirement
+    cohort = require_sealed_independent_v2_validation_cohort(load_sealed_independent_v2_validation_cohort(paths.repository_root, paths.manifest_path))
+    requirement = validation_asset_evidence_requirement(cohort)
+    snapshot = scientific_adapter.manifest_snapshot(paths.manifest_path)
+    from .causal_candidate_v2_independent_asset_evidence import load_independent_v2_validation_asset_evidence, validate_independent_v2_validation_asset_evidence, verify_independent_v2_validation_audio_asset_for_item, verify_independent_v2_validation_label_asset_for_item
+    persisted = load_independent_v2_validation_asset_evidence(paths.asset_evidence_path, cohort, requirement)
+    evidence = validate_independent_v2_validation_asset_evidence(persisted, cohort, snapshot, requirement)
+    artifact_paths = dict(zip(FROZEN_ARTIFACT_NAMES, (paths.checkpoint_path, paths.model_path, paths.standardizer_path, paths.audio_evidence_config_path, paths.evaluation_config_path, paths.reference_decoder_config_path)))
+    validate_frozen_artifact_hashes({name: system_probe.read_bytes(path) for name, path in artifact_paths.items()})
+    state = OneShotStateMachine()
+    for item in scientific_adapter.items(cohort, snapshot):
+        verify_independent_v2_validation_audio_asset_for_item(evidence, item)
+        verify_independent_v2_validation_label_asset_for_item(evidence, item)
+        opened = scientific_adapter.open_exact_item(item)
+        if state.phase == OneShotPhase.PRE_SCIENCE: state.advance(OneShotPhase.SCIENTIFIC_ASSET_OPENED)
+        predictions = scientific_adapter.infer_once(opened)
+        if state.phase == OneShotPhase.SCIENTIFIC_ASSET_OPENED: state.advance(OneShotPhase.INFERENCE_STARTED)
+        masks = scientific_adapter.audio_masks_once(opened)
+        result = scientific_adapter.decode_ab(predictions, masks)
+        scientific_adapter.accumulate(result)
+        if state.phase == OneShotPhase.INFERENCE_STARTED: state.advance(OneShotPhase.AB_METRIC_PRODUCED)
+    report = scientific_adapter.final_report()
+    validate_future_report(report)
+    return report
 
 
 @dataclass(frozen=True)

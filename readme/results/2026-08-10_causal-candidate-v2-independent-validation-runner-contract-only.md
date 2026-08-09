@@ -13,11 +13,12 @@ main, un appel à `main()`, un booléen, un chemin ou une variable d'environneme
 ne peuvent donc pas ouvrir d'actif, charger TensorFlow ou produire une
 métrique.
 
-Vérifications contract-only : py_compile OK ; 28 tests ciblés OK ;
-`git diff --check` OK. Mise à jour d'intégration : les hooks de production sont
-construits dans le runner autour des APIs de cohorte et d'evidence déjà scellées,
-mais restent inatteignables sans capability one-job. Le rapport hiérarchique
-reference/candidate/delta est validé fail-closed lorsqu'il est fourni. Aucun audio, label, manifeste scientifique, registre,
+Vérifications contract-only : py_compile OK ; 11 tests ciblés OK ;
+`git diff --check` OK. Mise à jour d'intégration : l'orchestrateur production
+est désormais une séquence directe qui appelle les APIs de cohorte et d'evidence
+déjà scellées. Il reste inatteignable sans capability one-job. Le rapport
+hiérarchique reference/candidate/delta est obligatoire et validé fail-closed.
+Aucun audio, label, manifeste scientifique, registre,
 modèle, checkpoint, TensorFlow, inférence, métrique, job Mac, fit, calibration,
 export, live ou test verrouillé n'a été utilisé.
 

@@ -17,8 +17,8 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `causal_candidate_v2_independent_validation_execution_contract`.
-- Statut : `en cours — contrat d'exécution déclaratif scellé; revue externe requise, sans runner ni calcul réel`.
+- Étape : `causal_candidate_v2_independent_validation_execution_runner_pending_external_review`.
+- Statut : `en cours — orchestrateur séquentiel direct implémenté sans factory one-job ni calcul réel; revue externe requise`.
 - Anomalie pré-métrique V2 vérifiée : le job unique
   `causal-candidate-v2-train-dev-cpu-20260809`, lancé au commit approuvé
   `ddd15be4fbf7e47205a0025f80821e2446ef9720` avec CPU et `900 s`, termine

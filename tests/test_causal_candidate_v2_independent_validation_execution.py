@@ -9,6 +9,10 @@ from src.polyphonic import run_causal_candidate_v2_independent_validation_execut
 
 
 class IndependentV2ExecutionRunnerTests(unittest.TestCase):
+    @staticmethod
+    def _hierarchy(recordings, groups):
+        metrics = {name: 0.0 for name in runner.REPORT_METRICS}
+        return {view: {"global": dict(metrics), "per_dataset": {x: dict(metrics) for x in runner.REPORT_DATASETS}, "per_recording": {x: dict(metrics) for x in recordings}, "per_independent_leakage_group": {x: dict(metrics) for x in groups}} for view in runner.REPORT_VIEWS}
     def test_import_has_no_tensorflow_or_scientific_modules(self) -> None:
         code = (
             "import sys; "
@@ -94,6 +98,7 @@ class IndependentV2ExecutionRunnerTests(unittest.TestCase):
             "recording_identities": [f"recording-{i}" for i in range(30)],
             "independent_leakage_groups": [f"group-{i}" for i in range(20)],
         }
+        base["hierarchy"] = self._hierarchy(base["recording_identities"], base["independent_leakage_groups"])
         runner.validate_future_report(base)
         broken = dict(base)
         broken["metrics"] = runner.REPORT_METRICS[:-1]
