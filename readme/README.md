@@ -16,11 +16,18 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-08-09T09:20:51+04:00`.
-- Étape : `decoder_candidate_bounded_train_only_mining`.
-- Statut : `en cours : la revue de 9ed93e7 approuve le minage, mais le
-  préflight Mac a révélé une empreinte CRLF/LF non portable; correctif sans
-  replay à revoir avant l'unique exécution Mac`.
+- Mise à jour : `2026-08-09T22:18:38+04:00`.
+- Étape : `decoder_candidate_extended_train_only_mining`.
+- Statut : `terminé — passe CPU de 72 prises complète, mais porte de
+  représentation refusée ; aucun fit autorisé`.
+- Résultat vérifié : le job Mac `decoder-candidate-extended-mining-cpu-20260809`
+  a terminé sans erreur au commit `42a88b0d…`, avec `locked_test_used=false`,
+  3 057 candidats supervisés (639 positifs, 2 418 négatifs), zéro perte et
+  aucun `event_id` dupliqué. La porte échoue uniquement pour les positifs
+  GuitarSet `dev=6` et `calibration=7`, sous le minimum préenregistré de 8.
+  Aucun fit, calibration, validation, export, live, choix de seuil ou test
+  verrouillé n'est donc autorisé. Rapport :
+  `readme/results/2026-08-09_decoder-candidate-extended-mining-run.md`.
 - Résultat scientifique conservé : la tête `independent_note` précédente reste
   un résultat négatif, saturé près de 1, et ne doit promouvoir ni checkpoint ni
   seuil. Le test verrouillé reste fermé.
@@ -180,14 +187,15 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 ## Prochaine action réelle
 
-1. Faire relire le correctif portable CRLF/LF des configurations scellées ; il
-   doit préserver les mêmes sept artefacts logiques, le CPU strict, les 12
-   prises et l'absence de tout fit.
-2. Après approbation seulement, synchroniser le commit revu sur le Mac puis
-   exécuter une unique passe train-only bornée. Inspecter les compteurs avant
-   toute discussion d'entraînement.
-3. Conserver le test verrouillé fermé; aucun entraînement, validation, export,
-   live ou sélection de seuil n'est autorisé par cette étape.
+1. Faire relire le rapport du minage étendu : intégrité des deux artefacts,
+   24 cellules corpus × partition × cible, trois prises GuitarSet sans
+   candidat supervisé, groupes partagés Guitar-TECHS et les deux manques de la
+   porte.
+2. Définir seulement après revue une hypothèse nouvelle, train-only et
+   préenregistrée. Le résultat courant ne permet pas d'assouplir rétroactivement
+   la porte ni de relancer automatiquement.
+3. Conserver le test verrouillé fermé : aucun fit, calibration, validation,
+   export, live ou sélection de seuil n'est autorisé à cette étape.
 
 ## État archivé — dual-stream du 30 juillet (remplacé)
 
@@ -492,6 +500,20 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
   revue ChatGPT de ce nouveau contrat est obligatoire avant tout second minage.
   Aucun fit, calibration, validation, sélection de seuil, export, live ou test
   verrouillé n'est permis.
+- Mise à jour du `2026-08-09T22:18:38+04:00` : le second minage CPU train-only
+  autorisé a terminé au commit `42a88b0d…` sur les 72 prises canoniques, après
+  préflight complet des sept SHA. Il produit 3 057 lignes supervisées
+  (639 positives, 2 418 négatives), zéro tentative perdue, 3 057 `event_id`
+  uniques, 54 groupes physiques sans croisement de partition et
+  `locked_test_used=false`. Trois prises GuitarSet sélectionnées n'ont pas
+  produit de candidat supervisé, ce qui est conservé comme constat de
+  population. La porte préenregistrée échoue uniquement pour les positifs
+  `guitarset_poly_mix` (`dev=6`, `calibration=7`, minimum 8) ;
+  `fit_authorized=false` est maintenu. Aucun fit, calibration, validation,
+  export, live, sélection de seuil ou test verrouillé ne suit. La seule étape
+  suivante est la revue humaine du rapport
+  `readme/results/2026-08-09_decoder-candidate-extended-mining-run.md` avant
+  de définir une hypothèse distincte.
 <!-- PROJECT_TASK:decoder_candidate_asset_evidence_contract:END -->
 <!-- JOURNAL_END -->
 ## Rapports détaillés
@@ -522,6 +544,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-09 — correctif CRLF/LF du préflight du mineur borné](results/2026-08-09_decoder-candidate-bounded-miner-eol-preflight-fix.md)
 - [2026-08-09 — passe CPU du mineur borné Policy A](results/2026-08-09_decoder-candidate-bounded-mining-run.md)
 - [2026-08-09 — contrat d'extension Policy A à six prises par cellule](results/2026-08-09_decoder-candidate-expanded-policy-a-contract.md)
+- [2026-08-09 — passe CPU étendue Policy A, porte refusée](results/2026-08-09_decoder-candidate-extended-mining-run.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.
