@@ -16,9 +16,21 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-08-09T13:40:57+04:00`.
-- Étape : `decoder_candidate_fit_runner_implementation_v1`.
-- Statut : `terminé — runner implémenté sans fit, en attente de revue externe`.
+- Mise à jour : `2026-08-09T21:07:10Z` (horloge worker Mac).
+- Étape : `decoder_candidate_fit_v1_train_only`.
+- Statut : `terminé — fit train-only à revoir; aucune suite scientifique autorisée`.
+- Résultat terminal vérifié : l'unique job CPU
+  `causal-candidate-fit-v1-cpu-20260809` termine avec `exit_code=0`,
+  `complete_non_authorizing`, 14 époques enregistrées et meilleure époque 9,
+  au commit exact `578a9d6583b2e5a68a312bd8dccf8e19a77b58b7`. Le préflight
+  scellé V3, les comptes `694/244`, `968/250`, `793/190`, la parité Keras
+  `0,0`, les trois SHA d'artefacts et `locked_test_used=false` sont vérifiés.
+  La calibration train-only retourne `0,31`, sans promouvoir ce seuil. Une
+  anomalie non corrigée est archivée : le dossier de sortie porte un caractère
+  CR final transmis par le transport SSH direct; les octets restent intègres,
+  aucune copie, renommage ou reprise n'est faite. Seule la revue du rapport
+  peut décider de la suite. Rapport :
+  `readme/results/2026-08-09_decoder-candidate-fit-v1-run.md`.
 - Résultat vérifié : le job Mac
   `decoder-candidate-guitarset-v3-cpu-20260809` a terminé avec `exit_code=0`
   et l'état `complete_non_authorizing` au commit
