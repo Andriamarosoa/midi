@@ -54,11 +54,24 @@ class CausalCandidateGateInput:
 
 
 @dataclass(frozen=True)
-class ProvisionalStateInput:
-    """Identity and causal clock for an explicitly opt-in H4 resolver."""
+class ProvisionalObservation:
+    """Closed H5 causal boundary exposed to a synthetic H6 resolver."""
 
     pitch: int
-    frame_index: int
+    note_on_frame: int
+    current_frame: int
+    age_frames: int
+    candidate_reason_at_noteon: str
+    candidate_score_at_noteon: float
+    frame_probability_at_noteon: float
+    onset_probability_at_noteon: float
+    current_frame_probability: float
+    current_onset_probability: float
+    audio_onset_available: bool
+    audio_onset_recent: bool
+    harmonic_support: float
+    emitted_polyphony: int
+    contextual_polyphony: int
 
 
 @dataclass(frozen=True)
@@ -212,12 +225,20 @@ class PolyphonicDecoder:
         candidate_collector: DecoderCandidateCollector | None = None,
         causal_candidate_gate: Callable[[CausalCandidateGateInput], bool] | None = None,
         causal_candidate_gate_placement: str = CAUSAL_CANDIDATE_GATE_PRE_RANKING,
-        provisional_state_resolver: Callable[[ProvisionalStateInput], str] | None = None,
+        provisional_state_resolver: Callable[[ProvisionalObservation], str] | None = None,
     ) -> None:
         if causal_candidate_gate_placement not in _CAUSAL_CANDIDATE_GATE_PLACEMENTS:
             raise ValueError(
                 "Unknown causal candidate gate placement: "
                 f"{causal_candidate_gate_placement!r}."
+            )
+        if provisional_state_resolver is not None and (
+            causal_candidate_gate is not None
+            or config.independent_note_threshold is not None
+        ):
+            raise ValueError(
+                "H5 provisional resolution composition with causal candidate "
+                "or independent-note gates is unsupported_pending_separate_contract."
             )
         self.config = config
         self._candidate_collector = candidate_collector
@@ -228,6 +249,19 @@ class PolyphonicDecoder:
         self.classes = config.midi_max - config.midi_min + 1
         self.active = np.zeros(self.classes, dtype=np.bool_)
         self.provisional_active = np.zeros(self.classes, dtype=np.bool_)
+        self._provisional_note_on_frame = np.full(
+            self.classes, -1, dtype=np.int64
+        )
+        self._provisional_candidate_reason = [""] * self.classes
+        self._provisional_candidate_score = np.full(
+            self.classes, np.nan, dtype=np.float64
+        )
+        self._provisional_frame_probability = np.full(
+            self.classes, np.nan, dtype=np.float64
+        )
+        self._provisional_onset_probability = np.full(
+            self.classes, np.nan, dtype=np.float64
+        )
         self.activation_count = np.zeros(self.classes, dtype=np.int16)
         self.release_count = np.zeros(self.classes, dtype=np.int16)
         self.last_note_on = np.full(self.classes, -10**9, dtype=np.int64)
@@ -314,34 +348,130 @@ class PolyphonicDecoder:
     def _clear_pitch_state(self, class_index: int) -> None:
         self.active[class_index] = False
         self.provisional_active[class_index] = False
+        self._clear_provisional_evidence(class_index)
         self.activation_count[class_index] = 0
         self.attack_activation_pending[class_index] = False
         self.release_count[class_index] = 0
         self.chord_release_grace[class_index] = 0
 
+    def _clear_provisional_evidence(self, class_index: int) -> None:
+        self._provisional_note_on_frame[class_index] = -1
+        self._provisional_candidate_reason[class_index] = ""
+        self._provisional_candidate_score[class_index] = np.nan
+        self._provisional_frame_probability[class_index] = np.nan
+        self._provisional_onset_probability[class_index] = np.nan
+
+    @staticmethod
+    def _validate_provisional_observation(
+        observation: ProvisionalObservation,
+    ) -> None:
+        if not observation.candidate_reason_at_noteon:
+            raise ValueError("Provisional observation reason must be non-empty.")
+        for name in (
+            "pitch",
+            "note_on_frame",
+            "current_frame",
+            "age_frames",
+            "candidate_score_at_noteon",
+            "frame_probability_at_noteon",
+            "onset_probability_at_noteon",
+            "current_frame_probability",
+            "current_onset_probability",
+            "harmonic_support",
+            "emitted_polyphony",
+            "contextual_polyphony",
+        ):
+            if not math.isfinite(float(getattr(observation, name))):
+                raise ValueError(
+                    f"Provisional observation {name} must be finite."
+                )
+        if observation.age_frames != (
+            observation.current_frame - observation.note_on_frame
+        ):
+            raise ValueError("Provisional observation age_frames is inconsistent.")
+        if observation.age_frames < 0:
+            raise ValueError("Provisional observation age_frames cannot be negative.")
+
     def _resolve_provisional_states(
         self,
         events: list[PolyphonicMidiEvent],
+        *,
+        frame_probability: np.ndarray,
+        onset_probability: np.ndarray,
+        harmonic_amplitude: np.ndarray | None,
+        current_audio_onset_available: bool,
     ) -> None:
         resolver = self._provisional_state_resolver
         if resolver is None:
             return
-        for class_index in np.flatnonzero(self.active & self.provisional_active):
-            class_index = int(class_index)
-            pitch = self.config.midi_min + class_index
-            resolution = resolver(ProvisionalStateInput(
-                pitch=pitch,
-                frame_index=self.frame_index,
-            ))
+        provisional_indexes = tuple(
+            int(index)
+            for index in np.flatnonzero(self.active & self.provisional_active)
+        )
+        if not provisional_indexes:
+            return
+
+        # H5 requires one temporal reference for the complete batch.  No
+        # resolver output may mutate these masks before every observation and
+        # every decision has passed validation.
+        contextual_snapshot = self.contextual_active.copy()
+        emitted_polyphony = int(np.sum(self.active))
+        contextual_polyphony = int(np.sum(contextual_snapshot))
+        audio_onset_recent = bool(
+            current_audio_onset_available and self._recent_audio_onset()
+        )
+        observations: list[tuple[int, ProvisionalObservation]] = []
+        for class_index in provisional_indexes:
+            note_on_frame = int(self._provisional_note_on_frame[class_index])
+            observation = ProvisionalObservation(
+                pitch=self.config.midi_min + class_index,
+                note_on_frame=note_on_frame,
+                current_frame=int(self.frame_index),
+                age_frames=int(self.frame_index - note_on_frame),
+                candidate_reason_at_noteon=str(
+                    self._provisional_candidate_reason[class_index]
+                ),
+                candidate_score_at_noteon=float(
+                    self._provisional_candidate_score[class_index]
+                ),
+                frame_probability_at_noteon=float(
+                    self._provisional_frame_probability[class_index]
+                ),
+                onset_probability_at_noteon=float(
+                    self._provisional_onset_probability[class_index]
+                ),
+                current_frame_probability=float(frame_probability[class_index]),
+                current_onset_probability=float(onset_probability[class_index]),
+                audio_onset_available=bool(current_audio_onset_available),
+                audio_onset_recent=audio_onset_recent,
+                harmonic_support=self._harmonic_support(
+                    class_index, harmonic_amplitude, contextual_snapshot
+                ),
+                emitted_polyphony=emitted_polyphony,
+                contextual_polyphony=contextual_polyphony,
+            )
+            self._validate_provisional_observation(observation)
+            observations.append((class_index, observation))
+
+        staged: list[tuple[int, str]] = []
+        for class_index, observation in observations:
+            resolution = resolver(observation)
             if resolution not in _PROVISIONAL_RESOLUTIONS:
                 raise ValueError(
                     "Provisional resolver must return HOLD, CONFIRM, or REJECT."
                 )
+            staged.append((class_index, resolution))
+
+        # Atomic boundary: state and MIDI are untouched until all observations
+        # and all resolver results above have succeeded.
+        for class_index, resolution in staged:
             if resolution == PROVISIONAL_HOLD:
                 continue
             if resolution == PROVISIONAL_CONFIRM:
                 self.provisional_active[class_index] = False
+                self._clear_provisional_evidence(class_index)
                 continue
+            pitch = self.config.midi_min + class_index
             self._clear_pitch_state(class_index)
             events.append(PolyphonicMidiEvent(
                 "note_off", pitch, 0, self.frame_index, "provisional_reject"
@@ -374,9 +504,30 @@ class PolyphonicDecoder:
                 "note_off", pitch, 0, self.frame_index, "provisional_preempt"
             ))
 
-    def _mark_new_note_provisional(self, class_index: int) -> None:
+    def _mark_new_note_provisional(
+        self,
+        class_index: int,
+        *,
+        candidate_reason: str,
+        candidate_score: float,
+        frame_probability: float,
+        onset_probability: float,
+    ) -> None:
         if self._provisional_state_resolver is not None:
             self.provisional_active[class_index] = True
+            self._provisional_note_on_frame[class_index] = self.frame_index
+            self._provisional_candidate_reason[class_index] = str(
+                candidate_reason
+            )
+            self._provisional_candidate_score[class_index] = float(
+                candidate_score
+            )
+            self._provisional_frame_probability[class_index] = float(
+                frame_probability
+            )
+            self._provisional_onset_probability[class_index] = float(
+                onset_probability
+            )
 
     def _recent_audio_onset(self) -> bool:
         return bool(
@@ -729,7 +880,13 @@ class PolyphonicDecoder:
         else:
             self.silence_count = 0
 
-        self._resolve_provisional_states(events)
+        self._resolve_provisional_states(
+            events,
+            frame_probability=frame,
+            onset_probability=onset,
+            harmonic_amplitude=harmonic_amplitude,
+            current_audio_onset_available=audio_onset is not None,
+        )
 
         # Release/retrigger currently active notes first.
         for class_index in np.flatnonzero(self.active):
@@ -753,6 +910,7 @@ class PolyphonicDecoder:
                 # additional state that must be forgotten here.
                 self.active[class_index] = False
                 self.provisional_active[class_index] = False
+                self._clear_provisional_evidence(class_index)
                 self.release_count[class_index] = 0
                 self.activation_count[class_index] = 0
                 self.attack_activation_pending[class_index] = False
@@ -780,6 +938,15 @@ class PolyphonicDecoder:
                     ),
                 ))
                 self.last_note_on[class_index] = self.frame_index
+                self._mark_new_note_provisional(
+                    class_index,
+                    candidate_reason="retrigger",
+                    candidate_score=float(
+                        frame[class_index] + onset[class_index]
+                    ),
+                    frame_probability=float(frame[class_index]),
+                    onset_probability=float(onset[class_index]),
+                )
 
         if self.recovery_release_grace > 0:
             self.recovery_release_grace -= 1
@@ -989,7 +1156,15 @@ class PolyphonicDecoder:
                 self.release_count[class_index] = 0
                 self.chord_release_grace[class_index] = 0
                 self.last_note_on[class_index] = self.frame_index
-                self._mark_new_note_provisional(class_index)
+                self._mark_new_note_provisional(
+                    class_index,
+                    candidate_reason="legacy",
+                    candidate_score=float(
+                        frame[class_index] + onset[class_index]
+                    ),
+                    frame_probability=float(frame[class_index]),
+                    onset_probability=float(onset[class_index]),
+                )
                 events.append(PolyphonicMidiEvent(
                     "note_on", pitch, velocity, self.frame_index, "legacy"
                 ))
@@ -1234,7 +1409,13 @@ class PolyphonicDecoder:
             self._recent_audio_onset()
             and sum(bool(item[3]) for _, item in accepted_selected) >= 2
         )
-        for rank, (_, class_index, reason, direct_onset, _) in accepted_selected:
+        for rank, (
+            score,
+            class_index,
+            reason,
+            direct_onset,
+            _gate_snapshot,
+        ) in accepted_selected:
             pitch = self.config.midi_min + class_index
             velocity = self._velocity(frame[class_index], onset[class_index])
             self.active[class_index] = True
@@ -1247,7 +1428,13 @@ class PolyphonicDecoder:
                 else 0
             )
             self.last_note_on[class_index] = self.frame_index
-            self._mark_new_note_provisional(class_index)
+            self._mark_new_note_provisional(
+                class_index,
+                candidate_reason=reason,
+                candidate_score=float(score),
+                frame_probability=float(frame[class_index]),
+                onset_probability=float(onset[class_index]),
+            )
             events.append(PolyphonicMidiEvent(
                 "note_on", pitch, velocity, self.frame_index, reason
             ))
@@ -1284,6 +1471,8 @@ class PolyphonicDecoder:
         ]
         self.active[:] = False
         self.provisional_active[:] = False
+        for class_index in range(self.classes):
+            self._clear_provisional_evidence(class_index)
         self.activation_count[:] = 0
         self.attack_activation_pending[:] = False
         self.release_count[:] = 0

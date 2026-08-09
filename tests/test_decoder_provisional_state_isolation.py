@@ -10,7 +10,7 @@ from src.polyphonic.decoder import (
     PROVISIONAL_REJECT,
     PolyphonicDecoder,
     PolyphonicDecoderConfig,
-    ProvisionalStateInput,
+    ProvisionalObservation,
 )
 
 
@@ -24,9 +24,9 @@ def _events(events) -> tuple[tuple[str, int, int, str], ...]:
 class _Resolver:
     def __init__(self) -> None:
         self.decisions: dict[int, str] = {}
-        self.calls: list[ProvisionalStateInput] = []
+        self.calls: list[ProvisionalObservation] = []
 
-    def __call__(self, state: ProvisionalStateInput) -> str:
+    def __call__(self, state: ProvisionalObservation) -> str:
         self.calls.append(state)
         return self.decisions.get(state.pitch, PROVISIONAL_HOLD)
 
@@ -209,7 +209,7 @@ class DecoderProvisionalStateIsolationTests(unittest.TestCase):
     def test_invalid_resolution_fails_closed(self) -> None:
         config = PolyphonicDecoderConfig(midi_min=60, midi_max=60)
 
-        def invalid(_state: ProvisionalStateInput) -> str:
+        def invalid(_state: ProvisionalObservation) -> str:
             return "MAYBE"
 
         decoder = PolyphonicDecoder(

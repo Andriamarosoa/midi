@@ -17,8 +17,24 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `provisional_resolution_evidence_h5_contract`.
-- Statut : `terminé — provisional_resolution_evidence_contract_defined, aucune politique implémentée`.
+- Étape : `provisional_resolution_h5_h6_synthetic_conformance`.
+- Statut : `terminé — provisional_resolution_h5_synthetic_conformance_demonstrated, aucun signal de résolution défini`.
+- Conformance synthétique H6 positive : `ProvisionalObservation` est désormais
+  une dataclass immuable contenant exactement les 15 champs H5. Les preuves
+  `*_at_noteon` sont gelées à l'émission et toutes les observations d'une frame
+  partagent les mêmes snapshots pré-résolution de contexte harmonique et de
+  polyphonie. Le décodeur valide toutes les observations, calcule toutes les
+  décisions, puis les valide toutes avant la première mutation. Un résultat
+  invalide tardif, une exception tardive ou une valeur numérique non finie ne
+  produit donc ni confirmation/rejet partiel ni événement MIDI de résolution.
+  `audio_onset_available` décrit explicitement le hop courant, pas le latch
+  historique. Les compositions avec la porte causale V1/V2 ou
+  `independent_note_threshold` échouent au constructeur avec
+  `unsupported_pending_separate_contract`. Les scénarios H3/H4 et le chemin
+  désactivé restent conformes. Les 98 tests ciblés passent en `0,297 s`.
+  Aucun resolver réel, seuil, durée, population, donnée, modèle, inférence ou
+  validation n'a été utilisé. Rapport :
+  `readme/results/2026-08-10_provisional-resolution-h5-h6-synthetic-conformance.md`.
 - Contrat causal H5 défini sans calcul : le futur resolver ne pourra recevoir
   qu'une `ProvisionalObservation` immuable et construite par le décodeur au
   point causal courant. Quinze champs sont classés par provenance, disponibilité
