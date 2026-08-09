@@ -8,11 +8,15 @@ inference, or metric access.
 """
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass
 from enum import Enum
 import hashlib
+import json
 import math
+import os
 from pathlib import Path
+import subprocess
 from typing import Mapping, Protocol, Sequence
 import weakref
 
@@ -208,55 +212,13 @@ def evaluate_future_report_decision(
     return evaluate_independent_v2_decision(reference=reference, candidate=candidate, rules=rules)
 
 
-def phase_order() -> tuple[str, ...]:
-    return (
-        "authorization", "contract", "runtime", "cohort", "evidence",
-        "asset_hashes", "artifact_hashes", "lazy_science", "open", "inference",
-        "ab", "metrics", "report",
-    )
-
-
-@dataclass(frozen=True)
-class IndependentV2ExecutionHooks:
-    """Pure orchestration callbacks; scientific loading remains unreachable."""
-
-    authorization: object
-    contract: object
-    runtime: object
-    cohort: object
-    evidence: object
-    asset_hashes: object
-    artifact_hashes: object
-    lazy_science: object
-    open: object
-    inference: object
-    ab: object
-    metrics: object
-    report: object
-
-
-def run_phase_sequence(hooks: IndependentV2ExecutionHooks) -> tuple[str, ...]:
-    """Invoke the sealed phase order and return observed callbacks.
-
-    This is a testable orchestration seam.  Production scientific callbacks are
-    intentionally absent until a separately reviewed capability factory exists.
-    """
-    observed: list[str] = []
-    for name in phase_order():
-        callback = getattr(hooks, name)
-        if not callable(callback):
-            raise TypeError(f"phase callback is not callable: {name}")
-        callback()
-        observed.append(name)
-    return tuple(observed)
-
-
 class IndependentV2SystemProbe(Protocol):
     def git_head(self, root: Path) -> str: ...
     def worktree_clean(self, root: Path) -> bool: ...
     def read_bytes(self, path: Path) -> bytes: ...
     def destination_exists(self, path: Path) -> bool: ...
     def heavy_job_active(self, path: Path) -> bool: ...
+    def acquire_lease(self, lock_path: Path, destination: Path): ...
 
 
 class IndependentV2ScientificAdapter(Protocol):
@@ -270,11 +232,367 @@ class IndependentV2ScientificAdapter(Protocol):
     def final_report(self) -> Mapping[str, object]: ...
 
 
+class _ProductionRunLease:
+    def __init__(self, lock_path: Path, destination: Path) -> None:
+        self.lock_path = lock_path
+        self.destination = destination
+        self._fd: int | None = None
+
+    def __enter__(self) -> "_ProductionRunLease":
+        self._fd = os.open(self.lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+        try:
+            self.destination.mkdir(parents=False, exist_ok=False)
+        except Exception:
+            os.close(self._fd); self._fd = None; self.lock_path.unlink(missing_ok=True)
+            raise
+        return self
+
+    def __exit__(self, exc_type, exc, traceback) -> None:
+        if self._fd is not None:
+            os.close(self._fd); self._fd = None
+        self.lock_path.unlink(missing_ok=True)
+
+
+class _ProductionSystemProbe:
+    def git_head(self, root: Path) -> str:
+        return subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"], check=True, capture_output=True, text=True).stdout.strip()
+    def worktree_clean(self, root: Path) -> bool:
+        return not subprocess.run(["git", "-C", str(root), "status", "--porcelain"], check=True, capture_output=True, text=True).stdout.strip()
+    def read_bytes(self, path: Path) -> bytes: return path.resolve(strict=True).read_bytes()
+    def destination_exists(self, path: Path) -> bool: return path.exists()
+    def heavy_job_active(self, path: Path) -> bool: return path.exists()
+    def acquire_lease(self, lock_path: Path, destination: Path) -> _ProductionRunLease: return _ProductionRunLease(lock_path, destination)
+
+
+class _ProductionScientificAdapter:
+    """Lazy real A/B adapter; no scientific import occurs before first inference."""
+    def __init__(self, paths: IndependentV2ExecutionPaths) -> None:
+        self.paths = paths
+        self._cohort: object | None = None
+        self._records: list[Mapping[str, object]] = []
+        self._current: object | None = None
+        self._prediction: Mapping[str, object] | None = None
+        self._runtime: Mapping[str, object] | None = None
+
+    def manifest_snapshot(self, path: Path) -> object:
+        from .data import load_manifest_snapshot
+        return load_manifest_snapshot(path)
+
+    def items(self, cohort: object, snapshot: object) -> Sequence[object]:
+        from .causal_candidate_v2_independent_asset_evidence import canonical_recording_key
+        self._cohort = cohort
+        indexed = {canonical_recording_key(item): item for item in snapshot.items}
+        return tuple(indexed[key] for key in cohort.recording_keys)
+
+    def open_exact_item(self, item: object) -> object:
+        from .data import PolyphonicCorpus
+        context = PolyphonicCorpus([item])
+        corpus = context.__enter__()
+        opened = {"item": item, "context": context, "corpus": corpus}
+        self._current = opened
+        return opened
+
+    def _ensure_runtime(self) -> Mapping[str, object]:
+        if self._runtime is not None:
+            return self._runtime
+        import numpy as np
+        import yaml
+        from .causal_candidate_fit import CAUSAL_FEATURES, ENCODED_FEATURES, FitStandardizer
+        from .causal_candidate_validation import CausalCandidateGate
+        from .evaluate_events import _load_evaluation_decoder_config
+        from .keras_compat import load_polyphonic_checkpoint
+        from .run_causal_candidate_v2_train_dev_diagnostic import configure_sealed_validation_cpu_tensorflow
+
+        tf = configure_sealed_validation_cpu_tensorflow()
+        config = yaml.safe_load(self.paths.evaluation_config_path.read_text(encoding="utf-8"))
+        if not isinstance(config, Mapping):
+            raise ValueError("independent V2 evaluation YAML must be an object")
+        standardizer_payload = json.loads(self.paths.standardizer_path.read_text(encoding="utf-8"))
+        if not isinstance(standardizer_payload, Mapping):
+            raise ValueError("independent V2 standardizer must be an object")
+        if standardizer_payload.get("model_sha256") != INDEPENDENT_V2_FROZEN_ARTIFACT_SHA256["model_sha256"]:
+            raise ValueError("independent V2 standardizer is not bound to the frozen model")
+        if tuple(standardizer_payload.get("causal_features", ())) != CAUSAL_FEATURES or tuple(standardizer_payload.get("encoded_features", ())) != ENCODED_FEATURES:
+            raise ValueError("independent V2 standardizer feature contract changed")
+        standardizer = FitStandardizer(
+            mean=tuple(float(value) for value in standardizer_payload.get("mean", ())),
+            scale=tuple(float(value) for value in standardizer_payload.get("scale", ())),
+        )
+        head = tf.keras.models.load_model(self.paths.model_path, compile=False)
+        transcription = load_polyphonic_checkpoint(self.paths.checkpoint_path)
+        outputs = {
+            name: transcription.get_layer(name).output
+            for name in ("frame", "onset", "harmonic_amplitude")
+        }
+        if "independent_note" in {layer.name for layer in transcription.layers}:
+            outputs["independent_note"] = transcription.get_layer("independent_note").output
+        inference_model = tf.keras.Model(transcription.inputs, outputs)
+
+        def scorer(batch):
+            values = head(np.asarray(batch, dtype=np.float32), training=False)
+            return np.asarray(values.numpy(), dtype=np.float32)
+
+        audio_policy = json.loads(self.paths.audio_evidence_config_path.read_text(encoding="utf-8"))
+        if not isinstance(audio_policy, Mapping) or audio_policy.get("onset_adapt_temporal_background") is not True:
+            raise ValueError("independent V2 audio-evidence policy changed")
+        self._runtime = {
+            "tf": tf,
+            "config": config,
+            "inference_model": inference_model,
+            "decoder_config": _load_evaluation_decoder_config(
+                self.paths.reference_decoder_config_path,
+                thresholds_path=None,
+                run_dir=self.paths.destination,
+            ),
+            "gate_type": CausalCandidateGate,
+            "standardizer": standardizer,
+            "scorer": scorer,
+            "audio_metadata": {"audio_evidence": dict(audio_policy)},
+        }
+        return self._runtime
+
+    def infer_once(self, opened: object) -> object:
+        import numpy as np
+        from .data import PolyphonicSequence
+        from .keras_compat import predict_compat
+
+        runtime = self._ensure_runtime()
+        corpus = opened["corpus"]
+        arrays = corpus.labels[0].arrays
+        config = runtime["config"]
+        refs = np.column_stack((np.zeros(len(arrays["active_bits"]), dtype=np.int32), np.arange(len(arrays["active_bits"]), dtype=np.int32)))
+        sequence = PolyphonicSequence(
+            corpus,
+            batch_size=int(config["train"]["batch_size"]),
+            input_samples=int(config["dataset"]["input_samples"]),
+            normalization_gain=float(config["dataset"]["normalization_gain"]),
+            seed=0, refs=refs, shuffle=False,
+        )
+        self._prediction = predict_compat(runtime["inference_model"], sequence, verbose=0, workers=1)
+        return self._prediction
+
+    def audio_masks_once(self, opened: object) -> object:
+        from .audio_evidence import offline_audio_evidence_masks
+        runtime = self._ensure_runtime()
+        corpus = opened["corpus"]
+        audio = corpus.audio(0)
+        return offline_audio_evidence_masks(
+            audio, corpus.sample_rate, corpus.hop_size,
+            frame_count=len(self._prediction["frame"]),
+            metadata=runtime["audio_metadata"],
+        )
+
+    def decode_ab(self, predictions: object, masks: object) -> object:
+        from .causal_candidate_validation import CAUSAL_CANDIDATE_GATE_POST_RANKING_PRE_NOTEON
+        from .evaluate_events import (
+            _audio_duration_s, build_strictly_causal_noteon_clip,
+            decode_probabilities, diagnose_note_errors, match_notes,
+            note_metrics, truth_notes,
+        )
+        runtime = self._ensure_runtime()
+        opened = self._current
+        corpus = opened["corpus"]
+        item = opened["item"]
+        activity, onset, audio_report = masks
+        reference_estimated, reference_retriggers = decode_probabilities(
+            predictions["frame"], predictions["onset"], predictions["harmonic_amplitude"],
+            runtime["decoder_config"], corpus.sample_rate, corpus.hop_size,
+            activity, onset, predictions.get("independent_note"),
+        )
+        gate = runtime["gate_type"](
+            standardizer=runtime["standardizer"], scorer=runtime["scorer"], threshold=0.31,
+        )
+        candidate_estimated, candidate_retriggers = decode_probabilities(
+            predictions["frame"], predictions["onset"], predictions["harmonic_amplitude"],
+            runtime["decoder_config"], corpus.sample_rate, corpus.hop_size,
+            activity, onset, predictions.get("independent_note"), {}, (), gate,
+            CAUSAL_CANDIDATE_GATE_POST_RANKING_PRE_NOTEON,
+        )
+        truth = truth_notes(corpus.labels[0].arrays)
+        duration = _audio_duration_s(corpus.audio(0), corpus.sample_rate)
+
+        def branch(estimated, retriggers, gate_diagnostics):
+            matches = match_notes(truth, estimated)
+            offset_matches = match_notes(truth, estimated, require_offset=True)
+            low_truth = [note for note in truth if 40 <= note.pitch <= 51]
+            low_estimated = [note for note in estimated if 40 <= note.pitch <= 51]
+            clip, causal = build_strictly_causal_noteon_clip(
+                truth, estimated,
+                clip_id=f"{item.source_id}::{item.capture_id}",
+                corpus_id=str(item.dataset_id), duration_s=duration,
+            )
+            return {
+                "onset": note_metrics(truth, estimated, matches),
+                "onset_offset": note_metrics(truth, estimated, offset_matches),
+                "strictly_causal_noteon": causal,
+                "retriggers": retriggers,
+                "diagnostics": diagnose_note_errors(truth, estimated, matches),
+                "low_midi_40_51": note_metrics(
+                    low_truth, low_estimated, match_notes(low_truth, low_estimated),
+                ),
+                "causal_candidate_gate": gate_diagnostics,
+                "_estimated": estimated,
+                "_causal_clip": clip,
+            }
+
+        return {
+            "item": item, "truth": truth, "duration_s": duration,
+            "audio_evidence": audio_report,
+            "reference": branch(reference_estimated, reference_retriggers, None),
+            "candidate": branch(candidate_estimated, candidate_retriggers, gate.diagnostics),
+        }
+
+    def accumulate(self, result: object) -> None:
+        self._records.append(result)
+        opened = self._current
+        opened["context"].__exit__(None, None, None)
+        self._current = None
+        self._prediction = None
+
+    @staticmethod
+    def _sum_diagnostics(rows: Sequence[Mapping[str, object]]) -> dict[str, int]:
+        names = ("harmonic_interval_false_positives", "fragmented_reference_notes", "excess_fragments", "false_positive_without_active_reference")
+        return {name: sum(int(row["diagnostics"].get(name, 0)) for row in rows) for name in names}
+
+    def _aggregate_branch(self, records: Sequence[Mapping[str, object]], branch_name: str) -> dict[str, object]:
+        from .evaluate_events import aggregate_dataset_note_metrics, aggregate_strictly_causal_noteon_metrics
+        rows = []
+        clips = []
+        for record in records:
+            branch = record[branch_name]
+            item = record["item"]
+            rows.append({
+                "dataset_id": item.dataset_id,
+                "onset": branch["onset"], "onset_offset": branch["onset_offset"],
+                "retriggers": branch["retriggers"], "diagnostics": branch["diagnostics"],
+            })
+            clips.append(branch["_causal_clip"])
+        onset = self._micro([row["onset"] for row in rows])
+        onset_offset = self._micro([row["onset_offset"] for row in rows])
+        return {
+            "onset": onset,
+            "onset_offset": onset_offset,
+            "strictly_causal_noteon": aggregate_strictly_causal_noteon_metrics(clips),
+            "dataset_metrics": aggregate_dataset_note_metrics(rows),
+            "retriggers": sum(int(row["retriggers"]) for row in rows),
+            "diagnostics": self._sum_diagnostics(rows),
+            "per_recording": rows,
+            "gate_eligible_count": sum(int((record[branch_name].get("causal_candidate_gate") or {}).get("eligible_candidates", 0)) for record in records),
+            "gate_rejected_count": sum(int((record[branch_name].get("causal_candidate_gate") or {}).get("rejected_candidates", 0)) for record in records),
+            "low_midi_40_51": self._micro([
+                record[branch_name]["low_midi_40_51"] for record in records
+            ]),
+        }
+
+    @staticmethod
+    def _micro(rows: Sequence[Mapping[str, object]]) -> dict[str, float | int]:
+        counts = {name: sum(int(row[name]) for row in rows) for name in ("reference_notes", "estimated_notes", "matched_notes", "false_positive_notes", "missing_notes")}
+        precision = counts["matched_notes"] / max(counts["estimated_notes"], 1)
+        recall = counts["matched_notes"] / max(counts["reference_notes"], 1)
+        return {**counts, "precision": precision, "recall": recall, "f1": 2.0 * precision * recall / max(precision + recall, 1e-12), "onset_error_mean_ms": 0.0, "onset_error_p95_absolute_ms": 0.0}
+
+    @staticmethod
+    def _metric_map(branch: Mapping[str, object]) -> dict[str, float | int]:
+        onset = branch["onset"]
+        causal = branch["strictly_causal_noteon"]["global"]
+        diagnostics = branch["diagnostics"]
+        return {
+            "estimated_noteons": onset["estimated_notes"],
+            "matched_onset_noteons": onset["matched_notes"],
+            "onset_false_positives": onset["false_positive_notes"],
+            "onset_misses": onset["missing_notes"],
+            "onset_precision": onset["precision"], "onset_recall": onset["recall"], "onset_f1": onset["f1"],
+            "causal_false_noteons": causal["false_noteons"],
+            "causal_false_noteons_per_minute": causal["false_noteons_per_min"],
+            "causal_recall_within_250ms": causal["recall_within_max_latency"],
+            "causal_latency_p50_ms": causal["latency_p50_ms"], "causal_latency_p90_ms": causal["latency_p90_ms"],
+            "retriggers": branch["retriggers"], "excess_fragments": diagnostics["excess_fragments"],
+            "midi_40_51": branch["low_midi_40_51"]["false_positive_notes"],
+            "gate_eligible_count": branch["gate_eligible_count"], "gate_rejected_count": branch["gate_rejected_count"],
+        }
+
+    def final_report(self) -> Mapping[str, object]:
+        from .causal_candidate_v2_independent_asset_evidence import canonical_recording_key
+        from .decoder_candidate_provenance import leakage_group_key
+
+        records = tuple(self._records)
+        recording_keys = tuple(canonical_recording_key(record["item"]) for record in records)
+        groups = tuple(sorted({leakage_group_key(record["item"]) for record in records}))
+
+        def scoped(grouped):
+            result = {}
+            for key, subset in grouped.items():
+                result[key] = {
+                    branch: self._metric_map(self._aggregate_branch(subset, branch))
+                    for branch in ("reference", "candidate")
+                }
+                result[key]["delta_candidate_minus_reference"] = {
+                    name: result[key]["candidate"][name] - result[key]["reference"][name]
+                    for name in REPORT_METRICS
+                }
+            return result
+
+        datasets = {name: [record for record in records if record["item"].dataset_id == name] for name in REPORT_DATASETS}
+        recordings = {canonical_recording_key(record["item"]): [record] for record in records}
+        leakage = {group: [record for record in records if leakage_group_key(record["item"]) == group] for group in groups}
+        global_branches = {name: self._aggregate_branch(records, name) for name in ("reference", "candidate")}
+        global_maps = {name: self._metric_map(value) for name, value in global_branches.items()}
+        global_maps["delta_candidate_minus_reference"] = {name: global_maps["candidate"][name] - global_maps["reference"][name] for name in REPORT_METRICS}
+        scoped_maps = {
+            "per_dataset": scoped(datasets), "per_recording": scoped(recordings),
+            "per_independent_leakage_group": scoped(leakage),
+        }
+        hierarchy = {
+            view: {
+                "global": global_maps[view],
+                **{scope: {key: values[view] for key, values in payload.items()} for scope, payload in scoped_maps.items()},
+            }
+            for view in REPORT_VIEWS
+        }
+        return {
+            "views": REPORT_VIEWS, "granularity": REPORT_GRANULARITIES,
+            "datasets": REPORT_DATASETS, "recording_count": len(recording_keys),
+            "independent_group_count": len(groups), "metrics": REPORT_METRICS,
+            "provenance": REPORT_PROVENANCE, "locked_test_used": False,
+            "numeric_values": global_maps["candidate"],
+            "recording_identities": recording_keys, "independent_leakage_groups": groups,
+            "hierarchy": hierarchy,
+            "decision_inputs": global_branches,
+        }
+
+
+def _build_production_execution_paths(repository_root: Path, capability: IndependentV2OneJobCapability) -> IndependentV2ExecutionPaths:
+    root = Path(repository_root).resolve(strict=True)
+    worker_root = root.parent
+    from .run_causal_candidate_v2_train_dev_diagnostic import sealed_v2_diagnostic_paths
+    prior = sealed_v2_diagnostic_paths(root, worker_root)
+    return IndependentV2ExecutionPaths(
+        repository_root=root,
+        manifest_path=prior.manifest_path,
+        asset_evidence_path=root / "tmp" / "local" / "causal_candidate_v2_independent_validation_asset_evidence_20260810.json",
+        checkpoint_path=prior.checkpoint_path,
+        model_path=prior.model_path,
+        standardizer_path=prior.standardizer_path,
+        audio_evidence_config_path=prior.audio_evidence_config_path,
+        evaluation_config_path=prior.evaluation_config_path,
+        reference_decoder_config_path=prior.decoder_config_path,
+        destination=(
+            Path(capability.destination)
+            if Path(capability.destination).is_absolute()
+            else root / Path(capability.destination)
+        ),
+        lock_path=root / "tmp" / "local" / "causal_candidate_v2_independent_validation.active.lock",
+    )
+
+
 def _run_sealed_independent_v2_execution(paths: IndependentV2ExecutionPaths, capability: object, *, system_probe: IndependentV2SystemProbe, scientific_adapter: IndependentV2ScientificAdapter) -> Mapping[str, object]:
     """Single direct future production sequence, injectable only for synthetic tests."""
     cap = require_sealed_one_job_capability(capability)
     contract = _require_execution_contract(paths.repository_root)
-    if Path(cap.destination).resolve() != paths.destination:
+    capability_destination = Path(cap.destination)
+    if not capability_destination.is_absolute():
+        capability_destination = paths.repository_root / capability_destination
+    if capability_destination.resolve() != paths.destination:
         raise ValueError("capability destination differs from sealed path")
     validate_runtime_preflight(contract, cap, repository_root=paths.repository_root, git_commit=system_probe.git_head(paths.repository_root), device="cpu", timeout_seconds=900, destination_exists=system_probe.destination_exists(paths.destination), heavy_job_active=system_probe.heavy_job_active(paths.lock_path), worktree_clean=system_probe.worktree_clean(paths.repository_root))
     from .run_causal_candidate_v2_independent_validation import load_sealed_independent_v2_validation_cohort, require_sealed_independent_v2_validation_cohort, validation_asset_evidence_requirement
@@ -286,21 +604,76 @@ def _run_sealed_independent_v2_execution(paths: IndependentV2ExecutionPaths, cap
     evidence = validate_independent_v2_validation_asset_evidence(persisted, cohort, snapshot, requirement)
     artifact_paths = dict(zip(FROZEN_ARTIFACT_NAMES, (paths.checkpoint_path, paths.model_path, paths.standardizer_path, paths.audio_evidence_config_path, paths.evaluation_config_path, paths.reference_decoder_config_path)))
     validate_frozen_artifact_hashes({name: system_probe.read_bytes(path) for name, path in artifact_paths.items()})
+    items = tuple(scientific_adapter.items(cohort, snapshot))
+    from .causal_candidate_v2_independent_asset_evidence import canonical_recording_key
+    from .decoder_candidate_provenance import leakage_group_key
+    snapshot_by_key = {canonical_recording_key(item): item for item in snapshot.items}
+    item_keys = tuple(canonical_recording_key(item) for item in items)
+    if (
+        len(items) != 30
+        or len(set(item_keys)) != 30
+        or item_keys != tuple(cohort.recording_keys)
+        or any(snapshot_by_key.get(key) is not item for key, item in zip(item_keys, items))
+    ):
+        raise RuntimeError("independent V2 execution items differ from the sealed cohort")
+    dataset_counts = Counter(str(item.dataset_id) for item in items)
+    groups = tuple(sorted({leakage_group_key(item) for item in items}))
+    if dataset_counts != Counter({name: 10 for name in REPORT_DATASETS}) or "guitarset_poly_mix" in dataset_counts:
+        raise RuntimeError("independent V2 execution dataset counts differ from the sealed cohort")
+    if len(groups) != 20 or groups != tuple(cohort.leakage_groups):
+        raise RuntimeError("independent V2 execution leakage groups differ from the sealed cohort")
     state = OneShotStateMachine()
-    for item in scientific_adapter.items(cohort, snapshot):
-        verify_independent_v2_validation_audio_asset_for_item(evidence, item)
-        verify_independent_v2_validation_label_asset_for_item(evidence, item)
-        opened = scientific_adapter.open_exact_item(item)
-        if state.phase == OneShotPhase.PRE_SCIENCE: state.advance(OneShotPhase.SCIENTIFIC_ASSET_OPENED)
-        predictions = scientific_adapter.infer_once(opened)
-        if state.phase == OneShotPhase.SCIENTIFIC_ASSET_OPENED: state.advance(OneShotPhase.INFERENCE_STARTED)
-        masks = scientific_adapter.audio_masks_once(opened)
-        result = scientific_adapter.decode_ab(predictions, masks)
-        scientific_adapter.accumulate(result)
-        if state.phase == OneShotPhase.INFERENCE_STARTED: state.advance(OneShotPhase.AB_METRIC_PRODUCED)
-    report = scientific_adapter.final_report()
-    validate_future_report(report)
-    return report
+    with system_probe.acquire_lease(paths.lock_path, paths.destination):
+        for item in items:
+            verify_independent_v2_validation_audio_asset_for_item(evidence, item)
+            verify_independent_v2_validation_label_asset_for_item(evidence, item)
+        for item in items:
+            if state.phase == OneShotPhase.PRE_SCIENCE: state.advance(OneShotPhase.SCIENTIFIC_ASSET_OPENED)
+            opened = scientific_adapter.open_exact_item(item)
+            if state.phase == OneShotPhase.SCIENTIFIC_ASSET_OPENED: state.advance(OneShotPhase.INFERENCE_STARTED)
+            predictions = scientific_adapter.infer_once(opened)
+            masks = scientific_adapter.audio_masks_once(opened)
+            result = scientific_adapter.decode_ab(predictions, masks)
+            if state.phase == OneShotPhase.INFERENCE_STARTED: state.advance(OneShotPhase.AB_METRIC_PRODUCED)
+            if not state.cohort_consumed: raise AssertionError("first A/B result must consume cohort")
+            scientific_adapter.accumulate(result)
+        report = dict(scientific_adapter.final_report())
+        report["provenance_values"] = {
+            "git_commit": cap.runner_commit,
+            "worker_device": "cpu",
+            "execution_contract_sha256": contract.contract_sha256,
+            "closed_independent_protocol_sha256": contract.closed_independent_protocol_sha256,
+            "asset_evidence_sha256": contract.asset_evidence_sha256,
+            "asset_evidence_builder_protocol_sha256": contract.asset_evidence_builder_protocol_sha256,
+            "manifest_sha256": snapshot.manifest_sha256,
+            "historical_selection_sha256": cohort.historical_selection_sha256,
+            "all_frozen_artifact_sha256": dict(INDEPENDENT_V2_FROZEN_ARTIFACT_SHA256),
+            "all_thirty_recording_identities_and_twenty_leakage_groups": {
+                "recording_identities": item_keys, "independent_leakage_groups": groups,
+            },
+            "candidate_gate_placement": contract.candidate_gate_placement,
+            "locked_test_used": False,
+        }
+        validate_future_report(report)
+        decision_inputs = report.get("decision_inputs")
+        if not isinstance(decision_inputs, Mapping):
+            raise ValueError("independent V2 report lacks canonical decision inputs")
+        decision = evaluate_future_report_decision(
+            decision_inputs.get("reference"), decision_inputs.get("candidate"),
+            dict(contract.decision_rules),
+        )
+        if decision.get("automatic_promotion") is not False or not isinstance(decision.get("checks"), Mapping):
+            raise ValueError("independent V2 canonical decision is incomplete")
+        report["decision"] = decision
+        state.advance(OneShotPhase.COHORT_CONSUMED)
+        report["terminal_state"] = OneShotPhase.REPORT_WRITTEN.value
+        report["cohort_consumed"] = state.cohort_consumed
+        report_path = paths.destination / "independent_v2_execution_report.json"
+        temporary = report_path.with_suffix(".json.part")
+        temporary.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        os.replace(temporary, report_path)
+        state.advance(OneShotPhase.REPORT_WRITTEN)
+        return report
 
 
 @dataclass(frozen=True)
@@ -353,15 +726,15 @@ def _require_execution_contract(repository_root: Path) -> IndependentV2Execution
 def run_authorized_independent_v2(
     repository_root: Path,
     capability: object,
-) -> None:
+) -> Mapping[str, object]:
     """Guard the future scientific path; the capability factory is absent."""
 
-    require_sealed_one_job_capability(capability)
-    contract = _require_execution_contract(repository_root)
-    if contract is None:  # pragma: no cover - defensive unreachable branch
-        raise RuntimeError("Fail closed: missing execution contract.")
-    raise RuntimeError(
-        "Independent V2 execution is not enabled in this contract-only commit."
+    checked = require_sealed_one_job_capability(capability)
+    paths = _build_production_execution_paths(repository_root, checked)
+    probe = _ProductionSystemProbe()
+    adapter = _ProductionScientificAdapter(paths)
+    return _run_sealed_independent_v2_execution(
+        paths, checked, system_probe=probe, scientific_adapter=adapter,
     )
 
 
@@ -387,9 +760,6 @@ __all__ = [
     "REPORT_VIEWS",
     "evaluate_future_report_decision",
     "classify_failure",
-    "phase_order",
-    "IndependentV2ExecutionHooks",
-    "run_phase_sequence",
     "validate_frozen_artifact_hashes",
     "validate_future_report",
     "validate_runtime_preflight",

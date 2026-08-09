@@ -66,6 +66,11 @@ class IndependentV2ExecutionContractTests(unittest.TestCase):
         self.assertIs(
             contract.require_sealed_independent_v2_execution_contract(sealed), sealed
         )
+        self.assertFalse(dict(sealed.decision_rules)["automatic_promotion"])
+        self.assertEqual(
+            dict(sealed.decision_rules)["global_causal_false_noteon_relative_reduction_minimum"],
+            0.01,
+        )
         forged = contract.IndependentV2ExecutionContract(
             contract_sha256=contract.INDEPENDENT_V2_EXECUTION_CONTRACT_SHA256,
             closed_independent_protocol_sha256=contract.INDEPENDENT_V2_CLOSED_PROTOCOL_SHA256,
@@ -78,6 +83,7 @@ class IndependentV2ExecutionContractTests(unittest.TestCase):
             wall_timeout_seconds=900,
             threshold=0.31,
             candidate_gate_placement="post_ranking_pre_noteon",
+            decision_rules=(("automatic_promotion", False),),
         )
         with self.assertRaisesRegex(RuntimeError, "loaded from sealed bytes"):
             contract.require_sealed_independent_v2_execution_contract(forged)

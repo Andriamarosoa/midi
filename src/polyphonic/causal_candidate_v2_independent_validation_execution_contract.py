@@ -120,6 +120,7 @@ class IndependentV2ExecutionContract:
     wall_timeout_seconds: int
     threshold: float
     candidate_gate_placement: str
+    decision_rules: tuple[tuple[str, object], ...]
 
     def __post_init__(self) -> None:
         _require_sha256(self.contract_sha256, "contract_sha256")
@@ -140,6 +141,8 @@ class IndependentV2ExecutionContract:
             raise ValueError("independent V2 threshold is not frozen.")
         if self.candidate_gate_placement != "post_ranking_pre_noteon":
             raise ValueError("independent V2 candidate gate placement is not frozen.")
+        if dict(self.decision_rules).get("automatic_promotion") is not False:
+            raise ValueError("independent V2 decision rules must forbid promotion.")
 
 
 def require_sealed_independent_v2_execution_contract(
@@ -379,6 +382,7 @@ def _require_exact_execution_payload(payload: Mapping[str, object]) -> Independe
         wall_timeout_seconds=900,
         threshold=0.31,
         candidate_gate_placement="post_ranking_pre_noteon",
+        decision_rules=tuple(decision.items()),
     )
 
 
