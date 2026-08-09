@@ -46,6 +46,27 @@ features, un préflight qui échoue avant l'inférence et le refus fail-closed
 d'une latence non finie. Ce sont exclusivement des tests synthétiques : ils ne
 constituent pas la validation historique A/B.
 
+## Correctif après revue externe de `0f5c209e`
+
+Trois écarts de contrat ont été corrigés, toujours sans ouvrir d'actif réel ni
+exécuter la cohorte historique :
+
+1. La règle de rappel causal lit `recall_within_max_latency`, la clé réellement
+   produite par `aggregate_strictly_causal_noteon_metrics()`. Le test construit
+   maintenant cet agrégat réel et vérifie aussi le refus d'une latence non
+   finie.
+2. `fit_report_path` est une entrée obligatoire du préflight. Son SHA-256 est
+   vérifié avant le modèle ou TensorFlow et le rapport final contient les huit
+   empreintes exigées : modèle, standardiseur, rapport de fit, manifeste,
+   sélection, checkpoint, YAML d'évaluation et décodeur de référence.
+3. Les sections globales `paired_ab.reference` et `paired_ab.candidate`
+   contiennent maintenant toutes deux `onset_offset`, calculé sur l'agrégat
+   complet de leur branche.
+
+Rejeu après correction : `66 tests` ciblés réussis en `8,147 s`, avec
+`py_compile` et `git diff --check`. Cette preuve est synthétique et ne donne
+aucune autorisation d'exécuter l'A/B Mac.
+
 ## Suite autorisée
 
 Faire relire le code et les tests. Une autorisation distincte sera requise

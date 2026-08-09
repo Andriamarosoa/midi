@@ -1104,8 +1104,14 @@ def evaluate_events(
     if paired_candidate_config is not None:
         candidate_config_path = paired_decoder_config_path or configured_decoder
         candidate_matches = match_notes(paired_reference, paired_estimated)
+        candidate_offset_matches = match_notes(
+            paired_reference, paired_estimated, require_offset=True,
+        )
         candidate_onset = note_metrics(
             paired_reference, paired_estimated, candidate_matches,
+        )
+        candidate_onset_offset = note_metrics(
+            paired_reference, paired_estimated, candidate_offset_matches,
         )
         candidate_diagnostics = diagnose_note_errors(
             paired_reference, paired_estimated, candidate_matches,
@@ -1131,6 +1137,7 @@ def evaluate_events(
             "candidate_config_sha256": _sha256_file(candidate_config_path),
             "reference": {
                 "onset": report["onset"],
+                "onset_offset": report["onset_offset"],
                 "dataset_metrics": report["dataset_metrics"],
                 "strictly_causal_noteon": report["strictly_causal_noteon"],
                 "retriggers": report["retriggers"],
@@ -1141,6 +1148,7 @@ def evaluate_events(
             },
             "candidate": {
                 "onset": candidate_onset,
+                "onset_offset": candidate_onset_offset,
                 "dataset_metrics": aggregate_dataset_note_metrics(
                     paired_reports, validation_fractions,
                 ),

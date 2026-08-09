@@ -40,6 +40,7 @@ class SealedValidationContract:
     policy: Mapping[str, object]
     selection: Mapping[str, object]
     standardizer: FitStandardizer
+    artifact_sha256: Mapping[str, str]
 
 
 def load_sealed_validation_contract(
@@ -47,6 +48,7 @@ def load_sealed_validation_contract(
     repository_root: Path,
     policy_path: Path,
     selection_path: Path,
+    fit_report_path: Path,
     model_path: Path,
     standardizer_path: Path,
     manifest_path: Path,
@@ -79,17 +81,31 @@ def load_sealed_validation_contract(
         raise ValueError("Validation policy is missing sealed sections.")
     if cohort.get("selection_sha256") != SEALED_SELECTION_SHA256:
         raise ValueError("Validation policy selection SHA-256 mismatch.")
-    for path, expected, name in (
-        (manifest_path, selection.get("manifest_sha256"), "manifest"),
-        (checkpoint_path, selection.get("transcription_checkpoint_sha256"), "checkpoint"),
-        (evaluation_config_path, selection.get("evaluation_config_sha256"), "evaluation config"),
-        (decoder_config_path, selection.get("reference_decoder_config_sha256"), "decoder config"),
-        (model_path, artifacts.get("model_sha256"), "causal candidate model"),
-        (standardizer_path, artifacts.get("standardizer_sha256"), "causal candidate standardizer"),
-    ):
+    artifact_paths = {
+        "model": (model_path, artifacts.get("model_sha256")),
+        "standardizer": (standardizer_path, artifacts.get("standardizer_sha256")),
+        "fit_report": (fit_report_path, artifacts.get("fit_report_sha256")),
+        "manifest": (manifest_path, selection.get("manifest_sha256")),
+        "selection": (expected_selection, SEALED_SELECTION_SHA256),
+        "checkpoint": (checkpoint_path, selection.get("transcription_checkpoint_sha256")),
+        "evaluation_config": (evaluation_config_path, selection.get("evaluation_config_sha256")),
+        "reference_decoder_config": (decoder_config_path, selection.get("reference_decoder_config_sha256")),
+    }
+    required_report = policy.get("required_report")
+    if not isinstance(required_report, dict) or tuple(required_report.get("artifact_sha256", ())) != tuple(artifact_paths):
+        raise ValueError("Validation policy artifact report contract mismatch.")
+    verified_artifact_sha256: dict[str, str] = {}
+    # The fit report anchors the model/standardizer provenance and must reject
+    # before either binary artifact can be loaded.
+    preflight_order = ("fit_report",) + tuple(
+        name for name in artifact_paths if name != "fit_report"
+    )
+    for name in preflight_order:
+        path, expected = artifact_paths[name]
         if not isinstance(expected, str):
             raise ValueError(f"Validation policy has no SHA for {name}.")
         _require_sha(Path(path), expected, name)
+        verified_artifact_sha256[name] = _sha256(Path(path))
     if cohort.get("recording_count") != 12 or len(selection.get("recording_keys", ())) != 12:
         raise ValueError("Validation A/B requires exactly the sealed 12 recordings.")
     if not all(bool(contract.get(name)) for name in (
@@ -117,7 +133,7 @@ def load_sealed_validation_contract(
         mean=tuple(float(value) for value in raw_standardizer.get("mean", ())),
         scale=tuple(float(value) for value in raw_standardizer.get("scale", ())),
     )
-    return SealedValidationContract(policy, selection, standardizer)
+    return SealedValidationContract(policy, selection, standardizer, verified_artifact_sha256)
 
 
 class CausalCandidateGate:
@@ -250,6 +266,7 @@ def evaluate_sealed_causal_candidate_ab(
     run_dir: Path,
     policy_path: Path,
     selection_path: Path,
+    fit_report_path: Path,
     model_path: Path,
     standardizer_path: Path,
     manifest_path: Path,
@@ -270,6 +287,7 @@ def evaluate_sealed_causal_candidate_ab(
         repository_root=repository_root,
         policy_path=policy_path,
         selection_path=selection_path,
+        fit_report_path=fit_report_path,
         model_path=model_path,
         standardizer_path=standardizer_path,
         manifest_path=manifest_path,
@@ -330,9 +348,7 @@ def evaluate_sealed_causal_candidate_ab(
         raise RuntimeError("Sealed causal candidate A/B rules are invalid.")
     report["causal_candidate_validation"] = {
         "policy_sha256": _sha256(Path(policy_path)),
-        "selection_sha256": _sha256(Path(selection_path)),
-        "model_sha256": _sha256(Path(model_path)),
-        "standardizer_sha256": _sha256(Path(standardizer_path)),
+        "artifact_sha256": dict(sealed.artifact_sha256),
         "audio_evidence_override_forbidden": True,
         "decision": evaluate_preregistered_ab_decision(
             reference=reference,
@@ -375,7 +391,11 @@ def evaluate_preregistered_ab_decision(
     checks["false_positive_notes"] = number(cand_onset, "false_positive_notes") - number(ref_onset, "false_positive_notes") <= number(rules, "candidate_false_positive_notes_delta_maximum")
     checks["onset_recall"] = number(cand_onset, "recall") - number(ref_onset, "recall") >= number(rules, "candidate_global_onset_recall_delta_minimum")
     checks["onset_f1"] = number(cand_onset, "f1") - number(ref_onset, "f1") >= number(rules, "candidate_global_onset_f1_delta_minimum")
-    checks["causal_recall"] = number(cand_global, "recall") - number(ref_global, "recall") >= number(rules, "candidate_global_strictly_causal_recall_delta_minimum")
+    checks["causal_recall_within_max_latency"] = (
+        number(cand_global, "recall_within_max_latency")
+        - number(ref_global, "recall_within_max_latency")
+        >= number(rules, "candidate_global_strictly_causal_recall_delta_minimum")
+    )
     hop_ms = number(rules, "causal_latency_hop_ms")
     for percentile in ("p50", "p90"):
         delta_hops = (number(cand_global, f"latency_{percentile}_ms") - number(ref_global, f"latency_{percentile}_ms")) / hop_ms

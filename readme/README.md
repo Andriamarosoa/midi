@@ -58,6 +58,13 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `7,859 s`; aucun modèle ou actif réel, aucune validation, export, live ou
   test verrouillé n'a été exécuté. Rapport :
   `readme/results/2026-08-09_causal-candidate-validation-ab-implementation.md`.
+- Correctif de revue A/B sans calcul : le verdict emploie désormais la métrique
+  réellement émise `recall_within_max_latency`; le SHA-256 du `fit_report` est
+  vérifié avant le modèle et les huit empreintes exigées sont archivées dans le
+  résultat. Les agrégats `onset_offset` sont présents pour A et B. Le rejeu
+  synthétique ciblé passe `66` tests en `8,147 s`; aucune prise validation ni
+  actif réel n'a été ouvert. Une nouvelle revue externe reste obligatoire avant
+  toute exécution Mac.
 - Résultat vérifié : le job Mac
   `decoder-candidate-guitarset-v3-cpu-20260809` a terminé avec `exit_code=0`
   et l'état `complete_non_authorizing` au commit
@@ -283,8 +290,8 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 ## Prochaine action réelle
 
-1. Faire relire l'implémentation A/B : préflight SHA, prédiction/masques
-   partagés, double état causal, tête pré-porte et décision fail-closed.
+1. Faire relire le correctif A/B : métrique causale réelle, huit SHA scellés,
+   `onset_offset` pairé, prédiction/masques partagés et double état causal.
 2. Après seule approbation explicite, définir l'invocation Mac scellée et une
    autorisation séparée de l'unique passe CPU historique.
 3. Conserver le test verrouillé fermé : aucun nouveau fit, recalibration,

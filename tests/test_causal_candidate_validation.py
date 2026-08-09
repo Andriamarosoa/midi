@@ -14,6 +14,11 @@ from src.polyphonic.causal_candidate_validation import (
     load_sealed_validation_contract,
 )
 from src.polyphonic.decoder import PolyphonicDecoderConfig
+from src.polyphonic.evaluate_events import (
+    NoteInterval,
+    aggregate_strictly_causal_noteon_metrics,
+    build_strictly_causal_noteon_clip,
+)
 
 
 class CausalCandidateValidationTests(unittest.TestCase):
@@ -73,11 +78,12 @@ class CausalCandidateValidationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             bad_model = Path(directory) / "wrong.keras"
             bad_model.write_bytes(b"not the sealed model")
-            with self.assertRaisesRegex(ValueError, "manifest SHA-256 mismatch"):
+            with self.assertRaisesRegex(ValueError, "fit_report SHA-256 mismatch"):
                 load_sealed_validation_contract(
                     repository_root=root,
                     policy_path=root / "configs" / "causal_candidate_fit_v1_validation_ab_policy.json",
                     selection_path=root / "configs" / "causal_candidate_fit_v1_validation_selection_12.json",
+                    fit_report_path=bad_model,
                     model_path=bad_model,
                     standardizer_path=bad_model,
                     manifest_path=bad_model,
@@ -86,28 +92,50 @@ class CausalCandidateValidationTests(unittest.TestCase):
                     decoder_config_path=bad_model,
                 )
 
-    def test_decision_fails_closed_for_non_finite_causal_latency(self) -> None:
+    def test_decision_uses_real_causal_aggregate_schema(self) -> None:
         rules = {
-            "candidate_false_positive_notes_delta_maximum": -1,
-            "candidate_global_onset_recall_delta_minimum": -0.005,
-            "candidate_global_onset_f1_delta_minimum": -0.002,
-            "candidate_global_strictly_causal_recall_delta_minimum": -0.005,
+            "candidate_false_positive_notes_delta_maximum": 0,
+            "candidate_global_onset_recall_delta_minimum": 0,
+            "candidate_global_onset_f1_delta_minimum": 0,
+            "candidate_global_strictly_causal_recall_delta_minimum": 0,
             "candidate_strictly_causal_latency_p50_delta_hops_maximum": 1.0,
             "candidate_strictly_causal_latency_p90_delta_hops_maximum": 1.0,
             "causal_latency_hop_ms": 5.804988662131519,
             "candidate_retriggers_delta_maximum": 0,
             "candidate_excess_fragments_delta_maximum": 0,
-            "candidate_per_corpus_onset_f1_delta_minimum": -0.01,
-            "candidate_low_midi_40_51_onset_f1_delta_minimum": -0.01,
+            "candidate_per_corpus_onset_f1_delta_minimum": 0,
+            "candidate_low_midi_40_51_onset_f1_delta_minimum": 0,
         }
+        clip, _ = build_strictly_causal_noteon_clip(
+            [NoteInterval(60, 0.0, 0.1)],
+            [NoteInterval(60, 0.01, 0.11)],
+            clip_id="synthetic", corpus_id="gaps_poly_mix", duration_s=0.2,
+        )
+        causal = aggregate_strictly_causal_noteon_metrics([clip])
+        self.assertIn("recall_within_max_latency", causal["global"])
+        self.assertNotIn("recall", causal["global"])
         base = {
             "onset": {"false_positive_notes": 2, "recall": 1.0, "f1": 1.0},
-            "strictly_causal_noteon": {"global": {"recall": 1.0, "latency_p50_ms": 1.0, "latency_p90_ms": 2.0}},
+            "strictly_causal_noteon": causal,
             "retriggers": 0,
             "diagnostics": {"excess_fragments": 0},
             "dataset_metrics": {"per_dataset": {"gaps_poly_mix": {"onset": {"f1": 1.0}}}},
             "low_midi_40_51": {"onset": {"f1": 1.0}},
         }
-        candidate = {**base, "strictly_causal_noteon": {"global": {"recall": 1.0, "latency_p50_ms": float("nan"), "latency_p90_ms": 2.0}}}
+        self.assertTrue(
+            evaluate_preregistered_ab_decision(
+                reference=base, candidate=base, rules=rules,
+            )["all_rules_passed"]
+        )
+        candidate = {
+            **base,
+            "strictly_causal_noteon": {
+                **causal,
+                "global": {
+                    **causal["global"],
+                    "latency_p50_ms": float("nan"),
+                },
+            },
+        }
         with self.assertRaisesRegex(ValueError, "non-finite metric"):
             evaluate_preregistered_ab_decision(reference=base, candidate=candidate, rules=rules)
