@@ -9,7 +9,7 @@ import os
 from collections import Counter
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Mapping, Sequence
+from typing import Callable, Mapping, Sequence
 
 import numpy as np
 
@@ -43,6 +43,7 @@ from src.polyphonic.data import (
 )
 from src.polyphonic.keras_compat import predict_compat
 from src.polyphonic.decoder import (
+    CausalCandidateGateInput,
     PolyphonicDecoder,
     PolyphonicDecoderConfig,
     PolyphonicMidiEvent,
@@ -79,6 +80,24 @@ def _assert_expected_selection(
     ):
         if expected.get(name) != actual:
             raise ValueError(f"Expected paired {name} mismatch.")
+
+
+def _assert_causal_candidate_selection(
+    path: Path, manifest: Path, items: Sequence[ManifestItem], *,
+    checkpoint: Path, reference_config: Path, evaluation_config: Path,
+) -> None:
+    expected = json.loads(path.read_text(encoding="utf-8"))
+    actual_keys = ["|".join(_recording_key(item)[:4]) for item in items]
+    expected_pairs = (
+        ("manifest_sha256", _sha256_file(manifest)),
+        ("transcription_checkpoint_sha256", _sha256_file(checkpoint)),
+        ("reference_decoder_config_sha256", _sha256_file(reference_config)),
+        ("evaluation_config_sha256", _sha256_file(evaluation_config)),
+    )
+    if any(expected.get(name) != value for name, value in expected_pairs):
+        raise ValueError("Sealed causal candidate validation provenance mismatch.")
+    if expected.get("recording_keys") != actual_keys:
+        raise ValueError("Sealed causal candidate validation recording selection mismatch.")
 
 
 @dataclass(frozen=True)
@@ -528,10 +547,12 @@ def decode_probabilities(
     independent_note: np.ndarray | None = None,
     independent_note_gate_diagnostics: dict[str, object] | None = None,
     independent_note_diagnostic_thresholds: tuple[float, ...] = (),
+    causal_candidate_gate: Callable[[CausalCandidateGateInput], bool] | None = None,
 ) -> tuple[list[NoteInterval], int]:
     decoder = PolyphonicDecoder(
         config,
         independent_note_diagnostic_thresholds=independent_note_diagnostic_thresholds,
+        causal_candidate_gate=causal_candidate_gate,
     )
     events: list[PolyphonicMidiEvent] = []
     retriggers = 0
@@ -738,6 +759,9 @@ def evaluate_events(
     final_selection_path: Path | None = None,
     paired_decoder_config_path: Path | None = None,
     expected_selection_path: Path | None = None,
+    causal_candidate_gate_factory: Callable[[], Callable[[CausalCandidateGateInput], bool]] | None = None,
+    causal_candidate_selection_path: Path | None = None,
+    write_report: bool = True,
 ) -> dict[str, object]:
     if split == "test":
         if not allow_locked_test_after_final_selection or final_selection_path is None:
@@ -776,9 +800,12 @@ def evaluate_events(
             config["dataset"]["manifest"] = str(
                 (resolved_config_path.parent.parent / manifest).resolve()
             )
-    thresholds = json.loads(
-        (thresholds_path or (run_dir / "thresholds.json")).read_text(
-            encoding="utf-8"
+    configured_decoder = decoder_config_path or (run_dir / "decoder_config.json")
+    thresholds = (
+        {} if configured_decoder.is_file() else json.loads(
+            (thresholds_path or (run_dir / "thresholds.json")).read_text(
+                encoding="utf-8"
+            )
         )
     )
     manifest_items = load_manifest(Path(config["dataset"]["manifest"]))
@@ -790,7 +817,6 @@ def evaluate_events(
     items = select_evaluation_recordings(
         manifest_items, split, maximum_recordings, dataset_id,
     )
-    configured_decoder = decoder_config_path or (run_dir / "decoder_config.json")
     default_checkpoint = (
         run_dir / "selected.keras"
         if (run_dir / "selected.keras").is_file()
@@ -814,6 +840,22 @@ def evaluate_events(
             expected_selection_path, Path(config["dataset"]["manifest"]), items,
             checkpoint=checkpoint, reference_config=configured_decoder,
             candidate_config=paired_decoder_config_path,
+            evaluation_config=resolved_config_path,
+        )
+    if causal_candidate_gate_factory is not None:
+        if paired_decoder_config_path is not None:
+            raise ValueError("Causal candidate A/B cannot combine paired decoder configs.")
+        if split != "validation":
+            raise PermissionError("Causal candidate A/B is validation-only.")
+        if audio_evidence_metadata is not None:
+            raise ValueError("Causal candidate A/B forbids --audio-evidence-config.")
+        if causal_candidate_selection_path is None:
+            raise ValueError("Causal candidate A/B requires a sealed selection.")
+        if not configured_decoder.is_file() or not checkpoint.is_file():
+            raise FileNotFoundError("Causal candidate A/B provenance artifact missing.")
+        _assert_causal_candidate_selection(
+            causal_candidate_selection_path, Path(config["dataset"]["manifest"]), items,
+            checkpoint=checkpoint, reference_config=configured_decoder,
             evaluation_config=resolved_config_path,
         )
     if not checkpoint.is_file():
@@ -844,6 +886,10 @@ def evaluate_events(
         if preflight_pair is None:
             raise RuntimeError("Paired decoder preflight was not completed.")
         decoder_config, paired_candidate_config = preflight_pair
+    elif causal_candidate_gate_factory is not None:
+        # Both branches start from this exact configuration.  Only the
+        # candidate's optional gate changes its subsequent causal state.
+        paired_candidate_config = decoder_config
     all_reference: list[NoteInterval] = []
     all_estimated: list[NoteInterval] = []
     causal_clips: list[ClipNoteOnData] = []
@@ -909,12 +955,17 @@ def evaluate_events(
             reference = truth_notes(arrays)
             if paired_candidate_config is not None:
                 candidate_gate: dict[str, object] = {}
+                causal_candidate_gate = (
+                    causal_candidate_gate_factory()
+                    if causal_candidate_gate_factory is not None else None
+                )
                 candidate_estimated, candidate_retriggers = decode_probabilities(
                     prediction["frame"], prediction["onset"],
                     prediction["harmonic_amplitude"], paired_candidate_config,
                     corpus.sample_rate, corpus.hop_size, activity_mask, onset_mask,
                     prediction.get("independent_note"), candidate_gate,
                     INDEPENDENT_NOTE_DIAGNOSTIC_THRESHOLDS,
+                    causal_candidate_gate,
                 )
         finally:
             corpus.close()
@@ -975,6 +1026,10 @@ def evaluate_events(
                 "strictly_causal_noteon": candidate_causal_metrics,
                 "retriggers": candidate_retriggers,
                 "independent_note_gate": candidate_gate,
+                "causal_candidate_gate": (
+                    getattr(causal_candidate_gate, "diagnostics", None)
+                    if causal_candidate_gate is not None else None
+                ),
                 "diagnostics": diagnose_note_errors(
                     reference, candidate_estimated, candidate_matches,
                 ),
@@ -1047,6 +1102,7 @@ def evaluate_events(
         "per_recording": recording_reports,
     }
     if paired_candidate_config is not None:
+        candidate_config_path = paired_decoder_config_path or configured_decoder
         candidate_matches = match_notes(paired_reference, paired_estimated)
         candidate_onset = note_metrics(
             paired_reference, paired_estimated, candidate_matches,
@@ -1066,13 +1122,17 @@ def evaluate_events(
         candidate_low = _low_midi_metrics(paired_reference, paired_estimated)
         report["paired_ab"] = {
             "single_inference_per_recording": True,
+            "independent_decoder_state_after_gate_decisions": (
+                causal_candidate_gate_factory is not None
+            ),
             "reference_config": str(configured_decoder),
-            "candidate_config": str(paired_decoder_config_path),
+            "candidate_config": str(candidate_config_path),
             "reference_config_sha256": _sha256_file(configured_decoder),
-            "candidate_config_sha256": _sha256_file(paired_decoder_config_path),
+            "candidate_config_sha256": _sha256_file(candidate_config_path),
             "reference": {
                 "onset": report["onset"],
                 "dataset_metrics": report["dataset_metrics"],
+                "strictly_causal_noteon": report["strictly_causal_noteon"],
                 "retriggers": report["retriggers"],
                 "diagnostics": report["diagnostics"],
                 "diagnostics_by_corpus": _diagnostics_by_corpus(recording_reports),
@@ -1102,20 +1162,21 @@ def evaluate_events(
                 "f1": candidate_onset["f1"] - report["onset"]["f1"],
             },
         }
-    reports_root = run_dir / "reports"
-    reports_root.mkdir(exist_ok=True)
-    checkpoint_suffix = (
-        f"_{checkpoint.stem}" if checkpoint_path is not None else ""
-    )
-    variant_suffix = f"_{report_suffix}" if report_suffix else ""
-    report_name = (
-        f"{split}_{dataset_id}_events{checkpoint_suffix}{variant_suffix}.json"
-        if dataset_id
-        else f"{split}_events{checkpoint_suffix}{variant_suffix}.json"
-    )
-    (reports_root / report_name).write_text(
-        json.dumps(report, indent=2), encoding="utf-8"
-    )
+    if write_report:
+        reports_root = run_dir / "reports"
+        reports_root.mkdir(exist_ok=True)
+        checkpoint_suffix = (
+            f"_{checkpoint.stem}" if checkpoint_path is not None else ""
+        )
+        variant_suffix = f"_{report_suffix}" if report_suffix else ""
+        report_name = (
+            f"{split}_{dataset_id}_events{checkpoint_suffix}{variant_suffix}.json"
+            if dataset_id
+            else f"{split}_events{checkpoint_suffix}{variant_suffix}.json"
+        )
+        (reports_root / report_name).write_text(
+            json.dumps(report, indent=2), encoding="utf-8"
+        )
     return report
 
 

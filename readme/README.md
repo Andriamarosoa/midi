@@ -17,8 +17,8 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-09`.
-- Étape : `decoder_candidate_fit_v1_transport_validation_contract`.
-- Statut : `terminé — correctif de transport et A/B préenregistré; revue externe requise avant toute implémentation ou exécution validation`.
+- Étape : `causal_candidate_validation_ab_implementation`.
+- Statut : `terminé — évaluateur A/B scellé implémenté; revue externe requise avant toute exécution validation`.
 - Résultat terminal vérifié : l'unique job CPU
   `causal-candidate-fit-v1-cpu-20260809` termine avec `exit_code=0`,
   `complete_non_authorizing`, 14 époques enregistrées et meilleure époque 9,
@@ -50,6 +50,14 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   est interdite. Les deltas de latence causale `p50` et `p90` sont maintenant
   chacun limités à `+1` hop (`5,804988662 ms`). L'implémentation et l'exécution
   restent interdites jusqu'à la revue de cette révision.
+- Implémentation A/B sans calcul : `causal_candidate_validation.py` vérifie les
+  SHA de la policy, sélection, modèle, standardiseur, manifeste, checkpoint,
+  YAML et décodeur avant chargement. Elle partage l'inférence et les masques
+  audio, puis fourche uniquement deux états de décodeur; la tête candidate voit
+  les features pré-porte, jamais la référence. 66 tests ciblés passent en
+  `7,859 s`; aucun modèle ou actif réel, aucune validation, export, live ou
+  test verrouillé n'a été exécuté. Rapport :
+  `readme/results/2026-08-09_causal-candidate-validation-ab-implementation.md`.
 - Résultat vérifié : le job Mac
   `decoder-candidate-guitarset-v3-cpu-20260809` a terminé avec `exit_code=0`
   et l'état `complete_non_authorizing` au commit
@@ -275,12 +283,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 ## Prochaine action réelle
 
-1. Faire relire le contrat A/B et le correctif CR de transport : scellement de
-   la cohorte, artefacts V1, seuil `0,31`, une seule inférence par prise et
-   critères de décision.
-2. Après seule approbation explicite de cette revue, implémenter le lecteur et
-   l'évaluateur A/B scellés **sans exécuter** la validation; une seconde revue
-   sera requise avant l'unique passe CPU historique.
+1. Faire relire l'implémentation A/B : préflight SHA, prédiction/masques
+   partagés, double état causal, tête pré-porte et décision fail-closed.
+2. Après seule approbation explicite, définir l'invocation Mac scellée et une
+   autorisation séparée de l'unique passe CPU historique.
 3. Conserver le test verrouillé fermé : aucun nouveau fit, recalibration,
    validation, export, live ou sélection/promotion de seuil n'est autorisé à
    cette étape.
@@ -713,6 +719,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-09 — implémentation V1 du protocole de fit causal](results/2026-08-09_decoder-candidate-fit-protocol-implementation.md)
 - [2026-08-09 — implémentation du runner V1 de fit causal](results/2026-08-09_decoder-candidate-fit-runner-implementation.md)
 - [2026-08-09 — correctif de transport et préinscription A/B historique V1](results/2026-08-09_causal-candidate-fit-v1-transport-and-validation-preregistration.md)
+- [2026-08-09 — implémentation A/B historique du filtre causal V1](results/2026-08-09_causal-candidate-validation-ab-implementation.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.

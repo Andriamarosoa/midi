@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 import operator
 from dataclasses import dataclass
+from typing import Callable
 
 import numpy as np
 
@@ -18,6 +19,20 @@ class PolyphonicMidiEvent:
     velocity: int
     frame_index: int
     reason: str = ""
+
+
+@dataclass(frozen=True)
+class CausalCandidateGateInput:
+    """Values observed immediately before an optional causal candidate gate."""
+
+    frame_probability: float
+    onset_probability: float
+    candidate_score: float
+    candidate_reason: str
+    harmonic_support: float
+    audio_onset_available: bool
+    audio_onset_recent: bool
+    active_polyphony: int
 
 
 @dataclass(frozen=True)
@@ -169,9 +184,11 @@ class PolyphonicDecoder:
         independent_note_diagnostic_thresholds: tuple[float, ...] = (),
         *,
         candidate_collector: DecoderCandidateCollector | None = None,
+        causal_candidate_gate: Callable[[CausalCandidateGateInput], bool] | None = None,
     ) -> None:
         self.config = config
         self._candidate_collector = candidate_collector
+        self._causal_candidate_gate = causal_candidate_gate
         self._candidate_collection_error: str | None = None
         self.classes = config.midi_max - config.midi_min + 1
         self.active = np.zeros(self.classes, dtype=np.bool_)
@@ -284,6 +301,31 @@ class PolyphonicDecoder:
         if self._independent_note_diagnostic_thresholds:
             self._independent_note_diagnostic_values.append(value)
         return rejected
+
+    def _reject_causal_candidate(
+        self,
+        *,
+        candidate_reason: str,
+        candidate_score: float,
+        frame_probability: float,
+        onset_probability: float,
+        harmonic_support: float,
+        audio_onset_recent: bool,
+        active_polyphony: int,
+    ) -> bool:
+        """Run an optional head on values frozen before ranking/selection."""
+        if self._causal_candidate_gate is None:
+            return False
+        return bool(self._causal_candidate_gate(CausalCandidateGateInput(
+            frame_probability=float(frame_probability),
+            onset_probability=float(onset_probability),
+            candidate_score=float(candidate_score),
+            candidate_reason=str(candidate_reason),
+            harmonic_support=float(harmonic_support),
+            audio_onset_available=bool(self.audio_onset_available),
+            audio_onset_recent=bool(audio_onset_recent),
+            active_polyphony=int(active_polyphony),
+        )))
 
     def _capture_candidate_trace(
         self,
@@ -649,6 +691,33 @@ class PolyphonicDecoder:
                             gate_eligible=True,
                         )
                 if (
+                    self._causal_candidate_gate is not None
+                    and support >= self.config.harmonic_support_threshold
+                ):
+                    if candidate_score is None:
+                        candidate_score = float(
+                            frame[class_index] + onset[class_index]
+                        )
+                    if self._reject_causal_candidate(
+                        candidate_reason="legacy",
+                        candidate_score=candidate_score,
+                        frame_probability=float(frame[class_index]),
+                        onset_probability=float(onset[class_index]),
+                        harmonic_support=support,
+                        audio_onset_recent=False,
+                        active_polyphony=int(np.sum(self.active)),
+                    ):
+                        self.activation_count[class_index] = 0
+                        if trace is not None:
+                            self._complete_candidate_trace(
+                                legacy_completed,
+                                trace,
+                                post_gate_rank=None,
+                                post_gate_selected=False,
+                                emitted_noteon=False,
+                            )
+                        continue
+                if (
                     self.config.independent_note_threshold is not None
                     and independent_note_probability is not None
                     and (
@@ -843,6 +912,29 @@ class PolyphonicDecoder:
                     active_polyphony=active_polyphony,
                     gate_eligible=gate_eligible,
                 )
+            if (
+                self._causal_candidate_gate is not None
+                and support >= self.config.harmonic_support_threshold
+                and self._reject_causal_candidate(
+                    candidate_reason=reason,
+                    candidate_score=score,
+                    frame_probability=float(frame[class_index]),
+                    onset_probability=float(onset[class_index]),
+                    harmonic_support=support,
+                    audio_onset_recent=self._recent_audio_onset(),
+                    active_polyphony=int(np.sum(self.active)),
+                )
+            ):
+                self.activation_count[class_index] = 0
+                if trace is not None:
+                    self._complete_candidate_trace(
+                        completed_traces,
+                        trace,
+                        post_gate_rank=None,
+                        post_gate_selected=False,
+                        emitted_noteon=False,
+                    )
+                continue
             if (
                 self.config.independent_note_threshold is not None
                 and independent_note_probability is not None

@@ -372,18 +372,53 @@ class FitStandardizer:
             raise ValueError("standardizer scales must be finite and positive.")
 
     def transform(self, row: CandidateFitRow) -> tuple[float, ...]:
-        raw = _numeric_values(row)
+        return self.transform_pre_gate_values(
+            frame_probability=row.frame_probability,
+            onset_probability=row.onset_probability,
+            candidate_score=row.candidate_score,
+            candidate_reason=row.candidate_reason,
+            harmonic_support=row.harmonic_support,
+            audio_onset_available=row.audio_onset_available,
+            audio_onset_recent=row.audio_onset_recent,
+            active_polyphony=row.active_polyphony,
+        )
+
+    def transform_pre_gate_values(
+        self,
+        *,
+        frame_probability: float,
+        onset_probability: float,
+        candidate_score: float,
+        candidate_reason: str,
+        harmonic_support: float,
+        audio_onset_available: bool,
+        audio_onset_recent: bool,
+        active_polyphony: int,
+    ) -> tuple[float, ...]:
+        if candidate_reason not in CANDIDATE_REASON_VOCABULARY:
+            raise ValueError("candidate_reason is outside the fixed pre-gate vocabulary.")
+        if type(active_polyphony) is not int or active_polyphony < 0:
+            raise ValueError("active_polyphony must be a non-negative integer.")
+        raw = (
+            float(frame_probability),
+            float(onset_probability),
+            float(candidate_score),
+            float(harmonic_support),
+            math.log1p(active_polyphony),
+        )
+        if not all(math.isfinite(value) for value in raw):
+            raise ValueError("pre-gate numerical features must be finite.")
         normalized = tuple(
             (value - mean) / scale
             for value, mean, scale in zip(raw, self.mean, self.scale)
         )
         one_hot = tuple(
-            1.0 if row.candidate_reason == reason else 0.0
+            1.0 if candidate_reason == reason else 0.0
             for reason in CANDIDATE_REASON_VOCABULARY
         )
         vector = normalized + (
-            float(row.audio_onset_available),
-            float(row.audio_onset_recent),
+            float(bool(audio_onset_available)),
+            float(bool(audio_onset_recent)),
         ) + one_hot
         if len(vector) != FEATURE_DIMENSION or not all(math.isfinite(value) for value in vector):
             raise AssertionError("candidate feature projection is invalid.")
