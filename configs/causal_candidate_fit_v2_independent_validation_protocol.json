@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "purpose": "causal_candidate_fit_v2_post_ranking_independent_validation_contract",
+  "status": "contract_only_pending_external_review",
+  "locked_test_used": false,
+  "authorization_scope": {
+    "allowed_now": [
+      "external_review"
+    ],
+    "forbidden_now": [
+      "real_audio_or_label_access",
+      "model_loading",
+      "runner_implementation",
+      "fit",
+      "recalibration",
+      "threshold_search",
+      "historical_validation_reuse",
+      "export",
+      "live",
+      "locked_test"
+    ]
+  },
+  "scientific_question": "With the frozen V1 head, threshold, features, audio evidence, transcription, and post-ranking/pre-NoteOn placement, does V2 retain a material false-NoteOn reduction on a validation cohort whose recordings and leakage groups were never observed while V2 was formulated?",
+  "frozen_v2_intervention": {
+    "v2_execution_report_sha256": "43e28b4ebfe33f5ad0f28be1c4b61704af8cebc08012458cbd645d3027b9acf9",
+    "transcription_checkpoint_sha256": "1ce8ac44ca7156d4bc058b5b37580805f2ab6536b380636c04b9a31b1a411325",
+    "model_sha256": "b9320cd004ed686720e282e4338c4a6413c2ef3dd701d421de3533f710d8a59e",
+    "standardizer_sha256": "0600aa1aa75eb008f04e299de3ffe9d7b6b0a722b177750b42e0967740df5e3b",
+    "threshold": 0.31,
+    "candidate_gate_placement": "post_ranking_pre_noteon",
+    "encoded_feature_count": 12,
+    "audio_evidence_config_sha256": "45edbb712415c5b62f10a1405678fc28cee083891131108b2875ce8f71abcd3e",
+    "evaluation_config_sha256": "245285783eb395e1c16f9773cf9a15565510ba289467d63ad6a7d725bae19804",
+    "reference_decoder_config_sha256": "c16be48271912c99c4237345e8406e39b88490b5565047757f6ca9e905615f96"
+  },
+  "independence_boundary": {
+    "manifest_sha256": "b28cb17cfb80a82860ab44635b2c6d05718243e027a8fc8199fe72e27f1b8ed7",
+    "manifest_split": "validation",
+    "historical_v1_validation_selection_path": "configs/causal_candidate_fit_v1_validation_selection_12.json",
+    "historical_v1_validation_selection_sha256": "8c3cf53c7f5dcf086b70767e28499c3164aa307059652a6d0a2fc87159f9dcbc",
+    "exclude_historical_recording_keys": true,
+    "exclude_every_historical_leakage_group": true,
+    "require_no_overlap_with_policy_a_eligible_train_groups": true,
+    "policy_a_partition_plan_sha256": "a8347e4e6300dc59b48eab253186fd60ae21cd769fa21d647db4d7e0893685f4",
+    "forbid_manual_recording_selection": true,
+    "forbid_metric_or_audio_or_label_based_selection": true
+  },
+  "metadata_only_feasibility_snapshot": {
+    "method": "manifest identity, split, dataset, capture, group and player metadata only; no audio, labels, model, inference or metrics",
+    "historical_validation_recordings": 12,
+    "remaining_after_exact_recording_exclusion": {
+      "gaps_poly_mix": 27,
+      "guitar_techs_poly_directinput": 43,
+      "guitar_techs_poly_micamp": 43,
+      "guitarset_poly_mix": 57
+    },
+    "remaining_after_strict_historical_leakage_group_exclusion": {
+      "gaps_poly_mix": 26,
+      "guitar_techs_poly_directinput": 40,
+      "guitar_techs_poly_micamp": 40,
+      "guitarset_poly_mix": 0
+    },
+    "guitarset_exclusion_reason": "All GuitarSet validation rows use leakage group guitarset:player:04, already observed in the historical twelve-recording V1/V2-formulation cohort. No remaining GuitarSet validation row can be called independent under this contract."
+  },
+  "cohort_rule": {
+    "recording_count": 30,
+    "recordings_per_dataset": {
+      "gaps_poly_mix": 10,
+      "guitar_techs_poly_directinput": 10,
+      "guitar_techs_poly_micamp": 10,
+      "guitarset_poly_mix": 0
+    },
+    "selection_seed": 47,
+    "gaps_rule": "Rank remaining eligible GAPS leakage groups by sha256('causal-v2-independent-validation-v1:47:gaps:' + leakage_group_key), then select exactly one recording from each of the first ten groups by sha256('causal-v2-independent-validation-v1:47:gaps:recording:' + canonical_recording_key), with canonical recording key as tie-breaker.",
+    "guitar_techs_rule": "Intersect remaining eligible directinput and micamp leakage groups, rank those physical groups by sha256('causal-v2-independent-validation-v1:47:guitar_techs:' + leakage_group_key), then select both captures for the first ten groups.",
+    "canonical_recording_key": "dataset_id|group_id|source_id|capture_id",
+    "recording_keys": [
+      "gaps_poly_mix|by1wc|400_by1wc|gaps_mixed_downmix",
+      "gaps_poly_mix|jk1wc|197_jk1wc|gaps_mixed_downmix",
+      "gaps_poly_mix|Qc1wc|048_Qc1wc|gaps_mixed_downmix",
+      "gaps_poly_mix|Jf1wc|382_Jf1wc|gaps_mixed_downmix",
+      "gaps_poly_mix|mk1wc|204_mk1wc|gaps_mixed_downmix",
+      "gaps_poly_mix|sV1wc|064_sV1wc|gaps_mixed_downmix",
+      "gaps_poly_mix|jw1wc|276_jw1wc|gaps_mixed_downmix",
+      "gaps_poly_mix|nw1wc|280_nw1wc|gaps_mixed_downmix",
+      "gaps_poly_mix|D41wc|357_D41wc|gaps_mixed_downmix",
+      "gaps_poly_mix|Kf1wc|103_Kf1wc|gaps_mixed_downmix",
+      "guitar_techs_poly_directinput|gtech_p2_scales_c|gtech_p2_scales_c_directinput|directinput",
+      "guitar_techs_poly_micamp|gtech_p2_scales_c|gtech_p2_scales_c_micamp|micamp",
+      "guitar_techs_poly_directinput|gtech_p2_scales_bb|gtech_p2_scales_bb_directinput|directinput",
+      "guitar_techs_poly_micamp|gtech_p2_scales_bb|gtech_p2_scales_bb_micamp|micamp",
+      "guitar_techs_poly_directinput|gtech_p2_chords_set2_m7b5|gtech_p2_chords_set2_m7b5_directinput|directinput",
+      "guitar_techs_poly_micamp|gtech_p2_chords_set2_m7b5|gtech_p2_chords_set2_m7b5_micamp|micamp",
+      "guitar_techs_poly_directinput|gtech_p2_scales_gb|gtech_p2_scales_gb_directinput|directinput",
+      "guitar_techs_poly_micamp|gtech_p2_scales_gb|gtech_p2_scales_gb_micamp|micamp",
+      "guitar_techs_poly_directinput|gtech_p2_chords_set3_aug|gtech_p2_chords_set3_aug_directinput|directinput",
+      "guitar_techs_poly_micamp|gtech_p2_chords_set3_aug|gtech_p2_chords_set3_aug_micamp|micamp",
+      "guitar_techs_poly_directinput|gtech_p2_chords_set1_maj|gtech_p2_chords_set1_maj_directinput|directinput",
+      "guitar_techs_poly_micamp|gtech_p2_chords_set1_maj|gtech_p2_chords_set1_maj_micamp|micamp",
+      "guitar_techs_poly_directinput|gtech_p2_singlenotes_allsinglenotes|gtech_p2_singlenotes_allsinglenotes_directinput|directinput",
+      "guitar_techs_poly_micamp|gtech_p2_singlenotes_allsinglenotes|gtech_p2_singlenotes_allsinglenotes_micamp|micamp",
+      "guitar_techs_poly_directinput|gtech_p2_chords_set1_dim|gtech_p2_chords_set1_dim_directinput|directinput",
+      "guitar_techs_poly_micamp|gtech_p2_chords_set1_dim|gtech_p2_chords_set1_dim_micamp|micamp",
+      "guitar_techs_poly_directinput|gtech_p2_chords_set1_min|gtech_p2_chords_set1_min_directinput|directinput",
+      "guitar_techs_poly_micamp|gtech_p2_chords_set1_min|gtech_p2_chords_set1_min_micamp|micamp",
+      "guitar_techs_poly_directinput|gtech_p2_scales_ab|gtech_p2_scales_ab_directinput|directinput",
+      "guitar_techs_poly_micamp|gtech_p2_scales_ab|gtech_p2_scales_ab_micamp|micamp"
+    ],
+    "failure_conditions": [
+      "wrong_manifest_sha256",
+      "a_test_row_or_a_non_validation_row_is_visible",
+      "a_selected_recording_or_leakage_group_occurs_in_the_historical_twelve",
+      "a_selected_group_overlaps_policy_a_eligible_train",
+      "a_required_dataset_count_or_paired_guitar_techs_group_count_is_unavailable",
+      "any_manual_override_or_fallback"
+    ],
+    "scope_limit": "The resulting cohort can support only GAPS and Guitar-TECHS conclusions. It must report GuitarSet as not independently evaluable, never as a zero-effect result."
+  },
+  "future_execution_contract": {
+    "single_cpu_job": true,
+    "wall_timeout_seconds": 900,
+    "single_transcription_inference_per_recording": true,
+    "same_predictions_and_audio_evidence_masks_reused_across_ab": true,
+    "reference_has_no_causal_candidate_gate": true,
+    "candidate_uses_only_the_frozen_v2_intervention": true,
+    "no_model_or_threshold_selection": true,
+    "stop_after_report": true,
+    "required_before_model_loading": [
+      "seal_and_rehash_this_protocol",
+      "verify_the_historical_selection_bytes",
+      "derive_the_exact_cohort_from_the_full_manifest_before_opening_audio_or_labels",
+      "verify_group_disjointness_from_historical_exposure_and_policy_a_train",
+      "verify_or_separately_seal_byte_evidence_for_each_selected_validation_asset",
+      "reject_a_non_cpu_worker_or_a_nonfresh_destination"
+    ]
+  },
+  "pre_registered_interpretation_rules": {
+    "all_rules_must_pass_for_positive_independent_evidence": true,
+    "global_causal_false_noteon_relative_reduction_minimum": 0.01,
+    "per_dataset_causal_false_noteons_must_not_increase": true,
+    "global_causal_recall_within_250ms_maximum_drop": 0.002,
+    "per_dataset_causal_recall_within_250ms_maximum_drop": 0.005,
+    "global_onset_f1_maximum_drop": 0.001,
+    "per_dataset_onset_f1_maximum_drop": 0.002,
+    "retriggers_and_excess_fragments_must_not_increase": true,
+    "causal_latency_p50_and_p90_maximum_increase_ms": 5.804988662131519,
+    "guitarset_claim_forbidden": true,
+    "automatic_promotion": false
+  },
+  "next_action": "External review of this contract only. No runner, asset-evidence build, model load, audio or label access, evaluation, fit, calibration, export, live use, or locked-test access is authorized."
+}

@@ -17,8 +17,8 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `causal_candidate_v2_train_dev_diagnostic_runner_integration`.
-- Statut : `terminé — l'unique diagnostic V2 CPU train/dev de 30 prises est complete_exploratory_non_promotional; revue externe requise avant toute suite`.
+- Étape : `causal_candidate_v2_independent_validation_contract`.
+- Statut : `terminé — contrat sans calcul d'une évaluation V2 indépendante GAPS/Guitar-TECHS; revue externe requise avant toute implémentation`.
 - Anomalie pré-métrique V2 vérifiée : le job unique
   `causal-candidate-v2-train-dev-cpu-20260809`, lancé au commit approuvé
   `ddd15be4fbf7e47205a0025f80821e2446ef9720` avec CPU et `900 s`, termine
@@ -86,6 +86,19 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   Le verrou est libéré et le runner demande explicitement l'arrêt après son
   rapport. La seule prochaine action est la revue externe du résultat. Rapport :
   `readme/results/2026-08-10_causal-candidate-v2-train-dev-diagnostic-run.md`.
+- Contrat d'évaluation indépendante V2, sans calcul : le manifeste scellé et la
+  sélection historique de 12 prises ont été audités par métadonnées uniquement.
+  La prochaine cohorte est gelée à `30` prises validation inédites : `10` GAPS,
+  `10` Guitar-TECHS direct input et `10` Guitar-TECHS mic/amp, avec exclusion
+  stricte de toute clé et de tout groupe de fuite historique. GuitarSet est
+  explicitement hors périmètre : ses `60` prises validation appartiennent toutes
+  au joueur `04`, déjà exposé par la cohorte historique. Le modèle V1, le
+  standardiseur, les 12 features, le seuil `0,31`, la politique audio et le
+  placement `post_ranking_pre_noteon` restent gelés ; les seuils de faux NoteOn,
+  rappel, F1, fragmentation et latence sont préenregistrés. Aucun audio, label,
+  modèle, runner, inférence, fit, calibration, export, live ou test verrouillé
+  n'a été ouvert. La seule action autorisée est la revue externe du contrat.
+  Rapport : `readme/results/2026-08-10_causal-candidate-v2-independent-validation-contract.md`.
 - Correctif d'intégration V2 sans calcul : le worker Windows n'autorise
   désormais l'accusé dédié qu'au module exact
   `src.polyphonic.run_causal_candidate_v2_train_dev_diagnostic`, avec CPU,
@@ -939,6 +952,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-10 — sources exactes V2 retrouvées, copie encore interdite](results/2026-08-10_causal-candidate-v2-artifact-source-recovered.md)
 - [2026-08-10 — matérialisation binaire contrôlée des artefacts V2 scellés](results/2026-08-10_causal-candidate-v2-artifact-materialization.md)
 - [2026-08-10 — diagnostic V2 train/dev CPU, résultat exploratoire non promotionnel](results/2026-08-10_causal-candidate-v2-train-dev-diagnostic-run.md)
+- [2026-08-10 — contrat d'évaluation V2 indépendante GAPS/Guitar-TECHS, sans calcul](results/2026-08-10_causal-candidate-v2-independent-validation-contract.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.
