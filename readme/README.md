@@ -18,7 +18,7 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 - Mise à jour : `2026-08-10`.
 - Étape : `causal_candidate_v2_train_dev_diagnostic_runner_integration`.
-- Statut : `terminé — les deux artefacts locaux V2 ont été matérialisés par copie binaire atomique et leurs tailles/SHA source-destination sont conformes; revue externe requise avant toute reprise V2`.
+- Statut : `terminé — l'unique diagnostic V2 CPU train/dev de 30 prises est complete_exploratory_non_promotional; revue externe requise avant toute suite`.
 - Anomalie pré-métrique V2 vérifiée : le job unique
   `causal-candidate-v2-train-dev-cpu-20260809`, lancé au commit approuvé
   `ddd15be4fbf7e47205a0025f80821e2446ef9720` avec CPU et `900 s`, termine
@@ -30,8 +30,8 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   avant TensorFlow, modèle, checkpoint, audio, labels, inférence ou métrique.
   La destination V2 et le verrou actif sont tous deux absents après l'arrêt;
   les 30 prises, les 12 validations historiques et le test verrouillé restent
-  inutilisés. Aucune relance n'est autorisée : il faut d'abord revoir la
-  matérialisation contrôlée des artefacts locaux manquants. Rapport :
+  inutilisés. Aucune relance n'était alors autorisée : il fallait d'abord revoir
+  la matérialisation contrôlée des artefacts locaux manquants. Rapport :
   `readme/results/2026-08-10_causal-candidate-v2-train-dev-preflight-missing-local-artifacts.md`.
 - Suivi de matérialisation, sans écriture : les deux fichiers originaux requis
   (`decoder_candidate_partition_plan_v2.json` SHA
@@ -64,10 +64,28 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `12dd74f2c868d884f9189e1c8d07c1e7e1cec4e984fda5a68ce434c05e586507`.
   Aucun `.part` résiduel ni verrou n'est présent après l'opération. Aucun JSON
   n'a été parsé ou réécrit; Python, TensorFlow, audio, labels, modèle,
-  inférence, métrique et relance V2 restent absents. La seule prochaine action
-  est la revue externe de cette preuve; toute reprise des 30 prises est encore
-  interdite. Rapport :
+  inférence et métrique restaient absents. La revue externe a ensuite autorisé
+  l'unique passe décrite ci-dessous. Rapport :
   `readme/results/2026-08-10_causal-candidate-v2-artifact-materialization.md`.
+- Résultat terminal de l'unique diagnostic V2 CPU train/dev : le nouveau job
+  `causal-candidate-v2-train-dev-retry-cpu-20260810`, au commit exact
+  `522acc1e71d8baeafcede67a3f14e71fece73f9b`, a terminé `exited_zero` à
+  l'horodatage brut worker `2026-08-10T02:00:18Z`, après `720 s` et dans le
+  timeout externe de `900 s`. Le rapport brut fait `793 812` octets, SHA-256
+  `43e28b4ebfe33f5ad0f28be1c4b61704af8cebc08012458cbd645d3027b9acf9`;
+  il confirme CPU, les 30 prises train/dev `6/6/6/12`, zéro validation
+  historique et `locked_test_used=false`. La porte V2 gelée à `0,31`, placée
+  `post_ranking_pre_noteon`, a traité `1 281` candidats et en a rejeté `61`
+  (`4,76 %`). Elle retire `9` faux NoteOn standards (`14 031 → 14 022`),
+  tandis que l'appariement onset baisse de `1` et que le rappel causal reste
+  identique. Les faux NoteOn causaux passent de `13 285` à `13 275`, sans
+  changement de retriggers, fragmentation ni MIDI `40–51`; p90 causal augmente
+  de `0,265 ms`, bien sous un hop de `5,805 ms`. C'est une observation
+  exploratoire train/dev non promotionnelle : ni fit, ni calibration, ni
+  validation historique, ni export/live ni test verrouillé ne sont autorisés.
+  Le verrou est libéré et le runner demande explicitement l'arrêt après son
+  rapport. La seule prochaine action est la revue externe du résultat. Rapport :
+  `readme/results/2026-08-10_causal-candidate-v2-train-dev-diagnostic-run.md`.
 - Correctif d'intégration V2 sans calcul : le worker Windows n'autorise
   désormais l'accusé dédié qu'au module exact
   `src.polyphonic.run_causal_candidate_v2_train_dev_diagnostic`, avec CPU,
@@ -920,6 +938,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-10 — matérialisation V2 bloquée, octets sources absents](results/2026-08-10_causal-candidate-v2-artifact-materialization-blocked.md)
 - [2026-08-10 — sources exactes V2 retrouvées, copie encore interdite](results/2026-08-10_causal-candidate-v2-artifact-source-recovered.md)
 - [2026-08-10 — matérialisation binaire contrôlée des artefacts V2 scellés](results/2026-08-10_causal-candidate-v2-artifact-materialization.md)
+- [2026-08-10 — diagnostic V2 train/dev CPU, résultat exploratoire non promotionnel](results/2026-08-10_causal-candidate-v2-train-dev-diagnostic-run.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.
