@@ -16,9 +16,9 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-08-09T13:02:15+04:00`.
-- Étape : `decoder_candidate_fit_hypothesis_v1`.
-- Statut : `terminé — hypothèse de fit figée, en attente de revue externe`.
+- Mise à jour : `2026-08-09T13:22:12+04:00`.
+- Étape : `decoder_candidate_fit_protocol_implementation_v1`.
+- Statut : `terminé — protocole implémenté sans fit, en attente de revue externe`.
 - Résultat vérifié : le job Mac
   `decoder-candidate-guitarset-v3-cpu-20260809` a terminé avec `exit_code=0`
   et l'état `complete_non_authorizing` au commit
@@ -38,6 +38,19 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   ses 12 entrées pré-porte, sa pondération group-safe, le choix dev et la
   calibration interne au train. Rapport :
   `readme/results/2026-08-09_decoder-candidate-fit-hypothesis-v1.md`.
+- Implémentation vérifiée, sans exécution de fit :
+  `src/polyphonic/causal_candidate_fit.py` scelle les deux artefacts V3 et le
+  protocole V3 avant toute lecture de ligne, contrôle le statut non autorisant,
+  les sept empreintes, le commit, le but et les comptes par partition. Il
+  projette exclusivement les 12 features pré-porte, standardise sur `fit`,
+  calcule les poids localement par partition et expose la BCE dev sans L2, la
+  calibration déterministe et la parité sauvegarde/rechargement sans écrasement.
+  Le budget figé utilise seed `47` et `shuffle=false`. Les 42 tests synthétiques
+  ciblés passent en `2,015 s`; aucune ligne V3 réelle, aucun checkpoint réel,
+  aucune gradient update, calibration, validation, export, live ni test
+  verrouillé n'a été exécuté. La revue externe de cette implémentation est la
+  seule action préalable à toute autorisation distincte de fit. Rapport :
+  `readme/results/2026-08-09_decoder-candidate-fit-protocol-implementation.md`.
 - Résultat vérifié : le job Mac `decoder-candidate-extended-mining-cpu-20260809`
   a terminé sans erreur au commit `42a88b0d…`, avec `locked_test_used=false`,
   3 057 candidats supervisés (639 positifs, 2 418 négatifs), zéro perte et
@@ -220,10 +233,11 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 ## Prochaine action réelle
 
-1. Faire relire l'hypothèse V1 : features strictement pré-porte, tête
-   logistique, pondération par famille/groupe, critères dev et calibration.
-2. Après approbation seulement, implémenter ce protocole sans l'exécuter ; le
-   fit restera soumis à une revue distincte et ne découle pas de V3 seul.
+1. Faire relire l'implémentation V1 : préflight des artefacts, projection des
+   features, pondération locale, BCE dev hors L2, reproductibilité et parité de
+   sauvegarde/rechargement.
+2. N'autoriser un unique fit CPU train-only qu'après une revue externe
+   explicite ; aucun fit ne découle de ce commit d'implémentation seul.
 3. Conserver le test verrouillé fermé : aucun fit, calibration, validation,
    export, live ou sélection de seuil n'est autorisé à cette étape.
 
@@ -585,8 +599,17 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
   vues Guitar-TECHS. Dev choisira l'époque, calibration choisira seule un seuil
   éventuel ; validation historique et test verrouillé restent fermés. La revue
   externe de cette hypothèse est requise avant toute implémentation, et une
-  revue distincte avant tout fit. Rapport :
-  `readme/results/2026-08-09_decoder-candidate-fit-hypothesis-v1.md`.
+  revue distincte avant tout fit. La revue `e90321a1` a autorisé ensuite la
+  seule implémentation sans exécution : préflight V3 avec octets hachés une fois,
+  projection pré-porte à 12 dimensions, pondération locale fit/dev/calibration,
+  BCE dev hors L2, seed `47`, ordre canonique et `shuffle=false`, plus parité
+  de sauvegarde/rechargement sans écrasement. Les 42 tests synthétiques ciblés
+  passent en `2,015 s`; `rg` confirme l'absence de tout appel `fit(` dans ce
+  module. Aucun artefact V3 réel, fit, calibration, validation, export, live ou
+  test verrouillé n'a été utilisé. Une nouvelle revue externe est obligatoire
+  avant toute décision de fit. Rapport :
+  `readme/results/2026-08-09_decoder-candidate-fit-hypothesis-v1.md`, puis
+  `readme/results/2026-08-09_decoder-candidate-fit-protocol-implementation.md`.
 <!-- PROJECT_TASK:decoder_candidate_asset_evidence_contract:END -->
 <!-- JOURNAL_END -->
 ## Rapports détaillés
@@ -622,6 +645,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-09 — correctif de scellement du protocole GuitarSet v3](results/2026-08-09_decoder-candidate-guitarset-protocol-binding-fix.md)
 - [2026-08-09 — minage CPU V3 GuitarSet, porte passée mais non autorisant](results/2026-08-09_decoder-candidate-guitarset-v3-mining-run.md)
 - [2026-08-09 — hypothèse V1 de fit du filtre causal de candidats](results/2026-08-09_decoder-candidate-fit-hypothesis-v1.md)
+- [2026-08-09 — implémentation V1 du protocole de fit causal](results/2026-08-09_decoder-candidate-fit-protocol-implementation.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.
