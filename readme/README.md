@@ -16,9 +16,9 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-08-09T12:47:23+04:00`.
-- Étape : `decoder_candidate_guitarset_expansion_hypothesis`.
-- Statut : `terminé — replay CPU V3 de 90 prises, en attente de revue humaine`.
+- Mise à jour : `2026-08-09T13:02:15+04:00`.
+- Étape : `decoder_candidate_fit_hypothesis_v1`.
+- Statut : `terminé — hypothèse de fit figée, en attente de revue externe`.
 - Résultat vérifié : le job Mac
   `decoder-candidate-guitarset-v3-cpu-20260809` a terminé avec `exit_code=0`
   et l'état `complete_non_authorizing` au commit
@@ -32,6 +32,12 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   sans réconciliation : début `2026-08-09T19:07:52Z`, fin
   `2026-08-09T19:41:24Z`. Rapport :
   `readme/results/2026-08-09_decoder-candidate-guitarset-v3-mining-run.md`.
+- Revue externe : V3 est approuvé comme corpus train-only suffisamment
+  représenté. Il n'autorise ni un quatrième minage, ni un fit automatique. La
+  prochaine hypothèse, sans calcul, préenregistre une tête logistique causale,
+  ses 12 entrées pré-porte, sa pondération group-safe, le choix dev et la
+  calibration interne au train. Rapport :
+  `readme/results/2026-08-09_decoder-candidate-fit-hypothesis-v1.md`.
 - Résultat vérifié : le job Mac `decoder-candidate-extended-mining-cpu-20260809`
   a terminé sans erreur au commit `42a88b0d…`, avec `locked_test_used=false`,
   3 057 candidats supervisés (639 positifs, 2 418 négatifs), zéro perte et
@@ -83,8 +89,8 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `corpus.audio()`; le chemin `.npy` protégé ne conserve pas de `mmap` après
   cette vérification. Une couverture incomplète, un fichier modifié, un wrapper
   forgé ou des octets du registre modifiés échouent fermé. La preuve réelle
-  Policy A de 541 actifs est enregistrée. Les deux replays train-only approuvés
-  (12 puis 72 prises) ont ouvert uniquement leurs actifs sélectionnés après
+  Policy A de 541 actifs est enregistrée. Les trois replays train-only approuvés
+  (12, 72 puis 90 prises) ont ouvert uniquement leurs actifs sélectionnés après
   revalidation du registre ; ce texte remplace l'ancienne assertion, devenue
   obsolète, qu'aucun actif n'avait encore été ouvert.
 - Chaque ligne future porte la provenance immuable complète : `source_id`,
@@ -214,10 +220,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 ## Prochaine action réelle
 
-1. Faire relire le résultat V3 : provenance des 90 prises, sept SHA, comptes
-   par corpus/partition, réconciliations, artefacts et `fit_authorized=false`.
-2. Ne définir une nouvelle hypothèse qu'après cette revue ; aucun fit ne découle
-   mécaniquement du passage de la porte de représentation.
+1. Faire relire l'hypothèse V1 : features strictement pré-porte, tête
+   logistique, pondération par famille/groupe, critères dev et calibration.
+2. Après approbation seulement, implémenter ce protocole sans l'exécuter ; le
+   fit restera soumis à une revue distincte et ne découle pas de V3 seul.
 3. Conserver le test verrouillé fermé : aucun fit, calibration, validation,
    export, live ou sélection de seuil n'est autorisé à cette étape.
 
@@ -571,6 +577,16 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
   `readme/results/2026-08-09_decoder-candidate-guitarset-expansion-hypothesis.md`
   et `readme/results/2026-08-09_decoder-candidate-guitarset-protocol-binding-fix.md`,
   puis `readme/results/2026-08-09_decoder-candidate-guitarset-v3-mining-run.md`.
+- Revue externe de `9d360816` : **approuvée**. V3 clôt le minage avec une porte
+  de représentation passée et sans autoriser un fit. L'hypothèse suivante est
+  donc préenregistrée, sans calcul : une régression logistique causale de 12
+  entrées strictement pré-porte, entraînée seulement sur les 938 lignes fit du
+  corpus V3, pondérée par famille/cible/groupe de fuite pour ne pas doubler les
+  vues Guitar-TECHS. Dev choisira l'époque, calibration choisira seule un seuil
+  éventuel ; validation historique et test verrouillé restent fermés. La revue
+  externe de cette hypothèse est requise avant toute implémentation, et une
+  revue distincte avant tout fit. Rapport :
+  `readme/results/2026-08-09_decoder-candidate-fit-hypothesis-v1.md`.
 <!-- PROJECT_TASK:decoder_candidate_asset_evidence_contract:END -->
 <!-- JOURNAL_END -->
 ## Rapports détaillés
@@ -605,6 +621,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-09 — hypothèse d'extension GuitarSet canonique](results/2026-08-09_decoder-candidate-guitarset-expansion-hypothesis.md)
 - [2026-08-09 — correctif de scellement du protocole GuitarSet v3](results/2026-08-09_decoder-candidate-guitarset-protocol-binding-fix.md)
 - [2026-08-09 — minage CPU V3 GuitarSet, porte passée mais non autorisant](results/2026-08-09_decoder-candidate-guitarset-v3-mining-run.md)
+- [2026-08-09 — hypothèse V1 de fit du filtre causal de candidats](results/2026-08-09_decoder-candidate-fit-hypothesis-v1.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.
