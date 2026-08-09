@@ -16,10 +16,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-08-09T11:40:11+04:00`.
+- Mise à jour : `2026-08-09T12:00:47+04:00`.
 - Étape : `decoder_candidate_guitarset_expansion_hypothesis`.
-- Statut : `en cours — contrat v3 de 90 prises implémenté ; revue externe
-  requise avant tout replay CPU`.
+- Statut : `en cours — contrat v3 de 90 prises scellé par chemin et SHA ; revue
+  externe requise avant tout replay CPU`.
 - Résultat vérifié : le job Mac `decoder-candidate-extended-mining-cpu-20260809`
   a terminé sans erreur au commit `42a88b0d…`, avec `locked_test_used=false`,
   3 057 candidats supervisés (639 positifs, 2 418 négatifs), zéro perte et
@@ -30,9 +30,14 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `readme/results/2026-08-09_decoder-candidate-extended-mining-run.md`.
 - Hypothèse suivante, sans calcul : le contrat v3 conserve les mêmes sept SHA,
   la porte à 8 et la Policy A, mais fixe une population unifiée de 90 prises
-  (6 par cellule sauf GuitarSet à 12 par partition). Il ne réinterprète pas le
-  seuil après observation et ne lance rien automatiquement. Rapport :
-  `readme/results/2026-08-09_decoder-candidate-guitarset-expansion-hypothesis.md`.
+  (6 par cellule sauf GuitarSet à 12 par partition). Le correctif au blocage
+  de revue lie de plus toute exécution du schéma 3 au seul fichier versionné
+  `configs/decoder_candidate_guitarset_expansion_policy_a_v3.json` et à son
+  SHA-256 LF `db55930a…5683`, avant Git, actifs ou TensorFlow. Les substitutions
+  par chemin externe ou octets modifiés échouent fermées. Aucun calcul ne suit ;
+  une revue externe du correctif reste requise. Rapports :
+  `readme/results/2026-08-09_decoder-candidate-guitarset-expansion-hypothesis.md`
+  et `readme/results/2026-08-09_decoder-candidate-guitarset-protocol-binding-fix.md`.
 - Résultat scientifique conservé : la tête `independent_note` précédente reste
   un résultat négatif, saturé près de 1, et ne doit promouvoir ni checkpoint ni
   seuil. Le test verrouillé reste fermé.
@@ -529,9 +534,19 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
   schéma 3 refuse une table de comptes incomplète. Compilation, `git diff
   --check` et 67 tests synthétiques ciblés passent en 2,157 s. Aucune donnée
   projet, inférence, minage, fit, calibration, validation, export, live ou test
-  verrouillé n'a été exécuté. La revue externe du contrat v3 est obligatoire
-  avant toute synchronisation Mac ou nouveau replay. Rapport :
-  `readme/results/2026-08-09_decoder-candidate-guitarset-expansion-hypothesis.md`.
+  verrouillé n'a été exécuté. La revue externe de `8c92eb0` a relevé que le
+  CLI pouvait encore recevoir un autre JSON v3 tout en gardant les sept SHA
+  internes. Le correctif suivant exige donc, avant Git, actifs ou TensorFlow,
+  le chemin exact du protocole v3 versionné et son SHA-256 LF
+  `db55930a9faadc12fb7b08e52e0baac3543e3d5cb654844ea93e0d727a563683`.
+  Les deux substitutions testées (`guitarset=13` par chemin externe, puis
+  contenu canonique modifié) échouent avant TensorFlow. `py_compile`,
+  `git diff --check` et 69 tests synthétiques ciblés passent en `2,120 s`.
+  Aucun actif projet, inférence, minage, fit, calibration, validation, export,
+  live ou test verrouillé n'a été exécuté. La revue externe de ce correctif est
+  obligatoire avant toute synchronisation Mac ou nouveau replay. Rapports :
+  `readme/results/2026-08-09_decoder-candidate-guitarset-expansion-hypothesis.md`
+  et `readme/results/2026-08-09_decoder-candidate-guitarset-protocol-binding-fix.md`.
 <!-- PROJECT_TASK:decoder_candidate_asset_evidence_contract:END -->
 <!-- JOURNAL_END -->
 ## Rapports détaillés
@@ -564,6 +579,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-09 — contrat d'extension Policy A à six prises par cellule](results/2026-08-09_decoder-candidate-expanded-policy-a-contract.md)
 - [2026-08-09 — passe CPU étendue Policy A, porte refusée](results/2026-08-09_decoder-candidate-extended-mining-run.md)
 - [2026-08-09 — hypothèse d'extension GuitarSet canonique](results/2026-08-09_decoder-candidate-guitarset-expansion-hypothesis.md)
+- [2026-08-09 — correctif de scellement du protocole GuitarSet v3](results/2026-08-09_decoder-candidate-guitarset-protocol-binding-fix.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.

@@ -45,6 +45,12 @@ EXTENDED_MINING_SCHEMA_VERSION = 2
 EXTENDED_MINING_PURPOSE = "decoder_candidate_extended_train_only_mining_v2"
 GUITARSET_EXPANSION_MINING_SCHEMA_VERSION = 3
 GUITARSET_EXPANSION_MINING_PURPOSE = "decoder_candidate_guitarset_expansion_train_only_mining_v3"
+GUITARSET_EXPANSION_PROTOCOL_RELATIVE_PATH = Path(
+    "configs/decoder_candidate_guitarset_expansion_policy_a_v3.json"
+)
+GUITARSET_EXPANSION_PROTOCOL_SHA256 = (
+    "db55930a9faadc12fb7b08e52e0baac3543e3d5cb654844ea93e0d727a563683"
+)
 _PARTITIONS = ("fit", "dev", "calibration")
 
 
@@ -271,6 +277,35 @@ class BoundedMiningProtocol:
 
 def _repository_root() -> Path:
     return Path(__file__).resolve().parents[2]
+
+
+def _require_sealed_guitarset_expansion_protocol(
+    protocol_path: Path,
+    *,
+    repository_root: Path,
+) -> Path:
+    """Bind the one approved 90-recording replay to its committed protocol.
+
+    The seven scientific input hashes are fields *inside* the protocol.  They
+    cannot, on their own, protect the recording population or the
+    representation gate from an alternative JSON file supplied through the
+    CLI.  Schema 3 is therefore fail-closed on both its canonical repository
+    path and its preregistered raw-byte digest before any Git, asset, or
+    TensorFlow work begins.
+    """
+    actual_protocol = protocol_path.resolve(strict=True)
+    expected_protocol = (
+        repository_root / GUITARSET_EXPANSION_PROTOCOL_RELATIVE_PATH
+    ).resolve(strict=True)
+    if actual_protocol != expected_protocol:
+        raise RuntimeError(
+            "Fail closed: GuitarSet expansion must use the sealed v3 protocol."
+        )
+    if _sha256_file(actual_protocol) != GUITARSET_EXPANSION_PROTOCOL_SHA256:
+        raise RuntimeError(
+            "Fail closed: sealed v3 protocol SHA-256 mismatch."
+        )
+    return actual_protocol
 
 
 def _require_expected_git_commit(expected: str, *, repository_root: Path) -> str:
@@ -625,7 +660,19 @@ def run_bounded_train_only_mining(
     reviewed future step would be required to fit any model from it.
     """
     root = (repository_root or _repository_root()).resolve(strict=True)
-    protocol = BoundedMiningProtocol.from_path(protocol_path.resolve(strict=True))
+    resolved_protocol_path = protocol_path.resolve(strict=True)
+    protocol = BoundedMiningProtocol.from_path(resolved_protocol_path)
+    expected_v3_protocol = (
+        root / GUITARSET_EXPANSION_PROTOCOL_RELATIVE_PATH
+    ).resolve(strict=False)
+    if (
+        protocol.schema_version == GUITARSET_EXPANSION_MINING_SCHEMA_VERSION
+        or resolved_protocol_path == expected_v3_protocol
+    ):
+        _require_sealed_guitarset_expansion_protocol(
+            resolved_protocol_path,
+            repository_root=root,
+        )
     commit = _require_expected_git_commit(expected_git_commit, repository_root=root)
     derived_root = (root / "data" / "processed").resolve(strict=True)
     destination = output_dir.resolve(strict=False)

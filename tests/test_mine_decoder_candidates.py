@@ -427,6 +427,118 @@ assert 'tensorflow' not in sys.modules
             )
             self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
 
+    def test_guitarset_expansion_rejects_substituted_protocol_before_tensorflow(self) -> None:
+        """A matching seven-input contract cannot replace the sealed V3 JSON."""
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "data" / "processed").mkdir(parents=True)
+            canonical = (
+                root / "configs" / "decoder_candidate_guitarset_expansion_policy_a_v3.json"
+            )
+            canonical.parent.mkdir()
+            repository = Path(__file__).resolve().parents[1]
+            canonical.write_bytes((
+                repository
+                / "configs"
+                / "decoder_candidate_guitarset_expansion_policy_a_v3.json"
+            ).read_bytes())
+            substituted = root / "protocol-with-guitarset-13.json"
+            payload = json.loads(canonical.read_text(encoding="utf-8"))
+            counts = payload["recordings_per_dataset_partition"]
+            self.assertIsInstance(counts, dict)
+            counts["guitarset_poly_mix"] = 13
+            substituted.write_text(
+                json.dumps(payload, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            canonical_protocol = BoundedMiningProtocol.from_path(canonical)
+            substituted_protocol = BoundedMiningProtocol.from_path(substituted)
+            self.assertEqual(
+                substituted_protocol.purpose,
+                canonical_protocol.purpose,
+            )
+            for field in (
+                "manifest_sha256",
+                "partition_plan_sha256",
+                "asset_evidence_sha256",
+                "checkpoint_sha256",
+                "model_config_sha256",
+                "decoder_config_sha256",
+                "audio_evidence_config_sha256",
+            ):
+                self.assertEqual(
+                    getattr(substituted_protocol, field),
+                    getattr(canonical_protocol, field),
+                )
+            self.assertEqual(
+                substituted_protocol.recordings_for_dataset("guitarset_poly_mix"),
+                13,
+            )
+
+            with patch(
+                "src.polyphonic.mine_decoder_candidates._require_expected_git_commit"
+            ) as git_preflight, patch(
+                "src.polyphonic.mine_decoder_candidates._require_cpu_tensorflow"
+            ) as cpu:
+                with self.assertRaisesRegex(RuntimeError, "sealed v3 protocol"):
+                    run_bounded_train_only_mining(
+                        manifest_path=root / "unused-manifest.csv",
+                        partition_plan_path=root / "unused-plan.json",
+                        asset_evidence_path=root / "unused-evidence.json",
+                        checkpoint_path=root / "unused-checkpoint.keras",
+                        model_config_path=root / "unused-model.yaml",
+                        decoder_config_path=root / "unused-decoder.json",
+                        audio_evidence_config_path=root / "unused-audio.json",
+                        protocol_path=substituted,
+                        output_dir=root / "data" / "processed" / "candidate-output",
+                        expected_git_commit="e" * 40,
+                        repository_root=root,
+                    )
+            git_preflight.assert_not_called()
+            cpu.assert_not_called()
+
+    def test_guitarset_expansion_rejects_changed_canonical_protocol_before_tensorflow(self) -> None:
+        """The canonical path is also sealed by its preregistered raw SHA-256."""
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "data" / "processed").mkdir(parents=True)
+            canonical = (
+                root / "configs" / "decoder_candidate_guitarset_expansion_policy_a_v3.json"
+            )
+            canonical.parent.mkdir()
+            repository = Path(__file__).resolve().parents[1]
+            payload = json.loads((
+                repository
+                / "configs"
+                / "decoder_candidate_guitarset_expansion_policy_a_v3.json"
+            ).read_text(encoding="utf-8"))
+            counts = payload["recordings_per_dataset_partition"]
+            self.assertIsInstance(counts, dict)
+            counts["guitarset_poly_mix"] = 13
+            canonical.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+
+            with patch(
+                "src.polyphonic.mine_decoder_candidates._require_expected_git_commit"
+            ) as git_preflight, patch(
+                "src.polyphonic.mine_decoder_candidates._require_cpu_tensorflow"
+            ) as cpu:
+                with self.assertRaisesRegex(RuntimeError, "protocol SHA-256 mismatch"):
+                    run_bounded_train_only_mining(
+                        manifest_path=root / "unused-manifest.csv",
+                        partition_plan_path=root / "unused-plan.json",
+                        asset_evidence_path=root / "unused-evidence.json",
+                        checkpoint_path=root / "unused-checkpoint.keras",
+                        model_config_path=root / "unused-model.yaml",
+                        decoder_config_path=root / "unused-decoder.json",
+                        audio_evidence_config_path=root / "unused-audio.json",
+                        protocol_path=canonical,
+                        output_dir=root / "data" / "processed" / "candidate-output",
+                        expected_git_commit="e" * 40,
+                        repository_root=root,
+                    )
+            git_preflight.assert_not_called()
+            cpu.assert_not_called()
+
     def test_selection_is_exactly_one_canonical_item_per_dataset_partition(self) -> None:
         protocol = BoundedMiningProtocol(
             manifest_sha256="a" * 64,
