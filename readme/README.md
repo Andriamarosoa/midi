@@ -17,8 +17,18 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `causal_candidate_v2_independent_validation_pre_science_boundary_pending_external_review`.
-- Statut : `en cours — correctif pre-science V2 terminé et testé sans factory one-job ni calcul réel; revue externe requise`.
+- Étape : `causal_candidate_v2_independent_validation_one_job_authorization_pending_external_review`.
+- Statut : `en cours — runner 6246ea18 approuvé; demande d'autorisation one-job créée mais inexécutable sans approbation externe non versionnée`.
+- Autorisation indépendante V2, contract-only : le runner gelé
+  `6246ea18c49a6c3c3b8e2ce1303c9a6afffac6ee` est approuvé et reste
+  byte-identique. Une demande canonique scelle CPU, `900 s`, job, destination,
+  contrat et evidence; son module TensorFlow-free exige un futur fichier
+  d'approbation externe lié au HEAD exact et un worktree propre. Ce fichier
+  n'existe pas encore, donc aucune capability ni exécution ne sont possibles.
+  Le futur premier appel créera avant attestation un marqueur persistant
+  `O_EXCL`, jamais supprimé, empêchant tout retry cross-process. Aucun marqueur
+  réel n'a été créé et le test verrouillé reste fermé. Rapport :
+  `readme/results/2026-08-10_causal-candidate-v2-independent-validation-one-job-authorization-request.md`.
 - Correctif pre-science du runner indépendant : le manifeste attesté est
   désormais chargé directement par le lecteur sans TensorFlow; une primitive
   explicite prépare le runtime CPU seulement après contrat, Git, cohorte,
