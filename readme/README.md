@@ -17,8 +17,8 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-09`.
-- Étape : `causal_candidate_validation_ab_threshold-contract-fix`.
-- Statut : `terminé — anomalie pré-métrique corrigée; revue externe requise avant toute unique relance validation`.
+- Étape : `causal_candidate_validation_ab_v1`.
+- Statut : `terminé — unique relance CPU A/B exécutée; résultat négatif non autorisant, revue externe requise`.
 - Résultat terminal vérifié : l'unique job CPU
   `causal-candidate-fit-v1-cpu-20260809` termine avec `exit_code=0`,
   `complete_non_authorizing`, 14 époques enregistrées et meilleure époque 9,
@@ -79,7 +79,7 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   La revue externe finale de cette invocation est la seule action préalable à
   une commande Mac. Rapport :
   `readme/results/2026-08-09_causal-candidate-validation-ab-invocation-contract.md`.
-- Anomalie vérifiée de l'unique invocation A/B : le job CPU
+- Anomalie pré-métrique close de la première invocation A/B : le job CPU
   `causal-candidate-validation-ab-cpu-20260809`, au commit
   `4ab4f1ecâ€¦`, a terminé `exited_nonzero` à `2026-08-09T22:34:34Z` après le
   préflight worker, les huit SHA et le chargement du checkpoint, mais avant
@@ -91,9 +91,24 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   verrou est libéré. Correctif sans calcul : la configuration décodeur est
   maintenant résolue avant manifeste/checkpoint et ne lit les thresholds que
   si aucun décodeur explicite n'existe. `py_compile` et 54 tests ciblés passent
-  en `8,912 s`. Une nouvelle revue externe est obligatoire avant toute unique
-  relance. Rapport :
+  en `8,912 s`. La revue externe a autorisé une seule relance. Rapport :
   `readme/results/2026-08-09_causal-candidate-validation-ab-threshold-contract-fix.md`.
+- Résultat vérifié de cette unique relance CPU : le job Mac
+  `causal-candidate-validation-ab-retry-cpu-20260809`, au commit exact
+  `17d94580af0f293f66a05072388fa1df62f27a89`, termine `exited_zero` à
+  `2026-08-09T22:53:39Z` en `complete_non_authorizing`. Le rapport brut
+  (372 794 octets, SHA-256 `8f048ad173015c2a89d3cde5ca106cc45c6bad05f6023f36c92ba4e12c28d1c3`)
+  confirme `split=validation`, 12 prises équilibrées, les huit SHA scellés,
+  une inférence commune par prise, deux états de décodeur indépendants et
+  `locked_test_used=false`. La porte causale V1 à `0,31` a rejeté 9 des 711
+  candidats internes observés, mais n'a modifié aucun NoteOn final : faux
+  positifs `3389 → 3389`, F1 onset `0,21760081 → 0,21760081`, rappel causal
+  `0,59741687 → 0,59741687`, latences p50/p90 inchangées à `68,131/162,388 ms`.
+  La règle préenregistrée exigeait au moins un faux positif en moins ; elle est
+  seule en échec, donc `all_rules_passed=false`. Aucune promotion, nouveau fit,
+  recalibration, recherche de seuil, export, live ou test verrouillé n'est
+  autorisé. Rapport :
+  `readme/results/2026-08-09_causal-candidate-validation-ab-v1-run.md`.
 - Résultat vérifié : le job Mac
   `decoder-candidate-guitarset-v3-cpu-20260809` a terminé avec `exit_code=0`
   et l'état `complete_non_authorizing` au commit
@@ -319,11 +334,12 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 ## Prochaine action réelle
 
-1. Faire relire le correctif pré-métrique A/B : priorité au décodeur scellé,
-   absence de `thresholds.json`, résolution avant manifeste/checkpoint et
-   conservation stricte des huit SHA, de la cohorte et du seuil `0,31`.
-2. Après seule approbation explicite du correctif, synchroniser son commit sur
-   le Mac et autoriser séparément une unique relance CPU historique.
+1. Faire relire le rapport terminal A/B : vérifier le SHA du JSON brut, les
+   12 résultats appariés, les huit empreintes, les 9 rejets internes et
+   l'absence mesurée de gain événementiel.
+2. Clore cette variante V1 comme non promue tant que cette revue n'a pas défini
+   une nouvelle hypothèse distincte, sans modifier le seuil `0,31` à partir de
+   ce résultat unique.
 3. Conserver le test verrouillé fermé : aucun nouveau fit, recalibration,
    validation, export, live ou sélection/promotion de seuil n'est autorisé à
    cette étape.
@@ -759,6 +775,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-09 — implémentation A/B historique du filtre causal V1](results/2026-08-09_causal-candidate-validation-ab-implementation.md)
 - [2026-08-09 — contrat d'invocation A/B historique du filtre causal V1](results/2026-08-09_causal-candidate-validation-ab-invocation-contract.md)
 - [2026-08-09 — correctif pré-métrique du contrat A/B historique](results/2026-08-09_causal-candidate-validation-ab-threshold-contract-fix.md)
+- [2026-08-09 — relance CPU A/B historique V1, résultat non autorisant](results/2026-08-09_causal-candidate-validation-ab-v1-run.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.
