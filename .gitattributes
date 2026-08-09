@@ -9,3 +9,5 @@ configs/decoder_candidate_guitarset_expansion_policy_a_v3.json text eol=lf
 configs/polyphonic_dual_stream_bass_independent_note.yaml text eol=lf
 configs/independent_note_decoder_reference.json text eol=lf
 configs/polyphonic_audio_evidence_adaptive_temporal.json text eol=lf
+configs/causal_candidate_fit_v1_validation_selection_12.json text eol=lf
+configs/causal_candidate_fit_v1_validation_ab_policy.json text eol=lf

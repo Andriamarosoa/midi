@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "purpose": "causal_candidate_fit_v1_historical_validation_ab",
+  "status": "preregistered_not_executed",
+  "locked_test_used": false,
+  "historical_validation_used": true,
+  "fit_artifacts": {
+    "runner_commit": "578a9d6583b2e5a68a312bd8dccf8e19a77b58b7",
+    "fit_report_sha256": "b8148fade0d72c6d20d64f31fbaf9983b748997ba16f5664c525bcc41ae9b759",
+    "model_sha256": "b9320cd004ed686720e282e4338c4a6413c2ef3dd701d421de3533f710d8a59e",
+    "standardizer_sha256": "0600aa1aa75eb008f04e299de3ffe9d7b6b0a722b177750b42e0967740df5e3b",
+    "threshold": 0.31,
+    "feature_names": [
+      "frame_probability",
+      "onset_probability",
+      "candidate_score",
+      "harmonic_support",
+      "log1p_active_polyphony",
+      "audio_onset_available",
+      "audio_onset_recent",
+      "candidate_reason=model_onset",
+      "candidate_reason=frame_attack",
+      "candidate_reason=frame_fallback",
+      "candidate_reason=legacy",
+      "candidate_reason=chord_completion"
+    ]
+  },
+  "validation_cohort": {
+    "split": "validation",
+    "manifest_sha256": "b28cb17cfb80a82860ab44635b2c6d05718243e027a8fc8199fe72e27f1b8ed7",
+    "selection_path": "configs/causal_candidate_fit_v1_validation_selection_12.json",
+    "selection_sha256": "8c3cf53c7f5dcf086b70767e28499c3164aa307059652a6d0a2fc87159f9dcbc",
+    "recording_count": 12,
+    "transcription_checkpoint_sha256": "1ce8ac44ca7156d4bc058b5b37580805f2ab6536b380636c04b9a31b1a411325",
+    "evaluation_config_sha256": "245285783eb395e1c16f9773cf9a15565510ba289467d63ad6a7d725bae19804",
+    "reference_decoder_config_sha256": "c16be48271912c99c4237345e8406e39b88490b5565047757f6ca9e905615f96"
+  },
+  "ab_contract": {
+    "reference": {
+      "causal_candidate_gate": null
+    },
+    "candidate": {
+      "causal_candidate_gate": {
+        "model_sha256": "b9320cd004ed686720e282e4338c4a6413c2ef3dd701d421de3533f710d8a59e",
+        "standardizer_sha256": "0600aa1aa75eb008f04e299de3ffe9d7b6b0a722b177750b42e0967740df5e3b",
+        "threshold": 0.31
+      }
+    },
+    "single_transcription_inference_per_recording": true,
+    "same_base_decoder_and_audio_evidence": true,
+    "candidate_features_are_pre_gate_only": true,
+    "candidate_head_must_reuse_the_same_pre_gate_candidates": true,
+    "candidate_head_must_not_change_reference_events_or_base_inference": true
+  },
+  "required_report": {
+    "global": [
+      "onset",
+      "onset_offset",
+      "strictly_causal_noteon",
+      "retriggers",
+      "diagnostics",
+      "low_midi_40_51"
+    ],
+    "per_corpus": true,
+    "per_recording": true,
+    "paired_event_deltas": true,
+    "artifact_sha256": [
+      "model",
+      "standardizer",
+      "fit_report",
+      "manifest",
+      "selection",
+      "checkpoint",
+      "evaluation_config",
+      "reference_decoder_config"
+    ]
+  },
+  "decision_rules": {
+    "candidate_false_positive_notes_delta_maximum": -1,
+    "candidate_global_onset_recall_delta_minimum": -0.005,
+    "candidate_global_onset_f1_delta_minimum": -0.002,
+    "candidate_global_strictly_causal_recall_delta_minimum": -0.005,
+    "candidate_per_corpus_onset_f1_delta_minimum": -0.01,
+    "candidate_low_midi_40_51_onset_f1_delta_minimum": -0.01,
+    "candidate_retriggers_delta_maximum": 0,
+    "candidate_excess_fragments_delta_maximum": 0,
+    "all_rules_must_pass_for_a_positive_ab_result": true,
+    "automatic_promotion": false
+  },
+  "forbidden_actions": [
+    "fit",
+    "recalibration",
+    "threshold_search",
+    "export",
+    "live",
+    "locked_test"
+  ],
+  "next_action": "Implement and review the sealed causal-candidate A/B evaluator; do not execute this policy yet."
+}

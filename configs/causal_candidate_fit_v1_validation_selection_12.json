@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "purpose": "causal_candidate_fit_v1_validation_ab_selection",
+  "locked_test_used": false,
+  "manifest_sha256": "b28cb17cfb80a82860ab44635b2c6d05718243e027a8fc8199fe72e27f1b8ed7",
+  "transcription_checkpoint_sha256": "1ce8ac44ca7156d4bc058b5b37580805f2ab6536b380636c04b9a31b1a411325",
+  "evaluation_config_sha256": "245285783eb395e1c16f9773cf9a15565510ba289467d63ad6a7d725bae19804",
+  "reference_decoder_config_sha256": "c16be48271912c99c4237345e8406e39b88490b5565047757f6ca9e905615f96",
+  "recording_keys": [
+    "gaps_poly_mix|-D1wc|336_-D1wc|gaps_mixed_downmix",
+    "guitar_techs_poly_directinput|gtech_p2_chords_drop3_7|gtech_p2_chords_drop3_7_directinput|directinput",
+    "guitar_techs_poly_micamp|gtech_p2_chords_drop3_m7|gtech_p2_chords_drop3_m7_micamp|micamp",
+    "guitarset_poly_mix|guitarset_04_BN1-129-Eb_comp|04_BN1-129-Eb_comp|mono_pickup_mix",
+    "gaps_poly_mix|4y1wc|365_4y1wc|gaps_mixed_downmix",
+    "guitar_techs_poly_directinput|gtech_p2_chords_drop3_m7b5|gtech_p2_chords_drop3_m7b5_directinput|directinput",
+    "guitar_techs_poly_micamp|gtech_p2_chords_drop3_maj7|gtech_p2_chords_drop3_maj7_micamp|micamp",
+    "guitarset_poly_mix|guitarset_04_BN1-129-Eb_solo|04_BN1-129-Eb_solo|mono_pickup_mix",
+    "gaps_poly_mix|6f1wc|327_6f1wc|gaps_mixed_downmix",
+    "guitar_techs_poly_directinput|gtech_p2_chords_set1_7|gtech_p2_chords_set1_7_directinput|directinput",
+    "guitar_techs_poly_micamp|gtech_p2_chords_set1_aug|gtech_p2_chords_set1_aug_micamp|micamp",
+    "guitarset_poly_mix|guitarset_04_BN1-147-Gb_comp|04_BN1-147-Gb_comp|mono_pickup_mix"
+  ]
+}

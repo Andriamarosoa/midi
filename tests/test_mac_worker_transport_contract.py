@@ -22,6 +22,8 @@ TRAIN_SOURCE = (ROOT / "src" / "polyphonic" / "train.py").read_text(
     encoding="utf-8"
 )
 POWERSHELL = shutil.which("powershell.exe") or shutil.which("powershell")
+GIT_BASH = pathlib.Path(r"C:\Program Files\Git\bin\bash.exe")
+BASH = str(GIT_BASH) if GIT_BASH.is_file() else shutil.which("bash")
 
 
 def _ps_quote(path: pathlib.Path) -> str:
@@ -102,6 +104,47 @@ class MacWorkerTransportContractTests(unittest.TestCase):
             SOURCE,
         )
         self.assertIn("sync-checkpoint", REMOTE_README)
+
+    def test_fit_acknowledgement_is_whitelisted_and_uses_stdin_transport(self) -> None:
+        self.assertIn("[switch]$CausalCandidateFitExecute", SOURCE)
+        self.assertIn(
+            '"DECODER_CANDIDATE_FIT_EXECUTE=1 "',
+            SOURCE,
+        )
+        self.assertIn(
+            '"src.polyphonic.run_causal_candidate_fit"',
+            SOURCE,
+        )
+        self.assertIn("mac-worker-stdin-terminator", SOURCE)
+
+    @unittest.skipUnless(BASH, "Bash is required")
+    def test_remote_start_rejects_cr_in_final_argument_before_launch(self) -> None:
+        command = (
+            'script="$1"; '
+            "carriage_return=$(printf '\\r'); "
+            'exec "$script" start /tmp/midi-worker-transport-test '
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa transport-test cpu 900 "
+            '"src.polyphonic.run_causal_candidate_fit${carriage_return}"'
+        )
+        result = subprocess.run(
+            [
+                BASH,
+                "-lc",
+                command,
+                "--",
+                str(ROOT / "scripts" / "remote" / "mac_worker.sh"),
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            timeout=15,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 2)
+        self.assertIn(
+            "Carriage return in worker argument is forbidden",
+            result.stdout + result.stderr,
+        )
 
     def test_independent_note_gate_has_remote_data_and_cpu_preflight(self) -> None:
         self.assertIn(

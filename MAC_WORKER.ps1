@@ -19,6 +19,7 @@ param(
     [string]$PythonBin = "python3.11",
     [string]$Module,
     [string[]]$ModuleArgs = @(),
+    [switch]$CausalCandidateFitExecute,
     [ValidateSet("cpu", "metal")]
     [string]$Device = "metal",
     [string]$JobId,
@@ -278,10 +279,24 @@ function Complete-RemoteUpload(
     Invoke-Ssh $Config $command
 }
 
-function Invoke-Worker($Config, [string[]]$Arguments) {
+function Invoke-Worker(
+    $Config,
+    [string[]]$Arguments,
+    [switch]$CausalCandidateFitExecute
+) {
     $script = "$($Config.remote_root)/bin/mac_worker.sh"
     $quoted = @((Quote-Posix $script)) + ($Arguments | ForEach-Object { Quote-Posix ([string]$_) })
-    Invoke-Ssh $Config ("bash " + ($quoted -join " "))
+    # The acknowledgement is deliberately a single, module-specific literal;
+    # callers cannot inject arbitrary remote environment variables.  Invoke-Ssh
+    # appends a separate comment line, so PowerShell's CRLF terminator cannot
+    # become part of the final --output-dir or other worker argument.
+    $environmentPrefix = if ($CausalCandidateFitExecute) {
+        "DECODER_CANDIDATE_FIT_EXECUTE=1 "
+    }
+    else {
+        ""
+    }
+    Invoke-Ssh $Config ($environmentPrefix + "bash " + ($quoted -join " "))
 }
 
 function Get-CurrentCommit([string]$Repository) {
@@ -630,11 +645,18 @@ if ($Action -eq "bootstrap") {
 
 if ($Action -eq "start") {
     if (-not $Module) { throw "start requires -Module." }
+    $causalFitModule = "src.polyphonic.run_causal_candidate_fit"
+    if ($CausalCandidateFitExecute -and $Module -ne $causalFitModule) {
+        throw "-CausalCandidateFitExecute is allowed only for $causalFitModule."
+    }
+    if ($Module -eq $causalFitModule -and -not $CausalCandidateFitExecute) {
+        throw "$causalFitModule requires -CausalCandidateFitExecute."
+    }
     if (-not $JobId) { $JobId = "job-" + (Get-Date -Format "yyyyMMdd-HHmmss") }
     Invoke-Worker $config (@(
         "start", [string]$config.remote_root, $commit, $JobId, $Device,
         [string]$WallTimeoutSeconds, $Module
-    ) + $ModuleArgs)
+    ) + $ModuleArgs) -CausalCandidateFitExecute:$CausalCandidateFitExecute
     exit 0
 }
 

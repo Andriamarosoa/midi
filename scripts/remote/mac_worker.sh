@@ -243,6 +243,13 @@ PY
     wall_timeout_seconds="${4:-}"
     module="${5:-}"
     shift 5 || true
+    for worker_argument in "$commit" "$job_id" "$device" \
+      "$wall_timeout_seconds" "$module" "$@"; do
+      if [[ "$worker_argument" == *$'\r'* ]]; then
+        echo "Carriage return in worker argument is forbidden" >&2
+        exit 2
+      fi
+    done
     workspace="$(require_commit "$commit")"
     [[ "$job_id" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || {
       echo "Invalid job id" >&2; exit 2;
