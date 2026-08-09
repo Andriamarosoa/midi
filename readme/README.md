@@ -470,8 +470,19 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
   actif, checkpoint, contexte, replay ni sortie n'a été ouvert ou produit. Le
   correctif impose LF pour les quatre configurations versionnées scellées et
   adopte `45ed…` dans le protocole. `py_compile`, `git diff --check` et 42
-  tests ciblés passent en 1,721 s. La revue externe de ce correctif portable
-  reste obligatoire avant le minage CPU unique.
+  tests ciblés passent en 1,721 s. La revue externe de `f4eb87a` est approuvée.
+  L'unique minage CPU train-only a donc été exécuté sur le Mac : préflight
+  complet réussi (`7/7` SHA, worktree propre, CPU forcé, verrou absent), job
+  `decoder-candidate-bounded-mining-cpu-20260809` terminé avec `exit_code=0`
+  en 6 min 17 s et `locked_test_used=false`. Les artefacts Mac
+  `candidate_events.jsonl` (`19cb073a…`) et `mining_report.json`
+  (`3ad78ede…`) sont intègres. Ils contiennent 12 prises préinscrites, 429
+  candidats supervisés (`94` positifs causaux, `335` faux NoteOn), zéro perte
+  de collecte et aucun motif non instrumenté autre que 169 retriggers exclus.
+  Ce résultat est **non autorisant** (`fit_authorized=false`) : la distribution
+  par corpus/partition, notamment les petites cellules GuitarSet, doit être
+  revue par ChatGPT avant toute nouvelle hypothèse. Aucun fit, calibration,
+  validation, sélection de seuil, export, live ou test verrouillé n'est permis.
 <!-- PROJECT_TASK:decoder_candidate_asset_evidence_contract:END -->
 <!-- JOURNAL_END -->
 ## Rapports détaillés
@@ -500,6 +511,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-09 — mineur borné de candidats du décodeur](results/2026-08-09_decoder-candidate-bounded-miner.md)
 - [2026-08-09 — correctif du préflight du mineur borné](results/2026-08-09_decoder-candidate-bounded-miner-preflight-fix.md)
 - [2026-08-09 — correctif CRLF/LF du préflight du mineur borné](results/2026-08-09_decoder-candidate-bounded-miner-eol-preflight-fix.md)
+- [2026-08-09 — passe CPU du mineur borné Policy A](results/2026-08-09_decoder-candidate-bounded-mining-run.md)
 
 Les rapports détaillés restent des preuves horodatées. Le présent fichier est
 le seul résumé global et doit toujours refléter l’étape courante et la suite.
