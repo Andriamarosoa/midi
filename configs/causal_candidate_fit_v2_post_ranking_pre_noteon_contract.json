@@ -67,7 +67,7 @@
       "candidate_reason=legacy",
       "candidate_reason=chord_completion"
     ],
-    "feature_snapshot_time": "before_ranking_and_selection_from_the_candidate_decoder_causal_state",
+    "feature_snapshot_time": "after_unchanged_pre_ranking_causal_updates_and_before_ranking_or_selection_from_the_candidate_decoder_causal_state",
     "forbidden_inputs": [
       "post_gate_rank",
       "post_gate_selected",
@@ -81,35 +81,47 @@
   },
   "decoder_placement": {
     "reference_pipeline": [
+      "unchanged_pre_ranking_causal_state_updates",
       "candidate_generation",
       "existing_base_eligibility_checks",
       "ranking",
       "maximum_polyphony_selection",
-      "state_mutation",
+      "protected_chord_from_selected_candidates",
+      "new_noteon_emission_state_mutations",
       "noteon_emission"
     ],
     "v2_candidate_pipeline": [
+      "unchanged_pre_ranking_causal_state_updates",
       "candidate_generation",
+      "frozen_v1_feature_snapshot",
       "existing_base_eligibility_checks",
       "ranking",
       "maximum_polyphony_selection",
-      "causal_gate_v1",
-      "state_mutation_for_accepted_selected_candidates_only",
+      "causal_gate_v1_from_frozen_snapshot",
+      "protected_chord_from_accepted_selected_candidates_only",
+      "new_noteon_emission_state_mutations_for_accepted_selected_candidates_only",
       "noteon_emission_for_accepted_selected_candidates_only"
     ],
+    "pre_ranking_causal_state_updates_are_unchanged_from_reference": true,
+    "v2_gate_precedes_only_new_noteon_acceptance_and_emission_mutations": true,
     "gate_population": "selected candidates that are causal-gate eligible under the unchanged V1 eligibility definition",
     "retrigger_policy": "unchanged_and_outside_the_v2_gate_population",
     "same_hop_backfill_after_rejection": false,
-    "selection_is_fixed_before_gate": true
+    "selection_is_fixed_before_gate": true,
+    "same_hop_selection_quota_is_reopened_after_rejection": false
   },
   "rejection_semantics": {
     "emits_noteon": false,
     "marks_pitch_active": false,
-    "occupies_maximum_polyphony_slot": false,
+    "persistent_active_polyphony_slot_after_rejection": false,
+    "same_hop_selection_position_is_consumed": true,
+    "same_hop_selection_quota_is_reopened": false,
     "performs_emitted_note_state_resets": false,
     "contributes_chord_protection": false,
     "reranks_or_backfills_same_hop": false,
-    "activation_evidence_is_not_reset_as_if_emitted": true,
+    "activation_count_after_pre_ranking_updates_is_preserved": true,
+    "attack_activation_pending_after_pre_ranking_updates_is_preserved": true,
+    "v2_gate_performs_no_activation_evidence_reset": true,
     "accepted_selected_candidates_follow_the_unchanged_reference_state_mutation_order": true
   },
   "causality_and_latency_contract": {
@@ -129,9 +141,11 @@
   "required_synthetic_proofs_before_any_real_execution": [
     "disabled_v2_path_is_event_and_state_identical_to_reference",
     "ranking_and_maximum_polyphony_selection_complete_before_v2_gate",
-    "rejected_selected_candidate_emits_no_noteon_and_mutates_no_emitted_note_state",
-    "rejected_selected_candidate_consumes_no_slot_and_causes_no_same_hop_backfill",
-    "rejected_selected_candidate_does_not_contribute_chord_protection",
+    "pre_ranking_causal_state_updates_match_reference_before_v2_gate",
+    "rejected_selected_candidate_emits_no_noteon_and_mutates_no_new_noteon_emission_state",
+    "rejected_selected_candidate_preserves_activation_count_and_attack_activation_pending_from_pre_ranking_updates",
+    "rejected_selected_candidate_creates_no_persistent_active_slot_but_its_fixed_same_hop_selection_position_is_not_reopened",
+    "all_selected_candidate_gate_decisions_precede_protected_chord_and_rejected_candidates_do_not_contribute_to_it",
     "v2_feature_vector_is_exactly_the_frozen_v1_vector_and_contains_no_post_gate_information",
     "retrigger_behavior_is_unchanged",
     "no_new_lookahead_buffering_or_hop_latency"

@@ -27,15 +27,18 @@ est appliquee dans le decodeur stateful.
 La reference reste :
 
 ```text
-candidats -> controles existants -> ranking -> selection maximum_polyphony
-          -> mutation etat -> NoteOn
+mises a jour causales pre-ranking inchangees -> candidats -> controles existants
+          -> ranking -> selection maximum_polyphony -> protection d'accord
+          -> mutations liees a l'emission d'un nouveau NoteOn -> NoteOn
 ```
 
 La future branche V2, si elle est distinctement autorisee, sera :
 
 ```text
-candidats -> controles existants -> ranking -> selection maximum_polyphony
-          -> porte causale V1 -> mutation etat des acceptes -> NoteOn des acceptes
+mises a jour causales pre-ranking inchangees -> candidats -> snapshot V1
+          -> controles existants -> ranking -> selection maximum_polyphony
+          -> porte causale V1 -> protection d'accord des acceptes
+          -> mutations liees a l'emission des acceptes -> NoteOn des acceptes
 ```
 
 Le ranking et la population selectionnee restent donc reels et stateful. Il
@@ -44,20 +47,32 @@ candidats apres une divergence.
 
 ## Invariants de placement
 
+Les mises a jour causales qui precedent le ranking dans le vrai decodeur —
+notamment l'evidence d'activation, les releases, les retriggers et les graces
+des notes actives — restent exactement celles de la reference. V2 ne pretend
+donc pas les deplacer ni les annuler.
+
 La porte V2 ne voit que les candidats deja selectionnes par le ranking et
 `maximum_polyphony`, et qui satisfont la definition d'eligibilite V1 inchangee.
 Ses 12 entrees encodees et ses huit valeurs causales brutes sont figees comme
-en V1, depuis l'etat causal de la branche candidate avant ranking/selection.
+en V1, apres les mises a jour causales pre-ranking et avant ranking/selection.
 Ni rang post-porte, ni selection post-porte, ni emission, ni identifiant,
 cible, provenance, futur ou etat mute ne peut devenir une entree du modele.
 
 Un candidat selectionne puis rejete :
 
 - n'emet aucun `NoteOn` ;
-- ne devient pas actif et n'occupe aucune place de polyphonie ;
-- ne subit pas les remises a zero qui appartiennent a une note emise ;
-- ne declenche pas de protection d'accord ;
-- ne provoque ni reranking ni remplissage de sa place pendant le meme hop.
+- ne devient pas actif et ne cree aucune place de polyphonie **persistante** ;
+- conserve exactement `activation_count` et `attack_activation_pending` tels
+  qu'obtenus apres les mises a jour pre-ranking : V2 n'effectue aucun reset de
+  cette evidence ;
+- ne subit aucune mutation liee a l'acceptation/emission d'un nouveau NoteOn ;
+- ne declenche pas de protection d'accord : toutes les decisions de porte des
+  candidats selectionnes sont connues avant son calcul, qui ne voit que les
+  candidats acceptes ;
+- conserve neanmoins sa position dans la selection deja figee du hop. Le quota
+  de selection n'est pas rouvert, donc aucun reranking ni backfill ne permet a
+  un candidat suivant de prendre cette position pendant le meme hop.
 
 Les retriggers restent explicitement hors de la population de porte V2. Aucun
 lookahead, buffer audio ou hop supplementaire n'est autorise.
@@ -91,7 +106,24 @@ devrait etre decrite comme exploratoire et non comme une validation vierge.
 
 La seule action immediate est une revue externe du present contrat. Une future
 implementation devra d'abord demontrer synthetiquement la parite du chemin
-desactive, l'ordre selection-puis-porte, l'absence de mutation/backfill apres
-rejet, la conservation exacte des 12 features et l'absence de latence ajoutee.
+desactive, les mises a jour pre-ranking inchangees, l'ordre selection-puis-
+porte, la conservation de l'evidence d'activation apres rejet, l'absence de
+mutation/emission/backfill et de protection d'accord pour les rejetes, la
+conservation exacte des 12 features et l'absence de latence ajoutee.
 Tout acces reel aux artefacts ou toute evaluation train/validation reste hors
 de cette autorisation. `locked_test_used=false` est maintenu.
+
+## Clarification de contrat apres revue externe
+
+La revue de `c3dcad21435344b49cfd776ff381734bfd6cd347` a releve que le
+decodeur mute deja des variables causales avant ranking. Le contrat precise
+donc que ces mises a jour pre-ranking ne changent pas en V2. La porte intervient
+seulement avant les mutations associees a l'acceptation et a l'emission d'un
+nouveau NoteOn.
+
+Elle fixe egalement la trajectoire au hop suivant : apres un rejet V2,
+`activation_count` et `attack_activation_pending` conservent leur valeur apres
+la phase pre-ranking, sans reset specifique a la porte. Enfin, elle distingue
+la place active persistante (absente apres rejet) de la position dans la
+selection deja figee du hop (conservee, sans backfill). Cette clarification
+reste documentaire; elle n'autorise aucune implementation ni calcul.

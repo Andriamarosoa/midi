@@ -22,12 +22,18 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 - Nouvelle hypothèse V2 explicitement autorisée sous forme documentaire
   uniquement : la tête causale V1, son standardiseur, ses 12 features et le
   seuil gelé `0,31` restent inchangés. Seul le placement futur est défini :
-  après ranking et sélection `maximum_polyphony`, juste avant toute mutation
-  d'état et tout `NoteOn`. Un candidat sélectionné mais rejeté ne devient pas
-  actif, ne consomme pas de place, ne déclenche aucune protection d'accord et
-  ne provoque aucun backfill dans le même hop. Les features restent celles de
-  V1, figées depuis l'état causal pré-ranking, sans information post-porte ni
-  future. Les retriggers restent inchangés. Les 12 prises validation ayant
+  après ranking et sélection `maximum_polyphony`, juste avant les seules
+  mutations liées à l'acceptation/émission d'un nouveau `NoteOn`. Les mises à
+  jour causales pré-ranking déjà présentes (evidence d'activation, releases,
+  retriggers et graces) restent identiques à la référence. Un candidat
+  sélectionné puis rejeté ne devient pas actif; `activation_count` et
+  `attack_activation_pending` restent exactement dans leur état post-pré-ranking
+  sans reset V2. Il ne crée aucune place active persistante, mais sa position
+  dans la sélection du hop reste consommée et n'est ni rouverte ni backfillée.
+  Toutes les décisions de porte précèdent la protection d'accord, qui ne voit
+  que les candidats acceptés. Les features restent celles de V1, figées après
+  les mises à jour pré-ranking et avant ranking/sélection, sans information
+  post-porte ni future. Les retriggers restent inchangés. Les 12 prises validation ayant
   déjà révélé le défaut V1, elles sont explicitement interdites dans ce contrat
   V2 et ne pourront être employées plus tard qu'avec une autorisation distincte
   et une interprétation exploratoire. Aucun modèle, actif, inférence, fit,
