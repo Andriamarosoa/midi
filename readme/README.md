@@ -17,8 +17,8 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `causal_candidate_v2_independent_validation_attempt3_authorization_pending_external_review`.
-- Statut : `en cours — attempt2 classée premetric_infrastructure_failure; registre worker matérialisé; demande attempt3 créée sans autoriser son exécution`.
+- Étape : `causal_candidate_v2_independent_validation_attempt4_authorization_pending_external_review`.
+- Statut : `en cours — attempt3 classée premetric asset-path-resolution; préparation attempt4 sans exécution`.
 - Demande d'autorisation attempt3, sans exécution : attempt2 a consommé son
   approval et son marker, puis s'est arrêtée avant TensorFlow et avant tout
   actif scientifique parce que le registre d'evidence attendu était absent du

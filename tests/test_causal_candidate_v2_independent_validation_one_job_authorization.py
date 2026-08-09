@@ -7,6 +7,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest import mock
 
@@ -691,6 +692,258 @@ class IndependentV2Attempt3AuthorizationTests(unittest.TestCase):
                 authorization.execute_externally_approved_independent_v2_attempt3_once(
                     self.root
                 )
+        run.assert_called_once()
+
+
+class IndependentV2Attempt4AuthorizationTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory(); self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name) / "worker" / "repository"; self.root.mkdir(parents=True)
+        target = self.root / authorization.ATTEMPT4_AUTHORIZATION_REQUEST_RELATIVE_PATH
+        target.parent.mkdir(parents=True)
+        target.write_bytes((Path(__file__).resolve().parents[1] / authorization.ATTEMPT4_AUTHORIZATION_REQUEST_RELATIVE_PATH).read_bytes())
+        self.old = os.environ.get("MIDI_DATA_ROOT"); self.addCleanup(self._restore)
+
+    def _restore(self):
+        if self.old is None: os.environ.pop("MIDI_DATA_ROOT", None)
+        else: os.environ["MIDI_DATA_ROOT"] = self.old
+
+    def test_attempt4_request_records_three_consumed_premetric_attempts(self):
+        payload = authorization.load_sealed_attempt4_authorization_request(self.root)
+        self.assertTrue(payload["attempt3_authorization_consumed"])
+        self.assertEqual(payload["attempt3_classification"], "premetric_infrastructure_failure_asset_path_resolution")
+        self.assertFalse(payload["scientific_cohort_consumed"])
+        self.assertEqual(payload["data_root_strategy"], "worker_root/data")
+
+    def test_attempt4_request_and_approval_reject_bool_int_aliases_and_old_purposes(self):
+        request = dict(authorization.load_sealed_attempt4_authorization_request(self.root))
+        for field, value in (("stop_after_report", 1), ("schema_version", True), ("wall_timeout_seconds", True)):
+            bad=dict(request); bad[field]=value
+            with self.subTest(field=field), self.assertRaisesRegex(ValueError, "values are not sealed"):
+                authorization._require_exact_attempt4_request(bad)
+        base = {"schema_version": 1, "purpose": "causal_candidate_v2_independent_validation_attempt4_external_review_approval", "authorization_request_sha256": authorization.ATTEMPT4_AUTHORIZATION_REQUEST_SHA256, "reviewed_runner_commit": authorization.ATTEMPT4_REVIEWED_RUNNER_COMMIT, "authorized_execution_commit": "a" * 40, "approved_for_exactly_one_execution": True, "locked_test_used": False}
+        path = self.root / authorization.ATTEMPT4_EXTERNAL_APPROVAL_RELATIVE_PATH; path.parent.mkdir(parents=True, exist_ok=True)
+        for change in ({"approved_for_exactly_one_execution": 1}, {"locked_test_used": 0}, {"purpose": "causal_candidate_v2_independent_validation_external_review_approval"}, {"purpose": "causal_candidate_v2_independent_validation_attempt2_external_review_approval"}, {"purpose": "causal_candidate_v2_independent_validation_attempt3_external_review_approval"}):
+            payload = dict(base); payload.update(change); path.write_bytes(self._canonical(payload))
+            with self.assertRaisesRegex(ValueError, "values are not sealed"):
+                authorization._load_attempt4_external_approval(self.root, authorization.load_sealed_attempt4_authorization_request(self.root))
+
+    def test_old_markers_do_not_authorize_and_absent_attempt4_approval_creates_no_marker(self):
+        for relative in (authorization.PERSISTENT_CLAIM_RELATIVE_PATH, authorization.ATTEMPT2_PERSISTENT_CLAIM_RELATIVE_PATH, authorization.ATTEMPT3_PERSISTENT_CLAIM_RELATIVE_PATH):
+            path = self.root / relative; path.parent.mkdir(parents=True, exist_ok=True); path.write_text("consumed")
+        with self.assertRaisesRegex(RuntimeError, "attempt4.*approval file is absent"):
+            authorization.execute_externally_approved_independent_v2_attempt4_once(self.root)
+        self.assertFalse((self.root / authorization.ATTEMPT4_PERSISTENT_CLAIM_RELATIVE_PATH).exists())
+
+    @staticmethod
+    def _canonical(payload):
+        return (json.dumps(payload, sort_keys=True, separators=(",", ":")) + "\n").encode()
+
+    def test_absent_data_root_and_conflicting_environment_fail_before_marker(self):
+        marker = self.root / authorization.ATTEMPT4_PERSISTENT_CLAIM_RELATIVE_PATH
+        with self.assertRaisesRegex(RuntimeError, "data root"):
+            authorization._require_attempt4_data_root_and_items(self.root)
+        self.assertFalse(marker.exists())
+        (self.root.parent / "data").mkdir()
+        os.environ["MIDI_DATA_ROOT"] = str(self.root.parent / "other")
+        with self.assertRaisesRegex(RuntimeError, "conflicts"):
+            authorization._require_attempt4_data_root_and_items(self.root)
+        self.assertFalse(marker.exists())
+
+    def test_good_data_root_is_fixed_before_tensorflow_free_manifest_stage(self):
+        data_root = self.root.parent / "data"; data_root.mkdir()
+        sentinel = object()
+        with mock.patch.object(authorization, "_tensorflow_imported", return_value=False), \
+             mock.patch("src.polyphonic.run_causal_candidate_v2_independent_validation.load_sealed_independent_v2_validation_cohort", side_effect=RuntimeError("manifest-stage")):
+            with self.assertRaisesRegex(RuntimeError, "manifest-stage"):
+                authorization._require_attempt4_data_root_and_items(self.root)
+        self.assertEqual(os.environ["MIDI_DATA_ROOT"], str(data_root))
+        self.assertIsNotNone(sentinel)
+
+    def test_attempt4_marker_is_o_excl_and_persistent(self):
+        first = authorization._create_attempt4_marker(self.root, "a" * 64, "b" * 40)
+        self.assertTrue(first.is_file())
+        with self.assertRaises(FileExistsError):
+            authorization._create_attempt4_marker(self.root, "a" * 64, "b" * 40)
+
+    def _synthetic_items(self):
+        data = self.root.parent / "data"; data.mkdir(exist_ok=True)
+        items = []
+        datasets = ("gaps_poly_mix", "guitar_techs_poly_directinput", "guitar_techs_poly_micamp")
+        for index in range(30):
+            audio = data / f"audio-{index}.npy"; label = data / f"label-{index}.npz"
+            audio.touch(); label.touch()
+            items.append(SimpleNamespace(key=f"key-{index}", dataset_id=datasets[index // 10], audio_path=audio, labels_path=label))
+        return data, items
+
+    def _preflight_with_items(self, items, keys=None):
+        from src.polyphonic import manifest_snapshot, run_causal_candidate_v2_independent_validation as cohort_module
+        from src.polyphonic import causal_candidate_v2_independent_asset_evidence as evidence
+        cohort = SimpleNamespace(recording_keys=tuple(keys or [x.key for x in items]))
+        snapshot = SimpleNamespace(items=tuple(items))
+        with mock.patch.object(cohort_module, "load_sealed_independent_v2_validation_cohort", return_value=cohort), \
+             mock.patch.object(cohort_module, "require_sealed_independent_v2_validation_cohort", side_effect=lambda value: value), \
+             mock.patch.object(manifest_snapshot, "load_manifest_snapshot", return_value=snapshot), \
+             mock.patch.object(evidence, "canonical_recording_key", side_effect=lambda item: item.key), \
+             mock.patch.object(authorization, "_tensorflow_imported", return_value=False):
+            return authorization._require_attempt4_data_root_and_items(self.root)
+
+    def test_exact_thirty_paths_pass_without_content_reads(self):
+        data, items = self._synthetic_items()
+        with mock.patch.object(Path, "read_bytes", side_effect=AssertionError("asset content read")), \
+             mock.patch.object(Path, "open", side_effect=AssertionError("asset Path.open")), \
+             mock.patch("builtins.open", side_effect=AssertionError("asset builtins.open")), \
+             mock.patch.object(authorization.hashlib, "sha256", side_effect=AssertionError("asset content hash")):
+            resolved, selected = self._preflight_with_items(items)
+        self.assertEqual(resolved, data)
+        self.assertEqual(len(selected), 30)
+
+    def test_incorrect_expected_production_data_root_fails_before_marker(self):
+        (self.root.parent / "data").mkdir()
+        marker = self.root / authorization.ATTEMPT4_PERSISTENT_CLAIM_RELATIVE_PATH
+        with self.assertRaisesRegex(RuntimeError, "production data root differs"):
+            authorization._require_attempt4_data_root_and_items(
+                self.root,
+                expected_production_data_root="/Users/amcarene/midi-worker/not-the-sealed-data-root",
+            )
+        self.assertFalse(marker.exists())
+
+    def test_nonsymlink_noncanonical_data_root_fails_before_marker(self):
+        data = self.root.parent / "data"
+        data.mkdir()
+        marker = self.root / authorization.ATTEMPT4_PERSISTENT_CLAIM_RELATIVE_PATH
+        original_resolve = Path.resolve
+
+        def noncanonical_resolve(path, strict=False):
+            if path == data:
+                return data.parent / "different-canonical-data"
+            return original_resolve(path, strict=strict)
+
+        with mock.patch.object(Path, "is_symlink", autospec=True, return_value=False), \
+             mock.patch.object(Path, "resolve", autospec=True, side_effect=noncanonical_resolve), \
+             self.assertRaisesRegex(RuntimeError, "data root"):
+            authorization._require_attempt4_data_root_and_items(self.root)
+        self.assertFalse(marker.exists())
+
+    def test_missing_key_bad_count_and_missing_asset_fail_before_marker(self):
+        _, items = self._synthetic_items()
+        marker = self.root / authorization.ATTEMPT4_PERSISTENT_CLAIM_RELATIVE_PATH
+        with self.assertRaisesRegex(RuntimeError, "recording key"):
+            self._preflight_with_items(items, keys=[x.key for x in items[:-1]] + ["missing"])
+        items[0].dataset_id = "guitarset_poly_mix"
+        with self.assertRaisesRegex(RuntimeError, "dataset counts"):
+            self._preflight_with_items(items)
+        items[0].dataset_id = "gaps_poly_mix"; items[0].audio_path.unlink()
+        with self.assertRaisesRegex(RuntimeError, "audio path"):
+            self._preflight_with_items(items)
+        self.assertFalse(marker.exists())
+
+    def test_tensorflow_detection_fails_before_marker(self):
+        data = self.root.parent / "data"; data.mkdir(exist_ok=True)
+        with mock.patch.object(authorization, "_tensorflow_imported", return_value=True):
+            with self.assertRaisesRegex(RuntimeError, "TensorFlow"):
+                authorization._require_attempt4_data_root_and_items(self.root)
+        self.assertFalse((self.root / authorization.ATTEMPT4_PERSISTENT_CLAIM_RELATIVE_PATH).exists())
+
+    def test_registry_absent_and_wrong_sha_fail_before_attempt4_marker(self):
+        marker = self.root / authorization.ATTEMPT4_PERSISTENT_CLAIM_RELATIVE_PATH
+        with self.assertRaisesRegex(RuntimeError, "registry is absent"):
+            authorization._require_attempt3_worker_registry(self.root)
+        registry = self.root / authorization.ATTEMPT3_WORKER_REGISTRY_RELATIVE_PATH
+        registry.parent.mkdir(parents=True, exist_ok=True); registry.write_bytes(b"wrong")
+        with self.assertRaisesRegex(RuntimeError, "SHA-256 mismatch"):
+            authorization._require_attempt3_worker_registry(self.root)
+        self.assertFalse(marker.exists())
+
+    def test_label_absent_and_path_escape_fail_before_marker(self):
+        data, items = self._synthetic_items(); marker = self.root / authorization.ATTEMPT4_PERSISTENT_CLAIM_RELATIVE_PATH
+        items[0].labels_path.unlink()
+        with self.assertRaisesRegex(RuntimeError, "label path"):
+            self._preflight_with_items(items)
+        items[0].labels_path.touch(); outside = self.root / "outside.npy"; outside.touch(); items[0].audio_path = outside
+        with self.assertRaisesRegex(RuntimeError, "escapes"):
+            self._preflight_with_items(items)
+        self.assertFalse(marker.exists()); self.assertTrue(data.is_dir())
+
+    def test_label_path_escape_fails_before_marker(self):
+        _, items = self._synthetic_items()
+        marker = self.root / authorization.ATTEMPT4_PERSISTENT_CLAIM_RELATIVE_PATH
+        outside = self.root / "outside-label.npz"
+        outside.touch()
+        items[0].labels_path = outside
+        with self.assertRaisesRegex(RuntimeError, "label path escapes worker data root"):
+            self._preflight_with_items(items)
+        self.assertFalse(marker.exists())
+
+    def test_attempt4_happy_order_and_exact_capability(self):
+        order=[]; captured=[]; commit="c"*40
+        def step(name, value=None):
+            def call(*args, **kwargs): order.append(name); return value
+            return call
+        with mock.patch.object(authorization, "load_sealed_attempt4_authorization_request", side_effect=step("request", {"expected_production_data_root": str(authorization.ATTEMPT4_PRODUCTION_DATA_ROOT)})), \
+             mock.patch.object(authorization, "_load_attempt4_external_approval", side_effect=step("approval", ({"authorized_execution_commit": commit}, "d"*64))), \
+             mock.patch.object(authorization, "_verify_attempt4_git_boundary", side_effect=step("git", commit)), \
+             mock.patch.object(authorization, "_require_attempt3_worker_registry", side_effect=step("registry", self.root)), \
+             mock.patch.object(authorization, "_require_attempt4_data_root_and_items", side_effect=step("data", (self.root, tuple()))), \
+             mock.patch.object(authorization, "_create_attempt4_marker", side_effect=step("marker", self.root)), \
+             mock.patch.object(authorization, "_tensorflow_imported", return_value=False), \
+             mock.patch.object(runner, "run_authorized_independent_v2", side_effect=lambda root, cap: (order.append("runner"), captured.append(cap), {"ok":True})[-1]):
+            result=authorization.execute_externally_approved_independent_v2_attempt4_once(self.root)
+        self.assertEqual(result,{"ok":True}); self.assertEqual(order,["request","approval","git","registry","data","marker","runner"])
+        cap=captured[0]; self.assertEqual((cap.runner_commit,cap.execution_contract_sha256,cap.device,cap.wall_timeout_seconds,cap.job_id,cap.destination,cap.stop_after_report,cap.locked_test_used,cap.single_execution_authorization),(commit,authorization.EXECUTION_CONTRACT_SHA256,"cpu",900,authorization.ATTEMPT4_JOB_ID,authorization.ATTEMPT4_DESTINATION,True,False,True))
+
+    def test_midi_data_root_textual_alias_is_rejected(self):
+        data=self.root.parent/"data"; data.mkdir(exist_ok=True)
+        os.environ["MIDI_DATA_ROOT"] = str(data / ".." / "data")
+        with self.assertRaisesRegex(RuntimeError, "conflicts"):
+            authorization._require_attempt4_data_root_and_items(self.root)
+
+    def test_tensorflow_appearing_during_path_preflight_is_rejected(self):
+        _, items=self._synthetic_items()
+        from src.polyphonic import manifest_snapshot, run_causal_candidate_v2_independent_validation as cm
+        from src.polyphonic import causal_candidate_v2_independent_asset_evidence as ev
+        cohort=SimpleNamespace(recording_keys=tuple(x.key for x in items)); snapshot=SimpleNamespace(items=tuple(items))
+        with mock.patch.object(cm,"load_sealed_independent_v2_validation_cohort",return_value=cohort), mock.patch.object(cm,"require_sealed_independent_v2_validation_cohort",side_effect=lambda x:x), mock.patch.object(manifest_snapshot,"load_manifest_snapshot",return_value=snapshot), mock.patch.object(ev,"canonical_recording_key",side_effect=lambda x:x.key), mock.patch.object(authorization,"_tensorflow_imported",side_effect=[False,True]):
+            with self.assertRaisesRegex(RuntimeError,"during attempt4"):
+                authorization._require_attempt4_data_root_and_items(self.root)
+
+    def test_attempt4_git_boundary_cases_fail(self):
+        approval={"authorized_execution_commit":"a"*40}
+        cases=(("b"*40,True,authorization.ATTEMPT4_AUTHORIZATION_STEP_PATHS,True,"current HEAD"),("a"*40,False,authorization.ATTEMPT4_AUTHORIZATION_STEP_PATHS,True,"clean worktree"),("a"*40,True,frozenset({"bad"}),True,"unexpected changed"),("a"*40,True,authorization.ATTEMPT4_AUTHORIZATION_STEP_PATHS,False,"runner changed"))
+        for head,clean,names,runner_ok,message in cases:
+            with self.subTest(message=message), mock.patch.object(authorization,"_git_head",return_value=head), mock.patch.object(authorization,"_git_worktree_clean",return_value=clean), mock.patch.object(authorization,"_git",return_value="\n".join(names)), mock.patch("subprocess.run") as run:
+                run.side_effect=[SimpleNamespace(stdout=b"same"),SimpleNamespace(stdout=b"same" if runner_ok else b"different")]
+                with self.assertRaisesRegex((ValueError,RuntimeError),message): authorization._verify_attempt4_git_boundary(self.root,approval)
+
+    def test_data_root_and_asset_symlinks_are_rejected(self):
+        data=self.root.parent/"data"; data.mkdir()
+        original_is_symlink=Path.is_symlink
+        with mock.patch.object(Path,"is_symlink",autospec=True,side_effect=lambda path: path==data or original_is_symlink(path)):
+            with self.assertRaisesRegex(RuntimeError,"data root"):
+                authorization._require_attempt4_data_root_and_items(self.root)
+        _,items=self._synthetic_items()
+        for field in ("audio_path","labels_path"):
+            flagged=getattr(items[0],field)
+            with self.subTest(field=field), mock.patch.object(Path,"is_symlink",autospec=True,side_effect=lambda path, flagged=flagged: path==flagged or original_is_symlink(path)), self.assertRaisesRegex(RuntimeError,"path"):
+                self._preflight_with_items(items)
+
+    def test_marker_parent_symlink_is_rejected(self):
+        parent=(self.root/authorization.ATTEMPT4_PERSISTENT_CLAIM_RELATIVE_PATH).parent
+        parent.parent.mkdir(parents=True,exist_ok=True)
+        original_is_symlink=Path.is_symlink
+        with mock.patch.object(Path,"is_symlink",autospec=True,side_effect=lambda path: path==parent or original_is_symlink(path)), self.assertRaisesRegex(ValueError,"marker directory"):
+             authorization._create_attempt4_marker(self.root,"a"*64,"b"*40)
+
+    def test_post_claim_failure_persists_marker_and_blocks_retry(self):
+        commit="c"*40
+        request={"expected_production_data_root":str(authorization.ATTEMPT4_PRODUCTION_DATA_ROOT)}
+        marker=self.root/authorization.ATTEMPT4_PERSISTENT_CLAIM_RELATIVE_PATH
+        with mock.patch.object(authorization,"load_sealed_attempt4_authorization_request",return_value=request), mock.patch.object(authorization,"_load_attempt4_external_approval",return_value=({"authorized_execution_commit":commit},"d"*64)), mock.patch.object(authorization,"_verify_attempt4_git_boundary",return_value=commit), mock.patch.object(authorization,"_require_attempt3_worker_registry"), mock.patch.object(authorization,"_require_attempt4_data_root_and_items"), mock.patch.object(authorization,"_tensorflow_imported",return_value=False), mock.patch.object(runner,"run_authorized_independent_v2",side_effect=RuntimeError("synthetic attempt4 post-claim failure")) as run:
+            with self.assertRaisesRegex(RuntimeError,"post-claim failure"):
+                authorization.execute_externally_approved_independent_v2_attempt4_once(self.root)
+            self.assertTrue(marker.is_file())
+            with self.assertRaises(FileExistsError):
+                authorization.execute_externally_approved_independent_v2_attempt4_once(self.root)
         run.assert_called_once()
 
 

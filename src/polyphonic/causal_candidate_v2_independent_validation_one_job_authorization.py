@@ -12,6 +12,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import sys
 from typing import Mapping
@@ -77,6 +78,15 @@ ATTEMPT3_DESTINATION = (
     "tmp/local/causal_candidate_v2_independent_validation_execution_20260810_attempt3"
 )
 
+ATTEMPT4_REVIEWED_RUNNER_COMMIT = ATTEMPT3_REVIEWED_RUNNER_COMMIT
+ATTEMPT4_AUTHORIZATION_REQUEST_SHA256 = "70650da50ceb796e29b4e179dcd824487c94bf0201fd98b63c4aa098d74bc12b"
+ATTEMPT4_AUTHORIZATION_REQUEST_RELATIVE_PATH = Path("configs/causal_candidate_v2_independent_validation_attempt4_authorization_request.json")
+ATTEMPT4_EXTERNAL_APPROVAL_RELATIVE_PATH = Path("tmp/local/causal_candidate_v2_independent_validation_external_review_approval_20260810_attempt4.json")
+ATTEMPT4_PERSISTENT_CLAIM_RELATIVE_PATH = Path("tmp/local/causal_candidate_v2_independent_validation_one_job_20260810_attempt4.claimed.json")
+ATTEMPT4_JOB_ID = "causal-candidate-v2-independent-cpu-20260810-attempt4"
+ATTEMPT4_DESTINATION = "tmp/local/causal_candidate_v2_independent_validation_execution_20260810_attempt4"
+ATTEMPT4_PRODUCTION_DATA_ROOT = Path("/Users/amcarene/midi-worker/data")
+
 AUTHORIZATION_STEP_PATHS = frozenset(
     {
         ".gitattributes",
@@ -109,6 +119,13 @@ ATTEMPT3_AUTHORIZATION_STEP_PATHS = frozenset(
         "readme/results/2026-08-10_causal-candidate-v2-independent-validation-attempt2-premetric-infrastructure-failure.md",
     }
 )
+ATTEMPT4_AUTHORIZATION_STEP_PATHS = frozenset({
+    ".gitattributes", ATTEMPT4_AUTHORIZATION_REQUEST_RELATIVE_PATH.as_posix(),
+    "src/polyphonic/causal_candidate_v2_independent_validation_one_job_authorization.py",
+    "tests/test_causal_candidate_v2_independent_validation_one_job_authorization.py",
+    "readme/README.md",
+    "readme/results/2026-08-10_causal-candidate-v2-independent-validation-attempt3-premetric-asset-path-resolution-failure.md",
+})
 
 _REQUEST_KEYS = frozenset(
     {
@@ -139,6 +156,10 @@ _ATTEMPT3_REQUEST_KEYS = _REQUEST_KEYS | frozenset(
         "worker_registry_relative_path", "worker_registry_sha256",
     }
 )
+_ATTEMPT4_REQUEST_KEYS = _ATTEMPT3_REQUEST_KEYS | frozenset({
+    "attempt3_authorization_consumed", "attempt3_classification",
+    "data_root_strategy", "expected_production_data_root",
+})
 
 
 def _canonical_json_bytes(payload: object) -> bytes:
@@ -805,7 +826,172 @@ def execute_externally_approved_independent_v2_attempt3_once(
     return runner.run_authorized_independent_v2(root, capability)
 
 
+def _require_exact_attempt4_request(payload: Mapping[str, object]) -> None:
+    if set(payload) != _ATTEMPT4_REQUEST_KEYS:
+        raise ValueError("attempt4 authorization request schema is not exact")
+    expected = {
+        "schema_version": 1, "purpose": "causal_candidate_v2_independent_validation_attempt4_authorization_request",
+        "status": "pending_external_review", "reviewed_runner_commit": ATTEMPT4_REVIEWED_RUNNER_COMMIT,
+        "execution_contract_sha256": EXECUTION_CONTRACT_SHA256, "asset_evidence_sha256": ASSET_EVIDENCE_SHA256,
+        "device": "cpu", "wall_timeout_seconds": 900, "job_id": ATTEMPT4_JOB_ID,
+        "destination": ATTEMPT4_DESTINATION, "stop_after_report": True, "locked_test_used": False,
+        "single_execution_authorization": True, "automatic_retry": False, "automatic_promotion": False,
+        "external_approval_relative_path": ATTEMPT4_EXTERNAL_APPROVAL_RELATIVE_PATH.as_posix(),
+        "persistent_claim_marker_relative_path": ATTEMPT4_PERSISTENT_CLAIM_RELATIVE_PATH.as_posix(),
+        "attempt1_authorization_consumed": True, "attempt1_classification": "premetric_infrastructure_failure",
+        "attempt2_authorization_consumed": True, "attempt2_classification": "premetric_infrastructure_failure",
+        "attempt3_authorization_consumed": True,
+        "attempt3_classification": "premetric_infrastructure_failure_asset_path_resolution",
+        "scientific_cohort_consumed": False, "ab_metrics_produced": False, "ab_metrics_observed": False,
+        "worker_registry_materialized": True,
+        "worker_registry_relative_path": ATTEMPT3_WORKER_REGISTRY_RELATIVE_PATH.as_posix(),
+        "worker_registry_sha256": ATTEMPT3_WORKER_REGISTRY_SHA256,
+        "data_root_strategy": "worker_root/data",
+        "expected_production_data_root": "/Users/amcarene/midi-worker/data",
+    }
+    bools = ("stop_after_report", "locked_test_used", "single_execution_authorization", "automatic_retry", "automatic_promotion", "attempt1_authorization_consumed", "attempt2_authorization_consumed", "attempt3_authorization_consumed", "scientific_cohort_consumed", "ab_metrics_produced", "ab_metrics_observed", "worker_registry_materialized")
+    if (dict(payload) != expected or type(payload.get("schema_version")) is not int
+            or type(payload.get("wall_timeout_seconds")) is not int
+            or any(type(payload.get(name)) is not bool for name in bools)):
+        raise ValueError("attempt4 authorization request values are not sealed")
+
+
+def load_sealed_attempt4_authorization_request(repository_root: Path) -> Mapping[str, object]:
+    root = Path(repository_root).resolve(strict=True)
+    path = root / ATTEMPT4_AUTHORIZATION_REQUEST_RELATIVE_PATH
+    if path.is_symlink() or path.resolve(strict=True) != path.absolute():
+        raise ValueError("attempt4 authorization request path is not canonical")
+    raw = path.read_bytes()
+    if hashlib.sha256(raw).hexdigest() != ATTEMPT4_AUTHORIZATION_REQUEST_SHA256:
+        raise ValueError("attempt4 authorization request SHA-256 mismatch")
+    payload = _parse_canonical_json(raw, label="attempt4 authorization request")
+    _require_exact_attempt4_request(payload)
+    return payload
+
+
+def _load_attempt4_external_approval(root: Path, request: Mapping[str, object]) -> tuple[Mapping[str, object], str]:
+    path = root / ATTEMPT4_EXTERNAL_APPROVAL_RELATIVE_PATH
+    if not path.is_file():
+        raise RuntimeError("attempt4 external review approval file is absent")
+    if path.is_symlink() or path.resolve(strict=True) != path.absolute():
+        raise ValueError("attempt4 external review approval path is not canonical")
+    raw = path.read_bytes()
+    payload = _parse_canonical_json(raw, label="attempt4 external review approval")
+    commit = payload.get("authorized_execution_commit")
+    if set(payload) != _APPROVAL_KEYS or not isinstance(commit, str) or not re.fullmatch(r"[0-9a-f]{40}", commit):
+        raise ValueError("attempt4 external review approval schema is not exact")
+    if (type(payload.get("schema_version")) is not int
+            or type(payload.get("approved_for_exactly_one_execution")) is not bool
+            or type(payload.get("locked_test_used")) is not bool
+            or payload != {
+        "schema_version": 1,
+        "purpose": "causal_candidate_v2_independent_validation_attempt4_external_review_approval",
+        "authorization_request_sha256": ATTEMPT4_AUTHORIZATION_REQUEST_SHA256,
+        "reviewed_runner_commit": ATTEMPT4_REVIEWED_RUNNER_COMMIT,
+        "authorized_execution_commit": commit,
+        "approved_for_exactly_one_execution": True,
+        "locked_test_used": False,
+    } or request.get("reviewed_runner_commit") != ATTEMPT4_REVIEWED_RUNNER_COMMIT):
+        raise ValueError("attempt4 external review approval values are not sealed")
+    return payload, hashlib.sha256(raw).hexdigest()
+
+
+def _verify_attempt4_git_boundary(root: Path, approval: Mapping[str, object]) -> str:
+    head = _git_head(root)
+    if approval.get("authorized_execution_commit") != head:
+        raise ValueError("attempt4 external approval does not authorize current HEAD")
+    if not _git_worktree_clean(root):
+        raise RuntimeError("attempt4 authorization requires a clean worktree")
+    names = frozenset(line.strip().replace("\\", "/") for line in _git(root, "diff", "--name-only", "bc3e805971fed0fec4b76c817b5ee34289601624", head).splitlines() if line.strip())
+    if names != ATTEMPT4_AUTHORIZATION_STEP_PATHS:
+        raise RuntimeError("attempt4 authorization commit contains an unexpected changed file set")
+    reviewed = subprocess.run(["git", "-C", str(root), "show", f"{ATTEMPT4_REVIEWED_RUNNER_COMMIT}:{RUNNER_RELATIVE_PATH.as_posix()}"], check=True, capture_output=True).stdout
+    current = subprocess.run(["git", "-C", str(root), "show", f"{head}:{RUNNER_RELATIVE_PATH.as_posix()}"], check=True, capture_output=True).stdout
+    if reviewed != current:
+        raise RuntimeError("approved independent V2 runner changed after attempt4 review")
+    return head
+
+
+def _require_attempt4_data_root_and_items(root: Path, *, expected_production_data_root: str | None = None) -> tuple[Path, tuple[object, ...]]:
+    """Resolve exactly the sealed 30 items without opening or hashing assets."""
+    worker_root = root.parent
+    if worker_root.is_symlink() or worker_root.resolve(strict=True) != worker_root.absolute():
+        raise RuntimeError("attempt4 worker root is not canonical")
+    data_root = worker_root / "data"
+    if data_root.is_symlink() or not data_root.is_dir() or data_root.resolve(strict=True) != data_root.absolute():
+        raise RuntimeError("attempt4 worker data root is absent, symlinked, or non-canonical")
+    if expected_production_data_root is not None:
+        if expected_production_data_root != str(ATTEMPT4_PRODUCTION_DATA_ROOT) or data_root != Path(expected_production_data_root):
+            raise RuntimeError("attempt4 production data root differs from the sealed path")
+    elif sys.platform == "darwin" and data_root != ATTEMPT4_PRODUCTION_DATA_ROOT:
+        raise RuntimeError("attempt4 production data root differs from the sealed path")
+    configured = os.environ.get("MIDI_DATA_ROOT")
+    if configured is not None and configured != str(data_root):
+        raise RuntimeError("attempt4 MIDI_DATA_ROOT conflicts with the sealed worker data root")
+    os.environ["MIDI_DATA_ROOT"] = str(data_root)
+    if _tensorflow_imported():
+        raise RuntimeError("TensorFlow was imported before attempt4 manifest preflight")
+    manifest = data_root / "processed/polyphonic_harmonic_presence_v1/manifest_train_validation.csv"
+    from .manifest_snapshot import load_manifest_snapshot
+    from .run_causal_candidate_v2_independent_validation import load_sealed_independent_v2_validation_cohort, require_sealed_independent_v2_validation_cohort
+    from .causal_candidate_v2_independent_asset_evidence import canonical_recording_key
+    cohort = require_sealed_independent_v2_validation_cohort(load_sealed_independent_v2_validation_cohort(root, manifest))
+    snapshot = load_manifest_snapshot(manifest)
+    indexed = {canonical_recording_key(item): item for item in snapshot.items}
+    if any(key not in indexed for key in cohort.recording_keys):
+        raise RuntimeError("attempt4 sealed recording key is absent from manifest snapshot")
+    items = tuple(indexed[key] for key in cohort.recording_keys)
+    from collections import Counter
+    if Counter(item.dataset_id for item in items) != Counter({"gaps_poly_mix": 10, "guitar_techs_poly_directinput": 10, "guitar_techs_poly_micamp": 10}):
+        raise RuntimeError("attempt4 sealed cohort dataset counts are invalid")
+    for item in items:
+        for label, path in (("audio", item.audio_path), ("label", item.labels_path)):
+            if path.is_symlink() or not path.is_file():
+                raise RuntimeError(f"attempt4 {label} path is absent, symlinked, or non-file")
+            resolved = path.resolve(strict=True)
+            try:
+                resolved.relative_to(data_root)
+            except ValueError as exc:
+                raise RuntimeError(f"attempt4 {label} path escapes worker data root") from exc
+    if _tensorflow_imported():
+        raise RuntimeError("TensorFlow was imported during attempt4 pre-marker checks")
+    return data_root, items
+
+
+def _create_attempt4_marker(root: Path, approval_sha: str, commit: str) -> Path:
+    marker = root / ATTEMPT4_PERSISTENT_CLAIM_RELATIVE_PATH
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    if marker.parent.is_symlink() or marker.parent.resolve(strict=True) != marker.parent.absolute():
+        raise ValueError("attempt4 persistent claim marker directory is not canonical")
+    payload = {"authorization_request_sha256": ATTEMPT4_AUTHORIZATION_REQUEST_SHA256, "authorized_execution_commit": commit, "claimed_at_utc": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"), "external_approval_sha256": approval_sha, "job_id": ATTEMPT4_JOB_ID, "attempt1_authorization_consumed": True, "attempt2_authorization_consumed": True, "attempt3_authorization_consumed": True, "worker_registry_sha256": ATTEMPT3_WORKER_REGISTRY_SHA256, "data_root_strategy": "worker_root/data"}
+    descriptor = os.open(marker, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    with os.fdopen(descriptor, "wb", closefd=True) as handle:
+        handle.write(_canonical_json_bytes(payload)); handle.flush(); os.fsync(handle.fileno())
+    return marker
+
+
+def execute_externally_approved_independent_v2_attempt4_once(repository_root: Path) -> Mapping[str, object]:
+    root = Path(repository_root).resolve(strict=True)
+    request = load_sealed_attempt4_authorization_request(root)
+    approval, approval_sha = _load_attempt4_external_approval(root, request)
+    commit = _verify_attempt4_git_boundary(root, approval)
+    _require_attempt3_worker_registry(root)
+    _require_attempt4_data_root_and_items(root, expected_production_data_root=str(request["expected_production_data_root"]))
+    _create_attempt4_marker(root, approval_sha, commit)
+    from . import run_causal_candidate_v2_independent_validation_execution as runner
+    capability = runner.IndependentV2OneJobCapability(runner_commit=commit, execution_contract_sha256=EXECUTION_CONTRACT_SHA256, device="cpu", wall_timeout_seconds=900, job_id=ATTEMPT4_JOB_ID, destination=ATTEMPT4_DESTINATION, stop_after_report=True, locked_test_used=False, single_execution_authorization=True)
+    runner._ONE_JOB_CAPABILITIES[id(capability)] = weakref.ref(capability)
+    os.environ["MIDI_FORCE_CPU"] = "1"
+    if _tensorflow_imported():
+        raise RuntimeError("TensorFlow was imported before attempt4 runner invocation")
+    return runner.run_authorized_independent_v2(root, capability)
+
+
 __all__ = [
+    "ATTEMPT4_AUTHORIZATION_REQUEST_RELATIVE_PATH",
+    "ATTEMPT4_AUTHORIZATION_REQUEST_SHA256",
+    "ATTEMPT4_EXTERNAL_APPROVAL_RELATIVE_PATH",
+    "ATTEMPT4_PERSISTENT_CLAIM_RELATIVE_PATH",
     "ATTEMPT3_AUTHORIZATION_REQUEST_RELATIVE_PATH",
     "ATTEMPT3_AUTHORIZATION_REQUEST_SHA256",
     "ATTEMPT3_EXTERNAL_APPROVAL_RELATIVE_PATH",
@@ -821,6 +1007,8 @@ __all__ = [
     "execute_externally_approved_independent_v2_once",
     "execute_externally_approved_independent_v2_attempt2_once",
     "execute_externally_approved_independent_v2_attempt3_once",
+    "execute_externally_approved_independent_v2_attempt4_once",
+    "load_sealed_attempt4_authorization_request",
     "load_sealed_attempt3_authorization_request",
     "load_sealed_attempt2_authorization_request",
     "load_sealed_authorization_request",
