@@ -290,6 +290,16 @@ def _require_exact_execution_payload(payload: Mapping[str, object]) -> Independe
         raise ValueError("independent V2 execution preflight contract changed.")
 
     report = _require_mapping(payload.get("required_report_for_any_future_execution"), "required_report_for_any_future_execution")
+    required_provenance = (
+            "git_commit", "worker_device", "execution_contract_sha256",
+            "closed_independent_protocol_sha256", "asset_evidence_sha256",
+            "asset_evidence_builder_protocol_sha256", "manifest_sha256",
+            "historical_selection_sha256", "all_frozen_artifact_sha256",
+            "all_thirty_recording_identities_and_twenty_leakage_groups",
+            "candidate_gate_placement", "locked_test_used",
+        )
+    if tuple(report.get("provenance", ())) != required_provenance:
+        raise ValueError("independent V2 required report provenance changed.")
     if (
         tuple(report.get("paired_views", ()))
         != ("reference", "candidate", "delta_candidate_minus_reference")

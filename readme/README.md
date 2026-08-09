@@ -185,7 +185,7 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   donc aucune seconde revalidation ne peut démarrer avant revue. Rapport :
   `readme/results/2026-08-10_causal-candidate-v2-independent-validation-asset-evidence-revalidation.md`.
 - Contrat d'exécution V2 indépendant, déclaratif uniquement : le nouveau
-  protocole versionné SHA-256 `a2495774…d28b59` lie le protocole indépendant
+  protocole versionné SHA-256 `269efb65…ae63ed` lie le protocole indépendant
   fermé `def274de…a34119`, le registre revalidé `10307a64…22aee`, son
   protocole builder source `d63655c3…9ba015`, le manifeste, la sélection
   historique et le plan Policy A. Il gèle la cohorte validation indépendante

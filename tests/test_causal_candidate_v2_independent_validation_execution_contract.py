@@ -99,6 +99,11 @@ class IndependentV2ExecutionContractTests(unittest.TestCase):
             contract._require_exact_execution_payload(payload)
 
         payload = copy.deepcopy(self._payload())
+        payload["required_report_for_any_future_execution"]["provenance"] = payload["required_report_for_any_future_execution"]["provenance"][:-1]
+        with self.assertRaisesRegex(ValueError, "required report provenance"):
+            contract._require_exact_execution_payload(payload)
+
+        payload = copy.deepcopy(self._payload())
         payload["prerequisite_provenance"]["asset_evidence_relative_path"] = "../escape.json"
         with self.assertRaisesRegex(ValueError, "beneath the repository root"):
             contract._require_exact_execution_payload(payload)
