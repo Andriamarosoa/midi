@@ -202,6 +202,42 @@ class CausalCandidateValidationTests(unittest.TestCase):
                 sealed_train_only_corpus_opener=lambda _: None,
             )
 
+    def test_sealed_train_only_evaluator_requires_its_audio_policy_before_config_access(self) -> None:
+        from src.polyphonic.evaluate_events import evaluate_events
+
+        item = SimpleNamespace(split="train")
+        with self.assertRaisesRegex(ValueError, "requires sealed audio evidence"):
+            evaluate_events(
+                run_dir=Path("missing-run-dir"),
+                split="train",
+                causal_candidate_gate_factory=lambda: self._gate(1.0),
+                causal_candidate_gate_placement=(
+                    CAUSAL_CANDIDATE_GATE_POST_RANKING_PRE_NOTEON
+                ),
+                sealed_train_only_items=(item,),
+                sealed_train_only_corpus_opener=lambda _: None,
+            )
+
+    def test_sealed_train_only_evaluator_rejects_a_caller_audio_override_before_config_access(self) -> None:
+        from src.polyphonic.evaluate_events import evaluate_events
+
+        item = SimpleNamespace(split="train")
+        with self.assertRaisesRegex(ValueError, "cannot combine caller audio evidence"):
+            evaluate_events(
+                run_dir=Path("missing-run-dir"),
+                split="train",
+                causal_candidate_gate_factory=lambda: self._gate(1.0),
+                causal_candidate_gate_placement=(
+                    CAUSAL_CANDIDATE_GATE_POST_RANKING_PRE_NOTEON
+                ),
+                audio_evidence_metadata={"audio_evidence": {}},
+                sealed_audio_evidence_metadata={"audio_evidence": {
+                    "onset_adapt_temporal_background": True,
+                }},
+                sealed_train_only_items=(item,),
+                sealed_train_only_corpus_opener=lambda _: None,
+            )
+
     def test_decision_uses_real_causal_aggregate_schema(self) -> None:
         rules = {
             "candidate_false_positive_notes_delta_maximum": 0,

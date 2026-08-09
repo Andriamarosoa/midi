@@ -17,8 +17,23 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-09`.
-- Étape : `causal_candidate_v2_train_dev_diagnostic_runner`.
-- Statut : `terminé — runner V2 scellé implémenté et testé synthétiquement; revue externe requise avant toute exécution réelle`.
+- Étape : `causal_candidate_v2_train_dev_diagnostic_runner_integration`.
+- Statut : `terminé — les deux corrections d'intégration V2 sont implémentées et testées; revue externe requise avant toute exécution réelle`.
+- Correctif d'intégration V2 sans calcul : le worker Windows n'autorise
+  désormais l'accusé dédié qu'au module exact
+  `src.polyphonic.run_causal_candidate_v2_train_dev_diagnostic`, avec CPU,
+  timeout externe exactement `900 s`, zéro argument et `ExpectedCommit` complet
+  égal au HEAD local; le worker Mac revalide le même commit puis exige le
+  littéral `DECODER_CANDIDATE_V2_DIAGNOSTIC_EXECUTE=1` avant TensorFlow. Le
+  runner lit, hache et parse maintenant les mêmes octets de la politique audio
+  scellée, exige `onset_adapt_temporal_background=true`, puis transmet cette
+  unique métadonnée interne à l'évaluateur. Les masques sont donc calculés une
+  fois et partagés par les deux décodeurs A/B ; toute surcharge audio appelant
+  reste refusée. `py_compile`, `bash -n`, `git diff --check` et `46` tests
+  ciblés (PowerShell/Bash, runner V2, A/B et décodeur) passent en `9,044 s`, sans
+  synchronisation Mac, actif projet, inférence, fit, calibration, validation,
+  export, live ni test verrouillé. Rapport :
+  `readme/results/2026-08-09_causal-candidate-v2-runner-integration-fix.md`.
 - Runner d'exécution réelle V2, sans exécution : la première mesure proposée
   est limitée aux `30` prises canoniques V3 dont la partition préassignée est
   `dev` (`6` GAPS, `6` Guitar-TECHS DI, `6` Guitar-TECHS mic/amp, `12`

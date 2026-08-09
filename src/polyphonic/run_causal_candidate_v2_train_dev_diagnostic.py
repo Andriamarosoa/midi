@@ -88,6 +88,39 @@ def _require_sha(path: Path, expected: object, name: str) -> str:
     return actual
 
 
+def _load_sealed_audio_evidence_metadata(
+    path: Path,
+    expected_sha256: object,
+) -> tuple[Mapping[str, object], str]:
+    """Read, verify, and parse the one audio policy from the same bytes.
+
+    The V2 diagnostic may not receive an audio override.  Reading the payload
+    only after (and from the same raw buffer as) its sealed digest makes the
+    policy used to construct masks the policy recorded by the protocol.
+    """
+    if (
+        not isinstance(expected_sha256, str)
+        or len(expected_sha256) != 64
+        or any(character not in "0123456789abcdef" for character in expected_sha256)
+    ):
+        raise ValueError("audio_evidence_config must have a sealed SHA-256 digest.")
+    raw = Path(path).resolve(strict=True).read_bytes()
+    actual = hashlib.sha256(raw).hexdigest()
+    if actual != expected_sha256:
+        raise RuntimeError("Fail closed: audio_evidence_config SHA-256 mismatch.")
+    try:
+        payload = json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise ValueError("Sealed audio evidence configuration is not valid UTF-8 JSON.") from error
+    if not isinstance(payload, dict):
+        raise ValueError("Sealed audio evidence configuration must be a JSON object.")
+    if payload.get("onset_adapt_temporal_background") is not True:
+        raise ValueError(
+            "Sealed V2 audio evidence must enable onset_adapt_temporal_background."
+        )
+    return {"audio_evidence": payload}, actual
+
+
 def _require_execution_acknowledgement() -> None:
     if os.environ.get(V2_DIAGNOSTIC_EXECUTE_ENV) != "1":
         raise RuntimeError(
@@ -150,6 +183,7 @@ class SealedV2DiagnosticContract:
     standardizer: FitStandardizer
     artifact_sha256: Mapping[str, str]
     dev_identities: tuple[tuple[str, str, str], ...]
+    audio_evidence_metadata: Mapping[str, object]
 
 
 def sealed_v2_diagnostic_paths(repository_root: Path, worker_root: Path) -> V2DiagnosticPaths:
@@ -379,7 +413,15 @@ def load_sealed_v2_diagnostic_contract(paths: V2DiagnosticPaths) -> SealedV2Diag
     order = ("fit_report",) + tuple(name for name in artifact_paths if name != "fit_report")
     for name in order:
         path, expected_sha = artifact_paths[name]
+        if name == "audio_evidence_config":
+            continue
         verified[name] = _require_sha(path, expected_sha, name)
+    audio_evidence_metadata, verified["audio_evidence_config"] = (
+        _load_sealed_audio_evidence_metadata(
+            paths.audio_evidence_config_path,
+            frozen.get("audio_evidence_config_sha256"),
+        )
+    )
 
     # Parse/revalidate both persistent provenance documents and derive the
     # exact cohort before TensorFlow.  Neither loader opens an audio/label
@@ -419,7 +461,7 @@ def load_sealed_v2_diagnostic_contract(paths: V2DiagnosticPaths) -> SealedV2Diag
         scale=tuple(float(value) for value in standardizer_payload.get("scale", ())),
     )
     return SealedV2DiagnosticContract(
-        protocol, standardizer, verified, dev_identities
+        protocol, standardizer, verified, dev_identities, audio_evidence_metadata
     )
 
 
@@ -541,6 +583,7 @@ def run_sealed_v2_train_dev_diagnostic() -> dict[str, object]:
         causal_candidate_gate_placement=(
             CAUSAL_CANDIDATE_GATE_POST_RANKING_PRE_NOTEON
         ),
+        sealed_audio_evidence_metadata=sealed.audio_evidence_metadata,
         sealed_train_only_items=items,
         sealed_train_only_corpus_opener=context.open_recording,
         write_report=False,

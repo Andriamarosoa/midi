@@ -126,6 +126,24 @@ Cette invocation reste soumise à une revue externe finale. Ne pas lancer de
 commande A/B, ni de validation, export, live ou test verrouillé, sans cette
 approbation explicite.
 
+## Diagnostic V2 train/dev scellé
+
+Le module `src.polyphonic.run_causal_candidate_v2_train_dev_diagnostic` est
+reconnu comme une invocation scellée distincte. Son accusé
+`-CausalCandidateV2DiagnosticExecute` ne peut être employé que pour ce module,
+avec CPU, exactement `900` secondes, zéro argument de module et un
+`-ExpectedCommit` égal au HEAD Git complet du worktree Windows. Le worker Mac
+revalide ensuite le commit demandé contre son HEAD avant le préflight, exige
+l'accusé littéral `DECODER_CANDIDATE_V2_DIAGNOSTIC_EXECUTE=1` et échoue avant
+TensorFlow si device, timeout ou arguments divergent.
+
+Le runner V2 rehash puis parse les octets de la politique audio scellée avant
+TensorFlow ; `onset_adapt_temporal_background=true` est transmis à l'évaluateur
+et les mêmes masques sont réutilisés par les deux décodeurs A/B. Aucune
+surcharge audio appelant n'est admise. Cette intégration est encore soumise à
+une revue externe : ne pas synchroniser ni lancer le diagnostic V2 réel tant que
+cette revue n'est pas explicitement favorable.
+
 ## Porte CPU contre Metal
 
 Apple indique qu'un petit modèle ou un petit batch peut être plus rapide sur

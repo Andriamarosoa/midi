@@ -312,6 +312,7 @@ PY
 import csv
 import hashlib
 import json
+import os
 import pathlib
 import sys
 import yaml
@@ -335,6 +336,22 @@ if module == validation_module:
     if arguments:
         raise SystemExit("Sealed causal validation accepts no module arguments")
     print("REMOTE_SEALED_VALIDATION_PREFLIGHT module=causal_candidate_validation cpu=1 timeout=900")
+    raise SystemExit(0)
+v2_diagnostic_module = "src.polyphonic.run_causal_candidate_v2_train_dev_diagnostic"
+if module == v2_diagnostic_module:
+    if os.environ.get("DECODER_CANDIDATE_V2_DIAGNOSTIC_EXECUTE") != "1":
+        raise SystemExit(
+            "Sealed causal V2 diagnostic requires its dedicated worker acknowledgement"
+        )
+    if device != "cpu":
+        raise SystemExit("Sealed causal V2 diagnostic is CPU-only")
+    if wall_timeout_seconds != 900:
+        raise SystemExit(
+            "Sealed causal V2 diagnostic requires exactly a 900-second wall timeout"
+        )
+    if arguments:
+        raise SystemExit("Sealed causal V2 diagnostic accepts no module arguments")
+    print("REMOTE_SEALED_V2_DIAGNOSTIC_PREFLIGHT module=causal_candidate_v2_train_dev_diagnostic cpu=1 timeout=900")
     raise SystemExit(0)
 if module not in controlled_modules:
     raise SystemExit(0)

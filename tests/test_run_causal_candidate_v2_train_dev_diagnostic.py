@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import hashlib
+import json
 import os
 from pathlib import Path
 import subprocess
@@ -179,7 +181,33 @@ class SealedV2TrainDevDiagnosticRunnerTests(unittest.TestCase):
         self.assertIn('V2_DIAGNOSTIC_EXECUTE_ENV = "DECODER_CANDIDATE_V2_DIAGNOSTIC_EXECUTE"', source)
         self.assertIn("CAUSAL_CANDIDATE_GATE_POST_RANKING_PRE_NOTEON", source)
         self.assertIn("sealed_train_only_corpus_opener=context.open_recording", source)
+        self.assertIn(
+            "sealed_audio_evidence_metadata=sealed.audio_evidence_metadata",
+            source,
+        )
         self.assertIn("write_report=False", source)
+
+    def test_sealed_audio_policy_is_parsed_from_the_same_hashed_bytes(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "audio-policy.json"
+            payload = {"onset_adapt_temporal_background": True}
+            raw = (json.dumps(payload) + "\n").encode("utf-8")
+            path.write_bytes(raw)
+            metadata, digest = runner._load_sealed_audio_evidence_metadata(
+                path, hashlib.sha256(raw).hexdigest(),
+            )
+        self.assertEqual(digest, hashlib.sha256(raw).hexdigest())
+        self.assertEqual(metadata, {"audio_evidence": payload})
+
+    def test_sealed_audio_policy_rejects_the_non_adaptive_default(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "audio-policy.json"
+            raw = b'{"onset_adapt_temporal_background": false}\n'
+            path.write_bytes(raw)
+            with self.assertRaisesRegex(ValueError, "must enable"):
+                runner._load_sealed_audio_evidence_metadata(
+                    path, hashlib.sha256(raw).hexdigest(),
+                )
 
 
 if __name__ == "__main__":

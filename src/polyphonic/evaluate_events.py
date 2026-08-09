@@ -807,6 +807,7 @@ def evaluate_events(
     causal_candidate_gate_factory: Callable[[], Callable[[CausalCandidateGateInput], bool]] | None = None,
     causal_candidate_gate_placement: str | None = None,
     causal_candidate_selection_path: Path | None = None,
+    sealed_audio_evidence_metadata: Mapping[str, object] | None = None,
     sealed_train_only_items: Sequence[ManifestItem] | None = None,
     sealed_train_only_corpus_opener: Callable[[ManifestItem], object] | None = None,
     write_report: bool = True,
@@ -825,6 +826,17 @@ def evaluate_events(
             "Sealed train-only evaluation requires both items and a corpus opener."
         )
     sealed_train_only = sealed_train_only_items is not None
+    if (
+        audio_evidence_metadata is not None
+        and sealed_audio_evidence_metadata is not None
+    ):
+        raise ValueError(
+            "Evaluation cannot combine caller audio evidence with sealed audio evidence."
+        )
+    if sealed_audio_evidence_metadata is not None and not sealed_train_only:
+        raise PermissionError(
+            "Sealed audio evidence is reserved for sealed train-only evaluation."
+        )
     if sealed_train_only:
         if causal_candidate_gate_factory is None:
             raise ValueError("Sealed train-only evaluation requires a candidate gate.")
@@ -847,6 +859,20 @@ def evaluate_events(
             raise ValueError(
                 "Sealed train-only evaluation cohort size is derived, not caller-selected."
             )
+        if not isinstance(sealed_audio_evidence_metadata, Mapping):
+            raise ValueError(
+                "Sealed train-only evaluation requires sealed audio evidence metadata."
+            )
+        sealed_audio_evidence = sealed_audio_evidence_metadata.get("audio_evidence")
+        if not isinstance(sealed_audio_evidence, Mapping):
+            raise ValueError(
+                "Sealed audio evidence metadata must contain an audio_evidence object."
+            )
+    effective_audio_evidence_metadata = (
+        sealed_audio_evidence_metadata
+        if sealed_audio_evidence_metadata is not None
+        else audio_evidence_metadata
+    )
     if causal_candidate_gate_factory is None:
         if causal_candidate_gate_placement is not None:
             raise ValueError(
@@ -1033,7 +1059,7 @@ def evaluate_events(
                 offline_audio_evidence_masks(
                 audio, corpus.sample_rate, corpus.hop_size,
                 frame_count=len(prediction["frame"]),
-                metadata=audio_evidence_metadata,
+                metadata=effective_audio_evidence_metadata,
                 )
             )
             independent_note_gate: dict[str, object] = {}
@@ -1191,7 +1217,7 @@ def evaluate_events(
         "audio_evidence_policy": (
             "shared_live_audio_evidence_with_synthetic_silence_priming"
         ),
-        "audio_evidence_metadata": dict(audio_evidence_metadata or {}),
+        "audio_evidence_metadata": dict(effective_audio_evidence_metadata or {}),
         "audio_evidence_label_leakage": False,
         "diagnostics": diagnose_note_errors(
             all_reference, all_estimated, onset_matches,

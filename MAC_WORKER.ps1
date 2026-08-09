@@ -21,6 +21,7 @@ param(
     [string[]]$ModuleArgs = @(),
     [switch]$CausalCandidateFitExecute,
     [switch]$CausalCandidateValidationExecute,
+    [switch]$CausalCandidateV2DiagnosticExecute,
     [string]$ExpectedCommit,
     [ValidateSet("cpu", "metal")]
     [string]$Device = "metal",
@@ -285,9 +286,15 @@ function Invoke-Worker(
     $Config,
     [string[]]$Arguments,
     [switch]$CausalCandidateFitExecute,
-    [switch]$CausalCandidateValidationExecute
+    [switch]$CausalCandidateValidationExecute,
+    [switch]$CausalCandidateV2DiagnosticExecute
 ) {
-    if ($CausalCandidateFitExecute -and $CausalCandidateValidationExecute) {
+    $executionAcknowledgements = @(
+        $CausalCandidateFitExecute,
+        $CausalCandidateValidationExecute,
+        $CausalCandidateV2DiagnosticExecute
+    )
+    if (@($executionAcknowledgements | Where-Object { [bool]$_ }).Count -gt 1) {
         throw "Only one causal execution acknowledgement is allowed."
     }
     $script = "$($Config.remote_root)/bin/mac_worker.sh"
@@ -301,6 +308,9 @@ function Invoke-Worker(
     }
     elseif ($CausalCandidateValidationExecute) {
         "DECODER_CANDIDATE_VALIDATION_EXECUTE=1 "
+    }
+    elseif ($CausalCandidateV2DiagnosticExecute) {
+        "DECODER_CANDIDATE_V2_DIAGNOSTIC_EXECUTE=1 "
     }
     else {
         ""
@@ -656,7 +666,13 @@ if ($Action -eq "start") {
     if (-not $Module) { throw "start requires -Module." }
     $causalFitModule = "src.polyphonic.run_causal_candidate_fit"
     $causalValidationModule = "src.polyphonic.run_causal_candidate_validation"
-    if ($CausalCandidateFitExecute -and $CausalCandidateValidationExecute) {
+    $causalV2DiagnosticModule = "src.polyphonic.run_causal_candidate_v2_train_dev_diagnostic"
+    $executionAcknowledgements = @(
+        $CausalCandidateFitExecute,
+        $CausalCandidateValidationExecute,
+        $CausalCandidateV2DiagnosticExecute
+    )
+    if (@($executionAcknowledgements | Where-Object { [bool]$_ }).Count -gt 1) {
         throw "Only one causal execution acknowledgement is allowed."
     }
     if ($CausalCandidateFitExecute -and $Module -ne $causalFitModule) {
@@ -671,26 +687,33 @@ if ($Action -eq "start") {
     if ($Module -eq $causalValidationModule -and -not $CausalCandidateValidationExecute) {
         throw "$causalValidationModule requires -CausalCandidateValidationExecute."
     }
-    if ($Module -eq $causalValidationModule) {
+    if ($CausalCandidateV2DiagnosticExecute -and $Module -ne $causalV2DiagnosticModule) {
+        throw "-CausalCandidateV2DiagnosticExecute is allowed only for $causalV2DiagnosticModule."
+    }
+    if ($Module -eq $causalV2DiagnosticModule -and -not $CausalCandidateV2DiagnosticExecute) {
+        throw "$causalV2DiagnosticModule requires -CausalCandidateV2DiagnosticExecute."
+    }
+    if ($Module -eq $causalValidationModule -or $Module -eq $causalV2DiagnosticModule) {
         if ($ModuleArgs.Count -ne 0) {
-            throw "$causalValidationModule accepts no module arguments."
+            throw "$Module accepts no module arguments."
         }
         if ($Device -ne "cpu" -or $WallTimeoutSeconds -ne 900) {
-            throw "$causalValidationModule requires -Device cpu and -WallTimeoutSeconds 900."
+            throw "$Module requires -Device cpu and -WallTimeoutSeconds 900."
         }
         if ($ExpectedCommit -notmatch '^[0-9a-f]{40}$' -or $ExpectedCommit -ne $commit) {
-            throw "$causalValidationModule requires -ExpectedCommit equal to the current full Git commit."
+            throw "$Module requires -ExpectedCommit equal to the current full Git commit."
         }
     }
     elseif ($ExpectedCommit) {
-        throw "-ExpectedCommit is reserved for $causalValidationModule."
+        throw "-ExpectedCommit is reserved for sealed causal validation modules."
     }
     if (-not $JobId) { $JobId = "job-" + (Get-Date -Format "yyyyMMdd-HHmmss") }
     Invoke-Worker $config (@(
         "start", [string]$config.remote_root, $commit, $JobId, $Device,
         [string]$WallTimeoutSeconds, $Module
     ) + $ModuleArgs) -CausalCandidateFitExecute:$CausalCandidateFitExecute `
-        -CausalCandidateValidationExecute:$CausalCandidateValidationExecute
+        -CausalCandidateValidationExecute:$CausalCandidateValidationExecute `
+        -CausalCandidateV2DiagnosticExecute:$CausalCandidateV2DiagnosticExecute
     exit 0
 }
 

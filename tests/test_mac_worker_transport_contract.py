@@ -133,6 +133,34 @@ class MacWorkerTransportContractTests(unittest.TestCase):
             preflight.index("import tensorflow as tf"),
         )
 
+    def test_sealed_v2_diagnostic_acknowledgement_is_cpu_only_and_argument_free(self) -> None:
+        self.assertIn("[switch]$CausalCandidateV2DiagnosticExecute", SOURCE)
+        self.assertIn(
+            '"DECODER_CANDIDATE_V2_DIAGNOSTIC_EXECUTE=1 "',
+            SOURCE,
+        )
+        self.assertIn(
+            '"src.polyphonic.run_causal_candidate_v2_train_dev_diagnostic"',
+            SOURCE,
+        )
+        self.assertIn("requires -ExpectedCommit equal to the current full Git commit", SOURCE)
+        self.assertIn(
+            "Sealed causal V2 diagnostic requires its dedicated worker acknowledgement",
+            RUNNER,
+        )
+        self.assertIn("Sealed causal V2 diagnostic is CPU-only", RUNNER)
+        self.assertIn(
+            "Sealed causal V2 diagnostic requires exactly a 900-second wall timeout",
+            RUNNER,
+        )
+        self.assertIn("Sealed causal V2 diagnostic accepts no module arguments", RUNNER)
+        self.assertIn("REMOTE_SEALED_V2_DIAGNOSTIC_PREFLIGHT", RUNNER)
+        preflight = RUNNER[RUNNER.index("controlled_modules = {"):]
+        self.assertLess(
+            preflight.index("if module == v2_diagnostic_module:"),
+            preflight.index("import tensorflow as tf"),
+        )
+
     @unittest.skipUnless(POWERSHELL, "PowerShell is required")
     def test_sealed_validation_start_rejects_free_invocation_before_ssh(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -184,6 +212,97 @@ class MacWorkerTransportContractTests(unittest.TestCase):
                 base
                 + [
                     "-CausalCandidateValidationExecute",
+                    "-ExpectedCommit",
+                    commit,
+                    "-Device",
+                    "metal",
+                    "-WallTimeoutSeconds",
+                    "900",
+                ],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                timeout=30,
+                check=False,
+            )
+            self.assertNotEqual(invalid_device.returncode, 0)
+            self.assertIn(
+                "requires -Device cpu and -WallTimeoutSeconds 900",
+                invalid_device.stdout + invalid_device.stderr,
+            )
+
+    @unittest.skipUnless(POWERSHELL, "PowerShell is required")
+    def test_sealed_v2_diagnostic_start_rejects_free_invocation_before_ssh(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            config = pathlib.Path(directory) / "worker.json"
+            config.write_text(
+                json.dumps(
+                    {
+                        "host": "invalid.local",
+                        "user": "nobody",
+                        "port": 22,
+                        "remote_root": "/Users/nobody/midi-worker",
+                        "identity_file": "",
+                        "local_workspace_root": str(ROOT),
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            module = "src.polyphonic.run_causal_candidate_v2_train_dev_diagnostic"
+            base = [
+                POWERSHELL,
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(ROOT / "MAC_WORKER.ps1"),
+                "start",
+                "-Module",
+                module,
+                "-ConfigPath",
+                str(config),
+            ]
+            missing_ack = subprocess.run(
+                base,
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                timeout=30,
+                check=False,
+            )
+            self.assertNotEqual(missing_ack.returncode, 0)
+            self.assertIn(
+                "requires -CausalCandidateV2DiagnosticExecute",
+                missing_ack.stdout + missing_ack.stderr,
+            )
+            missing_commit = subprocess.run(
+                base
+                + [
+                    "-CausalCandidateV2DiagnosticExecute",
+                    "-Device",
+                    "cpu",
+                    "-WallTimeoutSeconds",
+                    "900",
+                ],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                timeout=30,
+                check=False,
+            )
+            self.assertNotEqual(missing_commit.returncode, 0)
+            self.assertIn(
+                "-ExpectedCommit equal",
+                missing_commit.stdout + missing_commit.stderr,
+            )
+            commit = subprocess.check_output(
+                ["git", "-C", str(ROOT), "rev-parse", "HEAD"], text=True
+            ).strip()
+            invalid_device = subprocess.run(
+                base
+                + [
+                    "-CausalCandidateV2DiagnosticExecute",
                     "-ExpectedCommit",
                     commit,
                     "-Device",
