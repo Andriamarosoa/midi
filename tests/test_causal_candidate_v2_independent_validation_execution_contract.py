@@ -39,8 +39,11 @@ class IndependentV2ExecutionContractTests(unittest.TestCase):
         self.assertFalse(payload["locked_test_used"])
         self.assertIn("real_runner_execution", payload["authorization_scope"]["forbidden_now"])
         self.assertIn("runner_implementation", payload["authorization_scope"]["forbidden_now"])
-        self.assertFalse(payload["future_runner_semantics"]["current_runner_exists"])
-        self.assertFalse(payload["future_runner_semantics"]["current_execution_authorized"])
+        self.assertTrue(payload["future_runner_semantics"]["runner_is_not_part_of_this_contract"])
+        self.assertFalse(payload["future_runner_semantics"]["execution_authorized_now"])
+        self.assertFalse(payload["validation_consumption_policy"]["automatic_retry"])
+        self.assertTrue(payload["validation_consumption_policy"]["cohort_consumed_once_any_ab_metric_is_produced_or_observed"])
+        self.assertEqual(payload["required_report_for_any_future_execution"]["recording_count"], 30)
         self.assertEqual(
             payload["prerequisite_provenance"]["closed_independent_protocol_sha256"],
             contract.INDEPENDENT_V2_CLOSED_PROTOCOL_SHA256,
@@ -81,8 +84,18 @@ class IndependentV2ExecutionContractTests(unittest.TestCase):
 
     def test_non_executable_and_escape_mutations_fail_closed(self) -> None:
         payload = copy.deepcopy(self._payload())
-        payload["future_runner_semantics"]["current_execution_authorized"] = True
+        payload["future_runner_semantics"]["execution_authorized_now"] = True
         with self.assertRaisesRegex(ValueError, "future runner semantics"):
+            contract._require_exact_execution_payload(payload)
+
+        payload = copy.deepcopy(self._payload())
+        payload["validation_consumption_policy"]["automatic_retry"] = True
+        with self.assertRaisesRegex(ValueError, "consumption policy"):
+            contract._require_exact_execution_payload(payload)
+
+        payload = copy.deepcopy(self._payload())
+        payload["required_report_for_any_future_execution"]["required_metrics"] = payload["required_report_for_any_future_execution"]["required_metrics"][:-1]
+        with self.assertRaisesRegex(ValueError, "required report metrics"):
             contract._require_exact_execution_payload(payload)
 
         payload = copy.deepcopy(self._payload())

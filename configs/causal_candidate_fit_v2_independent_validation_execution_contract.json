@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "purpose": "causal_candidate_fit_v2_post_ranking_independent_validation_execution_contract",
-  "status": "sealed_execution_contract_pending_external_review",
+  "status": "independent_validation_execution_contract_pending_external_review",
   "locked_test_used": false,
   "authorization_scope": {
     "allowed_now": [
@@ -71,10 +71,35 @@
     "exclude_policy_a_eligible_train_groups": true,
     "guitarset_claim_forbidden": true
   },
+  "validation_consumption_policy": {
+    "automatic_retry": false,
+    "external_review_required_before_any_retry": true,
+    "premetric_infrastructure_failure_only_before_scientific_observation": true,
+    "premetric_infrastructure_failure_excludes": [
+      "scientific_asset_open_or_decode",
+      "transcription_or_inference",
+      "any_ab_metric_production",
+      "any_ab_metric_or_result_observation"
+    ],
+    "cohort_consumed_once_any_ab_metric_is_produced_or_observed": true,
+    "post_observation_v2_actions_forbidden": [
+      "optimization_rerun",
+      "threshold_change",
+      "fit",
+      "refit",
+      "calibration",
+      "threshold_search",
+      "model_selection",
+      "feature_selection",
+      "placement_change",
+      "v2_modification_followed_by_cohort_rerun"
+    ],
+    "secondary_analysis_after_consumption": "exploratory_only_and_never_restores_independence"
+  },
   "future_runner_semantics": {
     "runner_module_to_implement": "src.polyphonic.run_causal_candidate_v2_independent_validation_execution",
-    "current_runner_exists": false,
-    "current_execution_authorized": false,
+    "runner_is_not_part_of_this_contract": true,
+    "execution_authorized_now": false,
     "single_cpu_job": true,
     "wall_timeout_seconds": 900,
     "single_transcription_inference_per_recording": true,
@@ -120,25 +145,28 @@
       "candidate_gate_placement",
       "locked_test_used"
     ],
-    "paired_metrics": [
-      "onset",
-      "onset_offset",
-      "strictly_causal_noteon",
-      "strictly_causal_latency",
-      "retriggers",
-      "diagnostics",
-      "low_midi_40_51",
-      "causal_candidate_gate_diagnostics",
-      "paired_event_deltas"
+    "paired_views": ["reference", "candidate", "delta_candidate_minus_reference"],
+    "required_metrics": [
+      "estimated_noteons", "matched_onset_noteons", "onset_false_positives", "onset_misses",
+      "onset_precision", "onset_recall", "onset_f1", "causal_false_noteons",
+      "causal_false_noteons_per_minute", "causal_recall_within_250ms", "causal_latency_p50_ms",
+      "causal_latency_p90_ms", "retriggers", "excess_fragments", "midi_40_51",
+      "gate_eligible_count", "gate_rejected_count"
     ],
-    "granularity": [
-      "global",
-      "per_dataset",
-      "per_recording",
-      "per_independent_leakage_group"
-    ],
+    "required_granularity": ["global", "per_dataset", "per_recording", "per_independent_leakage_group"],
+    "required_datasets": ["gaps_poly_mix", "guitar_techs_poly_directinput", "guitar_techs_poly_micamp"],
+    "recording_count": 30,
+    "independent_group_count": 20,
     "guitarset_result_must_be_absent": true,
     "stop_after_report": true
+  },
+  "fail_closed_report_policy": {
+    "missing_metric_is_non_positive": true,
+    "non_numeric_metric_is_non_positive": true,
+    "nonfinite_metric_is_non_positive": true,
+    "malformed_metric_structure_is_non_positive": true,
+    "missing_required_corpus_is_non_positive": true,
+    "positive_verdict": "positive_independent_evidence_non_promotional"
   },
   "pre_registered_interpretation_rules": {
     "all_rules_must_pass_for_positive_independent_evidence": true,

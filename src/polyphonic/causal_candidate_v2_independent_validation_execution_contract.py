@@ -20,10 +20,10 @@ INDEPENDENT_V2_EXECUTION_CONTRACT_RELATIVE_PATH = Path(
     "configs/causal_candidate_fit_v2_independent_validation_execution_contract.json"
 )
 INDEPENDENT_V2_EXECUTION_CONTRACT_SHA256 = (
-    "a249577410af0bbccff7b8e1dc96771ea07c3d5f6ffbff127344cf8686d28b59"
+    "269efb65f225cf2522eab895cf59c351bea6bb97bc20229160f611c5e3ae63ed"
 )
 INDEPENDENT_V2_EXECUTION_CONTRACT_STATUS = (
-    "sealed_execution_contract_pending_external_review"
+    "independent_validation_execution_contract_pending_external_review"
 )
 INDEPENDENT_V2_EXECUTION_ALLOWED_NOW = ("external_review",)
 INDEPENDENT_V2_CLOSED_PROTOCOL_SHA256 = (
@@ -250,8 +250,8 @@ def _require_exact_execution_payload(payload: Mapping[str, object]) -> Independe
     if (
         semantics.get("runner_module_to_implement")
         != "src.polyphonic.run_causal_candidate_v2_independent_validation_execution"
-        or semantics.get("current_runner_exists") is not False
-        or semantics.get("current_execution_authorized") is not False
+        or semantics.get("runner_is_not_part_of_this_contract") is not True
+        or semantics.get("execution_authorized_now") is not False
         or semantics.get("single_cpu_job") is not True
         or semantics.get("wall_timeout_seconds") != 900
         or semantics.get("single_transcription_inference_per_recording") is not True
@@ -291,12 +291,56 @@ def _require_exact_execution_payload(payload: Mapping[str, object]) -> Independe
 
     report = _require_mapping(payload.get("required_report_for_any_future_execution"), "required_report_for_any_future_execution")
     if (
-        tuple(report.get("granularity", ()))
+        tuple(report.get("paired_views", ()))
+        != ("reference", "candidate", "delta_candidate_minus_reference")
+        or tuple(report.get("required_granularity", ()))
         != ("global", "per_dataset", "per_recording", "per_independent_leakage_group")
+        or tuple(report.get("required_datasets", ()))
+        != ("gaps_poly_mix", "guitar_techs_poly_directinput", "guitar_techs_poly_micamp")
+        or report.get("recording_count") != 30
+        or report.get("independent_group_count") != 20
         or report.get("guitarset_result_must_be_absent") is not True
         or report.get("stop_after_report") is not True
     ):
         raise ValueError("independent V2 execution report contract changed.")
+    required_metrics = (
+        "estimated_noteons", "matched_onset_noteons", "onset_false_positives", "onset_misses",
+        "onset_precision", "onset_recall", "onset_f1", "causal_false_noteons",
+        "causal_false_noteons_per_minute", "causal_recall_within_250ms", "causal_latency_p50_ms",
+        "causal_latency_p90_ms", "retriggers", "excess_fragments", "midi_40_51",
+        "gate_eligible_count", "gate_rejected_count"
+    )
+    if tuple(report.get("required_metrics", ())) != required_metrics:
+        raise ValueError("independent V2 required report metrics changed.")
+
+    consumption = _require_mapping(payload.get("validation_consumption_policy"), "validation_consumption_policy")
+    if consumption != {
+        "automatic_retry": False,
+        "external_review_required_before_any_retry": True,
+        "premetric_infrastructure_failure_only_before_scientific_observation": True,
+        "premetric_infrastructure_failure_excludes": [
+            "scientific_asset_open_or_decode", "transcription_or_inference",
+            "any_ab_metric_production", "any_ab_metric_or_result_observation"
+        ],
+        "cohort_consumed_once_any_ab_metric_is_produced_or_observed": True,
+        "post_observation_v2_actions_forbidden": [
+            "optimization_rerun", "threshold_change", "fit", "refit", "calibration",
+            "threshold_search", "model_selection", "feature_selection", "placement_change",
+            "v2_modification_followed_by_cohort_rerun"
+        ],
+        "secondary_analysis_after_consumption": "exploratory_only_and_never_restores_independence",
+    }:
+        raise ValueError("independent V2 validation consumption policy changed.")
+    report_policy = _require_mapping(payload.get("fail_closed_report_policy"), "fail_closed_report_policy")
+    if report_policy != {
+        "missing_metric_is_non_positive": True,
+        "non_numeric_metric_is_non_positive": True,
+        "nonfinite_metric_is_non_positive": True,
+        "malformed_metric_structure_is_non_positive": True,
+        "missing_required_corpus_is_non_positive": True,
+        "positive_verdict": "positive_independent_evidence_non_promotional",
+    }:
+        raise ValueError("independent V2 fail-closed report policy changed.")
 
     decision = _require_mapping(payload.get("pre_registered_interpretation_rules"), "pre_registered_interpretation_rules")
     if decision != {

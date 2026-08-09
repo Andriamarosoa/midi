@@ -14,13 +14,13 @@ Le nouveau fichier versionné, en LF explicite, est :
 
 ```text
 configs/causal_candidate_fit_v2_independent_validation_execution_contract.json
-SHA-256 = a249577410af0bbccff7b8e1dc96771ea07c3d5f6ffbff127344cf8686d28b59
+SHA-256 = 269efb65f225cf2522eab895cf59c351bea6bb97bc20229160f611c5e3ae63ed
 ```
 
 Son unique état autorisé est :
 
 ```text
-status      = sealed_execution_contract_pending_external_review
+status      = independent_validation_execution_contract_pending_external_review
 allowed_now = external_review
 ```
 
@@ -94,6 +94,21 @@ TensorFlow ni actif projet. Ils vérifient l'empreinte LF, le statut
 external-review only, les trois liens de provenance clés, le refus d'un
 contrat construit à la main, le refus d'une mutation d'autorisation ou de
 chemin, et l'échec du digest avant tout parsing JSON.
+
+## Durcissement issu de la revue externe
+
+Le contrat encode maintenant une consommation strictement one-shot : une
+erreur n'est premetric_infrastructure_failure que si elle survient avant
+tout actif scientifique, toute inférence et toute métrique A/B. Dès qu'une
+métrique est produite ou observée, la cohorte est consommée ; toute analyse
+ultérieure est exploratoire et ne restaure jamais l'indépendance.
+
+Le futur rapport est scellé par vues reference, candidate et delta, avec une
+liste explicite de métriques et de granularités. Toute valeur absente, non
+numérique, non finie ou mal structurée force un verdict non positif.
+
+Cette correction reste contract-only : aucun runner, actif, modèle,
+TensorFlow, inférence ou calcul scientifique n'a été ajouté ou exécuté.
 
 ## Suite unique
 
