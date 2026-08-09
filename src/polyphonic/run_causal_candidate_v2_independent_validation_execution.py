@@ -69,7 +69,11 @@ class OneShotStateMachine:
             raise RuntimeError("consumed cohort cannot return to pre-science")
         if order.index(phase) < order.index(self.phase):
             raise RuntimeError("one-shot state cannot move backwards")
+        if order.index(phase) - order.index(self.phase) > 1:
+            raise RuntimeError("one-shot state cannot skip phases")
         if phase == OneShotPhase.COHORT_CONSUMED:
+            self.cohort_consumed = True
+        if phase == OneShotPhase.AB_METRIC_PRODUCED:
             self.cohort_consumed = True
         self.phase = phase
 
@@ -133,12 +137,22 @@ def validate_future_report(report: Mapping[str, object]) -> None:
         raise ValueError("future report provenance is incomplete")
     if report.get("locked_test_used") is not False:
         raise ValueError("locked test must remain unused")
-    values = report.get("numeric_values", {})
-    if not isinstance(values, Mapping) or any(
+    values = report.get("numeric_values")
+    if not isinstance(values, Mapping) or set(values) != set(REPORT_METRICS) or any(
         isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(float(value))
         for value in values.values()
     ):
         raise ValueError("future report contains missing or non-finite metrics")
+    recordings = report.get("recording_identities")
+    groups = report.get("independent_leakage_groups")
+    if not isinstance(recordings, Sequence) or isinstance(recordings, (str, bytes)) or len(recordings) != 30 or len(set(recordings)) != 30:
+        raise ValueError("future report recording identities are incomplete")
+    if not isinstance(groups, Sequence) or isinstance(groups, (str, bytes)) or len(groups) != 20 or len(set(groups)) != 20:
+        raise ValueError("future report leakage groups are incomplete")
+
+
+def classify_failure(state: OneShotStateMachine) -> str:
+    return "premetric_infrastructure_failure" if state.phase == OneShotPhase.PRE_SCIENCE and not state.cohort_consumed else "scientific_or_metric_failure"
 
 
 def evaluate_future_report_decision(
@@ -169,6 +183,22 @@ class IndependentV2OneJobCapability:
     device: str
     wall_timeout_seconds: int
     job_id: str
+    destination: str
+    stop_after_report: bool
+    locked_test_used: bool
+    single_execution_authorization: bool
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.runner_commit, str) or len(self.runner_commit) != 40 or any(c not in "0123456789abcdef" for c in self.runner_commit):
+            raise ValueError("runner_commit must be a lowercase 40-character SHA")
+        if not isinstance(self.execution_contract_sha256, str) or len(self.execution_contract_sha256) != 64 or any(c not in "0123456789abcdef" for c in self.execution_contract_sha256):
+            raise ValueError("execution_contract_sha256 must be a lowercase SHA-256")
+        if self.device != "cpu" or self.wall_timeout_seconds != 900:
+            raise ValueError("one-job capability must be CPU with a 900 second timeout")
+        if not isinstance(self.job_id, str) or not self.job_id.strip() or not isinstance(self.destination, str) or not self.destination.strip():
+            raise ValueError("job identity and destination are required")
+        if self.stop_after_report is not True or self.locked_test_used is not False or self.single_execution_authorization is not True:
+            raise ValueError("one-job capability flags are not sealed")
 
 
 def require_sealed_one_job_capability(value: object) -> IndependentV2OneJobCapability:
@@ -223,6 +253,7 @@ __all__ = [
     "REPORT_PROVENANCE",
     "REPORT_VIEWS",
     "evaluate_future_report_decision",
+    "classify_failure",
     "phase_order",
     "validate_frozen_artifact_hashes",
     "validate_future_report",

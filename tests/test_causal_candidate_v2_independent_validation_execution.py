@@ -36,6 +36,10 @@ class IndependentV2ExecutionRunnerTests(unittest.TestCase):
             device="cpu",
             wall_timeout_seconds=900,
             job_id="forged",
+            destination="tmp/fresh",
+            stop_after_report=True,
+            locked_test_used=False,
+            single_execution_authorization=True,
         )
         with self.assertRaisesRegex(RuntimeError, "not authorized"):
             runner.require_sealed_one_job_capability(forged)
@@ -47,6 +51,10 @@ class IndependentV2ExecutionRunnerTests(unittest.TestCase):
             device="cpu",
             wall_timeout_seconds=900,
             job_id="forged",
+            destination="tmp/fresh",
+            stop_after_report=True,
+            locked_test_used=False,
+            single_execution_authorization=True,
         )
         with self.assertRaisesRegex(RuntimeError, "not authorized"):
             runner.run_authorized_independent_v2(Path(__file__).resolve().parents[1], forged)
@@ -76,6 +84,8 @@ class IndependentV2ExecutionRunnerTests(unittest.TestCase):
             "provenance": runner.REPORT_PROVENANCE,
             "locked_test_used": False,
             "numeric_values": {name: 0.0 for name in runner.REPORT_METRICS},
+            "recording_identities": [f"recording-{i}" for i in range(30)],
+            "independent_leakage_groups": [f"group-{i}" for i in range(20)],
         }
         runner.validate_future_report(base)
         broken = dict(base)
