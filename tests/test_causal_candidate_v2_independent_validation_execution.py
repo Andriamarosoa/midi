@@ -390,9 +390,10 @@ assert adapter._dependencies["tf"] is fake_tf
             mock.patch.object(runner, "evaluate_future_report_decision", side_effect=lambda reference, candidate, rules: (events.append(("decision", reference, candidate, rules)) or {"all_rules_passed": True, "classification": "positive_independent_evidence_non_promotional", "automatic_promotion": False, "checks": {"sealed": True}})),
             mock.patch.object(independent, "load_sealed_independent_v2_validation_cohort", side_effect=lambda repository_root, manifest_path: (events.append(("cohort_load", repository_root, manifest_path)) or cohort)),
             mock.patch.object(independent, "require_sealed_independent_v2_validation_cohort", side_effect=lambda value: value),
-            mock.patch.object(independent, "validation_asset_evidence_requirement", return_value=object()),
-            mock.patch.object(asset_evidence, "load_independent_v2_validation_asset_evidence", side_effect=lambda path, actual_cohort, requirement: (events.append(("evidence_load", path)) or object())),
-            mock.patch.object(asset_evidence, "validate_independent_v2_validation_asset_evidence", side_effect=lambda persisted, actual_cohort, actual_snapshot, requirement: (events.append("evidence_validate") or object())),
+            mock.patch.object(asset_evidence, "execution_asset_evidence_requirement", side_effect=lambda actual_contract, actual_cohort: (events.append(("execution_evidence_requirement", actual_contract, actual_cohort)) or object())),
+            mock.patch.object(asset_evidence, "load_and_validate_independent_v2_validation_asset_evidence_for_execution", side_effect=lambda path, actual_cohort, actual_snapshot, requirement: (events.append(("execution_evidence_load_validate", path, actual_cohort, actual_snapshot)) or object())),
+            mock.patch.object(asset_evidence, "load_independent_v2_validation_asset_evidence", side_effect=AssertionError("generic reader must remain unused")),
+            mock.patch.object(asset_evidence, "validate_independent_v2_validation_asset_evidence", side_effect=AssertionError("generic reader validation must remain unused")),
             mock.patch.object(asset_evidence, "verify_independent_v2_validation_audio_asset_for_item", side_effect=lambda evidence, item: events.append(("verify_audio", asset_evidence.canonical_recording_key(item)))),
             mock.patch.object(asset_evidence, "verify_independent_v2_validation_label_asset_for_item", side_effect=lambda evidence, item: events.append(("verify_label", asset_evidence.canonical_recording_key(item)))),
         ]

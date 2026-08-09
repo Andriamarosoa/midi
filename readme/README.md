@@ -17,29 +17,45 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `causal_candidate_v2_independent_validation_one_job_authorization_pending_external_review`.
-- Statut : `en cours — runner 6246ea18 approuvé; demande d'autorisation one-job créée mais inexécutable sans approbation externe non versionnée`.
-- Autorisation indépendante V2, contract-only : le runner gelé
+- Étape : `causal_candidate_v2_independent_validation_premetric_infrastructure_failure_under_correction`.
+- Statut : `en cours — autorisation one-job consommée par un échec d'infrastructure pré-métrique; correctif execution-only sans nouveau calcul`.
+- Incident pré-métrique du job indépendant V2 : l'unique autorisation du commit
+  `78f46628f430b9cdbe0e2b9ea042f05d0b141762` a été revendiquée, puis le
+  runner s'est arrêté avant TensorFlow et avant toute ouverture d'actif avec
+  `Fail closed: independent validation asset-evidence read is not authorized`.
+  Le marqueur persistant fait `370` octets, SHA-256
+  `c0b544e2faed44df45985ccb9abfd13ed067966e907fe4f0f4c2bb83433225eb`;
+  il ne sera jamais supprimé ni réutilisé. La destination et le verrou lourd
+  sont absents, aucun rapport scientifique n'existe et la cohorte n'est pas
+  consommée. L'autorisation, elle, est consommée. Le correctif en cours ajoute
+  uniquement une capability d'évidence spécifique à l'exécution, tout en
+  maintenant fermé le lecteur générique. Aucun retry, nouveau job, approval,
+  marqueur, actif réel, TensorFlow, inférence ou métrique n'est autorisé.
+  Rapport :
+  `readme/results/2026-08-10_causal-candidate-v2-independent-validation-premetric-infrastructure-failure.md`.
+- Jalon historique d'autorisation indépendante V2, désormais consommé : le runner gelé
   `6246ea18c49a6c3c3b8e2ce1303c9a6afffac6ee` est approuvé et reste
   byte-identique. Une demande canonique scelle CPU, `900 s`, job, destination,
   contrat et evidence; son module TensorFlow-free exige un futur fichier
-  d'approbation externe lié au HEAD exact et un worktree propre. Ce fichier
-  n'existe pas encore, donc aucune capability ni exécution ne sont possibles.
-  Le futur premier appel créera avant attestation un marqueur persistant
+  d'approbation externe lié au HEAD exact et un worktree propre. Ce fichier a
+  ensuite été matérialisé et consommé par la tentative pré-métrique décrite
+  ci-dessus. Le premier appel a créé avant attestation un marqueur persistant
   `O_EXCL`, jamais supprimé, empêchant tout retry cross-process. Aucun marqueur
-  réel n'a été créé et le test verrouillé reste fermé. Rapport :
+  réel n'existait encore à ce jalon; il existe désormais et interdit toute
+  réutilisation. Le test verrouillé reste fermé. Rapport :
   `readme/results/2026-08-10_causal-candidate-v2-independent-validation-one-job-authorization-request.md`.
-- Correctif pre-science du runner indépendant : le manifeste attesté est
+- Jalon historique du correctif pre-science du runner indépendant : le manifeste attesté est
   désormais chargé directement par le lecteur sans TensorFlow; une primitive
   explicite prépare le runtime CPU seulement après contrat, Git, cohorte,
   preuve globale des 60 actifs, six SHA et lease atomique. La configuration
   CPU précède strictement les imports `data`/`evaluate_events`; chaque paire
   audio/labels est rehachée immédiatement avant l'ouverture du même objet et
   son corpus est fermé dans un `finally`. La capability one-job attestée sera
-  revendiquée atomiquement dès la première invocation publique et ne pourra
-  jamais être réutilisée, même après un échec pre-lease. Toujours aucune
-  factory d'autorisation ni exécution réelle. `83` tests synthétiques passent
-  en `8,288 s`; revue externe requise avant l'artefact d'autorisation séparé.
+  revendiquée atomiquement dès la première invocation publique et ne pouvait
+  jamais être réutilisée, même après un échec pre-lease. À ce jalon, aucune
+  factory d'autorisation ni exécution réelle n'existait encore. `83` tests
+  synthétiques passaient en `8,288 s`; la revue externe et l'autorisation ont
+  ensuite mené à l'incident pré-métrique désormais en correction.
 - Anomalie pré-métrique V2 vérifiée : le job unique
   `causal-candidate-v2-train-dev-cpu-20260809`, lancé au commit approuvé
   `ddd15be4fbf7e47205a0025f80821e2446ef9720` avec CPU et `900 s`, termine

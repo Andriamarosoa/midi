@@ -649,13 +649,14 @@ def _run_sealed_independent_v2_execution(paths: IndependentV2ExecutionPaths, cap
     if capability_destination.resolve() != paths.destination:
         raise ValueError("capability destination differs from sealed path")
     validate_runtime_preflight(contract, cap, repository_root=paths.repository_root, git_commit=system_probe.git_head(paths.repository_root), device="cpu", timeout_seconds=900, destination_exists=system_probe.destination_exists(paths.destination), heavy_job_active=system_probe.heavy_job_active(paths.lock_path), worktree_clean=system_probe.worktree_clean(paths.repository_root))
-    from .run_causal_candidate_v2_independent_validation import load_sealed_independent_v2_validation_cohort, require_sealed_independent_v2_validation_cohort, validation_asset_evidence_requirement
+    from .run_causal_candidate_v2_independent_validation import load_sealed_independent_v2_validation_cohort, require_sealed_independent_v2_validation_cohort
     cohort = require_sealed_independent_v2_validation_cohort(load_sealed_independent_v2_validation_cohort(paths.repository_root, paths.manifest_path))
-    requirement = validation_asset_evidence_requirement(cohort)
     snapshot = scientific_adapter.manifest_snapshot(paths.manifest_path)
-    from .causal_candidate_v2_independent_asset_evidence import load_independent_v2_validation_asset_evidence, validate_independent_v2_validation_asset_evidence, verify_independent_v2_validation_audio_asset_for_item, verify_independent_v2_validation_label_asset_for_item
-    persisted = load_independent_v2_validation_asset_evidence(paths.asset_evidence_path, cohort, requirement)
-    evidence = validate_independent_v2_validation_asset_evidence(persisted, cohort, snapshot, requirement)
+    from .causal_candidate_v2_independent_asset_evidence import execution_asset_evidence_requirement, load_and_validate_independent_v2_validation_asset_evidence_for_execution, verify_independent_v2_validation_audio_asset_for_item, verify_independent_v2_validation_label_asset_for_item
+    requirement = execution_asset_evidence_requirement(contract, cohort)
+    evidence = load_and_validate_independent_v2_validation_asset_evidence_for_execution(
+        paths.asset_evidence_path, cohort, snapshot, requirement,
+    )
     artifact_paths = dict(zip(FROZEN_ARTIFACT_NAMES, (paths.checkpoint_path, paths.model_path, paths.standardizer_path, paths.audio_evidence_config_path, paths.evaluation_config_path, paths.reference_decoder_config_path)))
     validate_frozen_artifact_hashes({name: system_probe.read_bytes(path) for name, path in artifact_paths.items()})
     items = tuple(scientific_adapter.items(cohort, snapshot))

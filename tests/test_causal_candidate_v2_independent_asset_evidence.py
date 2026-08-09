@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+from contextlib import contextmanager, ExitStack
 from dataclasses import replace
 import hashlib
 import json
@@ -12,12 +13,16 @@ import unittest
 from unittest import mock
 
 from src.polyphonic import run_causal_candidate_v2_independent_validation as runner
+from src.polyphonic import causal_candidate_v2_independent_asset_evidence as evidence_module
+from src.polyphonic import causal_candidate_v2_independent_validation_execution_contract as execution_contract_module
 from src.polyphonic.causal_candidate_v2_independent_asset_evidence import (
     IndependentV2ValidationAssetEvidence,
     IndependentV2ValidationAssetEvidenceEntry,
     PersistedIndependentV2ValidationAssetEvidence,
     build_independent_v2_validation_asset_evidence,
     canonical_recording_key,
+    execution_asset_evidence_requirement,
+    load_and_validate_independent_v2_validation_asset_evidence_for_execution,
     load_independent_v2_validation_asset_evidence,
     validate_independent_v2_validation_asset_evidence,
     verify_independent_v2_validation_audio_asset_for_item,
@@ -187,6 +192,53 @@ def _write_sealed_fixture(
     return snapshot, cohort, requirement
 
 
+@contextmanager
+def _execution_gate_fixture(root: Path):
+    builder_snapshot, builder_cohort, builder_requirement = _write_sealed_fixture(
+        root, mode="builder"
+    )
+    built = build_independent_v2_validation_asset_evidence(
+        builder_cohort, builder_snapshot, builder_requirement
+    )
+    evidence_path = (
+        root / "tmp" / "local"
+        / "causal_candidate_v2_independent_validation_asset_evidence_20260810.json"
+    )
+    evidence_path.parent.mkdir(parents=True, exist_ok=True)
+    persisted = write_independent_v2_validation_asset_evidence(evidence_path, built)
+    snapshot, cohort, generic_requirement = _write_sealed_fixture(root, mode="disabled")
+    with ExitStack() as stack:
+        for module in (execution_contract_module, evidence_module):
+            stack.enter_context(mock.patch.object(
+                module, "INDEPENDENT_V2_CLOSED_PROTOCOL_SHA256", cohort.protocol_sha256,
+            ))
+            stack.enter_context(mock.patch.object(
+                module, "INDEPENDENT_V2_ASSET_EVIDENCE_SHA256", persisted.sha256,
+            ))
+            stack.enter_context(mock.patch.object(
+                module,
+                "INDEPENDENT_V2_ASSET_EVIDENCE_BUILDER_PROTOCOL_SHA256",
+                builder_cohort.protocol_sha256,
+            ))
+        stack.enter_context(mock.patch.object(
+            evidence_module, "INDEPENDENT_V2_MANIFEST_SHA256", cohort.manifest_sha256,
+        ))
+        contract = execution_contract_module.IndependentV2ExecutionContract(
+            contract_sha256="e" * 64,
+            closed_independent_protocol_sha256=cohort.protocol_sha256,
+            asset_evidence_sha256=persisted.sha256,
+            asset_evidence_builder_protocol_sha256=builder_cohort.protocol_sha256,
+            recording_count=30,
+            independent_group_count=20,
+            wall_timeout_seconds=900,
+            threshold=0.31,
+            candidate_gate_placement="post_ranking_pre_noteon",
+            decision_rules=(("automatic_promotion", False),),
+        )
+        execution_contract_module._register_identity(contract)
+        yield snapshot, cohort, generic_requirement, contract, persisted
+
+
 class IndependentV2ValidationAssetEvidenceTests(unittest.TestCase):
     def test_unauthorized_protocol_refuses_builder_and_reader_before_any_asset_read(self) -> None:
         with TemporaryDirectory() as temporary:
@@ -350,6 +402,154 @@ class IndependentV2ValidationAssetEvidenceTests(unittest.TestCase):
                 load_independent_v2_validation_asset_evidence(
                     noncanonical, reader_cohort, reader_requirement
                 )
+
+    def test_execution_gate_keeps_generic_reader_closed_and_rehashes_all_assets(self) -> None:
+        with TemporaryDirectory() as temporary:
+            with _execution_gate_fixture(Path(temporary)) as (
+                snapshot,
+                cohort,
+                generic_requirement,
+                contract,
+                persisted,
+            ):
+                self.assertFalse(generic_requirement.reader_authorized_now)
+                with self.assertRaisesRegex(RuntimeError, "read is not authorized"):
+                    load_independent_v2_validation_asset_evidence(
+                        persisted.path, cohort, generic_requirement
+                    )
+
+                requirement = execution_asset_evidence_requirement(contract, cohort)
+                original_digest = evidence_module._digest_file
+                with mock.patch.object(
+                    evidence_module, "_digest_file", wraps=original_digest
+                ) as digest:
+                    validated = (
+                        load_and_validate_independent_v2_validation_asset_evidence_for_execution(
+                            persisted.path, cohort, snapshot, requirement
+                        )
+                    )
+                    self.assertEqual(digest.call_count, 60)
+                    item = next(
+                        item
+                        for item in snapshot.items
+                        if canonical_recording_key(item) == cohort.recording_keys[0]
+                    )
+                    verify_independent_v2_validation_audio_asset_for_item(validated, item)
+                    verify_independent_v2_validation_label_asset_for_item(validated, item)
+                    self.assertEqual(digest.call_count, 62)
+
+    def test_execution_requirement_rejects_forged_identity_and_frozen_contract_drift(self) -> None:
+        with TemporaryDirectory() as temporary:
+            with _execution_gate_fixture(Path(temporary)) as (
+                snapshot,
+                cohort,
+                _,
+                contract,
+                persisted,
+            ):
+                with self.assertRaisesRegex(RuntimeError, "loaded from sealed bytes"):
+                    execution_asset_evidence_requirement(replace(contract), cohort)
+
+                for constant in (
+                    "INDEPENDENT_V2_CLOSED_PROTOCOL_SHA256",
+                    "INDEPENDENT_V2_ASSET_EVIDENCE_SHA256",
+                    "INDEPENDENT_V2_ASSET_EVIDENCE_BUILDER_PROTOCOL_SHA256",
+                    "INDEPENDENT_V2_MANIFEST_SHA256",
+                ):
+                    with self.subTest(constant=constant):
+                        with mock.patch.object(evidence_module, constant, "0" * 64):
+                            with self.assertRaisesRegex(
+                                RuntimeError, "differs from sealed contracts"
+                            ):
+                                execution_asset_evidence_requirement(contract, cohort)
+
+                requirement = execution_asset_evidence_requirement(contract, cohort)
+                with self.assertRaisesRegex(ValueError, "recording keys are invalid"):
+                    replace(
+                        requirement,
+                        recording_keys=tuple(reversed(requirement.recording_keys)),
+                    )
+                forged = replace(requirement)
+                with self.assertRaisesRegex(RuntimeError, "factory-attested"):
+                    load_and_validate_independent_v2_validation_asset_evidence_for_execution(
+                        persisted.path, cohort, snapshot, forged
+                    )
+
+    def test_execution_gate_rejects_noncanonical_path_registry_and_asset_mutations(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            with _execution_gate_fixture(root) as (
+                snapshot,
+                cohort,
+                _,
+                contract,
+                persisted,
+            ):
+                requirement = execution_asset_evidence_requirement(contract, cohort)
+                alternate = root / "copied-evidence.json"
+                alternate.write_bytes(persisted.path.read_bytes())
+                with self.assertRaisesRegex(ValueError, "path is not canonical"):
+                    load_and_validate_independent_v2_validation_asset_evidence_for_execution(
+                        alternate, cohort, snapshot, requirement
+                    )
+                persisted.path.write_bytes(persisted.path.read_bytes() + b" ")
+                with self.assertRaisesRegex(RuntimeError, "SHA-256 differs"):
+                    load_and_validate_independent_v2_validation_asset_evidence_for_execution(
+                        persisted.path, cohort, snapshot, requirement
+                    )
+
+        for asset_name in ("audio_path", "labels_path"):
+            with self.subTest(asset=asset_name), TemporaryDirectory() as temporary:
+                with _execution_gate_fixture(Path(temporary)) as (
+                    snapshot,
+                    cohort,
+                    _,
+                    contract,
+                    persisted,
+                ):
+                    requirement = execution_asset_evidence_requirement(contract, cohort)
+                    item = next(
+                        item
+                        for item in snapshot.items
+                        if canonical_recording_key(item) == cohort.recording_keys[0]
+                    )
+                    getattr(item, asset_name).write_bytes(b"mutated execution asset")
+                    expected = "audio bytes differ" if asset_name == "audio_path" else "label bytes differ"
+                    with self.assertRaisesRegex(RuntimeError, expected):
+                        load_and_validate_independent_v2_validation_asset_evidence_for_execution(
+                            persisted.path, cohort, snapshot, requirement
+                        )
+
+    def test_execution_gate_rejects_noncanonical_registry_even_when_hash_is_frozen_to_it(self) -> None:
+        with TemporaryDirectory() as temporary:
+            with _execution_gate_fixture(Path(temporary)) as (
+                snapshot,
+                cohort,
+                _,
+                contract,
+                persisted,
+            ):
+                persisted.path.write_bytes(b" \n" + persisted.path.read_bytes())
+                noncanonical_sha = _sha256_bytes(persisted.path.read_bytes())
+                with ExitStack() as stack:
+                    for module in (execution_contract_module, evidence_module):
+                        stack.enter_context(mock.patch.object(
+                            module,
+                            "INDEPENDENT_V2_ASSET_EVIDENCE_SHA256",
+                            noncanonical_sha,
+                        ))
+                    altered_contract = replace(
+                        contract,
+                        asset_evidence_sha256=noncanonical_sha,
+                    )
+                    execution_contract_module._register_identity(altered_contract)
+                    requirement = execution_asset_evidence_requirement(
+                        altered_contract, cohort
+                    )
+                    with self.assertRaisesRegex(ValueError, "not canonical JSON"):
+                        load_and_validate_independent_v2_validation_asset_evidence_for_execution(
+                            persisted.path, cohort, snapshot, requirement
+                        )
 
     def test_synthetic_snapshot_and_evidence_imports_do_not_load_tensorflow_or_cli(self) -> None:
         code = (

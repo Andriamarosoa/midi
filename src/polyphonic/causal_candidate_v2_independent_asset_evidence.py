@@ -28,6 +28,14 @@ from .run_causal_candidate_v2_independent_validation import (
     require_independent_v2_validation_asset_evidence_requirement,
     require_sealed_independent_v2_validation_cohort,
 )
+from .causal_candidate_v2_independent_validation_execution_contract import (
+    IndependentV2ExecutionContract,
+    INDEPENDENT_V2_ASSET_EVIDENCE_BUILDER_PROTOCOL_SHA256,
+    INDEPENDENT_V2_ASSET_EVIDENCE_SHA256,
+    INDEPENDENT_V2_CLOSED_PROTOCOL_SHA256,
+    INDEPENDENT_V2_MANIFEST_SHA256,
+    require_sealed_independent_v2_execution_contract,
+)
 
 
 INDEPENDENT_V2_VALIDATION_ASSET_EVIDENCE_SCHEMA_VERSION = 1
@@ -36,6 +44,7 @@ INDEPENDENT_V2_VALIDATION_ASSET_EVIDENCE_PURPOSE = (
 )
 _BUILT_EVIDENCE: dict[int, weakref.ReferenceType[object]] = {}
 _VALIDATED_EVIDENCE: dict[int, weakref.ReferenceType[object]] = {}
+_EXECUTION_REQUIREMENTS: dict[int, weakref.ReferenceType[object]] = {}
 
 
 class IndependentValidationManifestItemLike(Protocol):
@@ -319,7 +328,36 @@ class ValidatedIndependentV2ValidationAssetEvidence:
     persisted: PersistedIndependentV2ValidationAssetEvidence
     cohort: IndependentV2ValidationCohort
     snapshot: IndependentValidationManifestSnapshotLike
-    requirement: IndependentV2ValidationAssetEvidenceRequirement
+    requirement: object
+
+
+@dataclass(frozen=True)
+class IndependentV2ExecutionAssetEvidenceRequirement:
+    """Execution-only evidence capability derived from two sealed objects."""
+
+    execution_contract: IndependentV2ExecutionContract
+    cohort: IndependentV2ValidationCohort
+    protocol_sha256: str
+    manifest_sha256: str
+    ordered_recording_keys_sha256: str
+    recording_keys: tuple[str, ...]
+    source_evidence_protocol_sha256: str
+    expected_evidence_sha256: str
+
+    def __post_init__(self) -> None:
+        for field in (
+            "protocol_sha256", "manifest_sha256", "ordered_recording_keys_sha256",
+            "source_evidence_protocol_sha256", "expected_evidence_sha256",
+        ):
+            _require_digest(getattr(self, field), field=field)
+        if (
+            type(self.recording_keys) is not tuple
+            or len(self.recording_keys) != 30
+            or len(set(self.recording_keys)) != 30
+            or self.ordered_recording_keys_sha256
+            != ordered_recording_keys_sha256(self.recording_keys)
+        ):
+            raise ValueError("execution evidence requirement recording keys are invalid")
 
 
 def _register(
@@ -370,6 +408,71 @@ def _require_validated(
     checked = _read_persisted_bytes(value.persisted)
     if checked.sha256 != value.requirement.expected_evidence_sha256:
         raise RuntimeError("Fail closed: independent validation evidence SHA-256 differs from protocol.")
+    return value
+
+
+def execution_asset_evidence_requirement(
+    execution_contract: IndependentV2ExecutionContract,
+    cohort: IndependentV2ValidationCohort,
+) -> IndependentV2ExecutionAssetEvidenceRequirement:
+    """Create the sole execution-specific route to the prebuilt registry."""
+
+    contract = require_sealed_independent_v2_execution_contract(execution_contract)
+    sealed = require_sealed_independent_v2_validation_cohort(cohort)
+    if (
+        contract.closed_independent_protocol_sha256 != INDEPENDENT_V2_CLOSED_PROTOCOL_SHA256
+        or contract.closed_independent_protocol_sha256 != sealed.protocol_sha256
+        or sealed.manifest_sha256 != INDEPENDENT_V2_MANIFEST_SHA256
+        or contract.asset_evidence_sha256 != INDEPENDENT_V2_ASSET_EVIDENCE_SHA256
+        or contract.asset_evidence_builder_protocol_sha256
+        != INDEPENDENT_V2_ASSET_EVIDENCE_BUILDER_PROTOCOL_SHA256
+        or contract.recording_count != 30
+        or contract.independent_group_count != 20
+        or len(sealed.recording_keys) != 30
+        or len(sealed.leakage_groups) != 20
+        or sealed.asset_evidence_builder_authorized
+        or sealed.asset_evidence_reader_authorized
+    ):
+        raise RuntimeError("Fail closed: execution evidence requirement differs from sealed contracts")
+    requirement = IndependentV2ExecutionAssetEvidenceRequirement(
+        execution_contract=contract,
+        cohort=sealed,
+        protocol_sha256=sealed.protocol_sha256,
+        manifest_sha256=sealed.manifest_sha256,
+        ordered_recording_keys_sha256=ordered_recording_keys_sha256(sealed.recording_keys),
+        recording_keys=sealed.recording_keys,
+        source_evidence_protocol_sha256=contract.asset_evidence_builder_protocol_sha256,
+        expected_evidence_sha256=contract.asset_evidence_sha256,
+    )
+    _register(_EXECUTION_REQUIREMENTS, requirement)
+    return requirement
+
+
+def _require_execution_requirement(
+    cohort: IndependentV2ValidationCohort,
+    value: object,
+) -> IndependentV2ExecutionAssetEvidenceRequirement:
+    sealed = require_sealed_independent_v2_validation_cohort(cohort)
+    if not isinstance(value, IndependentV2ExecutionAssetEvidenceRequirement):
+        raise ValueError("execution evidence requirement has an invalid type")
+    _require_registered(
+        _EXECUTION_REQUIREMENTS,
+        value,
+        name="independent V2 execution asset-evidence requirement",
+    )
+    require_sealed_independent_v2_execution_contract(value.execution_contract)
+    if (
+        value.cohort is not sealed
+        or value.protocol_sha256 != sealed.protocol_sha256
+        or value.manifest_sha256 != sealed.manifest_sha256
+        or value.recording_keys != sealed.recording_keys
+        or value.ordered_recording_keys_sha256
+        != ordered_recording_keys_sha256(sealed.recording_keys)
+        or value.source_evidence_protocol_sha256
+        != value.execution_contract.asset_evidence_builder_protocol_sha256
+        or value.expected_evidence_sha256 != value.execution_contract.asset_evidence_sha256
+    ):
+        raise RuntimeError("Fail closed: execution evidence requirement identity changed")
     return value
 
 
@@ -662,6 +765,59 @@ def validate_independent_v2_validation_asset_evidence(
     return validated
 
 
+def load_and_validate_independent_v2_validation_asset_evidence_for_execution(
+    path: Path,
+    cohort: IndependentV2ValidationCohort,
+    snapshot: IndependentValidationManifestSnapshotLike,
+    requirement: IndependentV2ExecutionAssetEvidenceRequirement,
+) -> ValidatedIndependentV2ValidationAssetEvidence:
+    """Execution-only load plus complete 60-asset revalidation.
+
+    This intentionally does not call the historically closed generic reader.
+    Authority comes exclusively from the factory-attested execution contract
+    and cohort pair.
+    """
+
+    checked_requirement = _require_execution_requirement(cohort, requirement)
+    candidate = Path(path)
+    if candidate.is_symlink() or tuple(candidate.parts[-3:]) != (
+        "tmp", "local", "causal_candidate_v2_independent_validation_asset_evidence_20260810.json",
+    ):
+        raise ValueError("independent V2 execution evidence path is not canonical")
+    resolved = candidate.resolve(strict=True)
+    raw = resolved.read_bytes()
+    if _sha256(raw) != checked_requirement.expected_evidence_sha256:
+        raise RuntimeError("Fail closed: execution evidence SHA-256 differs from contract")
+    try:
+        evidence = IndependentV2ValidationAssetEvidence.from_json(
+            json.loads(raw.decode("utf-8"))
+        )
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError("independent V2 execution evidence is not valid UTF-8 JSON") from exc
+    if raw != _canonical_bytes(evidence):
+        raise ValueError("independent V2 execution evidence is not canonical JSON")
+    persisted = PersistedIndependentV2ValidationAssetEvidence(
+        path=resolved,
+        sha256=_sha256(raw),
+        evidence=evidence,
+    )
+    selected = _cohort_items(cohort, snapshot)
+    _verify_evidence_against_selected(
+        evidence,
+        cohort,
+        checked_requirement,  # type: ignore[arg-type]
+        selected,
+    )
+    validated = ValidatedIndependentV2ValidationAssetEvidence(
+        persisted=persisted,
+        cohort=cohort,
+        snapshot=snapshot,
+        requirement=checked_requirement,
+    )
+    _register(_VALIDATED_EVIDENCE, validated)
+    return validated
+
+
 def _entry_for_item(
     validated: ValidatedIndependentV2ValidationAssetEvidence,
     item: IndependentValidationManifestItemLike,
@@ -707,10 +863,13 @@ __all__ = [
     "BuiltIndependentV2ValidationAssetEvidence",
     "IndependentV2ValidationAssetEvidence",
     "IndependentV2ValidationAssetEvidenceEntry",
+    "IndependentV2ExecutionAssetEvidenceRequirement",
     "PersistedIndependentV2ValidationAssetEvidence",
     "ValidatedIndependentV2ValidationAssetEvidence",
     "build_independent_v2_validation_asset_evidence",
     "canonical_recording_key",
+    "execution_asset_evidence_requirement",
+    "load_and_validate_independent_v2_validation_asset_evidence_for_execution",
     "load_independent_v2_validation_asset_evidence",
     "ordered_recording_keys_sha256",
     "validate_independent_v2_validation_asset_evidence",
