@@ -17,8 +17,8 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `causal_candidate_v2_independent_validation_asset_evidence_built`.
-- Statut : `terminé — unique registre byte-level publié; builder refermé et revue externe requise avant tout lecteur ou calcul`.
+- Étape : `causal_candidate_v2_independent_validation_asset_evidence_reader_authorization`.
+- Statut : `terminé — protocole lecteur scellé; revue externe requise avant toute lecture/revalidation du registre`.
 - Anomalie pré-métrique V2 vérifiée : le job unique
   `causal-candidate-v2-train-dev-cpu-20260809`, lancé au commit approuvé
   `ddd15be4fbf7e47205a0025f80821e2446ef9720` avec CPU et `900 s`, termine
@@ -165,6 +165,15 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   checkpoint, TensorFlow, inférence, évaluation, fit, calibration, export,
   live ou test verrouillé n'est utilisé. Rapport :
   `readme/results/2026-08-10_causal-candidate-v2-independent-validation-asset-evidence-build.md`.
+- Contrat lecteur V2 indépendant, sans lecture : après la revue post-build, le
+  protocole scellé (SHA-256 `6bf7619a…c8ab3e`) fixe enfin les deux valeurs que
+  devra vérifier un lecteur futur : registre `10307a64…22aee` et protocole
+  builder source `d63655c3…9ba015`. Il laisse le builder fermé, autorise
+  uniquement l'opération lecteur/revalidateur future et interdit toujours
+  décodage, modèle, évaluation, fit, calibration, export, live et test
+  verrouillé. Cette étape ne relit pas le JSON et ne rehache aucun actif ; sa
+  seule suite est une revue externe du contrat lecteur. Rapport :
+  `readme/results/2026-08-10_causal-candidate-v2-independent-validation-asset-evidence-reader-authorization.md`.
 - Correctif d'intégration V2 sans calcul : le worker Windows n'autorise
   désormais l'accusé dédié qu'au module exact
   `src.polyphonic.run_causal_candidate_v2_train_dev_diagnostic`, avec CPU,

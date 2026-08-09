@@ -369,7 +369,7 @@ class IndependentV2ValidationRunnerTests(unittest.TestCase):
                 reference=reference, candidate=candidate, rules=rules,
             )
 
-    def test_versioned_contract_closes_builder_after_publication_pending_review(self) -> None:
+    def test_versioned_contract_seals_reader_after_builder_publication(self) -> None:
         root = Path(__file__).resolve().parents[1]
         protocol = json.loads((
             root / runner.INDEPENDENT_V2_PROTOCOL_RELATIVE_PATH
@@ -385,9 +385,15 @@ class IndependentV2ValidationRunnerTests(unittest.TestCase):
         )
         evidence_contract = protocol["validation_asset_evidence_contract"]
         self.assertFalse(evidence_contract["builder_authorized_now"])
-        self.assertFalse(evidence_contract["reader_authorized_now"])
-        self.assertIsNone(evidence_contract["source_evidence_protocol_sha256"])
-        self.assertIsNone(evidence_contract["expected_evidence_sha256"])
+        self.assertTrue(evidence_contract["reader_authorized_now"])
+        self.assertEqual(
+            evidence_contract["source_evidence_protocol_sha256"],
+            "d63655c388991f3782a738e5bba58f0409ae79f297a3d5009dab7971349ba015",
+        )
+        self.assertEqual(
+            evidence_contract["expected_evidence_sha256"],
+            "10307a642185b3ef64a15a1120ec44ea4460c5875018b02fdaa7a18512822aee",
+        )
         self.assertFalse(protocol["locked_test_used"])
         self.assertEqual(len(protocol["cohort_rule"]["recording_keys"]), 30)
         self.assertFalse(any(
