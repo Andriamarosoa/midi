@@ -17,8 +17,8 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `causal_candidate_v2_independent_validation_contract`.
-- Statut : `terminé — runner/provenance V2 indépendant synthétique; revue externe requise avant tout actif ou calcul réel`.
+- Étape : `causal_candidate_v2_independent_validation_asset_evidence_implementation`.
+- Statut : `terminé — preuve d'actifs V2 indépendante implémentée synthétiquement; revue externe requise avant tout actif ou calcul réel`.
 - Anomalie pré-métrique V2 vérifiée : le job unique
   `causal-candidate-v2-train-dev-cpu-20260809`, lancé au commit approuvé
   `ddd15be4fbf7e47205a0025f80821e2446ef9720` avec CPU et `900 s`, termine
@@ -106,6 +106,22 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `readme/results/2026-08-10_causal-candidate-v2-independent-validation-contract.md`
   et
   `readme/results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md`.
+- Preuve byte-level V2 indépendante, toujours synthétique : le nouveau
+  registre canonique ne peut couvrir que les `30` clés validation et les `20`
+  groupes de fuite dérivés, liés au SHA du protocole et du manifeste. Chaque
+  entrée portable contient seulement l'identité, le membre audio, la taille
+  et le SHA-256 des deux fichiers `audio`/`labels` ; elle ne contient aucun
+  chemin. Sa création exige un snapshot exact du manifeste et ne peut lire que
+  les octets des actifs sélectionnés. La lecture du JSON ne charge aucun actif
+  et le futur runner devra rehacher chaque fichier juste avant son ouverture.
+  Le registre est JSON canonique immuable, réouvert et attesté par identité ;
+  une copie/altération ou un item clone échoue. `41` tests ciblés
+  provenance/V2 passent sur fichiers factices uniquement. Aucun actif projet,
+  modèle, inférence, job Mac, fit, calibration, export, live ou test verrouillé
+  n'a été ouvert. La seule action suivante est la revue externe de cette
+  implémentation ; toute construction de preuve réelle reste interdite.
+  Rapport :
+  `readme/results/2026-08-10_causal-candidate-v2-independent-validation-asset-evidence-implementation.md`.
 - Correctif d'intégration V2 sans calcul : le worker Windows n'autorise
   désormais l'accusé dédié qu'au module exact
   `src.polyphonic.run_causal_candidate_v2_train_dev_diagnostic`, avec CPU,

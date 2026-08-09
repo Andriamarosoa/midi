@@ -34,6 +34,9 @@ INDEPENDENT_V2_SELECTION_NAMESPACE = "causal-v2-independent-validation-v1:47"
 INDEPENDENT_V2_SELECTION_SEED = 47
 INDEPENDENT_V2_GATE_PLACEMENT = "post_ranking_pre_noteon"
 INDEPENDENT_V2_THRESHOLD = 0.31
+INDEPENDENT_V2_PROTOCOL_STATUS = (
+    "synthetic_asset_evidence_implementation_pending_external_review"
+)
 INDEPENDENT_V2_FROZEN_ARTIFACT_SHA256 = {
     "v2_execution_report_sha256": "43e28b4ebfe33f5ad0f28be1c4b61704af8cebc08012458cbd645d3027b9acf9",
     "transcription_checkpoint_sha256": "1ce8ac44ca7156d4bc058b5b37580805f2ab6536b380636c04b9a31b1a411325",
@@ -44,7 +47,7 @@ INDEPENDENT_V2_FROZEN_ARTIFACT_SHA256 = {
     "reference_decoder_config_sha256": "c16be48271912c99c4237345e8406e39b88490b5565047757f6ca9e905615f96",
 }
 INDEPENDENT_V2_PROTOCOL_SHA256 = (
-    "8753a88bd049de35745c6a90f9175e3ca4f9a638f127133515305b2a6a1a07a1"
+    "4d6ae76bf115945821e2560be23c2c71f7e4906874a78b1dfdf5049413a0f4de"
 )
 
 
@@ -201,7 +204,7 @@ def _require_exact_protocol(repository_root: Path) -> tuple[Mapping[str, object]
         raise ValueError("independent V2 protocol schema or locked-test contract is invalid.")
     if payload.get("purpose") != "causal_candidate_fit_v2_post_ranking_independent_validation_contract":
         raise ValueError("independent V2 protocol purpose is invalid.")
-    if payload.get("status") != "synthetic_runner_implemented_pending_external_review":
+    if payload.get("status") != INDEPENDENT_V2_PROTOCOL_STATUS:
         raise RuntimeError("independent V2 protocol is not pending external review.")
     authorization = _require_mapping(payload.get("authorization_scope"), "authorization_scope")
     if tuple(authorization.get("allowed_now", ())) != ("external_review",):

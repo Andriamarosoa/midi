@@ -47,7 +47,7 @@ def _protocol(*, manifest_sha256: str, historical_sha256: str, recording_keys: l
     return {
         "schema_version": 1,
         "purpose": "causal_candidate_fit_v2_post_ranking_independent_validation_contract",
-        "status": "synthetic_runner_implemented_pending_external_review",
+        "status": runner.INDEPENDENT_V2_PROTOCOL_STATUS,
         "locked_test_used": False,
         "authorization_scope": {"allowed_now": ["external_review"]},
         "frozen_v2_intervention": {
@@ -379,7 +379,7 @@ class IndependentV2ValidationRunnerTests(unittest.TestCase):
             _sha256(root / runner.INDEPENDENT_V2_PROTOCOL_RELATIVE_PATH),
             runner.INDEPENDENT_V2_PROTOCOL_SHA256,
         )
-        self.assertEqual(protocol["status"], "synthetic_runner_implemented_pending_external_review")
+        self.assertEqual(protocol["status"], runner.INDEPENDENT_V2_PROTOCOL_STATUS)
         self.assertFalse(protocol["locked_test_used"])
         self.assertEqual(len(protocol["cohort_rule"]["recording_keys"]), 30)
         self.assertFalse(any(
