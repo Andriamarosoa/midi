@@ -16,10 +16,18 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-08-09T12:00:47+04:00`.
+- Mise à jour : `2026-08-09T12:08:26+04:00`.
 - Étape : `decoder_candidate_guitarset_expansion_hypothesis`.
-- Statut : `en cours — contrat v3 de 90 prises scellé par chemin et SHA ; revue
-  externe requise avant tout replay CPU`.
+- Statut : `en cours — unique replay CPU V3 de 90 prises démarré ; attendre son
+  rapport terminal avant toute interprétation`.
+- Exécution active vérifiée : job Mac
+  `decoder-candidate-guitarset-v3-cpu-20260809`, démarré à
+  `2026-08-09T19:07:52Z`, CPU forcé, limite murale `3 600 s`, commit exact
+  `4ddc88666a1c55725c18a813c63ecd25a03bf298`, verrou worker détenu. Le
+  worktree Mac était propre et le préflight de lancement a confirmé les SHA du
+  plan Policy A v2 et du registre d'actifs. Aucun résultat, fit, calibration,
+  validation, export, live ou test verrouillé ne doit être inféré avant le
+  statut terminal et l'inspection de l'artefact.
 - Résultat vérifié : le job Mac `decoder-candidate-extended-mining-cpu-20260809`
   a terminé sans erreur au commit `42a88b0d…`, avec `locked_test_used=false`,
   3 057 candidats supervisés (639 positifs, 2 418 négatifs), zéro perte et
@@ -35,7 +43,9 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `configs/decoder_candidate_guitarset_expansion_policy_a_v3.json` et à son
   SHA-256 LF `db55930a…5683`, avant Git, actifs ou TensorFlow. Les substitutions
   par chemin externe ou octets modifiés échouent fermées. Aucun calcul ne suit ;
-  une revue externe du correctif reste requise. Rapports :
+  la revue externe du correctif est approuvée. L'unique replay CPU V3 est
+  maintenant en cours ; aucun second lancement ni changement de contrat n'est
+  autorisé. Rapports :
   `readme/results/2026-08-09_decoder-candidate-guitarset-expansion-hypothesis.md`
   et `readme/results/2026-08-09_decoder-candidate-guitarset-protocol-binding-fix.md`.
 - Résultat scientifique conservé : la tête `independent_note` précédente reste
@@ -543,8 +553,13 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
   contenu canonique modifié) échouent avant TensorFlow. `py_compile`,
   `git diff --check` et 69 tests synthétiques ciblés passent en `2,120 s`.
   Aucun actif projet, inférence, minage, fit, calibration, validation, export,
-  live ou test verrouillé n'a été exécuté. La revue externe de ce correctif est
-  obligatoire avant toute synchronisation Mac ou nouveau replay. Rapports :
+  live ou test verrouillé n'avait été exécuté au moment de ce correctif. La
+  revue externe l'a ensuite approuvé et l'unique job CPU V3
+  `decoder-candidate-guitarset-v3-cpu-20260809` a démarré à
+  `2026-08-09T19:07:52Z` au commit exact `4ddc886…`. CPU forcé, limite murale
+  `3 600 s`, verrou actif ; aucun résultat n'est encore disponible et aucune
+  autre action scientifique n'est autorisée avant son rapport terminal.
+  Rapports :
   `readme/results/2026-08-09_decoder-candidate-guitarset-expansion-hypothesis.md`
   et `readme/results/2026-08-09_decoder-candidate-guitarset-protocol-binding-fix.md`.
 <!-- PROJECT_TASK:decoder_candidate_asset_evidence_contract:END -->
