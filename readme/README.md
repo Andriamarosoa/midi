@@ -18,14 +18,24 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 - Mise à jour : `2026-08-10`.
 - Étape : `harmonic_censoring_h24_scientific_execution_authorization_contract`.
-- Statut : `population H24 matérialisée et auditée; contrat scientifique contract-only défini; aucune autorité P0/P1/P2`.
+- Statut : `population H24 matérialisée et auditée; fermeture contract-only du transcript et du terminal en revue; aucune autorité P0/P1/P2`.
 - `H24_SYNTHETIC_V1` est publié sur le Mac avec `175` fixtures, `525`
   fichiers fixture, index `b45b63c4…`, receipt `8a8128dc…`, marker
   `3185adfd…` et terminal `50ec58c8…`; l'audit read-only confirme tous les
   hashes, l'ordre, les tailles waveform et l'absence d'extra. Le nouveau
-  contrat SHA-256 `63355a01…` lie ces octets aux manifests, contrats et sources
-  H24, puis exige une future capability scientifique, un seal/activation
-  séparés et un claim scientifique distinct avant tout décodage waveform.
+  contrat initial SHA-256 `63355a01…` lie ces octets aux manifests, contrats et
+  sources H24. La revue de `02bb76b2…` a validé sa dormance mais exigé une
+  fermeture supplémentaire de la preuve persistée. Le correctif contract-only
+  SHA-256 `00f67158…` impose désormais `72` records JSONL canoniques dans
+  l'ordre scellé, une
+  chaîne SHA-256 empêchant suppression/insertion/réordonnancement, le binding
+  des preuves persistées et un finalizer indépendant qui recalcule verdict,
+  premier échec et suffixes depuis les octets relus. Le terminal futur devra
+  lier transcript, dernier maillon, preuves ordonnées, claim et population; les
+  erreurs ordinaires post-claim deviennent inconclusives consommées, tandis
+  qu'un crash brutal reste consommé sans retry même si le terminal est absent.
+  Une future capability scientifique, un seal/activation séparés et un claim
+  scientifique distinct restent obligatoires avant tout décodage waveform.
   Aucun evaluator/oracle, P0/P1/P2, donnée réelle, H17, locked-test ou training
   n'est autorisé. Rapport :
   `readme/results/2026-08-10_harmonic-censoring-h24-scientific-execution-authorization-contract.md`.

@@ -40,6 +40,43 @@ Il définit un futur mécanisme fail-closed, sans l'implémenter :
 7. ordre fermé `P0 (27) → P1 (35) → P2 (10)` avec kill rule ;
 8. terminal atomique et aucun retry après consommation.
 
+## Correction de revue : transcript et terminal
+
+La revue externe de `02bb76b2…` a validé la topologie, la dormance et les
+liaisons de population, mais a refusé l'implémentation du runner tant que la
+preuve scientifique persistée n'était pas normativement fermée. La portée
+suivante a donc été appliquée, sans élargissement :
+
+`AUTHORIZED_TO_CORRECT_H24_SCIENTIFIC_EXECUTION_CONTRACT_TRANSCRIPT_AND_TERMINAL_CLOSURE_ONLY`.
+
+Le contrat révisé impose maintenant :
+
+- un transcript final de exactement `72` lignes JSONL canoniques UTF-8/LF,
+  dans l'ordre scellé `P0 (27) → P1 (35) → P2 (10)` ;
+- un schéma fermé par record et quatre états seulement : preuve persistée,
+  suffixe kill-rule, erreur opérationnelle et suffixe d'échec opérationnel ;
+- une chaîne SHA-256 record par record, initialisée par `64` zéros, qui rend
+  toute suppression, insertion, duplication ou permutation invalide ;
+- pour chaque preuve exécutée, le chemin relatif, la taille et le SHA-256 des
+  octets d'evidence persistés, sans booléen PASS/FAIL du producteur ;
+- la réouverture et le rehash du transcript et de toutes les preuves depuis le
+  disque avant finalisation ;
+- un finalizer pur et indépendant qui recalcule chaque oracle, le premier
+  échec, les compteurs et le suffixe `NOT_RUN` uniquement depuis les octets
+  persistés ;
+- un terminal qui lie explicitement transcript, dernier maillon, preuves
+  ordonnées, claim scientifique et les quatre hashes de population ;
+- un terminal `H24_EXECUTION_INCONCLUSIVE_CONSUMED` pour toute erreur ordinaire
+  post-claim pouvant être finalisée ; crash brutal, timeout, SIGKILL, panne ou
+  erreur de publication laissent le claim consommé, les partiels non
+  autoritatifs et interdisent tout retry, même si aucun terminal n'a pu être
+  publié.
+
+Le SHA canonique de la liste ordonnée des `72` IDs est
+`3d9c9178ece6b8f0631baf4392bc92f0aa074ed987875e0cb208ab0f90201376`.
+Le SHA-256 brut du contrat révisé est
+`00f67158248a879a754d39e3ed452a9b8926ee4c9adab8d023d92be1138e988e`.
+
 ## Dormance
 
 Ce commit ne crée ni capability scientifique, ni runner, ni seal, ni
@@ -52,11 +89,11 @@ seconde matérialisation n'est autorisée.
 
 ## Vérification
 
-La suite contractuelle ciblée H24/H23/H20 réussit avec `181` tests en
-`2,349 s`. `py_compile` et `git diff --check` réussissent également.
+La suite contractuelle ciblée H24/H23/H20 corrigée réussit avec `183` tests en
+`2,520 s`. `py_compile` et `git diff --check` réussissent également.
 
 ## Étape suivante
 
-Uniquement la revue externe du commit contract-only exact. Une autorisation
-séparée sera nécessaire avant toute implémentation dormante de capability ou de
-runner scientifique. P0/P1/P2 restent interdits.
+Uniquement la revue externe du correctif contract-only exact. Une autorisation
+séparée sera nécessaire avant toute implémentation dormante de capability,
+runner, transcript ou finalizer. P0/P1/P2 restent interdits.

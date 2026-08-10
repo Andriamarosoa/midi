@@ -1,11 +1,13 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "purpose": "harmonic_censoring_h24_scientific_execution_authorization_contract",
-  "status": "contract_only_population_published_external_review_required",
+  "status": "contract_only_transcript_and_terminal_closure_external_review_required",
   "authorization_basis": {
     "reviewed_activation_commit": "e7c2eecf49ede43b3334266c74b1fe438f9e793d",
     "external_verdict": "APPROVED_H24_MATERIALIZED_POPULATION_PUBLICATION_AUDIT",
-    "authorized_action": "AUTHORIZED_TO_DEFINE_H24_SCIENTIFIC_EXECUTION_AUTHORIZATION_CONTRACT_ONLY"
+    "authorized_action": "AUTHORIZED_TO_DEFINE_H24_SCIENTIFIC_EXECUTION_AUTHORIZATION_CONTRACT_ONLY",
+    "reviewed_contract_commit_with_transcript_gap": "02bb76b2afad70b68e850ceff3a3e6bdeff55925",
+    "contract_correction_authorized_action": "AUTHORIZED_TO_CORRECT_H24_SCIENTIFIC_EXECUTION_CONTRACT_TRANSCRIPT_AND_TERMINAL_CLOSURE_ONLY"
   },
   "scope": {
     "contract_only": true,
@@ -107,6 +109,7 @@
     },
     "test_namespace": "H24_TEST_V1",
     "test_count": 72,
+    "ordered_test_ids_canonical_json_sha256": "3d9c9178ece6b8f0631baf4392bc92f0aa074ed987875e0cb208ab0f90201376",
     "phase_counts": {
       "P0": 27,
       "P1": 35,
@@ -190,6 +193,105 @@
     "partial_output_authoritative": false,
     "claim_staging_success_terminal_and_transcript_paths_must_be_fixed_by_future_seal": true
   },
+  "future_scientific_transcript_contract": {
+    "normative": true,
+    "implementation_exists_now": false,
+    "path_must_be_fixed_by_future_seal": true,
+    "staging_path_must_be_fixed_by_future_seal": true,
+    "evidence_directory_must_be_fixed_by_future_seal": true,
+    "finalized_transcript_format": "CANONICAL_JSONL_UTF8_LF",
+    "canonical_line_serialization": {
+      "encoding": "UTF-8",
+      "BOM_allowed": false,
+      "line_terminator": "LF",
+      "CR_allowed": false,
+      "one_JSON_object_per_line": true,
+      "object_keys": "lexicographic_order",
+      "separators": "comma_and_colon_without_whitespace",
+      "ensure_ascii": false,
+      "allow_NaN_or_infinity": false,
+      "duplicate_object_keys_allowed": false,
+      "trailing_blank_line_allowed": false
+    },
+    "record_count": 72,
+    "record_order": "exact_test_manifest_test_ids_order_P0_then_P1_then_P2",
+    "ordered_test_ids_canonical_json_sha256": "3d9c9178ece6b8f0631baf4392bc92f0aa074ed987875e0cb208ab0f90201376",
+    "record_exact_keys": [
+      "evidence_byte_count",
+      "evidence_path",
+      "evidence_raw_sha256",
+      "operational_error_class",
+      "operational_error_message_sha256",
+      "phase",
+      "previous_record_sha256",
+      "record_state",
+      "schema_version",
+      "sequence_index",
+      "test_id"
+    ],
+    "record_schema_version": 1,
+    "sequence_index_rule": "zero_based_contiguous_0_through_71",
+    "phase_rule": "must_equal_the_bound_test_manifest_phase_for_test_id",
+    "record_states": {
+      "EVIDENCE_PERSISTED": {
+        "evidence_path": "nonempty_relative_path_under_sealed_evidence_directory",
+        "evidence_byte_count": "positive_integer",
+        "evidence_raw_sha256": "lowercase_sha256_of_exact_persisted_evidence_bytes",
+        "operational_error_class": null,
+        "operational_error_message_sha256": null,
+        "producer_PASS_or_FAIL_field_allowed": false
+      },
+      "NOT_RUN_BY_KILL_RULE": {
+        "evidence_path": null,
+        "evidence_byte_count": null,
+        "evidence_raw_sha256": null,
+        "operational_error_class": null,
+        "operational_error_message_sha256": null
+      },
+      "OPERATIONAL_ERROR": {
+        "evidence_path": null,
+        "evidence_byte_count": null,
+        "evidence_raw_sha256": null,
+        "operational_error_class": "nonempty_fully_qualified_exception_class_without_traceback",
+        "operational_error_message_sha256": "lowercase_sha256_of_UTF8_exception_message_bytes"
+      },
+      "NOT_RUN_BY_OPERATIONAL_FAILURE": {
+        "evidence_path": null,
+        "evidence_byte_count": null,
+        "evidence_raw_sha256": null,
+        "operational_error_class": null,
+        "operational_error_message_sha256": null
+      }
+    },
+    "hash_chain": {
+      "first_previous_record_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "record_sha256_definition": "SHA256_of_the_exact_canonical_record_line_bytes_including_its_LF",
+      "next_previous_record_sha256_must_equal_prior_record_sha256": true,
+      "terminal_must_bind_final_record_sha256": true,
+      "terminal_must_bind_raw_transcript_sha256": true,
+      "terminal_must_bind_raw_transcript_byte_count": true,
+      "suppression_insertion_duplication_or_reordering_must_fail": true
+    },
+    "evidence_binding": {
+      "evidence_files_are_canonical_JSON_UTF8_LF": true,
+      "each_evidence_file_has_a_closed_per_test_schema_from_the_bound_test_manifest": true,
+      "evidence_path_rule": "evidence/{sequence_index_zero_padded_2}_{test_id}.json",
+      "exactly_one_unique_evidence_file_per_EVIDENCE_PERSISTED_record": true,
+      "extra_unbound_evidence_files_allowed": false,
+      "raw_operands_required": true,
+      "producer_verdict_field_forbidden": true,
+      "rehash_each_evidence_file_from_disk_before_finalization": true,
+      "missing_extra_nonfinite_or_hash_mismatched_evidence_fails_closed": true,
+      "ordered_evidence_bindings_sha256_definition": "SHA256_of_canonical_JSON_array_of_sequence_index_test_id_evidence_path_evidence_byte_count_evidence_raw_sha256_for_EVIDENCE_PERSISTED_records_only"
+    },
+    "finalization_publication": {
+      "staging_file_fsync_before_close": true,
+      "final_transcript_must_be_reopened_and_rehashed_after_atomic_rename": true,
+      "final_transcript_is_immutable_after_publication": true,
+      "append_or_rewrite_after_publication_allowed": false,
+      "partial_staging_transcript_authoritative": false
+    }
+  },
   "future_execution_order": {
     "steps": [
       "zero_science_population_and_binding_preflight",
@@ -217,6 +319,59 @@
     "operational_failure_status": "H24_EXECUTION_INCONCLUSIVE_CONSUMED",
     "operational_failure_is_not_scientific_verdict": true,
     "terminal_must_bind_population_and_execution_claim_hashes": true,
+    "terminal_exact_keys": [
+      "executed_evidence_record_count",
+      "final_record_sha256",
+      "first_failed_sequence_index",
+      "first_failed_test_id",
+      "not_run_by_kill_rule_count",
+      "not_run_by_operational_failure_count",
+      "operational_error_count",
+      "ordered_evidence_bindings_sha256",
+      "ordered_test_ids_sha256",
+      "passed_test_count",
+      "population_index_sha256",
+      "population_marker_sha256",
+      "population_receipt_sha256",
+      "population_terminal_sha256",
+      "schema_version",
+      "scientific_execution_claim_sha256",
+      "scientific_status",
+      "transcript_byte_count",
+      "transcript_raw_sha256",
+      "transcript_record_count",
+      "transcript_validation_status"
+    ],
+    "terminal_schema_version": 1,
+    "scientific_status_derivation": {
+      "all_72_independent_oracles_PASS": "AUTHORIZED_TO_PREPARE_H24_TRAIN_PROTOCOL",
+      "first_independent_FAIL_in_P0": "H24_SYNTHETIC_HYPOTHESIS_KILLED",
+      "first_independent_FAIL_in_P1_or_P2": "H24_PRETRAIN_READINESS_NOT_DEMONSTRATED",
+      "any_ordinary_operational_error": "H24_EXECUTION_INCONCLUSIVE_CONSUMED"
+    },
+    "AUTHORIZED_TO_PREPARE_H24_TRAIN_PROTOCOL_is_not_training_authority": true,
+    "transcript_validation_status_values": [
+      "VALIDATED",
+      "FINALIZER_ERROR"
+    ],
+    "terminal_must_bind_raw_transcript_sha256_byte_count_record_count_and_final_record_sha256": true,
+    "terminal_must_bind_ordered_evidence_bindings_sha256": true,
+    "terminal_must_bind_ordered_test_ids_sha256": true,
+    "terminal_must_bind_all_four_published_population_hashes": true,
+    "terminal_must_bind_scientific_execution_claim_sha256": true,
+    "finalizer_is_a_separate_pure_recomputation_from_persisted_bytes": true,
+    "finalizer_must_reopen_transcript_and_all_bound_evidence_from_disk": true,
+    "finalizer_must_not_accept_in_memory_producer_outcomes": true,
+    "finalizer_recomputes_each_PASS_or_FAIL_with_the_independent_oracle": true,
+    "finalizer_recomputes_first_failure_and_all_counts": true,
+    "finalizer_validates_exact_72_record_order_hash_chain_and_state_suffix": true,
+    "scientific_failure_suffix_rule": "after_the_first_independently_recomputed_FAIL_every_remaining_record_is_NOT_RUN_BY_KILL_RULE",
+    "operational_failure_suffix_rule": "exactly_one_OPERATIONAL_ERROR_record_then_every_remaining_record_is_NOT_RUN_BY_OPERATIONAL_FAILURE",
+    "ordinary_post_claim_error_before_or_during_a_test": "best_effort_finalize_exact_72_record_operational_transcript_then_publish_H24_EXECUTION_INCONCLUSIVE_CONSUMED_terminal",
+    "ordinary_post_claim_finalizer_error_after_transcript_publication": "publish_H24_EXECUTION_INCONCLUSIVE_CONSUMED_terminal_binding_the_transcript_with_transcript_validation_status_FINALIZER_ERROR_and_no_scientific_verdict",
+    "serialization_fsync_atomic_rename_or_terminal_publication_error": "claim_remains_consumed_partial_outputs_non_authoritative_no_retry_terminal_may_be_absent",
+    "brutal_crash_timeout_SIGKILL_or_power_loss": "claim_remains_consumed_partial_staging_may_remain_terminal_absent_no_retry_manual_forensic_review_only",
+    "terminal_is_derived_only_after_transcript_publication": true,
     "atomic_staging_verify_rename_required": true,
     "result_may_authorize_training": false,
     "result_may_access_real_data_or_locked_test": false
@@ -229,7 +384,7 @@
     "tests/test_harmonic_censoring_h24_scientific_execution_authorization_contract.py"
   ],
   "required_next_sequence": [
-    "external_review_this_contract_only_commit",
+    "external_review_corrected_transcript_and_terminal_contract_only_commit",
     "separate_authorization_to_implement_dormant_scientific_capability_and_runner",
     "external_review_implementation_commit",
     "separate_reviewed_scientific_authorization_seal_and_activation",

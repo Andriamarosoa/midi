@@ -22,14 +22,14 @@ class H24ScientificExecutionAuthorizationContractTests(unittest.TestCase):
 
     def test_contract_is_lf_contract_only_and_authorizes_no_science(self) -> None:
         self.assertNotIn(b"\r", self.raw)
-        self.assertEqual(self.contract["schema_version"], 1)
+        self.assertEqual(self.contract["schema_version"], 2)
         self.assertEqual(
             self.contract["purpose"],
             "harmonic_censoring_h24_scientific_execution_authorization_contract",
         )
         self.assertEqual(
             self.contract["status"],
-            "contract_only_population_published_external_review_required",
+            "contract_only_transcript_and_terminal_closure_external_review_required",
         )
         scope = self.contract["scope"]
         self.assertTrue(scope["contract_only"])
@@ -220,6 +220,125 @@ class H24ScientificExecutionAuthorizationContractTests(unittest.TestCase):
         self.assertFalse(boundary["manual_retry_allowed"])
         self.assertTrue(boundary["failure_after_claim_remains_consumed"])
         self.assertFalse(boundary["partial_output_authoritative"])
+
+    def test_transcript_is_a_closed_ordered_hash_chain_over_persisted_evidence(self) -> None:
+        transcript = self.contract["future_scientific_transcript_contract"]
+        self.assertTrue(transcript["normative"])
+        self.assertFalse(transcript["implementation_exists_now"])
+        self.assertEqual(transcript["finalized_transcript_format"], "CANONICAL_JSONL_UTF8_LF")
+        serialization = transcript["canonical_line_serialization"]
+        self.assertEqual(serialization["encoding"], "UTF-8")
+        self.assertFalse(serialization["BOM_allowed"])
+        self.assertEqual(serialization["line_terminator"], "LF")
+        self.assertTrue(serialization["one_JSON_object_per_line"])
+        self.assertEqual(serialization["object_keys"], "lexicographic_order")
+        self.assertFalse(serialization["allow_NaN_or_infinity"])
+        self.assertFalse(serialization["duplicate_object_keys_allowed"])
+        self.assertEqual(transcript["record_count"], 72)
+        tests = json.loads(
+            (ROOT / self.contract["sealed_scientific_inputs"]["test_manifest"]["path"]).read_bytes()
+        )
+        ordered_test_ids = json.dumps(
+            tests["test_ids"],
+            ensure_ascii=False,
+            separators=(",", ":"),
+        ).encode("utf-8")
+        self.assertEqual(
+            hashlib.sha256(ordered_test_ids).hexdigest(),
+            transcript["ordered_test_ids_canonical_json_sha256"],
+        )
+        self.assertEqual(
+            transcript["ordered_test_ids_canonical_json_sha256"],
+            self.contract["sealed_scientific_inputs"][
+                "ordered_test_ids_canonical_json_sha256"
+            ],
+        )
+        self.assertEqual(
+            set(transcript["record_states"]),
+            {
+                "EVIDENCE_PERSISTED",
+                "NOT_RUN_BY_KILL_RULE",
+                "OPERATIONAL_ERROR",
+                "NOT_RUN_BY_OPERATIONAL_FAILURE",
+            },
+        )
+        evidence = transcript["record_states"]["EVIDENCE_PERSISTED"]
+        self.assertFalse(evidence["producer_PASS_or_FAIL_field_allowed"])
+        chain = transcript["hash_chain"]
+        self.assertEqual(chain["first_previous_record_sha256"], "0" * 64)
+        self.assertTrue(chain["next_previous_record_sha256_must_equal_prior_record_sha256"])
+        self.assertTrue(chain["terminal_must_bind_final_record_sha256"])
+        self.assertTrue(chain["terminal_must_bind_raw_transcript_sha256"])
+        self.assertTrue(chain["suppression_insertion_duplication_or_reordering_must_fail"])
+        binding = transcript["evidence_binding"]
+        self.assertEqual(
+            binding["evidence_path_rule"],
+            "evidence/{sequence_index_zero_padded_2}_{test_id}.json",
+        )
+        self.assertTrue(
+            binding["exactly_one_unique_evidence_file_per_EVIDENCE_PERSISTED_record"]
+        )
+        self.assertFalse(binding["extra_unbound_evidence_files_allowed"])
+        self.assertTrue(binding["raw_operands_required"])
+        self.assertTrue(binding["producer_verdict_field_forbidden"])
+        self.assertTrue(binding["rehash_each_evidence_file_from_disk_before_finalization"])
+        self.assertTrue(
+            binding["missing_extra_nonfinite_or_hash_mismatched_evidence_fails_closed"]
+        )
+
+    def test_terminal_is_recomputed_from_persisted_transcript_and_closes_failures(self) -> None:
+        terminal = self.contract["future_terminal_contract"]
+        required_keys = {
+            "transcript_raw_sha256",
+            "transcript_byte_count",
+            "transcript_record_count",
+            "final_record_sha256",
+            "ordered_evidence_bindings_sha256",
+            "ordered_test_ids_sha256",
+            "scientific_execution_claim_sha256",
+            "population_marker_sha256",
+            "population_terminal_sha256",
+            "population_receipt_sha256",
+            "population_index_sha256",
+            "scientific_status",
+            "first_failed_test_id",
+        }
+        self.assertTrue(required_keys.issubset(set(terminal["terminal_exact_keys"])))
+        self.assertTrue(
+            terminal[
+                "terminal_must_bind_raw_transcript_sha256_byte_count_record_count_and_final_record_sha256"
+            ]
+        )
+        self.assertTrue(terminal["terminal_must_bind_ordered_evidence_bindings_sha256"])
+        self.assertTrue(terminal["finalizer_is_a_separate_pure_recomputation_from_persisted_bytes"])
+        self.assertTrue(terminal["finalizer_must_reopen_transcript_and_all_bound_evidence_from_disk"])
+        self.assertTrue(terminal["finalizer_must_not_accept_in_memory_producer_outcomes"])
+        self.assertTrue(terminal["finalizer_recomputes_each_PASS_or_FAIL_with_the_independent_oracle"])
+        self.assertTrue(terminal["finalizer_recomputes_first_failure_and_all_counts"])
+        self.assertEqual(
+            terminal["scientific_status_derivation"],
+            {
+                "all_72_independent_oracles_PASS": "AUTHORIZED_TO_PREPARE_H24_TRAIN_PROTOCOL",
+                "first_independent_FAIL_in_P0": "H24_SYNTHETIC_HYPOTHESIS_KILLED",
+                "first_independent_FAIL_in_P1_or_P2": "H24_PRETRAIN_READINESS_NOT_DEMONSTRATED",
+                "any_ordinary_operational_error": "H24_EXECUTION_INCONCLUSIVE_CONSUMED",
+            },
+        )
+        self.assertTrue(
+            terminal["AUTHORIZED_TO_PREPARE_H24_TRAIN_PROTOCOL_is_not_training_authority"]
+        )
+        self.assertEqual(
+            terminal["transcript_validation_status_values"],
+            ["VALIDATED", "FINALIZER_ERROR"],
+        )
+        self.assertIn("NOT_RUN_BY_KILL_RULE", terminal["scientific_failure_suffix_rule"])
+        self.assertIn("OPERATIONAL_ERROR", terminal["operational_failure_suffix_rule"])
+        self.assertIn(
+            "H24_EXECUTION_INCONCLUSIVE_CONSUMED",
+            terminal["ordinary_post_claim_error_before_or_during_a_test"],
+        )
+        self.assertIn("terminal_absent", terminal["brutal_crash_timeout_SIGKILL_or_power_loss"])
+        self.assertIn("no_retry", terminal["brutal_crash_timeout_SIGKILL_or_power_loss"])
 
     def test_future_phase_order_and_terminal_are_closed_without_authorizing_execution(self) -> None:
         execution = self.contract["future_execution_order"]
