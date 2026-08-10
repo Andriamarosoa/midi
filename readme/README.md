@@ -17,8 +17,21 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `harmonic_censoring_h23_claim_executor_transcript_implementation`.
-- Statut : `implémentation dormante terminée; nouveau seal et nouvelle activation encore absents; aucune population consommée`.
+- Étape : `harmonic_censoring_h23_exact_oracle_recomputation_fix`.
+- Statut : `correctif dormant 72/72 terminé et en attente de revue externe; nouveau seal et nouvelle activation absents; aucune population consommée`.
+- La revue externe de `907bece…` a refusé le futur seal : certaines familles
+  utilisaient encore des décisions génériques et le finalizer pouvait accepter
+  des booléens produits par la même logique que l'oracle. La correction remplace
+  ce chemin par deux registres fermés et exactement concordants de 72 IDs : un
+  évaluateur dédié par test et un recomputer pur par test. Le recomputer impose
+  les mesures, clés, types, opérateurs et tolérances, puis recalcule primaire,
+  inverse et verdict depuis les mesures persistées. Des tests adversariaux
+  refusent désormais `passed=true` avec mesures incompatibles et toute inverse
+  falsifiée. `74` tests contractuels H23/H20 réussissent sans appeler les
+  évaluateurs scientifiques. Aucun seal, activation, claim, marker, waveform ou
+  P0/P1/P2 n'est créé. Le durcissement TOCTOU demandé restera un commit dormant
+  séparé après approbation de celui-ci. Rapport :
+  `readme/results/2026-08-10_harmonic-censoring-h23-exact-oracle-recomputation-fix.md`.
 - Le commit courant implémente ensemble la claim durable `O_EXCL`, le snapshot
   complet d’autorité, le synthétiseur/exécuteur H23, le transcript JSONL
   canonique hash-chain et le finalizer autoritatif qui recalcule le verdict

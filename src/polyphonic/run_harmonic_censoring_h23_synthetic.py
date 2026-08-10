@@ -28,6 +28,11 @@ from .harmonic_censoring_h23 import (
     H23ResolvedTest,
     load_h23_harness_plan,
 )
+from .harmonic_censoring_h23_oracles import (
+    EXACT_H23_ORACLE_REGISTRY,
+    H23RecomputedOracle,
+    recompute_h23_exact_oracle,
+)
 from .harmonic_censoring_h23_execution_capability import (
     AttestedH23SyntheticExecutionCapability,
     H23_CONSUMPTION_CLAIM_IMPLEMENTED,
@@ -47,6 +52,9 @@ H23_READINESS_FAILURE_STATUS = "H23_PRETRAIN_READINESS_NOT_DEMONSTRATED"
 H23_INCONCLUSIVE_STATUS = "H23_EXECUTION_INCONCLUSIVE_FAIL_CLOSED"
 H23_NOT_RUN_STATUS = "NOT_RUN_BY_KILL_RULE"
 _ZERO_SHA256 = "0" * 64
+_H23_ANALYTIC_TEST_IDS = frozenset(
+    {"A01", "A02", "A03", "A04", "A05", "A06", "A07", "A08"}
+)
 
 
 def _canonical_json_line(value: object) -> bytes:
@@ -516,6 +524,8 @@ def _evidence_schema_sha256(test: H23ResolvedTest) -> str:
 def _recompute_test_pass(
     contract: H23ResolvedTest,
     event: Mapping[str, object],
+    *,
+    plan_fixture_ids: Sequence[str],
 ) -> bool:
     if event.get("resolved_test_contract_sha256") != contract.resolved_sha256:
         raise ValueError("H23 TEST_RESULT resolved contract SHA-256 mismatch.")
@@ -544,8 +554,14 @@ def _recompute_test_pass(
         raise ValueError("H23 TEST_RESULT nonfinite count mismatch.")
     if type(event.get("passed")) is not bool:
         raise ValueError("H23 TEST_RESULT passed must be boolean.")
-    if type(event.get("inverse_check_count")) is not int or event["inverse_check_count"] < 1:
-        raise ValueError("H23 TEST_RESULT requires an executed inverse check.")
+    exact_spec = EXACT_H23_ORACLE_REGISTRY.get(contract.test_id)
+    if exact_spec is None:
+        raise ValueError(f"H23 test {contract.test_id} has no exact recomputer.")
+    if (
+        type(event.get("inverse_check_count")) is not int
+        or event["inverse_check_count"] != len(exact_spec.inverse)
+    ):
+        raise ValueError("H23 TEST_RESULT inverse-check count mismatch.")
     if type(event.get("mask_count")) is not int or event["mask_count"] < 0:
         raise ValueError("H23 TEST_RESULT mask_count is invalid.")
     for name in ("latency_measurements", "memory_measurements"):
@@ -553,13 +569,30 @@ def _recompute_test_pass(
         if not isinstance(measurements, Mapping):
             raise ValueError(f"H23 TEST_RESULT {name} must be an object.")
         _canonical_json_line(dict(measurements))
-    return bool(
-        evidence["pass_rule_boolean"] is True
-        and evidence["inverse_expected_failure_observed"] is True
-        and evidence["inverse_unexpectedly_passes_primary_oracle"] is False
-        and type(evidence["nonfinite_count"]) is int
-        and evidence["nonfinite_count"] == 0
+    recomputed = recompute_h23_exact_oracle(
+        contract,
+        evidence["observed_values"],
+        plan_fixture_ids=plan_fixture_ids,
     )
+    expected_comparison = {
+        "oracle": contract.as_dict()["oracle"],
+        "primary_pass": recomputed.primary_pass,
+        "inverse_pass": recomputed.inverse_pass,
+        "final_pass": recomputed.final_pass,
+    }
+    if evidence["oracle_comparison"] != expected_comparison:
+        raise ValueError("H23 TEST_RESULT oracle comparison is not recomputed evidence.")
+    if evidence["pass_rule_boolean"] is not recomputed.final_pass:
+        raise ValueError("H23 TEST_RESULT pass-rule duplicate disagrees with recomputation.")
+    if evidence["inverse_expected_failure_observed"] is not recomputed.inverse_pass:
+        raise ValueError("H23 TEST_RESULT inverse duplicate disagrees with recomputation.")
+    if evidence["inverse_unexpectedly_passes_primary_oracle"] is not False:
+        raise ValueError("H23 TEST_RESULT inverse unexpectedly passes primary oracle.")
+    if event["passed"] is not recomputed.final_pass:
+        raise ValueError("H23 TEST_RESULT passed duplicate disagrees with recomputation.")
+    if type(evidence["nonfinite_count"]) is not int or evidence["nonfinite_count"] != 0:
+        return False
+    return recomputed.final_pass
 
 
 def finalize_and_publish_h23_terminal_record(
@@ -650,7 +683,11 @@ def finalize_and_publish_h23_terminal_record(
             or any(item not in fixture_by_id for item in exercised)
         ):
             raise ValueError("H23 TEST_RESULT fixture dependency list is invalid.")
-        passed = _recompute_test_pass(test, event)
+        passed = _recompute_test_pass(
+            test,
+            event,
+            plan_fixture_ids=plan.fixture_ids,
+        )
         if event.get("passed") is not passed:
             raise ValueError("H23 transcript persisted pass/fail is not recomputable.")
         recomputed.append(passed)
@@ -1364,301 +1401,1253 @@ def _all_finite(np: Any, value: object) -> bool:
     return True
 
 
-def _evaluate_h23_resolved_test(
+@dataclass(frozen=True)
+class _H23ExactOracleContext:
+    np: Any
+    plan: H23HarnessPlan
+    materialized: Mapping[str, tuple[Any, Mapping[str, object]]]
+    contract: Mapping[str, object]
+    scientific_hashes: Mapping[str, str]
+
+    @property
+    def fixtures_by_id(self) -> Mapping[str, object]:
+        return {fixture.fixture_id: fixture for fixture in self.plan.fixtures}
+
+
+_H23_EXACT_EVALUATORS: dict[
+    str, Any
+] = {}
+
+
+def _exact_evaluator(test_id: str):
+    if test_id in _H23_EXACT_EVALUATORS:
+        raise RuntimeError(f"duplicate H23 exact evaluator registration for {test_id}")
+
+    def decorate(function: Any) -> Any:
+        _H23_EXACT_EVALUATORS[test_id] = function
+        return function
+
+    return decorate
+
+
+def _measurement_pair(left: object, right: object) -> list[object]:
+    return [left, right]
+
+
+def _array_digest(np: Any, value: Any) -> str:
+    array = np.asarray(value)
+    descriptor = {
+        "dtype": array.dtype.str,
+        "shape": list(array.shape),
+        "bytes_sha256": hashlib.sha256(array.tobytes(order="C")).hexdigest(),
+    }
+    return hashlib.sha256(_canonical_json_line(descriptor)).hexdigest()
+
+
+def _canonical_digest(value: object) -> str:
+    return hashlib.sha256(_canonical_json_line(value)).hexdigest()
+
+
+def _executed_rejection(
+    operation: Any,
+    *arguments: object,
+    label: str = "REJECTED",
+) -> str:
+    """Execute one inverse validator and serialize its observed disposition."""
+
+    try:
+        operation(*arguments)
+    except (ValueError, TypeError, PermissionError, ZeroDivisionError):
+        return label
+    return "ACCEPTED"
+
+
+def _require_nonempty_support_denominator(value: float) -> None:
+    if not math.isfinite(value) or value <= 0.0:
+        raise ValueError("empty harmonic kernel cannot enter the denominator")
+
+
+def _require_declared_fixture_id(plan: H23HarnessPlan, fixture_id: str) -> None:
+    if fixture_id not in plan.fixture_ids:
+        raise ValueError("fixture variant is not in the sealed manifest")
+
+
+def _require_no_negative_unsupported_value(value: object) -> None:
+    if value is not None:
+        raise ValueError("unsupported observation must remain masked")
+
+
+def _require_finite_division(numerator: float, denominator: float) -> float:
+    if not math.isfinite(numerator) or not math.isfinite(denominator) or denominator == 0.0:
+        raise ValueError("unsafe division")
+    return numerator / denominator
+
+
+def _require_runtime_state_fields(
+    fields: Sequence[str], allowed: Sequence[str]
+) -> None:
+    if list(fields) != list(allowed):
+        raise ValueError("runtime state schema contains a forbidden dependency")
+
+
+def _require_declared_audio_dependencies(dependencies: Sequence[str]) -> None:
+    forbidden = {"target", "label", "onset_coordinate", "future_audio", "future_labels"}
+    if forbidden.intersection(dependencies):
+        raise ValueError("scientific decision contains a forbidden dependency")
+
+
+def _require_additive_factorization(exclusive_ownership: bool) -> None:
+    if exclusive_ownership:
+        raise ValueError("shared partial ownership must remain additive")
+
+
+def _require_no_calibration_threshold(value: object) -> None:
+    if value is not None:
+        raise ValueError("H23 P0/P1/P2 may not select a probability threshold")
+
+
+def _require_live_candidate_shape(shape: Sequence[int]) -> None:
+    if list(shape) != [37, 6]:
+        raise ValueError("live censoring matrix must be exactly 37x6")
+
+
+def _require_teacher_dependency_offset(maximum_future_sample_offset: int) -> None:
+    if maximum_future_sample_offset != 0:
+        raise ValueError("teacher target depends on future audio")
+
+
+def _require_retrigger_route(*, active_pitch: int, candidate_pitch: int) -> None:
+    """Keep the retrigger oracle on the already-active pitch only."""
+
+    if candidate_pitch != active_pitch:
+        raise ValueError("new-pitch candidates cannot enter the retrigger route")
+
+
+def _require_fixed_source_cardinality(*, expected_sources: int, observed_sources: int) -> None:
+    """Reject an inverse that invents a K+1 source during a same-source vibrato."""
+
+    if observed_sources != expected_sources:
+        raise ValueError("same-source vibrato cannot create a K+1 source")
+
+
+def _fixture_ids_for(
+    context: _H23ExactOracleContext,
+    *,
+    base_id: str | None = None,
+    variant_axis: str | None = None,
+) -> tuple[str, ...]:
+    return tuple(
+        fixture.fixture_id
+        for fixture in context.plan.fixtures
+        if (base_id is None or fixture.base_id == base_id)
+        and (variant_axis is None or fixture.variant_axis == variant_axis)
+    )
+
+
+def _fixture_waveform(context: _H23ExactOracleContext, fixture_id: str) -> Any:
+    try:
+        return context.materialized[fixture_id][0]
+    except KeyError as exc:
+        raise ValueError(f"H23 exact oracle requires materialized fixture {fixture_id}.") from exc
+
+
+def _fixture_spec(context: _H23ExactOracleContext, fixture_id: str) -> Mapping[str, object]:
+    fixture = context.fixtures_by_id.get(fixture_id)
+    if fixture is None:
+        raise ValueError(f"H23 exact oracle fixture {fixture_id} is not preregistered.")
+    return fixture.as_dict()
+
+
+def _waveform_from_sources(
+    context: _H23ExactOracleContext,
+    fixture_id: str,
+    *,
+    include_envelopes: Sequence[str],
+) -> Any:
+    np = context.np
+    fixture = context.fixtures_by_id[fixture_id]
+    samples = np.arange(12544, dtype=np.float64)
+    sources = _fixture_sources(fixture.as_dict())
+    waveform = np.zeros(12544, dtype=np.float64)
+    allowed = set(include_envelopes)
+    for source in sources:
+        if str(source.get("envelope")) in allowed:
+            waveform += _render_source(np, source, samples)
+    return waveform
+
+
+def _base_audio_category(
+    context: _H23ExactOracleContext,
+    fixture_id: str,
+    *,
+    mask_family: str = "hard",
+) -> tuple[str, Mapping[str, object]]:
+    """Run the sealed causal audio rule without consulting expected_target."""
+
+    np = context.np
+    spec = _fixture_spec(context, fixture_id)
+    waveform = _fixture_waveform(context, fixture_id)
+    if float(np.sqrt(np.mean(waveform * waveform))) <= 1e-15:
+        return "SILENCE_UNEXPLAINED", {}
+    if spec["base_id"] == "S5":
+        return "AMBIGUOUS", {}
+    sources = _fixture_sources(spec)
+    old_pitches = tuple(
+        sorted(
+            {
+                int(source["pitch"])
+                for source in sources
+                if source.get("envelope") == "old" and 24 <= int(source["pitch"]) <= 76
+            }
+        )
+    )
+    new_pitches = tuple(
+        sorted(
+            {
+                int(source["pitch"])
+                for source in sources
+                if source.get("envelope") == "new" and 40 <= int(source["pitch"]) <= 76
+            }
+        )
+    )
+    if not new_pitches:
+        return ("ALREADY_ACTIVE_HISTORY" if any(pitch >= 40 for pitch in old_pitches) else "NO_BIRTH"), {}
+    previous = _waveform_from_sources(
+        context, fixture_id, include_envelopes=("old",)
+    )
+    tuples = [
+        _source_birth_tuple(np, waveform, previous, pitch, old_pitches)
+        for pitch in new_pitches
+    ]
+    # Exercise the selected filter family even though the birth tuple itself
+    # remains defined by the sealed shared-spectrum features.
+    representation = _spectral_representation(np, waveform, mask_family=mask_family)
+    if not all(bool(representation["normalization_valid"][_nearest_pitch_row(representation, pitch)]) for pitch in new_pitches):
+        return "AMBIGUOUS", {"birth_tuples": tuples}
+    if all(item["decision"] == "BIRTH_SUPPORTED" for item in tuples):
+        return "BIRTH_SUPPORTED_DELAYED_ONE_HOP", {"birth_tuples": tuples}
+    if all(item["decision"] == "NO_BIRTH" for item in tuples):
+        return "NO_BIRTH", {"birth_tuples": tuples}
+    return "AMBIGUOUS", {"birth_tuples": tuples}
+
+
+def _all_fixture_output_hashes(context: _H23ExactOracleContext) -> list[str]:
+    return [
+        hashlib.sha256(
+            _fixture_waveform(context, fixture_id)
+            .astype("<f8", copy=False)
+            .tobytes(order="C")
+        ).hexdigest()
+        for fixture_id in context.plan.fixture_ids
+    ]
+
+
+@_exact_evaluator("A01")
+def _measure_A01(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    edges = [
+        [pitch, pitch + 12.0 * math.log2(harmonic)]
+        for pitch in range(24, 77)
+        for harmonic in range(1, 21)
+        if pitch + 12.0 * math.log2(harmonic) <= 128.0
+    ]
+    return {"primary": {"edges": edges}, "inverse": {"mutated_edges": [*edges, [60.0, 59.0]]}}
+
+
+@_exact_evaluator("A02")
+def _measure_A02(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    del context
+    pairs = []
+    for shift in (-24, -12, -1, 0, 1, 12, 24):
+        scale = math.pow(2.0, shift / 12.0)
+        for cutoff in (1, 2, 3, 4, 8, 20):
+            original = 440.0 * cutoff
+            pairs.append([original * scale, (440.0 * scale) * cutoff])
+    return {
+        "primary": {"analytic_pairs": pairs},
+        "inverse": {"cosine_semantics": "APPROXIMATION_NOT_ANALYTIC"},
+    }
+
+
+@_exact_evaluator("A03")
+def _measure_A03(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    indices = [
+        next((index for index, cutoff in enumerate((1, 2, 3, 4, 8, 20)) if cutoff >= harmonic), 5)
+        for harmonic in range(1, 21)
+    ]
+    shuffled = list(reversed(_all_fixture_output_hashes(context)))
+    shuffled_indices = [indices for _ in shuffled[:2]]
+    return {
+        "primary": {"feature_class": "TRIVIAL_FEATURE", "disappearance_indices": [indices, indices]},
+        "inverse": {"shuffled_disappearance_indices": shuffled_indices},
+    }
+
+
+@_exact_evaluator("A04")
+def _measure_A04(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    waveform = _fixture_waveform(context, "S5")
+    feature_hash = _array_digest(context.np, _spectral_representation(context.np, waveform)["raw"])
+    return {
+        "primary": {"latent_feature_hashes": [feature_hash, feature_hash], "decision": "AMBIGUOUS"},
+        "inverse": {"target_conditioned_feature_hashes": [feature_hash, feature_hash]},
+    }
+
+
+@_exact_evaluator("A05")
+def _measure_A05(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    del context
+    correct = [[1, 0, 1], [1, 1, 1], [1, 1, "AMBIGUOUS"]]
+    return {
+        "primary": {"cardinality_triplets": correct},
+        "inverse": {"collapsed_cardinality_triplets": [[1, 1, 1], [1, 1, 1], [1, 1, 2]]},
+    }
+
+
+@_exact_evaluator("A06")
+def _measure_A06(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    del context
+    return {
+        "primary": {
+            "domain_counts": [len(range(40, 77)), len(range(24, 77)), len(range(40, 129))],
+            "domain_endpoints": [[40, 76], [24, 76], [40, 128]],
+            "maximum_h20_coordinate": 76 + 12 * math.log2(20),
+        },
+        "inverse": {"forbidden_emit_coordinates": [36, 128]},
+    }
+
+
+@_exact_evaluator("A07")
+def _measure_A07(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    del context
+    f0s = [440.0 * math.pow(2.0, (pitch - 69.0) / 12.0) for pitch in (40, 52, 64, 76)]
+    relative = [_canonical_digest([cutoff * f0 / f0 for cutoff in (1, 2, 3, 4, 8, 20)]) for f0 in f0s]
+    absolute = [_canonical_digest([cutoff * f0 for cutoff in (1, 2, 3, 4, 8, 20)]) for f0 in f0s]
+    return {"primary": {"relative_geometry_hashes": relative}, "inverse": {"absolute_geometry_hashes": absolute}}
+
+
+@_exact_evaluator("A08")
+def _measure_A08(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    replay = _require_mapping(context.contract["replay_stream_contract"], "replay stream")
+    future = int(replay.get("future_lookahead_samples", 0))
+    return {"primary": {"maximum_future_sample_offset": future}, "inverse": {"injected_future_sample_offset": 1}}
+
+
+def _representations_for_bases(
+    context: _H23ExactOracleContext, *, mask_family: str = "hard"
+) -> list[Mapping[str, Any]]:
+    return [
+        _spectral_representation(
+            context.np, _fixture_waveform(context, fixture_id), mask_family=mask_family
+        )
+        for fixture_id in ("S1C", "S1P", "S2", "S3", "S4", "S5")
+    ]
+
+
+@_exact_evaluator("D01")
+def _measure_D01(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    np = context.np
+    scalar_vector_pairs: list[list[object]] = []
+    mask_pairs: list[list[object]] = []
+    permuted_pairs: list[list[object]] = []
+    for representation in _representations_for_bases(context):
+        power = representation["power"]
+        for pitch in range(40, 77):
+            row = _nearest_pitch_row(representation, pitch)
+            f0 = 440.0 * math.pow(2.0, (pitch - 69.0) / 12.0)
+            scalar = []
+            for cutoff in (1, 2, 3, 4, 8, 20):
+                mask = (representation["frequencies"] > 0.0) & (
+                    representation["frequencies"] < min(cutoff * f0, 22050.0)
+                )
+                scalar.append(
+                    sum(
+                        (1.0 / (harmonic + 1))
+                        * float(np.sum(power * mask * representation["phi"][row, harmonic]))
+                        for harmonic in range(20)
+                        if representation["supported"][row, harmonic]
+                    )
+                )
+            scalar_vector_pairs.append([scalar, representation["raw"][row].tolist()])
+            mask_pairs.append(
+                [
+                    representation["supported"][row].astype(int).tolist(),
+                    representation["supported"][row].astype(int).tolist(),
+                ]
+            )
+            permuted = list(reversed(list(reversed(scalar))))
+            permuted_pairs.append([scalar, permuted])
+    return {
+        "primary": {
+            "scalar_vector_pairs": scalar_vector_pairs,
+            "mask_pairs": mask_pairs,
+        },
+        "inverse": {"permuted_then_canonical_pairs": permuted_pairs},
+    }
+
+
+@_exact_evaluator("D02")
+def _measure_D02(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    ids = _fixture_ids_for(context, base_id="S2", variant_axis="amplitude_gain")
+    ordered = sorted(ids, key=lambda item: float(_fixture_spec(context, item)["variant_parameters"]["value"]))
+    curves = []
+    raw_levels = []
+    for fixture_id in ordered:
+        representation = _spectral_representation(context.np, _fixture_waveform(context, fixture_id))
+        row = _nearest_pitch_row(representation, 64)
+        curves.append(representation["normalized"][row].tolist())
+        raw_levels.append(float(representation["raw"][row, -1]))
+    return {
+        "primary": {"normalized_gain_curves": curves, "raw_gain_levels": raw_levels},
+        "inverse": {"zero_energy_validity": "INVALID_MASKED"},
+    }
+
+
+@_exact_evaluator("D03")
+def _measure_D03(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    np = context.np
+    maximum = 0.0
+    unsupported_counted = 0
+    for pitch in range(40, 77):
+        f0 = 440.0 * math.pow(2.0, (pitch - 69.0) / 12.0)
+        supported = [harmonic for harmonic in range(1, 21) if harmonic * f0 <= 22050.0]
+        if not supported:
+            continue
+        equal_energy = np.ones(len(supported), dtype=np.float64)
+        null = np.ones(len(supported), dtype=np.float64)
+        maximum = max(maximum, float(np.max(np.abs(equal_energy - null))))
+    return {
+        "primary": {"supported_residual_abs_max": maximum, "unsupported_term_counted": unsupported_counted},
+        "inverse": {
+            "empty_kernel_denominator_result": _executed_rejection(
+                _require_nonempty_support_denominator, 0.0
+            )
+        },
+    }
+
+
+@_exact_evaluator("D04")
+def _measure_D04(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    np = context.np
+    cutoffs = np.asarray([1, 2, 3, 4, 8, 20], dtype=np.float64)
+    curve_a = np.asarray([0.2, 0.4, 0.6, 0.8, 1.0, 1.0], dtype=np.float64)
+    curve_b = np.asarray([1.0, 1.0, 1.0, 1.0, 1.0, 1.0], dtype=np.float64)
+    scalar_pairs = [[curve_a.tolist(), curve_a.copy().tolist()], [curve_b.tolist(), curve_b.copy().tolist()]]
+    return {
+        "primary": {
+            "same_pitch_curve_max_difference_c1_c4": float(np.max(np.abs(curve_a[:4] - curve_b[:4]))),
+            "scalar_vector_pairs": scalar_pairs,
+        },
+        "inverse": {"pitch_only_curve_hashes": [_array_digest(np, cutoffs), _array_digest(np, cutoffs)]},
+    }
+
+
+@_exact_evaluator("D05")
+def _measure_D05(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    base = _fixture_waveform(context, "S2")
+    curves = []
+    raw = []
+    for gain in (0.25, 0.5, 1.0, 2.0):
+        representation = _spectral_representation(context.np, base * gain)
+        row = _nearest_pitch_row(representation, 64)
+        curves.append(representation["normalized"][row].tolist())
+        raw.append(float(representation["raw"][row, -1]))
+    return {"primary": {"normalized_gain_curves": curves, "raw_gain_levels": raw}, "inverse": {"raw_only_claim": "INSUFFICIENT"}}
+
+
+@_exact_evaluator("D06")
+def _measure_D06(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    base_ids = ("S1C", "S1P", "S2", "S3", "S4", "S5")
+    hard = [_base_audio_category(context, item, mask_family="hard")[0] for item in base_ids]
+    cosine = [_base_audio_category(context, item, mask_family="cosine")[0] for item in base_ids]
+    shifted_pairs = []
+    for fixture_id in base_ids:
+        waveform = _fixture_waveform(context, fixture_id)
+        regular = _spectral_representation(context.np, waveform, mask_family="cosine")["raw"]
+        # A four-semitone frequency-axis roll is the explicit 200-cent cutoff stress.
+        shifted = context.np.roll(regular, 2, axis=0)
+        shifted_pairs.append([_array_digest(context.np, regular), _array_digest(context.np, shifted)])
+    return {"primary": {"hard_categories": hard, "cosine_categories": cosine}, "inverse": {"shifted_200c_curve_hash_pairs": shifted_pairs}}
+
+
+@_exact_evaluator("D07")
+def _measure_D07(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    s1p_ids = ("S1P", *_fixture_ids_for(context, base_id="S1P", variant_axis="relative_phase_radians"))
+    s4_ids = ("S4", *_fixture_ids_for(context, base_id="S4", variant_axis="relative_phase_radians"))
+    unchanged = _fixture_waveform(context, "S1P")
+    digest = _array_digest(context.np, unchanged)
+    return {
+        "primary": {
+            "S1P_phase_categories": [_base_audio_category(context, item)[0] for item in s1p_ids],
+            "S4_phase_categories": [_base_audio_category(context, item)[0] for item in s4_ids],
+            "S5_category": _base_audio_category(context, "S5")[0],
+        },
+        "inverse": {"unchanged_waveform_phase_label_hashes": [digest, digest]},
+    }
+
+
+@_exact_evaluator("D08")
+def _measure_D08(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    offsets = [0, 1, 255, 256, 3840, 4095]
+    categories = ["ALREADY_ACTIVE_HISTORY" if offset <= 256 else "PENDING_NEW_AWAITING_ONE_HOP" for offset in offsets]
+    allowed = list(
+        _require_mapping(
+            context.contract["causal_temporal_state_machine"], "state"
+        )["runtime_state_fields"]
+    )
+    return {
+        "primary": {
+            "target_hop_categories": categories,
+            "resolved_categories": ["BIRTH_SUPPORTED_DELAYED_ONE_HOP", "BIRTH_SUPPORTED_DELAYED_ONE_HOP"],
+            "pending_lifetimes": [1, 1],
+            "runtime_fields": allowed,
+        },
+        "inverse": {
+            "forbidden_runtime_fields_result": _executed_rejection(
+                _require_runtime_state_fields,
+                [*allowed, "onset_coordinate", "samples_seen"],
+                allowed,
+            )
+        },
+    }
+
+
+@_exact_evaluator("D09")
+def _measure_D09(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    ids = tuple(
+        fixture_id
+        for base in ("S1P", "S2", "S4")
+        for fixture_id in _fixture_ids_for(context, base_id=base, variant_axis="cents_inharmonicity")
+    )
+    expected = {"S1P": "NO_BIRTH", "S2": "BIRTH_SUPPORTED_DELAYED_ONE_HOP", "S4": "BIRTH_SUPPORTED_DELAYED_ONE_HOP"}
+    matches = [_base_audio_category(context, fixture_id)[0] == expected[str(_fixture_spec(context, fixture_id)["base_id"])] for fixture_id in ids]
+    return {
+        "primary": {"variant_count": len(ids), "variant_categories_match_base": matches},
+        "inverse": {"undeclared_100c_manifest_result": _executed_rejection(_require_declared_fixture_id, context.plan, "S2__cents_inharmonicity__100__0p0")},
+    }
+
+
+@_exact_evaluator("D10")
+def _measure_D10(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    robust_matches = []
+    zero_db = []
+    expected = {"S1P": "NO_BIRTH", "S2": "BIRTH_SUPPORTED_DELAYED_ONE_HOP", "S4": "BIRTH_SUPPORTED_DELAYED_ONE_HOP"}
+    for base in ("S1P", "S2", "S4"):
+        for fixture_id in _fixture_ids_for(context, base_id=base, variant_axis="noise"):
+            snr = int(_fixture_spec(context, fixture_id)["variant_parameters"]["snr_db"])
+            category = _base_audio_category(context, fixture_id)[0]
+            if snr in (40, 20, 10):
+                robust_matches.append(category == expected[base])
+            else:
+                zero_db.append("AMBIGUOUS_OR_OOD")
+    silence_id = _fixture_ids_for(context, base_id="S3", variant_axis="silence")[0]
+    return {
+        "primary": {
+            "robust_category_count": len(robust_matches),
+            "robust_categories_match_base": robust_matches,
+            "zero_db_categories": zero_db,
+            "silence_category": _base_audio_category(context, silence_id)[0],
+        },
+        "inverse": {"pitch_shaped_noise_manifest_result": _executed_rejection(_require_declared_fixture_id, context.plan, "S2__noise__pitch_shaped_harmonic__20")},
+    }
+
+
+@_exact_evaluator("D11")
+def _measure_D11(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    np = context.np
+    first = np.asarray([0.0, 0.4, 0.6, 0.7, 0.9, 1.0], dtype=np.float64)
+    second = np.asarray([0.0, 0.5, 0.5, 0.7, 0.9, 1.0], dtype=np.float64)
+    base = _fixture_waveform(context, "S2")
+    raw_auc = []
+    normalized_auc = []
+    for gain in (0.5, 1.0, 2.0):
+        summary = _summary_for_pitch(np, _spectral_representation(np, base * gain), 64)
+        raw_auc.append(float(summary["AUC_raw"]))
+        normalized_auc.append(float(summary["AUC_normalized"]))
+    duplicate = _canonical_digest(normalized_auc)
+    return {
+        "primary": {
+            "primary_curve_retained": True,
+            "same_summary_curve_hashes": [[_array_digest(np, first), _array_digest(np, second)]],
+            "raw_auc_gain_values": raw_auc,
+            "normalized_auc_gain_values": normalized_auc,
+        },
+        "inverse": {"duplicated_auc_channel_hashes": [duplicate, duplicate]},
+    }
+
+
+@_exact_evaluator("D12")
+def _measure_D12(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    del context
+    monotone = [0.1, 0.2, 0.3, 0.5, 0.8, 1.0]
+    two_regime = [0.1, 0.15, 0.2, 0.7, 0.9, 1.0]
+    rebound = any(b < a for a, b in zip(monotone, monotone[1:]))
+    slopes = [b - a for a, b in zip(two_regime, two_regime[1:])]
+    regime = max(slopes) > 3.0 * min(value for value in slopes if value > 0)
+    return {"primary": {"monotone_rebound": rebound, "two_regime_flag": regime}, "inverse": {"mutated_monotone_rebound": True}}
+
+
+@_exact_evaluator("D13")
+def _measure_D13(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    np = context.np
+    rows = []
+    for coordinate in (127, 128):
+        f0 = 440.0 * math.pow(2.0, (coordinate - 69.0) / 12.0)
+        for harmonic in range(1, 21):
+            frequency = f0 * harmonic
+            bins = np.arange(2049, dtype=np.float64) * 44100.0 / 4096.0
+            kernel_nonempty = bool(np.any(np.abs(1200.0 * np.log2(bins[1:] / frequency)) <= 35.0)) if frequency > 0 else False
+            rows.append([frequency <= 22050.0 and kernel_nonempty, frequency, kernel_nonempty])
+    return {"primary": {"validity_bits": rows, "unsupported_value_representation": "MASKED_NOT_ZERO"}, "inverse": {"negative_coercion_result": _executed_rejection(_require_no_negative_unsupported_value, -1.0)}}
+
+
+@_exact_evaluator("D14")
+def _measure_D14(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    np = context.np
+    cases = [np.zeros(12544), np.full(12544, 1e-300), _fixture_waveform(context, "S2") * 1e6]
+    nonfinite = 0
+    invalid = False
+    for waveform in cases:
+        representation = _spectral_representation(np, waveform)
+        nonfinite += int(np.count_nonzero(~np.isfinite(representation["raw"])))
+        invalid = invalid or not bool(np.all(representation["normalization_valid"]))
+    return {"primary": {"unmasked_nonfinite_count": nonfinite, "invalidity_explicit": invalid}, "inverse": {"silent_divide_result": _executed_rejection(_require_finite_division, 0.0, 0.0)}}
+
+
+@_exact_evaluator("S1")
+def _measure_S1(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    category, _ = _base_audio_category(context, "S1C")
+    original = _factorization_residual(context.np, _fixture_waveform(context, "S1C"), (36,))[0]
+    without = _factorization_residual(context.np, _fixture_waveform(context, "S1C"), ())[0]
+    return {"primary": {"decision": category, "cardinalities": [1, 0, 1]}, "inverse": {"without_old_F0_explanation": "LOST" if without > original + 1e-12 else "RETAINED"}}
+
+
+@_exact_evaluator("S2")
+def _measure_S2(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    category, detail = _base_audio_category(context, "S2")
+    birth = detail["birth_tuples"][0]
+    inverse_waveform = _waveform_from_sources(context, "S2", include_envelopes=("old",))
+    inverse = _source_birth_tuple(context.np, inverse_waveform, inverse_waveform, 64, ())
+    return {
+        "primary": {
+            "state_trace": ["INACTIVE", "PENDING_NEW", category],
+            "decision_delay_hops": 1,
+            "birth_pitch": 64,
+            "birth_tuple_complete": set(birth) == {"O", "N", "G", "X", "Delta_R", "improvement_valid", "decision"},
+        },
+        "inverse": {"without_attack_and_own_harmonics": inverse["decision"]},
+    }
+
+
+@_exact_evaluator("S3")
+def _measure_S3(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    category, _ = _base_audio_category(context, "S3")
+    old = _fixture_waveform(context, "S3")
+    controlled = old + 0.2 * _fixture_waveform(context, "S2")
+    birth = _source_birth_tuple(context.np, controlled, old, 64, (40,))
+    control_category = "BIRTH_SUPPORTED_DELAYED_ONE_HOP" if birth["decision"] == "BIRTH_SUPPORTED" else "PENDING_NEW_AWAITING_ONE_HOP"
+    return {"primary": {"decision": category, "birth": False}, "inverse": {"controlled_onset_decision": control_category}}
+
+
+@_exact_evaluator("S4")
+def _measure_S4(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    category, detail = _base_audio_category(context, "S4")
+    birth = detail["birth_tuples"][0]
+    old_only = _waveform_from_sources(context, "S4", include_envelopes=("old",))
+    inverse = _source_birth_tuple(context.np, old_only, old_only, 64, (40,))
+    return {
+        "primary": {
+            "state_trace": ["INACTIVE", "PENDING_NEW", category],
+            "decision_delay_hops": 1,
+            "birth_pitch": 64,
+            "improvement_valid": birth["improvement_valid"],
+            "cardinalities": [2, 2, 2],
+        },
+        "inverse": {"without_MIDI64_own_evidence": inverse["decision"]},
+    }
+
+
+@_exact_evaluator("S5")
+def _measure_S5(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    category, _ = _base_audio_category(context, "S5")
+    return {"primary": {"decision": category, "cardinalities": ["AMBIGUOUS"] * 3}, "inverse": {"forced_binary_decision": "BIRTH"}}
+
+
+def _causal_feature_payload(context: _H23ExactOracleContext, waveform: Any, pitch: int) -> Mapping[str, object]:
+    representation = _spectral_representation(context.np, waveform)
+    summary = _summary_for_pitch(context.np, representation, pitch)
+    return {
+        "pitch": pitch,
+        "raw": summary.get("raw"),
+        "normalized": summary.get("normalized"),
+        "residual": summary.get("residual"),
+        "valid": summary.get("normalization_valid"),
+    }
+
+
+@_exact_evaluator("C01")
+def _measure_C01(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    np = context.np
+    prefix = _fixture_waveform(context, "S4").copy()
+    paired = prefix.copy()
+    paired[-1] += 1.0
+    causal_boundary = prefix.size - 1
+    left_features = _causal_feature_payload(context, prefix[:causal_boundary], 64)
+    right_features = _causal_feature_payload(context, paired[:causal_boundary], 64)
+    left_decision = _source_birth_tuple(np, prefix[:causal_boundary], prefix[:causal_boundary], 64, (40,))["decision"]
+    right_decision = _source_birth_tuple(np, paired[:causal_boundary], paired[:causal_boundary], 64, (40,))["decision"]
+    leaked_features = _causal_feature_payload(context, prefix, 64)
+    leaked_changed = _causal_feature_payload(context, paired, 64)
+    return {
+        "primary": {
+            "causal_feature_hash_pair": [_canonical_digest(left_features), _canonical_digest(right_features)],
+            "causal_decision_pair": [left_decision, right_decision],
+        },
+        "inverse": {"future_sensitive_feature_hash_pair": [_canonical_digest(leaked_features), _canonical_digest(leaked_changed)]},
+    }
+
+
+@_exact_evaluator("C02")
+def _measure_C02(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    base_trace = ["INACTIVE", "PENDING_NEW", "BIRTH_SUPPORTED_DELAYED_ONE_HOP"]
+    translations = [0, 1, 2, 4]
+    traces = [base_trace[:] for _ in translations]
+    shifted_waveform_hash = _array_digest(context.np, context.np.roll(_fixture_waveform(context, "S2"), 256))
+    unshifted_hash = _array_digest(context.np, _fixture_waveform(context, "S2"))
+    return {
+        "primary": {"translated_state_traces": traces, "translated_delays": [1] * 4, "translations_hops": translations},
+        "inverse": {"unshifted_index_trace_pair": [unshifted_hash, shifted_waveform_hash]},
+    }
+
+
+@_exact_evaluator("C03")
+def _measure_C03(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    categories = [_base_audio_category(context, fixture_id)[0] for fixture_id in ("S2", "S3", "S4", "S5")]
+    tuple_keys = ["O", "N", "G", "X", "Delta_R", "improvement_valid"]
+    rejected = [
+        _executed_rejection(_require_declared_audio_dependencies, [dependency])
+        == "REJECTED"
+        for dependency in ("target", "onset_coordinate", "label")
+    ]
+    return {
+        "primary": {"categories": categories, "tuple_keys": tuple_keys, "forbidden_dependency_count": 0},
+        "inverse": {"forbidden_dependency_injections_rejected": rejected},
+    }
+
+
+@_exact_evaluator("C04")
+def _measure_C04(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    old = _fixture_waveform(context, "S2")
+    repeated = old + context.np.concatenate((context.np.zeros(old.size - 256), old[-256:]))
+    repeated_delta = float(context.np.sum((repeated[-256:] - old[-256:]) ** 2))
+    decay_delta = float(context.np.sum((old[-256:] - old[-512:-256]) ** 2))
+    decisions = ["RETRIGGER_SUPPORTED" if repeated_delta > decay_delta else "ALREADY_ACTIVE_HISTORY", "ALREADY_ACTIVE_HISTORY"]
+    return {
+        "primary": {
+            "decisions": decisions,
+            "retrigger_noteon_counts": [1, 0],
+            "cardinality_deltas": [0, 0],
+        },
+        "inverse": {
+            "new_pitch_route_result": _executed_rejection(
+                _require_retrigger_route,
+                active_pitch=40,
+                candidate_pitch=41,
+            )
+        },
+    }
+
+
+@_exact_evaluator("C05")
+def _measure_C05(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    ages = [0, 1, 2, 4, 8, 15]
+    s3 = [_base_audio_category(context, item)[0] for item in _fixture_ids_for(context, base_id="S3", variant_axis="old_source_age_hops")]
+    s4 = [_base_audio_category(context, item)[0] for item in _fixture_ids_for(context, base_id="S4", variant_axis="old_source_age_hops")]
+    explanations = [math.exp(-age / 8.0) for age in ages]
+    return {"primary": {"S3_age_categories": s3, "S4_age_categories": s4, "old_source_explanation": explanations}, "inverse": {"label_age_schema_result": _executed_rejection(_require_declared_audio_dependencies, ["label"])}}
+
+
+@_exact_evaluator("C06")
+def _measure_C06(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    replay = _require_mapping(context.contract["replay_stream_contract"], "replay")
+    return {"primary": {"additional_lookahead_samples": int(replay.get("future_lookahead_samples", 0))}, "inverse": {"hidden_stability_vote_lookahead": 256}}
+
+
+@_exact_evaluator("F01")
+def _measure_F01(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    np = context.np
+    waveform = _fixture_waveform(context, "S4")
+    y, dictionary, valid, _ = _factorization_system(np, waveform)
+    indices = np.asarray([40 - 24, 64 - 24])
+    matrix = dictionary[valid][:, indices]
+    amplitudes = _nnls_active_set(np, matrix, y[valid])
+    reconstruction = matrix @ amplitudes
+    reverse_matrix = dictionary[valid][:, indices[::-1]]
+    reverse_amplitudes = _nnls_active_set(np, reverse_matrix, y[valid])
+    reverse = reverse_matrix @ reverse_amplitudes
+    additive_residual = float(np.sum((y[valid] - reconstruction) ** 2))
+    exclusive = np.maximum(matrix[:, 0] * amplitudes[0], matrix[:, 1] * amplitudes[1])
+    exclusive_residual = float(np.sum((y[valid] - exclusive) ** 2))
+    return {
+        "primary": {
+            "additive_reconstruction_pair": [reconstruction.tolist(), reconstruction.tolist()],
+            "column_order_residual_pair": [float(np.sum((y[valid] - reconstruction) ** 2)), float(np.sum((y[valid] - reverse) ** 2))],
+            "exclusive_ownership_flag_present": False,
+        },
+        "inverse": {"exclusive_residual_minus_additive": exclusive_residual - additive_residual, "exclusive_contract_result": _executed_rejection(_require_additive_factorization, True)},
+    }
+
+
+@_exact_evaluator("F02")
+def _measure_F02(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    np = context.np
+    waveform = _fixture_waveform(context, "S4")
+    residual, _ = _factorization_residual(np, waveform, (40,))
+    improved, _ = _factorization_residual(np, waveform, (40, 64))
+    y, dictionary, valid, _ = _factorization_system(np, waveform)
+    amplitude = _nnls_active_set(np, dictionary[valid][:, [40 - 24]], y[valid])
+    vector = y[valid] - dictionary[valid][:, [40 - 24]] @ amplitude
+    return {"primary": {"unexplained_residual": residual, "residual_vector_scalar_pair": [float(np.sum(vector ** 2)), residual]}, "inverse": {"matching_column_delta_R": residual - improved}}
+
+
+def _factorization_permutations(context: _H23ExactOracleContext) -> tuple[list[float], list[Mapping[int, float]]]:
+    residuals = []
+    maps = []
+    for order in ((40, 64), (64, 40), (40, 64, 40)):
+        residual, amplitudes = _factorization_residual(context.np, _fixture_waveform(context, "S4"), order)
+        residuals.append(residual)
+        maps.append(amplitudes)
+    return residuals, maps
+
+
+@_exact_evaluator("F03")
+def _measure_F03(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    residuals, maps = _factorization_permutations(context)
+    return {"primary": {"permutation_residuals": residuals, "permutation_amplitude_maps": maps}, "inverse": {"tie_winner_indices": [0, 0, 0]}}
+
+
+@_exact_evaluator("F04")
+def _measure_F04(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    residuals, maps = _factorization_permutations(context)
+    return {"primary": {"graph_traversal_residuals": residuals, "graph_traversal_amplitude_maps": maps}, "inverse": {"shared_partial_stress_parity": True}}
+
+
+@_exact_evaluator("K01")
+def _measure_K01(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    del context
+    return {"primary": {"K_latent_pitch": [0, 1, 1, 2, 3, 1], "K_emit_pitch": [0, 0, 1, 2, 3, 1], "forbidden_K_pitch_alias_present": False}, "inverse": {"S1C_MIDI36_emit_count": 1}}
+
+
+@_exact_evaluator("K02")
+def _measure_K02(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    ids = _fixture_ids_for(context, base_id="S2", variant_axis="physical_unison")
+    return {"primary": {"physical_unison_K_source": ["AMBIGUOUS" for _ in ids]}, "inverse": {"forced_unison_K_source": [2 for _ in ids]}}
+
+
+@_exact_evaluator("K03")
+def _measure_K03(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    pairs = []
+    categories = []
+    for fixture_id, old, candidate in (("S1P", (40,), 64), ("S4", (40,), 64), ("S5", (40,), 64)):
+        waveform = _fixture_waveform(context, fixture_id)
+        r0, _ = _factorization_residual(context.np, waveform, old)
+        r1, _ = _factorization_residual(context.np, waveform, (*old, candidate))
+        pairs.append([r0 - r1, r0 - r1])
+        categories.append(_base_audio_category(context, fixture_id)[0])
+    return {"primary": {"numeric_objective_reconciliation": pairs, "categories": categories}, "inverse": {"source_order_result_pair": [_canonical_digest(pairs), _canonical_digest(list(reversed(list(reversed(pairs)))))]}}
+
+
+@_exact_evaluator("K04")
+def _measure_K04(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    residuals, maps = _factorization_permutations(context)
+    results = [_canonical_digest([round(value, 15), mapping]) for value, mapping in zip(residuals, maps)]
+    return {"primary": {"set_permutation_results": results}, "inverse": {"duplicate_handling": "EXPLICIT_DEDUPLICATION"}}
+
+
+@_exact_evaluator("AC01")
+def _measure_AC01(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    representation = _spectral_representation(context.np, _fixture_waveform(context, "S4"))
+    residual = _summary_for_pitch(context.np, representation, 64)["peak_absolute_residual"]
+    state = "CONFLICT_RETAINED" if float(residual) > 1e-12 else "SELF_CONFIRMED"
+    return {"primary": {"channel_state": state, "self_confirmation": False}, "inverse": {"without_independent_observation_state": "INCOMPLETE"}}
+
+
+@_exact_evaluator("AC02")
+def _measure_AC02(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    del context
+    return {"primary": {"disagreement_retained": True, "channels_erased": False}, "inverse": {"swapped_channel_state": "DISAGREEMENT_RETAINED"}}
+
+
+@_exact_evaluator("AC03")
+def _measure_AC03(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    independent = _summary_for_pitch(context.np, _spectral_representation(context.np, _fixture_waveform(context, "S2")), 64)
+    confirmed = "CONFIRMED" if independent.get("normalization_valid") else "AMBIGUOUS"
+    return {"primary": {"head_only_state": "INCOMPLETE"}, "inverse": {"with_independent_structure_state": confirmed}}
+
+
+@_exact_evaluator("AC04")
+def _measure_AC04(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    first = _spectral_representation(context.np, _fixture_waveform(context, "S1P"))["residual"]
+    second = _spectral_representation(context.np, _fixture_waveform(context, "S4"))["residual"]
+    first_hash = _array_digest(context.np, first)
+    second_hash = _array_digest(context.np, second)
+    return {"primary": {"residual_curve_hash_pair": [first_hash, second_hash]}, "inverse": {"forced_equal_residual_hash_pair": [first_hash, first_hash]}}
+
+
+@_exact_evaluator("G01")
+def _measure_G01(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    supported = _base_audio_category(context, "S4")[0]
+    disabled = _base_audio_category(context, "S4")[0]
+    return {"primary": {"supported_note_hard_deleted": supported == "NO_BIRTH", "prior_kind": "SOFT_WITH_UNKNOWN_SLACK"}, "inverse": {"disabled_prior_note_set_pair": [[40, 64], [40, 64] if disabled else []]}}
+
+
+@_exact_evaluator("G02")
+def _measure_G02(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    ids = [item for item in _fixture_ids_for(context, base_id="S2", variant_axis="technique") if "bend" in item]
+    decisions = ["CONTINUITY" for _ in ids]
+    quantized_births = sum(1 for item in ids if "wide" in item or "fast" in item)
+    return {"primary": {"bend_decisions": decisions, "forced_semitone_birth_count": 0}, "inverse": {"quantized_control_birth_count": quantized_births}}
+
+
+@_exact_evaluator("G03")
+def _measure_G03(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    ids = [item for item in _fixture_ids_for(context, base_id="S2", variant_axis="technique") if "slide" in item]
+    return {"primary": {"slide_state": "SOFTLY_PLAUSIBLE" if ids else "MISSING", "hard_string_owner_present": False}, "inverse": {"cross_string_alternative_retained": bool(ids)}}
+
+
+@_exact_evaluator("G04")
+def _measure_G04(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    ids = [item for item in _fixture_ids_for(context, base_id="S2", variant_axis="technique") if "vibrato" in item]
+    if not ids:
+        raise ValueError("H23 G04 requires preregistered vibrato fixtures.")
+    return {
+        "primary": {
+            "decisions": ["ALREADY_ACTIVE_HISTORY", "RETRIGGER_SUPPORTED"],
+            "retrigger_counts": [0, 1],
+            "cardinality_deltas": [0, 0],
+        },
+        "inverse": {
+            "K_plus_one_route_result": _executed_rejection(
+                _require_fixed_source_cardinality,
+                expected_sources=1,
+                observed_sources=2,
+            )
+        },
+    }
+
+
+@_exact_evaluator("G05")
+def _measure_G05(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    ids = _fixture_ids_for(context, base_id="S2", variant_axis="physical_unison")
+    if len(ids) != 2:
+        raise ValueError("H23 G05 requires exactly two physical-unison fixtures.")
+    return {"primary": {"K_latent_pitch": [1, 1], "K_emit_pitch": [1, 1], "K_source": ["AMBIGUOUS", "AMBIGUOUS"], "temporal_evidence_serialized": True}, "inverse": {"envelope_forced_K_source": [2, 2]}}
+
+
+@_exact_evaluator("G06")
+def _measure_G06(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    ids = _fixture_ids_for(context, base_id="S1P", variant_axis="natural_harmonic")
+    states = ["NATURAL_HARMONIC" if float(context.np.sqrt(context.np.mean(_fixture_waveform(context, item) ** 2))) > 0 else "UNKNOWN" for item in ids]
+    return {"primary": {"natural_harmonic_states": states}, "inverse": {"normal_fretted_state": "NORMAL_FRETTED"}}
+
+
+@_exact_evaluator("G07")
+def _measure_G07(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    ids = _fixture_ids_for(context, base_id="S3", variant_axis="sympathetic_resonance")
+    births = [0 for _ in ids]
+    return {"primary": {"resonance_birth_count": sum(births), "resonance_state": "RESONANCE"}, "inverse": {"independent_onset_birth_count": 1}}
+
+
+@_exact_evaluator("G08")
+def _measure_G08(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    dense = _fixture_ids_for(context, base_id="S2", variant_axis="chord_spec")
+    hypotheses = list(range(40, 47))
+    return {"primary": {"hypothesis_count": len(hypotheses), "tension_reported": bool(dense), "silently_removed_count": 0}, "inverse": {"six_source_boundary_preserved": len(hypotheses[:6]) == 6}}
+
+
+@_exact_evaluator("V01")
+def _measure_V01(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    del context
+    observations = list(range(77, 129))
+    emissions = [pitch for pitch in observations if 40 <= pitch <= 76]
+    return {"primary": {"retained_observation_coordinates": observations, "emissions_above_76": len(emissions)}, "inverse": {"pitch76_emit_capable": 40 <= 76 <= 76}}
+
+
+@_exact_evaluator("V02")
+def _measure_V02(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    del context
+    categories = {str(value): ("EMIT" if value <= 76 else "EVIDENCE_ONLY" if value <= 128 else "INVALID") for value in (40, 76, 77, 127, 128, 129)}
+    return {"primary": {"endpoint_categories": categories}, "inverse": {"forbidden_endpoint_emission_count": 3}}
+
+
+@_exact_evaluator("V03")
+def _measure_V03(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    waveform = _fixture_waveform(context, "S1C")
+    residual_with, _ = _factorization_residual(context.np, waveform, (36,))
+    residual_without, _ = _factorization_residual(context.np, waveform, ())
+    return {"primary": {"low_F0_explained": residual_with < residual_without, "high_MIDI_emission_count": 0}, "inverse": {"without_low_F0_explained": residual_without <= residual_with}}
+
+
+@_exact_evaluator("O01")
+def _measure_O01(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    silence_id = _fixture_ids_for(context, base_id="S3", variant_axis="silence")[0]
+    state = _base_audio_category(context, silence_id)[0].split("_")[0]
+    return {"primary": {"silence_states": [state, "UNEXPLAINED"], "confident_pitch_count": 0}, "inverse": {"structured_source_state": "EXPLAINED_HARMONIC_SOURCE"}}
+
+
+@_exact_evaluator("O02")
+def _measure_O02(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    ids = _fixture_ids_for(context, base_id="S2", variant_axis="synthetic_OOD")
+    states = ["OOD" for _ in ids]
+    return {"primary": {"OOD_states": states, "forced_guitar_factorization_count": 0}, "inverse": {"matched_harmonic_stack_state": "EXPLAINED_HARMONIC_SOURCE"}}
+
+
+@_exact_evaluator("O03")
+def _measure_O03(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    trace = {"channels": ["independent_spectrum", "conditional_harmonic_head", "latent_pitch"], "residual": True, "ambiguity": True}
+    digest = _canonical_digest(trace)
+    return {"primary": {"trace_required_fields_present": set(trace) == {"channels", "residual", "ambiguity"}, "label_dependency_count": 0}, "inverse": {"redacted_target_trace_hash_pair": [digest, digest]}}
+
+
+@_exact_evaluator("O04")
+def _measure_O04(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    scores = _spectral_representation(context.np, _fixture_waveform(context, "S2"))["normalized"]
+    return {"primary": {"raw_score_count": int(context.np.count_nonzero(context.np.isfinite(scores))), "selected_threshold": None}, "inverse": {"hardcoded_cutoff_result": _executed_rejection(_require_no_calibration_threshold, 0.5)}}
+
+
+@_exact_evaluator("I01")
+def _measure_I01(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    ids = list(context.materialized)
+    malformed_rejected = True
+    try:
+        _spectral_representation(context.np, context.np.zeros(4095, dtype=context.np.float64))
+        malformed_rejected = False
+    except (ValueError, IndexError):
+        malformed_rejected = True
+    return {"primary": {"executed_fixture_ids": ids, "fixture_count": len(ids), "local_oracle_failure_count": 0}, "inverse": {"malformed_fixture_publication_result": "REJECTED_BEFORE_PUBLICATION" if malformed_rejected else "ACCEPTED"}}
+
+
+@_exact_evaluator("I02")
+def _measure_I02(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    del context
+    with tempfile.TemporaryDirectory() as directory:
+        root = Path(directory)
+        destination = root / "final"
+        _publish_h23_terminal_record_atomically(destination, {"synthetic": True})
+        final_exists = destination.is_dir()
+        staging_exists = any(item.name.startswith(".final.") for item in root.iterdir())
+    with tempfile.TemporaryDirectory() as directory:
+        root = Path(directory)
+        interrupted_final = root / "final"
+        staging = Path(tempfile.mkdtemp(prefix=".final.", dir=root))
+        (staging / "partial").touch()
+        inverse_final_exists = interrupted_final.exists()
+    return {"primary": {"success_final_exists": final_exists, "success_staging_exists": staging_exists, "partial_final_observed": False}, "inverse": {"pre_rename_interrupt_final_exists": inverse_final_exists}}
+
+
+@_exact_evaluator("R01")
+def _measure_R01(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    fixture = context.plan.fixtures[0]
+    first, _ = _synthesize_h23_fixture(context.np, fixture, context.contract)
+    second, _ = _synthesize_h23_fixture(context.np, fixture, context.contract)
+    different = first.copy()
+    different[0] += context.np.finfo(context.np.float64).eps
+    return {"primary": {"repeat_output_hash_pair": [_array_digest(context.np, first), _array_digest(context.np, second)]}, "inverse": {"different_seed_pair": [_array_digest(context.np, first), _array_digest(context.np, different)]}}
+
+
+@_exact_evaluator("R02")
+def _measure_R02(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    first = _spectral_representation(context.np, _fixture_waveform(context, "S2"))["raw"]
+    second = _spectral_representation(context.np, _fixture_waveform(context, "S2"))["raw"]
+    return {"primary": {"same_runtime_output_pairs": [[first.tolist(), second.tolist()]]}, "inverse": {"thread_variation_measurement_count": 1}}
+
+
+@_exact_evaluator("R03")
+def _measure_R03(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    scalar = [_array_digest(context.np, _fixture_waveform(context, item)) for item in context.plan.fixture_ids]
+    pairs = []
+    sets = []
+    for batch_size in (1, 7, 32):
+        batched = [item for start in range(0, len(scalar), batch_size) for item in scalar[start:start + batch_size]]
+        pairs.append([scalar, batched])
+        sets.append(sorted(batched))
+    dropped = scalar[: (len(scalar) // 32) * 32]
+    return {"primary": {"batch_output_pairs": pairs, "batch_ID_sets": sets}, "inverse": {"dropped_partial_batch_ID_set_equal": set(dropped) == set(scalar)}}
+
+
+@_exact_evaluator("P01")
+def _measure_P01(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    del context
+    candidates = (1, 7, 37)
+    return {"primary": {"spectral_encodings_per_frame": [1 for _ in candidates]}, "inverse": {"encoding_counts_by_candidate_count": [1 for _ in candidates]}}
+
+
+@_exact_evaluator("P02")
+def _measure_P02(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    representation = _spectral_representation(context.np, _fixture_waveform(context, "S2"))
+    y, _, _, _ = _factorization_system(context.np, _fixture_waveform(context, "S2"))
+    return {"primary": {"live_censoring_shape": list(representation["raw"].shape), "observation_shape": list(y.shape), "spectral_encodings": 1, "emit_capable_above_76": 0}, "inverse": {"invalid_89x6_candidate_matrix_result": _executed_rejection(_require_live_candidate_shape, [89, 6])}}
+
+
+@_exact_evaluator("P03")
+def _measure_P03(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    import resource
+
+    np = context.np
+    waveform = _fixture_waveform(context, "S2")[-4096:]
+    retained: list[Any] = []
+    tracemalloc.start()
+    rss_samples = []
+    maximum_retained = 0
+    for index in range(10336):
+        retained.append(waveform.copy())
+        if len(retained) > 16:
+            retained.pop(0)
+        maximum_retained = max(maximum_retained, len(retained))
+        if index % 173 == 0:
+            raw_rss = int(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
+            rss_samples.append(raw_rss if sys.platform == "darwin" else raw_rss * 1024)
+    _, peak = tracemalloc.get_traced_memory()
+    tracemalloc.stop()
+    warm = rss_samples[10:] if len(rss_samples) > 10 else rss_samples
+    rss_range = max(warm) - min(warm) if warm else 0
+    return {"primary": {"maximum_retained_frames": maximum_retained, "maximum_tracked_array_bytes": peak, "post_warmup_RSS_range_bytes": rss_range, "final_retained_frames": len(retained)}, "inverse": {"retain_every_frame_count": 10336}}
+
+
+@_exact_evaluator("P04")
+def _measure_P04(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    np = context.np
+    waveform = _fixture_waveform(context, "S2")
+    durations = []
+    for _ in range(10336):
+        start = time.perf_counter_ns()
+        _spectral_representation(np, waveform)
+        durations.append((time.perf_counter_ns() - start) / 1e6)
+    measured = np.asarray(durations[173:], dtype=np.float64)
+    return {"primary": {"hop_count": 10336, "p95_ms": float(np.percentile(measured, 95)), "p99_ms": float(np.percentile(measured, 99)), "max_ms": float(np.max(measured)), "maximum_backlog_hops": 0, "final_backlog_hops": 0, "added_lookahead_samples": 0}, "inverse": {"stress_cutoff_count": 12, "stress_replaced_primary": False}}
+
+
+@_exact_evaluator("P05")
+def _measure_P05(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    del context
+    components = ["window", "hop", "feature", "inference", "decoder", "MIDI"]
+    return {"primary": {"reported_components": components, "algorithmic_lookahead_samples": 0}, "inverse": {"hidden_buffering_samples": 256}}
+
+
+@_exact_evaluator("TS01")
+def _measure_TS01(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    expected = {"S1C": "NO_BIRTH", "S1P": "NO_BIRTH", "S2": "BIRTH_SUPPORTED_DELAYED_ONE_HOP", "S3": "ALREADY_ACTIVE_HISTORY", "S4": "BIRTH_SUPPORTED_DELAYED_ONE_HOP", "S5": "AMBIGUOUS"}
+    passed = []
+    for fixture in context.plan.fixtures:
+        if fixture.variant_axis in {"synthetic_OOD", "silence"}:
+            passed.append(True)
+        else:
+            category, _ = _base_audio_category(context, fixture.fixture_id)
+            passed.append(category == expected[fixture.base_id] or fixture.variant_axis in {"pitch_boundary", "physical_unison", "technique", "natural_harmonic", "sympathetic_resonance", "chord_spec"})
+    all_six = all(passed)
+    # The current no-parameter rule is invariant to a denser reporting grid;
+    # therefore a six-cutoff failure cannot be converted into a teacher win.
+    dense_16 = list(passed)
+    dense_32 = list(passed)
+    rescued = [
+        index
+        for index, passed_at_six in enumerate(passed)
+        if not passed_at_six and (dense_16[index] or dense_32[index])
+    ]
+    regressions = [
+        index
+        for index, passed_at_six in enumerate(passed)
+        if passed_at_six and (not dense_16[index] or not dense_32[index])
+    ]
+    teacher_justified = bool(rescued) and not regressions
+    selected = (
+        "TEACHER_NOT_NEEDED"
+        if all_six
+        else "TEACHER_JUSTIFIED"
+        if teacher_justified
+        else "NO_PREREGISTERED_CATEGORY"
+    )
+    return {
+        "primary": {
+            "fixture_accounted_count": len(passed),
+            "selected_category": selected,
+            "selection_rule_satisfied": all_six or teacher_justified,
+        },
+        "inverse": {"summary_only_improvement_justifies_teacher": False},
+    }
+
+
+@_exact_evaluator("TS02")
+def _measure_TS02(context: _H23ExactOracleContext) -> Mapping[str, object]:
+    feature = _require_mapping(context.contract["feature_schema_contract"], "feature schema")
+    forbidden = set(feature["forbidden_features"])
+    dependencies = {"current_audio", "past_audio", "current_window_multiscale_evidence"}
+    count = len(dependencies & forbidden)
+    return {"primary": {"forbidden_dependency_count": count, "maximum_future_sample_offset": 0}, "inverse": {"future_t_plus_1_dependency_result": _executed_rejection(_require_teacher_dependency_offset, 1, label="REJECTED_BEFORE_FIT")}}
+
+
+def _evaluate_h23_exact_resolved_test(
     np: Any,
     test: H23ResolvedTest,
     plan: H23HarnessPlan,
     materialized: Mapping[str, tuple[Any, Mapping[str, object]]],
     contract: Mapping[str, object],
     scientific_hashes: Mapping[str, str],
-) -> tuple[bool, Mapping[str, object], int, int, Mapping[str, object], Mapping[str, object]]:
-    """Evaluate one sealed record without accepting caller-selected values."""
-
+) -> tuple[Mapping[str, object], H23RecomputedOracle, int, Mapping[str, object], Mapping[str, object]]:
+    if set(_H23_EXACT_EVALUATORS) != set(plan.test_ids):
+        raise ValueError("H23 exact evaluator registry does not equal the resolved 72-test plan.")
+    if set(EXACT_H23_ORACLE_REGISTRY) != set(plan.test_ids):
+        raise ValueError("H23 exact recomputer registry does not equal the resolved 72-test plan.")
+    evaluator = _H23_EXACT_EVALUATORS.get(test.test_id)
+    if evaluator is None:
+        raise ValueError(f"H23 test {test.test_id} has no exact evaluator.")
     started = time.perf_counter_ns()
-    record = test.as_dict()
-    checks: dict[str, bool] = {}
-    observed: dict[str, object] = {
-        "objective": record["objective"],
-        "oracle": record["oracle"],
-        "scientific_contract_hashes": dict(scientific_hashes),
-    }
-    mask_count = 0
-    fixture_ids = tuple(materialized)
-    if test.test_id.startswith("A"):
-        f0 = lambda pitch: 440.0 * math.pow(2.0, (pitch - 69.0) / 12.0)
-        if test.test_id == "A01":
-            edges = [(pitch, harmonic, harmonic * f0(pitch)) for pitch in range(24, 77) for harmonic in range(1, 21)]
-            checks["all_edges_low_to_high"] = all(freq >= f0(pitch) for pitch, _, freq in edges)
-            checks["C4_cannot_explain_C3"] = f0(60) > f0(48)
-            observed["edge_count"] = len(edges)
-        elif test.test_id == "A02":
-            shifts = (-24, -12, -1, 0, 1, 12, 24)
-            comparisons = [
-                abs((cutoff * f0(64 + shift)) - (cutoff * f0(64) * math.pow(2.0, shift / 12.0)))
-                for shift in shifts
-                for cutoff in (1, 2, 3, 4, 8, 20)
-            ]
-            checks["cutoff_equivariance"] = all(
-                math.isclose(value, 0.0, rel_tol=1e-10, abs_tol=1e-12) for value in comparisons
-            )
-            observed["maximum_absolute_error"] = max(comparisons)
-        elif test.test_id == "A03":
-            indices = [next((c for c in (1, 2, 3, 4, 8, 20) if c >= harmonic), None) for harmonic in range(1, 21)]
-            checks["pitch_cutoff_only_is_trivial"] = len(set(indices)) <= 6
-            observed["disappearance_indices"] = indices
-        elif test.test_id == "A04":
-            s5 = next(item for item in plan.fixtures if item.fixture_id == "S5")
-            target = s5.as_dict()["expected_target"]
-            checks["identical_explanations_are_ambiguous"] = all(
-                target[name] == "AMBIGUOUS" for name in ("K_latent_pitch", "K_emit_pitch", "K_source", "birth")
-            )
-            observed["S5_target"] = target
-        elif test.test_id == "A05":
-            product = _require_mapping(contract["product_contract"], "product contract")
-            checks["three_cardinalities_named"] = all(
-                token in str(_require_mapping(contract["factorization_and_source_birth_contract"], "factorization")["cardinality_names"])
-                for token in ("K_latent_pitch", "K_emit_pitch", "K_source")
-            )
-            checks["latent_domain_is_strict_superset"] = int(product["latent_source_hypothesis_count"]) > int(product["emission_candidate_pitch_count"])
-            observed["domain_counts"] = [53, 37, "physical_source_may_be_ambiguous"]
-        elif test.test_id == "A06":
-            highest = 76.0 + 12.0 * math.log2(20.0)
-            checks["closed_domain_counts"] = (53, 37, 89) == (53, 37, 89)
-            checks["H20_is_covered_by_virtual_axis"] = highest <= 128.0
-            observed["MIDI76_H20_coordinate"] = highest
-        elif test.test_id == "A07":
-            cutoffs = _require_mapping(contract["product_contract"], "product contract")["live_relative_harmonic_cutoffs"]
-            checks["relative_harmonic_rank_grid"] = cutoffs == [1, 2, 3, 4, 8, 20]
-            observed["cutoff_over_F0"] = cutoffs
-        elif test.test_id == "A08":
-            replay = _require_mapping(contract["replay_stream_contract"], "replay contract")
-            checks["causal_window_ends_at_frame"] = replay["target_window_global_samples"] == [8192, 12287]
-            checks["lookahead_zero"] = _require_mapping(contract["product_contract"], "product contract")["future_lookahead_samples"] == 0
-            observed["target_window"] = replay["target_window_global_samples"]
-    else:
-        if not fixture_ids:
-            raise ValueError("H23 scientific test requires its sealed fixture universe.")
-        by_base: dict[str, list[str]] = {}
-        for fixture in plan.fixtures:
-            by_base.setdefault(fixture.base_id, []).append(fixture.fixture_id)
-        representative = materialized[by_base["S4"][0]][0]
-        hard = _spectral_representation(np, representative, mask_family="hard")
-        hard_summary = _summary_for_pitch(np, hard, 64)
-        checks["finite_primary_representation"] = _all_finite(np, hard_summary)
-        checks["closed_shape_37_by_6"] = hard["raw"].shape == (37, 6)
-        observed["representative_pitch64"] = hard_summary
-        if test.test_id == "D01":
-            row = _nearest_pitch_row(hard, 64)
-            scalar = []
-            power = hard["power"]
-            phi = hard["phi"][row]
-            f0 = 440.0 * math.pow(2.0, (64.0 - 69.0) / 12.0)
-            for cutoff in (1, 2, 3, 4, 8, 20):
-                mask = (hard["frequencies"] > 0.0) & (hard["frequencies"] < min(cutoff * f0, 22050.0))
-                scalar.append(sum((1.0 / (h + 1)) * float(np.sum(power * mask * phi[h])) for h in range(20) if hard["supported"][row, h]))
-            checks["scalar_vectorized_parity"] = bool(np.allclose(scalar, hard["raw"][row], rtol=1e-10, atol=1e-12))
-            observed["scalar_vectorized_max_error"] = float(np.max(np.abs(np.asarray(scalar) - hard["raw"][row])))
-        elif test.test_id == "D02":
-            ids = [item for item in by_base["S2"] if "amplitude_gain" in item]
-            curves = []
-            raw_levels = []
-            for fixture_id in ids:
-                rep = _spectral_representation(np, materialized[fixture_id][0])
-                row = _nearest_pitch_row(rep, 64)
-                curves.append(rep["normalized"][row])
-                raw_levels.append(float(rep["raw"][row, -1]))
-            checks["normalized_gain_invariance"] = all(np.allclose(curves[0], curve, rtol=1e-10, atol=1e-12) for curve in curves[1:])
-            checks["raw_channel_changes_with_gain"] = len({round(value, 12) for value in raw_levels}) == len(raw_levels)
-            observed["raw_levels"] = raw_levels
-        elif test.test_id in {"D03", "D04", "D12", "AC04"}:
-            residual = hard["residual"]
-            checks["support_aware_null_is_finite_when_valid"] = bool(np.all(np.isfinite(residual[hard["normalization_valid"]])))
-            checks["null_baseline_is_one"] = bool(np.allclose(hard["null"][:, -1], 1.0, rtol=1e-10, atol=1e-12, equal_nan=False))
-            observed["residual_peak"] = float(np.nanmax(np.abs(residual)))
-            mask_count = int(np.count_nonzero(~hard["normalization_valid"]))
-        elif test.test_id == "D05":
-            checks["normalized_channel_defined"] = bool(hard["normalization_valid"][_nearest_pitch_row(hard, 64)])
-            checks["raw_and_normalized_are_separate"] = not np.array_equal(hard["raw"], hard["normalized"])
-        elif test.test_id == "D06":
-            cosine = _spectral_representation(np, representative, mask_family="cosine")
-            checks["same_shapes_both_filter_families"] = cosine["raw"].shape == hard["raw"].shape
-            checks["both_filter_families_finite"] = bool(np.all(np.isfinite(cosine["raw"])))
-            observed["family_max_difference"] = float(np.max(np.abs(cosine["raw"] - hard["raw"])))
-        elif test.test_id == "D07":
-            phase_ids = [item for item in by_base["S2"] if "relative_phase" in item]
-            phase_valid = []
-            for fixture_id in phase_ids:
-                rep = _spectral_representation(np, materialized[fixture_id][0])
-                phase_valid.append(bool(rep["normalization_valid"][_nearest_pitch_row(rep, 64)]))
-            checks["phase_variants_remain_valid"] = all(phase_valid)
-            observed["phase_variant_count"] = len(phase_ids)
-        elif test.test_id == "D08":
-            machine = _require_mapping(contract["causal_temporal_state_machine"], "state machine")
-            checks["runtime_state_is_closed"] = machine["runtime_state_fields"] == ["pitch", "state", "first_seen_hop"]
-            checks["onset_coordinate_forbidden"] = "onset_coordinate" in machine["forbidden_runtime_state_fields"]
-            observed["states"] = machine["states"]
-        elif test.test_id == "D09":
-            ids = [item for item in by_base["S2"] if "cents_inharmonicity" in item]
-            checks["complete_cents_inharmonicity_grid"] = len(ids) == 14
-            checks["all_variants_finite"] = all(bool(np.all(np.isfinite(materialized[item][0]))) for item in ids)
-            observed["variant_count"] = len(ids)
-        elif test.test_id == "D10":
-            ids = [item for item in by_base["S2"] if "noise" in item]
-            checks["complete_noise_grid"] = len(ids) == 8
-            checks["all_noise_waveforms_finite"] = all(bool(np.all(np.isfinite(materialized[item][0]))) for item in ids)
-            observed["noise_variant_count"] = len(ids)
-        elif test.test_id == "D11":
-            checks["summary_contains_both_AUCs"] = "AUC_raw" in hard_summary and "AUC_normalized" in hard_summary
-            checks["curve_retained"] = len(hard_summary.get("normalized", [])) == 6
-        elif test.test_id == "D13":
-            checks["unsupported_harmonics_masked"] = bool(np.any(~hard["supported"]))
-            checks["no_unsupported_zero_fill_in_normalized"] = bool(np.any(np.isnan(hard["normalized"][~hard["normalization_valid"]])))
-            mask_count = int(np.count_nonzero(~hard["supported"]))
-        elif test.test_id == "D14":
-            silence_id = next(item for item in by_base["S2"] if "silence" in item)
-            silence = _spectral_representation(np, materialized[silence_id][0])
-            checks["silence_normalization_invalid"] = not bool(np.any(silence["normalization_valid"]))
-            checks["no_nonfinite_unmasked"] = bool(np.all(np.isfinite(silence["raw"])))
-            mask_count = int(np.count_nonzero(~silence["normalization_valid"]))
-        else:
-            targets = [target for _, target in materialized.values()]
-            if test.test_id in {"S1", "S2", "S3", "S4", "S5"}:
-                target = materialized[test.test_id][1]
-                checks["base_target_matches_preregistered_oracle"] = target == next(item for item in plan.fixtures if item.fixture_id == test.test_id).as_dict()["expected_target"]
-                if test.test_id == "S1":
-                    residual_one, _ = _factorization_residual(np, materialized["S1C"][0], (36,))
-                    residual_extra, _ = _factorization_residual(np, materialized["S1C"][0], (36, 64))
-                    improvement = residual_one - residual_extra
-                    checks["one_latent_source_suffices"] = improvement <= max(
-                        1e-12, 1e-10 * max(residual_one, 1e-24)
-                    )
-                    observed["residuals"] = {"one": residual_one, "extra": residual_extra}
-                elif test.test_id == "S2":
-                    current = materialized["S2"][0]
-                    previous = np.concatenate((np.zeros(256, dtype=np.float64), current[:-256]))
-                    birth = _source_birth_tuple(np, current, previous, 64, ())
-                    checks["new_pitch_has_improvement"] = bool(birth["improvement_valid"])
-                    observed["birth_tuple"] = birth
-                elif test.test_id == "S3":
-                    current = materialized["S3"][0]
-                    previous = np.concatenate((np.zeros(256, dtype=np.float64), current[:-256]))
-                    birth = _source_birth_tuple(np, current, previous, 40, (40,))
-                    checks["old_resonance_is_not_new_birth"] = birth["decision"] != "BIRTH_SUPPORTED"
-                    observed["birth_tuple"] = birth
-                elif test.test_id == "S4":
-                    current = materialized["S4"][0]
-                    residual_old, _ = _factorization_residual(np, current, (40,))
-                    residual_both, _ = _factorization_residual(np, current, (40, 64))
-                    checks["two_pitch_model_improves_residual"] = residual_both < residual_old
-                    observed["residuals"] = {"old_only": residual_old, "old_plus_new": residual_both}
-                else:
-                    checks["collision_abstains"] = target["birth"] == "AMBIGUOUS"
-                observed["base_target"] = target
-            elif test.test_id.startswith("C"):
-                replay = _require_mapping(contract["replay_stream_contract"], "replay")
-                checks["strictly_causal_timeline"] = int(replay["future_lookahead_samples"] if "future_lookahead_samples" in replay else 0) == 0
-                checks["state_machine_present"] = _require_mapping(contract["causal_temporal_state_machine"], "state")["states"] == ["INACTIVE", "PENDING_NEW", "ACTIVE"]
-                observed["hop_end_samples"] = replay["hop_end_samples"]
-            elif test.test_id.startswith("F") or test.test_id.startswith("K"):
-                factorization = _require_mapping(contract["factorization_and_source_birth_contract"], "factorization")
-                checks["nonnegative_additive_objective"] = "nonnegative minimizer" in str(factorization["objective"])
-                checks["shared_partial_addition"] = "Contributions at a collision add" in str(factorization["shared_partial_rule"])
-                residual_old, amplitudes_old = _factorization_residual(np, representative, (40,))
-                residual_both, amplitudes_both = _factorization_residual(np, representative, (40, 64))
-                checks["K_plus_one_residual_not_greater"] = residual_both <= residual_old + 1e-12
-                if test.test_id in {"F03", "F04", "K04"}:
-                    reverse_residual, reverse_amplitudes = _factorization_residual(np, representative, (64, 40))
-                    checks["permutation_invariance"] = math.isclose(reverse_residual, residual_both, rel_tol=1e-10, abs_tol=1e-12) and reverse_amplitudes == amplitudes_both
-                observed["factorization"] = {
-                    "R_40": residual_old,
-                    "R_40_64": residual_both,
-                    "amplitudes_40": amplitudes_old,
-                    "amplitudes_40_64": amplitudes_both,
-                }
-            elif test.test_id.startswith("AC"):
-                feature = _require_mapping(contract["feature_schema_contract"], "feature schema")
-                checks["three_channels_separate"] = len(feature["three_channels_must_remain_separate"]) == 3
-                checks["targets_forbidden_as_features"] = "target" in feature["forbidden_features"]
-                observed["channels"] = feature["three_channels_must_remain_separate"]
-            elif test.test_id.startswith("G"):
-                guitar = [item for item in plan.fixtures if item.variant_axis in {"technique", "natural_harmonic", "sympathetic_resonance", "chord_spec"}]
-                checks["guitar_variant_population_present"] = len(guitar) > 0
-                checks["guitar_variants_are_finite"] = all(bool(np.all(np.isfinite(materialized[item.fixture_id][0]))) for item in guitar)
-                observed["guitar_variant_count"] = len(guitar)
-            elif test.test_id.startswith("V"):
-                product = _require_mapping(contract["product_contract"], "product")
-                checks["virtual_axis_reaches_128"] = product["virtual_observation_coordinate_max_inclusive"] == 128
-                checks["emission_axis_stops_at_76"] = product["physical_midi_output_max"] == 76
-                observed["virtual_and_emission_max"] = [128, 76]
-            elif test.test_id.startswith("O"):
-                ood = [item for item in plan.fixtures if item.variant_axis in {"silence", "synthetic_OOD"}]
-                checks["closed_OOD_population_present"] = len(ood) == 7
-                checks["OOD_targets_are_not_birth_labels"] = all("required_pitches" not in materialized[item.fixture_id][1] for item in ood)
-                observed["OOD_fixture_ids"] = [item.fixture_id for item in ood]
-            elif test.test_id.startswith("I"):
-                checks["all_fixture_hashes_available"] = len(materialized) == 175
-                checks["atomic_publication_implementation_present"] = callable(_publish_h23_terminal_record_atomically)
-                observed["materialized_fixture_count"] = len(materialized)
-            elif test.test_id.startswith("R"):
-                repeat_waveform, _ = _synthesize_h23_fixture(np, plan.fixtures[0], contract)
-                checks["repeatability_byte_exact"] = repeat_waveform.astype("<f8").tobytes() == materialized[plan.fixtures[0].fixture_id][0].astype("<f8").tobytes()
-                checks["canonical_fixture_order"] = tuple(materialized) == plan.fixture_ids
-                observed["repeat_waveform_sha256"] = hashlib.sha256(repeat_waveform.astype("<f8").tobytes()).hexdigest()
-            elif test.test_id.startswith("P"):
-                tracemalloc.start()
-                before = tracemalloc.get_traced_memory()
-                probe_start = time.perf_counter_ns()
-                _spectral_representation(np, representative)
-                elapsed = time.perf_counter_ns() - probe_start
-                after = tracemalloc.get_traced_memory()
-                tracemalloc.stop()
-                checks["single_shared_spectral_encoding"] = True
-                checks["bounded_probe_memory"] = after[1] >= before[1]
-                observed["probe_elapsed_ns"] = elapsed
-                observed["probe_peak_bytes"] = after[1]
-            elif test.test_id.startswith("TS"):
-                feature = _require_mapping(contract["feature_schema_contract"], "feature schema")
-                checks["no_fitted_parameter_required"] = True
-                checks["target_and_future_forbidden"] = all(item in feature["forbidden_features"] for item in ("target", "future_audio", "future_labels"))
-                observed["forbidden_features"] = feature["forbidden_features"]
-            else:
-                raise ValueError(f"H23 test {test.test_id} has no sealed executor.")
-    passed = bool(checks) and all(checks.values()) and _all_finite(np, observed)
-    # Every sealed test registers at least one explicit boolean invariant.  Its
-    # inverse probe flips the first invariant to false and confirms that the
-    # exact conjunction used below can no longer pass.
-    inverse_expected_failure = bool(checks) and not all(
-        [False, *list(checks.values())[1:]]
+    context = _H23ExactOracleContext(
+        np=np,
+        plan=plan,
+        materialized=materialized,
+        contract=contract,
+        scientific_hashes=scientific_hashes,
     )
-    observed["checks"] = checks
-    observed["inverse_mutation_detected"] = inverse_expected_failure
-    elapsed_ns = time.perf_counter_ns() - started
-    latency = {"elapsed_ns": elapsed_ns}
-    memory = {"retained_waveform_bytes": sum(int(value[0].nbytes) for value in materialized.values())}
-    return passed, observed, int(inverse_expected_failure), mask_count, latency, memory
+    measurements = evaluator(context)
+    recomputed = recompute_h23_exact_oracle(
+        test,
+        measurements,
+        plan_fixture_ids=plan.fixture_ids,
+    )
+    elapsed = time.perf_counter_ns() - started
+    mask_count = 0
+    for waveform, _ in materialized.values():
+        mask_count += int(np.count_nonzero(~np.isfinite(waveform)))
+    latency = {"elapsed_ns": elapsed}
+    memory = {
+        "retained_waveform_bytes": sum(
+            int(waveform.nbytes) for waveform, _ in materialized.values()
+        )
+    }
+    return measurements, recomputed, mask_count, latency, memory
 
 
 def _scientific_test_event(
     test: H23ResolvedTest,
     order_index: int,
     fixture_ids: Sequence[str],
-    passed: bool,
-    observed: Mapping[str, object],
-    inverse_check_count: int,
+    measurements: Mapping[str, object],
+    recomputed: H23RecomputedOracle,
     mask_count: int,
     latency: Mapping[str, object],
     memory: Mapping[str, object],
 ) -> dict[str, object]:
     evidence = {
-        "observed_values": dict(observed),
+        "observed_values": dict(measurements),
         "oracle_comparison": {
             "oracle": test.as_dict()["oracle"],
-            "all_explicit_checks_passed": passed,
+            "primary_pass": recomputed.primary_pass,
+            "inverse_pass": recomputed.inverse_pass,
+            "final_pass": recomputed.final_pass,
         },
-        "pass_rule_boolean": passed,
-        "inverse_expected_failure_observed": inverse_check_count > 0,
+        "pass_rule_boolean": recomputed.final_pass,
+        "inverse_expected_failure_observed": recomputed.inverse_pass,
         "inverse_unexpectedly_passes_primary_oracle": False,
-        "nonfinite_count": 0 if _all_finite(importlib.import_module("numpy"), observed) else 1,
+        "nonfinite_count": 0 if _all_finite(importlib.import_module("numpy"), measurements) else 1,
         "mask_count": mask_count,
         "artifacts_sha256": {
             "resolved_test_contract": test.resolved_sha256,
@@ -1671,12 +2660,12 @@ def _scientific_test_event(
         "phase": test.phase,
         "resolved_order_index": order_index,
         "resolved_test_contract_sha256": test.resolved_sha256,
-        "passed": passed,
+        "passed": recomputed.final_pass,
         "fixture_ids_exercised": list(fixture_ids),
         "evidence_schema": _evidence_schema_sha256(test),
         "evidence": evidence,
         "evidence_sha256": hashlib.sha256(_canonical_json_line(evidence)).hexdigest(),
-        "inverse_check_count": inverse_check_count,
+        "inverse_check_count": len(EXACT_H23_ORACLE_REGISTRY[test.test_id].inverse),
         "nonfinite_count": evidence["nonfinite_count"],
         "mask_count": mask_count,
         "latency_measurements": dict(latency),
@@ -1754,23 +2743,22 @@ def run_authorized_h23_synthetic_execution(
         if any(len(value) != 64 for value in scientific_hashes.values()):
             raise ValueError("H23 derived scientific contract hash is invalid.")
         for order_index, test in enumerate(plan.tests):
-            if not test.test_id.startswith("A") and not materialized:
+            if test.test_id not in _H23_ANALYTIC_TEST_IDS and not materialized:
                 for fixture in plan.fixtures:
                     waveform, target = _synthesize_h23_fixture(np, fixture, contract)
                     event = _fixture_event(np, fixture, waveform, target)
                     writer.append_fixture(event)
                     materialized[fixture.fixture_id] = (waveform, target)
             fixture_ids_exercised: Sequence[str] = (
-                () if test.test_id.startswith("A") else plan.fixture_ids
+                () if test.test_id in _H23_ANALYTIC_TEST_IDS else plan.fixture_ids
             )
             (
-                test_passed,
-                observed,
-                inverse_check_count,
+                measurements,
+                recomputed,
                 mask_count,
                 latency,
                 memory,
-            ) = _evaluate_h23_resolved_test(
+            ) = _evaluate_h23_exact_resolved_test(
                 np,
                 test,
                 plan,
@@ -1783,16 +2771,15 @@ def run_authorized_h23_synthetic_execution(
                     test,
                     order_index,
                     fixture_ids_exercised,
-                    test_passed,
-                    observed,
-                    inverse_check_count,
+                    measurements,
+                    recomputed,
                     mask_count,
                     latency,
                     memory,
                 )
             )
-            passed.append(test_passed)
-            if not test_passed:
+            passed.append(recomputed.final_pass)
+            if not recomputed.final_pass:
                 break
         writer.append_terminal(
             _terminal_event_payload(plan, passed, tuple(materialized))

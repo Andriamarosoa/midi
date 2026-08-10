@@ -201,11 +201,25 @@ class HarmonicCensoringH23ClaimTranscriptImplementationTests(unittest.TestCase):
         fixture_ids: list[str] | None = None,
     ) -> dict[str, object]:
         test = self.plan.tests[test_index]
+        measurements = self._passing_measurements(test.test_id)
+        if not passed:
+            first_rule = runner.EXACT_H23_ORACLE_REGISTRY[test.test_id].primary[0]
+            measurements["primary"][first_rule.name] = self._failing_value(first_rule)
+        recomputed = runner.recompute_h23_exact_oracle(
+            test,
+            measurements,
+            plan_fixture_ids=self.plan.fixture_ids,
+        )
         evidence = {
-            "observed_values": {"synthetic": 1},
-            "oracle_comparison": {"exact": passed},
-            "pass_rule_boolean": passed,
-            "inverse_expected_failure_observed": True,
+            "observed_values": measurements,
+            "oracle_comparison": {
+                "oracle": test.as_dict()["oracle"],
+                "primary_pass": recomputed.primary_pass,
+                "inverse_pass": recomputed.inverse_pass,
+                "final_pass": recomputed.final_pass,
+            },
+            "pass_rule_boolean": recomputed.final_pass,
+            "inverse_expected_failure_observed": recomputed.inverse_pass,
             "inverse_unexpectedly_passes_primary_oracle": False,
             "nonfinite_count": 0,
             "mask_count": 0,
@@ -217,7 +231,7 @@ class HarmonicCensoringH23ClaimTranscriptImplementationTests(unittest.TestCase):
             "phase": test.phase,
             "resolved_order_index": test_index,
             "resolved_test_contract_sha256": test.resolved_sha256,
-            "passed": passed,
+            "passed": recomputed.final_pass,
             "fixture_ids_exercised": (
                 [self.plan.fixtures[0].fixture_id]
                 if fixture_ids is None
@@ -226,12 +240,115 @@ class HarmonicCensoringH23ClaimTranscriptImplementationTests(unittest.TestCase):
             "evidence_schema": runner._evidence_schema_sha256(test),
             "evidence": evidence,
             "evidence_sha256": hashlib.sha256(runner._canonical_json_line(evidence)).hexdigest(),
-            "inverse_check_count": 1,
+            "inverse_check_count": len(
+                runner.EXACT_H23_ORACLE_REGISTRY[test.test_id].inverse
+            ),
             "nonfinite_count": 0,
             "mask_count": 0,
             "latency_measurements": {},
             "memory_measurements": {},
         }
+
+    def _passing_measurements(self, test_id: str) -> dict[str, object]:
+        spec = runner.EXACT_H23_ORACLE_REGISTRY[test_id]
+
+        def value(rule):
+            expected = (
+                list(self.plan.fixture_ids)
+                if rule.expected == "__PLAN_FIXTURE_IDS__"
+                else rule.expected
+            )
+            if rule.operator in {"eq", "close", "ge", "le"}:
+                return expected
+            if rule.operator == "ne":
+                return ["different"]
+            if rule.operator == "in":
+                return list(expected)[0]
+            if rule.operator == "gt":
+                return float(expected) + 1.0
+            if rule.operator in {"pair_equal", "close_pair", "allclose_pair"}:
+                return [1.0, 1.0]
+            if rule.operator == "pair_different":
+                return [1.0, 2.0]
+            if rule.operator == "all_equal":
+                return ["same", "same"]
+            if rule.operator == "not_all_equal":
+                return ["first", "second"]
+            if rule.operator == "all_eq":
+                return [expected, expected]
+            if rule.operator == "all_in":
+                return [list(expected)[0]]
+            if rule.operator == "all_true":
+                return [True]
+            if rule.operator == "none_in":
+                return [int(expected[0]) - 1, int(expected[1]) + 1]
+            if rule.operator == "contains_any":
+                return [list(expected)[0]]
+            if rule.operator in {"all_exact_pairs", "allclose_pairs"}:
+                return [[1.0, 1.0]]
+            if rule.operator == "allclose_all":
+                return [[1.0], [1.0]]
+            if rule.operator == "any_different_pair":
+                return [["first", "second"]]
+            if rule.operator == "strictly_gain_ordered":
+                return [1.0, 2.0]
+            if rule.operator == "nonincreasing":
+                return [2.0, 1.0]
+            if rule.operator == "all_edges_ascending":
+                return [[1.0, 2.0]]
+            if rule.operator == "any_edge_descending":
+                return [[2.0, 1.0]]
+            if rule.operator == "support_formula_exact":
+                return [[True, 100.0, True], [False, 23000.0, False]]
+            raise AssertionError(f"unsupported test rule {rule.operator}")
+
+        return {
+            "primary": {rule.name: value(rule) for rule in spec.primary},
+            "inverse": {rule.name: value(rule) for rule in spec.inverse},
+        }
+
+    def _failing_value(self, rule):
+        if rule.operator in {"eq", "close", "ge", "le", "in"}:
+            return "deliberately-incompatible"
+        if rule.operator == "ne":
+            return rule.expected
+        if rule.operator == "gt":
+            return rule.expected
+        if rule.operator in {"pair_equal", "close_pair", "allclose_pair"}:
+            return [1.0, 2.0]
+        if rule.operator == "pair_different":
+            return [1.0, 1.0]
+        if rule.operator == "all_equal":
+            return [1, 2]
+        if rule.operator == "not_all_equal":
+            return [1, 1]
+        if rule.operator == "all_eq":
+            return ["wrong"]
+        if rule.operator == "all_in":
+            return ["wrong"]
+        if rule.operator == "all_true":
+            return [False]
+        if rule.operator == "none_in":
+            return [rule.expected[0]]
+        if rule.operator == "contains_any":
+            return []
+        if rule.operator in {"all_exact_pairs", "allclose_pairs"}:
+            return [[1.0, 2.0]]
+        if rule.operator == "allclose_all":
+            return [[1.0], [2.0]]
+        if rule.operator == "any_different_pair":
+            return [[1.0, 1.0]]
+        if rule.operator == "strictly_gain_ordered":
+            return [2.0, 1.0]
+        if rule.operator == "nonincreasing":
+            return [1.0, 2.0]
+        if rule.operator == "all_edges_ascending":
+            return [[2.0, 1.0]]
+        if rule.operator == "any_edge_descending":
+            return [[1.0, 2.0]]
+        if rule.operator == "support_formula_exact":
+            return [[False, 100.0, True]]
+        raise AssertionError(f"unsupported failing rule {rule.operator}")
 
     def test_claim_is_canonical_exclusive_and_irreversible(self) -> None:
         claimed = self._claim()
@@ -271,9 +388,65 @@ class HarmonicCensoringH23ClaimTranscriptImplementationTests(unittest.TestCase):
         )
         writer.close()
         raw = claimed.transcript_path.read_bytes()
-        claimed.transcript_path.write_bytes(raw.replace(b'"synthetic":1', b'"synthetic":2'))
-        with self.assertRaisesRegex(ValueError, "canonical|hash chain|evidence"):
+        claimed.transcript_path.write_bytes(
+            raw.replace(b'"event_type":"HEADER"', b'"event_type":"HEADEX"', 1)
+        )
+        with self.assertRaisesRegex(ValueError, "canonical|hash chain|evidence|event type"):
             runner._read_and_verify_h23_transcript(self.plan, claimed)
+
+    def test_persisted_pass_true_cannot_override_incompatible_measurements(self) -> None:
+        claimed = self._claim()
+        writer = runner._create_h23_transcript_writer(self.plan, claimed)
+        payload = self._test_payload(True)
+        rule = runner.EXACT_H23_ORACLE_REGISTRY[self.plan.tests[0].test_id].primary[0]
+        payload["evidence"]["observed_values"]["primary"][rule.name] = (  # type: ignore[index]
+            self._failing_value(rule)
+        )
+        payload["evidence_sha256"] = hashlib.sha256(  # type: ignore[index]
+            runner._canonical_json_line(payload["evidence"])
+        ).hexdigest()
+        writer.append_test(payload)
+        writer.append_terminal(
+            runner._terminal_event_payload(
+                self.plan,
+                [True],
+                [],
+                operational_inconclusive=True,
+            )
+        )
+        writer.close()
+        with mock.patch.object(runner, "load_h23_harness_plan", return_value=self.plan):
+            with self.assertRaisesRegex(ValueError, "recomputed evidence|duplicate disagrees"):
+                runner.finalize_and_publish_h23_terminal_record(
+                    self.repository, claimed
+                )
+
+    def test_falsified_inverse_measurement_cannot_be_certified_by_flags(self) -> None:
+        claimed = self._claim()
+        writer = runner._create_h23_transcript_writer(self.plan, claimed)
+        payload = self._test_payload(True)
+        rule = runner.EXACT_H23_ORACLE_REGISTRY[self.plan.tests[0].test_id].inverse[0]
+        payload["evidence"]["observed_values"]["inverse"][rule.name] = (  # type: ignore[index]
+            self._failing_value(rule)
+        )
+        payload["evidence_sha256"] = hashlib.sha256(  # type: ignore[index]
+            runner._canonical_json_line(payload["evidence"])
+        ).hexdigest()
+        writer.append_test(payload)
+        writer.append_terminal(
+            runner._terminal_event_payload(
+                self.plan,
+                [True],
+                [],
+                operational_inconclusive=True,
+            )
+        )
+        writer.close()
+        with mock.patch.object(runner, "load_h23_harness_plan", return_value=self.plan):
+            with self.assertRaisesRegex(ValueError, "recomputed evidence|inverse duplicate disagrees"):
+                runner.finalize_and_publish_h23_terminal_record(
+                    self.repository, claimed
+                )
 
     def test_persisted_failure_is_recomputed_and_published(self) -> None:
         claimed = self._claim()

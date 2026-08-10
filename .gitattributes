@@ -6,6 +6,7 @@
 configs/decoder_candidate_bounded_mining_v1.json text eol=lf
 configs/decoder_candidate_extended_policy_a_6percell.json text eol=lf
 configs/decoder_candidate_guitarset_expansion_policy_a_v3.json text eol=lf
+readme/results/2026-08-10_harmonic-censoring-h23-exact-oracle-recomputation-fix.md text eol=lf
 configs/polyphonic_dual_stream_bass_independent_note.yaml text eol=lf
 configs/independent_note_decoder_reference.json text eol=lf
 configs/polyphonic_audio_evidence_adaptive_temporal.json text eol=lf
@@ -54,8 +55,11 @@ tests/test_harmonic_censoring_h23_executor_claim_transcript_contract.py text eol
 readme/results/2026-08-10_harmonic-censoring-h23-executor-claim-transcript-contract.md text eol=lf
 src/polyphonic/harmonic_censoring_h23_execution_capability.py text eol=lf
 src/polyphonic/run_harmonic_censoring_h23_synthetic.py text eol=lf
+src/polyphonic/harmonic_censoring_h23_oracles.py text eol=lf
 tests/test_harmonic_censoring_h23_execution_capability_contract.py text eol=lf
 tests/test_harmonic_censoring_h23_execution_dormant.py text eol=lf
+tests/test_harmonic_censoring_h23_claim_transcript_implementation.py text eol=lf
+tests/test_harmonic_censoring_h23_exact_oracle_registry.py text eol=lf
 readme/results/2026-08-10_harmonic-censoring-h23-dormant-execution-implementation.md text eol=lf
 readme/results/2026-08-10_harmonic-censoring-h23-seal-activation-transition.md text eol=lf
 readme/results/2026-08-10_harmonic-censoring-h23-activation-and-seal-definition.md text eol=lf
