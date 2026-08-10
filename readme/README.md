@@ -17,8 +17,19 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `harmonic_censoring_h24_population_materialization_activation_contract`.
-- Statut : `materializer dormant approuvé; seal et contrat d'activation H24 définis sans autorité runtime; aucun claim, marker, waveform, population ni exécution; en attente de revue externe`.
+- Étape : `harmonic_censoring_h24_dormant_operational_numpy_bridge`.
+- Statut : `seal/contrat approuvés; bridge NumPy H24 implémenté mais rendu inexécutable par le seal source volontairement obsolète; aucun claim, import NumPy réel, marker, waveform, population ni exécution; en attente de revue externe`.
+- La revue externe a approuvé `5864cc35…` puis autorisé uniquement
+  `AUTHORIZED_TO_IMPLEMENT_H24_DORMANT_OPERATIONAL_NUMPY_BRIDGE_ONLY`. L'entrée
+  publique vérifie désormais claim, activation distincte, HEAD/worktree,
+  contrat/seal, blob source et runtime avant l'import exact de NumPy 1.26.4,
+  puis appelle le corps privé. Les erreurs post-claim produisent le terminal
+  négatif consommé. Le seal actuel lie toujours le blob antérieur `16210df0…` :
+  le preflight refuse donc toute capability contre ce nouveau source. Un futur
+  commit distinct devra rafraîchir le seal, être revu, puis être OS-bound avant
+  que le bridge puisse devenir utilisable. `170` tests H24/H23/H20 réussissent
+  en `2,202 s`. Rapport :
+  `readme/results/2026-08-10_harmonic-censoring-h24-dormant-operational-numpy-bridge.md`.
 - La revue externe a approuvé `101103e6…` puis autorisé uniquement
   `AUTHORIZED_TO_DEFINE_H24_POPULATION_MATERIALIZATION_AUTHORIZATION_SEAL_AND_ACTIVATION_CONTRACT_ONLY`.
   Le seal lie ce commit, son blob source `16210df0…`, le contrat `b48aa4f…` et

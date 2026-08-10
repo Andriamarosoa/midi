@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import pickle
 import tempfile
+from types import MappingProxyType
 import unittest
 from unittest import mock
 
@@ -354,14 +355,110 @@ class H24DormantPopulationMaterializerTests(unittest.TestCase):
             ("capability",),
         )
 
-    def test_public_materializer_guard_has_no_numpy_bridge_even_if_claim_check_passes(self):
+    def test_current_reviewed_seal_cannot_bind_the_new_bridge_source(self):
+        seal_path = ROOT / materializer.H24_AUTHORIZATION_SEAL_RELATIVE_PATH
+        seal = json.loads(seal_path.read_text(encoding="utf-8"))
+        current_blob = materializer._git(
+            ROOT, "hash-object", materializer.H24_MATERIALIZER_SOURCE_RELATIVE_PATH.as_posix()
+        )
+        self.assertNotEqual(current_blob, seal["materializer_source_blob"])
+        self.assertEqual(
+            seal["reviewed_materializer_commit"],
+            "101103e63420de3703c045142291a9f231373f77",
+        )
+
+    def test_bridge_binding_failure_precedes_numpy_import_and_records_consumption(self):
+        checked = object()
         with mock.patch.object(
             materializer,
             "require_claimed_h24_population_materialization_capability",
-            return_value=object(),
-        ):
-            with self.assertRaisesRegex(PermissionError, "bridge remains unauthorized"):
+            return_value=checked,
+        ), mock.patch.object(
+            materializer,
+            "_require_operational_numpy_bridge_binding",
+            side_effect=PermissionError("distinct reviewed activation required"),
+        ), mock.patch.object(
+            materializer.importlib, "import_module"
+        ) as import_module, mock.patch.object(
+            materializer, "_write_postclaim_bridge_failure_terminal"
+        ) as failure_terminal:
+            with self.assertRaisesRegex(PermissionError, "distinct reviewed activation"):
                 materializer.materialize_and_publish_h24_population(object())  # type: ignore[arg-type]
+        import_module.assert_not_called()
+        failure_terminal.assert_called_once_with(checked)
+
+    def test_bridge_imports_exact_numpy_only_after_claim_and_binding(self):
+        checked = object()
+        fake_numpy = type("FakeNumpy", (), {"__name__": "numpy", "__version__": "1.26.4"})()
+        terminal = MappingProxyType({"status": "synthetic"})
+        calls: list[str] = []
+
+        def claimed(value):
+            calls.append("claimed")
+            return checked
+
+        def bound(value):
+            self.assertIs(value, checked)
+            calls.append("bound")
+
+        def imported(name):
+            self.assertEqual(name, "numpy")
+            calls.append("numpy")
+            return fake_numpy
+
+        def published(value, np):
+            self.assertIs(value, checked)
+            self.assertIs(np, fake_numpy)
+            calls.append("published")
+            return terminal
+
+        with mock.patch.object(
+            materializer,
+            "require_claimed_h24_population_materialization_capability",
+            side_effect=claimed,
+        ), mock.patch.object(
+            materializer,
+            "_require_operational_numpy_bridge_binding",
+            side_effect=bound,
+        ), mock.patch.object(
+            materializer.importlib, "import_module", side_effect=imported
+        ), mock.patch.object(
+            materializer,
+            "_materialize_and_publish_h24_population_claimed",
+            side_effect=published,
+        ), mock.patch.object(
+            materializer, "_write_postclaim_bridge_failure_terminal"
+        ) as failure_terminal:
+            self.assertIs(
+                materializer.materialize_and_publish_h24_population(object()),  # type: ignore[arg-type]
+                terminal,
+            )
+        self.assertEqual(calls, ["claimed", "bound", "numpy", "published"])
+        failure_terminal.assert_not_called()
+
+    def test_bridge_rejects_wrong_numpy_version_before_materialization(self):
+        checked = object()
+        wrong_numpy = type(
+            "WrongNumpy", (), {"__name__": "numpy", "__version__": "2.0.0"}
+        )()
+        with mock.patch.object(
+            materializer,
+            "require_claimed_h24_population_materialization_capability",
+            return_value=checked,
+        ), mock.patch.object(
+            materializer, "_require_operational_numpy_bridge_binding"
+        ), mock.patch.object(
+            materializer.importlib, "import_module", return_value=wrong_numpy
+        ) as import_module, mock.patch.object(
+            materializer, "_materialize_and_publish_h24_population_claimed"
+        ) as publish, mock.patch.object(
+            materializer, "_write_postclaim_bridge_failure_terminal"
+        ) as failure_terminal:
+            with self.assertRaisesRegex(RuntimeError, "exact NumPy 1.26.4"):
+                materializer.materialize_and_publish_h24_population(object())  # type: ignore[arg-type]
+        import_module.assert_called_once_with("numpy")
+        publish.assert_not_called()
+        failure_terminal.assert_called_once_with(checked)
 
     def test_durable_writer_uses_exclusive_flags_and_mode_0600(self):
         source = inspect.getsource(materializer._write_exclusive_durable_file)

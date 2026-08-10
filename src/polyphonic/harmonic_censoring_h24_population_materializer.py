@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import hashlib
+import importlib
 import importlib.metadata
 import json
 import math
@@ -1163,15 +1164,97 @@ def _materialize_and_publish_h24_population_claimed(
         raise
 
 
+def _require_operational_numpy_bridge_binding(
+    capability: AttestedH24PopulationMaterializationCapability,
+) -> None:
+    """Revalidate the distinct reviewed activation before the first NumPy import."""
+
+    state = _capability_state(capability)
+    repository = state.repository
+    if state.activation_commit == capability.implementation_commit:
+        raise PermissionError(
+            "H24 operational bridge requires a distinct reviewed activation commit."
+        )
+    if _git(repository, "status", "--porcelain"):
+        raise RuntimeError("H24 operational bridge requires the claimed clean worktree.")
+    if _git(repository, "rev-parse", "HEAD") != state.activation_commit:
+        raise ValueError("H24 operational bridge HEAD changed after claim.")
+    for relative, expected in (
+        (
+            H24_MATERIALIZATION_CONTRACT_RELATIVE_PATH,
+            capability.materialization_contract_raw_sha256,
+        ),
+        (
+            H24_AUTHORIZATION_SEAL_RELATIVE_PATH,
+            capability.authorization_seal_raw_sha256,
+        ),
+    ):
+        if _sha256(_resolve_bound_path(repository, relative).read_bytes()) != expected:
+            raise ValueError(f"H24 operational bridge bytes changed for {relative}.")
+    if (
+        _git(
+            repository,
+            "rev-parse",
+            f"{capability.implementation_commit}:{H24_MATERIALIZER_SOURCE_RELATIVE_PATH.as_posix()}",
+        )
+        != capability.materializer_source_blob
+        or _git(
+            repository,
+            "hash-object",
+            H24_MATERIALIZER_SOURCE_RELATIVE_PATH.as_posix(),
+        )
+        != capability.materializer_source_blob
+    ):
+        raise ValueError("H24 operational bridge source is not the reviewed blob.")
+    if _runtime_identity_without_numpy_import() != dict(capability.runtime_identity):
+        raise RuntimeError("H24 operational bridge runtime changed before NumPy import.")
+
+
+def _write_postclaim_bridge_failure_terminal(
+    capability: AttestedH24PopulationMaterializationCapability,
+) -> None:
+    state = _capability_state(capability)
+    repository = state.repository
+    marker = _resolve_bound_path(repository, capability.claim_marker_path)
+    terminal = _resolve_bound_path(repository, capability.terminal_record_path)
+    if not marker.exists() or terminal.exists():
+        return
+    _atomic_terminal_write(
+        terminal,
+        {
+            "schema_version": 1,
+            "purpose": "harmonic_censoring_h24_population_materialization_terminal",
+            "status": "H24_POPULATION_MATERIALIZATION_INCONCLUSIVE_CONSUMED",
+            "population_id": H24_POPULATION_ID,
+            "population_consumed": True,
+            "claim_marker_sha256": _sha256(marker.read_bytes()),
+            "receipt_sha256": None,
+            "population_index_sha256": None,
+            "materialized_fixture_count": 0,
+            "first_failed_fixture_id": None,
+            "scientific_tests_executed": 0,
+            "locked_test_used": False,
+        },
+    )
+
+
 def materialize_and_publish_h24_population(
     capability: AttestedH24PopulationMaterializationCapability,
 ) -> Mapping[str, object]:
-    """Keep the reviewed body dormant until a distinct activation bridge exists."""
+    """Import exact NumPy only after claim and a distinct reviewed activation."""
 
-    require_claimed_h24_population_materialization_capability(capability)
-    raise PermissionError(
-        "H24 NumPy import/runtime bridge remains unauthorized in the dormant materializer."
-    )
+    checked = require_claimed_h24_population_materialization_capability(capability)
+    try:
+        _require_operational_numpy_bridge_binding(checked)
+        np = importlib.import_module("numpy")
+        if getattr(np, "__name__", None) != "numpy" or getattr(
+            np, "__version__", None
+        ) != "1.26.4":
+            raise RuntimeError("H24 operational bridge requires exact NumPy 1.26.4.")
+        return _materialize_and_publish_h24_population_claimed(checked, np)
+    except BaseException:
+        _write_postclaim_bridge_failure_terminal(checked)
+        raise
 
 
 __all__ = [
