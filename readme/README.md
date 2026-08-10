@@ -23,8 +23,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   et de runner ont été ajoutés sans exécuteur scientifique. Le seal reste
   inexistant (`SHA=None`), la factory échoue avant le resolver et le runner ne
   référence pas le claim. Les six droits futurs sont validés séparément, la
-  capability est attestée par identité et les trois terminaux administratifs
-  succès/kill/inconclusif sont construits fail-closed. Les onze tests ajoutés
+  capability est attestée par une closure sans token/registre exposé. Les trois
+  builders succès/kill/inconclusif ne produisent que des brouillons sans
+  `global_go_status`; la finalisation autoritative exige une capability déjà
+  claimée, le marker réel et la destination scellée. Les onze tests ajoutés
   sont purs et ne synthétisent rien. Rapport :
   `readme/results/2026-08-10_harmonic-censoring-h23-dormant-execution-implementation.md`.
 - Le contrat séparé de future capability lie le harness approuvé `e97674cd…`,

@@ -3,10 +3,8 @@ from __future__ import annotations
 import copy
 from dataclasses import replace
 import hashlib
-import json
 from pathlib import Path
 import pickle
-import tempfile
 import unittest
 from unittest import mock
 
@@ -128,7 +126,7 @@ class HarmonicCensoringH23DormantExecutionTests(unittest.TestCase):
         load_plan.assert_not_called()
 
     def test_manual_copy_replace_pickle_and_structural_forgery_are_rejected(self) -> None:
-        with self.assertRaisesRegex(TypeError, "constructor is private"):
+        with self.assertRaisesRegex(TypeError, "factory-only"):
             capability.AttestedH23SyntheticExecutionCapability(  # type: ignore[call-arg]
                 None,
                 contract_sha256="0" * 64,
@@ -157,6 +155,9 @@ class HarmonicCensoringH23DormantExecutionTests(unittest.TestCase):
             capability.require_attested_h23_synthetic_execution_capability(
                 {"synthetic_execution_authorized": True}
             )
+        self.assertFalse(hasattr(capability, "_CAPABILITY_CONSTRUCTOR_TOKEN"))
+        self.assertFalse(hasattr(capability, "_register_identity"))
+        self.assertFalse(hasattr(capability, "_CAPABILITIES"))
 
     def _results(self, count: int, *, fail_last: bool = False):
         return tuple(
@@ -172,9 +173,13 @@ class HarmonicCensoringH23DormantExecutionTests(unittest.TestCase):
     def test_P0_failure_is_authoritative_with_exact_not_run_suffix(self) -> None:
         results = self._results(5, fail_last=True)
         terminal = runner.build_h23_scientific_terminal_record(
-            self.plan, results, consumption_marker_sha256="e" * 64
+            self.plan, results
         )
-        self.assertEqual(terminal["global_go_status"], runner.H23_P0_KILL_STATUS)
+        self.assertFalse(terminal["authoritative"])
+        self.assertNotIn("global_go_status", terminal)
+        self.assertEqual(
+            terminal["proposed_global_go_status"], runner.H23_P0_KILL_STATUS
+        )
         self.assertEqual(terminal["first_failed_test_id"], self.plan.tests[4].test_id)
         self.assertEqual(len(terminal["executed_results"]), 5)
         self.assertEqual(len(terminal["not_run_tests"]), 67)
@@ -189,7 +194,7 @@ class HarmonicCensoringH23DormantExecutionTests(unittest.TestCase):
     def test_success_requires_all_72_and_failure_must_be_last_prefix_item(self) -> None:
         with self.assertRaisesRegex(ValueError, "success requires all 72"):
             runner.build_h23_scientific_terminal_record(
-                self.plan, self._results(5), consumption_marker_sha256="e" * 64
+                self.plan, self._results(5)
             )
         results = list(self._results(5))
         results[2] = runner.H23AdministrativeTestResult(
@@ -200,12 +205,16 @@ class HarmonicCensoringH23DormantExecutionTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(ValueError, "first failed test"):
             runner.build_h23_scientific_terminal_record(
-                self.plan, results, consumption_marker_sha256="e" * 64
+                self.plan, results
             )
         success = runner.build_h23_scientific_terminal_record(
-            self.plan, self._results(72), consumption_marker_sha256="e" * 64
+            self.plan, self._results(72)
         )
-        self.assertEqual(success["global_go_status"], runner.H23_POSITIVE_STATUS)
+        self.assertFalse(success["authoritative"])
+        self.assertNotIn("global_go_status", success)
+        self.assertEqual(
+            success["proposed_global_go_status"], runner.H23_POSITIVE_STATUS
+        )
         self.assertEqual(success["not_run_tests"], [])
 
     def test_P1_and_P2_failures_are_readiness_failures_not_P0_kills(self) -> None:
@@ -217,44 +226,43 @@ class HarmonicCensoringH23DormantExecutionTests(unittest.TestCase):
             terminal = runner.build_h23_scientific_terminal_record(
                 self.plan,
                 self._results(count, fail_last=True),
-                consumption_marker_sha256="e" * 64,
             )
             with self.subTest(phase=phase):
                 self.assertEqual(
-                    terminal["global_go_status"],
+                    terminal["proposed_global_go_status"],
                     runner.H23_READINESS_FAILURE_STATUS,
                 )
                 self.assertNotEqual(
-                    terminal["global_go_status"], runner.H23_P0_KILL_STATUS
+                    terminal["proposed_global_go_status"], runner.H23_P0_KILL_STATUS
                 )
 
     def test_operational_incident_is_never_a_scientific_verdict(self) -> None:
         terminal = runner.build_h23_operational_terminal_record(
             self.plan,
             self._results(4),
-            consumption_marker_sha256="e" * 64,
             error_type="TimeoutError",
             error_message="synthetic administrative timeout",
         )
-        self.assertEqual(terminal["global_go_status"], runner.H23_INCONCLUSIVE_STATUS)
+        self.assertFalse(terminal["authoritative"])
+        self.assertNotIn("global_go_status", terminal)
+        self.assertEqual(
+            terminal["proposed_global_go_status"], runner.H23_INCONCLUSIVE_STATUS
+        )
         self.assertIsNone(terminal["scientific_verdict"])
         self.assertFalse(terminal["training_authorized"])
 
-    def test_atomic_terminal_publication_is_new_and_complete(self) -> None:
+    def test_terminal_draft_cannot_be_published_without_claimed_capability(self) -> None:
         payload = runner.build_h23_operational_terminal_record(
             self.plan,
             self._results(2),
-            consumption_marker_sha256="e" * 64,
             error_type="RuntimeError",
             error_message="administrative-only",
         )
-        with tempfile.TemporaryDirectory() as temporary:
-            destination = Path(temporary) / "terminal"
-            report = runner.publish_h23_terminal_record_atomically(destination, payload)
-            self.assertEqual(json.loads(report.read_text(encoding="utf-8")), payload)
-            self.assertEqual(list(destination.iterdir()), [report])
-            with self.assertRaises(FileExistsError):
-                runner.publish_h23_terminal_record_atomically(destination, payload)
+        self.assertFalse(hasattr(runner, "publish_h23_terminal_record_atomically"))
+        with self.assertRaises(TypeError):
+            runner.finalize_and_publish_h23_terminal_record(
+                self.plan, payload, object()
+            )
 
     def test_runner_is_dormant_and_never_claims_a_structural_lookalike(self) -> None:
         self.assertFalse(runner.PRODUCTION_H23_SCIENTIFIC_EXECUTOR_IMPLEMENTED)
@@ -278,9 +286,7 @@ class HarmonicCensoringH23DormantExecutionTests(unittest.TestCase):
         capability_source = (
             self.root / capability.H23_CAPABILITY_SOURCE_RELATIVE_PATH
         ).read_text(encoding="utf-8")
-        self.assertIn(
-            "registered[1] != _capability_binding(value)", capability_source
-        )
+        self.assertIn("registered[1] != binding(value)", capability_source)
         runner_source = (
             self.root / capability.H23_RUNNER_SOURCE_RELATIVE_PATH
         ).read_text(encoding="utf-8")

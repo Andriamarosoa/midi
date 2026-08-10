@@ -60,14 +60,6 @@ H23_RUNNER_SOURCE_RELATIVE_PATH = Path(
     "src/polyphonic/run_harmonic_censoring_h23_synthetic.py"
 )
 
-_CAPABILITY_CONSTRUCTOR_TOKEN = object()
-_CAPABILITIES: dict[
-    int, tuple[weakref.ReferenceType[object], tuple[object, ...]]
-] = {}
-_CLAIMED_CAPABILITIES: dict[int, weakref.ReferenceType[object]] = {}
-_CAPABILITY_LOCK = threading.Lock()
-
-
 def _sha256(raw: bytes) -> str:
     return hashlib.sha256(raw).hexdigest()
 
@@ -317,32 +309,11 @@ class AttestedH23SyntheticExecutionCapability:
 
     def __init__(
         self,
-        token: object,
-        *,
-        contract_sha256: str,
-        capability_contract_sha256: str,
-        fixture_manifest_sha256: str,
-        resolved_test_manifest_sha256: str,
-        approved_harness_git_blob: str,
-        implementation_commit: str,
-        authorization_seal_sha256: str,
-        success_destination: Path,
-        terminal_record_destination: Path,
-        authorization_marker: Path,
+        *args: object,
+        **kwargs: object,
     ) -> None:
-        if token is not _CAPABILITY_CONSTRUCTOR_TOKEN:
-            raise TypeError("H23 capability constructor is private.")
-        object.__setattr__(self, "contract_sha256", contract_sha256)
-        object.__setattr__(self, "capability_contract_sha256", capability_contract_sha256)
-        object.__setattr__(self, "fixture_manifest_sha256", fixture_manifest_sha256)
-        object.__setattr__(self, "resolved_test_manifest_sha256", resolved_test_manifest_sha256)
-        object.__setattr__(self, "approved_harness_git_blob", approved_harness_git_blob)
-        object.__setattr__(self, "implementation_commit", implementation_commit)
-        object.__setattr__(self, "authorization_seal_sha256", authorization_seal_sha256)
-        object.__setattr__(self, "success_destination", success_destination)
-        object.__setattr__(self, "terminal_record_destination", terminal_record_destination)
-        object.__setattr__(self, "authorization_marker", authorization_marker)
-        object.__setattr__(self, "_sealed", True)
+        del args, kwargs
+        raise TypeError("H23 capability construction is factory-only.")
 
     def __setattr__(self, name: str, value: object) -> None:
         del name, value
@@ -358,52 +329,6 @@ class AttestedH23SyntheticExecutionCapability:
     def __reduce_ex__(self, protocol: int) -> object:
         del protocol
         raise TypeError("H23 capability cannot be serialized.")
-
-
-def _capability_binding(
-    value: AttestedH23SyntheticExecutionCapability,
-) -> tuple[object, ...]:
-    return (
-        value.contract_sha256,
-        value.capability_contract_sha256,
-        value.fixture_manifest_sha256,
-        value.resolved_test_manifest_sha256,
-        value.approved_harness_git_blob,
-        value.implementation_commit,
-        value.authorization_seal_sha256,
-        value.success_destination,
-        value.terminal_record_destination,
-        value.authorization_marker,
-    )
-
-
-def _register_identity(value: AttestedH23SyntheticExecutionCapability) -> None:
-    identity = id(value)
-
-    def cleanup(reference: weakref.ReferenceType[object]) -> None:
-        registered = _CAPABILITIES.get(identity)
-        if registered is not None and registered[0] is reference:
-            _CAPABILITIES.pop(identity, None)
-        if _CLAIMED_CAPABILITIES.get(identity) is reference:
-            _CLAIMED_CAPABILITIES.pop(identity, None)
-
-    reference = weakref.ref(value, cleanup)
-    _CAPABILITIES[identity] = (reference, _capability_binding(value))
-
-
-def require_attested_h23_synthetic_execution_capability(
-    value: object,
-) -> AttestedH23SyntheticExecutionCapability:
-    if not isinstance(value, AttestedH23SyntheticExecutionCapability):
-        raise TypeError("H23 execution requires its exact capability type.")
-    registered = _CAPABILITIES.get(id(value))
-    if (
-        registered is None
-        or registered[0]() is not value
-        or registered[1] != _capability_binding(value)
-    ):
-        raise PermissionError("H23 execution capability is not factory-attested.")
-    return value
 
 
 def _git(repository: Path, *arguments: str) -> str:
@@ -513,96 +438,157 @@ def _validate_repository_and_runtime(
         raise RuntimeError("H23 runtime identity mismatch.")
 
 
-def issue_h23_synthetic_execution_capability(
-    repository_root: Path,
-) -> AttestedH23SyntheticExecutionCapability:
-    """Issue only after a later fixed seal exists and every preflight passes."""
+def _build_h23_capability_authority():
+    """Create the only mint/registry closure; expose no token or register helper."""
 
-    # This is intentionally first.  In the present commit it always fails,
-    # before plan resolution, package inspection, path access, or claim state.
-    seal = load_h23_authorization_seal(repository_root)
-    repository = Path(repository_root).resolve(strict=True)
-    plan = load_h23_harness_plan(repository)
-    _validate_repository_and_runtime(repository, seal, plan)
-    success = _resolve_bound_path(repository, seal.success_destination)
-    terminal = _resolve_bound_path(repository, seal.terminal_record_destination)
-    marker = _resolve_bound_path(repository, seal.authorization_marker)
-    for path in (success, terminal, marker):
-        if path.exists():
-            raise FileExistsError(f"H23 sealed one-shot path already exists: {path}")
-    capability = AttestedH23SyntheticExecutionCapability(
-        _CAPABILITY_CONSTRUCTOR_TOKEN,
-        contract_sha256=plan.contract_sha256,
-        capability_contract_sha256=H23_CAPABILITY_CONTRACT_SHA256,
-        fixture_manifest_sha256=plan.fixture_manifest_sha256,
-        resolved_test_manifest_sha256=plan.resolved_test_manifest_sha256,
-        approved_harness_git_blob=H23_HARNESS_GIT_BLOB,
-        implementation_commit=seal.reviewed_execution_commit,
-        authorization_seal_sha256=seal.raw_sha256,
-        success_destination=success,
-        terminal_record_destination=terminal,
-        authorization_marker=marker,
-    )
-    _register_identity(capability)
-    return capability
+    registered_capabilities: dict[
+        int, tuple[weakref.ReferenceType[object], tuple[object, ...]]
+    ] = {}
+    claimed_capabilities: dict[int, weakref.ReferenceType[object]] = {}
+    claim_lock = threading.Lock()
 
-
-def claim_h23_synthetic_execution_capability(
-    value: object,
-) -> AttestedH23SyntheticExecutionCapability:
-    """Persist population consumption atomically before the first waveform."""
-
-    with _CAPABILITY_LOCK:
-        capability = require_attested_h23_synthetic_execution_capability(value)
-        claimed = _CLAIMED_CAPABILITIES.get(id(capability))
-        if claimed is not None and claimed() is capability:
-            raise RuntimeError("H23 capability was already claimed.")
-        marker_payload = canonical_json_bytes(
-            {
-                "schema_version": 1,
-                "purpose": "harmonic_censoring_h23_synthetic_population_consumption",
-                "synthetic_population_consumed": True,
-                "authorization_seal_sha256": capability.authorization_seal_sha256,
-                "implementation_commit": capability.implementation_commit,
-                "fixture_manifest_sha256": capability.fixture_manifest_sha256,
-                "resolved_test_manifest_sha256": capability.resolved_test_manifest_sha256,
-                "approved_harness_git_blob": capability.approved_harness_git_blob,
-            }
+    def binding(
+        value: AttestedH23SyntheticExecutionCapability,
+    ) -> tuple[object, ...]:
+        return (
+            value.contract_sha256,
+            value.capability_contract_sha256,
+            value.fixture_manifest_sha256,
+            value.resolved_test_manifest_sha256,
+            value.approved_harness_git_blob,
+            value.implementation_commit,
+            value.authorization_seal_sha256,
+            value.success_destination,
+            value.terminal_record_destination,
+            value.authorization_marker,
         )
-        capability.authorization_marker.parent.mkdir(parents=True, exist_ok=True)
-        descriptor = os.open(
-            capability.authorization_marker,
-            os.O_WRONLY | os.O_CREAT | os.O_EXCL,
-            0o600,
-        )
-        try:
-            with os.fdopen(descriptor, "wb") as stream:
-                stream.write(marker_payload)
-                stream.flush()
-                os.fsync(stream.fileno())
-            directory_descriptor = os.open(
-                capability.authorization_marker.parent, os.O_RDONLY
+
+    def require(
+        value: object,
+    ) -> AttestedH23SyntheticExecutionCapability:
+        if not isinstance(value, AttestedH23SyntheticExecutionCapability):
+            raise TypeError("H23 execution requires its exact capability type.")
+        registered = registered_capabilities.get(id(value))
+        if (
+            registered is None
+            or registered[0]() is not value
+            or registered[1] != binding(value)
+        ):
+            raise PermissionError("H23 execution capability is not factory-attested.")
+        return value
+
+    def issue(
+        repository_root: Path,
+    ) -> AttestedH23SyntheticExecutionCapability:
+        """Issue only after a later fixed seal exists and all preflights pass."""
+
+        # This is intentionally first.  In the present commit it always fails,
+        # before plan resolution, package inspection, path access, or claim state.
+        seal = load_h23_authorization_seal(repository_root)
+        repository = Path(repository_root).resolve(strict=True)
+        plan = load_h23_harness_plan(repository)
+        _validate_repository_and_runtime(repository, seal, plan)
+        success = _resolve_bound_path(repository, seal.success_destination)
+        terminal = _resolve_bound_path(repository, seal.terminal_record_destination)
+        marker = _resolve_bound_path(repository, seal.authorization_marker)
+        for path in (success, terminal, marker):
+            if path.exists():
+                raise FileExistsError(f"H23 sealed one-shot path already exists: {path}")
+        created = object.__new__(AttestedH23SyntheticExecutionCapability)
+        values = {
+            "contract_sha256": plan.contract_sha256,
+            "capability_contract_sha256": H23_CAPABILITY_CONTRACT_SHA256,
+            "fixture_manifest_sha256": plan.fixture_manifest_sha256,
+            "resolved_test_manifest_sha256": plan.resolved_test_manifest_sha256,
+            "approved_harness_git_blob": H23_HARNESS_GIT_BLOB,
+            "implementation_commit": seal.reviewed_execution_commit,
+            "authorization_seal_sha256": seal.raw_sha256,
+            "success_destination": success,
+            "terminal_record_destination": terminal,
+            "authorization_marker": marker,
+            "_sealed": True,
+        }
+        for name, value in values.items():
+            object.__setattr__(created, name, value)
+        identity = id(created)
+
+        def cleanup(reference: weakref.ReferenceType[object]) -> None:
+            registered = registered_capabilities.get(identity)
+            if registered is not None and registered[0] is reference:
+                registered_capabilities.pop(identity, None)
+            if claimed_capabilities.get(identity) is reference:
+                claimed_capabilities.pop(identity, None)
+
+        reference = weakref.ref(created, cleanup)
+        registered_capabilities[identity] = (reference, binding(created))
+        return created
+
+    def claim(
+        value: object,
+    ) -> AttestedH23SyntheticExecutionCapability:
+        """Persist population consumption atomically before the first waveform."""
+
+        with claim_lock:
+            capability = require(value)
+            claimed = claimed_capabilities.get(id(capability))
+            if claimed is not None and claimed() is capability:
+                raise RuntimeError("H23 capability was already claimed.")
+            marker_payload = canonical_json_bytes(
+                {
+                    "schema_version": 1,
+                    "purpose": "harmonic_censoring_h23_synthetic_population_consumption",
+                    "synthetic_population_consumed": True,
+                    "authorization_seal_sha256": capability.authorization_seal_sha256,
+                    "implementation_commit": capability.implementation_commit,
+                    "fixture_manifest_sha256": capability.fixture_manifest_sha256,
+                    "resolved_test_manifest_sha256": capability.resolved_test_manifest_sha256,
+                    "approved_harness_git_blob": capability.approved_harness_git_blob,
+                }
+            )
+            capability.authorization_marker.parent.mkdir(parents=True, exist_ok=True)
+            descriptor = os.open(
+                capability.authorization_marker,
+                os.O_WRONLY | os.O_CREAT | os.O_EXCL,
+                0o600,
             )
             try:
-                os.fsync(directory_descriptor)
-            finally:
-                os.close(directory_descriptor)
-        except BaseException:
-            # The marker is never removed: a failed claim remains consumed.
-            raise
-        reference = weakref.ref(capability)
-        _CLAIMED_CAPABILITIES[id(capability)] = reference
+                with os.fdopen(descriptor, "wb") as stream:
+                    stream.write(marker_payload)
+                    stream.flush()
+                    os.fsync(stream.fileno())
+                directory_descriptor = os.open(
+                    capability.authorization_marker.parent, os.O_RDONLY
+                )
+                try:
+                    os.fsync(directory_descriptor)
+                finally:
+                    os.close(directory_descriptor)
+            except BaseException:
+                # The marker is never removed: a failed claim remains consumed.
+                raise
+            reference = weakref.ref(capability)
+            claimed_capabilities[id(capability)] = reference
+            return capability
+
+    def require_claimed(
+        value: object,
+    ) -> AttestedH23SyntheticExecutionCapability:
+        capability = require(value)
+        reference = claimed_capabilities.get(id(capability))
+        if reference is None or reference() is not capability:
+            raise PermissionError("H23 capability has not crossed its one-shot claim.")
         return capability
 
+    return issue, require, claim, require_claimed
 
-def require_claimed_h23_synthetic_execution_capability(
-    value: object,
-) -> AttestedH23SyntheticExecutionCapability:
-    capability = require_attested_h23_synthetic_execution_capability(value)
-    reference = _CLAIMED_CAPABILITIES.get(id(capability))
-    if reference is None or reference() is not capability:
-        raise PermissionError("H23 capability has not crossed its one-shot claim.")
-    return capability
+
+(
+    issue_h23_synthetic_execution_capability,
+    require_attested_h23_synthetic_execution_capability,
+    claim_h23_synthetic_execution_capability,
+    require_claimed_h23_synthetic_execution_capability,
+) = _build_h23_capability_authority()
+del _build_h23_capability_authority
 
 
 __all__ = [

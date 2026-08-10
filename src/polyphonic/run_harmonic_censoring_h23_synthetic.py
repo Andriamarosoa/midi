@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -22,6 +23,7 @@ from .harmonic_censoring_h23_execution_capability import (
     AttestedH23SyntheticExecutionCapability,
     issue_h23_synthetic_execution_capability,
     require_attested_h23_synthetic_execution_capability,
+    require_claimed_h23_synthetic_execution_capability,
 )
 
 
@@ -31,13 +33,6 @@ H23_P0_KILL_STATUS = "H23_SYNTHETIC_HYPOTHESIS_KILLED"
 H23_READINESS_FAILURE_STATUS = "H23_PRETRAIN_READINESS_NOT_DEMONSTRATED"
 H23_INCONCLUSIVE_STATUS = "H23_EXECUTION_INCONCLUSIVE_FAIL_CLOSED"
 H23_NOT_RUN_STATUS = "NOT_RUN_BY_KILL_RULE"
-
-
-def _require_sha256(value: str, label: str) -> None:
-    if len(value) != 64 or any(
-        character not in "0123456789abcdef" for character in value
-    ):
-        raise ValueError(f"H23 {label} must be a lowercase SHA-256.")
 
 
 class H23AdministrativePhase(str, Enum):
@@ -85,15 +80,12 @@ def _expected_prefix(
 def build_h23_scientific_terminal_record(
     plan: H23HarnessPlan,
     results: Sequence[H23AdministrativeTestResult],
-    *,
-    consumption_marker_sha256: str,
 ) -> dict[str, object]:
-    """Build a complete success or authoritative early scientific failure."""
+    """Build a non-authoritative success/failure draft from an exact prefix."""
 
     _expected_prefix(plan, results)
     if not results:
         raise ValueError("H23 scientific terminal requires at least one result.")
-    _require_sha256(consumption_marker_sha256, "consumption marker SHA-256")
     first_failure = next((item for item in results if not item.passed), None)
     if first_failure is None:
         if len(results) != len(plan.tests):
@@ -116,10 +108,10 @@ def build_h23_scientific_terminal_record(
         ]
     return {
         "schema_version": 1,
-        "purpose": "harmonic_censoring_h23_terminal_scientific_result",
-        "global_go_status": status,
-        "synthetic_population_consumed": True,
-        "consumption_marker_sha256": consumption_marker_sha256,
+        "purpose": "harmonic_censoring_h23_terminal_scientific_draft",
+        "authoritative": False,
+        "proposed_global_go_status": status,
+        "synthetic_population_consumed": False,
         "fixture_manifest_sha256": plan.fixture_manifest_sha256,
         "resolved_test_manifest_sha256": plan.resolved_test_manifest_sha256,
         "executed_results": [
@@ -145,23 +137,21 @@ def build_h23_operational_terminal_record(
     plan: H23HarnessPlan,
     results: Sequence[H23AdministrativeTestResult],
     *,
-    consumption_marker_sha256: str,
     error_type: str,
     error_message: str,
 ) -> dict[str, object]:
     """Build an inconclusive record without converting an incident to science."""
 
     _expected_prefix(plan, results)
-    _require_sha256(consumption_marker_sha256, "consumption marker SHA-256")
     if not error_type or not error_message:
         raise ValueError("H23 operational terminal requires explicit error evidence.")
     return {
         "schema_version": 1,
-        "purpose": "harmonic_censoring_h23_terminal_operational_incident",
-        "global_go_status": H23_INCONCLUSIVE_STATUS,
+        "purpose": "harmonic_censoring_h23_terminal_operational_draft",
+        "authoritative": False,
+        "proposed_global_go_status": H23_INCONCLUSIVE_STATUS,
         "scientific_verdict": None,
-        "synthetic_population_consumed": True,
-        "consumption_marker_sha256": consumption_marker_sha256,
+        "synthetic_population_consumed": False,
         "fixture_manifest_sha256": plan.fixture_manifest_sha256,
         "resolved_test_manifest_sha256": plan.resolved_test_manifest_sha256,
         "known_executed_test_ids": [item.test_id for item in results],
@@ -174,7 +164,7 @@ def build_h23_operational_terminal_record(
     }
 
 
-def publish_h23_terminal_record_atomically(
+def _publish_h23_terminal_record_atomically(
     destination: Path, payload: Mapping[str, object]
 ) -> Path:
     """Publish one administrative terminal directory by same-filesystem rename."""
@@ -208,6 +198,131 @@ def publish_h23_terminal_record_atomically(
             shutil.rmtree(staging)
         raise
     return destination / "terminal_report.json"
+
+
+def finalize_and_publish_h23_terminal_record(
+    plan: H23HarnessPlan,
+    draft: Mapping[str, object],
+    capability: object,
+) -> Path:
+    """Create authority only from a claimed capability and its real marker."""
+
+    checked = require_claimed_h23_synthetic_execution_capability(capability)
+    if (
+        plan.contract_sha256 != checked.contract_sha256
+        or plan.fixture_manifest_sha256 != checked.fixture_manifest_sha256
+        or plan.resolved_test_manifest_sha256 != checked.resolved_test_manifest_sha256
+    ):
+        raise ValueError("H23 terminal plan differs from the claimed capability.")
+    if not checked.authorization_marker.is_file():
+        raise FileNotFoundError("H23 claimed consumption marker is missing.")
+    marker_raw = checked.authorization_marker.read_bytes()
+    marker_sha256 = hashlib.sha256(marker_raw).hexdigest()
+    try:
+        marker = json.loads(marker_raw)
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError("H23 consumption marker is not valid JSON.") from exc
+    expected_marker = {
+        "schema_version": 1,
+        "purpose": "harmonic_censoring_h23_synthetic_population_consumption",
+        "synthetic_population_consumed": True,
+        "authorization_seal_sha256": checked.authorization_seal_sha256,
+        "implementation_commit": checked.implementation_commit,
+        "fixture_manifest_sha256": checked.fixture_manifest_sha256,
+        "resolved_test_manifest_sha256": checked.resolved_test_manifest_sha256,
+        "approved_harness_git_blob": checked.approved_harness_git_blob,
+    }
+    if marker != expected_marker:
+        raise ValueError("H23 consumption marker content does not match capability.")
+    purpose = draft.get("purpose")
+    if purpose not in {
+        "harmonic_censoring_h23_terminal_scientific_draft",
+        "harmonic_censoring_h23_terminal_operational_draft",
+    }:
+        raise ValueError("H23 terminal draft purpose is invalid.")
+    if draft.get("authoritative") is not False:
+        raise ValueError("H23 terminal input must be a non-authoritative draft.")
+    if purpose == "harmonic_censoring_h23_terminal_scientific_draft":
+        rows = draft.get("executed_results")
+        if not isinstance(rows, list):
+            raise ValueError("H23 scientific draft results must be an array.")
+        reconstructed: list[H23AdministrativeTestResult] = []
+        for row in rows:
+            if not isinstance(row, Mapping) or set(row) != {
+                "test_id",
+                "phase",
+                "passed",
+                "evidence",
+            }:
+                raise ValueError("H23 scientific draft result schema mismatch.")
+            evidence = row["evidence"]
+            if not isinstance(evidence, Mapping):
+                raise ValueError("H23 scientific draft evidence must be an object.")
+            reconstructed.append(
+                H23AdministrativeTestResult(
+                    test_id=row["test_id"],  # type: ignore[arg-type]
+                    phase=row["phase"],  # type: ignore[arg-type]
+                    passed=row["passed"],  # type: ignore[arg-type]
+                    evidence=evidence,
+                )
+            )
+        expected_draft = build_h23_scientific_terminal_record(plan, reconstructed)
+    else:
+        known_ids = draft.get("known_executed_test_ids")
+        error = draft.get("operational_error")
+        if (
+            not isinstance(known_ids, list)
+            or any(not isinstance(item, str) for item in known_ids)
+            or not isinstance(error, Mapping)
+            or set(error) != {"type", "message"}
+            or not isinstance(error["type"], str)
+            or not isinstance(error["message"], str)
+        ):
+            raise ValueError("H23 operational draft schema mismatch.")
+        reconstructed = [
+            H23AdministrativeTestResult(
+                test_id=item.test_id,
+                phase=item.phase,
+                passed=True,
+                evidence={},
+            )
+            for item in plan.tests[: len(known_ids)]
+        ]
+        if known_ids != [item.test_id for item in reconstructed]:
+            raise ValueError("H23 operational draft is not an exact test prefix.")
+        expected_draft = build_h23_operational_terminal_record(
+            plan,
+            reconstructed,
+            error_type=error["type"],
+            error_message=error["message"],
+        )
+    if dict(draft) != expected_draft:
+        raise ValueError("H23 terminal draft was mutated after construction.")
+    proposed = draft.get("proposed_global_go_status")
+    allowed = {
+        H23_POSITIVE_STATUS,
+        H23_P0_KILL_STATUS,
+        H23_READINESS_FAILURE_STATUS,
+        H23_INCONCLUSIVE_STATUS,
+    }
+    if proposed not in allowed:
+        raise ValueError("H23 terminal draft proposed status is invalid.")
+    if proposed == H23_POSITIVE_STATUS:
+        if len(draft.get("executed_results", [])) != 72 or draft.get("not_run_tests") != []:
+            raise ValueError("H23 positive finalization requires the complete 72-test draft.")
+        destination = checked.success_destination
+    else:
+        destination = checked.terminal_record_destination
+    final = dict(draft)
+    final.pop("proposed_global_go_status")
+    final["purpose"] = "harmonic_censoring_h23_terminal_authoritative_result"
+    final["authoritative"] = True
+    final["global_go_status"] = proposed
+    final["synthetic_population_consumed"] = True
+    final["consumption_marker_sha256"] = marker_sha256
+    final["authorization_seal_sha256"] = checked.authorization_seal_sha256
+    final["implementation_commit"] = checked.implementation_commit
+    return _publish_h23_terminal_record_atomically(destination, final)
 
 
 def run_authorized_h23_synthetic_execution(
@@ -249,8 +364,8 @@ __all__ = [
     "PRODUCTION_H23_SCIENTIFIC_EXECUTOR_IMPLEMENTED",
     "build_h23_operational_terminal_record",
     "build_h23_scientific_terminal_record",
+    "finalize_and_publish_h23_terminal_record",
     "main",
-    "publish_h23_terminal_record_atomically",
     "run_authorized_h23_synthetic_execution",
 ]
 

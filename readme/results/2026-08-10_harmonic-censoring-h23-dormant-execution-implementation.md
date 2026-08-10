@@ -12,14 +12,14 @@ aucun test P0/P1/P2.
 
 ```text
 src/polyphonic/harmonic_censoring_h23_execution_capability.py
-taille       24 259 octets
-SHA-256 brut b82e385b097b5eddf99ee5d45b80c81076ea3b711f6add719b4df42fa97b0c8e
-blob Git     5e9f6c9865c55bbaa0504c99083d410d5ccb0aa2
+taille       23 661 octets
+SHA-256 brut 7d2f6b232544cdc65b5bc06fb79ced8bdd272b3867c9d9baf96597b83fc3e970
+blob Git     919ff6af30cd1412355be7fe569812b13ef254f9
 
 src/polyphonic/run_harmonic_censoring_h23_synthetic.py
-taille       9 403 octets
-SHA-256 brut 1ea448deb56dc29a1d489485e76b5c4019cf5cfe9df97a3704c22f13c942c7f5
-blob Git     6fbdd8b92210429a7da1b8ac35d91942df16188d
+taille       14 713 octets
+SHA-256 brut a397cf02df05e61f95ad23fca6e7c0981efa129f6eaab7e13ad6a6b6ebc11c0d
+blob Git     036d2b7b08496ac29078cebafb9b033208c01325
 ```
 
 Les deux sources sont forcées en LF par `.gitattributes`. Elles n’importent ni
@@ -27,9 +27,11 @@ NumPy, ni TensorFlow, ni loader de données, ni décodeur.
 
 ## Capability fail-closed
 
-`AttestedH23SyntheticExecutionCapability` possède un constructeur privé, est
-immuable, non copiable, non sérialisable et n’est reconnue que par identité via
-un registre faible process-local. Une dataclass, un mapping, un clone
+`AttestedH23SyntheticExecutionCapability` refuse toute construction publique,
+est immuable, non copiable et non sérialisable. La construction et le registre
+faible process-local sont enfermés dans une closure unique : aucun token,
+registre ou helper d’attestation n’est exposé comme attribut du module. Une
+dataclass, un mapping, un clone
 `object.__new__`, `copy`, `deepcopy`, `pickle` ou `dataclasses.replace` ne donne
 aucune autorité.
 
@@ -75,13 +77,20 @@ refusé avant consommation tant qu’un exécuteur scientifique séparément rev
 n’existe pas.
 
 Les seules fonctions actives sont administratives et pures : elles valident un
-préfixe de tests déjà résolus, construisent l’un des trois terminaux scellés et
-publient un JSON par staging + rename atomique :
+préfixe de tests déjà résolus et construisent des **brouillons explicitement
+non autoritatifs**, sans champ `global_go_status`. Un brouillon ne porte que
+`proposed_global_go_status` :
 
 - succès uniquement avec les `72` tests ;
 - kill scientifique avec premier échec et suffixe `NOT_RUN_BY_KILL_RULE` ;
 - incident opérationnel `H23_EXECUTION_INCONCLUSIVE_FAIL_CLOSED`, sans verdict
   scientifique.
+
+La seule finalisation autoritative exige une capability attestée **et déjà
+claimée**, relit le marker réel, vérifie exactement son contenu et son SHA,
+réconcilie plan/manifests/capability, puis force la destination succès ou
+terminale scellée avant le rename atomique. Aucun caller ne peut fournir un
+simple SHA sous forme de chaîne ni choisir une destination arbitraire.
 
 ## Vérifications autorisées
 
@@ -89,9 +98,9 @@ publient un JSON par staging + rename atomique :
 C:\Users\user\Desktop\midi\.venv\Scripts\python.exe -B -m unittest tests.test_harmonic_censoring_h23_execution_dormant
 ```
 
-Résultat : `11 tests réussis en 0,029 s`.
+Résultat : `11 tests réussis en 0,015 s`.
 
-La suite contractuelle élargie H23/H17/H20 donne `53 tests réussis en 0,605 s`.
+La suite contractuelle élargie H23/H17/H20 donne `53 tests réussis en 0,630 s`.
 `py_compile` et `git diff --check` réussissent.
 
 Les tests utilisent uniquement des mappings synthétiques, le resolver dormant
