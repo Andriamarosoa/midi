@@ -55,7 +55,9 @@ harmonique ne peut jamais confirmer seule le F0 qui la conditionne.
 - fenêtre : `4096` échantillons ;
 - lookahead ajouté : exactement `0` ;
 - sortie MIDI physique : `40–76` ;
-- observations virtuelles : `40–127` inclus, soit `88` pitches ;
+- observations analytiques : coordonnées `40–128` incluses, soit `89` points ;
+- la coordonnée 128 n'est pas une note MIDI : elle couvre H20 de MIDI 76,
+  situé à `127,863…` ;
 - aucune observation virtuelle au-dessus de 76 ne peut émettre de MIDI.
 
 Le graphe harmonique est orienté grave vers aigu. Une Do2 peut expliquer Do3
@@ -134,7 +136,7 @@ P1 ajoute :
   résonance sympathique ;
 - prior corde/frette uniquement souple avec `unknown/slack` ;
 - silence, OOD synthétique, résidu inexpliqué et explication causale ;
-- observation virtuelle 40–127 avec firewall MIDI 76.
+- observation analytique 40–128 avec firewall MIDI 76.
 
 Tous les tests sont identifiés dans le contrat JSON avec entrée, procédure,
 oracle, règle PASS et inverse check. Le résolveur du schéma ajoute à chaque
