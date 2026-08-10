@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "purpose": "harmonic_censoring_multiscale_pretrain_h23_contract",
-  "status": "pretrain_test_plan_mathematics_closed_external_re_review_required",
+  "status": "externally_approved_for_implementation_only",
   "scope": {
     "contract_only": true,
-    "implementation_authorized": false,
+    "implementation_authorized": true,
     "synthetic_execution_authorized": false,
     "scientific_execution_authorized": false,
     "real_data_access_authorized": false,
@@ -15,6 +15,15 @@
     "locked_test_used": false
   },
   "scientific_question": "Can a causal multiscale harmonic-censoring representation provide non-trivial evidence for fundamental attribution, source birth, harmonic false-note rejection and source cardinality after removing pitch/cutoff geometry and global-energy effects?",
+  "external_review_gate": {
+    "reviewed_commit": "1e5075f5d9eb23bdab077bed3faeb6c58c61942e",
+    "verdict": "APPROVED",
+    "authorized_scope": "implementation_of_the_synthetic_harness_only",
+    "synthetic_P0_execution_authorized": false,
+    "scientific_execution_authorized": false,
+    "training_authorized": false,
+    "review_summary": "No structural fail-open remained after review of domains, spectral censoring, support-aware null, NNLS, cardinalities, causal state machine, replay timeline, 175 fixtures and 72 tests."
+  },
   "hypotheses": {
     "primary": "A shared causal spectral representation observed through relative low-pass censoring contains residual structural information beyond candidate pitch and total energy.",
     "source_birth": "A new source is supported by a causal combination of onset, harmonic novelty, new energy and unexplained residual after accounting for older sources.",
@@ -695,5 +704,5 @@
     "accessing_locked_test",
     "implementing_or_running_P0_before_external_review"
   ],
-  "next_action": "External re-review of the H23 corrective commit only. Do not implement or execute P0 automatically."
+  "next_action": "Implement the deterministic synthetic harness and its non-scientific contract tests only. Do not execute P0, synthesize the 175 fixtures, access real data, load a model, fit, calibrate, reuse H17 or access locked test without a separate reviewed execution authorization."
 }

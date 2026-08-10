@@ -18,7 +18,13 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 - Mise à jour : `2026-08-10`.
 - Étape : `harmonic_censoring_multiscale_h23_pretrain_contract`.
-- Statut : `terminé — bloqueurs mathématiques H23b fermés contractuellement; nouvelle revue externe requise avant toute implémentation ou exécution P0`.
+- Statut : `contrat H23 approuvé — implémentation déterministe du harness autorisée; exécution P0 et tout calcul scientifique toujours interdits`.
+- La revue finale du commit `1e5075f5d9eb23bdab077bed3faeb6c58c61942e`
+  conclut `APPROUVÉ` et ne relève plus aucun fail-open structurel. Le gate
+  machine-readable autorise uniquement l'implémentation du harness synthétique.
+  `synthetic_execution_authorized=false`, `scientific_execution_authorized=false`
+  et `training_authorized=false` restent inchangés. Aucun P0 ne peut être lancé
+  avant un contrat d'exécution séparé et relu.
 - La seconde revue externe a confirmé les huit corrections H23a mais identifié
   sept blocages mathématiques. H23b les ferme sans calcul : domaine latent
   `24..76` séparé des `37` candidats MIDI et des `89` observations; cas

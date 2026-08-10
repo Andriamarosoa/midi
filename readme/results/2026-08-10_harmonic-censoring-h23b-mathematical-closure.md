@@ -124,6 +124,15 @@ dans la seule fenêtre cible.
 ## État
 
 Les compteurs structurels restent `27 P0 + 35 P1 + 10 P2 = 72`, et
-`6 + 169 = 175` fixtures. La seule action suivante est une nouvelle revue
-externe du contrat. Toute implémentation/exécution P0, donnée réelle, modèle,
-fit, population H17 ou test verrouillé demeure interdite.
+`6 + 169 = 175` fixtures. Après la revue finale, seule l'implémentation
+déterministe du harness est autorisée. Exécution P0, donnée réelle, modèle,
+fit, population H17 et test verrouillé demeurent interdits.
+
+## Revue finale
+
+La revue externe du commit
+`1e5075f5d9eb23bdab077bed3faeb6c58c61942e` conclut `APPROUVÉ` et confirme
+qu'aucun fail-open structurel ne subsiste. La gouvernance autorise maintenant
+uniquement l'implémentation déterministe du harness. L'exécution P0, la synthèse
+effective des 175 fixtures, les données réelles, modèles, fits, H17 et le test
+verrouillé restent interdits jusqu'à une autorisation d'exécution séparée.
