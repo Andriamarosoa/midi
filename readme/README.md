@@ -17,8 +17,20 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `provisional_resolution_age1_persistence_h13_fixed_group_universe`.
-- Statut : `terminé — provisional_resolution_age1_persistence_h13_execution_seal_ready, aucune exécution scientifique autorisée`.
+- Étape : `provisional_resolution_age1_persistence_h14_permanent_closure`.
+- Statut : `terminé — provisional_resolution_age1_persistence_h14_closed_inconclusive_after_consumed_runtime_failure`.
+- H14 est définitivement clos après un `RuntimeError` post-consommation. Le
+  marqueur a été réclamé, le state persistant prouve
+  `h8_discovery_consumed=true`, aucun répertoire final n'existe et la provenance
+  d'échec ne conserve que `error_type=RuntimeError`. Le résultat scientifique
+  H7 est donc `indeterminate`, le verdict exact est
+  `inconclusive_fail_closed`, et ni une AUC produite ni son absence ne peuvent
+  être prouvées. Aucun retry ou réemploi de H8 pour H7 n'est autorisé. L'audit
+  H15 purement statique classe les sites candidats par phase mais ne peut pas
+  identifier une cause unique :
+  `h14_runtime_failure_root_cause_not_identified`. Les fichiers `.claimed`,
+  `.state.json` et `.failure.json` restent intacts sur le Mac. Rapport :
+  `readme/results/2026-08-10_provisional-resolution-age1-h14-permanent-closure.md`.
 - H13 corrige avant toute consommation le seul écart découvert pendant la revue
   H12 : le bootstrap reçoit désormais explicitement l'univers immuable des `31`
   groupes H8, même lorsqu'un groupe ne produit aucune ligne scientifique
