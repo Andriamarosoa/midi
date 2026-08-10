@@ -103,3 +103,15 @@ La prochaine étape est uniquement la revue externe de ce commit. Même après
 approbation du code, la synthèse effective des 175 fixtures et l'exécution P0
 exigeront un contrat d'exécution séparé : cette implémentation ne les autorise
 pas.
+
+## Revue externe finale
+
+La revue de `e97674cd1d1c3a12ff113f98789105941ab17030` conclut
+`APPROUVÉ`. Elle confirme que la garde lève inconditionnellement
+`PermissionError`, y compris après forge des deux flags par
+`dataclasses.replace()`, et ne relève aucun nouveau fail-open.
+
+Le statut positif porte uniquement sur le resolver/materializer. La synthèse
+des 175 fixtures, P0/P1/P2, les données réelles, modèles, fit/calibration, H17
+et le test verrouillé restent interdits. Une autorisation d'exécution séparée
+est toujours nécessaire.

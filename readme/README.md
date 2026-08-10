@@ -18,7 +18,11 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 - Mise à jour : `2026-08-10`.
 - Étape : `harmonic_censoring_multiscale_h23_pretrain_contract`.
-- Statut : `contrat H23 approuvé — implémentation déterministe du harness autorisée; exécution P0 et tout calcul scientifique toujours interdits`.
+- Statut : `harness H23 implémenté et approuvé; exécution P0 et tout calcul scientifique toujours interdits`.
+- La revue externe finale de `e97674cd1d1c3a12ff113f98789105941ab17030`
+  conclut `APPROUVÉ`. Elle confirme le resolver/materializer, le test adversarial
+  et la garde inconditionnelle : les dataclasses ne peuvent pas être forgées en
+  capability. Cette approbation ne couvre aucune synthèse ni exécution.
 - Le harness H23 dispose maintenant d'une frontière d'implémentation pure :
   le contrat canonique LF est lié à son SHA-256, les `175` spécifications de
   fixtures et les `72` contrats de tests sont résolus, ordonnés et hachés de
@@ -1015,9 +1019,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 ## Prochaine action réelle
 
-1. Faire relire le commit d'implémentation pure du harness H23.
+1. Obtenir l'autorisation explicite de définir un contrat d'exécution
+   synthétique séparé, sans lancer P0.
 2. Ne synthétiser aucune des `175` fixtures et ne lancer aucun test P0/P1/P2
-   avant un contrat d'exécution séparé, explicite et approuvé.
+   avant que ce futur contrat et sa capability code soient relus et approuvés.
 3. Conserver les données réelles, H17, les modèles, le fit, la calibration et
    le test verrouillé fermés.
 
