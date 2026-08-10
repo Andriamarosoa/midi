@@ -1,17 +1,21 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "purpose": "harmonic_censoring_h24_scientific_execution_authorization_contract",
-  "status": "contract_only_transcript_and_terminal_closure_external_review_required",
+  "status": "dormant_scientific_capability_and_runner_implemented_external_review_required",
   "authorization_basis": {
     "reviewed_activation_commit": "e7c2eecf49ede43b3334266c74b1fe438f9e793d",
     "external_verdict": "APPROVED_H24_MATERIALIZED_POPULATION_PUBLICATION_AUDIT",
     "authorized_action": "AUTHORIZED_TO_DEFINE_H24_SCIENTIFIC_EXECUTION_AUTHORIZATION_CONTRACT_ONLY",
     "reviewed_contract_commit_with_transcript_gap": "02bb76b2afad70b68e850ceff3a3e6bdeff55925",
-    "contract_correction_authorized_action": "AUTHORIZED_TO_CORRECT_H24_SCIENTIFIC_EXECUTION_CONTRACT_TRANSCRIPT_AND_TERMINAL_CLOSURE_ONLY"
+    "contract_correction_authorized_action": "AUTHORIZED_TO_CORRECT_H24_SCIENTIFIC_EXECUTION_CONTRACT_TRANSCRIPT_AND_TERMINAL_CLOSURE_ONLY",
+    "dormant_implementation_authorized_action": "AUTHORIZED_TO_IMPLEMENT_H24_DORMANT_SCIENTIFIC_CAPABILITY_AND_RUNNER_ONLY"
   },
   "scope": {
-    "contract_only": true,
-    "scientific_capability_implementation_authorized": false,
+    "contract_only": false,
+    "dormant_implementation_only": true,
+    "scientific_capability_implementation_authorized": true,
+    "scientific_runner_implementation_authorized": true,
+    "evidence_transcript_and_finalizer_implementation_authorized": true,
     "scientific_capability_issuance_authorized": false,
     "scientific_claim_authorized": false,
     "evaluator_or_oracle_execution_authorized": false,
@@ -119,10 +123,14 @@
   },
   "future_scientific_capability": {
     "name": "AttestedH24ScientificExecutionCapability",
-    "implementation_exists_now": false,
-    "factory_exists_now": false,
+    "implementation_exists_now": true,
+    "factory_exists_now": true,
     "constructor_publicly_callable": false,
-    "factory_must_be_separately_implemented_and_reviewed": true,
+    "factory_must_be_separately_implemented_and_reviewed": false,
+    "implemented_source_path": "src/polyphonic/harmonic_censoring_h24_scientific_capability.py",
+    "implemented_runner_path": "src/polyphonic/run_harmonic_censoring_h24_scientific.py",
+    "public_issuer_fails_before_population_access_without_reviewed_activation": true,
+    "runner_fails_before_scientific_claim_while_evidence_producer_registry_is_dormant": true,
     "identity_only_process_local_attestation_required": true,
     "copy_pickle_replace_or_manual_construction_must_fail": true,
     "serialization_allowed": false,
@@ -195,7 +203,7 @@
   },
   "future_scientific_transcript_contract": {
     "normative": true,
-    "implementation_exists_now": false,
+    "implementation_exists_now": true,
     "path_must_be_fixed_by_future_seal": true,
     "staging_path_must_be_fixed_by_future_seal": true,
     "evidence_directory_must_be_fixed_by_future_seal": true,
@@ -381,12 +389,15 @@
     "configs/harmonic_censoring_h24_scientific_execution_authorization_contract.json",
     "readme/README.md",
     "readme/results/2026-08-10_harmonic-censoring-h24-scientific-execution-authorization-contract.md",
-    "tests/test_harmonic_censoring_h24_scientific_execution_authorization_contract.py"
+    "src/polyphonic/harmonic_censoring_h24_scientific_capability.py",
+    "src/polyphonic/run_harmonic_censoring_h24_scientific.py",
+    "tests/test_harmonic_censoring_h24_scientific_execution_authorization_contract.py",
+    "tests/test_harmonic_censoring_h24_scientific_execution_dormant.py"
   ],
   "required_next_sequence": [
-    "external_review_corrected_transcript_and_terminal_contract_only_commit",
-    "separate_authorization_to_implement_dormant_scientific_capability_and_runner",
     "external_review_implementation_commit",
+    "separate_authorization_to_define_and_implement_exact_72_evidence_producers",
+    "external_review_evidence_producer_implementation_commit",
     "separate_reviewed_scientific_authorization_seal_and_activation",
     "OS_bound_exact_activation_commit",
     "zero_science_population_preflight",
@@ -396,7 +407,8 @@
   ],
   "current_dormancy": {
     "this_contract_grants_scientific_authority": false,
-    "scientific_capability_or_runner_implemented_now": false,
+    "scientific_capability_or_runner_implemented_now": true,
+    "evidence_producer_registry_implemented_now": false,
     "scientific_seal_or_activation_exists_now": false,
     "scientific_claim_or_terminal_created_now": false,
     "waveforms_decoded_now": false,

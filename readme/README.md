@@ -18,7 +18,7 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 - Mise à jour : `2026-08-10`.
 - Étape : `harmonic_censoring_h24_scientific_execution_authorization_contract`.
-- Statut : `population H24 matérialisée et auditée; fermeture contract-only du transcript et du terminal en revue; aucune autorité P0/P1/P2`.
+- Statut : `capability, runner, transcript et finalizer H24 implémentés mais dormants; producteurs scientifiques absents; aucune autorité P0/P1/P2`.
 - `H24_SYNTHETIC_V1` est publié sur le Mac avec `175` fixtures, `525`
   fichiers fixture, index `b45b63c4…`, receipt `8a8128dc…`, marker
   `3185adfd…` et terminal `50ec58c8…`; l'audit read-only confirme tous les
@@ -36,6 +36,12 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   qu'un crash brutal reste consommé sans retry même si le terminal est absent.
   Une future capability scientifique, un seal/activation séparés et un claim
   scientifique distinct restent obligatoires avant tout décodage waveform.
+  Après approbation de cette fermeture, la capability process-local, le
+  preflight des `525` fichiers, le claim `O_EXCL`, le writer hash-chain et le
+  finalizer indépendant ont été implémentés avec mocks. Le contrat schéma `3`
+  a le SHA-256 `426a80be…`. Il n'existe toujours aucun seal/activation et le
+  registre des `72` producteurs reste explicitement dormant; le runner échoue
+  donc avant claim. Aucune donnée scientifique n'a été lue ou calculée.
   Aucun evaluator/oracle, P0/P1/P2, donnée réelle, H17, locked-test ou training
   n'est autorisé. Rapport :
   `readme/results/2026-08-10_harmonic-censoring-h24-scientific-execution-authorization-contract.md`.

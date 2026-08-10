@@ -77,23 +77,52 @@ Le SHA canonique de la liste ordonnée des `72` IDs est
 Le SHA-256 brut du contrat révisé est
 `00f67158248a879a754d39e3ed452a9b8926ee4c9adab8d023d92be1138e988e`.
 
+## Implémentation dormante approuvée en portée
+
+Après approbation de la fermeture précédente, la portée
+`AUTHORIZED_TO_IMPLEMENT_H24_DORMANT_SCIENTIFIC_CAPABILITY_AND_RUNNER_ONLY`
+a été appliquée. Le contrat passe au schéma `3`, SHA-256
+`426a80be3f409380fc30e5d35fa0d90ae340dd475b72be319c871b79ebb531f4`.
+
+Deux modules dormants sont ajoutés :
+
+- `harmonic_censoring_h24_scientific_capability.py` vérifie le contrat,
+  l'activation OS, HEAD/worktree, les blobs source, le runtime arm64 exact, les
+  quatre artefacts de publication et les `525` fichiers sans décoder les
+  waveforms. La capability est process-local, sans constructeur public et
+  refuse copie, pickle, replace ou fabrication manuelle ;
+- `run_harmonic_censoring_h24_scientific.py` implémente le claim `O_EXCL`, les
+  preuves canoniques, les `72` records hash-chain, la publication atomique et
+  le finalizer indépendant relisant les octets persistés.
+
+Le registre de producteurs scientifiques reste explicitement
+`H24_EVIDENCE_PRODUCER_REGISTRY_IMPLEMENTED=false`. Le runner refuse donc
+avant le claim. Le seal et l'activation scientifiques sont absents ; l'issuer
+public refuse avant tout accès à la population si le binding OS manque. Les
+tests de transcript utilisent uniquement des preuves mock dans des répertoires
+temporaires et patchent le recomputer : aucun evaluator/oracle scientifique
+réel n'est exécuté.
+
 ## Dormance
 
-Ce commit ne crée ni capability scientifique, ni runner, ni seal, ni
-activation, ni claim scientifique. Il ne lit pas les waveforms publiées, ne
-lance aucun evaluator/oracle et n'exécute aucun P0/P1/P2. Il n'utilise ni
-données réelles, ni H17, ni locked-test, ni modèle/checkpoint, ni training.
+Ce commit implémente les types et frontières dormants, mais n'émet aucune
+capability et ne crée ni seal, ni activation, ni claim scientifique réel. Il ne
+lit pas les waveforms publiées, ne lance aucun evaluator/oracle et n'exécute
+aucun P0/P1/P2. Il n'utilise ni données réelles, ni H17, ni locked-test, ni
+modèle/checkpoint, ni training.
 
 La population publiée est immutable : aucune réparation, régénération ou
 seconde matérialisation n'est autorisée.
 
 ## Vérification
 
-La suite contractuelle ciblée H24/H23/H20 corrigée réussit avec `183` tests en
-`2,520 s`. `py_compile` et `git diff --check` réussissent également.
+La suite administrative ciblée H24/H23/H20, incluant l'implémentation dormante,
+réussit avec `197` tests en `3,360 s`. `py_compile` et `git diff --check`
+réussissent également.
 
 ## Étape suivante
 
-Uniquement la revue externe du correctif contract-only exact. Une autorisation
-séparée sera nécessaire avant toute implémentation dormante de capability,
-runner, transcript ou finalizer. P0/P1/P2 restent interdits.
+Uniquement la revue externe du commit d'implémentation dormant exact. Une
+autorisation séparée sera nécessaire avant de définir les `72` producteurs
+scientifiques, puis un autre cycle sera requis pour seal/activation. P0/P1/P2
+restent interdits.

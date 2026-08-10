@@ -22,20 +22,39 @@ class H24ScientificExecutionAuthorizationContractTests(unittest.TestCase):
 
     def test_contract_is_lf_contract_only_and_authorizes_no_science(self) -> None:
         self.assertNotIn(b"\r", self.raw)
-        self.assertEqual(self.contract["schema_version"], 2)
+        self.assertEqual(self.contract["schema_version"], 3)
         self.assertEqual(
             self.contract["purpose"],
             "harmonic_censoring_h24_scientific_execution_authorization_contract",
         )
         self.assertEqual(
             self.contract["status"],
-            "contract_only_transcript_and_terminal_closure_external_review_required",
+            "dormant_scientific_capability_and_runner_implemented_external_review_required",
         )
         scope = self.contract["scope"]
-        self.assertTrue(scope["contract_only"])
-        for name, value in scope.items():
-            if name != "contract_only":
-                self.assertFalse(value, name)
+        self.assertFalse(scope["contract_only"])
+        for name in (
+            "dormant_implementation_only",
+            "scientific_capability_implementation_authorized",
+            "scientific_runner_implementation_authorized",
+            "evidence_transcript_and_finalizer_implementation_authorized",
+        ):
+            self.assertTrue(scope[name], name)
+        for name in (
+            "scientific_capability_issuance_authorized",
+            "scientific_claim_authorized",
+            "evaluator_or_oracle_execution_authorized",
+            "P0_execution_authorized",
+            "P1_execution_authorized",
+            "P2_execution_authorized",
+            "population_modification_or_retry_authorized",
+            "real_data_access_authorized",
+            "H17_population_use_authorized",
+            "model_or_checkpoint_access_authorized",
+            "training_or_calibration_authorized",
+            "locked_test_used",
+        ):
+            self.assertFalse(scope[name], name)
 
     def test_population_publication_is_bound_exactly_and_remains_immutable(self) -> None:
         population = self.contract["published_population_binding"]
@@ -164,10 +183,10 @@ class H24ScientificExecutionAuthorizationContractTests(unittest.TestCase):
 
     def test_future_capability_is_separate_nonconstructible_and_fail_closed(self) -> None:
         capability = self.contract["future_scientific_capability"]
-        self.assertFalse(capability["implementation_exists_now"])
-        self.assertFalse(capability["factory_exists_now"])
+        self.assertTrue(capability["implementation_exists_now"])
+        self.assertTrue(capability["factory_exists_now"])
         self.assertFalse(capability["constructor_publicly_callable"])
-        self.assertTrue(capability["factory_must_be_separately_implemented_and_reviewed"])
+        self.assertFalse(capability["factory_must_be_separately_implemented_and_reviewed"])
         self.assertTrue(capability["identity_only_process_local_attestation_required"])
         self.assertTrue(capability["copy_pickle_replace_or_manual_construction_must_fail"])
         self.assertFalse(capability["serialization_allowed"])
@@ -176,11 +195,21 @@ class H24ScientificExecutionAuthorizationContractTests(unittest.TestCase):
         required = set(capability["preissue_fail_closed_requirements"])
         self.assertIn("all_525_fixture_file_hashes_and_175_waveform_sizes_match_without_decoding", required)
         self.assertIn("H17_real_data_locked_test_model_checkpoint_and_training_inputs_absent", required)
-        self.assertFalse(
-            (ROOT / "src/polyphonic/harmonic_censoring_h24_scientific_execution.py").exists()
+        self.assertTrue(
+            (ROOT / capability["implemented_source_path"]).is_file()
         )
-        self.assertFalse(
-            (ROOT / "src/polyphonic/run_harmonic_censoring_h24_scientific.py").exists()
+        self.assertTrue(
+            (ROOT / capability["implemented_runner_path"]).is_file()
+        )
+        self.assertTrue(
+            capability[
+                "public_issuer_fails_before_population_access_without_reviewed_activation"
+            ]
+        )
+        self.assertTrue(
+            capability[
+                "runner_fails_before_scientific_claim_while_evidence_producer_registry_is_dormant"
+            ]
         )
 
     def test_future_seal_activation_and_all_scientific_rights_are_absent(self) -> None:
@@ -224,7 +253,7 @@ class H24ScientificExecutionAuthorizationContractTests(unittest.TestCase):
     def test_transcript_is_a_closed_ordered_hash_chain_over_persisted_evidence(self) -> None:
         transcript = self.contract["future_scientific_transcript_contract"]
         self.assertTrue(transcript["normative"])
-        self.assertFalse(transcript["implementation_exists_now"])
+        self.assertTrue(transcript["implementation_exists_now"])
         self.assertEqual(transcript["finalized_transcript_format"], "CANONICAL_JSONL_UTF8_LF")
         serialization = transcript["canonical_line_serialization"]
         self.assertEqual(serialization["encoding"], "UTF-8")
@@ -374,12 +403,16 @@ class H24ScientificExecutionAuthorizationContractTests(unittest.TestCase):
             "configs/harmonic_censoring_h24_scientific_execution_authorization_contract.json",
             "readme/README.md",
             "readme/results/2026-08-10_harmonic-censoring-h24-scientific-execution-authorization-contract.md",
+            "src/polyphonic/harmonic_censoring_h24_scientific_capability.py",
+            "src/polyphonic/run_harmonic_censoring_h24_scientific.py",
             "tests/test_harmonic_censoring_h24_scientific_execution_authorization_contract.py",
+            "tests/test_harmonic_censoring_h24_scientific_execution_dormant.py",
         ]
         self.assertEqual(self.contract["contract_definition_exact_changed_files"], expected)
         dormancy = self.contract["current_dormancy"]
         self.assertFalse(dormancy["this_contract_grants_scientific_authority"])
-        self.assertFalse(dormancy["scientific_capability_or_runner_implemented_now"])
+        self.assertTrue(dormancy["scientific_capability_or_runner_implemented_now"])
+        self.assertFalse(dormancy["evidence_producer_registry_implemented_now"])
         self.assertFalse(dormancy["scientific_seal_or_activation_exists_now"])
         self.assertFalse(dormancy["scientific_claim_or_terminal_created_now"])
         self.assertFalse(dormancy["waveforms_decoded_now"])
