@@ -94,6 +94,19 @@ class ProvisionalResolutionFrameFallbackH19SyntheticTests(unittest.TestCase):
         ).strip()
         self.assertEqual(decoder_blob, "27026d368081fadc4fa282954428f0377020e723")
         self.assertEqual(bindings["reviewed_decoder_reason_taxonomy_blob"], decoder_blob)
+        self.assertEqual(bindings["exact_causal_target_extractor_blob"], "22b93d2b5a6e2a3826eddc4aee0057d68fe34141")
+        self.assertEqual(bindings["canonical_group_universe_engine_blob"], "5e40574dab4a53e0ce5b2288536d337f0da66fa9")
+        self.assertEqual(
+            self.contract["passive_exposure_contract"]["excluded_but_counted_reasons"],
+            ["harmonic_strong_frame", "legacy", "retrigger"],
+        )
+        self.assertTrue(
+            self.contract["synthetic_proofs"]["all_seven_reviewed_decoder_reason_taxonomy_values"]
+        )
+        self.assertEqual(
+            self.contract["h19a_review_resolution"]["previous_reason"],
+            "reviewed_decoder_reason_taxonomy_incomplete_harmonic_strong_frame",
+        )
         self.assertNotIn(b"\r\n", self.contract_path.read_bytes())
 
     def test_passive_observer_returns_exact_events_and_freezes_all_reasons(self):
@@ -101,7 +114,7 @@ class ProvisionalResolutionFrameFallbackH19SyntheticTests(unittest.TestCase):
             PolyphonicMidiEvent("note_on", 60 + index, 100, index, reason)
             for index, reason in enumerate((
                 "model_onset", "frame_attack", "chord_completion",
-                "frame_fallback", "retrigger", "legacy",
+                "frame_fallback", "harmonic_strong_frame", "retrigger", "legacy",
             ))
         )
         collector = PassiveFrameFallbackExposureCollector()
@@ -116,6 +129,47 @@ class ProvisionalResolutionFrameFallbackH19SyntheticTests(unittest.TestCase):
             tuple(field.name for field in fields(type(collector.records[0]))),
             ("frame_index", "pitch", "candidate_reason_at_noteon"),
         )
+
+    def test_real_synthetic_decoder_path_emits_and_excludes_harmonic_strong_frame(self):
+        config = PolyphonicDecoderConfig(
+            midi_min=60,
+            midi_max=72,
+            frame_on_threshold=0.5,
+            strong_frame_threshold=0.8,
+            frame_off_threshold=0.25,
+            onset_threshold=0.5,
+            activation_frames=1,
+            release_frames=2,
+            minimum_retrigger_frames=3,
+            silence_release_frames=2,
+            maximum_polyphony=2,
+            harmonic_support_threshold=0.6,
+            harmonic_suppression_strength=0.25,
+        )
+        decoder = PolyphonicDecoder(config)
+        frame = np.zeros(13, dtype=np.float32)
+        onset = np.zeros(13, dtype=np.float32)
+        harmonic = np.zeros((13, 2), dtype=np.float32)
+        frame[0], onset[0] = 0.90, 0.90
+        frame[12], onset[12] = 0.86, 0.10
+        harmonic[0, 1] = 0.80
+        events = decoder.step(frame, onset, harmonic, audio_onset=True)
+        emitted = {event.pitch: event for event in events if event.kind == "note_on"}
+        self.assertEqual(emitted[72].reason, "harmonic_strong_frame")
+
+        rows = extract_synthetic_h19_rows(
+            events,
+            [],
+            recording_key="r", corpus_category="c", leakage_group_key="g",
+            frame_valid=[1], sample_rate=1000, hop_size=10, audio_frames=1000,
+        )
+        harmonic_row = next(row for row in rows if row.pitch == 72)
+        self.assertEqual(harmonic_row.candidate_reason_at_noteon, "harmonic_strong_frame")
+        self.assertIsNone(harmonic_row.frame_fallback_indicator)
+        self.assertIsNone(harmonic_row.false_noteon)
+        report = evaluate_h19_synthetic_metrics(rows, cohort_group_universe=("g",))
+        self.assertEqual(report.excluded_harmonic_strong_frame_count, 1)
+        self.assertEqual(report.counts_per_frozen_reason["harmonic_strong_frame"], 1)
 
     def test_unexpected_reason_and_duplicate_identity_fail_closed(self):
         collector = PassiveFrameFallbackExposureCollector()
@@ -173,6 +227,7 @@ class ProvisionalResolutionFrameFallbackH19SyntheticTests(unittest.TestCase):
         report = evaluate_h19_synthetic_metrics(rows, cohort_group_universe=("g",))
         self.assertEqual(report.excluded_retrigger_count, 1)
         self.assertEqual(report.excluded_legacy_count, 1)
+        self.assertEqual(report.excluded_harmonic_strong_frame_count, 0)
         self.assertEqual(report.counts_per_frozen_reason["frame_fallback"], 1)
 
     def test_rd_formula_thresholds_and_group_bootstrap_are_exact(self):

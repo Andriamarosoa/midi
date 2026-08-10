@@ -27,9 +27,15 @@ Taxonomie primaire exacte :
 ```text
 frame_fallback                              F = 1
 model_onset/frame_attack/chord_completion   F = 0
-legacy/retrigger                            exclus, mais comptés
+harmonic_strong_frame/legacy/retrigger      exclus, mais comptés
 autre raison                                échec fermé
 ```
+
+H19a corrige avant toute donnée le défaut statique trouvé pendant la première
+revue : le décodeur gelé peut réellement remplacer une raison audio-aware par
+`harmonic_strong_frame` avant émission. Cette septième raison est désormais
+conservée exactement, comptée et exclue des deux strates. Sa raison antérieure
+n’est jamais reconstruite.
 
 ## Target causal inchangé
 
@@ -68,13 +74,14 @@ verdict.
 ## Vérifications
 
 ```text
-8 tests H19 synthétiques réussis en 3,047 s
-48 tests H9/H10/H17/H18/H19 réussis en 12,559 s
+9 tests H19/H19a synthétiques réussis en 2,957 s
+49 tests H9/H10/H17/H18/H19/H19a réussis en 11,949 s
 py_compile réussi
 git diff --check réussi
 ```
 
-Les tests couvrent la neutralité événement/état, les six raisons connues,
+Les tests couvrent la neutralité événement/état, les sept raisons connues,
+l’émission réelle synthétique `harmonic_strong_frame` par le décodeur,
 l’échec sur raison inattendue ou identité dupliquée, la réutilisation du target
 causal, l’exclusion descriptive de `legacy`/`retrigger`, la formule RD, les
 seuils, le déterminisme, l’invariance d’ordre et les groupes vides.
@@ -87,6 +94,8 @@ H18a accepté      3f9a15540d783c32486a9e0d50446efdb637ba60
 audit H18a blob   c06459b5877526a515930561b15a5e9a08c3af31
 audit H18a SHA    580ea2a77cd68798946c324d190082d5b960e5d1280fd93527b8ac47116fcff9
 decoder blob      27026d368081fadc4fa282954428f0377020e723
+target blob       22b93d2b5a6e2a3826eddc4aee0057d68fe34141
+group engine blob 5e40574dab4a53e0ce5b2288536d337f0da66fa9
 ```
 
 ## Interdictions maintenues

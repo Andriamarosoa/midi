@@ -23,8 +23,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   portée par chaque `PolyphonicMidiEvent` peut être observée après émission sans
   modifier événements ni état du décodeur. `frame_fallback` définit `F=1`;
   `model_onset`, `frame_attack` et `chord_completion` définissent le comparateur;
-  `legacy` et `retrigger` sont comptés mais exclus; toute autre raison échoue
-  fermée. Le target causal H17 existant est réutilisé directement. La fonction
+  `harmonic_strong_frame`, `legacy` et `retrigger` sont comptés mais exclus;
+  toute autre raison échoue fermée. H19a ne reconstruit jamais la raison
+  antérieure d'un `harmonic_strong_frame`. Le target causal H17 existant est
+  réutilisé directement. La fonction
   pure `RD_false` et le bootstrap de 10 000 groupes, PCG64 seed `721629268`,
   univers immuable avec groupes vides et minimum 9 500 réplications valides
   passent leurs tests synthétiques. Le décodeur reste au blob `27026d36…` et la

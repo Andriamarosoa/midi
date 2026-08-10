@@ -38,7 +38,9 @@ ELIGIBLE_REASONS = frozenset((
 COMPARATOR_REASONS = frozenset((
     "model_onset", "frame_attack", "chord_completion",
 ))
-EXCLUDED_REASONS = frozenset(("legacy", "retrigger"))
+EXCLUDED_REASONS = frozenset((
+    "harmonic_strong_frame", "legacy", "retrigger",
+))
 KNOWN_REASONS = ELIGIBLE_REASONS | EXCLUDED_REASONS
 
 FRAME_FALLBACK_EXECUTION_INVALID = "frame_fallback_execution_invalid"
@@ -347,6 +349,7 @@ class H19SyntheticReport:
     comparator_noteons: int
     excluded_legacy_count: int
     excluded_retrigger_count: int
+    excluded_harmonic_strong_frame_count: int
     target_unmatchable_or_excluded_count: int
     malformed_reason_count: int
     malformed_or_nonfinite_target_count: int
@@ -380,6 +383,7 @@ def evaluate_h19_synthetic_metrics(
         comparator_noteons=len(comparator),
         excluded_legacy_count=counts["legacy"],
         excluded_retrigger_count=counts["retrigger"],
+        excluded_harmonic_strong_frame_count=counts["harmonic_strong_frame"],
         target_unmatchable_or_excluded_count=sum(
             row.candidate_reason_at_noteon in ELIGIBLE_REASONS
             and row.target_status != TARGET_MATCHABLE

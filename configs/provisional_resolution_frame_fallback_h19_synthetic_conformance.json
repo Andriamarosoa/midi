@@ -25,6 +25,7 @@
       "frame_fallback"
     ],
     "excluded_but_counted_reasons": [
+      "harmonic_strong_frame",
       "legacy",
       "retrigger"
     ],
@@ -70,7 +71,8 @@
   "synthetic_proofs": {
     "passive_observer_event_identity": true,
     "decoder_event_and_full_state_parity": true,
-    "all_reason_taxonomy_values": true,
+    "all_seven_reviewed_decoder_reason_taxonomy_values": true,
+    "real_decoder_harmonic_strong_frame_path": true,
     "unexpected_reason_fail_closed": true,
     "exact_existing_causal_target_reused": true,
     "legacy_and_retrigger_counted_but_excluded": true,
@@ -85,11 +87,20 @@
     "h18a_audit_git_blob": "c06459b5877526a515930561b15a5e9a08c3af31",
     "h18a_audit_raw_sha256": "580ea2a77cd68798946c324d190082d5b960e5d1280fd93527b8ac47116fcff9",
     "reviewed_decoder_reason_taxonomy_blob": "27026d368081fadc4fa282954428f0377020e723",
+    "exact_causal_target_extractor_blob": "22b93d2b5a6e2a3826eddc4aee0057d68fe34141",
+    "canonical_group_universe_engine_blob": "5e40574dab4a53e0ce5b2288536d337f0da66fa9",
     "target_source_blobs": [
       "c63b9751e5acef49fb51b5e2a8264b00d6e60893",
       "98c3f2e87b89df599e71068ab4ae874f69172c5a",
       "42f7954b75b0994f43d7f59c62c1ff1b04c0a81d"
     ]
+  },
+  "h19a_review_resolution": {
+    "previous_commit": "2361486241f6f58662ab483eb526d3b9bdeb68db",
+    "previous_status": "h19_synthetic_conformance_not_established",
+    "previous_reason": "reviewed_decoder_reason_taxonomy_incomplete_harmonic_strong_frame",
+    "resolution": "harmonic_strong_frame is preserved exactly, counted descriptively, and excluded from both F strata without reconstructing its earlier reason",
+    "scientific_definitions_changed": false
   },
   "post_conformance_status": "provisional_resolution_frame_fallback_h19_synthetic_conformance_demonstrated",
   "scientific_execution_authorized": false,
