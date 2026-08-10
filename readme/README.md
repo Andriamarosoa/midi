@@ -22,7 +22,8 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 - Le contrat séparé de future capability lie le harness approuvé `e97674cd…`,
   le contrat H23 `719eba0a…`, les manifests `175/72` et le runtime futur. Il
   impose une capability non constructible/copiable, un seal d'autorisation
-  ultérieur encore inexistant avec droits scientifiques et P0/P1/P2 explicites,
+  ultérieur encore inexistant avec les six droits explicites d'émission,
+  d'exécution synthétique/scientifique et de phases P0/P1/P2,
   un claim one-shot avant la première waveform, l'ordre P0→P1→P2 et une
   publication atomique distincte pour succès complet, échec scientifique
   terminal et incident opérationnel inconclusif. Un échec scientifique publiera

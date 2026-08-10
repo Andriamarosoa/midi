@@ -84,7 +84,12 @@
       "destination_does_not_exist",
       "terminal_record_destination_does_not_exist",
       "authorization_marker_does_not_exist",
-      "future_authorization_seal_explicitly_authorizes_scientific_P0_P1_and_P2_execution",
+      "future_authorization_seal_capability_issuance_authorized_is_true",
+      "future_authorization_seal_synthetic_execution_authorized_is_true",
+      "future_authorization_seal_scientific_execution_authorized_is_true",
+      "future_authorization_seal_P0_execution_authorized_is_true",
+      "future_authorization_seal_P1_execution_authorized_is_true",
+      "future_authorization_seal_P2_execution_authorized_is_true",
       "H17_and_locked_test_paths_are_absent_from_all_inputs"
     ],
     "attestation_storage": "identity_only_private_registry_with_weak_reference_or_equivalent_noncopyable_token",
@@ -293,7 +298,12 @@
     "P0_failure_atomically_publishes_terminal_negative_with_NOT_RUN_suffix",
     "P1_or_P2_failure_atomically_publishes_terminal_negative_with_NOT_RUN_suffix",
     "timeout_or_crash_is_inconclusive_not_scientific_verdict",
-    "seal_missing_any_scientific_P0_P1_or_P2_right_refuses_capability"
+    "seal_missing_capability_issuance_right_refuses_capability",
+    "seal_missing_synthetic_execution_right_refuses_capability",
+    "seal_missing_scientific_execution_right_refuses_capability",
+    "seal_missing_P0_execution_right_refuses_capability",
+    "seal_missing_P1_execution_right_refuses_capability",
+    "seal_missing_P2_execution_right_refuses_capability"
   ],
   "contract_definition_allowed_files": [
     ".gitattributes",

@@ -17,9 +17,9 @@ Fichier :
 
 ```text
 configs/harmonic_censoring_h23_synthetic_execution_capability_contract.json
-taille : 13 216 octets
-SHA-256 brut : 3f386e15171fd4c41fa258fa83877bb8c86e24b39ea5df642f39b32b5760a4b5
-blob Git avant commit : b3834559f0dfde24df5a027e46a36225e9f75602
+taille : 13 847 octets
+SHA-256 brut : 95458fc4e261d5cf7e4e9aed78bc379a9940b22c39ae7799b53c6301a3d8363f
+blob Git avant commit : bcbd3c48d1c445290a68408d26cd515692be1543
 ```
 
 Le contrat lie :
@@ -115,14 +115,14 @@ Commande :
 C:\Users\user\Desktop\midi\.venv\Scripts\python.exe -B -m unittest tests.test_harmonic_censoring_h23_execution_capability_contract
 ```
 
-Résultat : `11 tests réussis en 0,156 s`.
+Résultat : `11 tests réussis en 0,144 s`.
 
 Les tests ne font que parser le JSON, vérifier ses valeurs et comparer les
 blobs Git déjà versionnés. Aucun import NumPy/TensorFlow, actif, waveform,
 modèle ou test scientifique n’est impliqué.
 
 La vérification finale élargie aux tests du harness et aux contrats historiques
-H17/H20 donne `42 tests réussis en 0,572 s`. `json.tool`, `py_compile` et
+H17/H20 donne `42 tests réussis en 0,579 s`. `json.tool`, `py_compile` et
 `git diff --check` réussissent; l'ensemble modifié contient exactement les cinq
 fichiers autorisés par ce contrat.
 

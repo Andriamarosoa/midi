@@ -116,6 +116,19 @@ class HarmonicCensoringH23ExecutionCapabilityContractTests(unittest.TestCase):
             "this_capability_contract_raw_SHA256_matches_a_future_separate_authorization_seal",
             capability["factory_must_require_all"],
         )
+        required = set(capability["factory_must_require_all"])
+        for right in (
+            "capability_issuance",
+            "synthetic_execution",
+            "scientific_execution",
+            "P0_execution",
+            "P1_execution",
+            "P2_execution",
+        ):
+            self.assertIn(
+                f"future_authorization_seal_{right}_authorized_is_true",
+                required,
+            )
 
     def test_future_authorization_seal_does_not_exist_and_authorizes_nothing(self) -> None:
         seal = self.contract["future_execution_authorization_seal"]
@@ -207,7 +220,7 @@ class HarmonicCensoringH23ExecutionCapabilityContractTests(unittest.TestCase):
         self.assertFalse(preflight["waveform_allocation_allowed_during_preflight"])
         self.assertFalse(preflight["fixture_spec_or_test_set_mutation_allowed"])
         adversarial = set(self.contract["required_future_adversarial_tests_before_issuance"])
-        self.assertEqual(len(adversarial), 20)
+        self.assertEqual(len(adversarial), 25)
         self.assertIn("dataclasses_replace_on_plan_or_capability_is_rejected", adversarial)
         self.assertIn("second_capability_claim_fails_cross_process", adversarial)
         self.assertIn("partial_staging_never_becomes_success_destination", adversarial)
@@ -215,10 +228,18 @@ class HarmonicCensoringH23ExecutionCapabilityContractTests(unittest.TestCase):
             "P0_failure_atomically_publishes_terminal_negative_with_NOT_RUN_suffix",
             adversarial,
         )
-        self.assertIn(
-            "seal_missing_any_scientific_P0_P1_or_P2_right_refuses_capability",
-            adversarial,
-        )
+        for right in (
+            "capability_issuance",
+            "synthetic_execution",
+            "scientific_execution",
+            "P0_execution",
+            "P1_execution",
+            "P2_execution",
+        ):
+            self.assertIn(
+                f"seal_missing_{right}_right_refuses_capability",
+                adversarial,
+            )
 
     def test_review_sequence_prevents_self_authorization(self) -> None:
         sequence = self.contract["future_review_sequence"]
