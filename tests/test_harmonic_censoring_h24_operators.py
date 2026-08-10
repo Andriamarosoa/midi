@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 from pathlib import Path
 import unittest
 
@@ -7,6 +8,8 @@ from src.polyphonic.harmonic_censoring_h24 import load_h24_dormant_harness_plan
 from src.polyphonic.harmonic_censoring_h24_operators import (
     evaluate_h24_operator,
     evaluate_h24_rule,
+    _edge_diagnostics,
+    _expected_h24_edges,
     recompute_h24_persisted_evidence,
     strict_equal,
 )
@@ -27,6 +30,51 @@ class HarmonicCensoringH24OperatorTests(unittest.TestCase):
             atol=atol,
             plan_fixture_ids=self.plan.fixture_ids,
         )
+
+    def exact_a01_evidence(self) -> dict[str, object]:
+        edges = _expected_h24_edges()
+        valid, diagnostics = _edge_diagnostics(edges)
+        self.assertTrue(valid)
+        primary = {"typed_edges": edges, **diagnostics}
+        h1_index = next(
+            index for index, edge in enumerate(edges) if edge["harmonic_rank"] == 1
+        )
+        proper_index = next(
+            index for index, edge in enumerate(edges) if edge["harmonic_rank"] == 2
+        )
+
+        i1 = copy.deepcopy(edges)
+        i1[h1_index]["observation_coordinate"] += 0.5
+        i2 = copy.deepcopy(edges)
+        i2[proper_index]["observation_coordinate"] = i2[proper_index]["source_pitch"]
+        i3 = copy.deepcopy(edges)
+        i3.append(
+            {
+                "source_pitch": 60,
+                "harmonic_rank": 2,
+                "observation_coordinate": 59.0,
+                "relation_type": "PROPER_HARMONIC_ASCENT",
+            }
+        )
+        i4 = copy.deepcopy(edges)
+        i4[h1_index]["relation_type"] = "PROPER_HARMONIC_ASCENT"
+        i5 = copy.deepcopy(edges[:-1])
+        i6 = copy.deepcopy(edges)
+        i6.append(copy.deepcopy(edges[proper_index]))
+        i7 = copy.deepcopy(edges)
+        i7[proper_index]["observation_coordinate"] += 0.25
+        return {
+            "primary": primary,
+            "inverse": {
+                "H24-A01-I1": i1,
+                "H24-A01-I2": i2,
+                "H24-A01-I3": i3,
+                "H24-A01-I4": i4,
+                "H24-A01-I5": i5,
+                "H24-A01-I6": i6,
+                "H24-A01-I7": i7,
+            },
+        }
 
     def test_strict_json_types_do_not_alias(self) -> None:
         self.assertFalse(strict_equal(True, 1))
@@ -187,6 +235,65 @@ class HarmonicCensoringH24OperatorTests(unittest.TestCase):
         }
         with self.assertRaisesRegex(ValueError, "JSON-native types only"):
             recompute_h24_persisted_evidence(self.plan, "H24-S1", evidence)
+
+    def test_a01_accepts_only_the_seven_exact_distinct_mutations(self) -> None:
+        evidence = self.exact_a01_evidence()
+        result = recompute_h24_persisted_evidence(
+            self.plan, "H24-A01-GRAPH-DIRECTION", evidence
+        )
+        self.assertTrue(result.final_pass)
+
+    def test_a01_rejects_empty_or_repeated_wrong_inverse_payloads(self) -> None:
+        evidence = self.exact_a01_evidence()
+        evidence["inverse"] = {
+            f"H24-A01-I{index}": [] for index in range(1, 8)
+        }
+        result = recompute_h24_persisted_evidence(
+            self.plan, "H24-A01-GRAPH-DIRECTION", evidence
+        )
+        self.assertFalse(result.inverse_pass)
+
+        evidence = self.exact_a01_evidence()
+        repeated = copy.deepcopy(evidence["inverse"]["H24-A01-I1"])
+        evidence["inverse"] = {
+            f"H24-A01-I{index}": copy.deepcopy(repeated) for index in range(1, 8)
+        }
+        result = recompute_h24_persisted_evidence(
+            self.plan, "H24-A01-GRAPH-DIRECTION", evidence
+        )
+        self.assertFalse(result.inverse_pass)
+
+    def test_a01_rejects_extra_changes_inside_i5_i6_and_i7(self) -> None:
+        evidence = self.exact_a01_evidence()
+        evidence["inverse"]["H24-A01-I5"].pop()
+        self.assertFalse(
+            recompute_h24_persisted_evidence(
+                self.plan, "H24-A01-GRAPH-DIRECTION", evidence
+            ).inverse_pass
+        )
+
+        evidence = self.exact_a01_evidence()
+        evidence["inverse"]["H24-A01-I6"][0]["relation_type"] = (
+            "PROPER_HARMONIC_ASCENT"
+        )
+        self.assertFalse(
+            recompute_h24_persisted_evidence(
+                self.plan, "H24-A01-GRAPH-DIRECTION", evidence
+            ).inverse_pass
+        )
+
+        evidence = self.exact_a01_evidence()
+        changed = next(
+            edge
+            for edge in evidence["inverse"]["H24-A01-I7"]
+            if edge["harmonic_rank"] == 2
+        )
+        changed["relation_type"] = "FUNDAMENTAL_IDENTITY"
+        self.assertFalse(
+            recompute_h24_persisted_evidence(
+                self.plan, "H24-A01-GRAPH-DIRECTION", evidence
+            ).inverse_pass
+        )
 
 
 if __name__ == "__main__":

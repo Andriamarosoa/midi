@@ -8,13 +8,15 @@ execution on its own.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from collections import Counter
 import math
-from typing import Mapping, Sequence
+from typing import Callable, Mapping, Sequence
 
 from .harmonic_censoring_h24 import (
     H24DormantHarnessPlan,
     H24TestSpecification,
     _require_h24_attested_plan,
+    canonical_json_bytes,
 )
 
 
@@ -489,6 +491,200 @@ def _edge_diagnostics(value: object) -> tuple[bool, dict[str, object]]:
     return valid, diagnostics
 
 
+_H24_EDGE_KEYS = {
+    "source_pitch",
+    "harmonic_rank",
+    "observation_coordinate",
+    "relation_type",
+}
+
+
+def _valid_edge_record(raw: object) -> bool:
+    if type(raw) is not dict or set(raw) != _H24_EDGE_KEYS:
+        return False
+    return (
+        type(raw["source_pitch"]) is int
+        and type(raw["harmonic_rank"]) is int
+        and type(raw["observation_coordinate"]) in (int, float)
+        and math.isfinite(float(raw["observation_coordinate"]))
+        and type(raw["relation_type"]) is str
+    )
+
+
+def _edge_key(raw: Mapping[str, object]) -> tuple[int, int]:
+    return int(raw["source_pitch"]), int(raw["harmonic_rank"])
+
+
+def _unique_edge_map(value: object) -> dict[tuple[int, int], dict[str, object]] | None:
+    if type(value) is not list or any(not _valid_edge_record(item) for item in value):
+        return None
+    result: dict[tuple[int, int], dict[str, object]] = {}
+    for raw in value:
+        edge = raw
+        key = _edge_key(edge)
+        if key in result:
+            return None
+        result[key] = edge
+    return result
+
+
+def _single_same_key_mutation(
+    primary_edges: object,
+    mutated_edges: object,
+    predicate: Callable[[Mapping[str, object], Mapping[str, object]], bool],
+) -> bool:
+    primary = _unique_edge_map(primary_edges)
+    mutated = _unique_edge_map(mutated_edges)
+    if primary is None or mutated is None or set(primary) != set(mutated):
+        return False
+    changed = [key for key in primary if not strict_equal(primary[key], mutated[key])]
+    if len(changed) != 1:
+        return False
+    return predicate(primary[changed[0]], mutated[changed[0]])
+
+
+def _only_field_changed(
+    before: Mapping[str, object], after: Mapping[str, object], field: str
+) -> bool:
+    return all(
+        strict_equal(before[name], after[name])
+        for name in _H24_EDGE_KEYS
+        if name != field
+    ) and not strict_equal(before[field], after[field])
+
+
+def _canonical_edge_counter(value: object) -> Counter[bytes] | None:
+    if type(value) is not list or any(not _valid_edge_record(item) for item in value):
+        return None
+    try:
+        return Counter(canonical_json_bytes(item) for item in value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _one_added_record(
+    primary_edges: object, mutated_edges: object
+) -> tuple[dict[str, object], Counter[bytes], Counter[bytes]] | None:
+    primary_counter = _canonical_edge_counter(primary_edges)
+    mutated_counter = _canonical_edge_counter(mutated_edges)
+    if primary_counter is None or mutated_counter is None:
+        return None
+    if type(primary_edges) is not list or type(mutated_edges) is not list:
+        return None
+    if len(mutated_edges) != len(primary_edges) + 1:
+        return None
+    if primary_counter - mutated_counter:
+        return None
+    added = mutated_counter - primary_counter
+    if sum(added.values()) != 1:
+        return None
+    token = next(iter(added))
+    extra = next(
+        item for item in mutated_edges if canonical_json_bytes(item) == token
+    )
+    return extra, primary_counter, mutated_counter
+
+
+def _a01_i1_exact(primary_edges: object, mutated_edges: object) -> bool:
+    def predicate(before: Mapping[str, object], after: Mapping[str, object]) -> bool:
+        return (
+            before["harmonic_rank"] == 1
+            and _only_field_changed(before, after, "observation_coordinate")
+            and float(after["observation_coordinate"]) != float(before["source_pitch"])
+        )
+
+    return _single_same_key_mutation(primary_edges, mutated_edges, predicate)
+
+
+def _a01_i2_exact(primary_edges: object, mutated_edges: object) -> bool:
+    def predicate(before: Mapping[str, object], after: Mapping[str, object]) -> bool:
+        return (
+            2 <= int(before["harmonic_rank"]) <= 20
+            and _only_field_changed(before, after, "observation_coordinate")
+            and float(after["observation_coordinate"]) == float(before["source_pitch"])
+        )
+
+    return _single_same_key_mutation(primary_edges, mutated_edges, predicate)
+
+
+def _a01_i3_exact(primary_edges: object, mutated_edges: object) -> bool:
+    result = _one_added_record(primary_edges, mutated_edges)
+    if result is None:
+        return False
+    extra, _, _ = result
+    return (
+        24 <= int(extra["source_pitch"]) <= 76
+        and 2 <= int(extra["harmonic_rank"]) <= 20
+        and float(extra["observation_coordinate"]) < float(extra["source_pitch"])
+        and extra["relation_type"] == "PROPER_HARMONIC_ASCENT"
+    )
+
+
+def _a01_i4_exact(primary_edges: object, mutated_edges: object) -> bool:
+    def predicate(before: Mapping[str, object], after: Mapping[str, object]) -> bool:
+        return (
+            before["harmonic_rank"] == 1
+            and _only_field_changed(before, after, "relation_type")
+            and after["relation_type"] == "PROPER_HARMONIC_ASCENT"
+        )
+
+    return _single_same_key_mutation(primary_edges, mutated_edges, predicate)
+
+
+def _a01_i5_exact(primary_edges: object, mutated_edges: object) -> bool:
+    primary_counter = _canonical_edge_counter(primary_edges)
+    mutated_counter = _canonical_edge_counter(mutated_edges)
+    if primary_counter is None or mutated_counter is None:
+        return False
+    if type(primary_edges) is not list or type(mutated_edges) is not list:
+        return False
+    return (
+        len(mutated_edges) == len(primary_edges) - 1
+        and not (mutated_counter - primary_counter)
+        and sum((primary_counter - mutated_counter).values()) == 1
+    )
+
+
+def _a01_i6_exact(primary_edges: object, mutated_edges: object) -> bool:
+    result = _one_added_record(primary_edges, mutated_edges)
+    if result is None:
+        return False
+    extra, primary_counter, _ = result
+    return canonical_json_bytes(extra) in primary_counter
+
+
+def _a01_i7_exact(primary_edges: object, mutated_edges: object) -> bool:
+    def predicate(before: Mapping[str, object], after: Mapping[str, object]) -> bool:
+        delta = float(after["observation_coordinate"]) - float(
+            before["observation_coordinate"]
+        )
+        return (
+            _only_field_changed(before, after, "observation_coordinate")
+            and math.isclose(delta, 0.25, rel_tol=0.0, abs_tol=1e-12)
+            and float(after["observation_coordinate"]) > float(after["source_pitch"])
+        )
+
+    return _single_same_key_mutation(primary_edges, mutated_edges, predicate)
+
+
+def _a01_inverse_suite_exact(
+    primary_edges: object, inverse: Mapping[str, object]
+) -> bool:
+    validators = {
+        "H24-A01-I1": _a01_i1_exact,
+        "H24-A01-I2": _a01_i2_exact,
+        "H24-A01-I3": _a01_i3_exact,
+        "H24-A01-I4": _a01_i4_exact,
+        "H24-A01-I5": _a01_i5_exact,
+        "H24-A01-I6": _a01_i6_exact,
+        "H24-A01-I7": _a01_i7_exact,
+    }
+    return set(inverse) == set(validators) and all(
+        validator(primary_edges, inverse[inverse_id])
+        for inverse_id, validator in validators.items()
+    )
+
+
 def _recompute_a01(
     test: H24TestSpecification, persisted_evidence: object
 ) -> H24RecomputedOracle:
@@ -508,7 +704,9 @@ def _recompute_a01(
         for name in primary_names
         if name != "typed_edges"
     )
-    inverse_pass = all(not _edge_diagnostics(inverse[name])[0] for name in inverse_names)
+    inverse_pass = graph_pass and _a01_inverse_suite_exact(
+        primary["typed_edges"], inverse
+    )
     return H24RecomputedOracle(test.test_id, graph_pass and diagnostics_pass, inverse_pass)
 
 

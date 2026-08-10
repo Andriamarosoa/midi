@@ -29,8 +29,14 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   producteur dormant et un recomputer indépendant pour chaque test, implémente
   les `27` opérateurs et l’unique sentinelle, puis applique la non-vacuité et
   les cardinalités avant tout opérateur. Un plan remplacé ou construit hors
-  factory est refusé. `123` tests administratifs H24/H23/H20 réussissent en
-  `1,447 s`; aucun evaluator scientifique, fixture, waveform ou donnée réelle
+  factory est refusé. La revue de `77a7dcc3…` a confirmé ces propriétés mais a
+  refusé la création de population car A01 acceptait sept payloads inverses
+  arbitrairement invalides. Le correctif dormant vérifie désormais chaque
+  inverse contre sa mutation unique : I1 H1 non-identité, I2 harmonique rendu
+  identité, I3 unique injection descendante, I4 unique mauvais type H1, I5
+  unique omission, I6 unique doublon et I7 unique `+0.25`. Toute modification
+  supplémentaire échoue. `126` tests administratifs H24/H23/H20 réussissent en
+  `1,997 s`; aucun evaluator scientifique, fixture, waveform ou donnée réelle
   n’a été exécuté. Rapport :
   `readme/results/2026-08-10_harmonic-censoring-h24-dormant-harness.md`.
   La prochaine action reste uniquement la revue sémantique externe de ce

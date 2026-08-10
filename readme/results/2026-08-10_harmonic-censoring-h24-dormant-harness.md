@@ -76,6 +76,31 @@ rétroactivement.
 - fournit le recomputer A01 fermé à partir de `typed_edges`, sans accepter un
   booléen producteur comme autorité.
 
+### Correction après première revue du harness
+
+La revue de `77a7dcc34269f13ec09ba936d261ad1e9daefefa` a confirmé la
+dormance, les bindings, le registre et les 27 opérateurs, mais a identifié que
+le premier recomputer A01 exigeait seulement que chacun des sept payloads
+inverses soit invalide. Sept tableaux vides pouvaient donc satisfaire
+`inverse_pass` sans représenter les mutations préenregistrées.
+
+Le correctif compare maintenant chaque payload au `primary.typed_edges` valide
+et impose exactement :
+
+```text
+I1  une seule H1 dont la coordonnée devient non-identité
+I2  une seule H2-H20 dont la coordonnée devient la source
+I3  un seul record descendant ajouté, sans retrait ni autre changement
+I4  le seul relation_type d’une H1 devient PROPER_HARMONIC_ASCENT
+I5  exactement une relation retirée
+I6  exactement un duplicata strict ajouté
+I7  exactement une coordonnée augmentée de +0.25, toujours > source
+```
+
+Les comparaisons de collections sont indépendantes de l’ordre et conservent la
+multiplicité. Toute seconde suppression, modification de type additionnelle,
+mutation répétée sous le mauvais ID ou payload vide fait échouer l’inverse.
+
 Le registre contient exactement une entrée par test : le producteur est nommé
 mais `DORMANT`, non callable, et le recomputer est indépendant. Aucun runner ou
 CLI H24 n’a été ajouté.
@@ -99,7 +124,7 @@ Les nouveaux tests couvrent notamment :
 Validation locale :
 
 ```text
-123 tests H24 + H23 + H20 réussis en 1,447 s
+126 tests H24 + H23 + H20 réussis en 1,997 s
 python -m py_compile réussi
 git diff --check réussi
 ```
