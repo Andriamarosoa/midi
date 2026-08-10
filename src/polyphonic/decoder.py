@@ -10,6 +10,7 @@ from typing import Callable
 import numpy as np
 
 from .decoder_candidate_mining import DecoderCandidateCollector
+from .provisional_resolution_age1 import PassiveAge1SignalCollector
 
 
 CAUSAL_CANDIDATE_GATE_PRE_RANKING = "pre_ranking"
@@ -226,6 +227,7 @@ class PolyphonicDecoder:
         causal_candidate_gate: Callable[[CausalCandidateGateInput], bool] | None = None,
         causal_candidate_gate_placement: str = CAUSAL_CANDIDATE_GATE_PRE_RANKING,
         provisional_state_resolver: Callable[[ProvisionalObservation], str] | None = None,
+        passive_age1_collector: PassiveAge1SignalCollector | None = None,
     ) -> None:
         if causal_candidate_gate_placement not in _CAUSAL_CANDIDATE_GATE_PLACEMENTS:
             raise ValueError(
@@ -240,11 +242,22 @@ class PolyphonicDecoder:
                 "H5 provisional resolution composition with causal candidate "
                 "or independent-note gates is unsupported_pending_separate_contract."
             )
+        if passive_age1_collector is not None and (
+            provisional_state_resolver is not None
+            or causal_candidate_gate is not None
+            or config.independent_note_threshold is not None
+        ):
+            raise ValueError(
+                "Passive H7 age-1 collection requires the historical baseline: "
+                "provisional resolver, causal candidate gate, and independent-note "
+                "threshold must all be disabled."
+            )
         self.config = config
         self._candidate_collector = candidate_collector
         self._causal_candidate_gate = causal_candidate_gate
         self._causal_candidate_gate_placement = causal_candidate_gate_placement
         self._provisional_state_resolver = provisional_state_resolver
+        self._passive_age1_collector = passive_age1_collector
         self._candidate_collection_error: str | None = None
         self.classes = config.midi_max - config.midi_min + 1
         self.active = np.zeros(self.classes, dtype=np.bool_)
@@ -313,6 +326,28 @@ class PolyphonicDecoder:
     def _velocity(self, frame_probability: float, onset_probability: float) -> int:
         confidence = max(float(frame_probability), float(onset_probability))
         return int(np.clip(round(35.0 + 92.0 * confidence), 1, 127))
+
+    def _observe_passive_age1_frame(self, frame_probability: np.ndarray) -> None:
+        collector = self._passive_age1_collector
+        if collector is not None:
+            collector.observe_frame(
+                frame_index=int(self.frame_index),
+                frame_probability=frame_probability,
+                midi_min=self.config.midi_min,
+            )
+
+    def _observe_passive_age1_noteons(
+        self,
+        events: list[PolyphonicMidiEvent],
+        frame_probability: np.ndarray,
+    ) -> None:
+        collector = self._passive_age1_collector
+        if collector is not None:
+            collector.observe_emitted_noteons(
+                events,
+                frame_probability=frame_probability,
+                midi_min=self.config.midi_min,
+            )
 
     def _harmonic_support(
         self,
@@ -861,6 +896,10 @@ class PolyphonicDecoder:
                 "independent_note_threshold requires independent-note probabilities."
             )
 
+        # Passive H7 observation happens after input validation but before any
+        # current-frame release, retrigger, ranking, or activation decision.
+        self._observe_passive_age1_frame(frame)
+
         events: list[PolyphonicMidiEvent] = []
         if not audio_active:
             # Activation votes are evidence from consecutive audible hops.
@@ -959,6 +998,7 @@ class PolyphonicDecoder:
         if available <= 0:
             self.activation_count[~self.active] = 0
             self.attack_activation_pending[~self.active] = False
+            self._observe_passive_age1_noteons(events, frame)
             return events
         if not self.audio_onset_available:
             legacy_candidates: list[
@@ -1189,6 +1229,7 @@ class PolyphonicDecoder:
                         emitted_noteon=False,
                     )
             self._flush_candidate_traces(legacy_completed)
+            self._observe_passive_age1_noteons(events, frame)
             return events
 
         provisional: list[tuple[float, int, bool, str]] = []
@@ -1459,6 +1500,7 @@ class PolyphonicDecoder:
                     emitted_noteon=False,
                 )
         self._flush_candidate_traces(completed_traces)
+        self._observe_passive_age1_noteons(events, frame)
         return events
 
     def panic(self, reason: str = "panic") -> list[PolyphonicMidiEvent]:

@@ -17,8 +17,25 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `provisional_resolution_age1_persistence_h8_preparation`.
-- Statut : `terminé — provisional_resolution_age1_persistence_h8_preparation_sealed, aucune exécution scientifique autorisée`.
+- Étape : `provisional_resolution_age1_persistence_h9_synthetic_extractor_conformance`.
+- Statut : `terminé — provisional_resolution_age1_persistence_h9_synthetic_extractor_ready, aucune exécution scientifique autorisée`.
+- H9 positif sur données synthétiques uniquement : un collecteur passif observe
+  chaque vrai NoteOn du décodeur historique, retriggers compris, gèle
+  `S0=frame_probability_at_noteon`, puis capture `S1` au même pitch exactement
+  à `age_frames=1` avant les décisions de la frame suivante. Un saut d'horloge
+  produit `age1_observation_unavailable`, sans interpolation ni substitution.
+  Le collecteur est incompatible fail-closed avec le resolver H4/H6, la porte
+  causale V1/V2 et le seuil independent-note. Une cible offline pure réutilise
+  le matcher causal gelé : same-pitch, aucune référence future, one-to-one,
+  dernière référence en attente, maximum `250 ms`. La jointure exige l'identité
+  exacte `(frame_index,pitch)`. La parité MIDI et état interne du décodeur nu et
+  instrumenté est démontrée sur les chemins legacy/audio-aware, harmoniques,
+  polyphonie, release, retrigger, silence et sauts de hop. Aucun actif H8,
+  modèle, target/signal réel, métrique, AUC ou bootstrap n'a été utilisé.
+  Contrat :
+  `configs/provisional_resolution_age1_persistence_h9_synthetic_conformance.json`.
+  Rapport :
+  `readme/results/2026-08-10_provisional-resolution-age1-h9-synthetic-conformance.md`.
 - Préparation H8 scellée sans modèle ni métrique : le SHA brut du contrat H7 a
   été vérifié, puis toutes les prises `dev` Policy A ont été considérées sans
   plafond, équilibrage ou sélection manuelle. Après exclusion entière des

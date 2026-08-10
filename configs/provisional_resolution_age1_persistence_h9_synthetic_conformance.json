@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "purpose": "provisional_resolution_age1_persistence_h9_synthetic_conformance",
+  "status": "provisional_resolution_age1_persistence_h9_synthetic_extractor_ready",
+  "verdict": "age1_persistence_h9_synthetic_extractor_conformance_demonstrated",
+  "accepted_h8": {
+    "commit": "8f50a8a083bbfd0b07330c338b64763199fdf894",
+    "parent": "e3e2be144282ecf0079ba22831abfb6439b16ac3",
+    "preparation_sha256": "9bbe2b5558b6b5764415619260a6aba1e3daf1d3c22ce185f3b00a336f8e1639",
+    "selected_cohort_sha256_structural_reference_only": "4dd76bd13c33ccb3946bfdbcf6f575d4550fb0c5588095e23da3b6e3f84bce1f"
+  },
+  "passive_collection_contract": {
+    "explicitly_opt_in": true,
+    "requires_provisional_state_resolver_none": true,
+    "requires_causal_candidate_gate_none": true,
+    "requires_independent_note_threshold_none": true,
+    "observation_order": "pending_age1_before_current_frame_decoder_decisions_then_new_emitted_noteons",
+    "event_identity": ["frame_index", "pitch"],
+    "exact_age_frames": 1,
+    "clock_jump_status": "age1_observation_unavailable",
+    "interpolation": false,
+    "later_age_substitution": false,
+    "signal_schema": ["frame_index", "pitch", "S0", "age1_status", "S1", "D1"],
+    "signal_fields": {
+      "S0": "frame_probability_at_noteon",
+      "S1": "same_pitch_frame_probability_at_exact_age1",
+      "D1": "S1_minus_S0"
+    }
+  },
+  "target_contract": {
+    "offline_only": true,
+    "full_emitted_noteon_flow": true,
+    "maximum_latency_ms": 250.0,
+    "same_pitch": true,
+    "causal_reference_only": true,
+    "one_to_one": true,
+    "latest_pending_same_pitch_reference": true,
+    "invalid_frame_status": "excluded_invalid_frame",
+    "outside_audio_status": "excluded_outside_audio",
+    "duplicate_event_identity": "fail_closed",
+    "target_schema": ["frame_index", "pitch", "true_noteon", "target_status"]
+  },
+  "join_contract": {
+    "key": ["frame_index", "pitch"],
+    "mismatched_or_duplicate_identity": "fail_closed",
+    "scientific_row_schema": ["frame_index", "pitch", "S0", "S1", "D1", "age1_status", "true_noteon", "target_status"]
+  },
+  "attrition_counts_only": [
+    "emitted_noteons_initially_considered",
+    "noteons_with_exact_age1_observation",
+    "noteons_unavailable_due_to_decoder_clock_skip",
+    "noteons_excluded_as_ambiguous_or_unmatchable",
+    "malformed_or_nonfinite_signal_cases"
+  ],
+  "implementation_state": {
+    "passive_signal_collector_implemented": true,
+    "exact_causal_target_extractor_implemented": true,
+    "exact_signal_target_joiner_implemented": true,
+    "synthetic_conformance_demonstrated": true,
+    "scientific_execution_authorized": false,
+    "real_targets_extracted": false,
+    "real_signals_extracted": false,
+    "metrics_computed": false,
+    "h8_cohort_consumed": false,
+    "locked_test_used": false,
+    "consumed_v2_cohort_used": false
+  },
+  "forbidden_outputs": ["prevalence", "ROC_AUC", "confidence_interval", "bootstrap", "threshold", "classifier"],
+  "next_action": "external_review_before_any_scientific_execution_contract"
+}

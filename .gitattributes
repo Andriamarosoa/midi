@@ -23,3 +23,4 @@ configs/provisional_resolution_evidence_contract_h5.json text eol=lf
 configs/provisional_resolution_age1_persistence_h7_hypothesis_contract.json text eol=lf
 configs/provisional_resolution_age1_persistence_h8_preparation.json text eol=lf
 configs/provisional_resolution_age1_persistence_h8_selected_cohort.json text eol=lf
+configs/provisional_resolution_age1_persistence_h9_synthetic_conformance.json text eol=lf
