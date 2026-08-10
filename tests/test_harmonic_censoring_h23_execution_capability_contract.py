@@ -167,6 +167,24 @@ class HarmonicCensoringH23ExecutionCapabilityContractTests(unittest.TestCase):
             self.assertFalse(seal[right], right)
         self.assertTrue(seal["must_bind_this_contract_raw_sha256"])
 
+    def test_future_activation_breaks_hash_cycle_and_is_OS_bound(self) -> None:
+        activation = self.contract["future_seal_activation"]
+        self.assertFalse(activation["exists_now"])
+        self.assertFalse(activation["authorization_seal_exists_now"])
+        self.assertIsNone(activation["raw_sha256"])
+        self.assertEqual(
+            activation["activation_commit_environment_variable"],
+            "H23_AUTHORIZATION_ACTIVATION_COMMIT",
+        )
+        self.assertTrue(activation["checkout_HEAD_must_equal_OS_bound_activation_commit"])
+        self.assertTrue(activation["activation_bytes_must_equal_blob_at_activation_commit"])
+        self.assertTrue(activation["activation_and_seal_bindings_must_match_exactly"])
+        self.assertFalse(
+            activation["seal_or_activation_may_modify_attested_capability_or_runner_source"]
+        )
+        self.assertFalse(activation["activation_commit_may_be_inferred_from_unreviewed_HEAD"])
+        self.assertTrue(activation["missing_OS_binding_fails_before_plan_resolution"])
+
     def test_one_shot_consumption_boundary_is_before_first_waveform(self) -> None:
         boundary = self.contract["one_shot_boundary"]
         self.assertIsNone(boundary["authorization_marker_path"])
@@ -239,7 +257,7 @@ class HarmonicCensoringH23ExecutionCapabilityContractTests(unittest.TestCase):
         self.assertFalse(preflight["waveform_allocation_allowed_during_preflight"])
         self.assertFalse(preflight["fixture_spec_or_test_set_mutation_allowed"])
         adversarial = set(self.contract["required_future_adversarial_tests_before_issuance"])
-        self.assertEqual(len(adversarial), 25)
+        self.assertEqual(len(adversarial), 29)
         self.assertIn("dataclasses_replace_on_plan_or_capability_is_rejected", adversarial)
         self.assertIn("second_capability_claim_fails_cross_process", adversarial)
         self.assertIn("partial_staging_never_becomes_success_destination", adversarial)
@@ -275,6 +293,16 @@ class HarmonicCensoringH23ExecutionCapabilityContractTests(unittest.TestCase):
         self.assertTrue(
             sequence["authorization_seal_must_bind_already_reviewed_implementation_commit"]
         )
+        self.assertEqual(
+            sequence["order"][4],
+            "OS_bound_activation_commit_review_and_exact_HEAD_injection",
+        )
+        self.assertTrue(
+            sequence[
+                "authorization_seal_hash_must_not_be_embedded_in_attested_implementation_source"
+            ]
+        )
+        self.assertTrue(sequence["activation_commit_must_not_modify_attested_implementation_blobs"])
 
     def test_allowed_files_exclude_both_scientific_contract_and_harness(self) -> None:
         allowed = set(self.contract["contract_definition_allowed_files"])

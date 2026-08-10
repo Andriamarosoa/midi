@@ -1,10 +1,11 @@
 """Dormant, fail-closed execution capability for H23 synthetic evaluation.
 
 This module is administrative only.  It imports neither NumPy nor any project
-data/model loader.  The canonical authorization seal deliberately does not
-exist in this commit, so :func:`issue_h23_synthetic_execution_capability`
-always fails before resolving fixtures, checking runtime packages, creating a
-claim marker, or allocating a waveform.
+data/model loader.  The canonical authorization activation and seal
+deliberately do not exist in this commit, so
+:func:`issue_h23_synthetic_execution_capability` always fails before resolving
+fixtures, checking runtime packages, creating a claim marker, or allocating a
+waveform.
 """
 from __future__ import annotations
 
@@ -30,13 +31,15 @@ H23_CAPABILITY_CONTRACT_RELATIVE_PATH = Path(
     "configs/harmonic_censoring_h23_synthetic_execution_capability_contract.json"
 )
 H23_CAPABILITY_CONTRACT_SHA256 = (
-    "0320b8a317863aa8a2e85086e98a28d646d69fe26fa469f7806911b3b51e874c"
+    "d63f230cff679d4df65042bc083791a6a158dda730589db7f153a396b5fc4b3b"
 )
 H23_AUTHORIZATION_SEAL_RELATIVE_PATH = Path(
     "configs/harmonic_censoring_h23_synthetic_execution_authorization_seal.json"
 )
-# A later, separately reviewed seal commit must replace this with its raw hash.
-H23_AUTHORIZATION_SEAL_SHA256: str | None = None
+H23_AUTHORIZATION_ACTIVATION_RELATIVE_PATH = Path(
+    "configs/harmonic_censoring_h23_synthetic_execution_activation.json"
+)
+H23_AUTHORIZATION_ACTIVATION_COMMIT_ENV = "H23_AUTHORIZATION_ACTIVATION_COMMIT"
 H23_CONSUMPTION_CLAIM_IMPLEMENTED = False
 
 H23_FIXTURE_MANIFEST_SHA256 = (
@@ -140,6 +143,84 @@ class H23AuthorizationSeal:
     success_destination: Path
     terminal_record_destination: Path
     authorization_marker: Path
+
+
+@dataclass(frozen=True)
+class H23AuthorizationActivation:
+    """OS-bound pointer from a reviewed activation commit to a fixed seal."""
+
+    raw_sha256: str
+    authorization_seal_path: Path
+    authorization_seal_sha256: str
+    implementation_commit: str
+    capability_source_blob: str
+    runner_source_blob: str
+
+
+def validate_h23_authorization_activation_payload(
+    payload: Mapping[str, object], *, raw_sha256: str
+) -> H23AuthorizationActivation:
+    """Validate the future activation artifact without loading the seal."""
+
+    _require_exact_keys(
+        payload,
+        (
+            "schema_version",
+            "purpose",
+            "status",
+            "authorization_seal",
+            "bindings",
+            "external_review",
+        ),
+        "authorization activation",
+    )
+    if type(payload["schema_version"]) is not int or payload["schema_version"] != 1:
+        raise ValueError("H23 authorization activation schema version mismatch.")
+    if payload["purpose"] != "harmonic_censoring_h23_synthetic_execution_activation":
+        raise ValueError("H23 authorization activation purpose mismatch.")
+    if payload["status"] != "externally_reviewed_seal_activation":
+        raise ValueError("H23 authorization activation status mismatch.")
+
+    seal = _require_object(payload["authorization_seal"], "activation seal")
+    _require_exact_keys(seal, ("path", "raw_sha256"), "activation seal")
+    seal_path = _require_relative_path(seal["path"], "activation seal path")
+    if seal_path != H23_AUTHORIZATION_SEAL_RELATIVE_PATH:
+        raise ValueError("H23 activation seal path is not canonical.")
+
+    bindings = _require_object(payload["bindings"], "activation bindings")
+    _require_exact_keys(
+        bindings,
+        ("implementation_commit", "capability_source_blob", "runner_source_blob"),
+        "activation bindings",
+    )
+    review = _require_object(payload["external_review"], "activation external review")
+    _require_exact_keys(
+        review,
+        ("verdict", "authorization_seal_reviewed", "activation_commit_review_required"),
+        "activation external review",
+    )
+    if (
+        review["verdict"] != "APPROVED"
+        or review["authorization_seal_reviewed"] is not True
+        or review["activation_commit_review_required"] is not True
+    ):
+        raise PermissionError("H23 activation external review is not approved.")
+    return H23AuthorizationActivation(
+        raw_sha256=_require_lower_hex(raw_sha256, 64, "authorization activation SHA-256"),
+        authorization_seal_path=seal_path,
+        authorization_seal_sha256=_require_lower_hex(
+            seal["raw_sha256"], 64, "activation seal SHA-256"
+        ),
+        implementation_commit=_require_lower_hex(
+            bindings["implementation_commit"], 40, "activation implementation commit"
+        ),
+        capability_source_blob=_require_lower_hex(
+            bindings["capability_source_blob"], 40, "activation capability source blob"
+        ),
+        runner_source_blob=_require_lower_hex(
+            bindings["runner_source_blob"], 40, "activation runner source blob"
+        ),
+    )
 
 
 def validate_h23_authorization_seal_payload(
@@ -346,21 +427,52 @@ def _resolve_bound_path(repository: Path, relative: Path) -> Path:
 
 
 def load_h23_authorization_seal(repository_root: Path) -> H23AuthorizationSeal:
-    """Load the fixed future seal; fail before any other preflight while absent."""
+    """Load a seal pinned by a separately reviewed, OS-bound activation commit."""
 
-    if H23_AUTHORIZATION_SEAL_SHA256 is None:
+    activation_commit_raw = os.environ.get(H23_AUTHORIZATION_ACTIVATION_COMMIT_ENV)
+    if activation_commit_raw is None:
         raise PermissionError(
-            "H23 execution remains dormant: no reviewed authorization seal SHA exists."
+            "H23 execution remains dormant: no OS-bound reviewed activation commit exists."
         )
+    activation_commit = _require_lower_hex(
+        activation_commit_raw, 40, "authorization activation commit"
+    )
     repository = Path(repository_root).resolve(strict=True)
-    path = _resolve_bound_path(repository, H23_AUTHORIZATION_SEAL_RELATIVE_PATH)
+    if _git(repository, "status", "--porcelain"):
+        raise RuntimeError("H23 activation requires a clean worktree.")
+    if _git(repository, "rev-parse", "HEAD") != activation_commit:
+        raise ValueError("H23 checkout HEAD does not match the OS-bound activation commit.")
+
+    activation_path = _resolve_bound_path(
+        repository, H23_AUTHORIZATION_ACTIVATION_RELATIVE_PATH
+    )
+    activation_blob = _git(
+        repository,
+        "rev-parse",
+        f"{activation_commit}:{H23_AUTHORIZATION_ACTIVATION_RELATIVE_PATH.as_posix()}",
+    )
+    if _git(repository, "hash-object", activation_path.as_posix()) != activation_blob:
+        raise ValueError("H23 activation bytes differ from the reviewed activation commit.")
+    activation_raw = activation_path.read_bytes()
+    activation = validate_h23_authorization_activation_payload(
+        _load_json_object(activation_raw), raw_sha256=_sha256(activation_raw)
+    )
+
+    path = _resolve_bound_path(repository, activation.authorization_seal_path)
     raw = path.read_bytes()
     actual = _sha256(raw)
-    if actual != H23_AUTHORIZATION_SEAL_SHA256:
+    if actual != activation.authorization_seal_sha256:
         raise ValueError("H23 authorization seal SHA-256 mismatch.")
-    return validate_h23_authorization_seal_payload(
+    seal = validate_h23_authorization_seal_payload(
         _load_json_object(raw), raw_sha256=actual
     )
+    if (
+        activation.implementation_commit != seal.reviewed_execution_commit
+        or activation.capability_source_blob != seal.capability_source_blob
+        or activation.runner_source_blob != seal.runner_source_blob
+    ):
+        raise ValueError("H23 activation and authorization seal bindings differ.")
+    return seal
 
 
 def _validate_repository_and_runtime(
@@ -477,10 +589,10 @@ def _build_h23_capability_authority():
     def issue(
         repository_root: Path,
     ) -> AttestedH23SyntheticExecutionCapability:
-        """Issue only after a later fixed seal exists and all preflights pass."""
+        """Issue only after a later OS-bound activation and seal pass preflight."""
 
-        # This is intentionally first.  In the present commit it always fails,
-        # before plan resolution, package inspection, path access, or claim state.
+        # This is intentionally first. In the present commit it fails before
+        # plan resolution, package inspection, scientific path access, or claim.
         seal = load_h23_authorization_seal(repository_root)
         repository = Path(repository_root).resolve(strict=True)
         plan = load_h23_harness_plan(repository)
@@ -547,9 +659,11 @@ def require_claimed_h23_synthetic_execution_capability(value: object) -> None:
 
 __all__ = [
     "AttestedH23SyntheticExecutionCapability",
+    "H23AuthorizationActivation",
     "H23AuthorizationSeal",
+    "H23_AUTHORIZATION_ACTIVATION_COMMIT_ENV",
+    "H23_AUTHORIZATION_ACTIVATION_RELATIVE_PATH",
     "H23_AUTHORIZATION_SEAL_RELATIVE_PATH",
-    "H23_AUTHORIZATION_SEAL_SHA256",
     "H23_CAPABILITY_CONTRACT_SHA256",
     "H23_CONSUMPTION_CLAIM_IMPLEMENTED",
     "claim_h23_synthetic_execution_capability",
@@ -558,4 +672,5 @@ __all__ = [
     "require_attested_h23_synthetic_execution_capability",
     "require_claimed_h23_synthetic_execution_capability",
     "validate_h23_authorization_seal_payload",
+    "validate_h23_authorization_activation_payload",
 ]

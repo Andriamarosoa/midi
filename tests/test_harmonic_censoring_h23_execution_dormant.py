@@ -73,6 +73,43 @@ class HarmonicCensoringH23DormantExecutionTests(unittest.TestCase):
             },
         }
 
+    def _activation_payload(self) -> dict[str, object]:
+        return {
+            "schema_version": 1,
+            "purpose": "harmonic_censoring_h23_synthetic_execution_activation",
+            "status": "externally_reviewed_seal_activation",
+            "authorization_seal": {
+                "path": capability.H23_AUTHORIZATION_SEAL_RELATIVE_PATH.as_posix(),
+                "raw_sha256": "d" * 64,
+            },
+            "bindings": {
+                "implementation_commit": "a" * 40,
+                "capability_source_blob": "b" * 40,
+                "runner_source_blob": "c" * 40,
+            },
+            "external_review": {
+                "verdict": "APPROVED",
+                "authorization_seal_reviewed": True,
+                "activation_commit_review_required": True,
+            },
+        }
+
+    def test_activation_parser_pins_seal_and_implementation_without_self_hash(self) -> None:
+        payload = self._activation_payload()
+        parsed = capability.validate_h23_authorization_activation_payload(
+            payload, raw_sha256="e" * 64
+        )
+        self.assertEqual(parsed.authorization_seal_sha256, "d" * 64)
+        self.assertEqual(parsed.implementation_commit, "a" * 40)
+        self.assertNotIn("activation_commit", payload)
+        self.assertNotIn("activation_raw_sha256", payload)
+        forged = self._activation_payload()
+        forged["authorization_seal"]["path"] = "configs/other.json"  # type: ignore[index]
+        with self.assertRaisesRegex(ValueError, "not canonical"):
+            capability.validate_h23_authorization_activation_payload(
+                forged, raw_sha256="e" * 64
+            )
+
     def test_future_seal_parser_requires_all_six_rights(self) -> None:
         contract_raw = (
             self.root / capability.H23_CAPABILITY_CONTRACT_RELATIVE_PATH
@@ -119,9 +156,44 @@ class HarmonicCensoringH23DormantExecutionTests(unittest.TestCase):
             )
 
     def test_current_factory_refuses_before_plan_resolution(self) -> None:
-        self.assertIsNone(capability.H23_AUTHORIZATION_SEAL_SHA256)
-        with mock.patch.object(capability, "load_h23_harness_plan") as load_plan:
-            with self.assertRaisesRegex(PermissionError, "no reviewed authorization seal"):
+        self.assertFalse(
+            (self.root / capability.H23_AUTHORIZATION_ACTIVATION_RELATIVE_PATH).exists()
+        )
+        with mock.patch.dict(
+            "os.environ",
+            {capability.H23_AUTHORIZATION_ACTIVATION_COMMIT_ENV: ""},
+            clear=False,
+        ), mock.patch.object(capability, "load_h23_harness_plan") as load_plan:
+            with self.assertRaisesRegex(ValueError, "lowercase hexadecimal length 40"):
+                capability.issue_h23_synthetic_execution_capability(self.root)
+        load_plan.assert_not_called()
+
+        with mock.patch.dict(
+            "os.environ",
+            {},
+            clear=True,
+        ), mock.patch.object(capability, "load_h23_harness_plan") as load_plan:
+            with self.assertRaisesRegex(PermissionError, "no OS-bound reviewed activation"):
+                capability.issue_h23_synthetic_execution_capability(self.root)
+        load_plan.assert_not_called()
+
+    def test_OS_bound_activation_HEAD_mismatch_refuses_before_plan_resolution(self) -> None:
+        def git_result(repository: Path, *arguments: str) -> str:
+            del repository
+            if arguments == ("status", "--porcelain"):
+                return ""
+            if arguments == ("rev-parse", "HEAD"):
+                return "b" * 40
+            raise AssertionError(f"unexpected git arguments: {arguments!r}")
+
+        with mock.patch.dict(
+            "os.environ",
+            {capability.H23_AUTHORIZATION_ACTIVATION_COMMIT_ENV: "a" * 40},
+            clear=True,
+        ), mock.patch.object(capability, "_git", side_effect=git_result), mock.patch.object(
+            capability, "load_h23_harness_plan"
+        ) as load_plan:
+            with self.assertRaisesRegex(ValueError, "HEAD does not match"):
                 capability.issue_h23_synthetic_execution_capability(self.root)
         load_plan.assert_not_called()
 
@@ -272,8 +344,9 @@ class HarmonicCensoringH23DormantExecutionTests(unittest.TestCase):
         with self.assertRaises(TypeError):
             runner.run_authorized_h23_synthetic_execution(self.root, object())
         with mock.patch.object(capability, "load_h23_harness_plan") as load_plan:
-            with self.assertRaisesRegex(PermissionError, "no reviewed authorization seal"):
-                runner.main([])
+            with mock.patch.dict("os.environ", {}, clear=True):
+                with self.assertRaisesRegex(PermissionError, "no OS-bound reviewed activation"):
+                    runner.main([])
         load_plan.assert_not_called()
 
     def test_modules_have_no_scientific_or_project_data_imports(self) -> None:

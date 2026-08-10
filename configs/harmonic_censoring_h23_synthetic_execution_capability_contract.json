@@ -74,6 +74,9 @@
     "factory_must_require_all": [
       "canonical_H23_contract_path_and_raw_SHA256_match",
       "this_capability_contract_raw_SHA256_matches_a_future_separate_authorization_seal",
+      "future_activation_artifact_is_tracked_by_the_OS_bound_reviewed_activation_commit",
+      "future_activation_artifact_raw_seal_SHA256_matches_the_seal_bytes",
+      "future_activation_and_seal_implementation_bindings_match",
       "approved_harness_source_blobs_match",
       "fixture_manifest_recomputed_in_memory_and_SHA256_matches",
       "resolved_test_manifest_recomputed_in_memory_and_SHA256_matches",
@@ -136,6 +139,27 @@
     "must_bind_exact_future_capability_source_blob": true,
     "must_bind_exact_future_runner_source_blob": true,
     "must_bind_exact_changed_file_set": true
+  },
+  "future_seal_activation": {
+    "purpose": "break_seal_source_hash_circularity_without_modifying_attested_implementation_blobs",
+    "exists_now": false,
+    "path": "configs/harmonic_censoring_h23_synthetic_execution_activation.json",
+    "raw_sha256": null,
+    "authorization_seal_exists_now": false,
+    "activation_commit_environment_variable": "H23_AUTHORIZATION_ACTIVATION_COMMIT",
+    "activation_commit_must_be_lowercase_full_40_hex": true,
+    "checkout_HEAD_must_equal_OS_bound_activation_commit": true,
+    "worktree_must_be_clean": true,
+    "activation_bytes_must_equal_blob_at_activation_commit": true,
+    "activation_must_bind_canonical_seal_path_and_raw_sha256": true,
+    "activation_must_repeat_reviewed_implementation_commit_and_source_blobs": true,
+    "activation_and_seal_bindings_must_match_exactly": true,
+    "seal_or_activation_may_modify_attested_capability_or_runner_source": false,
+    "activation_commit_may_be_inferred_from_unreviewed_HEAD": false,
+    "missing_OS_binding_fails_before_plan_resolution": true,
+    "separate_external_review_of_seal_and_activation_commit_required": true,
+    "security_boundary": "reviewed_single_purpose_OS_worker_injects_exact_activation_commit",
+    "current_state": "dormant_no_activation_file_no_seal_file_no_OS_binding"
   },
   "runtime_identity": {
     "implementation": "CPython",
@@ -270,12 +294,15 @@
       "external_review_of_implementation",
       "separate_authorization_seal_commit_binding_reviewed_implementation",
       "external_review_of_authorization_seal",
+      "OS_bound_activation_commit_review_and_exact_HEAD_injection",
       "capability_issuance",
       "atomic_consumption_claim",
       "synthetic_execution"
     ],
     "implementation_commit_may_not_self_authorize": true,
-    "authorization_seal_must_bind_already_reviewed_implementation_commit": true
+    "authorization_seal_must_bind_already_reviewed_implementation_commit": true,
+    "authorization_seal_hash_must_not_be_embedded_in_attested_implementation_source": true,
+    "activation_commit_must_not_modify_attested_implementation_blobs": true
   },
   "future_verdict_contract": {
     "only_positive_status": "AUTHORIZED_TO_PREPARE_TRAIN_PROTOCOL",
@@ -313,7 +340,11 @@
     "seal_missing_scientific_execution_right_refuses_capability",
     "seal_missing_P0_execution_right_refuses_capability",
     "seal_missing_P1_execution_right_refuses_capability",
-    "seal_missing_P2_execution_right_refuses_capability"
+    "seal_missing_P2_execution_right_refuses_capability",
+    "missing_OS_bound_activation_commit_refuses_before_plan_resolution",
+    "activation_HEAD_mismatch_refuses_before_seal_load",
+    "activation_worktree_bytes_differ_from_reviewed_blob_refuses",
+    "activation_and_seal_implementation_bindings_mismatch_refuses"
   ],
   "contract_definition_allowed_files": [
     ".gitattributes",
