@@ -22,10 +22,16 @@ class H24ScientificExecutionAuthorizationContractTests(unittest.TestCase):
 
     def test_contract_is_lf_contract_only_and_authorizes_no_science(self) -> None:
         self.assertNotIn(b"\r", self.raw)
-        self.assertEqual(self.contract["schema_version"], 3)
+        self.assertEqual(self.contract["schema_version"], 4)
         self.assertEqual(
             self.contract["purpose"],
             "harmonic_censoring_h24_scientific_execution_authorization_contract",
+        )
+        self.assertEqual(
+            self.contract["authorization_basis"][
+                "path_topology_correction_authorized_action"
+            ],
+            "AUTHORIZED_TO_CORRECT_H24_DORMANT_SCIENTIFIC_PATH_TOPOLOGY_GUARDS",
         )
         self.assertEqual(
             self.contract["status"],
@@ -195,6 +201,14 @@ class H24ScientificExecutionAuthorizationContractTests(unittest.TestCase):
         required = set(capability["preissue_fail_closed_requirements"])
         self.assertIn("all_525_fixture_file_hashes_and_175_waveform_sizes_match_without_decoding", required)
         self.assertIn("H17_real_data_locked_test_model_checkpoint_and_training_inputs_absent", required)
+        self.assertIn(
+            "scientific_claim_staging_success_and_terminal_neither_descend_from_nor_are_ancestors_of_the_immutable_population_control_namespace",
+            required,
+        )
+        self.assertIn(
+            "one_shot_paths_have_only_the_three_explicitly_authorized_ancestor_descendant_relations",
+            required,
+        )
         self.assertTrue(
             (ROOT / capability["implemented_source_path"]).is_file()
         )
@@ -249,6 +263,23 @@ class H24ScientificExecutionAuthorizationContractTests(unittest.TestCase):
         self.assertFalse(boundary["manual_retry_allowed"])
         self.assertTrue(boundary["failure_after_claim_remains_consumed"])
         self.assertFalse(boundary["partial_output_authoritative"])
+        self.assertFalse(
+            boundary["population_control_namespace_may_contain_scientific_outputs"]
+        )
+        self.assertEqual(
+            boundary["authorized_ancestor_descendant_relations"],
+            [
+                "success_directory->scientific_transcript.jsonl",
+                "success_directory->evidence_directory",
+                "staging_directory->scientific_transcript.jsonl.part",
+            ],
+        )
+        self.assertFalse(
+            boundary[
+                "all_other_ancestor_descendant_relations_between_one_shot_paths_allowed"
+            ]
+        )
+        self.assertFalse(boundary["claim_parent_creation_may_create_staging_or_success"])
 
     def test_transcript_is_a_closed_ordered_hash_chain_over_persisted_evidence(self) -> None:
         transcript = self.contract["future_scientific_transcript_contract"]
@@ -399,12 +430,10 @@ class H24ScientificExecutionAuthorizationContractTests(unittest.TestCase):
 
     def test_contract_topology_and_current_dormancy_are_exact(self) -> None:
         expected = [
-            ".gitattributes",
             "configs/harmonic_censoring_h24_scientific_execution_authorization_contract.json",
             "readme/README.md",
             "readme/results/2026-08-10_harmonic-censoring-h24-scientific-execution-authorization-contract.md",
             "src/polyphonic/harmonic_censoring_h24_scientific_capability.py",
-            "src/polyphonic/run_harmonic_censoring_h24_scientific.py",
             "tests/test_harmonic_censoring_h24_scientific_execution_authorization_contract.py",
             "tests/test_harmonic_censoring_h24_scientific_execution_dormant.py",
         ]

@@ -42,6 +42,13 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   a le SHA-256 `426a80be…`. Il n'existe toujours aucun seal/activation et le
   registre des `72` producteurs reste explicitement dormant; le runner échoue
   donc avant claim. Aucune donnée scientifique n'a été lue ou calculée.
+  La revue de `e705afe5…` a ensuite trouvé un bloqueur topologique : un futur
+  seal pouvait placer une sortie scientifique dans le namespace immuable de
+  la population, ou imbriquer dangereusement les chemins one-shot. Le
+  correctif autorisé ferme désormais ce namespace avant claim et n'autorise
+  que trois descendances canoniques : `success→transcript`,
+  `success→evidence` et `staging→transcript.part`. Le contrat schéma `4` a
+  le SHA-256 `4f061cb2…`; aucune voie scientifique n'a été activée.
   Aucun evaluator/oracle, P0/P1/P2, donnée réelle, H17, locked-test ou training
   n'est autorisé. Rapport :
   `readme/results/2026-08-10_harmonic-censoring-h24-scientific-execution-authorization-contract.md`.

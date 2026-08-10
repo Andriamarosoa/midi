@@ -8,6 +8,7 @@ from pathlib import Path
 import pickle
 from types import MappingProxyType
 import tempfile
+from typing import Optional
 import unittest
 from unittest import mock
 
@@ -25,6 +26,7 @@ class H24ScientificExecutionDormantTests(unittest.TestCase):
         self.plan = load_h24_dormant_harness_plan(ROOT)
         self.temporary = tempfile.TemporaryDirectory()
         base = Path(self.temporary.name).resolve()
+        self.base = base
         success = base / "success"
         self.value = capability._new_capability(
             repository_root=ROOT,
@@ -64,6 +66,32 @@ class H24ScientificExecutionDormantTests(unittest.TestCase):
         self._claim()
         return runner._H24TranscriptWriter(self.plan, self.value)
 
+    def _absolute_paths(
+        self,
+        *,
+        claim: Optional[Path] = None,
+        staging: Optional[Path] = None,
+        success: Optional[Path] = None,
+        terminal: Optional[Path] = None,
+    ) -> dict[str, Path]:
+        staging = staging or self.value.staging_directory
+        success = success or self.value.success_directory
+        return {
+            "claim": claim or self.value.claim_path,
+            "staging": staging,
+            "success": success,
+            "transcript": success / "scientific_transcript.jsonl",
+            "transcript_staging": staging / "scientific_transcript.jsonl.part",
+            "evidence": success / "evidence",
+            "terminal": terminal or self.value.terminal_path,
+        }
+
+    def _population_binding(self) -> dict[str, object]:
+        contract = json.loads(
+            (ROOT / capability.H24_SCIENTIFIC_CONTRACT_RELATIVE_PATH).read_bytes()
+        )
+        return contract["published_population_binding"]
+
     def test_public_issuer_is_dormant_before_population_or_numpy(self) -> None:
         self.assertEqual(
             hashlib.sha256(
@@ -76,6 +104,66 @@ class H24ScientificExecutionDormantTests(unittest.TestCase):
             with self.assertRaisesRegex(PermissionError, "no OS-bound activation"):
                 capability.issue_h24_scientific_execution_capability(ROOT)
         self.assertNotIn("numpy", __import__("sys").modules)
+
+    def test_path_topology_accepts_only_the_three_canonical_descendants(self) -> None:
+        contract = json.loads(
+            (ROOT / capability.H24_SCIENTIFIC_CONTRACT_RELATIVE_PATH).read_bytes()
+        )
+        self.assertEqual(
+            tuple(contract["contract_definition_exact_changed_files"]),
+            capability.H24_IMPLEMENTATION_EXACT_CHANGED_FILES,
+        )
+        capability._validate_scientific_path_topology(
+            ROOT,
+            self._absolute_paths(),
+            contract["published_population_binding"],
+        )
+
+    def test_every_scientific_top_level_output_is_forbidden_in_population_namespace(self) -> None:
+        namespace = ROOT / "tmp/local/harmonic_censoring_h24_synthetic_v1"
+        cases = {
+            "claim": {"claim": namespace / "scientific.claim.json"},
+            "staging": {"staging": namespace / "scientific.staging"},
+            "success": {"success": namespace / "scientific.success"},
+            "terminal": {"terminal": namespace / "scientific.terminal.json"},
+            "success_ancestor": {"success": namespace.parent},
+        }
+        for name, overrides in cases.items():
+            with self.subTest(name=name), self.assertRaisesRegex(
+                ValueError, "immutable population control namespace"
+            ):
+                capability._validate_scientific_path_topology(
+                    ROOT,
+                    self._absolute_paths(**overrides),
+                    self._population_binding(),
+                )
+
+    def test_unauthorized_one_shot_ancestor_descendant_relations_fail_closed(self) -> None:
+        staging = self.base / "staging"
+        success = self.base / "success"
+        cases = {
+            "claim_inside_staging": self._absolute_paths(
+                claim=staging / "claim.json", staging=staging
+            ),
+            "terminal_inside_success": self._absolute_paths(
+                success=success, terminal=success / "terminal.json"
+            ),
+            "success_inside_staging": self._absolute_paths(
+                staging=staging, success=staging / "success"
+            ),
+            "staging_inside_success": self._absolute_paths(
+                staging=success / "staging", success=success
+            ),
+        }
+        for name, paths in cases.items():
+            with self.subTest(name=name), self.assertRaisesRegex(
+                ValueError, "unauthorized ancestor/descendant"
+            ):
+                capability._validate_scientific_path_topology(
+                    ROOT,
+                    paths,
+                    self._population_binding(),
+                )
 
     def test_capability_is_identity_attested_and_replace_fails(self) -> None:
         with self.assertRaisesRegex(TypeError, "no public constructor"):

@@ -103,6 +103,30 @@ tests de transcript utilisent uniquement des preuves mock dans des répertoires
 temporaires et patchent le recomputer : aucun evaluator/oracle scientifique
 réel n'est exécuté.
 
+## Correction des gardes topologiques one-shot
+
+La revue externe de `e705afe5c21f84f53ea2ebd3e95b8236ee591999` a
+approuvé la structure dormante, mais a refusé le passage aux producteurs tant
+que les chemins du futur seal pouvaient entrer dans la population publiée ou
+s'imbriquer entre eux. La portée appliquée est strictement
+`AUTHORIZED_TO_CORRECT_H24_DORMANT_SCIENTIFIC_PATH_TOPOLOGY_GUARDS`.
+
+Le preflight pré-claim rejette maintenant `claim`, `staging`, `success` ou
+`terminal` s'ils sont situés dans le namespace de contrôle de matérialisation
+`tmp/local/harmonic_censoring_h24_synthetic_v1`. Il rejette aussi toute
+sortie de premier niveau qui serait un ancêtre de ce namespace, ainsi que toute
+relation ancêtre/descendant entre les sept chemins one-shot, sauf exactement :
+
+- `success -> scientific_transcript.jsonl` ;
+- `success -> evidence` ;
+- `staging -> scientific_transcript.jsonl.part`.
+
+Cela interdit notamment un claim sous la population, un terminal sous success,
+un claim dont le parent est staging, ou un success descendant de staging. Les
+tests adversariaux appellent le garde pur sans créer de fichier. Le contrat
+passe au schéma `4`, SHA-256
+`4f061cb2c426ce28872ede54821bc6fdf227cda211b8957d0b546342cc781d06`.
+
 ## Dormance
 
 Ce commit implémente les types et frontières dormants, mais n'émet aucune
@@ -116,8 +140,8 @@ seconde matérialisation n'est autorisée.
 
 ## Vérification
 
-La suite administrative ciblée H24/H23/H20, incluant l'implémentation dormante,
-réussit avec `197` tests en `3,360 s`. `py_compile` et `git diff --check`
+La suite administrative ciblée H24/H23/H20, incluant le correctif topologique,
+réussit avec `200` tests en `3,492 s`. `py_compile` et `git diff --check`
 réussissent également.
 
 ## Étape suivante

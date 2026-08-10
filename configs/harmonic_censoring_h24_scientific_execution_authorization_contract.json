@@ -1,5 +1,5 @@
 {
-  "schema_version": 3,
+  "schema_version": 4,
   "purpose": "harmonic_censoring_h24_scientific_execution_authorization_contract",
   "status": "dormant_scientific_capability_and_runner_implemented_external_review_required",
   "authorization_basis": {
@@ -8,7 +8,8 @@
     "authorized_action": "AUTHORIZED_TO_DEFINE_H24_SCIENTIFIC_EXECUTION_AUTHORIZATION_CONTRACT_ONLY",
     "reviewed_contract_commit_with_transcript_gap": "02bb76b2afad70b68e850ceff3a3e6bdeff55925",
     "contract_correction_authorized_action": "AUTHORIZED_TO_CORRECT_H24_SCIENTIFIC_EXECUTION_CONTRACT_TRANSCRIPT_AND_TERMINAL_CLOSURE_ONLY",
-    "dormant_implementation_authorized_action": "AUTHORIZED_TO_IMPLEMENT_H24_DORMANT_SCIENTIFIC_CAPABILITY_AND_RUNNER_ONLY"
+    "dormant_implementation_authorized_action": "AUTHORIZED_TO_IMPLEMENT_H24_DORMANT_SCIENTIFIC_CAPABILITY_AND_RUNNER_ONLY",
+    "path_topology_correction_authorized_action": "AUTHORIZED_TO_CORRECT_H24_DORMANT_SCIENTIFIC_PATH_TOPOLOGY_GUARDS"
   },
   "scope": {
     "contract_only": false,
@@ -159,6 +160,8 @@
       "all_sealed_contract_manifest_and_source_bindings_match",
       "runtime_is_CPython_3_11_9_NumPy_1_26_4_arm64_CPU_one_thread",
       "H17_real_data_locked_test_model_checkpoint_and_training_inputs_absent",
+      "scientific_claim_staging_success_and_terminal_neither_descend_from_nor_are_ancestors_of_the_immutable_population_control_namespace",
+      "one_shot_paths_have_only_the_three_explicitly_authorized_ancestor_descendant_relations",
       "future_scientific_claim_staging_success_terminal_and_transcript_paths_absent"
     ]
   },
@@ -199,7 +202,15 @@
     "manual_retry_allowed": false,
     "failure_after_claim_remains_consumed": true,
     "partial_output_authoritative": false,
-    "claim_staging_success_terminal_and_transcript_paths_must_be_fixed_by_future_seal": true
+    "claim_staging_success_terminal_and_transcript_paths_must_be_fixed_by_future_seal": true,
+    "population_control_namespace_may_contain_scientific_outputs": false,
+    "authorized_ancestor_descendant_relations": [
+      "success_directory->scientific_transcript.jsonl",
+      "success_directory->evidence_directory",
+      "staging_directory->scientific_transcript.jsonl.part"
+    ],
+    "all_other_ancestor_descendant_relations_between_one_shot_paths_allowed": false,
+    "claim_parent_creation_may_create_staging_or_success": false
   },
   "future_scientific_transcript_contract": {
     "normative": true,
@@ -385,12 +396,10 @@
     "result_may_access_real_data_or_locked_test": false
   },
   "contract_definition_exact_changed_files": [
-    ".gitattributes",
     "configs/harmonic_censoring_h24_scientific_execution_authorization_contract.json",
     "readme/README.md",
     "readme/results/2026-08-10_harmonic-censoring-h24-scientific-execution-authorization-contract.md",
     "src/polyphonic/harmonic_censoring_h24_scientific_capability.py",
-    "src/polyphonic/run_harmonic_censoring_h24_scientific.py",
     "tests/test_harmonic_censoring_h24_scientific_execution_authorization_contract.py",
     "tests/test_harmonic_censoring_h24_scientific_execution_dormant.py"
   ],

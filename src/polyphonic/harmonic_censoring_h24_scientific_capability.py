@@ -21,7 +21,7 @@ H24_SCIENTIFIC_CONTRACT_RELATIVE_PATH = Path(
     "configs/harmonic_censoring_h24_scientific_execution_authorization_contract.json"
 )
 H24_SCIENTIFIC_CONTRACT_RAW_SHA256 = (
-    "426a80be3f409380fc30e5d35fa0d90ae340dd475b72be319c871b79ebb531f4"
+    "4f061cb2c426ce28872ede54821bc6fdf227cda211b8957d0b546342cc781d06"
 )
 H24_SCIENTIFIC_SEAL_RELATIVE_PATH = Path(
     "configs/harmonic_censoring_h24_scientific_execution_authorization_seal.json"
@@ -39,12 +39,10 @@ H24_RUNNER_SOURCE_RELATIVE_PATH = Path(
     "src/polyphonic/run_harmonic_censoring_h24_scientific.py"
 )
 H24_IMPLEMENTATION_EXACT_CHANGED_FILES = (
-    ".gitattributes",
     "configs/harmonic_censoring_h24_scientific_execution_authorization_contract.json",
     "readme/README.md",
     "readme/results/2026-08-10_harmonic-censoring-h24-scientific-execution-authorization-contract.md",
     "src/polyphonic/harmonic_censoring_h24_scientific_capability.py",
-    "src/polyphonic/run_harmonic_censoring_h24_scientific.py",
     "tests/test_harmonic_censoring_h24_scientific_execution_authorization_contract.py",
     "tests/test_harmonic_censoring_h24_scientific_execution_dormant.py",
 )
@@ -399,6 +397,83 @@ def _load_population_bindings(repository: Path, contract: Mapping[str, object]) 
     return tuple(fixture_ids), tuple(files)
 
 
+def _is_same_or_descendant(path: Path, ancestor: Path) -> bool:
+    try:
+        path.relative_to(ancestor)
+    except ValueError:
+        return False
+    return True
+
+
+def _validate_scientific_path_topology(
+    repository: Path,
+    absolute_paths: Mapping[str, Path],
+    population: Mapping[str, object],
+) -> None:
+    """Reject every one-shot topology except the three intentional descendants."""
+
+    expected_names = {
+        "claim",
+        "staging",
+        "success",
+        "transcript",
+        "transcript_staging",
+        "evidence",
+        "terminal",
+    }
+    if set(absolute_paths) != expected_names:
+        raise ValueError("H24 one-shot path key set mismatch.")
+    if len(set(absolute_paths.values())) != len(absolute_paths):
+        raise ValueError("H24 one-shot paths must be distinct.")
+    if absolute_paths["transcript"] != absolute_paths["success"] / "scientific_transcript.jsonl":
+        raise ValueError("H24 final transcript path is not canonical.")
+    if absolute_paths["transcript_staging"] != absolute_paths["staging"] / "scientific_transcript.jsonl.part":
+        raise ValueError("H24 staging transcript path is not canonical.")
+    if absolute_paths["evidence"] != absolute_paths["success"] / "evidence":
+        raise ValueError("H24 evidence directory is not canonical.")
+
+    population_success = (repository / str(population["success_directory"])).resolve()
+    population_staging = (repository / str(population["staging_directory"])).resolve()
+    population_marker = (
+        repository / str(_mapping(population["claim_marker"], "population marker")["path"])
+    ).resolve()
+    population_terminal = (
+        repository / str(_mapping(population["terminal"], "population terminal")["path"])
+    ).resolve()
+    population_namespace = population_success.parent
+    if not (
+        population_staging.parent == population_namespace
+        and population_marker.parent == population_namespace
+        and population_terminal.parent == population_namespace
+    ):
+        raise ValueError("H24 population control namespace is inconsistent.")
+    for name in ("claim", "staging", "success", "terminal"):
+        if _is_same_or_descendant(
+            absolute_paths[name], population_namespace
+        ) or _is_same_or_descendant(population_namespace, absolute_paths[name]):
+            raise ValueError(
+                f"H24 {name} path overlaps the immutable population control namespace."
+            )
+
+    allowed_descendants = {
+        ("success", "transcript"),
+        ("success", "evidence"),
+        ("staging", "transcript_staging"),
+    }
+    names = tuple(sorted(absolute_paths))
+    for ancestor_name in names:
+        for descendant_name in names:
+            if ancestor_name == descendant_name:
+                continue
+            if _is_same_or_descendant(
+                absolute_paths[descendant_name], absolute_paths[ancestor_name]
+            ) and (ancestor_name, descendant_name) not in allowed_descendants:
+                raise ValueError(
+                    "H24 one-shot paths have an unauthorized ancestor/descendant "
+                    f"relation: {ancestor_name}->{descendant_name}."
+                )
+
+
 def issue_h24_scientific_execution_capability(repository_root: Path) -> AttestedH24ScientificExecutionCapability:
     """Issue only from a future exact reviewed activation; currently dormant."""
 
@@ -469,18 +544,11 @@ def issue_h24_scientific_execution_capability(repository_root: Path) -> Attested
             path.relative_to(repository)
         except ValueError as exc:
             raise ValueError(f"H24 {name} path escapes repository.") from exc
-    if len(set(absolute_paths.values())) != len(absolute_paths):
-        raise ValueError("H24 one-shot paths must be distinct.")
-    if absolute_paths["transcript"] != absolute_paths["success"] / "scientific_transcript.jsonl":
-        raise ValueError("H24 final transcript path is not canonical.")
-    if absolute_paths["transcript_staging"] != absolute_paths["staging"] / "scientific_transcript.jsonl.part":
-        raise ValueError("H24 staging transcript path is not canonical.")
-    if absolute_paths["evidence"] != absolute_paths["success"] / "evidence":
-        raise ValueError("H24 evidence directory is not canonical.")
+    population = _mapping(contract["published_population_binding"], "population")
+    _validate_scientific_path_topology(repository, absolute_paths, population)
     for path in (seal.claim_path, seal.staging_directory, seal.success_directory, seal.transcript_path, seal.transcript_staging_path, seal.evidence_directory, seal.terminal_path):
         if (repository / path).exists():
             raise FileExistsError(f"H24 scientific one-shot path already exists: {path}.")
-    population = _mapping(contract["published_population_binding"], "population")
     for label, entry_name in (
         ("population marker", "claim_marker"),
         ("population terminal", "terminal"),
