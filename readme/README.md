@@ -17,8 +17,19 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `provisional_resolution_frame_fallback_h22_real_execution`.
-- Statut : `en cours — runner one-shot H22 implémenté et testé synthétiquement; exécution réelle explicitement autorisée par l’utilisateur, pas encore consommée au moment du commit runner`.
+- Étape : `provisional_resolution_frame_fallback_h17_real_execution_complete`.
+- Statut : `terminé — résultat atomique complet; population H21 définitivement consommée; aucun retry autorisé`.
+- H17 réel a traité exactement `146/146` prises et `51/51` groupes au commit
+  `2794ac91…`, sur CPU, sans erreur et sans test verrouillé. Sur `29 317`
+  NoteOn éligibles, le taux faux est `0,3825822651` pour `frame_fallback`
+  (`2 895/7 567`) contre `0,5325057471` pour le comparateur
+  (`11 582/21 750`). `RD_false=-0,1499234820`; son IC95 bootstrap groupé
+  `10 000/10 000` est `[-0,1929047490 ; -0,0817464765]`. Le verdict
+  préenregistré est
+  `frame_fallback_false_risk_enrichment_not_demonstrated`. Les quatre corpus
+  ont un RD négatif. État final : `fresh_population_consumed=true`,
+  `complete_atomic_result`, `locked_test_used=false`. Rapport :
+  `readme/results/2026-08-10_provisional-resolution-frame-fallback-h17-real-execution.md`.
 - H22 scelle le runner sans arguments de la mesure réelle H17. Il vérifie tous
   les blobs H17a/H20/H21, les `146` prises / `51` groupes et leurs octets, le
   checkpoint, les configurations et le runtime avant de réclamer un marqueur
@@ -1400,6 +1411,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-10 — conformité synthétique H19 du risque `frame_fallback`](results/2026-08-10_provisional-resolution-frame-fallback-h19-synthetic-conformance.md)
 - [2026-08-10 — amendement H17a pré-exécution de la taxonomie des raisons](results/2026-08-10_provisional-resolution-frame-fallback-h17a-taxonomy-amendment.md)
 - [2026-08-10 — contrat H20 de liaison d'une future exécution réelle H17](results/2026-08-10_provisional-resolution-frame-fallback-h20-real-execution-contract.md)
+- [2026-08-10 — exécution réelle H17, résultat atomique négatif pour l’enrichissement `frame_fallback`](results/2026-08-10_provisional-resolution-frame-fallback-h17-real-execution.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)
