@@ -106,6 +106,15 @@ sont interdits dans les features et l'état runtime ; ils restent uniquement
 des propriétés d'oracle des waveforms synthétiques. Toutes les nouvelles notes
 ont donc un délai contractuel d'un hop, sans lookahead futur.
 
+Le replay possède enfin une timeline globale unique de 12 544 samples. La
+première fenêtre valide `0..4095` est silencieuse et sans padding. L'ancienne
+source commence à `g=4096`, devient active bien avant le hop cible finissant à
+`g=12287`; la nouvelle source de base commence à `g=12032`, devient pending au
+hop cible et se résout au hop `g=12543`. Les fenêtres cible/précédente, les 34
+fins de hop, les enveloppes globales et la continuité de phase sont scellées.
+Les variantes temporelles dérivent obligatoirement leurs états de ce replay,
+jamais d'un état injecté ou d'une extension implicite avant `g=0`.
+
 ## État
 
 Les compteurs structurels restent `27 P0 + 35 P1 + 10 P2 = 72`, et

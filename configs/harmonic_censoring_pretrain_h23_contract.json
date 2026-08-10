@@ -111,6 +111,31 @@
     "candidate_order_must_not_change_result": true,
     "graph_traversal_order_must_not_change_result": true
   },
+  "replay_stream_contract": {
+    "global_sample_indices": "g=0..12543 inclusive; exact stream length 12544 samples",
+    "first_valid_hop_end_sample": 4095,
+    "hop_end_samples": "4095+256*j for integer j=0..33",
+    "target_hop_index_from_first_valid": 32,
+    "target_hop_end_sample": 12287,
+    "target_window_global_samples": [8192, 12287],
+    "previous_hop_end_sample": 12031,
+    "previous_window_global_samples": [7936, 12031],
+    "resolution_hop_end_sample": 12543,
+    "initial_window_padding_rule": "none; samples outside 0..12543 do not exist and no hop ending before 4095 is evaluated",
+    "initial_state_rule": "all latent pitches INACTIVE immediately before the first valid hop ending at g=4095; that first window is exact silence for every temporal base fixture",
+    "old_source_global_onset_sample": 4096,
+    "old_source_global_envelope": "e_old(g)=0 for g<4096; exp(-(g-4096)/8192) for g>=4096",
+    "base_new_source_global_onset_sample": 12032,
+    "base_new_source_relative_target_window_sample": 3840,
+    "new_source_global_envelope": "for declared onset g0, e_new(g)=0 for g<g0; for m=g-g0>=0, min(1,(m+1)/64)*exp(-m/2048)",
+    "fixture_relative_coordinate_rule": "Any event_sample_offset a is fixture-only and maps to global onset g0=8192+a. It is never serialized to runtime state/features.",
+    "old_source_expected_replay": "old source is first proposed at hop ending 4351, enters PENDING_NEW, resolves at hop ending 4607, and is ACTIVE for every later target-hop evaluation",
+    "base_new_source_expected_replay": "base new source is first proposed at target hop ending 12287, enters PENDING_NEW, and resolves exactly at hop ending 12543",
+    "window_extraction": "For each hop end e, x[0..4095]=stream[e-4095..e] with no padding; B_prev uses the immediately preceding valid hop",
+    "phase_continuity": "All sinusoidal phase is evaluated from global g, never reset at a window boundary",
+    "publication_requirement": "Every temporal result serializes the 34 hop end samples, state transition trace and exact target/resolution hop indexes; any different pre-roll or padding fails before P0 publication.",
+    "C02_translation_exception": "C02 only appends d*256 zero-capable samples for d in [0,1,2,4], shifts both source onsets and target/resolution hops later by d hops, and uses stream length 12544+d*256; no other test may alter the base timeline."
+  },
   "factorization_and_source_birth_contract": {
     "cardinality_names": "K_latent_pitch is the number of acoustically identifiable distinct source-pitch hypotheses in r=24..76; K_emit_pitch is the number of acoustically identifiable distinct pitches in the emission subset 40..76; K_source is physical source count and may remain AMBIGUOUS even when either pitch count is known. The name K_pitch alone is forbidden.",
     "observation_vector": "For q=40..128, y_q=sqrt(max(sum_k P[k]*phi(q,1,k),0)) when the q,H1 kernel has support; unsupported q is masked, never zero-filled.",
@@ -253,20 +278,20 @@
       "S5": "same shared frequency without independent onset, harmonics or envelope; exact AMBIGUOUS required"
     },
     "base_fixture_exact_parameters": {
-      "sample_indices": "n=0..4095",
-      "phase_formula": "theta(p,h,n,phi)=2*pi*h*F0(p)*n/44100+phi",
-      "old_envelope": "e_old(n)=exp(-n/4096)",
+      "sample_indices": "global g=0..12543; target-window local n=0..4095 maps to g=8192+n",
+      "phase_formula": "theta(p,h,g,phi)=2*pi*h*F0(p)*g/44100+phi",
+      "old_envelope": "the exact replay_stream_contract old_source_global_envelope with origin g=4096",
       "new_onset_sample": 3840,
-      "new_envelope": "e_new(n)=0 for n<3840; for m=n-3840>=0, min(1,(m+1)/64)*exp(-m/2048)",
+      "new_envelope": "the exact replay_stream_contract new_source_global_envelope with base g0=12032",
       "harmonic_amplitude": "0.4/h before any declared amplitude_gain variant",
       "default_phase_radians": 0.0,
-      "storage": "IEEE float32 mono WAV at 44100 Hz plus the exact float64 waveform array hash before cast; no peak or RMS normalization and no clipping",
+      "storage": "IEEE float32 mono WAV of all 12544 global samples at 44100 Hz plus the exact float64 full-stream array hash before cast; no peak or RMS normalization and no clipping",
       "S1C": {"sources":[{"pitch":36,"harmonics":[1,2,3,4,5],"envelope":"old"}],"oracle":{"K_latent_pitch":1,"K_emit_pitch":0,"K_source":1,"birth":false}},
       "S1P": {"sources":[{"pitch":40,"harmonics":[1,2,3,4,5],"envelope":"old"}],"oracle":{"K_latent_pitch":1,"K_emit_pitch":1,"K_source":1,"birth":false}},
       "S2": {"sources":[{"pitch":64,"harmonics":[1,2,3,4],"envelope":"new"}],"oracle":{"required_pitches":[64],"K_latent_pitch":1,"K_emit_pitch":1,"K_source":1,"birth_pitch":64,"decision":"BIRTH_SUPPORTED_DELAYED_ONE_HOP","decision_delay_hops":1}},
       "S3": {"sources":[{"pitch":40,"harmonics":[1,2,3,4,5],"envelope":"old"}],"oracle":{"K_latent_pitch":1,"K_emit_pitch":1,"K_source":1,"decision_state":"ALREADY_ACTIVE_HISTORY","birth":false}},
       "S4": {"sources":[{"pitch":40,"harmonics":[1,2,3,4,5],"envelope":"old"},{"pitch":64,"harmonics":[1,2,3,4],"envelope":"new"}],"oracle":{"required_pitches":[40,64],"K_latent_pitch":2,"K_emit_pitch":2,"K_source":2,"birth_pitch":64,"decision":"BIRTH_SUPPORTED_DELAYED_ONE_HOP","decision_delay_hops":1}},
-      "S5": {"waveform":"0.1*e_old(n)*sin(theta(40,4,n,0))","latent_explanations":["old_pitch40_H4_only","pitch64_H1_with_exact_same_envelope_and_no_independent_onset_or_harmonics"],"oracle":{"K_latent_pitch":"AMBIGUOUS","K_emit_pitch":"AMBIGUOUS","K_source":"AMBIGUOUS","birth":"AMBIGUOUS"}}
+      "S5": {"waveform":"for every global g: 0.1*e_old(g)*sin(theta(40,4,g,0))","latent_explanations":["old_pitch40_H4_only","pitch64_H1_with_exact_same_envelope_and_no_independent_onset_or_harmonics"],"oracle":{"K_latent_pitch":"AMBIGUOUS","K_emit_pitch":"AMBIGUOUS","K_source":"AMBIGUOUS","birth":"AMBIGUOUS"}}
     },
     "named_variant_value_contract": {
       "chord_spec": {
@@ -304,16 +329,16 @@
         "distinct_envelopes_two_sources":{"second_source_gain":0.7,"second_source_phase":1.5707963267948966,"second_source_envelope":"e_second(n)=0 for n<3968; for m=n-3968>=0, min(1,(m+1)/32)*exp(-m/1024)"}
       },
       "synthetic_OOD": {
-        "impulse":"x[3072]=0.4 and all other samples zero",
-        "linear_chirp":"0.4*sin(2*pi*(80*n/44100 + 0.5*(8000-80)*(n/44100)^2/(4095/44100)))",
-        "log_chirp":"phase integral of f(n)=80*(8000/80)^(n/4095), amplitude 0.4",
-        "nonharmonic_stack":"sum of 0.08*sin(2*pi*f*n/44100) for f in [233,377,611,997,1597]",
+        "impulse":"x[g=12032]=0.4 and every other global sample is zero",
+        "linear_chirp":"zero outside g=8192..12287; with n=g-8192 inside, 0.4*sin(2*pi*(80*n/44100 + 0.5*(8000-80)*(n/44100)^2/(4095/44100)))",
+        "log_chirp":"zero outside g=8192..12287; phase integral of f(n)=80*(8000/80)^(n/4095) for n=g-8192, amplitude 0.4",
+        "nonharmonic_stack":"zero outside g=8192..12287; sum of 0.08*sin(2*pi*f*(g-8192)/44100) for f in [233,377,611,997,1597]",
         "pink_noise_burst":"the sealed pink-noise generator gated by e_new at SNR definition relative to unit RMS",
-        "inharmonic_bell":"sum h=1..8 of (0.3/h)*exp(-n/(512*h))*sin(2*pi*220*h^1.08*n/44100)"
+        "inharmonic_bell":"zero before g=12032; for m=g-12032, sum h=1..8 of (0.3/h)*exp(-m/(512*h))*sin(2*pi*220*h^1.08*m/44100)"
       },
       "noise_generation": {
-        "white":"PCG64 standard_normal(4096), mean removed, divided by float64 RMS",
-        "pink":"draw independent PCG64 standard-normal real and imaginary rfft coefficients, multiply coefficient k by 1/sqrt(max(k,1)), force DC and Nyquist imaginary parts to zero, irfft length 4096, mean remove, divide by float64 RMS",
+        "white":"PCG64 standard_normal(12544), mean removed, divided by float64 RMS",
+        "pink":"draw independent PCG64 standard-normal real and imaginary rfft coefficients, multiply coefficient k by 1/sqrt(max(k,1)), force DC and Nyquist imaginary parts to zero, irfft length 12544, mean remove, divide by float64 RMS",
         "mixing":"noise_gain=rms(clean)/(rms(noise)*10^(snr_db/20)); exact-zero clean uses rms(clean)=1 only for the OOD pink-noise-burst fixture"
       }
     },
@@ -330,7 +355,7 @@
       "technique": "apply the named continuous instantaneous-frequency trajectory to S2 MIDI64 H1..H4 over the declared hop count, preserving harmonic ratios, source identity and K_source=1; no intermediate semitone birth is allowed",
       "natural_harmonic": "replace S1P retained harmonics and H1 amplitude exactly by named_variant_value_contract.natural_harmonic; K_latent_pitch=K_emit_pitch=1 and source identity may be NATURAL_HARMONIC_OR_UNKNOWN, never an added MIDI birth",
       "sympathetic_resonance": "add to S3 a same-window old-envelope sinusoid at MIDI64 H1 with the declared relative amplitude and no onset/own harmonics; K_source and birth are AMBIGUOUS_OR_RESONANCE, never BIRTH_SUPPORTED",
-      "old_source_age_hops": "left-shift the old envelope origin by age_hops*256 samples, i.e. exp(-(n+age_hops*256)/4096); current new source, pitches and target categories remain unchanged",
+      "old_source_age_hops": "keep the old onset fixed at global g=4096 and replace its envelope for g>=4096 by exp(-((g-4096)+age_hops*256)/8192); samples g<4096 remain exact zero, replay schedule and targets unchanged",
       "event_sample_offset": "Fixture-only waveform transform: replace new_onset_sample by the declared current-window index, then replay hop-by-hop from INACTIVE without exposing that coordinate to the runtime. At the target hop offsets 0,1,255,256 have already completed pending resolution and yield ALREADY_ACTIVE_HISTORY; offsets 3840 and 4095 are first proposed at that hop and both yield PENDING_NEW_AWAITING_ONE_HOP, then BIRTH_SUPPORTED_DELAYED_ONE_HOP at t+1 for sealed S2/S4. The coordinate and available sample count are oracle diagnostics only, absent from features/state.",
       "pitch_boundary": "for 40 or 76 replace S2 source/candidate pitch 64 by that MIDI pitch and preserve harmonics/oracle; for analytical_128 keep the S2 waveform unchanged, evaluate only q=128 H1 observation validity/firewall, create no source/candidate at 128 and require emission_pitch_valid=false",
       "silence": "replace the complete waveform by 4096 exact float64 zeros and oracle by SILENCE_UNEXPLAINED with every normalization_valid=false",
@@ -481,7 +506,7 @@
     ],
     "P1_causality_and_birth": [
       {"id":"C01","objective":"no future dependence","exact_input":"paired signals identical through t and different after t","procedure":"compare features and decisions at t","oracle":"exact equality","pass_rule":"bitwise or documented machine equality","inverse_check":"future perturbation changes t is KILL"},
-      {"id":"C02","objective":"time translation","exact_input":"same stream translated by integer multiples of 256 samples with onset fixed at relative sample 3840 of its decision window","procedure":"shift waveform, hop index and replayed causal state together","oracle":"same decision modulo absolute frame index","pass_rule":"exact categorical parity","inverse_check":"within-window event_sample_offset boundary cases are a separate non-invariant family"},
+      {"id":"C02","objective":"time translation","exact_input":"the base temporal stream translated later by exactly d=[0,1,2,4] hops under replay_stream_contract.C02_translation_exception","procedure":"extend stream length by d*256, shift old onset, new onset, target hop and resolution hop together, preserve the silent first valid window, and replay from INACTIVE","oracle":"same state sequence and decision modulo the declared hop-index shift","pass_rule":"exact categorical/delay parity for all four shifts","inverse_check":"shift waveform without shifting replay hop indexes and require failure; within-window event_sample_offset remains a separate family"},
       {"id":"C03","objective":"source-birth decomposition","exact_input":"S2/S3/S4/S5 replayed hop-by-hop","procedure":"compute O,N,G,X,Delta_R and improvement_valid only from sealed audio formulas and run the hop-level state machine; do not form a weighted scalar","oracle":"S2/S4 BIRTH_SUPPORTED_DELAYED_ONE_HOP, S3 ALREADY_ACTIVE_HISTORY with birth=false, S5 AMBIGUOUS","pass_rule":"all numeric components, states and delays match scalar references exactly; no sample coordinate field exists","inverse_check":"replace any component by a fixture-label bit, inject onset_coordinate, or relabel S3 NO_BIRTH and require failure"},
       {"id":"C04","objective":"same-pitch retrigger versus decay","exact_input":"ACTIVE MIDI64 with a newest-hop repeated attack versus ACTIVE MIDI64 uninterrupted decay","procedure":"apply only the sealed retrigger rule after confirming p is in H_old(t)","oracle":"repeated attack RETRIGGER_SUPPORTED; uninterrupted decay ALREADY_ACTIVE_HISTORY; both keep all three cardinalities unchanged","pass_rule":"exact states, retrigger NoteOn count [1,0], and no Delta_R dependency","inverse_check":"using new-pitch improvement_valid or incrementing any cardinality must fail"},
       {"id":"C05","objective":"old-source age","exact_input":"S3 and S4 at old-source ages [0,1,2,4,8,15] hops","procedure":"replay with identical current new-source evidence and only causal decay history changed","oracle":"S3 remains ALREADY_ACTIVE_HISTORY with birth=false at all ages; S4 MIDI64 becomes BIRTH_SUPPORTED_DELAYED_ONE_HOP while MIDI40 remains active; numeric old-source explanation is non-increasing with age","pass_rule":"states/categories/delay exact and every adjacent old-source explanation difference <=1e-12","inverse_check":"replace causal age by a label-derived age and require schema rejection"},
