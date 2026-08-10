@@ -1,0 +1,284 @@
+{
+  "schema_version": 1,
+  "purpose": "provisional_resolution_frame_fallback_false_note_risk_h17_hypothesis_contract",
+  "status": "provisional_resolution_frame_fallback_risk_hypothesis_defined",
+  "scope": {
+    "contract_only": true,
+    "cohort_selected": false,
+    "data_access_authorized": false,
+    "scientific_execution_authorized": false,
+    "signals_extracted": false,
+    "targets_extracted": false,
+    "metrics_computed": false,
+    "model_loaded": false,
+    "h8_reused": false,
+    "consumed_v2_reused": false,
+    "locked_test_used": false
+  },
+  "scientific_question": "Among emitted NoteOns produced by the audio-aware inactive-pitch activation path, are frame_fallback emissions materially enriched for causal false NoteOns compared with the other audio-aware activation reasons?",
+  "hypothesis": "candidate_reason_at_noteon == frame_fallback identifies a higher-risk emitted-NoteOn population",
+  "scientific_boundaries": {
+    "tests_which_noteons_might_deserve_future_provisional_treatment": true,
+    "tests_age1_persistence": false,
+    "tests_another_age": false,
+    "tests_s0_s1_or_d1": false,
+    "tests_resolver": false,
+    "tests_rejection_threshold": false,
+    "tests_decoder_performance_improvement": false
+  },
+  "population_contract": {
+    "population": "full emitted NoteOn flow from the audio-aware inactive-pitch activation path with a frozen candidate_reason_at_noteon in the exact eligible taxonomy",
+    "eligible_reason_taxonomy": [
+      "model_onset",
+      "frame_attack",
+      "chord_completion",
+      "frame_fallback"
+    ],
+    "primary_exposure": {
+      "name": "F",
+      "definition": "1 iff candidate_reason_at_noteon == frame_fallback"
+    },
+    "comparator": {
+      "definition": "F == 0 iff candidate_reason_at_noteon is model_onset, frame_attack, or chord_completion",
+      "reasons": [
+        "model_onset",
+        "frame_attack",
+        "chord_completion"
+      ]
+    },
+    "preregistered_pathway_exclusions": [
+      "retrigger",
+      "legacy"
+    ],
+    "excluded_reasons_must_be_counted_descriptively": true,
+    "unexpected_reason_status": "frame_fallback_execution_invalid",
+    "silent_pooling_or_deletion_allowed": false
+  },
+  "primary_signal": {
+    "name": "frame_fallback_indicator",
+    "symbol": "F",
+    "source_field": "candidate_reason_at_noteon",
+    "may_be_combined_with_other_fields": false,
+    "model_fitting_allowed": false
+  },
+  "forbidden_primary_inputs": [
+    "candidate_score_at_noteon",
+    "frame_probability_at_noteon",
+    "onset_probability_at_noteon",
+    "current_frame_probability",
+    "current_onset_probability",
+    "audio_onset_available",
+    "audio_onset_recent",
+    "harmonic_support",
+    "emitted_polyphony",
+    "contextual_polyphony",
+    "S0",
+    "S1",
+    "D1",
+    "age_search",
+    "interactions",
+    "learned_classifiers"
+  ],
+  "target_contract": {
+    "base_target": "true_noteon",
+    "derived_target": "false_noteon",
+    "derived_definition": "1 - true_noteon for matchable rows only",
+    "true_noteon_to_false_noteon": {
+      "1": 0,
+      "0": 1
+    },
+    "excluded_or_unmatchable_rows_remain_excluded": true,
+    "new_matching_rule_allowed": false,
+    "maximum_causal_latency_ms": 250.0,
+    "source_code": [
+      {
+        "path": "src/polyphonic/evaluate_events.py",
+        "git_blob": "c63b9751e5acef49fb51b5e2a8264b00d6e60893"
+      },
+      {
+        "path": "src/polyphonic/decoder_candidate_labels.py",
+        "git_blob": "98c3f2e87b89df599e71068ab4ae874f69172c5a"
+      },
+      {
+        "path": "src/polyphonic/causal_event_metrics.py",
+        "git_blob": "42f7954b75b0994f43d7f59c62c1ff1b04c0a81d"
+      }
+    ],
+    "failure_status_if_exact_mapping_is_impossible": "target_definition_requires_separate_contract"
+  },
+  "primary_metric": {
+    "name": "RD_false",
+    "definition": "P(false_noteon=1 | F=1) - P(false_noteon=1 | F=0)",
+    "orientation": "higher positive RD_false means frame_fallback is riskier",
+    "roc_auc_is_primary": false,
+    "positive_verdict": "frame_fallback_false_risk_enrichment_demonstrated",
+    "positive_requires_all": {
+      "total_eligible_noteons_minimum": 200,
+      "eligible_frame_fallback_noteons_minimum": 50,
+      "eligible_comparator_noteons_minimum": 50,
+      "global_rd_false_minimum_inclusive": 0.10,
+      "group_resampled_95pct_ci_lower_bound_strictly_greater_than": 0.0
+    },
+    "negative_verdict": "frame_fallback_false_risk_enrichment_not_demonstrated",
+    "negative_if_sample_valid_and_any": [
+      "global_rd_false_below_0.10",
+      "group_resampled_95pct_ci_lower_bound_at_or_below_0.0"
+    ],
+    "secondary_can_change_verdict": false
+  },
+  "bootstrap_contract": {
+    "method": "group_resampled_percentile_bootstrap",
+    "replicate_count": 10000,
+    "rng": "numpy.random.Generator(numpy.random.PCG64(721629268))",
+    "random_seed": 721629268,
+    "sampling_unit": "leakage_group_key",
+    "group_count_symbol": "G",
+    "replicate_sampling": "sample exactly G group IDs with replacement from the exact sealed cohort group universe and include every eligible NoteOn from each sampled group preserving multiplicity",
+    "empty_group_semantics": "a sealed-universe group with zero eligible H17 rows contributes zero rows when sampled but its draw still counts",
+    "invalid_replicate": "either F stratum absent",
+    "invalid_replicates_excluded_from_percentiles": true,
+    "minimum_valid_replicates": 9500,
+    "confidence_interval_percentiles": [
+      2.5,
+      97.5
+    ],
+    "quantile_method": "linear",
+    "row_noteon_frame_or_recording_bootstrap_allowed": false,
+    "alternate_seed_allowed": false,
+    "retry_allowed": false,
+    "failure_status": "group_resampling_inconclusive"
+  },
+  "secondary_descriptive_outputs": {
+    "allowed": [
+      "false_rate_frame_fallback",
+      "false_rate_comparator",
+      "frame_fallback_share_of_eligible_population",
+      "risk_ratio_when_defined",
+      "counts_per_frozen_reason",
+      "per_corpus_rd_false",
+      "excluded_legacy_count",
+      "excluded_retrigger_count"
+    ],
+    "gating": false
+  },
+  "grouping_contract": {
+    "path": "src/polyphonic/decoder_candidate_provenance.py",
+    "function": "leakage_group_key",
+    "git_blob": "e43187b4e8ba0775a74114faf406703dd6c3187c",
+    "semantics": "corpus-aware player or performance provenance; all captures of one underlying player or performance relationship remain in one group",
+    "row_noteon_frame_or_recording_substitution_allowed": false,
+    "failure_status_if_unproven": "grouping_identity_not_established"
+  },
+  "future_cohort_contract": {
+    "future_cohort_selection": null,
+    "recording_identities": null,
+    "asset_hashes": null,
+    "data_access_authorized": false,
+    "class": "fresh_discovery_only",
+    "may_be_called_independent_validation_now": false,
+    "minimum_independent_leakage_groups": 20,
+    "metadata_only_preparation_after_h17_review": {
+      "enumerate_recording_identities_and_leakage_groups_only": true,
+      "open_audio": false,
+      "parse_scientific_labels": false,
+      "subtract_group_sets": [
+        "h8_consumed_discovery_cohort",
+        "consumed_independent_v2_cohort",
+        "locked_test_cohort",
+        "checkpoint_or_model_fit_groups_when_provenance_is_available"
+      ],
+      "select_all_admissible_fresh_unseen_groups": true,
+      "outcome_based_sampling_allowed": false,
+      "failure_status_if_minimum_not_established": "fresh_discovery_population_not_established"
+    },
+    "forbidden_fallbacks": [
+      "H8",
+      "consumed_V2",
+      "locked_test",
+      "model_fit_overlap_groups"
+    ],
+    "h8_provenance_sha256": "4dd76bd13c33ccb3946bfdbcf6f575d4550fb0c5588095e23da3b6e3f84bce1f",
+    "exact_intersection_proofs_required_before_future_execution": true
+  },
+  "provenance_bindings": {
+    "accepted_h16_commit": "31d36165e65399750342159fef591fe65d4f7ce5",
+    "h14_h15_closure_commit": "dc295f773f83e61549d981ef572ccf5a660a9174",
+    "h16_future_orchestrator_blob": "80d7d17361a69203526dc40f79a9b2659dfc916d",
+    "h5_evidence_contract_blob": "df95797ff31993c021cd8f799f844c50aadd1351",
+    "reviewed_decoder_reason_taxonomy_blob": "27026d368081fadc4fa282954428f0377020e723",
+    "target_blobs": [
+      "c63b9751e5acef49fb51b5e2a8264b00d6e60893",
+      "98c3f2e87b89df599e71068ab4ae874f69172c5a",
+      "42f7954b75b0994f43d7f59c62c1ff1b04c0a81d"
+    ],
+    "grouping_blob": "e43187b4e8ba0775a74114faf406703dd6c3187c",
+    "h8_provenance_sha256": "4dd76bd13c33ccb3946bfdbcf6f575d4550fb0c5588095e23da3b6e3f84bce1f",
+    "h16_role": "infrastructure_provenance_only",
+    "update_h12_or_h13_bindings": false,
+    "historical_runner_made_executable": false
+  },
+  "future_reason_provenance_requirement": {
+    "implemented_by_h17": false,
+    "requires_separate_synthetic_contract": true,
+    "must_prove_candidate_reason_is_frozen_at_emitted_noteon": true,
+    "must_prove_decoder_behavior_unchanged": true,
+    "may_enable_h4_provisional_resolver_to_obtain_reason": false,
+    "real_data_before_external_review": false
+  },
+  "future_attrition_contract": {
+    "required_counts": [
+      "emitted_noteons_initially_considered",
+      "audio_aware_activation_noteons_in_h17_population",
+      "frame_fallback_eligible_count",
+      "comparator_eligible_count",
+      "excluded_legacy_count",
+      "excluded_retrigger_count",
+      "target_unmatchable_or_excluded_count",
+      "malformed_reason_count",
+      "malformed_or_nonfinite_target_count"
+    ],
+    "silent_deletion_allowed": false
+  },
+  "inconclusive_statuses": [
+    "fresh_discovery_population_not_established",
+    "target_definition_requires_separate_contract",
+    "grouping_identity_not_established",
+    "frame_fallback_signal_insufficient_valid_observations",
+    "frame_fallback_exposed_population_insufficient",
+    "frame_fallback_comparator_population_insufficient",
+    "group_resampling_inconclusive",
+    "frame_fallback_execution_invalid"
+  ],
+  "inconclusive_triggers_automatic_retry": false,
+  "post_result_rules": {
+    "alternative_candidate_reason_allowed": false,
+    "reason_category_merging_allowed": false,
+    "candidate_score_rescue_allowed": false,
+    "onset_or_frame_feature_rescue_allowed": false,
+    "threshold_sweep_allowed": false,
+    "classifier_allowed": false,
+    "observed_performance_subgroup_selection_allowed": false,
+    "same_cohort_optimization_rerun_allowed": false,
+    "h8_reuse_allowed": false,
+    "locked_test_access_allowed": false
+  },
+  "positive_result_would_demonstrate_only": "frame_fallback defines a higher-risk emitted-NoteOn population",
+  "positive_result_would_not_validate": [
+    "provisional_resolver",
+    "rejection_rule",
+    "decoder_performance_improvement",
+    "V3"
+  ],
+  "stop_conditions": [
+    "opening_audio",
+    "parsing_scientific_labels",
+    "model_inference",
+    "inspecting_candidate_reason_frequencies",
+    "inspecting_false_note_rates",
+    "computing_class_balance",
+    "computing_rd_auc_or_bootstrap",
+    "selecting_reason_from_observed_outcomes",
+    "accessing_locked_test_assets"
+  ],
+  "next_action": "External review of H17 only. Do not begin the metadata-only fresh-cohort audit automatically."
+}

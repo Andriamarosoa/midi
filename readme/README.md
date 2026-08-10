@@ -17,8 +17,20 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `provisional_resolution_age1_persistence_h14_permanent_closure`.
-- Statut : `terminé — provisional_resolution_age1_persistence_h14_closed_inconclusive_after_consumed_runtime_failure`.
+- Étape : `provisional_resolution_frame_fallback_risk_h17_hypothesis_contract`.
+- Statut : `en cours — provisional_resolution_frame_fallback_risk_hypothesis_defined`, revue externe requise.
+- H17 préenregistre sans données ni calcul une question distincte de H7 : les
+  NoteOn audio-aware émis sous `frame_fallback` sont-ils enrichis d'au moins
+  `0,10` en faux NoteOn causaux par rapport à `model_onset`, `frame_attack` et
+  `chord_completion` ? Le seul signal primaire futur est l'indicateur
+  catégoriel figé à l'émission. Le target causal existant, la latence maximale
+  `250 ms`, le bootstrap de `10 000` réplications par groupes et le minimum de
+  `20` groupes futurs réellement neufs sont scellés. Aucune cohorte n'est
+  sélectionnée; H8, V2 consommé et le test verrouillé restent interdits. Aucun
+  audit H18 ne doit commencer avant la revue de H17. Contrat :
+  `configs/provisional_resolution_frame_fallback_risk_h17_hypothesis_contract.json`.
+  Rapport :
+  `readme/results/2026-08-10_provisional-resolution-frame-fallback-risk-h17-hypothesis.md`.
 - Infrastructure suivante : H16 durcit uniquement la provenance des futurs
   runners. Avant `opening`, `inference`, `decoder`, `target`, `reconciliation`,
   `metrics` et `publication`, une phase non scientifique est remplacée
