@@ -77,6 +77,25 @@ def validate_closed_test_plan(test_plan, population, binding):
     assert set(sentinel_registry) == {"__PLAN_FIXTURE_IDS__"}
     assert operator_contract["closed_world"] is True
     assert operator_contract["unknown_operator_or_sentinel"] == "FAIL_BEFORE_EVALUATION"
+    nonvacuity = operator_contract["evidence_nonvacuity_contract"]
+    assert nonvacuity["array_evidence_default_minimum_items"] == 1
+    assert nonvacuity["empty_array_default_result"] == "FAIL_BEFORE_OPERATOR_EVALUATION"
+    assert nonvacuity["explicit_empty_array_exceptions"] == {}
+    assert nonvacuity["fixture_selection_empty_does_not_authorize_empty_evidence"] is True
+    for spec in operator_registry.values():
+        if spec["value_shape"].startswith("ARRAY"):
+            assert spec["empty_input"] == "FAIL"
+    assert nonvacuity["cardinality_overrides"] == {
+        "H24-A02": {
+            "primary": {
+                "analytic_pairs": {
+                    "exact_items": 42,
+                    "derivation": "7 sealed shifts [-24,-12,-1,0,1,12,24] multiplied by 6 sealed relative cutoffs [1,2,3,4,8,20]",
+                }
+            },
+            "inverse": {},
+        }
+    }
 
     transition = binding["successor_snapshot_transition"]
     assert transition["successor_snapshot_sha256"] == digest(
@@ -248,6 +267,35 @@ class HarmonicCensoringH24ManifestContractsTest(unittest.TestCase):
         ] = "__UNKNOWN_SENTINEL__"
         with self.assertRaises(AssertionError):
             validate_closed_test_plan(sentinel, self.population, self.binding)
+
+    def test_required_array_evidence_is_never_vacuous(self):
+        contract = self.tests["evidence_operator_contract"]
+        universal = {
+            "all_eq",
+            "all_in",
+            "none_in",
+            "all_exact_pairs",
+            "allclose_pairs",
+            "support_formula_exact",
+        }
+        for operator in universal:
+            self.assertEqual(contract["operator_registry"][operator]["empty_input"], "FAIL")
+        override = contract["evidence_nonvacuity_contract"]["cardinality_overrides"]
+        self.assertEqual(override["H24-A02"]["primary"]["analytic_pairs"]["exact_items"], 42)
+
+        def accepts(rule_name, values):
+            exact = override.get("H24-A02", {}).get("primary", {}).get(rule_name, {}).get(
+                "exact_items"
+            )
+            if exact is not None:
+                return type(values) is list and len(values) == exact
+            return type(values) is list and len(values) >= 1
+
+        self.assertFalse(accepts("analytic_pairs", []))
+        self.assertFalse(accepts("analytic_pairs", [[1.0, 1.0]]))
+        self.assertTrue(accepts("analytic_pairs", [[1.0, 1.0]] * 42))
+        self.assertFalse(accepts("validity_bits", []))
+        self.assertTrue(accepts("validity_bits", [[True, 127.0, True]]))
 
     def test_every_test_has_exact_machine_readable_fixture_selection(self):
         population_ids = set(self.population["fixture_ids"])

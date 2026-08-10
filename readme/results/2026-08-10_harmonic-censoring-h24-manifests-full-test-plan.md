@@ -26,13 +26,13 @@ configs/harmonic_censoring_h24_population_manifest.json
 
 manifest de tests corrigé
 configs/harmonic_censoring_h24_test_manifest.json
-306434 octets
-de8ea9c5c0f7d41ce19a5e0dfbbf323474a8e3a05a74dd9656fda5c52cf1dbae
+307212 octets
+7f87e486ffc6fdc2bfa60a5c617eca9b1ce78c570c1d72910173193ad1f7b416
 
 contrat de liaison corrigé
 configs/harmonic_censoring_h24_manifest_binding_contract.json
 1982 octets
-0ffbd5681be1bd9c55d43e8435af472c58d41e4f2c766cc449d8fd03272ffc77
+242c00d4d5fd3b9e777676b563f28b94b724159bde81307aebbba9e46608a1b5
 ```
 
 Les quatre fichiers sont forcés en LF par `.gitattributes`.
@@ -129,10 +129,22 @@ Les tests structurels incluent des mutations adversariales pour opérateur ou
 sentinelle inconnu, opérateur manquant, fixture non liée, sélection vide sans
 motif et transition d’état contradictoire.
 
+La seconde revue de `78effef6…` a confirmé ces trois fermetures, puis relevé
+une vacuité possible de certaines preuves universelles sur `[]`. Le contrat
+exige désormais au moins un élément pour toute evidence array et ne contient
+aucune exception vide. Les six opérateurs auparavant universels
+(`all_eq`, `all_in`, `none_in`, `all_exact_pairs`, `allclose_pairs`,
+`support_formula_exact`) échouent explicitement sur `[]`. Pour `H24-A02`, la
+cardinalité de `analytic_pairs` est exactement `7 × 6 = 42`, dérivée des sept
+shifts et six cutoffs scellés. La cardinalité est vérifiée avant l’opérateur;
+une sélection de fixtures vide ne peut jamais autoriser une evidence vide.
+Les adversariaux imposent `analytic_pairs=[] → FAIL`, une cardinalité A02 autre
+que 42 → FAIL et `validity_bits=[] → FAIL`.
+
 Validation locale contractuelle après correction :
 
 ```text
-106 tests H24 + H23 + H20 réussis en 1,371 s
+107 tests H24 + H23 + H20 réussis en 1,382 s
 git diff --check réussi
 ```
 

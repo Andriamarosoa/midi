@@ -366,7 +366,7 @@
         "value_shape": "ARRAY",
         "expected_shape": "ANY_JSON_OR_REGISTERED_SENTINEL",
         "algorithm": "strict_equal(item, expanded_expected) for every item",
-        "empty_input": "PASS_VACUOUSLY",
+        "empty_input": "FAIL",
         "uses_rtol_atol": false,
         "nonfinite_numeric_operand": "FAIL"
       },
@@ -374,7 +374,7 @@
         "value_shape": "ARRAY",
         "expected_shape": "NONEMPTY_ARRAY",
         "algorithm": "for every item exists allowed option with strict_equal(item, option)",
-        "empty_input": "PASS_VACUOUSLY",
+        "empty_input": "FAIL",
         "uses_rtol_atol": false,
         "nonfinite_numeric_operand": "FAIL"
       },
@@ -390,7 +390,7 @@
         "value_shape": "ARRAY_OF_INTEGERS",
         "expected_shape": "PAIR_OF_INTEGERS_INCLUSIVE_INTERVAL",
         "algorithm": "for every item, not (expected[0] <= item <= expected[1]); integer types exact and booleans forbidden",
-        "empty_input": "PASS_VACUOUSLY",
+        "empty_input": "FAIL",
         "uses_rtol_atol": false,
         "nonfinite_numeric_operand": "FAIL"
       },
@@ -398,7 +398,7 @@
         "value_shape": "ARRAY_OF_PAIRS",
         "expected_shape": "UNUSED_NULL",
         "algorithm": "strict_equal(pair[0], pair[1]) for every pair",
-        "empty_input": "PASS_VACUOUSLY",
+        "empty_input": "FAIL",
         "uses_rtol_atol": false,
         "nonfinite_numeric_operand": "FAIL"
       },
@@ -406,7 +406,7 @@
         "value_shape": "ARRAY_OF_PAIRS",
         "expected_shape": "UNUSED_NULL",
         "algorithm": "allclose(pair[0], pair[1], rtol, atol) for every pair",
-        "empty_input": "PASS_VACUOUSLY",
+        "empty_input": "FAIL",
         "uses_rtol_atol": true,
         "nonfinite_numeric_operand": "FAIL"
       },
@@ -446,7 +446,7 @@
         "value_shape": "ARRAY_OF_TRIPLES",
         "expected_shape": "UNUSED_NULL",
         "algorithm": "each triple is [valid:boolean, frequency_hz:finite_numeric, observation_supported:boolean] and valid is exactly ((frequency_hz <= 22050.0) and observation_supported)",
-        "empty_input": "PASS_VACUOUSLY",
+        "empty_input": "FAIL",
         "uses_rtol_atol": false,
         "nonfinite_numeric_operand": "FAIL"
       },
@@ -485,7 +485,26 @@
       "rtol",
       "atol"
     ],
-    "rule_key_policy": "every rule has exactly name,operator,expected,rtol,atol; name is a nonempty string; rtol and atol are finite nonnegative JSON numbers with booleans forbidden; operators with uses_rtol_atol=false require rtol=atol=0; no additional keys"
+    "rule_key_policy": "every rule has exactly name,operator,expected,rtol,atol; name is a nonempty string; rtol and atol are finite nonnegative JSON numbers with booleans forbidden; operators with uses_rtol_atol=false require rtol=atol=0; no additional keys",
+    "evidence_nonvacuity_contract": {
+      "array_evidence_default_minimum_items": 1,
+      "empty_array_default_result": "FAIL_BEFORE_OPERATOR_EVALUATION",
+      "explicit_empty_array_exceptions": {},
+      "cardinality_overrides": {
+        "H24-A02": {
+          "primary": {
+            "analytic_pairs": {
+              "exact_items": 42,
+              "derivation": "7 sealed shifts [-24,-12,-1,0,1,12,24] multiplied by 6 sealed relative cutoffs [1,2,3,4,8,20]"
+            }
+          },
+          "inverse": {}
+        }
+      },
+      "evaluation_order": "validate evidence JSON type and required cardinality first; expand sentinels second; evaluate the named operator last",
+      "missing_or_wrong_cardinality": "FAIL_BEFORE_OPERATOR_EVALUATION",
+      "fixture_selection_empty_does_not_authorize_empty_evidence": true
+    }
   },
   "tests": [
     {

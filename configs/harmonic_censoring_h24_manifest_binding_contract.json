@@ -13,7 +13,7 @@
   },
   "H24_test_manifest": {
     "path": "configs/harmonic_censoring_h24_test_manifest.json",
-    "sha256": "de8ea9c5c0f7d41ce19a5e0dfbbf323474a8e3a05a74dd9656fda5c52cf1dbae",
+    "sha256": "7f87e486ffc6fdc2bfa60a5c617eca9b1ce78c570c1d72910173193ad1f7b416",
     "test_specification_count": 72
   },
   "authorization": {

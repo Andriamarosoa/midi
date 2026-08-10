@@ -29,7 +29,12 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   définis mais population non matérialisée, aucun evaluator/oracle/test). Des
   adversariaux structurels couvrent registre incomplet/inconnu, sentinelle
   inconnue, fixture non liée, sélection vide inexpliquée et transition
-  contradictoire. `106` tests contractuels H24/H23/H20 réussissent en `1,371 s`
+  contradictoire. La seconde revue de `78effef6…` a validé ces trois fermetures
+  puis détecté une vacuité possible des preuves universelles sur `[]`. Le
+  correctif exige maintenant au moins un élément pour toute evidence array,
+  sans exception vide, et fixe `H24-A02.analytic_pairs` à exactement `42`
+  paires (`7` shifts × `6` cutoffs); les tableaux vides et cardinalités
+  incorrectes échouent avant l’opérateur. `107` tests contractuels H24/H23/H20 réussissent en `1,382 s`
   sans evaluator scientifique ni donnée réelle. La prochaine action reste uniquement la revue externe de ce
   correctif JSON/tests/docs; aucune synthèse ni implémentation n’est autorisée.
 - H24 possède maintenant deux manifests canoniques liés au contrat successeur :
