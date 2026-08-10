@@ -17,8 +17,21 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `provisional_resolution_frame_fallback_h21_zero_science_preflight`.
-- Statut : `terminé — provisional_resolution_frame_fallback_h21_zero_science_preflight_sealed`, revue externe requise avant H22 ou toute science réelle.
+- Étape : `provisional_resolution_frame_fallback_h22_real_execution`.
+- Statut : `en cours — runner one-shot H22 implémenté et testé synthétiquement; exécution réelle explicitement autorisée par l’utilisateur, pas encore consommée au moment du commit runner`.
+- H22 scelle le runner sans arguments de la mesure réelle H17. Il vérifie tous
+  les blobs H17a/H20/H21, les `146` prises / `51` groupes et leurs octets, le
+  checkpoint, les configurations et le runtime avant de réclamer un marqueur
+  lié au contrat/commit exact. Il persiste ensuite atomiquement
+  `fresh_population_consumed=true` juste avant le premier accès scientifique,
+  sans retry. La taxonomie, le target causal `250 ms`, `RD_false`, les seuils
+  et le bootstrap `10 000`/seed `721629268` sont réutilisés directement et ne
+  sont pas modifiables par le caller. La publication des lignes, attritions,
+  métrique/verdict et provenance est atomique. Contrat :
+  `configs/provisional_resolution_frame_fallback_h22_execution_contract.json`.
+  Runner : `src/polyphonic/run_provisional_resolution_frame_fallback_h17.py`.
+  Rapport d’implémentation :
+  `readme/results/2026-08-10_provisional-resolution-frame-fallback-h22-runner.md`.
 - H21 a scellé sur le worker Mac prévu, sans science, le runtime, le checkpoint
   brut et les actifs exacts des `146` prises / `51` groupes H18a. Chaque entrée
   conserve chemins logiques/résolus, `audio_member`, tailles et SHA-256 bruts;

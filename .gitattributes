@@ -41,3 +41,7 @@ configs/provisional_resolution_frame_fallback_h21_zero_science_preflight.json te
 scripts/build_provisional_resolution_frame_fallback_h21_zero_science_preflight.py text eol=lf
 tests/test_provisional_resolution_frame_fallback_h21_zero_science_preflight.py text eol=lf
 readme/results/2026-08-10_provisional-resolution-frame-fallback-h21-zero-science-preflight.md text eol=lf
+configs/provisional_resolution_frame_fallback_h22_execution_contract.json text eol=lf
+src/polyphonic/run_provisional_resolution_frame_fallback_h17.py text eol=lf
+tests/test_provisional_resolution_frame_fallback_h22_execution.py text eol=lf
+readme/results/2026-08-10_provisional-resolution-frame-fallback-h22-runner.md text eol=lf
