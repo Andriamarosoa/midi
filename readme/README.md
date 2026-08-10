@@ -17,8 +17,18 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `harmonic_censoring_h23_preclaim_toctou_hardening`.
-- Statut : `durcissement TOCTOU dormant terminé et en attente de revue externe; nouveau seal et nouvelle activation absents; aucune population consommée`.
+- Étape : `harmonic_censoring_h23_reviewed_activation_seal_refresh`.
+- Statut : `nouveau couple activation + seal défini contractuellement et non injecté; aucune capability émise; aucune population consommée`.
+- La revue externe approuve `1025ac56…` et autorise uniquement la création du
+  nouveau couple contractuel. Le seal lie ce commit d'implémentation, son vrai
+  diff-tree de cinq fichiers, les blobs capability/runner, les trois contrats,
+  les manifests et les quatre chemins one-shot. L'activation lie le SHA brut du
+  seal et répète les bindings d'implémentation. Les SHA bruts sont
+  `381d83e5…` pour le seal et `81d0f0d6…` pour l'activation. La variable OS
+  `H23_AUTHORIZATION_ACTIVATION_COMMIT` n'est pas injectée : le loader reste
+  dormant avant résolution du plan et aucune capability, claim ou exécution
+  n'est possible. Rapport :
+  `readme/results/2026-08-10_harmonic-censoring-h23-reviewed-activation-seal-refresh.md`.
 - La revue externe approuve `a84f106a…` comme correction sémantique dormante
   des 72 procédures et autorise uniquement le commit TOCTOU séparé. Ce
   durcissement rehache désormais, juste avant le `O_EXCL` irréversible,

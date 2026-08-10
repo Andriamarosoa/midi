@@ -4,12 +4,13 @@
   "status": "externally_reviewed_seal_activation",
   "authorization_seal": {
     "path": "configs/harmonic_censoring_h23_synthetic_execution_authorization_seal.json",
-    "raw_sha256": "0074a29682d2847f70bdd2260a7f57f5b079fa94b92ba84cb01307dcdea8defa"
+    "raw_sha256": "381d83e5dd184a1ad72f29aa4f8450b3a1d066b582e8191ef2290640f7bd0899"
   },
   "bindings": {
-    "implementation_commit": "f384cea35d12d6952f995f66cd954fe605ad1c83",
-    "capability_source_blob": "24efe3daee1e99a3d4298452cd5eba9e9fa5f6be",
-    "runner_source_blob": "3699212be4db17df99acfddb864c0a25f56dcea4"
+    "implementation_commit": "1025ac56706312718e93f9078fdf9c341276c8ea",
+    "capability_source_blob": "9bbe965c2115fd3360ff7d4d0adecbb895b5542f",
+    "runner_source_blob": "c4f435a20f363adb75b831dc8b5526eaee42f46b",
+    "executor_claim_transcript_contract_raw_sha256": "8126edc0a27fe43bbb41f0d8e874c1355e01f9f1185c1a71d70048fcaea661ef"
   },
   "external_review": {
     "verdict": "APPROVED",

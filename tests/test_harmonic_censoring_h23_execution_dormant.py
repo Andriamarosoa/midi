@@ -204,14 +204,63 @@ class HarmonicCensoringH23DormantExecutionTests(unittest.TestCase):
         seal_path = self.root / capability.H23_AUTHORIZATION_SEAL_RELATIVE_PATH
         activation_raw = activation_path.read_bytes()
         seal_raw = seal_path.read_bytes()
-        with self.assertRaisesRegex(ValueError, "executor_claim_transcript"):
-            capability.validate_h23_authorization_activation_payload(
-                json.loads(activation_raw), raw_sha256=hashlib.sha256(activation_raw).hexdigest()
+        activation = capability.validate_h23_authorization_activation_payload(
+            json.loads(activation_raw),
+            raw_sha256=hashlib.sha256(activation_raw).hexdigest(),
+        )
+        seal = capability.validate_h23_authorization_seal_payload(
+            json.loads(seal_raw), raw_sha256=hashlib.sha256(seal_raw).hexdigest()
+        )
+        self.assertEqual(activation.authorization_seal_sha256, seal.raw_sha256)
+        self.assertEqual(activation.implementation_commit, seal.reviewed_execution_commit)
+        self.assertEqual(activation.capability_source_blob, seal.capability_source_blob)
+        self.assertEqual(activation.runner_source_blob, seal.runner_source_blob)
+        self.assertEqual(
+            activation.executor_claim_transcript_contract_raw_sha256,
+            seal.executor_claim_transcript_contract_raw_sha256,
+        )
+        self.assertEqual(
+            seal.reviewed_execution_commit,
+            "1025ac56706312718e93f9078fdf9c341276c8ea",
+        )
+        changed = tuple(
+            sorted(
+                line
+                for line in capability._git(
+                    self.root,
+                    "diff-tree",
+                    "--no-commit-id",
+                    "--name-only",
+                    "-r",
+                    seal.reviewed_execution_commit,
+                ).splitlines()
+                if line
             )
-        with self.assertRaisesRegex(ValueError, "executor_claim_transcript"):
-            capability.validate_h23_authorization_seal_payload(
-                json.loads(seal_raw), raw_sha256=hashlib.sha256(seal_raw).hexdigest()
-            )
+        )
+        self.assertEqual(seal.exact_changed_files, changed)
+        self.assertEqual(len(changed), 5)
+        self.assertEqual(
+            capability._git(
+                self.root,
+                "rev-parse",
+                f"{seal.reviewed_execution_commit}:"
+                f"{capability.H23_CAPABILITY_SOURCE_RELATIVE_PATH.as_posix()}",
+            ),
+            seal.capability_source_blob,
+        )
+        self.assertEqual(
+            capability._git(
+                self.root,
+                "rev-parse",
+                f"{seal.reviewed_execution_commit}:"
+                f"{capability.H23_RUNNER_SOURCE_RELATIVE_PATH.as_posix()}",
+            ),
+            seal.runner_source_blob,
+        )
+        self.assertEqual(
+            hashlib.sha256(activation_raw).hexdigest(),
+            "81d0f0d6739e082745ae646a57ad31b17a62b5007dd4c0f718701c03dfe25906",
+        )
         self.assertNotIn(capability.H23_AUTHORIZATION_ACTIVATION_COMMIT_ENV, __import__("os").environ)
 
         with mock.patch.dict(
