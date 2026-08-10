@@ -17,8 +17,24 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `harmonic_censoring_h24_dormant_harness`.
-- Statut : `harness dormant H24 implémenté, sans population, waveform ni exécution scientifique; en attente de revue sémantique externe`.
+- Étape : `harmonic_censoring_h24_population_materialization_contract`.
+- Statut : `contrat de matérialisation H24 et frontière one-shot définis, sans materializer, claim, waveform ni exécution; en attente de revue externe`.
+- La revue externe a approuvé `1b6aa275…` comme harness H24 dormant
+  sémantiquement fermé et autorisé uniquement la définition du contrat de
+  matérialisation/consommation. Le nouveau contrat lie le commit approuvé, ses
+  blobs source et les cinq JSON H24 par SHA; il ferme la dérivation ordonnée
+  des `175` recettes, l'algorithme déterministe `H24_WAVEFORM_ALGORITHM_V1`,
+  les octets `.f64le`, les specs/targets canoniques, l'index JSONL et le reçu
+  final. Une future tentative devra créer un marker durable `O_EXCL` avant
+  NumPy ou la première allocation, puis publier atomiquement la population.
+  Toute interruption après claim consommera `H24_SYNTHETIC_V1` sans retry et
+  les sorties partielles resteront non autoritatives. La matérialisation restera
+  strictement séparée de P0/P1/P2. Aucun code `src/`, materializer, capability,
+  claim, marker, waveform ou résultat scientifique n'est créé ici. `136` tests
+  contractuels H24/H23/H20 réussissent en `1,913 s`. Rapport :
+  `readme/results/2026-08-10_harmonic-censoring-h24-population-materialization-contract.md`.
+  La prochaine action est uniquement la revue externe de ce contrat; toute
+  implémentation ou synthèse reste interdite.
 - La revue externe a approuvé `16e612ba…` comme fermeture complète des manifests
   et du plan H24, puis autorisé uniquement le harness dormant. Le nouveau
   contrat `harmonic_censoring_h24_dormant_harness_contract.json` lie les quatre

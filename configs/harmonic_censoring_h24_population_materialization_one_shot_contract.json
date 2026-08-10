@@ -1,0 +1,427 @@
+{
+  "schema_version": 1,
+  "purpose": "harmonic_censoring_h24_population_materialization_and_one_shot_contract",
+  "status": "contract_only_external_review_required",
+  "authorization_basis": {
+    "reviewed_harness_commit": "1b6aa27536dd5bfceba62d6bc5c9a499b4c11f18",
+    "external_verdict": "APPROVED_H24_DORMANT_HARNESS_SEMANTICS",
+    "authorized_action": "AUTHORIZED_TO_DEFINE_H24_POPULATION_MATERIALIZATION_AND_ONE_SHOT_CONTRACT_ONLY"
+  },
+  "scope": {
+    "contract_only": true,
+    "materializer_implementation_authorized": false,
+    "population_materialization_authorized": false,
+    "waveform_synthesis_authorized": false,
+    "claim_or_marker_creation_authorized": false,
+    "scientific_execution_authorized": false,
+    "P0_execution_authorized": false,
+    "P1_execution_authorized": false,
+    "P2_execution_authorized": false,
+    "real_data_access_authorized": false,
+    "H17_population_use_authorized": false,
+    "model_or_checkpoint_access_authorized": false,
+    "training_or_calibration_authorized": false,
+    "locked_test_used": false
+  },
+  "sealed_inputs": {
+    "successor_contract": {
+      "path": "configs/harmonic_censoring_h24_successor_contract.json",
+      "raw_sha256": "184d3847a594ffaca263b45befe70d1f5aa63ade0a0ef599d969ba044f4e680a"
+    },
+    "population_manifest": {
+      "path": "configs/harmonic_censoring_h24_population_manifest.json",
+      "raw_sha256": "52c88c74c837ad3c6109be466df38bac862e10d93c187fe60e8c5da30bd4b02b",
+      "population_id": "H24_SYNTHETIC_V1",
+      "fixture_count": 175
+    },
+    "test_manifest": {
+      "path": "configs/harmonic_censoring_h24_test_manifest.json",
+      "raw_sha256": "7f87e486ffc6fdc2bfa60a5c617eca9b1ce78c570c1d72910173193ad1f7b416",
+      "test_count": 72
+    },
+    "manifest_binding": {
+      "path": "configs/harmonic_censoring_h24_manifest_binding_contract.json",
+      "raw_sha256": "242c00d4d5fd3b9e777676b563f28b94b724159bde81307aebbba9e46608a1b5"
+    },
+    "dormant_harness_contract": {
+      "path": "configs/harmonic_censoring_h24_dormant_harness_contract.json",
+      "raw_sha256": "72675c6dda2128aa0036b7f0f2379de535fd74445a029f020f24f3f6f15fff39"
+    },
+    "approved_harness_source": {
+      "path": "src/polyphonic/harmonic_censoring_h24.py",
+      "commit": "1b6aa27536dd5bfceba62d6bc5c9a499b4c11f18",
+      "git_blob": "1a8759d6587b05e9064c6e033a7b906bd6e2955b"
+    },
+    "approved_operator_source": {
+      "path": "src/polyphonic/harmonic_censoring_h24_operators.py",
+      "commit": "1b6aa27536dd5bfceba62d6bc5c9a499b4c11f18",
+      "git_blob": "7e72ed05dcbebd1f3ed546733a811fbc3be5495e"
+    }
+  },
+  "population_resolution": {
+    "source": "the exact ordered fixture_specifications array from the sealed population manifest",
+    "required_namespace": "H24_SYNTHETIC_V1",
+    "required_fixture_count": 175,
+    "required_fixture_id_order": "exactly population_manifest.fixture_ids",
+    "recipe_translation": "load_h24_dormant_harness_plan then translate_all_h24_fixture_specifications",
+    "recipe_count": 175,
+    "recipe_identity_rule": "one immutable recipe for each fixture ID at the same ordinal",
+    "canonical_specification_bytes": "UTF-8 RFC8259 JSON; sorted keys; separators comma and colon without spaces; ensure_ascii=false; allow_nan=false; one trailing LF",
+    "canonical_specification_sha256": "SHA256(canonical_specification_bytes)",
+    "omission_addition_duplicate_or_reordering_forbidden": true,
+    "caller_fixture_selection_forbidden": true,
+    "predecessor_waveform_seed_or_outcome_reuse_forbidden": true
+  },
+  "deterministic_waveform_algorithm_v1": {
+    "algorithm_id": "H24_WAVEFORM_ALGORITHM_V1",
+    "definition_status": "normative_future_materializer_contract_not_implemented",
+    "sample_rate_hz": 44100,
+    "sample_count": 12544,
+    "hop_samples": 256,
+    "analysis_window_samples": 4096,
+    "array_dtype_during_synthesis": "numpy.float64",
+    "seed_rule": "unsigned_little_endian_uint64(first_8_bytes(SHA256(UTF8('H24|'+fixture_id))))",
+    "rng": "numpy.random.Generator(numpy.random.PCG64(synthesis_seed))",
+    "seed_must_equal_manifest_value": true,
+    "source_frequency_hz": "440*2^((pitch+instantaneous_pitch_offset-69)/12)*harmonic*2^(cents/1200)*sqrt(1+B*harmonic^2)",
+    "source_harmonic_amplitude": "gain*(0.4/harmonic), additionally multiplied by fundamental_amplitude only for harmonic=1",
+    "source_phase": "2*pi*cumsum(frequency,float64)/44100; subtract first phase; add h1_phase for H1 and phase for H2+",
+    "old_envelope": "0 before sample 4096; exp(-((g-4096)+old_source_age_hops*256)/8192) otherwise",
+    "new_envelope": "0 before onset default 12032; min(1,(elapsed+1)/max(1,attack_hops*256+1))*exp(-elapsed/(decay_tau_hops*256)) otherwise; defaults attack_hops=0 decay_tau_hops=8",
+    "second_distinct_envelope": "0 before 12160; min(1,(elapsed+1)/32)*exp(-elapsed/1024) otherwise",
+    "technique_trajectories": {
+      "linear_cents": "linear start-to-end over duration_hops*256 then hold, divided by 100 to semitones",
+      "linear_semitones": "linear start-to-end over duration_hops*256 then hold",
+      "sinusoidal_cents": "depth/100*sin(2*pi*rate_hz*max(g-onset,0)/44100)"
+    },
+    "base_S5": "old envelope times 0.1*sin(2*pi*(4*440*2^((40-69)/12))*g/44100)",
+    "variant_dispatch_order": [
+      "amplitude_gain",
+      "relative_phase_radians",
+      "envelope_attack_decay_hops",
+      "cents_inharmonicity",
+      "noise",
+      "neighbour_semitones",
+      "interval_semitones",
+      "chord_spec",
+      "physical_unison",
+      "technique",
+      "natural_harmonic",
+      "sympathetic_resonance",
+      "old_source_age_hops",
+      "event_sample_offset",
+      "pitch_boundary",
+      "silence",
+      "synthetic_OOD"
+    ],
+    "variant_semantics": {
+      "amplitude_gain": "set gain=value on every source",
+      "relative_phase_radians": "set H2+ phase=value on every source",
+      "envelope_attack_decay_hops": "set attack_hops=attack and decay_tau_hops=decay_tau on every new source",
+      "cents_inharmonicity": "set cents and inharmonicity_B=B on every source",
+      "noise": "after clean synthesis add unit-RMS white or pink noise at clean_rms/10^(snr_db/20); PCG64 seed is fixture seed",
+      "neighbour_semitones": "clone the new source, shift pitch by value and append",
+      "interval_semitones": "clone first source, shift pitch by value, set harmonics=[1,2,3,4] and append",
+      "chord_spec": "replace sources by new-envelope pitches 64+offset with harmonics [1,2,3,4], using exact named offsets",
+      "physical_unison": "append clone of first source using exact named gain/phase and optional second_distinct envelope",
+      "technique": "attach the exact named trajectory to every source",
+      "natural_harmonic": "replace first-source harmonics and fundamental_amplitude with exact named values",
+      "sympathetic_resonance": "append pitch 64 H1 old-envelope source at exact named relative gain",
+      "old_source_age_hops": "set age on every old source",
+      "event_sample_offset": "set every new-source onset to 8192+value",
+      "pitch_boundary": "for values 40 or 76 set every new-source pitch; analytical_128 leaves waveform sources unchanged",
+      "silence": "replace all 12544 samples by +0.0",
+      "synthetic_OOD": "replace waveform by the exact named OOD construction"
+    },
+    "named_values_source": "historical derivation note only: closed numeric values were copied into named_values_required; the future H24 materializer must use only this contract and the H24 recipe and must not read the H23 contract at runtime; no H23 seed, waveform, ID, target outcome or execution result is inherited",
+    "named_values_required": {
+      "chord_spec": {
+        "major_triad": [0, 4, 7],
+        "minor_triad": [0, 3, 7],
+        "sus4": [0, 5, 7],
+        "dense_four_note": [0, 4, 7, 11]
+      },
+      "natural_harmonic": {
+        "node_12": {"retained_harmonics": [2, 4, 6, 8], "fundamental_amplitude": 0.0},
+        "node_7": {"retained_harmonics": [3, 6, 9, 12], "fundamental_amplitude": 0.0},
+        "missing_fundamental": {"retained_harmonics": [2, 3, 4, 5], "fundamental_amplitude": 0.0}
+      },
+      "sympathetic_resonance_gain": {"weak": 0.05, "medium": 0.15, "strong_without_attack": 0.30},
+      "physical_unison": {
+        "same_waveform_two_sources": {"second_source_gain": 1.0, "second_source_phase": 0.0, "second_source_envelope": "identical"},
+        "distinct_envelopes_two_sources": {"second_source_gain": 0.7, "second_source_phase": 1.5707963267948966, "second_source_envelope": "second_distinct"}
+      },
+      "technique": {
+        "bend_mild": {"trajectory": "linear_cents", "start": 0, "end": 50, "duration_hops": 4},
+        "bend_wide": {"trajectory": "linear_cents", "start": 0, "end": 200, "duration_hops": 4},
+        "bend_fast": {"trajectory": "linear_cents", "start": 0, "end": 100, "duration_hops": 2},
+        "bend_slow": {"trajectory": "linear_cents", "start": 0, "end": 100, "duration_hops": 8},
+        "slide_mild": {"trajectory": "linear_semitones", "start": 0, "end": 2, "duration_hops": 4},
+        "slide_wide": {"trajectory": "linear_semitones", "start": 0, "end": 12, "duration_hops": 4},
+        "slide_fast": {"trajectory": "linear_semitones", "start": 0, "end": 7, "duration_hops": 2},
+        "slide_slow": {"trajectory": "linear_semitones", "start": 0, "end": 7, "duration_hops": 8},
+        "vibrato_mild": {"trajectory": "sinusoidal_cents", "depth": 25, "rate_hz": 5},
+        "vibrato_wide": {"trajectory": "sinusoidal_cents", "depth": 100, "rate_hz": 5},
+        "vibrato_fast": {"trajectory": "sinusoidal_cents", "depth": 50, "rate_hz": 8},
+        "vibrato_slow": {"trajectory": "sinusoidal_cents", "depth": 50, "rate_hz": 3}
+      },
+      "OOD_names": ["impulse", "linear_chirp", "log_chirp", "nonharmonic_stack", "pink_noise_burst", "inharmonic_bell"]
+    },
+    "OOD_semantics": {
+      "impulse": "all zero except x[12032]=0.4",
+      "linear_chirp": "zero outside 8192..12287; n=g-8192; 0.4*sin(2*pi*(80*n/44100+0.5*(8000-80)*(n/44100)^2/(4095/44100)))",
+      "log_chirp": "zero outside 8192..12287; f[n]=80*100^(n/4095); phase=2*pi*cumsum(f)/44100; amplitude 0.4",
+      "nonharmonic_stack": "zero outside 8192..12287; sum 0.08*sin(2*pi*f*n/44100) for f=[233,377,611,997,1597]",
+      "pink_noise_burst": "unit-RMS pink noise over 12544 samples times 0.4*new_envelope",
+      "inharmonic_bell": "zero before 12032; sum h=1..8 (0.3/h)*exp(-m/(512*h))*sin(2*pi*220*h^1.08*m/44100)"
+    },
+    "white_noise": "PCG64 standard_normal(12544), subtract float64 mean, divide by float64 RMS",
+    "pink_noise": "PCG64 independent standard-normal real and imaginary rfft coefficients; multiply bin k by 1/sqrt(max(k,1)); DC and Nyquist imaginary parts zero; irfft n=12544; subtract mean; divide by RMS",
+    "nonfinite_output_forbidden": true,
+    "shape_or_dtype_mismatch_forbidden": true,
+    "same_runtime_repeat_requirement": "all 100352 waveform bytes and SHA256 must be byte-identical"
+  },
+  "materialized_fixture_bytes": {
+    "fixture_directory_inside_population": "fixtures",
+    "waveform_extension": ".f64le",
+    "waveform_encoding": "raw IEEE-754 binary64 little-endian, C order, no header, exactly waveform.astype('<f8',copy=false).tobytes(order='C')",
+    "waveform_byte_count": 100352,
+    "waveform_sha256": "lowercase SHA256 over exactly the 100352 raw waveform bytes",
+    "specification_extension": ".spec.json",
+    "specification_bytes": "exact canonical_specification_bytes",
+    "target_extension": ".target.json",
+    "target_bytes": "canonical UTF-8/LF JSON of expected_target only, same canonicalization",
+    "target_sha256": "SHA256(target_bytes)",
+    "filename_rule": "six-digit zero-based ordinal, two underscores, exact fixture_id, then extension",
+    "index_paths_rule": "POSIX relative paths from the population directory, each beginning fixtures/",
+    "expected_files_per_fixture": 3,
+    "additional_per_fixture_files_forbidden": true
+  },
+  "population_index_contract": {
+    "path_inside_population": "population_index.jsonl",
+    "format": "canonical UTF-8/LF JSONL, one line per fixture in manifest order",
+    "exact_fields": [
+      "ordinal",
+      "fixture_id",
+      "synthesis_seed",
+      "specification_path",
+      "specification_sha256",
+      "target_path",
+      "target_sha256",
+      "waveform_path",
+      "waveform_sha256",
+      "waveform_byte_count",
+      "sample_count",
+      "sample_rate_hz",
+      "dtype"
+    ],
+    "additional_fields_forbidden": true,
+    "line_order": "exact population manifest fixture order",
+    "line_count": 175,
+    "index_sha256": "SHA256 of exact 175 canonical lines including every trailing LF",
+    "all_referenced_files_must_be_reopened_and_rehashed_before_publication": true
+  },
+  "population_receipt_contract": {
+    "path_inside_population": "population_receipt.json",
+    "canonicalization": "UTF-8 sorted-key compact JSON plus one trailing LF",
+    "exact_fields": [
+      "schema_version",
+      "purpose",
+      "population_id",
+      "population_materialized",
+      "fixture_count",
+      "ordered_fixture_ids_sha256",
+      "population_index_sha256",
+      "materialization_contract_raw_sha256",
+      "successor_contract_raw_sha256",
+      "population_manifest_raw_sha256",
+      "test_manifest_raw_sha256",
+      "manifest_binding_raw_sha256",
+      "dormant_harness_contract_raw_sha256",
+      "implementation_commit",
+      "materializer_source_blob",
+      "runtime_identity",
+      "real_data_used",
+      "H17_population_used",
+      "locked_test_used",
+      "scientific_tests_executed",
+      "training_authorized"
+    ],
+    "fixed_values": {
+      "schema_version": 1,
+      "purpose": "harmonic_censoring_h24_population_materialization_receipt",
+      "population_id": "H24_SYNTHETIC_V1",
+      "population_materialized": true,
+      "fixture_count": 175,
+      "real_data_used": false,
+      "H17_population_used": false,
+      "locked_test_used": false,
+      "scientific_tests_executed": 0,
+      "training_authorized": false
+    },
+    "receipt_sha256": "SHA256 of exact canonical receipt bytes"
+  },
+  "success_directory_exact_layout": {
+    "top_level_entries": ["fixtures", "population_index.jsonl", "population_receipt.json"],
+    "fixtures_directory_file_count": 525,
+    "additional_top_level_or_fixture_entries_forbidden": true,
+    "symlinks_hardlinks_devices_and_special_files_forbidden": true
+  },
+  "future_runtime_identity": {
+    "implementation": "CPython",
+    "python_version": "3.11.9",
+    "numpy_version": "1.26.4",
+    "architecture": "arm64",
+    "execution_device": "CPU",
+    "thread_count": 1,
+    "sample_rate_hz": 44100,
+    "hop_samples": 256,
+    "runtime_mismatch_must_fail_before_claim": true,
+    "numpy_import_before_claim_forbidden": true,
+    "waveform_allocation_before_claim_forbidden": true,
+    "runtime_provenance_receipt_required": true
+  },
+  "future_fixed_paths": {
+    "root": "tmp/local/harmonic_censoring_h24_synthetic_v1",
+    "claim_marker": "tmp/local/harmonic_censoring_h24_synthetic_v1/H24_SYNTHETIC_V1.consumed.json",
+    "staging_directory": "tmp/local/harmonic_censoring_h24_synthetic_v1/population.materializing",
+    "success_directory": "tmp/local/harmonic_censoring_h24_synthetic_v1/population",
+    "terminal_record": "tmp/local/harmonic_censoring_h24_synthetic_v1/materialization_terminal.json",
+    "caller_path_override_forbidden": true
+  },
+  "zero_science_preflight": {
+    "must_complete_before_claim": true,
+    "must_rehash_all_sealed_inputs": true,
+    "must_require_exact_HEAD_bound_by_future_authorization_seal": true,
+    "must_require_clean_worktree": true,
+    "must_require_exact_future_materializer_source_blob": true,
+    "must_load_and_attest_harness_plan": true,
+    "must_resolve_exact_175_recipes_in_order": true,
+    "must_verify_all_seeds_against_rule": true,
+    "must_verify_fixed_paths_are_new_except_parent_root": true,
+    "must_verify_no_existing_claim_staging_success_or_terminal": true,
+    "must_verify_runtime_without_importing_numpy": true,
+    "real_data_model_checkpoint_H17_or_locked_test_path_must_fail": true,
+    "scientific_test_dispatch_forbidden": true,
+    "preflight_failure_consumes_population": false
+  },
+  "one_shot_consumption_boundary": {
+    "population_id": "H24_SYNTHETIC_V1",
+    "claim_method": "os.open(path, O_CREAT|O_EXCL|O_WRONLY, 0600)",
+    "marker_bytes": "canonical UTF-8/LF JSON from an identity-attested immutable capability",
+    "marker_file_fsync_required": true,
+    "marker_close_required": true,
+    "marker_parent_directory_fsync_required": true,
+    "claim_must_be_durable_before_numpy_import": true,
+    "claim_must_be_durable_before_first_waveform_allocation_or_synthesis": true,
+    "marker_existence_alone_means_consumed_even_if_partial_or_corrupt": true,
+    "marker_must_never_be_deleted_replaced_or_repaired": true,
+    "failure_after_O_EXCL_keeps_population_consumed": true,
+    "automatic_retry_allowed": false,
+    "manual_same_population_retry_allowed": false,
+    "cross_process_second_claim_must_fail": true,
+    "claim_or_marker_is_not_implemented_or_created_by_this_contract": true
+  },
+  "future_materialization_sequence": {
+    "exact_order": [
+      "zero_science_preflight",
+      "issue_process_local_identity_attested_capability",
+      "durable_exclusive_claim",
+      "create_new_private_staging_directory",
+      "materialize_175_fixtures_in_manifest_order",
+      "fsync_each_closed_file_and_append_fsynced_index_line",
+      "write_and_fsync_population_receipt",
+      "reopen_and_verify_all_525_fixture_files_plus_index_and_receipt",
+      "fsync_staging_directory",
+      "atomic_rename_staging_to_success_directory",
+      "fsync_parent_directory",
+      "write_verify_and_atomically_publish_terminal_record",
+      "stop_without_scientific_execution"
+    ],
+    "parallel_fixture_materialization_forbidden": true,
+    "fixture_order_mutation_forbidden": true,
+    "continue_after_fixture_failure_forbidden": true,
+    "P0_P1_P2_dispatch_forbidden": true
+  },
+  "interruption_and_partial_output": {
+    "staging_is_private_non_authoritative": true,
+    "partial_index_or_fixture_files_are_non_authoritative": true,
+    "partial_staging_must_never_be_renamed_to_success": true,
+    "success_directory_must_be_absent_on_failure": true,
+    "terminal_status_after_caught_postclaim_failure": "H24_POPULATION_MATERIALIZATION_INCONCLUSIVE_CONSUMED",
+    "crash_or_timeout_after_claim_status": "consumed_by_marker_no_retry_even_if_terminal_record_missing",
+    "scientific_verdict_on_materialization_failure": null,
+    "repair_resume_or_retry_forbidden": true,
+    "partial_bytes_may_be_retained_for_forensics_but_never_consumed_by_tests": true
+  },
+  "future_terminal_record": {
+    "success_status": "H24_SYNTHETIC_V1_POPULATION_MATERIALIZED",
+    "failure_status": "H24_POPULATION_MATERIALIZATION_INCONCLUSIVE_CONSUMED",
+    "atomic_staging_verify_fsync_rename_required": true,
+    "must_bind_claim_marker_sha256": true,
+    "must_bind_receipt_sha256_on_success": true,
+    "must_bind_population_index_sha256_on_success": true,
+    "must_record_materialized_fixture_count": true,
+    "must_record_first_failed_fixture_id_or_null": true,
+    "must_record_population_consumed_true": true,
+    "must_record_scientific_tests_executed_zero": true,
+    "must_record_locked_test_used_false": true,
+    "success_does_not_authorize_scientific_execution": true
+  },
+  "separation_from_scientific_execution": {
+    "materialization_entrypoint_must_not_import_or_call_H24_test_evaluators": true,
+    "materialization_receipt_is_not_scientific_evidence": true,
+    "waveform_hashes_prove_byte_identity_not_hypothesis_validity": true,
+    "successful_population_requires_separate_external_review": true,
+    "new_execution_capability_contract_required": true,
+    "new_execution_authorization_seal_required": true,
+    "P0_P1_P2_remain_forbidden_after_materialization": true,
+    "training_remains_forbidden_after_materialization": true
+  },
+  "future_authorization_sequence": [
+    "external_review_this_contract_only",
+    "separate_authorization_to_implement_dormant_materializer_claim_and_atomic_publisher",
+    "implementation_without_claim_or_synthesis",
+    "external_review_implementation",
+    "separate authorization seal binding exact implementation commit source blob contract SHA and fixed paths",
+    "external review seal and worker preflight",
+    "single materialization attempt",
+    "external review population receipt hashes and terminal record",
+    "separate contract and authorization before any H24 scientific execution"
+  ],
+  "required_adversarial_tests_before_materialization_authorization": [
+    "wrong sealed input hash fails before numpy import",
+    "wrong HEAD or dirty worktree fails before numpy import",
+    "runtime mismatch fails before claim",
+    "missing duplicate reordered or extra fixture fails before claim",
+    "seed mismatch fails before claim",
+    "forged copied replaced pickled capability fails",
+    "caller path selection or parameter override fails",
+    "existing partial or corrupt marker blocks claim and retry",
+    "second process claim fails",
+    "failure immediately after durable claim remains consumed",
+    "wrong dtype shape byte count or nonfinite waveform fails",
+    "wrong spec target or waveform hash fails before publication",
+    "partial staging never becomes success",
+    "atomic rename publishes exactly one complete population",
+    "scientific evaluator dispatch from materializer is impossible",
+    "real data H17 model checkpoint and locked test paths fail before claim"
+  ],
+  "contract_definition_allowed_files": [
+    ".gitattributes",
+    "configs/harmonic_censoring_h24_population_materialization_one_shot_contract.json",
+    "tests/test_harmonic_censoring_h24_population_materialization_contract.py",
+    "readme/README.md",
+    "readme/results/2026-08-10_harmonic-censoring-h24-population-materialization-contract.md"
+  ],
+  "contract_definition_forbidden_files": [
+    "src/polyphonic/harmonic_censoring_h24.py",
+    "src/polyphonic/harmonic_censoring_h24_operators.py",
+    "configs/harmonic_censoring_h24_successor_contract.json",
+    "configs/harmonic_censoring_h24_population_manifest.json",
+    "configs/harmonic_censoring_h24_test_manifest.json",
+    "configs/harmonic_censoring_h24_manifest_binding_contract.json",
+    "configs/harmonic_censoring_h24_dormant_harness_contract.json"
+  ],
+  "next_action": "External review of this population-materialization and one-shot contract only. Do not implement a materializer or claim, synthesize any waveform, materialize any fixture, execute P0/P1/P2, access real data/H17/locked-test, or train."
+}
