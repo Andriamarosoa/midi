@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "purpose": "harmonic_censoring_h24_population_materialization_activation_contract",
+  "status": "contract_only_pending_external_review_no_runtime_authority",
+  "authorization_seal": {
+    "path": "configs/harmonic_censoring_h24_population_materialization_authorization_seal.json",
+    "raw_sha256": "3d5849b89c31037bbd07be391c3a7e8e5ef53b55f65fa4c6a8be0e19bb0ef218"
+  },
+  "reviewed_materializer": {
+    "commit": "101103e63420de3703c045142291a9f231373f77",
+    "source_path": "src/polyphonic/harmonic_censoring_h24_population_materializer.py",
+    "source_blob": "16210df0830eb62cc32f6900af51ad3d9e4972e5",
+    "materialization_contract_raw_sha256": "b48aa4f417a9857983c79809efe24137d6b82ad0984d20e906286477f05a14ca",
+    "exact_changed_files": [
+      "readme/README.md",
+      "readme/results/2026-08-10_harmonic-censoring-h24-dormant-population-materializer.md",
+      "src/polyphonic/harmonic_censoring_h24_population_materializer.py",
+      "tests/test_harmonic_censoring_h24_population_materializer_dormant.py"
+    ]
+  },
+  "activation_commit_contract": {
+    "must_be_distinct_from_reviewed_materializer_commit": true,
+    "commit_sha_is_not_embedded_to_avoid_self_reference": true,
+    "environment_variable": "H24_POPULATION_MATERIALIZATION_AUTHORIZATION_COMMIT",
+    "environment_value_must_be_lowercase_40_hex": true,
+    "checkout_HEAD_must_equal_environment_value": true,
+    "authorization_seal_bytes_must_equal_blob_at_activation_commit": true,
+    "activation_commit_exact_changed_files": [
+      ".gitattributes",
+      "configs/harmonic_censoring_h24_population_materialization_activation_contract.json",
+      "configs/harmonic_censoring_h24_population_materialization_authorization_seal.json",
+      "readme/README.md",
+      "readme/results/2026-08-10_harmonic-censoring-h24-population-materialization-activation-contract.md",
+      "tests/test_harmonic_censoring_h24_population_materialization_activation_contract.py",
+      "tests/test_harmonic_censoring_h24_population_materializer_dormant.py"
+    ],
+    "external_review_of_exact_activation_commit_required": true,
+    "unreviewed_HEAD_must_never_be_inferred_as_authority": true
+  },
+  "fixed_paths": {
+    "claim_marker": "tmp/local/harmonic_censoring_h24_synthetic_v1/H24_SYNTHETIC_V1.consumed.json",
+    "staging_directory": "tmp/local/harmonic_censoring_h24_synthetic_v1/population.materializing",
+    "success_directory": "tmp/local/harmonic_censoring_h24_synthetic_v1/population",
+    "terminal_record": "tmp/local/harmonic_censoring_h24_synthetic_v1/materialization_terminal.json",
+    "caller_override_forbidden": true
+  },
+  "runtime_identity": {
+    "implementation": "CPython",
+    "python_version": "3.11.9",
+    "numpy_version": "1.26.4",
+    "architecture": "arm64",
+    "execution_device": "CPU",
+    "thread_count": 1,
+    "sample_rate_hz": 44100,
+    "hop_samples": 256
+  },
+  "future_one_shot_rights": {
+    "population_id": "H24_SYNTHETIC_V1",
+    "maximum_materialization_attempts": 1,
+    "capability_issuance_after_reviewed_OS_binding": true,
+    "exclusive_durable_claim_after_zero_science_preflight": true,
+    "materialize_exactly_175_synthetic_fixtures": true,
+    "atomic_population_publication": true,
+    "P0_authorized": false,
+    "P1_authorized": false,
+    "P2_authorized": false,
+    "scientific_evidence_authorized": false,
+    "real_data_authorized": false,
+    "H17_authorized": false,
+    "locked_test_authorized": false,
+    "training_authorized": false
+  },
+  "current_dormancy": {
+    "this_contract_grants_runtime_authority": false,
+    "authorization_seal_external_review_required": true,
+    "activation_commit_external_review_required": true,
+    "OS_binding_is_not_stored_in_repository": true,
+    "operational_capability_issuance_authorized_now": false,
+    "claim_or_marker_creation_authorized_now": false,
+    "numpy_bridge_authorized_now": false,
+    "waveform_or_population_creation_authorized_now": false,
+    "scientific_execution_authorized_now": false
+  },
+  "required_next_sequence": [
+    "external_review_authorization_seal_and_activation_contract",
+    "separate_authorization_to_implement_and_review_the_operational_numpy_bridge",
+    "external_review_exact_activation_commit_and_OS_binding",
+    "single_zero_science_preflight",
+    "single_durable_exclusive_claim",
+    "single_population_materialization",
+    "stop_before_P0_P1_P2_and_external_review_population_receipt"
+  ]
+}

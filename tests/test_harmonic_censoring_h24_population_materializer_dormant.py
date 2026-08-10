@@ -85,7 +85,7 @@ class H24DormantPopulationMaterializerTests(unittest.TestCase):
         self.assertNotIn("if __name__", source)
 
     def test_dormant_factory_fails_before_plan_or_numpy_without_future_activation(self):
-        self.assertFalse((ROOT / materializer.H24_AUTHORIZATION_SEAL_RELATIVE_PATH).exists())
+        self.assertTrue((ROOT / materializer.H24_AUTHORIZATION_SEAL_RELATIVE_PATH).exists())
         with tempfile.TemporaryDirectory() as temporary:
             repository = Path(temporary)
             with mock.patch.dict(os.environ, {}, clear=True), mock.patch.object(

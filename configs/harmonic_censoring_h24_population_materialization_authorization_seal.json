@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "purpose": "harmonic_censoring_h24_population_materialization_authorization_seal",
+  "status": "reviewed_dormant_materializer_authorized_for_one_shot_activation",
+  "reviewed_materializer_commit": "101103e63420de3703c045142291a9f231373f77",
+  "exact_changed_files": [
+    "readme/README.md",
+    "readme/results/2026-08-10_harmonic-censoring-h24-dormant-population-materializer.md",
+    "src/polyphonic/harmonic_censoring_h24_population_materializer.py",
+    "tests/test_harmonic_censoring_h24_population_materializer_dormant.py"
+  ],
+  "materializer_source_blob": "16210df0830eb62cc32f6900af51ad3d9e4972e5",
+  "materialization_contract_raw_sha256": "b48aa4f417a9857983c79809efe24137d6b82ad0984d20e906286477f05a14ca",
+  "authorized_action": "AUTHORIZED_TO_ACTIVATE_H24_ONE_SHOT_POPULATION_MATERIALIZATION"
+}

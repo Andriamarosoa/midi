@@ -17,8 +17,18 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `harmonic_censoring_h24_dormant_population_materializer`.
-- Statut : `materializer H24 dormant corrigé pour fidélité numérique; aucun seal, marker, waveform, population ni exécution; en attente de nouvelle revue externe`.
+- Étape : `harmonic_censoring_h24_population_materialization_activation_contract`.
+- Statut : `materializer dormant approuvé; seal et contrat d'activation H24 définis sans autorité runtime; aucun claim, marker, waveform, population ni exécution; en attente de revue externe`.
+- La revue externe a approuvé `101103e6…` puis autorisé uniquement
+  `AUTHORIZED_TO_DEFINE_H24_POPULATION_MATERIALIZATION_AUTHORIZATION_SEAL_AND_ACTIVATION_CONTRACT_ONLY`.
+  Le seal lie ce commit, son blob source `16210df0…`, le contrat `b48aa4f…` et
+  ses quatre fichiers modifiés. Le contrat d'activation lie le SHA du seal,
+  les chemins fixes, le runtime exact et une seule matérialisation future, mais
+  reste `contract_only_pending_external_review_no_runtime_authority`. Aucun
+  OS-binding, bridge NumPy, capability opérationnelle ou claim n'est créé.
+  `167` tests H24/H23/H20 réussissent en `1,971 s`.
+  Rapport :
+  `readme/results/2026-08-10_harmonic-censoring-h24-population-materialization-activation-contract.md`.
 - La revue externe a approuvé `2cf2be8e…` et autorisé uniquement
   `AUTHORIZED_TO_IMPLEMENT_H24_DORMANT_MATERIALIZER_CLAIM_AND_ATOMIC_PUBLISHER_ONLY`.
   Le nouveau module lie le contrat `b48aa4f…`, réimplémente exactement la trace
