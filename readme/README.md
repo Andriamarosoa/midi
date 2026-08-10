@@ -17,8 +17,16 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `harmonic_censoring_multiscale_h23_pretrain_contract`.
-- Statut : `harness H23 implémenté et approuvé; exécution P0 et tout calcul scientifique toujours interdits`.
+- Étape : `harmonic_censoring_h23_synthetic_execution_capability_contract`.
+- Statut : `future capability définie contract-only; revue externe requise; exécution P0 et tout calcul scientifique toujours interdits`.
+- Le contrat séparé de future capability lie le harness approuvé `e97674cd…`,
+  le contrat H23 `719eba0a…`, les manifests `175/72` et le runtime futur. Il
+  impose une capability non constructible/copiable, un seal d'autorisation
+  ultérieur encore inexistant, un claim one-shot avant la première waveform,
+  l'ordre P0→P1→P2 et une publication atomique. Tous les droits restent à
+  `false`; la garde inconditionnelle du harness n'est pas modifiée. Les dix
+  tests ajoutés sont contractuels uniquement. Rapport :
+  `readme/results/2026-08-10_harmonic-censoring-h23-synthetic-execution-capability-contract.md`.
 - La revue externe finale de `e97674cd1d1c3a12ff113f98789105941ab17030`
   conclut `APPROUVÉ`. Elle confirme le resolver/materializer, le test adversarial
   et la garde inconditionnelle : les dataclasses ne peuvent pas être forgées en
@@ -1019,10 +1027,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 ## Prochaine action réelle
 
-1. Obtenir l'autorisation explicite de définir un contrat d'exécution
-   synthétique séparé, sans lancer P0.
-2. Ne synthétiser aucune des `175` fixtures et ne lancer aucun test P0/P1/P2
-   avant que ce futur contrat et sa capability code soient relus et approuvés.
+1. Faire relire le contrat de future capability d'exécution synthétique.
+2. Ne pas implémenter ou émettre cette capability, ne synthétiser aucune des
+   `175` fixtures et ne lancer aucun test P0/P1/P2 avant une autorisation
+   séparée après revue.
 3. Conserver les données réelles, H17, les modèles, le fit, la calibration et
    le test verrouillé fermés.
 
@@ -1477,6 +1485,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-10 — corrections de revue H23a du contrat de censoring](results/2026-08-10_harmonic-censoring-h23-review-corrections.md)
 - [2026-08-10 — fermeture mathématique H23b du contrat de censoring](results/2026-08-10_harmonic-censoring-h23b-mathematical-closure.md)
 - [2026-08-10 — implémentation pure du resolver/materializer H23](results/2026-08-10_harmonic-censoring-h23-harness-implementation.md)
+- [2026-08-10 — contrat de future capability d’exécution synthétique H23](results/2026-08-10_harmonic-censoring-h23-synthetic-execution-capability-contract.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)

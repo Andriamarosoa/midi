@@ -1,0 +1,260 @@
+{
+  "schema_version": 1,
+  "purpose": "harmonic_censoring_h23_synthetic_execution_capability_contract",
+  "status": "contract_only_external_review_required",
+  "scope": {
+    "contract_only": true,
+    "capability_implementation_authorized": false,
+    "capability_issuance_authorized": false,
+    "synthetic_execution_authorized": false,
+    "P0_execution_authorized": false,
+    "P1_execution_authorized": false,
+    "P2_execution_authorized": false,
+    "scientific_execution_authorized": false,
+    "real_data_access_authorized": false,
+    "training_authorized": false,
+    "fit_performed": false,
+    "calibration_performed": false,
+    "h17_population_used": false,
+    "locked_test_used": false
+  },
+  "authorization_basis": {
+    "pilot_instruction": "AUTHORIZED_TO_DEFINE_EXECUTION_CAPABILITY_CONTRACT_ONLY",
+    "pilot_reviewed_head": "2cc826b1b672d10ecd4d4ab23050cc7050cc91d8",
+    "authorized_action": "define_future_synthetic_execution_capability_and_validation_conditions",
+    "explicitly_not_authorized": [
+      "modify_current_unconditional_execution_guard",
+      "implement_capability_factory",
+      "issue_capability",
+      "materialize_fixture_manifest_to_scientific_artifact_root",
+      "synthesize_any_fixture_waveform",
+      "execute_any_P0_P1_or_P2_test",
+      "access_real_data",
+      "load_model_or_checkpoint",
+      "fit_or_calibrate",
+      "reuse_H17",
+      "access_locked_test"
+    ]
+  },
+  "approved_harness_binding": {
+    "approved_commit": "e97674cd1d1c3a12ff113f98789105941ab17030",
+    "contract_path": "configs/harmonic_censoring_pretrain_h23_contract.json",
+    "contract_raw_sha256": "719eba0aa440fc1e77ae7d204adee9e5b51517f455fad3bfed7e761d3c00a74a",
+    "contract_git_blob": "864abd127ffed9daf3e5d64dddf0aedbbda8296a",
+    "harness_path": "src/polyphonic/harmonic_censoring_h23.py",
+    "harness_git_blob": "548e6cc1500e682170cc7043fe694474e3bbd647",
+    "harness_test_path": "tests/test_harmonic_censoring_h23_harness.py",
+    "harness_test_git_blob": "e9c03542e4c90a66895302492ce818bea5a9faca",
+    "current_guard_semantics": "unconditional_PermissionError_for_every_H23HarnessPlan",
+    "current_guard_must_remain_unchanged_during_contract_definition": true
+  },
+  "resolved_universe_binding": {
+    "fixture_count": 175,
+    "base_fixture_count": 6,
+    "variant_fixture_count": 169,
+    "variant_axis_count": 17,
+    "fixture_manifest_sha256": "acfa37b987deb19884c9f60cf3410717b68788eb466396402aaf992b3224e19c",
+    "test_count": 72,
+    "phase_counts": {
+      "P0": 27,
+      "P1": 35,
+      "P2": 10
+    },
+    "resolved_test_manifest_sha256": "0d059d3f2540f2b08279bb8363e9036ae0f71b2bea11575bfebfce76b7fe7504",
+    "fixture_ids_must_equal_resolved_manifest_exactly": true,
+    "test_ids_and_order_must_equal_resolved_manifest_exactly": true,
+    "addition_omission_or_reordering_after_authorization_allowed": false
+  },
+  "future_capability_design": {
+    "capability_name": "AttestedH23SyntheticExecutionCapability",
+    "public_dataclass_or_mapping_is_not_a_capability": true,
+    "constructor_publicly_callable": false,
+    "factory_required": true,
+    "factory_must_be_separately_reviewed": true,
+    "factory_must_require_all": [
+      "canonical_H23_contract_path_and_raw_SHA256_match",
+      "this_capability_contract_raw_SHA256_matches_a_future_separate_authorization_seal",
+      "approved_harness_source_blobs_match",
+      "fixture_manifest_recomputed_in_memory_and_SHA256_matches",
+      "resolved_test_manifest_recomputed_in_memory_and_SHA256_matches",
+      "future_execution_commit_and_exact_changed_file_set_match",
+      "worktree_is_clean",
+      "runtime_identity_matches",
+      "CPU_only_and_one_thread",
+      "destination_does_not_exist",
+      "authorization_marker_does_not_exist",
+      "H17_and_locked_test_paths_are_absent_from_all_inputs"
+    ],
+    "attestation_storage": "identity_only_private_registry_with_weak_reference_or_equivalent_noncopyable_token",
+    "dataclasses_replace_copy_pickle_or_manual_construction_must_fail": true,
+    "capability_must_bind": [
+      "H23_contract_raw_sha256",
+      "capability_contract_raw_sha256",
+      "approved_harness_git_blob",
+      "fixture_manifest_sha256",
+      "resolved_test_manifest_sha256",
+      "future_execution_commit",
+      "runtime_identity",
+      "destination",
+      "authorization_marker"
+    ],
+    "capability_single_use": true,
+    "capability_cross_process_reuse_allowed": false,
+    "capability_serialization_allowed": false
+  },
+  "future_execution_authorization_seal": {
+    "required_as_separate_reviewed_file": true,
+    "exists_now": false,
+    "path": null,
+    "raw_sha256": null,
+    "reviewed_execution_commit": null,
+    "capability_issuance_authorized": false,
+    "synthetic_execution_authorized": false,
+    "P0_execution_authorized": false,
+    "must_bind_this_contract_raw_sha256": true,
+    "must_bind_exact_future_capability_source_blob": true,
+    "must_bind_exact_future_runner_source_blob": true,
+    "must_bind_exact_changed_file_set": true
+  },
+  "runtime_identity": {
+    "implementation": "CPython",
+    "python_version": "3.11.9",
+    "numpy_version": "1.26.4",
+    "architecture": "arm64",
+    "execution_device": "CPU",
+    "thread_count": 1,
+    "future_lookahead_samples": 0,
+    "sample_rate_hz": 44100,
+    "hop_samples": 256,
+    "causal_window_samples": 4096,
+    "runtime_mismatch_must_fail_before_capability_issuance": true
+  },
+  "one_shot_boundary": {
+    "authorization_marker_path": null,
+    "result_destination": null,
+    "paths_must_be_fixed_by_future_authorization_seal": true,
+    "claim_method": "atomic_create_exclusive",
+    "persist_before_first_fixture_waveform_synthesis": {
+      "synthetic_population_consumed": true
+    },
+    "manifest_resolution_or_hashing_is_not_consumption": true,
+    "first_fixture_waveform_synthesis_is_consumption": true,
+    "failure_after_consumption_keeps_population_consumed": true,
+    "automatic_retry_allowed": false,
+    "manual_same_population_retry_allowed": false,
+    "partial_result_authoritative": false
+  },
+  "future_phase_order": {
+    "order": [
+      "zero_science_preflight",
+      "capability_issue",
+      "atomic_consumption_claim",
+      "P0",
+      "P1",
+      "P2",
+      "atomic_publication"
+    ],
+    "P1_requires_all_P0_pass": true,
+    "P2_requires_all_P1_pass": true,
+    "stop_immediately_on_any_failed_test": true,
+    "execute_unlisted_test_allowed": false,
+    "skip_list_allowed": false,
+    "dynamic_test_selection_allowed": false,
+    "post_observation_parameter_change_allowed": false
+  },
+  "future_zero_science_preflight": {
+    "must_complete_before_consumption": true,
+    "must_recompute_and_compare": [
+      "H23_contract_raw_sha256",
+      "capability_contract_raw_sha256",
+      "approved_harness_git_blobs",
+      "fixture_manifest_sha256",
+      "resolved_test_manifest_sha256"
+    ],
+    "must_verify": [
+      "175_unique_fixture_ids",
+      "72_unique_ordered_test_ids",
+      "P0_27_P1_35_P2_10",
+      "17_transform_axes",
+      "all_fixture_spec_sha256_values",
+      "all_resolved_test_contract_sha256_values",
+      "no_real_data_paths",
+      "no_H17_paths",
+      "no_locked_test_paths",
+      "destination_absent",
+      "authorization_marker_absent",
+      "worktree_clean",
+      "runtime_exact"
+    ],
+    "numpy_import_allowed_during_preflight": false,
+    "waveform_allocation_allowed_during_preflight": false,
+    "fixture_spec_or_test_set_mutation_allowed": false
+  },
+  "future_atomic_publication": {
+    "staging_then_verify_then_atomic_rename": true,
+    "destination_must_be_new": true,
+    "all_175_fixture_ids_required": true,
+    "all_72_test_ids_required": true,
+    "executed_fixture_ids_must_equal_preregistered_fixture_ids": true,
+    "executed_test_ids_must_equal_resolved_test_ids_in_order": true,
+    "all_required_H23_atomic_artifacts_required": true,
+    "sha256_manifest_required": true,
+    "failure_or_timeout_must_not_publish_final_destination": true,
+    "report_must_include": [
+      "contract_and_source_bindings",
+      "runtime_identity",
+      "consumption_state",
+      "fixture_and_test_ID_reconciliation",
+      "per_phase_pass_fail_counts",
+      "inverse_check_counts",
+      "nonfinite_and_mask_counts",
+      "latency_and_memory_measurements",
+      "real_data_used_false",
+      "H17_population_used_false",
+      "locked_test_used_false",
+      "fit_performed_false",
+      "global_go_status"
+    ]
+  },
+  "future_verdict_contract": {
+    "only_positive_status": "AUTHORIZED_TO_PREPARE_TRAIN_PROTOCOL",
+    "explicitly_not": "TRAIN_AUTHORIZED",
+    "must_reuse_global_go_contract_without_change": true,
+    "any_P0_failure_status": "H23_SYNTHETIC_HYPOTHESIS_KILLED",
+    "any_P1_or_P2_failure_status": "H23_PRETRAIN_READINESS_NOT_DEMONSTRATED",
+    "incomplete_or_nonatomic_status": "H23_EXECUTION_INCONCLUSIVE_FAIL_CLOSED",
+    "negative_or_inconclusive_result_retry_allowed": false,
+    "result_may_authorize_training": false,
+    "result_may_access_real_data": false
+  },
+  "required_future_adversarial_tests_before_issuance": [
+    "dataclasses_replace_on_plan_or_capability_is_rejected",
+    "manual_capability_construction_is_rejected",
+    "pickled_or_copied_capability_is_rejected",
+    "wrong_H23_contract_bytes_fail_before_numpy_import",
+    "wrong_capability_contract_bytes_fail_before_numpy_import",
+    "wrong_harness_blob_fails_before_numpy_import",
+    "wrong_fixture_manifest_hash_fails_before_numpy_import",
+    "wrong_test_manifest_hash_fails_before_numpy_import",
+    "dirty_worktree_fails_before_numpy_import",
+    "runtime_mismatch_fails_before_numpy_import",
+    "real_H17_or_locked_test_path_injection_fails_before_numpy_import",
+    "duplicate_or_missing_fixture_ID_fails_before_consumption",
+    "duplicate_missing_or_reordered_test_ID_fails_before_consumption",
+    "second_capability_claim_fails_cross_process",
+    "failure_after_first_waveform_keeps_consumed_state_and_forbids_retry",
+    "partial_staging_never_becomes_final_destination"
+  ],
+  "contract_definition_allowed_files": [
+    ".gitattributes",
+    "configs/harmonic_censoring_h23_synthetic_execution_capability_contract.json",
+    "readme/README.md",
+    "readme/results/2026-08-10_harmonic-censoring-h23-synthetic-execution-capability-contract.md",
+    "tests/test_harmonic_censoring_h23_execution_capability_contract.py"
+  ],
+  "contract_definition_forbidden_files": [
+    "src/polyphonic/harmonic_censoring_h23.py",
+    "configs/harmonic_censoring_pretrain_h23_contract.json"
+  ],
+  "next_action": "External review of this contract-only capability definition. Do not implement or issue the capability, modify the unconditional guard, synthesize fixtures or execute P0/P1/P2 before a separate approval."
+}
