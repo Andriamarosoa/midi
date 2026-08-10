@@ -17,8 +17,20 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `provisional_resolution_age1_persistence_h10_synthetic_metric_conformance`.
-- Statut : `terminé — provisional_resolution_age1_persistence_h10_synthetic_metric_engine_ready, aucune exécution scientifique autorisée`.
+- Étape : `provisional_resolution_age1_persistence_h11_execution_contract`.
+- Statut : `terminé — provisional_resolution_age1_persistence_h11_execution_contract_sealed, aucune exécution scientifique autorisée`.
+- H11 scelle uniquement le futur runner one-shot H7. La provenance fixe le
+  checkpoint `1ce8ac44…`, le YAML `24528578…`, le décodeur `c16be482…`, la
+  politique audio LF `45edbb71…`, Python `3.11.9`, NumPy `1.26.4`, TensorFlow
+  `2.15.1` et le Mac arm64 CPU. L'orchestrateur pur exige exactement `101`
+  prises/`31` groupes H8, marque la cohorte consommée avant la première
+  ouverture scientifique, n'appelle l'inférence qu'une fois par prise, refuse
+  tout résultat partiel et ne publie atomiquement qu'après réconciliation
+  complète. Le marqueur d'autorisation réel n'existe pas et le runner n'a pas
+  été invoqué. Contrat :
+  `configs/provisional_resolution_age1_persistence_h11_execution_contract.json`.
+  Rapport :
+  `readme/results/2026-08-10_provisional-resolution-age1-h11-execution-contract.md`.
 - H10 positif sur objets synthétiques uniquement : une fin d'enregistrement avec
   NoteOn encore pending échoue sous `age1_signal_execution_invalid` /
   `unresolved_age1_pending_at_end_of_recording`, sans synthèse de frame,

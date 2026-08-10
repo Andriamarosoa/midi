@@ -1,0 +1,180 @@
+{
+  "schema_version": 1,
+  "purpose": "provisional_resolution_age1_persistence_h11_execution_contract",
+  "status": "provisional_resolution_age1_persistence_h11_execution_contract_sealed",
+  "accepted_chain": {
+    "h7_commit": "e3e2be144282ecf0079ba22831abfb6439b16ac3",
+    "h8_commit": "8f50a8a083bbfd0b07330c338b64763199fdf894",
+    "h8_cohort_sha256": "4dd76bd13c33ccb3946bfdbcf6f575d4550fb0c5588095e23da3b6e3f84bce1f",
+    "h8_preparation_sha256": "9bbe2b5558b6b5764415619260a6aba1e3daf1d3c22ce185f3b00a336f8e1639",
+    "h9_commit": "963cf72c8e60e2d669e659de037f910658637984",
+    "h10_commit": "bc878204451c45c3f5bb849bbf01de0de290f23a",
+    "h10_contract_sha256": "533c5eb5062666181a98885cc588ef10a46bbf36c3618aed794ba3facd911e0f"
+  },
+  "baseline": {
+    "selection_provenance": "Policy-A v3 historical candidate-mining baseline uniquely fixes checkpoint, model YAML, decoder JSON and audio-evidence JSON",
+    "checkpoint": {
+      "relative_worker_path": "checkpoints/1ce8ac44ca7156d4bc058b5b37580805f2ab6536b380636c04b9a31b1a411325.keras",
+      "format": "keras",
+      "size_bytes": 5587783,
+      "sha256": "1ce8ac44ca7156d4bc058b5b37580805f2ab6536b380636c04b9a31b1a411325"
+    },
+    "model_config": {
+      "path": "configs/polyphonic_dual_stream_bass_independent_note.yaml",
+      "raw_sha256": "245285783eb395e1c16f9773cf9a15565510ba289467d63ad6a7d725bae19804",
+      "model_code_git_blob": "4745f79127f59abdde8d20add99f5433d80e8fa4",
+      "input_samples": 8192,
+      "normalization_gain": 1.4932045250002872,
+      "normal_window_samples": 4096,
+      "compressed_bass_branch": true,
+      "batch_size": 32,
+      "shuffle": false,
+      "seed": 0,
+      "workers": 1,
+      "predict_verbose": 0,
+      "required_outputs": ["frame", "onset", "harmonic_amplitude"]
+    },
+    "decoder_config": {
+      "path": "configs/independent_note_decoder_reference.json",
+      "raw_sha256": "c16be48271912c99c4237345e8406e39b88490b5565047757f6ca9e905615f96",
+      "canonical_payload_sha256": "7f6a93b566c2e042ec943821b5d35bdaa9151fe97711cd9463704aba20de178d",
+      "payload": {
+        "activation_frames": 2,
+        "audio_onset_lookback_frames": 10,
+        "chord_formation_frames": 0,
+        "chord_release_grace_frames": 6,
+        "frame_off_threshold": 0.36,
+        "frame_on_threshold": 0.6,
+        "harmonic_support_threshold": 0.6,
+        "harmonic_suppression_strength": 0.25,
+        "harmonic_tolerance_cents": 35.0,
+        "independent_note_threshold": null,
+        "maximum_polyphony": 6,
+        "midi_max": 76,
+        "midi_min": 40,
+        "minimum_retrigger_frames": 14,
+        "onset_threshold": 0.615,
+        "recovery_release_grace_frames": 4,
+        "release_frames": 3,
+        "silence_release_frames": 14,
+        "strong_frame_threshold": 0.85,
+        "unattacked_frame_threshold": 0.9
+      },
+      "provisional_state_resolver": null,
+      "causal_candidate_gate": null,
+      "passive_age1_collector": "enabled",
+      "h4_h6_correction_active": false
+    },
+    "audio_evidence": {
+      "path": "configs/polyphonic_audio_evidence_adaptive_temporal.json",
+      "raw_lf_sha256": "45edbb712415c5b62f10a1405678fc28cee083891131108b2875ce8f71abcd3e",
+      "payload": {"onset_adapt_temporal_background": true},
+      "computed_once_per_recording": true,
+      "shared_with_decoder_and_collector": true
+    },
+    "frame_contract": {
+      "sample_rate": 44100,
+      "hop_size": 256,
+      "midi_min": 40,
+      "midi_max": 76,
+      "event_time": "(frame_index+1)*hop_size/sample_rate"
+    },
+    "source_git_blobs": {
+      "src/polyphonic/audio_evidence.py": "cbb40a73773e7c7c81786159b3cb00e417b9f7aa",
+      "src/polyphonic/data.py": "f1e0cc06f98dbc3528570f6edcd2eaec339d98b2",
+      "src/polyphonic/decoder.py": "4233186147c0946372ddb2e9e3dd3343daeb26eb",
+      "src/polyphonic/mine_decoder_candidates.py": "89fb0bb060394c9784b7930aa595f3c8a2ee4c78",
+      "src/polyphonic/model.py": "4745f79127f59abdde8d20add99f5433d80e8fa4"
+    }
+  },
+  "runtime": {
+    "worker": "Mac M4 CPU-only",
+    "python": "3.11.9",
+    "numpy": "1.26.4",
+    "tensorflow": "2.15.1",
+    "platform": "macOS 15.5 build 24F74 Darwin 24.5.0",
+    "architecture": "arm64",
+    "device": "cpu",
+    "midi_force_cpu": "1",
+    "environment_upgrade_without_review": false
+  },
+  "cohort": {
+    "path": "configs/provisional_resolution_age1_persistence_h8_selected_cohort.json",
+    "recordings": 101,
+    "leakage_groups": 31,
+    "partition": "dev",
+    "manifest_sha256": "b28cb17cfb80a82860ab44635b2c6d05718243e027a8fc8199fe72e27f1b8ed7",
+    "partition_plan_sha256": "a8347e4e6300dc59b48eab253186fd60ae21cd769fa21d647db4d7e0893685f4",
+    "forbidden_v2_and_locked_groups_must_be_absent": true,
+    "verify_audio_and_label_size_sha_before_open": true,
+    "guitarset_archive_sha_before_member_read": true,
+    "guitarset_exact_member_identity": true,
+    "substitution_or_skip": false
+  },
+  "one_recording_pipeline": [
+    "verify_provenance_before_scientific_open",
+    "open_frozen_historical_audio_and_label_loader",
+    "parse_reference_labels",
+    "run_frozen_acoustic_inference_exactly_once",
+    "feed_same_prediction_sequence_once_to_historical_decoder_and_passive_collector",
+    "retain_full_emitted_midi_event_stream",
+    "require_no_pending_age1_at_end",
+    "extract_exact_h9_offline_target",
+    "join_exact_frame_index_pitch",
+    "attach_h8_recording_corpus_group_metadata_only",
+    "retain_staging_rows_without_adaptation"
+  ],
+  "reconciliation": {
+    "recordings": 101,
+    "leakage_groups": 31,
+    "every_emitted_noteon_one_signal": true,
+    "every_emitted_noteon_one_target": true,
+    "join_exact": true,
+    "pending_age1": 0,
+    "attrition_exact": true,
+    "malformed_or_nonfinite_silent_removal": false,
+    "failure_status": "age1_signal_execution_invalid"
+  },
+  "metrics": {
+    "engine": "src.polyphonic.provisional_resolution_age1_metrics.evaluate_h7_synthetic_metrics",
+    "minimum_observations": 200,
+    "bootstrap_replicates": 10000,
+    "bootstrap_seed": 721629268,
+    "minimum_valid_bootstrap_replicates": 9500,
+    "rng": "numpy.random.Generator(numpy.random.PCG64)",
+    "percentiles": [2.5, 97.5],
+    "percentile_method": "linear",
+    "primary": "S1_ROC_AUC",
+    "s0_d1": "descriptive_only",
+    "per_corpus": "descriptive_non_gating",
+    "recompute_with_alternate_seed": false
+  },
+  "execution_state_machine": {
+    "states": ["prepared", "external_approval", "authorization_marker_creation", "claimed_running", "completed_or_failed"],
+    "authorization_marker_relative_path": "tmp/local/provisional_resolution_age1_h7_discovery_authorization.json",
+    "marker_created_in_h11": false,
+    "single_use_claim": "atomic_rename_to_dot_claimed",
+    "retry_loop": false,
+    "final_publication": "atomic_directory_rename_after_101_recordings_and_reconciliation"
+  },
+  "consumption": {
+    "initial_h8_discovery_consumed": false,
+    "boundary": "immediately_before_first_adapter_scientific_open_parse_or_inference",
+    "failure_after_boundary_remains_consumed": true,
+    "automatic_rerun": false,
+    "same_cohort_optimization_as_independent": false
+  },
+  "terminal_flags": {
+    "scientific_execution_authorized": false,
+    "execution_marker_created": false,
+    "runner_invoked": false,
+    "h8_scientific_assets_opened": false,
+    "h8_discovery_consumed": false,
+    "real_targets_extracted": false,
+    "real_signals_extracted": false,
+    "real_metrics_computed": false,
+    "locked_test_used": false,
+    "consumed_v2_cohort_used": false
+  },
+  "next_action": "external_review_before_authorization_marker_creation_or_real_h7_execution"
+}
