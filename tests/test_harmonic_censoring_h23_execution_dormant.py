@@ -1,0 +1,291 @@
+from __future__ import annotations
+
+import copy
+from dataclasses import replace
+import hashlib
+import json
+from pathlib import Path
+import pickle
+import tempfile
+import unittest
+from unittest import mock
+
+from src.polyphonic import harmonic_censoring_h23_execution_capability as capability
+from src.polyphonic import run_harmonic_censoring_h23_synthetic as runner
+from src.polyphonic.harmonic_censoring_h23 import load_h23_harness_plan
+
+
+class HarmonicCensoringH23DormantExecutionTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.root = Path(__file__).resolve().parents[1]
+        cls.plan = load_h23_harness_plan(cls.root)
+
+    def _seal_payload(self) -> dict[str, object]:
+        changed = sorted(
+            (
+                capability.H23_CAPABILITY_SOURCE_RELATIVE_PATH.as_posix(),
+                capability.H23_RUNNER_SOURCE_RELATIVE_PATH.as_posix(),
+            )
+        )
+        commit = "a" * 40
+        return {
+            "schema_version": 1,
+            "purpose": "harmonic_censoring_h23_synthetic_execution_authorization_seal",
+            "status": "externally_approved_one_shot_synthetic_execution",
+            "authorization": {
+                "capability_issuance_authorized": True,
+                "synthetic_execution_authorized": True,
+                "scientific_execution_authorized": True,
+                "P0_execution_authorized": True,
+                "P1_execution_authorized": True,
+                "P2_execution_authorized": True,
+                "real_data_access_authorized": False,
+                "training_authorized": False,
+                "H17_population_used": False,
+                "locked_test_used": False,
+            },
+            "bindings": {
+                "H23_contract_raw_sha256": capability.H23_CONTRACT_SHA256,
+                "capability_contract_raw_sha256": capability.H23_CAPABILITY_CONTRACT_SHA256,
+                "fixture_manifest_sha256": capability.H23_FIXTURE_MANIFEST_SHA256,
+                "resolved_test_manifest_sha256": capability.H23_RESOLVED_TEST_MANIFEST_SHA256,
+                "reviewed_execution_commit": commit,
+                "exact_changed_files": changed,
+                "capability_source_blob": "b" * 40,
+                "runner_source_blob": "c" * 40,
+            },
+            "runtime_identity": {
+                "implementation": "CPython",
+                "python_version": "3.11.9",
+                "numpy_version": "1.26.4",
+                "architecture": "arm64",
+                "execution_device": "CPU",
+                "thread_count": 1,
+            },
+            "one_shot_paths": {
+                "success_destination": "tmp/h23/success",
+                "terminal_record_destination": "tmp/h23/terminal",
+                "authorization_marker": "tmp/h23/consumed.json",
+            },
+            "external_review": {
+                "verdict": "APPROVED",
+                "reviewed_execution_commit": commit,
+                "authorization_seal_review_required": True,
+            },
+        }
+
+    def test_future_seal_parser_requires_all_six_rights(self) -> None:
+        contract_raw = (
+            self.root / capability.H23_CAPABILITY_CONTRACT_RELATIVE_PATH
+        ).read_bytes()
+        self.assertEqual(
+            hashlib.sha256(contract_raw).hexdigest(),
+            capability.H23_CAPABILITY_CONTRACT_SHA256,
+        )
+        payload = self._seal_payload()
+        parsed = capability.validate_h23_authorization_seal_payload(
+            payload, raw_sha256="d" * 64
+        )
+        self.assertEqual(parsed.reviewed_execution_commit, "a" * 40)
+        for right in (
+            "capability_issuance_authorized",
+            "synthetic_execution_authorized",
+            "scientific_execution_authorized",
+            "P0_execution_authorized",
+            "P1_execution_authorized",
+            "P2_execution_authorized",
+        ):
+            forged = self._seal_payload()
+            forged["authorization"][right] = False  # type: ignore[index]
+            with self.subTest(right=right), self.assertRaisesRegex(
+                PermissionError, right
+            ):
+                capability.validate_h23_authorization_seal_payload(
+                    forged, raw_sha256="d" * 64
+                )
+
+    def test_seal_parser_rejects_training_locked_test_and_path_escape(self) -> None:
+        for name in ("training_authorized", "locked_test_used", "H17_population_used"):
+            payload = self._seal_payload()
+            payload["authorization"][name] = True  # type: ignore[index]
+            with self.subTest(name=name), self.assertRaises(PermissionError):
+                capability.validate_h23_authorization_seal_payload(
+                    payload, raw_sha256="d" * 64
+                )
+        payload = self._seal_payload()
+        payload["one_shot_paths"]["success_destination"] = "../escape"  # type: ignore[index]
+        with self.assertRaisesRegex(ValueError, "inside the repository"):
+            capability.validate_h23_authorization_seal_payload(
+                payload, raw_sha256="d" * 64
+            )
+
+    def test_current_factory_refuses_before_plan_resolution(self) -> None:
+        self.assertIsNone(capability.H23_AUTHORIZATION_SEAL_SHA256)
+        with mock.patch.object(capability, "load_h23_harness_plan") as load_plan:
+            with self.assertRaisesRegex(PermissionError, "no reviewed authorization seal"):
+                capability.issue_h23_synthetic_execution_capability(self.root)
+        load_plan.assert_not_called()
+
+    def test_manual_copy_replace_pickle_and_structural_forgery_are_rejected(self) -> None:
+        with self.assertRaisesRegex(TypeError, "constructor is private"):
+            capability.AttestedH23SyntheticExecutionCapability(  # type: ignore[call-arg]
+                None,
+                contract_sha256="0" * 64,
+                capability_contract_sha256="0" * 64,
+                fixture_manifest_sha256="0" * 64,
+                resolved_test_manifest_sha256="0" * 64,
+                approved_harness_git_blob="0" * 40,
+                implementation_commit="0" * 40,
+                authorization_seal_sha256="0" * 64,
+                success_destination=Path("success"),
+                terminal_record_destination=Path("terminal"),
+                authorization_marker=Path("marker"),
+            )
+        forged = object.__new__(capability.AttestedH23SyntheticExecutionCapability)
+        with self.assertRaises(PermissionError):
+            capability.require_attested_h23_synthetic_execution_capability(forged)
+        with self.assertRaises(TypeError):
+            copy.copy(forged)
+        with self.assertRaises(TypeError):
+            copy.deepcopy(forged)
+        with self.assertRaises(TypeError):
+            pickle.dumps(forged)
+        with self.assertRaises(TypeError):
+            replace(forged)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            capability.require_attested_h23_synthetic_execution_capability(
+                {"synthetic_execution_authorized": True}
+            )
+
+    def _results(self, count: int, *, fail_last: bool = False):
+        return tuple(
+            runner.H23AdministrativeTestResult(
+                test_id=item.test_id,
+                phase=item.phase,
+                passed=not (fail_last and index == count - 1),
+                evidence={"synthetic_administrative_test": True, "index": index},
+            )
+            for index, item in enumerate(self.plan.tests[:count])
+        )
+
+    def test_P0_failure_is_authoritative_with_exact_not_run_suffix(self) -> None:
+        results = self._results(5, fail_last=True)
+        terminal = runner.build_h23_scientific_terminal_record(
+            self.plan, results, consumption_marker_sha256="e" * 64
+        )
+        self.assertEqual(terminal["global_go_status"], runner.H23_P0_KILL_STATUS)
+        self.assertEqual(terminal["first_failed_test_id"], self.plan.tests[4].test_id)
+        self.assertEqual(len(terminal["executed_results"]), 5)
+        self.assertEqual(len(terminal["not_run_tests"]), 67)
+        self.assertTrue(
+            all(
+                item["status"] == runner.H23_NOT_RUN_STATUS
+                for item in terminal["not_run_tests"]
+            )
+        )
+        self.assertFalse(terminal["training_authorized"])
+
+    def test_success_requires_all_72_and_failure_must_be_last_prefix_item(self) -> None:
+        with self.assertRaisesRegex(ValueError, "success requires all 72"):
+            runner.build_h23_scientific_terminal_record(
+                self.plan, self._results(5), consumption_marker_sha256="e" * 64
+            )
+        results = list(self._results(5))
+        results[2] = runner.H23AdministrativeTestResult(
+            test_id=results[2].test_id,
+            phase=results[2].phase,
+            passed=False,
+            evidence={},
+        )
+        with self.assertRaisesRegex(ValueError, "first failed test"):
+            runner.build_h23_scientific_terminal_record(
+                self.plan, results, consumption_marker_sha256="e" * 64
+            )
+        success = runner.build_h23_scientific_terminal_record(
+            self.plan, self._results(72), consumption_marker_sha256="e" * 64
+        )
+        self.assertEqual(success["global_go_status"], runner.H23_POSITIVE_STATUS)
+        self.assertEqual(success["not_run_tests"], [])
+
+    def test_P1_and_P2_failures_are_readiness_failures_not_P0_kills(self) -> None:
+        first_by_phase = {}
+        for index, item in enumerate(self.plan.tests):
+            first_by_phase.setdefault(item.phase, index)
+        for phase in ("P1", "P2"):
+            count = first_by_phase[phase] + 1
+            terminal = runner.build_h23_scientific_terminal_record(
+                self.plan,
+                self._results(count, fail_last=True),
+                consumption_marker_sha256="e" * 64,
+            )
+            with self.subTest(phase=phase):
+                self.assertEqual(
+                    terminal["global_go_status"],
+                    runner.H23_READINESS_FAILURE_STATUS,
+                )
+                self.assertNotEqual(
+                    terminal["global_go_status"], runner.H23_P0_KILL_STATUS
+                )
+
+    def test_operational_incident_is_never_a_scientific_verdict(self) -> None:
+        terminal = runner.build_h23_operational_terminal_record(
+            self.plan,
+            self._results(4),
+            consumption_marker_sha256="e" * 64,
+            error_type="TimeoutError",
+            error_message="synthetic administrative timeout",
+        )
+        self.assertEqual(terminal["global_go_status"], runner.H23_INCONCLUSIVE_STATUS)
+        self.assertIsNone(terminal["scientific_verdict"])
+        self.assertFalse(terminal["training_authorized"])
+
+    def test_atomic_terminal_publication_is_new_and_complete(self) -> None:
+        payload = runner.build_h23_operational_terminal_record(
+            self.plan,
+            self._results(2),
+            consumption_marker_sha256="e" * 64,
+            error_type="RuntimeError",
+            error_message="administrative-only",
+        )
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "terminal"
+            report = runner.publish_h23_terminal_record_atomically(destination, payload)
+            self.assertEqual(json.loads(report.read_text(encoding="utf-8")), payload)
+            self.assertEqual(list(destination.iterdir()), [report])
+            with self.assertRaises(FileExistsError):
+                runner.publish_h23_terminal_record_atomically(destination, payload)
+
+    def test_runner_is_dormant_and_never_claims_a_structural_lookalike(self) -> None:
+        self.assertFalse(runner.PRODUCTION_H23_SCIENTIFIC_EXECUTOR_IMPLEMENTED)
+        with self.assertRaises(TypeError):
+            runner.run_authorized_h23_synthetic_execution(self.root, object())
+        with mock.patch.object(capability, "load_h23_harness_plan") as load_plan:
+            with self.assertRaisesRegex(PermissionError, "no reviewed authorization seal"):
+                runner.main([])
+        load_plan.assert_not_called()
+
+    def test_modules_have_no_scientific_or_project_data_imports(self) -> None:
+        for module_path in (
+            self.root / capability.H23_CAPABILITY_SOURCE_RELATIVE_PATH,
+            self.root / capability.H23_RUNNER_SOURCE_RELATIVE_PATH,
+        ):
+            source = module_path.read_text(encoding="utf-8")
+            self.assertNotIn("import numpy", source)
+            self.assertNotIn("import tensorflow", source)
+            self.assertNotIn("from .data import", source)
+            self.assertNotIn("from .decoder import", source)
+        capability_source = (
+            self.root / capability.H23_CAPABILITY_SOURCE_RELATIVE_PATH
+        ).read_text(encoding="utf-8")
+        self.assertIn(
+            "registered[1] != _capability_binding(value)", capability_source
+        )
+        runner_source = (
+            self.root / capability.H23_RUNNER_SOURCE_RELATIVE_PATH
+        ).read_text(encoding="utf-8")
+        self.assertNotIn("claim_h23_synthetic_execution_capability", runner_source)
+
+
+if __name__ == "__main__":
+    unittest.main()

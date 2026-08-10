@@ -17,8 +17,16 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `harmonic_censoring_h23_synthetic_execution_capability_contract`.
-- Statut : `future capability définie contract-only; revue externe requise; exécution P0 et tout calcul scientifique toujours interdits`.
+- Étape : `harmonic_censoring_h23_dormant_execution_implementation`.
+- Statut : `capability et shell administratif implémentés dormants; revue externe requise; seal, claim, synthèse et P0/P1/P2 interdits`.
+- Après l'approbation finale du contrat `ee00bcf6…`, les modules de capability
+  et de runner ont été ajoutés sans exécuteur scientifique. Le seal reste
+  inexistant (`SHA=None`), la factory échoue avant le resolver et le runner ne
+  référence pas le claim. Les six droits futurs sont validés séparément, la
+  capability est attestée par identité et les trois terminaux administratifs
+  succès/kill/inconclusif sont construits fail-closed. Les onze tests ajoutés
+  sont purs et ne synthétisent rien. Rapport :
+  `readme/results/2026-08-10_harmonic-censoring-h23-dormant-execution-implementation.md`.
 - Le contrat séparé de future capability lie le harness approuvé `e97674cd…`,
   le contrat H23 `719eba0a…`, les manifests `175/72` et le runtime futur. Il
   impose une capability non constructible/copiable, un seal d'autorisation
