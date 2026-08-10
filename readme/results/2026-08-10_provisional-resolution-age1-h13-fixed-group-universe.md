@@ -62,3 +62,42 @@ audio ou label H8 n'a été ouvert scientifiquement, aucun modèle chargé, aucu
 inférence exécutée, aucun signal/target réel extrait et aucune métrique réelle
 calculée. H8 reste non consommée. Une nouvelle revue externe est obligatoire
 avant toute autorisation réelle.
+
+## Preflight Mac zéro-science
+
+Le Mac a été synchronisé exactement sur le commit
+`bd1858addef75e64f771b884e7b1f91d3a5d0363`, puis seule la commande
+`python -m src.polyphonic.provisional_resolution_age1_h13 --preflight-only`
+a été exécutée avec `MIDI_FORCE_CPU=1` et le `MIDI_DATA_ROOT` canonique.
+
+Résultat :
+
+```text
+status                                      h7_real_execution_preflight_ready
+h13_status                                  provisional_resolution_age1_persistence_h13_execution_seal_ready
+recordings                                  101
+leakage_groups                              31
+sealed_cohort_group_universe_count          31
+forbidden_groups                            58
+scientific_execution_authorized             false
+execution_marker_created                    false
+runner_invoked                              false
+h8_scientific_assets_opened                 false
+h8_discovery_consumed                       false
+real_targets_extracted                      false
+real_signals_extracted                      false
+real_metrics_computed                       false
+```
+
+Runtime confirmé : Python `3.11.9`, NumPy `1.26.4`, métadonnée TensorFlow
+`2.15.1`, macOS `15.5` / Darwin `24.5.0`, arm64, CPU.
+
+Avant et après le preflight, les quatre chemins suivants étaient absents :
+
+- marqueur d'autorisation ;
+- marqueur `.claimed` ;
+- répertoire final de résultat ;
+- rapport d'échec.
+
+Le worktree Mac est resté propre. Ce preflight n'autorise toujours pas le run
+réel et n'a révélé aucun compte d'éligibilité scientifique par groupe.

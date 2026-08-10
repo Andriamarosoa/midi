@@ -28,6 +28,9 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   fermés. Le runner final sans argument dérive lui-même cet univers depuis les
   métadonnées H8 et un futur marqueur devra lier les octets du contrat H13. Les
   tests sont uniquement synthétiques et le preflight reste zéro-science.
+  Le preflight Mac sur `bd1858ad…` a confirmé `101` prises, l'univers scellé
+  exact de `31` groupes, le runtime arm64 CPU attendu, l'absence des quatre
+  chemins one-shot et tous les drapeaux science/consommation à `false`.
   Contrat :
   `configs/provisional_resolution_age1_persistence_h13_execution_seal.json`.
   Rapport :
