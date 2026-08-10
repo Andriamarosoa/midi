@@ -18,7 +18,7 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 - Mise à jour : `2026-08-10`.
 - Étape : `harmonic_censoring_h24_population_materialization_contract`.
-- Statut : `contrat de matérialisation H24 et frontière one-shot définis, sans materializer, claim, waveform ni exécution; en attente de revue externe`.
+- Statut : `contrat de matérialisation H24 et frontière one-shot définis; trace NumPy des trajectoires et six OOD fermée; sans materializer, claim, waveform ni exécution; en attente de revue externe`.
 - La revue externe de `10aa49a8…` a approuvé conceptuellement le one-shot et
   la séparation science/matérialisation, mais a refusé le contrat final pour
   quatre ambiguïtés : defaults source incomplets, ordre numérique/RNG non
@@ -42,8 +42,12 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   Toute interruption après claim consommera `H24_SYNTHETIC_V1` sans retry et
   les sorties partielles resteront non autoritatives. La matérialisation restera
   strictement séparée de P0/P1/P2. Aucun code `src/`, materializer, capability,
-  claim, marker, waveform ou résultat scientifique n'est créé ici. `136` tests
-  `142` tests contractuels H24/H23/H20 réussissent en `1,986 s`. Rapport :
+  claim, marker, waveform ou résultat scientifique n'est créé ici.
+  La correction finale scelle aussi les points de grille de `linear_cents` et
+  `linear_semitones`, la trajectoire `sinusoidal_cents` et les six branches OOD
+  par primitives NumPy exactes; `np.linspace`, SciPy chirp et les réécritures
+  algébriques alternatives sont interdites. `143` tests contractuels
+  H24/H23/H20 réussissent en `2,121 s`. Rapport :
   `readme/results/2026-08-10_harmonic-censoring-h24-population-materialization-contract.md`.
   La prochaine action est uniquement la revue externe de ce contrat; toute
   implémentation ou synthèse reste interdite.

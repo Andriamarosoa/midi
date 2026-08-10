@@ -41,6 +41,70 @@ def _validate_corrected_closure(contract):
         raise ValueError("pink RNG draw order is not exact")
     if not numeric["source_and_harmonic_order"]["pairwise_tree_reduction_vectorization_fma_or_fastmath_forbidden"]:
         raise ValueError("numeric accumulation is not closed")
+    trajectories = numeric.get("technique_trajectory_trace", {})
+    if trajectories.get("common_prefix") != [
+        "elapsed = np.maximum(samples - int(resolved onset), 0).astype(np.float64)",
+        "trajectory = technique['trajectory']",
+    ]:
+        raise ValueError("technique trajectory common prefix is not exact")
+    if trajectories.get("linear_cents") != [
+        "duration = max(1, int(technique['duration_hops']) * 256)",
+        "fraction = np.minimum(elapsed / duration, 1.0)",
+        "pitch_offset = (float(technique.get('start', 0.0)) + (float(technique['end']) - float(technique.get('start', 0.0))) * fraction) * 0.01",
+    ]:
+        raise ValueError("linear cents trajectory trace is not exact")
+    if trajectories.get("linear_semitones") != [
+        "duration = max(1, int(technique['duration_hops']) * 256)",
+        "fraction = np.minimum(elapsed / duration, 1.0)",
+        "pitch_offset = (float(technique.get('start', 0.0)) + (float(technique['end']) - float(technique.get('start', 0.0))) * fraction) * 1.0",
+    ]:
+        raise ValueError("linear semitones trajectory trace is not exact")
+    if trajectories.get("sinusoidal_cents") != [
+        "pitch_offset = float(technique['depth']) / 100.0 * np.sin(2.0 * np.pi * float(technique['rate_hz']) * elapsed / 44100.0)"
+    ]:
+        raise ValueError("sinusoidal trajectory trace is not exact")
+    if trajectories.get("linear_endpoint_rule") != (
+        "the first sample equal to end is samples == resolved onset + duration; "
+        "samples == resolved onset + duration - 1 remains start + (end-start)*(duration-1)/duration; "
+        "np.linspace and any duration-1 denominator are forbidden"
+    ):
+        raise ValueError("linear endpoint convention is not exact")
+    ood = numeric.get("OOD_exact_trace", {})
+    if ood.get("linear_chirp") != [
+        "local = np.arange(4096, dtype=np.float64)",
+        "duration = 4095.0 / 44100.0",
+        "phase = 2.0 * np.pi * (80.0 * local / 44100.0 + 0.5 * (8000.0 - 80.0) * (local / 44100.0) ** 2 / duration)",
+        "waveform[8192:12288] = 0.4 * np.sin(phase)",
+    ]:
+        raise ValueError("linear chirp trace is not exact")
+    if ood.get("log_chirp") != [
+        "local = np.arange(4096, dtype=np.float64)",
+        "frequency = 80.0 * np.power(100.0, local / 4095.0)",
+        "phase = 2.0 * np.pi * np.cumsum(frequency) / 44100.0",
+        "waveform[8192:12288] = 0.4 * np.sin(phase)",
+    ]:
+        raise ValueError("log chirp trace is not exact")
+    if ood.get("impulse") != ["waveform[12032] = 0.4"]:
+        raise ValueError("impulse trace is not exact")
+    if ood.get("nonharmonic_stack") != [
+        "local = np.arange(4096, dtype=np.float64)",
+        "for frequency in (233, 377, 611, 997, 1597): waveform[8192:12288] += 0.08 * np.sin(2.0 * np.pi * frequency * local / 44100.0)",
+    ]:
+        raise ValueError("nonharmonic stack trace is not exact")
+    if ood.get("pink_noise_burst") != [
+        "waveform = execute noise_rng_call_order.pink with seed=synthesis_seed and length=12544",
+        "waveform *= 0.4 * execute envelope_primitives.new with source defaults onset=12032 attack_hops=0 decay_tau_hops=8",
+    ]:
+        raise ValueError("pink noise burst trace is not exact")
+    if ood.get("inharmonic_bell") != [
+        "valid = samples >= 12032",
+        "elapsed = samples[valid] - 12032",
+        "for harmonic in range(1, 9): waveform[valid] += 0.3 / harmonic * np.exp(-elapsed / (512.0 * harmonic)) * np.sin(2.0 * np.pi * 220.0 * math.pow(harmonic, 1.08) * elapsed / 44100.0)",
+    ]:
+        raise ValueError("inharmonic bell trace is not exact")
+    required_ood = {"impulse", "linear_chirp", "log_chirp", "nonharmonic_stack", "pink_noise_burst", "inharmonic_bell"}
+    if set(ood.get("branch_dispatch_order", [])) != required_ood or not required_ood.issubset(ood):
+        raise ValueError("OOD branch traces are not exhaustive")
     line = contract["population_index_line_value_contract"]["for_line_i"]
     if set(line) != set(contract["population_index_contract"]["exact_fields"]):
         raise ValueError("index line values do not cover exact fields")
@@ -130,6 +194,21 @@ class H24PopulationMaterializationContractTests(unittest.TestCase):
         pink[2], pink[3] = pink[3], pink[2]
         with self.assertRaisesRegex(ValueError, "RNG draw order"):
             _validate_corrected_closure(changed_rng)
+
+    def test_alternative_trajectory_endpoint_or_chirp_trace_is_rejected(self):
+        contract = _load_contract()
+        endpoint = deepcopy(contract)
+        endpoint["numpy_numeric_execution_trace_v1"]["technique_trajectory_trace"]["linear_cents"][1] = (
+            "fraction = np.linspace(0.0, 1.0, duration, endpoint=True)"
+        )
+        with self.assertRaisesRegex(ValueError, "linear cents trajectory"):
+            _validate_corrected_closure(endpoint)
+        chirp = deepcopy(contract)
+        chirp["numpy_numeric_execution_trace_v1"]["OOD_exact_trace"]["log_chirp"][2] = (
+            "phase = scipy.signal.chirp(local, method='logarithmic')"
+        )
+        with self.assertRaisesRegex(ValueError, "log chirp trace"):
+            _validate_corrected_closure(chirp)
 
     def test_seed_rule_recomputes_every_manifest_seed(self):
         contract = _load_contract()["deterministic_waveform_algorithm_v1"]

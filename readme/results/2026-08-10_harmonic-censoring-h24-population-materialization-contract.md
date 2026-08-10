@@ -30,7 +30,7 @@ configs/harmonic_censoring_h24_population_materialization_one_shot_contract.json
 a pour SHA-256 :
 
 ```text
-b98c81dc5ab44c57449bc8bebdda074222b7340282af0f7a9f7e53243bb97588
+b48aa4f417a9857983c79809efe24137d6b82ad0984d20e906286477f05a14ca
 ```
 
 Il lie les snapshots déjà approuvés :
@@ -93,6 +93,35 @@ pink RNG : standard_normal(bins) pour real,
 La trace normative donne les appels exacts `np.power`, `math.pow`,
 `math.sqrt`, `np.cumsum`, `np.exp`, `np.sin`, `np.mean`, `np.sqrt` et
 `np.fft.irfft`, ainsi que l'ordre d'accumulation des OOD.
+
+### Correction finale de la trace numérique
+
+La seconde revue a confirmé les defaults, l'index et la provenance, mais a
+refusé les descriptions encore mathématiques des trajectoires techniques et
+des chirps. Le contrat ferme désormais aussi leur suite d'opérations exacte :
+
+```text
+linear_cents / linear_semitones
+  elapsed = maximum(samples-onset, 0), float64
+  duration = max(1, duration_hops*256)
+  fraction = minimum(elapsed/duration, 1)
+  première valeur end exactement à onset+duration
+  np.linspace et dénominateur duration-1 interdits
+
+sinusoidal_cents
+  même elapsed float64
+  appel np.sin exact avec depth/100, 2*pi, rate_hz et 44100
+
+six OOD
+  fill(0), slices, arange float64, phases, cumsum, boucles et additions
+  explicités branche par branche dans l'ordre normatif
+```
+
+Les réécritures par `scipy.signal.chirp`, `logspace`, `geomspace`, une autre
+interpolation ou une formule algébriquement équivalente sont interdites. Les
+tests adversariaux remplacent volontairement la grille linéaire par
+`np.linspace(..., endpoint=True)` et le log-chirp par une construction SciPy;
+les deux contrats altérés sont refusés.
 
 ## Octets et hashes futurs
 
@@ -175,7 +204,7 @@ des fichiers, index/reçu, claim durable avant NumPy, non-retry et impossibilit�
 de promouvoir une sortie partielle.
 
 ```text
-142 tests H24/H23/H20 réussis en 1,986 s
+143 tests H24/H23/H20 réussis en 2,121 s
 aucun fichier src/ modifié
 aucune waveform synthétisée
 aucune fixture matérialisée
