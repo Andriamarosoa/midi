@@ -17,8 +17,25 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `provisional_resolution_age1_persistence_h7_hypothesis_contract`.
-- Statut : `terminé — provisional_resolution_age1_persistence_hypothesis_defined, aucune exécution autorisée`.
+- Étape : `provisional_resolution_age1_persistence_h8_preparation`.
+- Statut : `terminé — provisional_resolution_age1_persistence_h8_preparation_sealed, aucune exécution scientifique autorisée`.
+- Préparation H8 scellée sans modèle ni métrique : le SHA brut du contrat H7 a
+  été vérifié, puis toutes les prises `dev` Policy A ont été considérées sans
+  plafond, équilibrage ou sélection manuelle. Après exclusion entière des
+  groupes de la cohorte V2 consommée et du test verrouillé, la cohorte contient
+  `101` prises et `31` groupes; une seule prise `dev`, du groupe verrouillé
+  `gaps:player:sanja_plohl`, est exclue. Les intersections finales V2/test
+  valent zéro. Les 101 audio et 101 labels ont uniquement été hachés comme
+  octets bruts et concordent avec le registre Policy A historique. L'artefact
+  canonique de `112013` octets a le SHA-256
+  `4dd76bd13c33ccb3946bfdbcf6f575d4550fb0c5588095e23da3b6e3f84bce1f`.
+  H8 fige `10000` réplicats bootstrap group-safe, le seed `721629268`, au moins
+  `9500` réplicats valides et au moins `200` observations age-1, sans exécuter
+  bootstrap, AUC, cibles ou signaux. Contrats :
+  `configs/provisional_resolution_age1_persistence_h8_preparation.json` et
+  `configs/provisional_resolution_age1_persistence_h8_selected_cohort.json`.
+  Rapport :
+  `readme/results/2026-08-10_provisional-resolution-age1-persistence-h8-preparation.md`.
 - Hypothèse H7 préenregistrée sans données ni calcul : le seul signal primaire
   futur est `S1=current_frame_probability` du même pitch à `age_frames=1`;
   `S0=frame_probability_at_noteon` reste descriptif et `D1=S1-S0` uniquement
