@@ -17,8 +17,18 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `provisional_resolution_frame_fallback_h19_synthetic_conformance`.
-- Statut : `en cours — provisional_resolution_frame_fallback_h19_synthetic_conformance_demonstrated`, revue externe requise avant toute science réelle.
+- Étape : `provisional_resolution_frame_fallback_h17a_reason_taxonomy_amendment`.
+- Statut : `en cours — provisional_resolution_frame_fallback_h17a_preregistration_amendment_recorded`, revue externe requise avant toute science réelle.
+- H17a formalise avant toute donnée l’amendement découvert par revue statique :
+  le décodeur gelé peut émettre `harmonic_strong_frame`. Le contrat H17
+  historique reste immuable; sa question, `F`, son comparateur, son target, son
+  seuil RD et son bootstrap restent inchangés. La taxonomie de population et
+  l’attrition sont explicitement amendées : `harmonic_strong_frame` rejoint
+  `legacy` et `retrigger` comme raison exclue mais comptée, sans reconstruction
+  de sa raison antérieure; toute autre raison échoue fermée. Contrat :
+  `configs/provisional_resolution_frame_fallback_h17a_reason_taxonomy_amendment.json`.
+  Rapport :
+  `readme/results/2026-08-10_provisional-resolution-frame-fallback-h17a-taxonomy-amendment.md`.
 - H19 démontre uniquement sur objets synthétiques que la raison immuable déjà
   portée par chaque `PolyphonicMidiEvent` peut être observée après émission sans
   modifier événements ni état du décodeur. `frame_fallback` définit `F=1`;
@@ -1346,6 +1356,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-10 — diagnostic V2 train/dev CPU, résultat exploratoire non promotionnel](results/2026-08-10_causal-candidate-v2-train-dev-diagnostic-run.md)
 - [2026-08-10 — contrat d'évaluation V2 indépendante GAPS/Guitar-TECHS, sans calcul](results/2026-08-10_causal-candidate-v2-independent-validation-contract.md)
 - [2026-08-10 — conformité synthétique H19 du risque `frame_fallback`](results/2026-08-10_provisional-resolution-frame-fallback-h19-synthetic-conformance.md)
+- [2026-08-10 — amendement H17a pré-exécution de la taxonomie des raisons](results/2026-08-10_provisional-resolution-frame-fallback-h17a-taxonomy-amendment.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)
