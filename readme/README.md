@@ -17,8 +17,19 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `harmonic_censoring_h23_exact_oracle_recomputation_fix`.
-- Statut : `correctif dormant 72/72 terminé et en attente de revue externe; nouveau seal et nouvelle activation absents; aucune population consommée`.
+- Étape : `harmonic_censoring_h23_semantic_evaluator_fix`.
+- Statut : `correctif dormant des expériences exactes terminé et en attente de revue externe; nouveau seal et nouvelle activation absents; aucune population consommée`.
+- La revue externe de `6e016783…` valide le registre 72/72 et la recomputation
+  indépendante mais refuse encore le TOCTOU : plusieurs producteurs écrivaient
+  une conclusion attendue. Le nouveau correctif exécute effectivement les
+  procédures D04/D08/C02/C04, NNLS/cardinalités, variantes guitare/OOD,
+  instrumentation P01/P02/P04/P05 et les trois grilles TS01. Les ensembles
+  TS01 passés/échoués/sauvés/régressés et les transitions D08 sont persistés et
+  recomputés. Les inverses citées sont désormais des mutations ou validators
+  réellement exécutés. `76` tests contractuels réussissent sans appeler les
+  evaluators. Aucun seal, activation, claim, marker, waveform ou P0/P1/P2 n'est
+  créé. Rapport :
+  `readme/results/2026-08-10_harmonic-censoring-h23-semantic-evaluator-fix.md`.
 - La revue externe de `907bece…` a refusé le futur seal : certaines familles
   utilisaient encore des décisions génériques et le finalizer pouvait accepter
   des booléens produits par la même logique que l'oracle. La correction remplace

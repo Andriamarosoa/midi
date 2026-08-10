@@ -54,7 +54,7 @@ def _spec(
 # and categorical expectations live here, outside the transcript.
 EXACT_H23_ORACLE_REGISTRY: Mapping[str, H23ExactOracleSpec] = {
     "A01": _spec([_r("edges", "all_edges_ascending")], [_r("mutated_edges", "any_edge_descending")]),
-    "A02": _spec([_r("analytic_pairs", "allclose_pairs", rtol=1e-10, atol=1e-12)], [_r("cosine_semantics", "eq", "APPROXIMATION_NOT_ANALYTIC")]),
+    "A02": _spec([_r("analytic_pairs", "allclose_pairs", rtol=1e-10, atol=1e-12)], [_r("cosine_approximation_max_error", "gt", 0.0)]),
     "A03": _spec([_r("feature_class", "eq", "TRIVIAL_FEATURE"), _r("disappearance_indices", "all_equal")], [_r("shuffled_disappearance_indices", "all_equal")]),
     "A04": _spec([_r("latent_feature_hashes", "all_equal"), _r("decision", "eq", "AMBIGUOUS")], [_r("target_conditioned_feature_hashes", "all_equal")]),
     "A05": _spec([_r("cardinality_triplets", "eq", [[1, 0, 1], [1, 1, 1], [1, 1, "AMBIGUOUS"]])], [_r("collapsed_cardinality_triplets", "ne", [[1, 0, 1], [1, 1, 1], [1, 1, "AMBIGUOUS"]])]),
@@ -68,7 +68,7 @@ EXACT_H23_ORACLE_REGISTRY: Mapping[str, H23ExactOracleSpec] = {
     "D05": _spec([_r("normalized_gain_curves", "allclose_all", rtol=1e-10, atol=1e-12), _r("raw_gain_levels", "not_all_equal")], [_r("raw_only_claim", "eq", "INSUFFICIENT")]),
     "D06": _spec([_r("hard_categories", "eq", ["NO_BIRTH", "NO_BIRTH", "BIRTH_SUPPORTED_DELAYED_ONE_HOP", "ALREADY_ACTIVE_HISTORY", "BIRTH_SUPPORTED_DELAYED_ONE_HOP", "AMBIGUOUS"]), _r("cosine_categories", "eq", ["NO_BIRTH", "NO_BIRTH", "BIRTH_SUPPORTED_DELAYED_ONE_HOP", "ALREADY_ACTIVE_HISTORY", "BIRTH_SUPPORTED_DELAYED_ONE_HOP", "AMBIGUOUS"])], [_r("shifted_200c_curve_hash_pairs", "any_different_pair")]),
     "D07": _spec([_r("S1P_phase_categories", "all_eq", "NO_BIRTH"), _r("S4_phase_categories", "all_eq", "BIRTH_SUPPORTED_DELAYED_ONE_HOP"), _r("S5_category", "eq", "AMBIGUOUS")], [_r("unchanged_waveform_phase_label_hashes", "all_equal")]),
-    "D08": _spec([_r("target_hop_categories", "eq", ["ALREADY_ACTIVE_HISTORY", "ALREADY_ACTIVE_HISTORY", "ALREADY_ACTIVE_HISTORY", "ALREADY_ACTIVE_HISTORY", "PENDING_NEW_AWAITING_ONE_HOP", "PENDING_NEW_AWAITING_ONE_HOP"]), _r("resolved_categories", "eq", ["BIRTH_SUPPORTED_DELAYED_ONE_HOP", "BIRTH_SUPPORTED_DELAYED_ONE_HOP"]), _r("pending_lifetimes", "all_eq", 1), _r("runtime_fields", "eq", ["pitch", "state", "first_seen_hop"])], [_r("forbidden_runtime_fields_result", "eq", "REJECTED")]),
+    "D08": _spec([_r("target_hop_categories", "eq", ["ALREADY_ACTIVE_HISTORY", "ALREADY_ACTIVE_HISTORY", "ALREADY_ACTIVE_HISTORY", "ALREADY_ACTIVE_HISTORY", "PENDING_NEW_AWAITING_ONE_HOP", "PENDING_NEW_AWAITING_ONE_HOP"]), _r("resolved_categories", "eq", ["BIRTH_SUPPORTED_DELAYED_ONE_HOP", "BIRTH_SUPPORTED_DELAYED_ONE_HOP"]), _r("pending_lifetimes", "all_eq", 1), _r("transition_traces", "d08_traces_exact"), _r("runtime_fields", "eq", ["pitch", "state", "first_seen_hop"])], [_r("forbidden_runtime_fields_result", "eq", "REJECTED")]),
     "D09": _spec([_r("variant_count", "eq", 42), _r("variant_categories_match_base", "all_true")], [_r("undeclared_100c_manifest_result", "eq", "REJECTED")]),
     "D10": _spec([_r("robust_category_count", "eq", 18), _r("robust_categories_match_base", "all_true"), _r("zero_db_categories", "all_in", ["AMBIGUOUS_OR_OOD"]), _r("silence_category", "eq", "SILENCE_UNEXPLAINED")], [_r("pitch_shaped_noise_manifest_result", "eq", "REJECTED")]),
     "D11": _spec([_r("primary_curve_retained", "eq", True), _r("same_summary_curve_hashes", "any_different_pair"), _r("raw_auc_gain_values", "not_all_equal"), _r("normalized_auc_gain_values", "allclose_all", rtol=1e-10, atol=1e-12)], [_r("duplicated_auc_channel_hashes", "all_equal")]),
@@ -121,9 +121,9 @@ EXACT_H23_ORACLE_REGISTRY: Mapping[str, H23ExactOracleSpec] = {
     "P01": _spec([_r("spectral_encodings_per_frame", "all_eq", 1)], [_r("encoding_counts_by_candidate_count", "all_eq", 1)]),
     "P02": _spec([_r("live_censoring_shape", "eq", [37, 6]), _r("observation_shape", "eq", [89]), _r("spectral_encodings", "eq", 1), _r("emit_capable_above_76", "eq", 0)], [_r("invalid_89x6_candidate_matrix_result", "eq", "REJECTED")]),
     "P03": _spec([_r("maximum_retained_frames", "le", 16), _r("maximum_tracked_array_bytes", "le", 67108864), _r("post_warmup_RSS_range_bytes", "le", 33554432), _r("final_retained_frames", "le", 16)], [_r("retain_every_frame_count", "gt", 16)]),
-    "P04": _spec([_r("hop_count", "eq", 10336), _r("p95_ms", "le", 5.804988662131519), _r("p99_ms", "le", 5.804988662131519), _r("max_ms", "le", 11.609977324263038), _r("maximum_backlog_hops", "le", 1), _r("final_backlog_hops", "eq", 0), _r("added_lookahead_samples", "eq", 0)], [_r("stress_cutoff_count", "eq", 12), _r("stress_replaced_primary", "eq", False)]),
-    "P05": _spec([_r("reported_components", "eq", ["window", "hop", "feature", "inference", "decoder", "MIDI"]), _r("algorithmic_lookahead_samples", "eq", 0)], [_r("hidden_buffering_samples", "gt", 0)]),
-    "TS01": _spec([_r("fixture_accounted_count", "eq", 175), _r("selected_category", "in", ["TEACHER_NOT_NEEDED", "TEACHER_JUSTIFIED"]), _r("selection_rule_satisfied", "eq", True)], [_r("summary_only_improvement_justifies_teacher", "eq", False)]),
+    "P04": _spec([_r("hop_count", "eq", 10336), _r("p50_ms", "ge", 0.0), _r("p90_ms", "ge", 0.0), _r("p95_ms", "le", 5.804988662131519), _r("p99_ms", "le", 5.804988662131519), _r("max_ms", "le", 11.609977324263038), _r("maximum_backlog_hops", "le", 1), _r("final_backlog_hops", "eq", 0), _r("drain_hops", "ge", 0), _r("added_lookahead_samples", "eq", 0)], [_r("stress_cutoff_count", "eq", 12), _r("stress_measurement_hop_count", "eq", 10336), _r("stress_replaced_primary", "eq", False)]),
+    "P05": _spec([_r("reported_components", "eq", ["window", "hop", "feature", "inference", "decoder", "MIDI"]), _r("component_elapsed_ns", "timing_components_exact"), _r("algorithmic_lookahead_samples", "eq", 0)], [_r("hidden_buffering_samples", "gt", 0)]),
+    "TS01": _spec([_r("fixture_accounted_count", "eq", 175), _r("selected_category", "in", ["TEACHER_NOT_NEEDED", "TEACHER_JUSTIFIED"]), _r("selection_rule_satisfied", "eq", True), _r("selection_evidence", "ts01_evidence_exact")], [_r("summary_only_improvement_justifies_teacher", "eq", False)]),
     "TS02": _spec([_r("forbidden_dependency_count", "eq", 0), _r("maximum_future_sample_offset", "eq", 0)], [_r("future_t_plus_1_dependency_result", "eq", "REJECTED_BEFORE_FIT")]),
 }
 
@@ -242,6 +242,56 @@ def _evaluate_rule(rule: H23MeasurementRule, value: object, plan_fixture_ids: Se
         return any(float(edge[1]) < float(edge[0]) for edge in _as_sequence(value, rule.name))
     if op == "support_formula_exact":
         return all(bool(item[0]) is (float(item[1]) <= 22050.0 and bool(item[2])) for item in _as_sequence(value, rule.name))
+    if op == "d08_traces_exact":
+        traces = _as_sequence(value, rule.name)
+        if [item.get("offset") for item in traces if type(item) is dict] != [0, 1, 255, 256, 3840, 4095]:
+            return False
+        for trace in traces:
+            if type(trace) is not dict or set(trace) != {
+                "offset", "event_hop", "states", "target_category",
+                "resolved_category", "pending_lifetime",
+            }:
+                return False
+            offset = trace["offset"]
+            event_hop = offset // 256
+            states = trace["states"]
+            if type(offset) is not int or type(states) is not list or trace["event_hop"] != event_hop:
+                return False
+            expected = ["INACTIVE"] + [
+                "INACTIVE" if hop < event_hop else "PENDING_NEW" if hop == event_hop else "ACTIVE"
+                for hop in range(16)
+            ]
+            if 4096 - offset < 3840:
+                expected.append("ACTIVE")
+            if states != expected:
+                return False
+        return True
+    if op == "ts01_evidence_exact":
+        if type(value) is not dict or set(value) != {
+            "all_fixture_ids", "passed_at_6", "failed_at_6", "rescued_at_16",
+            "rescued_at_32", "regressed_at_16", "regressed_at_32",
+        }:
+            return False
+        all_ids = value["all_fixture_ids"]
+        passed = value["passed_at_6"]
+        failed = value["failed_at_6"]
+        if any(type(items) is not list for items in value.values()):
+            return False
+        if all_ids != sorted(plan_fixture_ids) or sorted(passed + failed) != all_ids:
+            return False
+        if set(passed).intersection(failed):
+            return False
+        if not set(value["rescued_at_16"]).issubset(failed):
+            return False
+        if not set(value["rescued_at_32"]).issubset(failed):
+            return False
+        if not set(value["regressed_at_16"]).issubset(passed):
+            return False
+        return set(value["regressed_at_32"]).issubset(passed)
+    if op == "timing_components_exact":
+        return type(value) is dict and set(value) == {
+            "window", "hop", "feature", "inference", "decoder", "MIDI"
+        } and all(type(item) is int and item >= 0 for item in value.values())
     raise ValueError(f"H23 unknown sealed measurement operator {op!r}.")
 
 

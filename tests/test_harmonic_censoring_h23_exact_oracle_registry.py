@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import inspect
 import unittest
 
 from src.polyphonic import run_harmonic_censoring_h23_synthetic as runner
@@ -73,6 +74,43 @@ class HarmonicCensoringH23ExactOracleRegistryTests(unittest.TestCase):
         self.assertNotIn("test.test_id.startswith", source)
         self.assertNotIn("_legacy_unapproved_h23_generic_evaluator", source)
         self.assertNotIn("inverse_mutation_detected", source)
+
+    def test_semantic_evaluators_execute_their_preregistered_procedures(self) -> None:
+        required_calls = {
+            "D04": (
+                "_projected_harmonic_waveform",
+                "_spectral_representation",
+                "_scalar_pitch_curves",
+            ),
+            "D08": ("_replay_window_boundary_state_machine",),
+            "K01": ("_fixture_sources", "_pitch_cardinalities_for_sources"),
+            "K02": ("_fixture_sources",),
+            "G02": ("_technique_offsets", "_soft_continuity_decision"),
+            "G04": ("_fixture_waveform", "previous_energy", "repeated_energy"),
+            "G05": ("_pitch_cardinalities_for_sources",),
+            "G07": ("_source_birth_tuple",),
+            "G08": ("_fixture_sources", "math.log2"),
+            "P04": ("time.perf_counter_ns", "_spectral_representation", "stress_cutoffs"),
+            "TS01": ("evaluate_grid(cutoff_6)", "evaluate_grid(cutoff_16)", "evaluate_grid(cutoff_32)"),
+        }
+        for test_id, needles in required_calls.items():
+            source = inspect.getsource(runner._H23_EXACT_EVALUATORS[test_id])
+            with self.subTest(test_id=test_id):
+                for needle in needles:
+                    self.assertIn(needle, source)
+
+    def test_named_inverse_examples_are_computed_not_literal_answers(self) -> None:
+        requirements = {
+            "A02": "_spectral_representation",
+            "A05": "collapsed.append",
+            "D12": "has_rebound(mutated)",
+            "F03": "_nnls_active_set",
+            "P04": "stress = run(stress_cutoffs)",
+        }
+        for test_id, needle in requirements.items():
+            source = inspect.getsource(runner._H23_EXACT_EVALUATORS[test_id])
+            with self.subTest(test_id=test_id):
+                self.assertIn(needle, source)
 
 
 if __name__ == "__main__":

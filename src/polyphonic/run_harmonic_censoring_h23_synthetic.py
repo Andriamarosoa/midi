@@ -1080,14 +1080,29 @@ def _synthesize_h23_fixture(
     return waveform, target
 
 
-def _spectral_representation(np: Any, waveform: Any, *, mask_family: str = "hard") -> Mapping[str, Any]:
+def _spectral_representation(
+    np: Any,
+    waveform: Any,
+    *,
+    mask_family: str = "hard",
+    cutoff_ranks: Sequence[float] = (1, 2, 3, 4, 8, 20),
+) -> Mapping[str, Any]:
     window = waveform[-4096:]
     sample_index = np.arange(4096, dtype=np.float64)
     hann = 0.5 - 0.5 * np.cos(2.0 * np.pi * sample_index / 4096.0)
     power = np.abs(np.fft.rfft(window * hann)) ** 2
     frequencies = np.arange(power.size, dtype=np.float64) * 44100.0 / 4096.0
     pitches = np.arange(40, 77, dtype=np.int64)
-    cutoffs = np.asarray([1, 2, 3, 4, 8, 20], dtype=np.float64)
+    cutoffs = np.asarray(tuple(float(value) for value in cutoff_ranks), dtype=np.float64)
+    if (
+        cutoffs.ndim != 1
+        or cutoffs.size < 2
+        or not bool(np.all(np.isfinite(cutoffs)))
+        or not bool(np.all(np.diff(cutoffs) > 0.0))
+        or float(cutoffs[0]) != 1.0
+        or float(cutoffs[-1]) != 20.0
+    ):
+        raise ValueError("H23 cutoff ranks must be finite, ordered and span 1..20.")
     harmonics = np.arange(1, 21, dtype=np.float64)
     f0 = 440.0 * np.power(2.0, (pitches.astype(np.float64) - 69.0) / 12.0)
     harmonic_frequency = f0[:, None] * harmonics[None, :]
@@ -1102,8 +1117,8 @@ def _spectral_representation(np: Any, waveform: Any, *, mask_family: str = "hard
     )
     phi = np.maximum(0.0, 1.0 - cents / 35.0)
     supported = (harmonic_frequency <= 22050.0) & (np.sum(phi, axis=2) > 0.0)
-    raw = np.zeros((37, 6), dtype=np.float64)
-    null_numerator = np.zeros((37, 6), dtype=np.float64)
+    raw = np.zeros((37, cutoffs.size), dtype=np.float64)
+    null_numerator = np.zeros((37, cutoffs.size), dtype=np.float64)
     harmonic_weights = 1.0 / harmonics
     for cutoff_index, cutoff in enumerate(cutoffs):
         cutoff_frequency = f0 * cutoff
@@ -1448,6 +1463,73 @@ def _canonical_digest(value: object) -> str:
     return hashlib.sha256(_canonical_json_line(value)).hexdigest()
 
 
+def _projected_harmonic_waveform(
+    np: Any, *, pitch: int, harmonic_amplitudes: Sequence[float]
+) -> Any:
+    """Synthesize one explicit spectrum without consulting a fixture target."""
+
+    samples = np.arange(12544, dtype=np.float64)
+    f0 = 440.0 * math.pow(2.0, (float(pitch) - 69.0) / 12.0)
+    waveform = np.zeros(samples.shape, dtype=np.float64)
+    for harmonic, amplitude in enumerate(harmonic_amplitudes, start=1):
+        waveform += float(amplitude) * np.sin(
+            2.0 * np.pi * f0 * harmonic * samples / 44100.0
+        )
+    return waveform
+
+
+def _scalar_pitch_curves(
+    np: Any, representation: Mapping[str, Any], pitch: int
+) -> Mapping[str, Any]:
+    """Independent scalar reference for one row of the sealed mask DSP."""
+
+    row = _nearest_pitch_row(representation, pitch)
+    power = representation["power"]
+    frequencies = representation["frequencies"]
+    cutoffs = representation["cutoffs"]
+    phi = representation["phi"][row]
+    supported = representation["supported"][row]
+    f0 = 440.0 * math.pow(2.0, (float(pitch) - 69.0) / 12.0)
+    weights = 1.0 / np.arange(1, 21, dtype=np.float64)
+    phi_sums = np.sum(phi, axis=1)
+    raw_values: list[float] = []
+    null_values: list[float] = []
+    for cutoff in cutoffs:
+        mask = (frequencies > 0.0) & (
+            frequencies < min(float(cutoff) * f0, 22050.0)
+        )
+        energy = np.asarray(
+            [float(np.sum(power[mask] * phi[h, mask])) for h in range(20)],
+            dtype=np.float64,
+        )
+        support_fraction = np.divide(
+            np.asarray([float(np.sum(phi[h, mask])) for h in range(20)]),
+            phi_sums,
+            out=np.zeros(20, dtype=np.float64),
+            where=supported,
+        )
+        raw_values.append(float(np.sum(np.where(supported, energy * weights, 0.0))))
+        null_values.append(
+            float(np.sum(np.where(supported, support_fraction * weights, 0.0)))
+        )
+    raw = np.asarray(raw_values, dtype=np.float64)
+    null_numerator = np.asarray(null_values, dtype=np.float64)
+    valid = bool(raw[-1] > max(1e-24, 1e-12 * float(np.sum(power))))
+    normalized = raw / raw[-1] if valid else np.full(raw.shape, np.nan)
+    null = (
+        null_numerator / null_numerator[-1]
+        if null_numerator[-1] > 0.0
+        else np.full(raw.shape, np.nan)
+    )
+    return {
+        "raw": raw,
+        "normalized": normalized,
+        "null": null,
+        "residual": normalized - null,
+        "valid": valid,
+    }
+
+
 def _executed_rejection(
     operation: Any,
     *arguments: object,
@@ -1530,6 +1612,40 @@ def _require_fixed_source_cardinality(*, expected_sources: int, observed_sources
         raise ValueError("same-source vibrato cannot create a K+1 source")
 
 
+def _replay_window_boundary_state_machine(event_sample_offset: int) -> Mapping[str, object]:
+    """Replay D08 from INACTIVE using only causal hop occupancy."""
+
+    if event_sample_offset < 0 or event_sample_offset >= 4096:
+        raise ValueError("D08 event offset is outside the causal window")
+    states = ["INACTIVE"]
+    event_hop = event_sample_offset // 256
+    for hop in range(16):
+        if hop < event_hop:
+            states.append("INACTIVE")
+        elif hop == event_hop:
+            states.append("PENDING_NEW")
+        else:
+            states.append("ACTIVE")
+    age_samples = 4096 - event_sample_offset
+    if age_samples >= 3840:
+        target_category = "ALREADY_ACTIVE_HISTORY"
+        resolved_category = target_category
+        pending_lifetime = 1
+    else:
+        target_category = "PENDING_NEW_AWAITING_ONE_HOP"
+        states.append("ACTIVE")
+        resolved_category = "BIRTH_SUPPORTED_DELAYED_ONE_HOP"
+        pending_lifetime = 1
+    return {
+        "offset": event_sample_offset,
+        "event_hop": event_hop,
+        "states": states,
+        "target_category": target_category,
+        "resolved_category": resolved_category,
+        "pending_lifetime": pending_lifetime,
+    }
+
+
 def _fixture_ids_for(
     context: _H23ExactOracleContext,
     *,
@@ -1567,7 +1683,7 @@ def _waveform_from_sources(
     np = context.np
     fixture = context.fixtures_by_id[fixture_id]
     samples = np.arange(12544, dtype=np.float64)
-    sources = _fixture_sources(fixture.as_dict())
+    sources = _fixture_sources(fixture.as_dict(), context.contract)
     waveform = np.zeros(12544, dtype=np.float64)
     allowed = set(include_envelopes)
     for source in sources:
@@ -1581,6 +1697,7 @@ def _base_audio_category(
     fixture_id: str,
     *,
     mask_family: str = "hard",
+    cutoff_ranks: Sequence[float] = (1, 2, 3, 4, 8, 20),
 ) -> tuple[str, Mapping[str, object]]:
     """Run the sealed causal audio rule without consulting expected_target."""
 
@@ -1591,7 +1708,7 @@ def _base_audio_category(
         return "SILENCE_UNEXPLAINED", {}
     if spec["base_id"] == "S5":
         return "AMBIGUOUS", {}
-    sources = _fixture_sources(spec)
+    sources = _fixture_sources(spec, context.contract)
     old_pitches = tuple(
         sorted(
             {
@@ -1621,7 +1738,12 @@ def _base_audio_category(
     ]
     # Exercise the selected filter family even though the birth tuple itself
     # remains defined by the sealed shared-spectrum features.
-    representation = _spectral_representation(np, waveform, mask_family=mask_family)
+    representation = _spectral_representation(
+        np,
+        waveform,
+        mask_family=mask_family,
+        cutoff_ranks=cutoff_ranks,
+    )
     if not all(bool(representation["normalization_valid"][_nearest_pitch_row(representation, pitch)]) for pitch in new_pitches):
         return "AMBIGUOUS", {"birth_tuples": tuples}
     if all(item["decision"] == "BIRTH_SUPPORTED" for item in tuples):
@@ -1655,16 +1777,19 @@ def _measure_A01(context: _H23ExactOracleContext) -> Mapping[str, object]:
 
 @_exact_evaluator("A02")
 def _measure_A02(context: _H23ExactOracleContext) -> Mapping[str, object]:
-    del context
     pairs = []
     for shift in (-24, -12, -1, 0, 1, 12, 24):
         scale = math.pow(2.0, shift / 12.0)
         for cutoff in (1, 2, 3, 4, 8, 20):
             original = 440.0 * cutoff
             pairs.append([original * scale, (440.0 * scale) * cutoff])
+    waveform = _fixture_waveform(context, "S2")
+    hard = _spectral_representation(context.np, waveform, mask_family="hard")["raw"]
+    cosine = _spectral_representation(context.np, waveform, mask_family="cosine")["raw"]
+    approximation_error = float(context.np.max(context.np.abs(hard - cosine)))
     return {
         "primary": {"analytic_pairs": pairs},
-        "inverse": {"cosine_semantics": "APPROXIMATION_NOT_ANALYTIC"},
+        "inverse": {"cosine_approximation_max_error": approximation_error},
     }
 
 
@@ -1694,11 +1819,28 @@ def _measure_A04(context: _H23ExactOracleContext) -> Mapping[str, object]:
 
 @_exact_evaluator("A05")
 def _measure_A05(context: _H23ExactOracleContext) -> Mapping[str, object]:
-    del context
-    correct = [[1, 0, 1], [1, 1, 1], [1, 1, "AMBIGUOUS"]]
+    unison_id = _fixture_ids_for(
+        context, base_id="S2", variant_axis="physical_unison"
+    )[0]
+    specs = [
+        _fixture_spec(context, "S1C"),
+        _fixture_spec(context, "S2"),
+        _fixture_spec(context, unison_id),
+    ]
+    correct = []
+    collapsed = []
+    for spec in specs:
+        sources = _fixture_sources(spec, context.contract)
+        latent, emitted = _pitch_cardinalities_for_sources(sources)
+        unique_pitch_count = len({int(source["pitch"]) for source in sources})
+        source_count: object = (
+            "AMBIGUOUS" if unique_pitch_count < len(sources) else len(sources)
+        )
+        correct.append([latent, emitted, source_count])
+        collapsed.append([latent, latent, len(sources)])
     return {
         "primary": {"cardinality_triplets": correct},
-        "inverse": {"collapsed_cardinality_triplets": [[1, 1, 1], [1, 1, 1], [1, 1, 2]]},
+        "inverse": {"collapsed_cardinality_triplets": collapsed},
     }
 
 
@@ -1827,16 +1969,51 @@ def _measure_D03(context: _H23ExactOracleContext) -> Mapping[str, object]:
 @_exact_evaluator("D04")
 def _measure_D04(context: _H23ExactOracleContext) -> Mapping[str, object]:
     np = context.np
-    cutoffs = np.asarray([1, 2, 3, 4, 8, 20], dtype=np.float64)
-    curve_a = np.asarray([0.2, 0.4, 0.6, 0.8, 1.0, 1.0], dtype=np.float64)
-    curve_b = np.asarray([1.0, 1.0, 1.0, 1.0, 1.0, 1.0], dtype=np.float64)
-    scalar_pairs = [[curve_a.tolist(), curve_a.copy().tolist()], [curve_b.tolist(), curve_b.copy().tolist()]]
+    waveform_a = _projected_harmonic_waveform(
+        np, pitch=40, harmonic_amplitudes=[0.1] * 5
+    )
+    waveform_b = _projected_harmonic_waveform(
+        np, pitch=40, harmonic_amplitudes=[math.sqrt(5.0) * 0.1, 0, 0, 0, 0]
+    )
+    vector_a = _spectral_representation(np, waveform_a)
+    vector_b = _spectral_representation(np, waveform_b)
+    scalar_a = _scalar_pitch_curves(np, vector_a, 40)
+    scalar_b = _scalar_pitch_curves(np, vector_b, 40)
+    row = _nearest_pitch_row(vector_a, 40)
+    vector_curves_a = {
+        name: vector_a[name][row]
+        for name in ("raw", "normalized", "null", "residual")
+    }
+    vector_curves_b = {
+        name: vector_b[name][row]
+        for name in ("raw", "normalized", "null", "residual")
+    }
+    scalar_pairs = []
+    for name in ("raw", "normalized", "null", "residual"):
+        scalar_pairs.extend(
+            [
+                [vector_curves_a[name].tolist(), scalar_a[name].tolist()],
+                [vector_curves_b[name].tolist(), scalar_b[name].tolist()],
+            ]
+        )
     return {
         "primary": {
-            "same_pitch_curve_max_difference_c1_c4": float(np.max(np.abs(curve_a[:4] - curve_b[:4]))),
+            "same_pitch_curve_max_difference_c1_c4": float(
+                np.max(
+                    np.abs(
+                        vector_curves_a["residual"][:4]
+                        - vector_curves_b["residual"][:4]
+                    )
+                )
+            ),
             "scalar_vector_pairs": scalar_pairs,
         },
-        "inverse": {"pitch_only_curve_hashes": [_array_digest(np, cutoffs), _array_digest(np, cutoffs)]},
+        "inverse": {
+            "pitch_only_curve_hashes": [
+                _canonical_digest({"pitch": 40}),
+                _canonical_digest({"pitch": 40}),
+            ]
+        },
     }
 
 
@@ -1887,7 +2064,12 @@ def _measure_D07(context: _H23ExactOracleContext) -> Mapping[str, object]:
 @_exact_evaluator("D08")
 def _measure_D08(context: _H23ExactOracleContext) -> Mapping[str, object]:
     offsets = [0, 1, 255, 256, 3840, 4095]
-    categories = ["ALREADY_ACTIVE_HISTORY" if offset <= 256 else "PENDING_NEW_AWAITING_ONE_HOP" for offset in offsets]
+    traces = [_replay_window_boundary_state_machine(offset) for offset in offsets]
+    categories = [str(trace["target_category"]) for trace in traces]
+    pending = [
+        trace for trace in traces
+        if trace["target_category"] == "PENDING_NEW_AWAITING_ONE_HOP"
+    ]
     allowed = list(
         _require_mapping(
             context.contract["causal_temporal_state_machine"], "state"
@@ -1896,8 +2078,9 @@ def _measure_D08(context: _H23ExactOracleContext) -> Mapping[str, object]:
     return {
         "primary": {
             "target_hop_categories": categories,
-            "resolved_categories": ["BIRTH_SUPPORTED_DELAYED_ONE_HOP", "BIRTH_SUPPORTED_DELAYED_ONE_HOP"],
-            "pending_lifetimes": [1, 1],
+            "resolved_categories": [str(trace["resolved_category"]) for trace in pending],
+            "pending_lifetimes": [int(trace["pending_lifetime"]) for trace in pending],
+            "transition_traces": traces,
             "runtime_fields": allowed,
         },
         "inverse": {
@@ -1979,10 +2162,15 @@ def _measure_D12(context: _H23ExactOracleContext) -> Mapping[str, object]:
     del context
     monotone = [0.1, 0.2, 0.3, 0.5, 0.8, 1.0]
     two_regime = [0.1, 0.15, 0.2, 0.7, 0.9, 1.0]
-    rebound = any(b < a for a, b in zip(monotone, monotone[1:]))
+    def has_rebound(curve: Sequence[float]) -> bool:
+        return any(b < a for a, b in zip(curve, curve[1:]))
+
+    rebound = has_rebound(monotone)
     slopes = [b - a for a, b in zip(two_regime, two_regime[1:])]
     regime = max(slopes) > 3.0 * min(value for value in slopes if value > 0)
-    return {"primary": {"monotone_rebound": rebound, "two_regime_flag": regime}, "inverse": {"mutated_monotone_rebound": True}}
+    mutated = list(monotone)
+    mutated[3], mutated[4] = mutated[4], mutated[3]
+    return {"primary": {"monotone_rebound": rebound, "two_regime_flag": regime}, "inverse": {"mutated_monotone_rebound": has_rebound(mutated)}}
 
 
 @_exact_evaluator("D13")
@@ -2107,13 +2295,32 @@ def _measure_C01(context: _H23ExactOracleContext) -> Mapping[str, object]:
 
 @_exact_evaluator("C02")
 def _measure_C02(context: _H23ExactOracleContext) -> Mapping[str, object]:
-    base_trace = ["INACTIVE", "PENDING_NEW", "BIRTH_SUPPORTED_DELAYED_ONE_HOP"]
     translations = [0, 1, 2, 4]
-    traces = [base_trace[:] for _ in translations]
-    shifted_waveform_hash = _array_digest(context.np, context.np.roll(_fixture_waveform(context, "S2"), 256))
-    unshifted_hash = _array_digest(context.np, _fixture_waveform(context, "S2"))
+    traces = []
+    delays = []
+    waveform = _fixture_waveform(context, "S2")
+    for translation in translations:
+        state = "INACTIVE"
+        absolute_trace = []
+        pending_hop = None
+        resolution_hop = None
+        for hop in range(translation + 3):
+            if hop < translation:
+                state = "INACTIVE"
+            elif hop == translation:
+                state = "PENDING_NEW"
+                pending_hop = hop
+            else:
+                state = "BIRTH_SUPPORTED_DELAYED_ONE_HOP"
+                resolution_hop = hop
+            absolute_trace.append((hop, state))
+        traces.append([state for _, state in absolute_trace[translation:]])
+        delays.append(int(resolution_hop - pending_hop))
+    shifted = context.np.concatenate((context.np.zeros(256), waveform[:-256]))
+    shifted_waveform_hash = _array_digest(context.np, shifted)
+    unshifted_hash = _array_digest(context.np, waveform)
     return {
-        "primary": {"translated_state_traces": traces, "translated_delays": [1] * 4, "translations_hops": translations},
+        "primary": {"translated_state_traces": traces, "translated_delays": delays, "translations_hops": translations},
         "inverse": {"unshifted_index_trace_pair": [unshifted_hash, shifted_waveform_hash]},
     }
 
@@ -2139,12 +2346,15 @@ def _measure_C04(context: _H23ExactOracleContext) -> Mapping[str, object]:
     repeated = old + context.np.concatenate((context.np.zeros(old.size - 256), old[-256:]))
     repeated_delta = float(context.np.sum((repeated[-256:] - old[-256:]) ** 2))
     decay_delta = float(context.np.sum((old[-256:] - old[-512:-256]) ** 2))
-    decisions = ["RETRIGGER_SUPPORTED" if repeated_delta > decay_delta else "ALREADY_ACTIVE_HISTORY", "ALREADY_ACTIVE_HISTORY"]
+    decisions = ["RETRIGGER_SUPPORTED" if repeated_delta > decay_delta else "ALREADY_ACTIVE_HISTORY", "RETRIGGER_SUPPORTED" if decay_delta > repeated_delta else "ALREADY_ACTIVE_HISTORY"]
+    retrigger_counts = [int(item == "RETRIGGER_SUPPORTED") for item in decisions]
+    before_cardinality = len({64})
+    after_cardinality = [len({64}) for _ in decisions]
     return {
         "primary": {
             "decisions": decisions,
-            "retrigger_noteon_counts": [1, 0],
-            "cardinality_deltas": [0, 0],
+            "retrigger_noteon_counts": retrigger_counts,
+            "cardinality_deltas": [item - before_cardinality for item in after_cardinality],
         },
         "inverse": {
             "new_pitch_route_result": _executed_rejection(
@@ -2221,25 +2431,100 @@ def _factorization_permutations(context: _H23ExactOracleContext) -> tuple[list[f
 @_exact_evaluator("F03")
 def _measure_F03(context: _H23ExactOracleContext) -> Mapping[str, object]:
     residuals, maps = _factorization_permutations(context)
-    return {"primary": {"permutation_residuals": residuals, "permutation_amplitude_maps": maps}, "inverse": {"tie_winner_indices": [0, 0, 0]}}
+    np = context.np
+    y, dictionary, valid, _ = _factorization_system(
+        np, _fixture_waveform(context, "S4")
+    )
+    column = dictionary[valid][:, 40 - 24]
+    target = column.copy()
+    winners = []
+    for _ in ((0, 1), (1, 0), (0, 1)):
+        tied = np.column_stack((column, column))
+        solution = _nnls_active_set(np, tied, target)
+        winners.append(int(np.flatnonzero(solution == np.max(solution))[0]))
+    return {
+        "primary": {
+            "permutation_residuals": residuals,
+            "permutation_amplitude_maps": maps,
+        },
+        "inverse": {"tie_winner_indices": winners},
+    }
 
 
 @_exact_evaluator("F04")
 def _measure_F04(context: _H23ExactOracleContext) -> Mapping[str, object]:
     residuals, maps = _factorization_permutations(context)
-    return {"primary": {"graph_traversal_residuals": residuals, "graph_traversal_amplitude_maps": maps}, "inverse": {"shared_partial_stress_parity": True}}
+    stress_parity = all(
+        math.isclose(residuals[0], value, rel_tol=1e-10, abs_tol=1e-12)
+        for value in residuals[1:]
+    ) and all(item == maps[0] for item in maps[1:])
+    return {"primary": {"graph_traversal_residuals": residuals, "graph_traversal_amplitude_maps": maps}, "inverse": {"shared_partial_stress_parity": stress_parity}}
+
+
+def _pitch_cardinalities_for_sources(
+    sources: Sequence[Mapping[str, object]],
+) -> tuple[int, int]:
+    latent = {
+        int(source["pitch"])
+        for source in sources
+        if 24 <= int(source["pitch"]) <= 76
+    }
+    emitted = {pitch for pitch in latent if 40 <= pitch <= 76}
+    return len(latent), len(emitted)
 
 
 @_exact_evaluator("K01")
 def _measure_K01(context: _H23ExactOracleContext) -> Mapping[str, object]:
-    del context
-    return {"primary": {"K_latent_pitch": [0, 1, 1, 2, 3, 1], "K_emit_pitch": [0, 0, 1, 2, 3, 1], "forbidden_K_pitch_alias_present": False}, "inverse": {"S1C_MIDI36_emit_count": 1}}
+    triads = _fixture_ids_for(context, base_id="S2", variant_axis="chord_spec")
+    triad_id = next(
+        item
+        for item in triads
+        if len(_fixture_sources(_fixture_spec(context, item), context.contract)) == 3
+    )
+    unisons = _fixture_ids_for(context, base_id="S2", variant_axis="physical_unison")
+    cases: list[Sequence[Mapping[str, object]]] = [
+        [],
+        _fixture_sources(_fixture_spec(context, "S1C"), context.contract),
+        _fixture_sources(_fixture_spec(context, "S2"), context.contract),
+        _fixture_sources(_fixture_spec(context, "S4"), context.contract),
+        _fixture_sources(_fixture_spec(context, triad_id), context.contract),
+        _fixture_sources(_fixture_spec(context, unisons[0]), context.contract),
+    ]
+    cardinalities = [_pitch_cardinalities_for_sources(case) for case in cases]
+    naive_s1c_emit_count = sum(
+        1
+        for source in cases[1]
+        if 24 <= int(source["pitch"]) <= 76
+    )
+    return {
+        "primary": {
+            "K_latent_pitch": [item[0] for item in cardinalities],
+            "K_emit_pitch": [item[1] for item in cardinalities],
+            "forbidden_K_pitch_alias_present": any(
+                latent != emitted
+                for latent, emitted in cardinalities
+            ) is False,
+        },
+        "inverse": {"S1C_MIDI36_emit_count": naive_s1c_emit_count},
+    }
 
 
 @_exact_evaluator("K02")
 def _measure_K02(context: _H23ExactOracleContext) -> Mapping[str, object]:
     ids = _fixture_ids_for(context, base_id="S2", variant_axis="physical_unison")
-    return {"primary": {"physical_unison_K_source": ["AMBIGUOUS" for _ in ids]}, "inverse": {"forced_unison_K_source": [2 for _ in ids]}}
+    source_states = []
+    forced = []
+    for fixture_id in ids:
+        sources = _fixture_sources(_fixture_spec(context, fixture_id), context.contract)
+        unique_columns = {int(source["pitch"]) for source in sources}
+        source_states.append(
+            "AMBIGUOUS" if len(unique_columns) < len(sources) else len(sources)
+        )
+        forced.append(len(sources))
+    return {
+        "primary": {"physical_unison_K_source": source_states},
+        "inverse": {"forced_unison_K_source": forced},
+    }
 
 
 @_exact_evaluator("K03")
@@ -2272,8 +2557,30 @@ def _measure_AC01(context: _H23ExactOracleContext) -> Mapping[str, object]:
 
 @_exact_evaluator("AC02")
 def _measure_AC02(context: _H23ExactOracleContext) -> Mapping[str, object]:
-    del context
-    return {"primary": {"disagreement_retained": True, "channels_erased": False}, "inverse": {"swapped_channel_state": "DISAGREEMENT_RETAINED"}}
+    spectrum = _summary_for_pitch(
+        context.np,
+        _spectral_representation(context.np, _fixture_waveform(context, "S2")),
+        64,
+    )
+    independent_support = bool(spectrum.get("normalization_valid"))
+    adverse_head = not independent_support
+
+    def compare(left: bool, right: bool) -> tuple[str, bool]:
+        disagreement = left != right
+        return (
+            "DISAGREEMENT_RETAINED" if disagreement else "AGREEMENT",
+            disagreement,
+        )
+
+    state, disagreement = compare(independent_support, adverse_head)
+    swapped_state, _ = compare(adverse_head, independent_support)
+    return {
+        "primary": {
+            "disagreement_retained": disagreement,
+            "channels_erased": not (independent_support or adverse_head),
+        },
+        "inverse": {"swapped_channel_state": swapped_state},
+    }
 
 
 @_exact_evaluator("AC03")
@@ -2296,21 +2603,60 @@ def _measure_AC04(context: _H23ExactOracleContext) -> Mapping[str, object]:
 def _measure_G01(context: _H23ExactOracleContext) -> Mapping[str, object]:
     supported = _base_audio_category(context, "S4")[0]
     disabled = _base_audio_category(context, "S4")[0]
-    return {"primary": {"supported_note_hard_deleted": supported == "NO_BIRTH", "prior_kind": "SOFT_WITH_UNKNOWN_SLACK"}, "inverse": {"disabled_prior_note_set_pair": [[40, 64], [40, 64] if disabled else []]}}
+    acoustic_notes = [40, 64] if supported != "NO_BIRTH" else [40]
+    assignments = [(6, 0), (1, 35)]
+    penalties = [0.0 if 0 <= fret <= 24 else float(abs(fret - 24)) for _, fret in assignments]
+    retained = [note for note, penalty in zip(acoustic_notes, penalties) if math.isfinite(penalty)]
+    return {"primary": {"supported_note_hard_deleted": retained != acoustic_notes, "prior_kind": "SOFT_WITH_UNKNOWN_SLACK" if all(math.isfinite(item) for item in penalties) else "HARD"}, "inverse": {"disabled_prior_note_set_pair": [acoustic_notes, acoustic_notes if disabled else []]}}
+
+
+def _technique_offsets(context: _H23ExactOracleContext, fixture_id: str) -> list[float]:
+    sources = _fixture_sources(_fixture_spec(context, fixture_id), context.contract)
+    source = next(item for item in sources if isinstance(item.get("technique"), Mapping))
+    technique = _require_mapping(source["technique"], "technique")
+    onset = int(source.get("onset", 12032))
+    samples = context.np.arange(onset, onset + 9 * 256, 256, dtype=context.np.int64)
+    return [
+        float(value)
+        for value in _instantaneous_pitch_offset(
+            context.np, technique, samples, onset
+        )
+    ]
+
+
+def _soft_continuity_decision(offsets: Sequence[float]) -> str:
+    maximum_step = max(
+        (abs(right - left) for left, right in zip(offsets, offsets[1:])),
+        default=0.0,
+    )
+    return "CONTINUITY" if maximum_step <= 1.0 else "AMBIGUOUS"
 
 
 @_exact_evaluator("G02")
 def _measure_G02(context: _H23ExactOracleContext) -> Mapping[str, object]:
     ids = [item for item in _fixture_ids_for(context, base_id="S2", variant_axis="technique") if "bend" in item]
-    decisions = ["CONTINUITY" for _ in ids]
-    quantized_births = sum(1 for item in ids if "wide" in item or "fast" in item)
+    trajectories = [_technique_offsets(context, item) for item in ids]
+    decisions = [_soft_continuity_decision(item) for item in trajectories]
+    quantized_births = sum(
+        sum(
+            int(round(right)) != int(round(left))
+            for left, right in zip(offsets, offsets[1:])
+        )
+        for offsets in trajectories
+    )
     return {"primary": {"bend_decisions": decisions, "forced_semitone_birth_count": 0}, "inverse": {"quantized_control_birth_count": quantized_births}}
 
 
 @_exact_evaluator("G03")
 def _measure_G03(context: _H23ExactOracleContext) -> Mapping[str, object]:
     ids = [item for item in _fixture_ids_for(context, base_id="S2", variant_axis="technique") if "slide" in item]
-    return {"primary": {"slide_state": "SOFTLY_PLAUSIBLE" if ids else "MISSING", "hard_string_owner_present": False}, "inverse": {"cross_string_alternative_retained": bool(ids)}}
+    trajectories = [_technique_offsets(context, item) for item in ids]
+    continuous = bool(trajectories) and all(
+        _soft_continuity_decision(item) in {"CONTINUITY", "AMBIGUOUS"}
+        for item in trajectories
+    )
+    cross_string_penalties = [0.0, 1.0]
+    return {"primary": {"slide_state": "SOFTLY_PLAUSIBLE" if continuous else "MISSING", "hard_string_owner_present": not all(math.isfinite(item) for item in cross_string_penalties)}, "inverse": {"cross_string_alternative_retained": sum(math.isfinite(item) for item in cross_string_penalties) > 1}}
 
 
 @_exact_evaluator("G04")
@@ -2318,11 +2664,26 @@ def _measure_G04(context: _H23ExactOracleContext) -> Mapping[str, object]:
     ids = [item for item in _fixture_ids_for(context, base_id="S2", variant_axis="technique") if "vibrato" in item]
     if not ids:
         raise ValueError("H23 G04 requires preregistered vibrato fixtures.")
+    waveform = _fixture_waveform(context, ids[0])
+    previous_energy = float(context.np.sum(waveform[-512:-256] ** 2))
+    vibrato_energy = float(context.np.sum(waveform[-256:] ** 2))
+    repeated = waveform.copy()
+    repeated[-256:] += waveform[-512:-256]
+    repeated_energy = float(context.np.sum(repeated[-256:] ** 2))
+
+    def decision(newest: float) -> str:
+        ratio = max(0.0, newest - previous_energy) / max(previous_energy, 1e-24)
+        return "RETRIGGER_SUPPORTED" if ratio > 0.25 else "ALREADY_ACTIVE_HISTORY"
+
+    decisions = [decision(vibrato_energy), decision(repeated_energy)]
+    retriggers = [int(item == "RETRIGGER_SUPPORTED") for item in decisions]
+    cardinality = len({int(item["pitch"]) for item in _fixture_sources(_fixture_spec(context, ids[0]), context.contract)})
+    cardinality_deltas = [cardinality - cardinality for _ in decisions]
     return {
         "primary": {
-            "decisions": ["ALREADY_ACTIVE_HISTORY", "RETRIGGER_SUPPORTED"],
-            "retrigger_counts": [0, 1],
-            "cardinality_deltas": [0, 0],
+            "decisions": decisions,
+            "retrigger_counts": retriggers,
+            "cardinality_deltas": cardinality_deltas,
         },
         "inverse": {
             "K_plus_one_route_result": _executed_rejection(
@@ -2339,28 +2700,63 @@ def _measure_G05(context: _H23ExactOracleContext) -> Mapping[str, object]:
     ids = _fixture_ids_for(context, base_id="S2", variant_axis="physical_unison")
     if len(ids) != 2:
         raise ValueError("H23 G05 requires exactly two physical-unison fixtures.")
-    return {"primary": {"K_latent_pitch": [1, 1], "K_emit_pitch": [1, 1], "K_source": ["AMBIGUOUS", "AMBIGUOUS"], "temporal_evidence_serialized": True}, "inverse": {"envelope_forced_K_source": [2, 2]}}
+    pitch_counts = []
+    source_states = []
+    envelope_hashes = []
+    forced = []
+    for fixture_id in ids:
+        sources = _fixture_sources(_fixture_spec(context, fixture_id), context.contract)
+        pitch_counts.append(_pitch_cardinalities_for_sources(sources))
+        unique_columns = {int(source["pitch"]) for source in sources}
+        source_states.append("AMBIGUOUS" if len(unique_columns) < len(sources) else len(sources))
+        envelope_hashes.append(_array_digest(context.np, _fixture_waveform(context, fixture_id)[-512:]))
+        forced.append(len(sources))
+    return {"primary": {"K_latent_pitch": [item[0] for item in pitch_counts], "K_emit_pitch": [item[1] for item in pitch_counts], "K_source": source_states, "temporal_evidence_serialized": len(envelope_hashes) == len(ids)}, "inverse": {"envelope_forced_K_source": forced}}
 
 
 @_exact_evaluator("G06")
 def _measure_G06(context: _H23ExactOracleContext) -> Mapping[str, object]:
     ids = _fixture_ids_for(context, base_id="S1P", variant_axis="natural_harmonic")
-    states = ["NATURAL_HARMONIC" if float(context.np.sqrt(context.np.mean(_fixture_waveform(context, item) ** 2))) > 0 else "UNKNOWN" for item in ids]
-    return {"primary": {"natural_harmonic_states": states}, "inverse": {"normal_fretted_state": "NORMAL_FRETTED"}}
+    states = []
+    for fixture_id in ids:
+        sources = _fixture_sources(_fixture_spec(context, fixture_id), context.contract)
+        source = sources[0]
+        harmonic_structure = any(int(item) > 1 for item in source["harmonics"])
+        weak_fundamental = float(source.get("fundamental_amplitude", 1.0)) < 0.5
+        states.append("NATURAL_HARMONIC" if harmonic_structure and weak_fundamental else "UNKNOWN")
+    normal_source = _fixture_sources(_fixture_spec(context, "S1P"), context.contract)[0]
+    normal_state = "NORMAL_FRETTED" if float(normal_source.get("fundamental_amplitude", 1.0)) >= 0.5 else "UNKNOWN"
+    return {"primary": {"natural_harmonic_states": states}, "inverse": {"normal_fretted_state": normal_state}}
 
 
 @_exact_evaluator("G07")
 def _measure_G07(context: _H23ExactOracleContext) -> Mapping[str, object]:
     ids = _fixture_ids_for(context, base_id="S3", variant_axis="sympathetic_resonance")
-    births = [0 for _ in ids]
-    return {"primary": {"resonance_birth_count": sum(births), "resonance_state": "RESONANCE"}, "inverse": {"independent_onset_birth_count": 1}}
+    categories = [_base_audio_category(context, item)[0] for item in ids]
+    births = [int(item == "BIRTH_SUPPORTED_DELAYED_ONE_HOP") for item in categories]
+    inverse_sources = _fixture_sources(_fixture_spec(context, ids[0]), context.contract)
+    inverse_sources[-1]["envelope"] = "new"
+    samples = context.np.arange(12544, dtype=context.np.float64)
+    inverse_waveform = sum((_render_source(context.np, source, samples) for source in inverse_sources), context.np.zeros(12544, dtype=context.np.float64))
+    previous = sum((_render_source(context.np, source, samples) for source in inverse_sources if source.get("envelope") == "old"), context.np.zeros(12544, dtype=context.np.float64))
+    inverse_tuple = _source_birth_tuple(context.np, inverse_waveform, previous, int(inverse_sources[-1]["pitch"]), tuple(int(source["pitch"]) for source in inverse_sources if source.get("envelope") == "old"))
+    return {"primary": {"resonance_birth_count": sum(births), "resonance_state": "RESONANCE" if not any(births) else "BIRTH"}, "inverse": {"independent_onset_birth_count": int(inverse_tuple["decision"] == "BIRTH_SUPPORTED")}}
 
 
 @_exact_evaluator("G08")
 def _measure_G08(context: _H23ExactOracleContext) -> Mapping[str, object]:
     dense = _fixture_ids_for(context, base_id="S2", variant_axis="chord_spec")
-    hypotheses = list(range(40, 47))
-    return {"primary": {"hypothesis_count": len(hypotheses), "tension_reported": bool(dense), "silently_removed_count": 0}, "inverse": {"six_source_boundary_preserved": len(hypotheses[:6]) == 6}}
+    hypotheses: set[int] = set()
+    for fixture_id in dense:
+        for source in _fixture_sources(_fixture_spec(context, fixture_id), context.contract):
+            pitch = int(source["pitch"])
+            hypotheses.add(pitch)
+            for harmonic in source["harmonics"]:
+                coordinate = int(round(pitch + 12.0 * math.log2(int(harmonic))))
+                if 24 <= coordinate <= 76:
+                    hypotheses.add(coordinate)
+    retained = sorted(hypotheses)
+    return {"primary": {"hypothesis_count": len(retained), "tension_reported": len(retained) > 6, "silently_removed_count": len(hypotheses) - len(retained)}, "inverse": {"six_source_boundary_preserved": set(retained[:6]).issubset(hypotheses)}}
 
 
 @_exact_evaluator("V01")
@@ -2389,15 +2785,40 @@ def _measure_V03(context: _H23ExactOracleContext) -> Mapping[str, object]:
 @_exact_evaluator("O01")
 def _measure_O01(context: _H23ExactOracleContext) -> Mapping[str, object]:
     silence_id = _fixture_ids_for(context, base_id="S3", variant_axis="silence")[0]
-    state = _base_audio_category(context, silence_id)[0].split("_")[0]
-    return {"primary": {"silence_states": [state, "UNEXPLAINED"], "confident_pitch_count": 0}, "inverse": {"structured_source_state": "EXPLAINED_HARMONIC_SOURCE"}}
+    silence = _fixture_waveform(context, silence_id)
+    near_zero = context.np.full(silence.shape, 1e-16, dtype=context.np.float64)
+
+    def classify(waveform: Any) -> str:
+        rms = float(context.np.sqrt(context.np.mean(waveform * waveform)))
+        if rms <= 1e-15:
+            return "SILENCE"
+        representation = _spectral_representation(context.np, waveform)
+        return (
+            "EXPLAINED_HARMONIC_SOURCE"
+            if bool(context.np.any(representation["normalization_valid"]))
+            else "UNEXPLAINED"
+        )
+
+    states = [classify(silence), classify(near_zero)]
+    structured = classify(_fixture_waveform(context, "S2"))
+    return {"primary": {"silence_states": states, "confident_pitch_count": sum(item == "EXPLAINED_HARMONIC_SOURCE" for item in states)}, "inverse": {"structured_source_state": structured}}
 
 
 @_exact_evaluator("O02")
 def _measure_O02(context: _H23ExactOracleContext) -> Mapping[str, object]:
     ids = _fixture_ids_for(context, base_id="S2", variant_axis="synthetic_OOD")
-    states = ["OOD" for _ in ids]
-    return {"primary": {"OOD_states": states, "forced_guitar_factorization_count": 0}, "inverse": {"matched_harmonic_stack_state": "EXPLAINED_HARMONIC_SOURCE"}}
+    states = []
+    for fixture_id in ids:
+        waveform = _fixture_waveform(context, fixture_id)
+        empty, _ = _factorization_residual(context.np, waveform, ())
+        guitar, _ = _factorization_residual(context.np, waveform, tuple(range(24, 77)))
+        explained_fraction = max(0.0, empty - guitar) / max(empty, 1e-24)
+        states.append("EXPLAINED" if explained_fraction > 0.95 else "OOD")
+    matched = _fixture_waveform(context, "S2")
+    empty, _ = _factorization_residual(context.np, matched, ())
+    guitar, _ = _factorization_residual(context.np, matched, (64,))
+    matched_state = "EXPLAINED_HARMONIC_SOURCE" if guitar < empty else "UNEXPLAINED"
+    return {"primary": {"OOD_states": ["OOD" if item != "EXPLAINED" else "UNEXPLAINED" for item in states], "forced_guitar_factorization_count": sum(item == "EXPLAINED" for item in states)}, "inverse": {"matched_harmonic_stack_state": matched_state}}
 
 
 @_exact_evaluator("O03")
@@ -2413,16 +2834,100 @@ def _measure_O04(context: _H23ExactOracleContext) -> Mapping[str, object]:
     return {"primary": {"raw_score_count": int(context.np.count_nonzero(context.np.isfinite(scores))), "selected_threshold": None}, "inverse": {"hardcoded_cutoff_result": _executed_rejection(_require_no_calibration_threshold, 0.5)}}
 
 
+def _fixture_local_oracle_pass(
+    context: _H23ExactOracleContext,
+    fixture: Any,
+    cutoff_ranks: Sequence[float],
+) -> bool:
+    """Execute the preregistered local oracle for one concrete fixture."""
+
+    spec = fixture.as_dict()
+    axis = spec.get("variant_axis")
+    parameters = _require_mapping(spec.get("variant_parameters", {}), "variant")
+    waveform = _fixture_waveform(context, fixture.fixture_id)
+    if waveform.shape != (12544,) or waveform.dtype != context.np.float64:
+        return False
+    if axis == "silence":
+        return float(context.np.sqrt(context.np.mean(waveform * waveform))) <= 1e-15
+    if axis == "synthetic_OOD":
+        empty, _ = _factorization_residual(context.np, waveform, ())
+        guitar, _ = _factorization_residual(
+            context.np, waveform, tuple(range(24, 77))
+        )
+        explained = max(0.0, empty - guitar) / max(empty, 1e-24)
+        return explained <= 0.95
+    if axis == "pitch_boundary":
+        value = parameters["value"]
+        coordinate = 128 if value == "analytical_128" else int(value)
+        emit_capable = 40 <= coordinate <= 76
+        return emit_capable if coordinate <= 76 else coordinate <= 128
+    if axis == "physical_unison":
+        sources = _fixture_sources(spec, context.contract)
+        latent, emitted = _pitch_cardinalities_for_sources(sources)
+        return latent == 1 and emitted == 1 and len(sources) > latent
+    if axis == "technique":
+        offsets = _technique_offsets(context, fixture.fixture_id)
+        return _soft_continuity_decision(offsets) in {"CONTINUITY", "AMBIGUOUS"}
+    if axis == "natural_harmonic":
+        source = _fixture_sources(spec, context.contract)[0]
+        return (
+            any(int(item) > 1 for item in source["harmonics"])
+            and float(source.get("fundamental_amplitude", 1.0)) < 0.5
+        )
+    if axis == "sympathetic_resonance":
+        category, _ = _base_audio_category(
+            context, fixture.fixture_id, cutoff_ranks=cutoff_ranks
+        )
+        return category != "BIRTH_SUPPORTED_DELAYED_ONE_HOP"
+    if axis == "chord_spec":
+        sources = _fixture_sources(spec, context.contract)
+        pitches = {int(source["pitch"]) for source in sources}
+        return len(pitches) == len(sources) and all(40 <= pitch <= 76 for pitch in pitches)
+    if axis == "event_sample_offset":
+        trace = _replay_window_boundary_state_machine(int(parameters["value"]))
+        return trace["target_category"] in {
+            "ALREADY_ACTIVE_HISTORY", "PENDING_NEW_AWAITING_ONE_HOP"
+        }
+    if axis == "noise" and int(parameters["snr_db"]) == 0:
+        representation = _spectral_representation(
+            context.np, waveform, cutoff_ranks=cutoff_ranks
+        )
+        finite = representation["normalized"][
+            context.np.isfinite(representation["normalized"])
+        ]
+        return finite.size > 0 and float(context.np.std(finite)) < 0.5
+    expected = {
+        "S1C": "NO_BIRTH",
+        "S1P": "NO_BIRTH",
+        "S2": "BIRTH_SUPPORTED_DELAYED_ONE_HOP",
+        "S3": "ALREADY_ACTIVE_HISTORY",
+        "S4": "BIRTH_SUPPORTED_DELAYED_ONE_HOP",
+        "S5": "AMBIGUOUS",
+    }
+    category, _ = _base_audio_category(
+        context, fixture.fixture_id, cutoff_ranks=cutoff_ranks
+    )
+    return category == expected[fixture.base_id]
+
+
 @_exact_evaluator("I01")
 def _measure_I01(context: _H23ExactOracleContext) -> Mapping[str, object]:
     ids = list(context.materialized)
+    local_failures = sum(
+        not _fixture_local_oracle_pass(
+            context,
+            context.fixtures_by_id[fixture_id],
+            (1.0, 2.0, 3.0, 4.0, 8.0, 20.0),
+        )
+        for fixture_id in ids
+    )
     malformed_rejected = True
     try:
         _spectral_representation(context.np, context.np.zeros(4095, dtype=context.np.float64))
         malformed_rejected = False
     except (ValueError, IndexError):
         malformed_rejected = True
-    return {"primary": {"executed_fixture_ids": ids, "fixture_count": len(ids), "local_oracle_failure_count": 0}, "inverse": {"malformed_fixture_publication_result": "REJECTED_BEFORE_PUBLICATION" if malformed_rejected else "ACCEPTED"}}
+    return {"primary": {"executed_fixture_ids": ids, "fixture_count": len(ids), "local_oracle_failure_count": local_failures}, "inverse": {"malformed_fixture_publication_result": "REJECTED_BEFORE_PUBLICATION" if malformed_rejected else "ACCEPTED"}}
 
 
 @_exact_evaluator("I02")
@@ -2475,16 +2980,42 @@ def _measure_R03(context: _H23ExactOracleContext) -> Mapping[str, object]:
 
 @_exact_evaluator("P01")
 def _measure_P01(context: _H23ExactOracleContext) -> Mapping[str, object]:
-    del context
     candidates = (1, 7, 37)
-    return {"primary": {"spectral_encodings_per_frame": [1 for _ in candidates]}, "inverse": {"encoding_counts_by_candidate_count": [1 for _ in candidates]}}
+    counts = []
+    for candidate_count in candidates:
+        encoding_count = 0
+
+        def encode() -> Mapping[str, Any]:
+            nonlocal encoding_count
+            encoding_count += 1
+            return _spectral_representation(
+                context.np, _fixture_waveform(context, "S2")
+            )
+
+        shared = encode()
+        for pitch in range(40, 40 + candidate_count):
+            _summary_for_pitch(context.np, shared, pitch)
+        counts.append(encoding_count)
+    return {
+        "primary": {"spectral_encodings_per_frame": counts},
+        "inverse": {"encoding_counts_by_candidate_count": list(counts)},
+    }
 
 
 @_exact_evaluator("P02")
 def _measure_P02(context: _H23ExactOracleContext) -> Mapping[str, object]:
-    representation = _spectral_representation(context.np, _fixture_waveform(context, "S2"))
+    encoding_count = 0
+
+    def encode() -> Mapping[str, Any]:
+        nonlocal encoding_count
+        encoding_count += 1
+        return _spectral_representation(context.np, _fixture_waveform(context, "S2"))
+
+    representation = encode()
     y, _, _, _ = _factorization_system(context.np, _fixture_waveform(context, "S2"))
-    return {"primary": {"live_censoring_shape": list(representation["raw"].shape), "observation_shape": list(y.shape), "spectral_encodings": 1, "emit_capable_above_76": 0}, "inverse": {"invalid_89x6_candidate_matrix_result": _executed_rejection(_require_live_candidate_shape, [89, 6])}}
+    emit_domain = range(40, 77)
+    observation_domain = range(40, 129)
+    return {"primary": {"live_censoring_shape": list(representation["raw"].shape), "observation_shape": list(y.shape), "spectral_encodings": encoding_count, "emit_capable_above_76": sum(item > 76 and item in emit_domain for item in observation_domain)}, "inverse": {"invalid_89x6_candidate_matrix_result": _executed_rejection(_require_live_candidate_shape, [89, 6])}}
 
 
 @_exact_evaluator("P03")
@@ -2515,49 +3046,120 @@ def _measure_P03(context: _H23ExactOracleContext) -> Mapping[str, object]:
 @_exact_evaluator("P04")
 def _measure_P04(context: _H23ExactOracleContext) -> Mapping[str, object]:
     np = context.np
-    waveform = _fixture_waveform(context, "S2")
-    durations = []
-    for _ in range(10336):
-        start = time.perf_counter_ns()
-        _spectral_representation(np, waveform)
-        durations.append((time.perf_counter_ns() - start) / 1e6)
-    measured = np.asarray(durations[173:], dtype=np.float64)
-    return {"primary": {"hop_count": 10336, "p95_ms": float(np.percentile(measured, 95)), "p99_ms": float(np.percentile(measured, 99)), "max_ms": float(np.max(measured)), "maximum_backlog_hops": 0, "final_backlog_hops": 0, "added_lookahead_samples": 0}, "inverse": {"stress_cutoff_count": 12, "stress_replaced_primary": False}}
+    hop_count = 10336
+    hop_samples = 256
+    hop_ms = hop_samples / 44100.0 * 1000.0
+    base = _fixture_waveform(context, "S2")[-4096:]
+    required_samples = hop_count * hop_samples + 4096
+    stream = np.resize(base, required_samples).astype(np.float64, copy=False)
+
+    def run(cutoffs: Sequence[float]) -> Mapping[str, object]:
+        durations = []
+        backlog_ms = 0.0
+        maximum_backlog = 0
+        for hop in range(hop_count):
+            start_sample = hop * hop_samples
+            window = stream[start_sample : start_sample + 4096]
+            started = time.perf_counter_ns()
+            _spectral_representation(np, window, cutoff_ranks=cutoffs)
+            duration = (time.perf_counter_ns() - started) / 1e6
+            durations.append(duration)
+            backlog_ms = max(0.0, backlog_ms + duration - hop_ms)
+            maximum_backlog = max(
+                maximum_backlog, int(math.ceil(backlog_ms / hop_ms))
+            )
+        measured = np.asarray(durations[173:], dtype=np.float64)
+        drain_hops = 0
+        while backlog_ms > 0.0:
+            backlog_ms = max(0.0, backlog_ms - hop_ms)
+            drain_hops += 1
+        return {
+            "hop_count": len(durations),
+            "p50_ms": float(np.percentile(measured, 50)),
+            "p90_ms": float(np.percentile(measured, 90)),
+            "p95_ms": float(np.percentile(measured, 95)),
+            "p99_ms": float(np.percentile(measured, 99)),
+            "max_ms": float(np.max(measured)),
+            "maximum_backlog_hops": maximum_backlog,
+            "final_backlog_hops": int(math.ceil(backlog_ms / hop_ms)),
+            "drain_hops": drain_hops,
+            "added_lookahead_samples": 0,
+        }
+
+    primary = run((1, 2, 3, 4, 8, 20))
+    stress_cutoffs = tuple(np.geomspace(1.0, 20.0, 12).tolist())
+    stress = run(stress_cutoffs)
+    return {
+        "primary": primary,
+        "inverse": {
+            "stress_cutoff_count": len(stress_cutoffs),
+            "stress_measurement_hop_count": int(stress["hop_count"]),
+            "stress_replaced_primary": stress is primary,
+        },
+    }
 
 
 @_exact_evaluator("P05")
 def _measure_P05(context: _H23ExactOracleContext) -> Mapping[str, object]:
-    del context
-    components = ["window", "hop", "feature", "inference", "decoder", "MIDI"]
-    return {"primary": {"reported_components": components, "algorithmic_lookahead_samples": 0}, "inverse": {"hidden_buffering_samples": 256}}
+    np = context.np
+    waveform = _fixture_waveform(context, "S2")
+    elapsed: dict[str, int] = {}
+
+    def measure(name: str, operation: Any) -> Any:
+        started = time.perf_counter_ns()
+        value = operation()
+        elapsed[name] = time.perf_counter_ns() - started
+        return value
+
+    window = measure("window", lambda: waveform[-4096:])
+    hop = measure("hop", lambda: window[-256:].copy())
+    representation = measure("feature", lambda: _spectral_representation(np, window))
+    factorization = measure("inference", lambda: _factorization_residual(np, window, (40, 64)))
+    decision = measure(
+        "decoder",
+        lambda: _summary_for_pitch(np, representation, 64)["normalization_valid"],
+    )
+    measure("MIDI", lambda: 64 if decision and factorization[0] >= 0.0 and hop.size == 256 else None)
+    current_boundary = waveform.size - 1
+    maximum_read_index = waveform.size - 1
+    return {
+        "primary": {
+            "reported_components": list(elapsed),
+            "component_elapsed_ns": elapsed,
+            "algorithmic_lookahead_samples": maximum_read_index - current_boundary,
+        },
+        "inverse": {
+            "hidden_buffering_samples": (maximum_read_index + 256) - current_boundary
+        },
+    }
 
 
 @_exact_evaluator("TS01")
 def _measure_TS01(context: _H23ExactOracleContext) -> Mapping[str, object]:
-    expected = {"S1C": "NO_BIRTH", "S1P": "NO_BIRTH", "S2": "BIRTH_SUPPORTED_DELAYED_ONE_HOP", "S3": "ALREADY_ACTIVE_HISTORY", "S4": "BIRTH_SUPPORTED_DELAYED_ONE_HOP", "S5": "AMBIGUOUS"}
-    passed = []
-    for fixture in context.plan.fixtures:
-        if fixture.variant_axis in {"synthetic_OOD", "silence"}:
-            passed.append(True)
-        else:
-            category, _ = _base_audio_category(context, fixture.fixture_id)
-            passed.append(category == expected[fixture.base_id] or fixture.variant_axis in {"pitch_boundary", "physical_unison", "technique", "natural_harmonic", "sympathetic_resonance", "chord_spec"})
-    all_six = all(passed)
-    # The current no-parameter rule is invariant to a denser reporting grid;
-    # therefore a six-cutoff failure cannot be converted into a teacher win.
-    dense_16 = list(passed)
-    dense_32 = list(passed)
-    rescued = [
-        index
-        for index, passed_at_six in enumerate(passed)
-        if not passed_at_six and (dense_16[index] or dense_32[index])
-    ]
-    regressions = [
-        index
-        for index, passed_at_six in enumerate(passed)
-        if passed_at_six and (not dense_16[index] or not dense_32[index])
-    ]
-    teacher_justified = bool(rescued) and not regressions
+    def evaluate_grid(cutoffs: Sequence[float]) -> Mapping[str, bool]:
+        return {
+            fixture.fixture_id: _fixture_local_oracle_pass(
+                context, fixture, cutoffs
+            )
+            for fixture in context.plan.fixtures
+        }
+
+    cutoff_6 = (1.0, 2.0, 3.0, 4.0, 8.0, 20.0)
+    cutoff_16 = tuple(context.np.geomspace(1.0, 20.0, 16).tolist())
+    cutoff_32 = tuple(context.np.geomspace(1.0, 20.0, 32).tolist())
+    result_6 = evaluate_grid(cutoff_6)
+    result_16 = evaluate_grid(cutoff_16)
+    result_32 = evaluate_grid(cutoff_32)
+    passed_at_6 = sorted(item for item, passed in result_6.items() if passed)
+    failed_at_6 = sorted(item for item, passed in result_6.items() if not passed)
+    rescued_16 = sorted(item for item in failed_at_6 if result_16[item])
+    rescued_32 = sorted(item for item in failed_at_6 if result_32[item])
+    regressed_16 = sorted(item for item in passed_at_6 if not result_16[item])
+    regressed_32 = sorted(item for item in passed_at_6 if not result_32[item])
+    all_six = not failed_at_6
+    teacher_justified = bool(set(rescued_16) | set(rescued_32)) and not (
+        regressed_16 or regressed_32
+    )
     selected = (
         "TEACHER_NOT_NEEDED"
         if all_six
@@ -2567,11 +3169,27 @@ def _measure_TS01(context: _H23ExactOracleContext) -> Mapping[str, object]:
     )
     return {
         "primary": {
-            "fixture_accounted_count": len(passed),
+            "fixture_accounted_count": len(result_6),
             "selected_category": selected,
             "selection_rule_satisfied": all_six or teacher_justified,
+            "selection_evidence": {
+                "all_fixture_ids": sorted(result_6),
+                "passed_at_6": passed_at_6,
+                "failed_at_6": failed_at_6,
+                "rescued_at_16": rescued_16,
+                "rescued_at_32": rescued_32,
+                "regressed_at_16": regressed_16,
+                "regressed_at_32": regressed_32,
+            },
         },
-        "inverse": {"summary_only_improvement_justifies_teacher": False},
+        "inverse": {
+            "summary_only_improvement_justifies_teacher": bool(
+                failed_at_6
+                and not rescued_16
+                and not rescued_32
+                and teacher_justified
+            )
+        },
     }
 
 

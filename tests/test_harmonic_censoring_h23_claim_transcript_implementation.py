@@ -300,6 +300,57 @@ class HarmonicCensoringH23ClaimTranscriptImplementationTests(unittest.TestCase):
                 return [[2.0, 1.0]]
             if rule.operator == "support_formula_exact":
                 return [[True, 100.0, True], [False, 23000.0, False]]
+            if rule.operator == "d08_traces_exact":
+                traces = []
+                for offset in (0, 1, 255, 256, 3840, 4095):
+                    event_hop = offset // 256
+                    states = ["INACTIVE"] + [
+                        "INACTIVE"
+                        if hop < event_hop
+                        else "PENDING_NEW"
+                        if hop == event_hop
+                        else "ACTIVE"
+                        for hop in range(16)
+                    ]
+                    pending = 4096 - offset < 3840
+                    if pending:
+                        states.append("ACTIVE")
+                    traces.append(
+                        {
+                            "offset": offset,
+                            "event_hop": event_hop,
+                            "states": states,
+                            "target_category": (
+                                "PENDING_NEW_AWAITING_ONE_HOP"
+                                if pending
+                                else "ALREADY_ACTIVE_HISTORY"
+                            ),
+                            "resolved_category": (
+                                "BIRTH_SUPPORTED_DELAYED_ONE_HOP"
+                                if pending
+                                else "ALREADY_ACTIVE_HISTORY"
+                            ),
+                            "pending_lifetime": 1,
+                        }
+                    )
+                return traces
+            if rule.operator == "ts01_evidence_exact":
+                return {
+                    "all_fixture_ids": sorted(self.plan.fixture_ids),
+                    "passed_at_6": sorted(self.plan.fixture_ids),
+                    "failed_at_6": [],
+                    "rescued_at_16": [],
+                    "rescued_at_32": [],
+                    "regressed_at_16": [],
+                    "regressed_at_32": [],
+                }
+            if rule.operator == "timing_components_exact":
+                return {
+                    name: 0
+                    for name in (
+                        "window", "hop", "feature", "inference", "decoder", "MIDI"
+                    )
+                }
             raise AssertionError(f"unsupported test rule {rule.operator}")
 
         return {
