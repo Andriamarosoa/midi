@@ -18,7 +18,20 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 - Mise à jour : `2026-08-10`.
 - Étape : `harmonic_censoring_h24_manifests_full_test_plan`.
-- Statut : `manifests et plan complet H24 définis contractuellement; aucune fixture, implémentation ou exécution autorisée`.
+- Statut : `correctif contractuel H24 en attente de seconde revue; aucune fixture, implémentation ou exécution autorisée`.
+- La revue externe de `4cfd4a60…` a validé cardinalités, namespaces, bindings,
+  kill rules et scope zéro-science, mais a refusé l’implémentation pour trois
+  ambiguïtés contractuelles. Le correctif ferme maintenant les `27` opérateurs
+  et l’unique sentinelle par une sémantique normative exhaustive, persiste pour
+  chacun des `72` tests une sélection exacte de fixtures H24 indépendante du
+  texte libre, et décrit explicitement la transition entre le snapshot
+  successeur historique (manifests alors absents) et l’état actuel (manifests
+  définis mais population non matérialisée, aucun evaluator/oracle/test). Des
+  adversariaux structurels couvrent registre incomplet/inconnu, sentinelle
+  inconnue, fixture non liée, sélection vide inexpliquée et transition
+  contradictoire. `106` tests contractuels H24/H23/H20 réussissent en `1,371 s`
+  sans evaluator scientifique ni donnée réelle. La prochaine action reste uniquement la revue externe de ce
+  correctif JSON/tests/docs; aucune synthèse ni implémentation n’est autorisée.
 - H24 possède maintenant deux manifests canoniques liés au contrat successeur :
   `175` spécifications de fixtures (`6+169`) sous `H24_SYNTHETIC_V1` et `72`
   tests redérivés (`1+71`) sous `H24_TEST_V1`, répartis `27/35/10` en
