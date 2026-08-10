@@ -79,14 +79,16 @@ spécial evidence-only. Le matérialisateur futur n'a plus de choix scientifique
 
 La seconde revue de H23b a demandé trois précisions supplémentaires :
 
-- `distinct_envelopes_two_sources` utilise désormais un second onset à 3584,
-  une attaque de 32 samples et une décroissance de 1024 samples, réellement
-  distincts de l'enveloppe originale ; l'unison identique reste `AMBIGUOUS` ;
+- `distinct_envelopes_two_sources` conserve une enveloppe distincte comme
+  diagnostic temporel, mais `K_source` reste `AMBIGUOUS` pour les deux unisons :
+  la factorisation scellée n'a qu'une colonne par pitch et ne peut prouver deux
+  instances physiques au même MIDI ;
 - l'ancien nom `K_pitch` est interdit et remplacé partout par
   `K_latent_pitch` et `K_emit_pitch`, séparés de `K_source` ; S1C vaut donc
   exactement `1/0/1` ;
-- les offsets `0,1,255,256,3840` conservent au moins un hop causal et héritent
-  de `BIRTH_SUPPORTED`, tandis que `4095` produit exactement
+- `H_old(t)` est exactement l'état accepté après le hop `t-1`. Les offsets
+  `0,1,255,256` sont donc `ALREADY_ACTIVE_HISTORY`; `3840`, premier sample du
+  nouveau hop, est `BIRTH_SUPPORTED`; `4095` produit exactement
   `AMBIGUOUS_INSUFFICIENT_CAUSAL_EVIDENCE`.
 
 ## État
