@@ -18,7 +18,7 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 - Mise à jour : `2026-08-10`.
 - Étape : `harmonic_censoring_h24_dormant_population_materializer`.
-- Statut : `contrat H24 approuvé; materializer, capability, claim et publisher atomique implémentés mais strictement dormants; aucun seal, marker, waveform, population ni exécution; en attente de revue externe`.
+- Statut : `materializer H24 dormant corrigé pour fidélité numérique; aucun seal, marker, waveform, population ni exécution; en attente de nouvelle revue externe`.
 - La revue externe a approuvé `2cf2be8e…` et autorisé uniquement
   `AUTHORIZED_TO_IMPLEMENT_H24_DORMANT_MATERIALIZER_CLAIM_AND_ATOMIC_PUBLISHER_ONLY`.
   Le nouveau module lie le contrat `b48aa4f…`, réimplémente exactement la trace
@@ -26,8 +26,12 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   preflight sans NumPy, le futur `O_EXCL`, le staging/index/receipt/rehash et les
   publications atomiques. Aucun seal d'activation n'existe et l'entrée publique
   refuse explicitement le bridge NumPy même après claim. Les tests du claim
-  mockent l'écriture : aucun marker ni octet scientifique n'est créé. `158`
-  tests H24/H23/H20 réussissent en `2,130 s`. Rapport :
+  mockent l'écriture : aucun marker ni octet scientifique n'est créé. La revue
+  de `3a5cf3e8…` a ensuite relevé deux écarts dormants : identifiant S5 abrégé
+  et accumulation regroupée par source. Le correctif reconnaît exactement
+  `H24-F-S5` et ajoute chaque harmonique directement au waveform global, avec
+  adversariaux S5 et multi-source. `160` tests H24/H23/H20 réussissent en
+  `2,029 s`. Rapport :
   `readme/results/2026-08-10_harmonic-censoring-h24-dormant-population-materializer.md`.
   Toute activation ou tentative one-shot reste interdite avant nouvelle revue.
 - La revue externe de `10aa49a8…` a approuvé conceptuellement le one-shot et

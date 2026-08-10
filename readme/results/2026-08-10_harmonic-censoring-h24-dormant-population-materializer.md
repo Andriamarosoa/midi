@@ -95,10 +95,28 @@ Les tests couvrent notamment :
 - présence statique de toutes les primitives numériques et atomiques scellées ;
 - absence de sélection de chemins ou de population par l'appelant.
 
+## Correction de fidélité numérique après revue
+
+La revue externe de `3a5cf3e85cd045b5176a8b854a9f381350fd26b3`
+a autorisé uniquement
+`AUTHORIZED_TO_CORRECT_H24_DORMANT_MATERIALIZER_NUMERIC_FIDELITY_ONLY`.
+Deux corrections ont été apportées sans activer le materializer :
+
+- la branche spéciale S5 reconnaît l'identifiant persistant exact
+  `H24-F-S5`, et un test charge les 175 recettes scellées pour prouver que
+  l'unique recette S5 atteint ce dispatch ;
+- chaque terme harmonique est ajouté directement au waveform global, dans
+  l'ordre source puis harmonique. Aucun buffer intermédiaire par source ne
+  regroupe les additions float64. Un adversarial montre que ces deux ordres
+  peuvent produire des résultats binary64 différents et inspecte la structure
+  réelle de l'accumulateur.
+
+Ces tests ne synthétisent aucune waveform et n'importent pas NumPy.
+
 ## Validation administrative
 
 ```text
-158 tests H24/H23/H20 réussis en 2,130 s
+160 tests H24/H23/H20 réussis en 2,029 s
 py_compile réussi
 git diff --check réussi
 aucun seal d'activation créé

@@ -288,6 +288,58 @@ class H24DormantPopulationMaterializerTests(unittest.TestCase):
         self.assertNotIn("P1", body)
         self.assertNotIn("P2", body)
 
+    def test_real_s5_recipe_uses_the_exact_sealed_special_case_identifier(self):
+        plan = materializer.load_h24_dormant_harness_plan(ROOT)
+        recipes = materializer.translate_all_h24_fixture_specifications(plan)
+        s5_recipes = tuple(recipe for recipe in recipes if recipe.base_id == "H24-F-S5")
+        self.assertEqual(len(s5_recipes), 1)
+        self.assertEqual(s5_recipes[0].base_id, "H24-F-S5")
+        synthesis_source = inspect.getsource(materializer._synthesize_waveform)
+        self.assertIn('recipe.base_id == "H24-F-S5"', synthesis_source)
+        self.assertNotIn('recipe.base_id == "S5"', synthesis_source)
+
+    def test_multisource_accumulation_is_global_per_harmonic_not_source_grouped(self):
+        # The two algebraically similar orders are observably different in binary64.
+        source_one = (1.0e16, 1.0)
+        source_two = (-1.0e16, 1.0)
+        global_per_harmonic = 0.0
+        for source in (source_one, source_two):
+            for term in source:
+                global_per_harmonic += term
+        grouped_per_source = sum(source_one) + sum(source_two)
+        self.assertEqual(global_per_harmonic, 1.0)
+        self.assertEqual(grouped_per_source, 0.0)
+
+        accumulator_source = inspect.getsource(materializer._accumulate_source)
+        self.assertNotIn("return waveform", accumulator_source)
+        accumulator_tree = ast.parse(accumulator_source)
+        waveform_assignments = [
+            node
+            for node in ast.walk(accumulator_tree)
+            if isinstance(node, (ast.Assign, ast.AnnAssign))
+            and any(
+                isinstance(target, ast.Name) and target.id == "waveform"
+                for target in (
+                    node.targets if isinstance(node, ast.Assign) else (node.target,)
+                )
+            )
+        ]
+        self.assertEqual(waveform_assignments, [])
+        global_additions = [
+            node
+            for node in ast.walk(accumulator_tree)
+            if isinstance(node, ast.AugAssign)
+            and isinstance(node.target, ast.Name)
+            and node.target.id == "waveform"
+            and isinstance(node.op, ast.Add)
+        ]
+        self.assertEqual(len(global_additions), 1)
+        synthesis_source = inspect.getsource(materializer._synthesize_waveform)
+        self.assertIn(
+            "_accumulate_source(np, waveform, source, samples)", synthesis_source
+        )
+        self.assertNotIn("_render_source", SOURCE_PATH.read_text(encoding="utf-8"))
+
     def test_public_operations_have_no_caller_path_or_population_override(self):
         self.assertEqual(
             tuple(inspect.signature(materializer.issue_h24_population_materialization_capability).parameters),

@@ -718,7 +718,12 @@ def _instantaneous_pitch_offset(
     ) * scale
 
 
-def _render_source(np: Any, source: Mapping[str, object], samples: Any) -> Any:
+def _accumulate_source(
+    np: Any,
+    waveform: Any,
+    source: Mapping[str, object],
+    samples: Any,
+) -> None:
     allowed = {
         "pitch", "harmonics", "envelope", "gain", "cents", "inharmonicity_B",
         "fundamental_amplitude", "h1_phase", "phase", "old_source_age_hops",
@@ -741,7 +746,6 @@ def _render_source(np: Any, source: Mapping[str, object], samples: Any) -> Any:
     else:
         pitch_offset = np.zeros(samples.shape, dtype=np.float64)
     pitch_offset = pitch_offset + float(source.get("instantaneous_pitch_offset", 0.0))
-    waveform = np.zeros(samples.shape, dtype=np.float64)
     for harmonic in harmonics:
         amplitude = 0.4 / harmonic
         if harmonic == 1:
@@ -761,7 +765,6 @@ def _render_source(np: Any, source: Mapping[str, object], samples: Any) -> Any:
             else float(source.get("h1_phase", 0.0))
         )
         waveform += gain * amplitude * envelope * np.sin(phase)
-    return waveform
 
 
 def _unit_rms_noise(np: Any, colour: str, seed: int, length: int) -> Any:
@@ -874,7 +877,7 @@ def _synthesize_waveform(
     """Execute the sealed trace using an already-claimed caller-provided NumPy."""
 
     samples = np.arange(12544, dtype=np.float64)
-    if recipe.base_id == "S5":
+    if recipe.base_id == "H24-F-S5":
         envelope = _source_envelope(np, {"envelope": "old"}, samples)
         frequency = 4.0 * 440.0 * math.pow(2.0, (40.0 - 69.0) / 12.0)
         waveform = 0.1 * envelope * np.sin(
@@ -883,7 +886,7 @@ def _synthesize_waveform(
     else:
         waveform = np.zeros(samples.shape, dtype=np.float64)
         for source in _fixture_sources(recipe, contract):
-            waveform += _render_source(np, source, samples)
+            _accumulate_source(np, waveform, source, samples)
     parameters = _thaw(recipe.variant_parameters)
     if type(parameters) is not dict:
         raise ValueError("H24 variant parameters are invalid.")
