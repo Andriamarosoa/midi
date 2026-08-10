@@ -89,7 +89,15 @@ La seconde revue de H23b a demandé trois précisions supplémentaires :
 - `H_old(t)` est exactement l'état accepté après le hop `t-1`. Les offsets
   `0,1,255,256` sont donc `ALREADY_ACTIVE_HISTORY`; `3840`, premier sample du
   nouveau hop, est `BIRTH_SUPPORTED`; `4095` produit exactement
-  `AMBIGUOUS_INSUFFICIENT_CAUSAL_EVIDENCE`.
+  `AMBIGUOUS_INSUFFICIENT_CAUSAL_EVIDENCE`, puis une résolution causale unique
+  au hop suivant.
+
+La machine temporelle est désormais fermée : `INACTIVE`, `PENDING_NEW` et
+`ACTIVE`. Un pending ne survit jamais plus d'un hop. Le replay depuis silence
+est obligatoire, S3 est `ALREADY_ACTIVE_HISTORY`, et un retrigger au même MIDI
+possède sa propre règle `RETRIGGER_SUPPORTED` sans `Delta_R` ni changement de
+cardinalité. L'attente d'un hop n'utilise aucun futur au moment de la décision,
+mais son `decision_delay_hops=1` est archivé explicitement.
 
 ## État
 
