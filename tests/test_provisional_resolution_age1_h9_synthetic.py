@@ -322,7 +322,7 @@ class ProvisionalResolutionAge1H9SyntheticTests(unittest.TestCase):
         counts = count_age1_attrition(rows)
         self.assertEqual(counts.emitted_noteons_initially_considered, 2)
         self.assertEqual(counts.noteons_with_exact_age1_observation, 1)
-        self.assertEqual(counts.noteons_unavailable_due_to_decoder_clock_skip, 1)
+        self.assertEqual(counts.noteons_unavailable_due_to_decoder_clock_skip, 0)
         self.assertEqual(counts.noteons_excluded_as_ambiguous_or_unmatchable, 1)
         self.assertFalse(any("auc" in field.name.lower() for field in fields(type(counts))))
         with self.assertRaisesRegex(RuntimeError, "identities differ"):

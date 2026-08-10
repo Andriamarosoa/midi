@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "purpose": "provisional_resolution_age1_persistence_h10_synthetic_metric_conformance",
+  "status": "provisional_resolution_age1_persistence_h10_synthetic_metric_engine_ready",
+  "verdict": "age1_persistence_h10_synthetic_metric_conformance_demonstrated",
+  "accepted_h9_commit": "963cf72c8e60e2d669e659de037f910658637984",
+  "accepted_h9_source_blobs": {
+    "src/polyphonic/decoder.py": "27026d368081fadc4fa282954428f0377020e723",
+    "src/polyphonic/provisional_resolution_age1.py": "706f45d4579e6887d4a11d9f17eea9c59cae6280"
+  },
+  "end_of_stream": {
+    "required_check": "require_no_pending_age1_at_end",
+    "pending_status": "age1_signal_execution_invalid",
+    "pending_reason": "unresolved_age1_pending_at_end_of_recording",
+    "synthesize_t_plus_1": false,
+    "substitute_final_frame": false,
+    "reclassify_as_clock_skip": false,
+    "silently_drop": false
+  },
+  "grouped_row_schema": [
+    "recording_key",
+    "corpus_category",
+    "leakage_group_key",
+    "scientific_row"
+  ],
+  "eligibility": {
+    "required_age1_status": "age1_observation_available",
+    "required_target_status": "matchable",
+    "required_true_noteon": [0, 1],
+    "required_score": "finite_S1",
+    "minimum_valid_age1_observations": 200,
+    "insufficient_status": "age1_signal_insufficient_valid_observations",
+    "single_class_status": "age1_signal_single_class",
+    "imputation": false
+  },
+  "roc_auc": {
+    "definition": "P(S1_positive>S1_negative)+0.5*P(S1_positive==S1_negative)",
+    "implementation": "average_ranks_with_exact_half_credit_for_ties",
+    "positive_orientation": "higher_score_predicts_true_noteon",
+    "binary_targets_only": true,
+    "finite_scores_only": true,
+    "single_class": "undefined_fail_closed"
+  },
+  "bootstrap": {
+    "resampling_unit": "leakage_group_key",
+    "groups_sampled_per_replicate": "G",
+    "replacement": true,
+    "all_group_rows_with_sampled_multiplicity": true,
+    "rng": "numpy.random.Generator(numpy.random.PCG64(721629268))",
+    "replicate_count": 10000,
+    "seed": 721629268,
+    "single_class_replicate": "invalid_excluded",
+    "minimum_valid_replicates": 9500,
+    "insufficient_valid_status": "group_resampling_inconclusive",
+    "retry": false
+  },
+  "confidence_interval": {
+    "type": "two_sided_percentile_95",
+    "percentiles": [2.5, 97.5],
+    "implementation": "numpy.percentile(method=linear)",
+    "bca": false,
+    "normal_approximation": false
+  },
+  "primary_verdict": {
+    "positive": "age1_persistence_signal_demonstrated",
+    "positive_requires_all": {
+      "global_s1_auc_minimum_inclusive": 0.6,
+      "bootstrap_ci_lower_strictly_greater_than": 0.5
+    },
+    "negative": "age1_persistence_signal_not_demonstrated",
+    "negative_if_any": [
+      "global_s1_auc_below_0.60",
+      "bootstrap_ci_lower_at_or_below_0.50"
+    ]
+  },
+  "descriptive_only": {
+    "S0_auc": true,
+    "D1_auc": true,
+    "D1_orientation": "higher_D1_predicts_true_noteon_persistence",
+    "may_change_primary_verdict": false
+  },
+  "per_corpus": {
+    "metric": "S1_ROC_AUC",
+    "single_class_status": "auc_unavailable_single_class",
+    "gating": false
+  },
+  "terminal_flags": {
+    "scientific_execution_authorized": false,
+    "real_targets_extracted": false,
+    "real_signals_extracted": false,
+    "real_metrics_computed": false,
+    "h8_cohort_consumed": false,
+    "locked_test_used": false,
+    "consumed_v2_cohort_used": false
+  },
+  "next_action": "external_review_before_any_real_h7_execution_contract"
+}

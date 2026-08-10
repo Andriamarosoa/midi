@@ -105,6 +105,14 @@ class PassiveAge1SignalCollector:
     def records(self) -> tuple[Age1SignalRecord, ...]:
         return tuple(self._completed)
 
+    def require_no_pending_age1_at_end(self) -> None:
+        """Fail closed when a recording ends before an actual age-1 frame."""
+        if self._pending:
+            raise RuntimeError(
+                "age1_signal_execution_invalid: "
+                "unresolved_age1_pending_at_end_of_recording"
+            )
+
     def observe_frame(
         self,
         *,
@@ -334,17 +342,25 @@ def count_age1_attrition(
 ) -> Age1AttritionCounts:
     if type(malformed_or_nonfinite_signal_cases) is not int or malformed_or_nonfinite_signal_cases < 0:
         raise ValueError("malformed_or_nonfinite_signal_cases must be a non-negative integer.")
+    excluded = sum(row.target_status != TARGET_MATCHABLE for row in rows)
+    unavailable = sum(
+        row.target_status == TARGET_MATCHABLE
+        and row.age1_status == AGE1_OBSERVATION_UNAVAILABLE
+        for row in rows
+    )
+    exact = sum(
+        row.target_status == TARGET_MATCHABLE
+        and row.age1_status == AGE1_OBSERVATION_AVAILABLE
+        for row in rows
+    )
+    total = len(rows) + malformed_or_nonfinite_signal_cases
+    if exact + unavailable + excluded + malformed_or_nonfinite_signal_cases != total:
+        raise RuntimeError("Fail closed: H7 attrition categories do not reconcile.")
     return Age1AttritionCounts(
-        emitted_noteons_initially_considered=len(rows),
-        noteons_with_exact_age1_observation=sum(
-            row.age1_status == AGE1_OBSERVATION_AVAILABLE for row in rows
-        ),
-        noteons_unavailable_due_to_decoder_clock_skip=sum(
-            row.age1_status == AGE1_OBSERVATION_UNAVAILABLE for row in rows
-        ),
-        noteons_excluded_as_ambiguous_or_unmatchable=sum(
-            row.target_status != TARGET_MATCHABLE for row in rows
-        ),
+        emitted_noteons_initially_considered=total,
+        noteons_with_exact_age1_observation=exact,
+        noteons_unavailable_due_to_decoder_clock_skip=unavailable,
+        noteons_excluded_as_ambiguous_or_unmatchable=excluded,
         malformed_or_nonfinite_signal_cases=malformed_or_nonfinite_signal_cases,
     )
 

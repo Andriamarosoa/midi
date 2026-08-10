@@ -17,8 +17,24 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `provisional_resolution_age1_persistence_h9_synthetic_extractor_conformance`.
-- Statut : `terminé — provisional_resolution_age1_persistence_h9_synthetic_extractor_ready, aucune exécution scientifique autorisée`.
+- Étape : `provisional_resolution_age1_persistence_h10_synthetic_metric_conformance`.
+- Statut : `terminé — provisional_resolution_age1_persistence_h10_synthetic_metric_engine_ready, aucune exécution scientifique autorisée`.
+- H10 positif sur objets synthétiques uniquement : une fin d'enregistrement avec
+  NoteOn encore pending échoue sous `age1_signal_execution_invalid` /
+  `unresolved_age1_pending_at_end_of_recording`, sans synthèse de frame,
+  suppression ou reclassification clock-skip. Le wrapper groupé garde
+  `recording_key`, `corpus_category` et `leakage_group_key` hors du payload
+  scientifique. L'AUC binaire average-rank attribue un demi-crédit exact aux
+  égalités. Le bootstrap utilise exclusivement `10000` tirages de `G` groupes
+  avec remise via `numpy.random.Generator(numpy.random.PCG64(721629268))`, toutes
+  leurs lignes avec multiplicité, minimum `9500` réplications valides et
+  percentiles linéaires `[2,5;97,5]`. La décision positive exige simultanément
+  AUC S1 `>=0,60` et borne basse `>0,50`; S0/D1 et corpus restent descriptifs.
+  Aucun actif H8, signal/target réel, modèle ou métrique réelle n'a été utilisé.
+  Contrat :
+  `configs/provisional_resolution_age1_persistence_h10_synthetic_metric_conformance.json`.
+  Rapport :
+  `readme/results/2026-08-10_provisional-resolution-age1-h10-synthetic-metric-conformance.md`.
 - H9 positif sur données synthétiques uniquement : un collecteur passif observe
   chaque vrai NoteOn du décodeur historique, retriggers compris, gèle
   `S0=frame_probability_at_noteon`, puis capture `S1` au même pitch exactement
