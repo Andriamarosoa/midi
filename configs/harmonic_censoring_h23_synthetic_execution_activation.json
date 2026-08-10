@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "purpose": "harmonic_censoring_h23_synthetic_execution_activation",
+  "status": "externally_reviewed_seal_activation",
+  "authorization_seal": {
+    "path": "configs/harmonic_censoring_h23_synthetic_execution_authorization_seal.json",
+    "raw_sha256": "0074a29682d2847f70bdd2260a7f57f5b079fa94b92ba84cb01307dcdea8defa"
+  },
+  "bindings": {
+    "implementation_commit": "f384cea35d12d6952f995f66cd954fe605ad1c83",
+    "capability_source_blob": "24efe3daee1e99a3d4298452cd5eba9e9fa5f6be",
+    "runner_source_blob": "3699212be4db17df99acfddb864c0a25f56dcea4"
+  },
+  "external_review": {
+    "verdict": "APPROVED",
+    "authorization_seal_reviewed": true,
+    "activation_commit_review_required": true
+  }
+}

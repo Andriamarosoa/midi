@@ -55,3 +55,4 @@ tests/test_harmonic_censoring_h23_execution_capability_contract.py text eol=lf
 tests/test_harmonic_censoring_h23_execution_dormant.py text eol=lf
 readme/results/2026-08-10_harmonic-censoring-h23-dormant-execution-implementation.md text eol=lf
 readme/results/2026-08-10_harmonic-censoring-h23-seal-activation-transition.md text eol=lf
+readme/results/2026-08-10_harmonic-censoring-h23-activation-and-seal-definition.md text eol=lf

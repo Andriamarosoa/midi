@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "purpose": "harmonic_censoring_h23_synthetic_execution_authorization_seal",
+  "status": "externally_approved_one_shot_synthetic_execution",
+  "authorization": {
+    "capability_issuance_authorized": true,
+    "synthetic_execution_authorized": true,
+    "scientific_execution_authorized": true,
+    "P0_execution_authorized": true,
+    "P1_execution_authorized": true,
+    "P2_execution_authorized": true,
+    "real_data_access_authorized": false,
+    "training_authorized": false,
+    "H17_population_used": false,
+    "locked_test_used": false
+  },
+  "bindings": {
+    "H23_contract_raw_sha256": "719eba0aa440fc1e77ae7d204adee9e5b51517f455fad3bfed7e761d3c00a74a",
+    "capability_contract_raw_sha256": "87f9288ad25816573fd6076856320f182829cb77e4643bf887d2b1571ad819ec",
+    "fixture_manifest_sha256": "acfa37b987deb19884c9f60cf3410717b68788eb466396402aaf992b3224e19c",
+    "resolved_test_manifest_sha256": "0d059d3f2540f2b08279bb8363e9036ae0f71b2bea11575bfebfce76b7fe7504",
+    "reviewed_execution_commit": "f384cea35d12d6952f995f66cd954fe605ad1c83",
+    "exact_changed_files": [
+      "configs/harmonic_censoring_h23_synthetic_execution_capability_contract.json",
+      "readme/README.md",
+      "readme/results/2026-08-10_harmonic-censoring-h23-seal-activation-transition.md",
+      "src/polyphonic/harmonic_censoring_h23_execution_capability.py",
+      "tests/test_harmonic_censoring_h23_execution_capability_contract.py",
+      "tests/test_harmonic_censoring_h23_execution_dormant.py"
+    ],
+    "capability_source_blob": "24efe3daee1e99a3d4298452cd5eba9e9fa5f6be",
+    "runner_source_blob": "3699212be4db17df99acfddb864c0a25f56dcea4"
+  },
+  "runtime_identity": {
+    "implementation": "CPython",
+    "python_version": "3.11.9",
+    "numpy_version": "1.26.4",
+    "architecture": "arm64",
+    "execution_device": "CPU",
+    "thread_count": 1
+  },
+  "one_shot_paths": {
+    "success_destination": "tmp/h23_synthetic_execution_20260810/success",
+    "terminal_record_destination": "tmp/h23_synthetic_execution_20260810/terminal",
+    "authorization_marker": "tmp/h23_synthetic_execution_20260810/consumed.json"
+  },
+  "external_review": {
+    "verdict": "APPROVED",
+    "reviewed_execution_commit": "f384cea35d12d6952f995f66cd954fe605ad1c83",
+    "authorization_seal_review_required": true
+  }
+}
