@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "purpose": "harmonic_censoring_h24_manifests_and_full_test_plan_binding_contract",
+  "status": "contract_only_pending_external_review",
+  "H24_successor_contract": {
+    "path": "configs/harmonic_censoring_h24_successor_contract.json",
+    "sha256": "184d3847a594ffaca263b45befe70d1f5aa63ade0a0ef599d969ba044f4e680a"
+  },
+  "H24_population_manifest": {
+    "path": "configs/harmonic_censoring_h24_population_manifest.json",
+    "sha256": "52c88c74c837ad3c6109be466df38bac862e10d93c187fe60e8c5da30bd4b02b",
+    "fixture_specification_count": 175
+  },
+  "H24_test_manifest": {
+    "path": "configs/harmonic_censoring_h24_test_manifest.json",
+    "sha256": "930eeffd8443b0d2e38fca15f6efaf949e66f74dcba0f2e007a461d5e803318e",
+    "test_specification_count": 72
+  },
+  "authorization": {
+    "manifest_and_test_plan_definition_authorized": true,
+    "implementation_authorized": false,
+    "population_creation_authorized": false,
+    "waveform_synthesis_authorized": false,
+    "scientific_execution_authorized": false,
+    "real_data_access_authorized": false,
+    "H17_population_use_authorized": false,
+    "training_authorized": false,
+    "locked_test_used": false
+  },
+  "next_action": "external_review_of_H24_manifests_and_full_test_plan_only"
+}

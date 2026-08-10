@@ -67,3 +67,7 @@ readme/results/2026-08-10_harmonic-censoring-h23-activation-and-seal-definition.
 readme/results/2026-08-10_harmonic-censoring-h23-administrative-capability-issuance.md text eol=lf
 readme/results/2026-08-10_harmonic-censoring-h23-preclaim-toctou-hardening.md text eol=lf
 readme/results/2026-08-10_harmonic-censoring-h23-reviewed-activation-seal-refresh.md text eol=lf
+configs/harmonic_censoring_h24_successor_contract.json text eol=lf
+configs/harmonic_censoring_h24_population_manifest.json text eol=lf
+configs/harmonic_censoring_h24_test_manifest.json text eol=lf
+configs/harmonic_censoring_h24_manifest_binding_contract.json text eol=lf

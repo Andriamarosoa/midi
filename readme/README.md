@@ -17,8 +17,17 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `harmonic_censoring_h24_successor_contract`.
-- Statut : `successeur H24 défini contractuellement; aucune implémentation, population ou exécution autorisée`.
+- Étape : `harmonic_censoring_h24_manifests_full_test_plan`.
+- Statut : `manifests et plan complet H24 définis contractuellement; aucune fixture, implémentation ou exécution autorisée`.
+- H24 possède maintenant deux manifests canoniques liés au contrat successeur :
+  `175` spécifications de fixtures (`6+169`) sous `H24_SYNTHETIC_V1` et `72`
+  tests redérivés (`1+71`) sous `H24_TEST_V1`, répartis `27/35/10` en
+  P0/P1/P2. Les IDs et seeds sont nouveaux; aucun outcome H23 n’est repris.
+  Chaque test persiste un evidence schema explicite et interdit le verdict du
+  producteur. Les kill rules restent arrêt-au-premier-échec et un succès futur
+  ne pourrait autoriser que la préparation d’un protocole train. Les manifests
+  déclarent tous waveform/fixture/evaluator/exécution à `false`. Rapport :
+  `readme/results/2026-08-10_harmonic-censoring-h24-manifests-full-test-plan.md`.
 - Après approbation de la clôture H23, H24 définit prospectivement un graphe
   harmonique typé : `H1` est la relation réflexive `FUNDAMENTAL_IDENTITY`,
   tandis que `H2–H20` sont les seules arêtes `PROPER_HARMONIC_ASCENT`
@@ -1643,6 +1652,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-10 — contrat claim, exécuteur scientifique et transcript H23](results/2026-08-10_harmonic-censoring-h23-executor-claim-transcript-contract.md)
 - [2026-08-10 — résultat terminal de l’unique passe synthétique H23](results/2026-08-10_harmonic-censoring-h23-synthetic-one-shot-result.md)
 - [2026-08-10 — contrat successeur H24 après clôture H23](results/2026-08-10_harmonic-censoring-h24-successor-contract.md)
+- [2026-08-10 — manifests et plan de test complet H24 sans synthèse](results/2026-08-10_harmonic-censoring-h24-manifests-full-test-plan.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)

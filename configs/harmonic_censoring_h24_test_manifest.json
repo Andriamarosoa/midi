@@ -1,0 +1,5200 @@
+{
+  "schema_version": 1,
+  "purpose": "harmonic_censoring_h24_full_test_plan_contract_only",
+  "status": "test_specifications_only_not_implemented",
+  "namespace": "H24_TEST_V1",
+  "H24_successor_contract_sha256": "184d3847a594ffaca263b45befe70d1f5aa63ade0a0ef599d969ba044f4e680a",
+  "H24_population_manifest_sha256": "52c88c74c837ad3c6109be466df38bac862e10d93c187fe60e8c5da30bd4b02b",
+  "derivation": {
+    "new_graph_direction_test_count": 1,
+    "other_scientific_questions_re_preregistered_count": 71,
+    "derived_total_test_count": 72,
+    "cardinality_equation": "1+71=72",
+    "same_numeric_count_as_H23_is_incidental_to_explicit_question_by_question_re_preregistration": true,
+    "predecessor_outcomes_are_never_inputs": true
+  },
+  "scope": {
+    "test_plan_contract_only": true,
+    "evaluators_implemented": false,
+    "oracles_implemented": false,
+    "fixtures_materialized": false,
+    "waveforms_synthesized": false,
+    "tests_executed": false,
+    "real_data_used": false,
+    "H17_population_used": false,
+    "locked_test_used": false,
+    "training_authorized": false
+  },
+  "phase_order": [
+    "P0",
+    "P1",
+    "P2"
+  ],
+  "phase_test_ids": {
+    "P0": [
+      "H24-A01-GRAPH-DIRECTION",
+      "H24-A02",
+      "H24-A03",
+      "H24-A04",
+      "H24-A05",
+      "H24-A06",
+      "H24-A07",
+      "H24-A08",
+      "H24-D01",
+      "H24-D02",
+      "H24-D03",
+      "H24-D04",
+      "H24-D05",
+      "H24-D06",
+      "H24-D07",
+      "H24-D08",
+      "H24-D09",
+      "H24-D10",
+      "H24-D11",
+      "H24-D12",
+      "H24-D13",
+      "H24-D14",
+      "H24-S1",
+      "H24-S2",
+      "H24-S3",
+      "H24-S4",
+      "H24-S5"
+    ],
+    "P1": [
+      "H24-C01",
+      "H24-C02",
+      "H24-C03",
+      "H24-C04",
+      "H24-C05",
+      "H24-C06",
+      "H24-F01",
+      "H24-F02",
+      "H24-F03",
+      "H24-F04",
+      "H24-K01",
+      "H24-K02",
+      "H24-K03",
+      "H24-K04",
+      "H24-AC01",
+      "H24-AC02",
+      "H24-AC03",
+      "H24-AC04",
+      "H24-G01",
+      "H24-G02",
+      "H24-G03",
+      "H24-G04",
+      "H24-G05",
+      "H24-G06",
+      "H24-G07",
+      "H24-G08",
+      "H24-V01",
+      "H24-V02",
+      "H24-V03",
+      "H24-O01",
+      "H24-O02",
+      "H24-O03",
+      "H24-O04",
+      "H24-I01",
+      "H24-I02"
+    ],
+    "P2": [
+      "H24-R01",
+      "H24-R02",
+      "H24-R03",
+      "H24-P01",
+      "H24-P02",
+      "H24-P03",
+      "H24-P04",
+      "H24-P05",
+      "H24-TS01",
+      "H24-TS02"
+    ]
+  },
+  "phase_counts": {
+    "P0": 27,
+    "P1": 35,
+    "P2": 10
+  },
+  "test_count": 72,
+  "test_ids": [
+    "H24-A01-GRAPH-DIRECTION",
+    "H24-A02",
+    "H24-A03",
+    "H24-A04",
+    "H24-A05",
+    "H24-A06",
+    "H24-A07",
+    "H24-A08",
+    "H24-D01",
+    "H24-D02",
+    "H24-D03",
+    "H24-D04",
+    "H24-D05",
+    "H24-D06",
+    "H24-D07",
+    "H24-D08",
+    "H24-D09",
+    "H24-D10",
+    "H24-D11",
+    "H24-D12",
+    "H24-D13",
+    "H24-D14",
+    "H24-S1",
+    "H24-S2",
+    "H24-S3",
+    "H24-S4",
+    "H24-S5",
+    "H24-C01",
+    "H24-C02",
+    "H24-C03",
+    "H24-C04",
+    "H24-C05",
+    "H24-C06",
+    "H24-F01",
+    "H24-F02",
+    "H24-F03",
+    "H24-F04",
+    "H24-K01",
+    "H24-K02",
+    "H24-K03",
+    "H24-K04",
+    "H24-AC01",
+    "H24-AC02",
+    "H24-AC03",
+    "H24-AC04",
+    "H24-G01",
+    "H24-G02",
+    "H24-G03",
+    "H24-G04",
+    "H24-G05",
+    "H24-G06",
+    "H24-G07",
+    "H24-G08",
+    "H24-V01",
+    "H24-V02",
+    "H24-V03",
+    "H24-O01",
+    "H24-O02",
+    "H24-O03",
+    "H24-O04",
+    "H24-I01",
+    "H24-I02",
+    "H24-R01",
+    "H24-R02",
+    "H24-R03",
+    "H24-P01",
+    "H24-P02",
+    "H24-P03",
+    "H24-P04",
+    "H24-P05",
+    "H24-TS01",
+    "H24-TS02"
+  ],
+  "kill_rules": {
+    "P0_first_failure": "H24_SYNTHETIC_HYPOTHESIS_KILLED",
+    "P1_or_P2_first_failure": "H24_PRETRAIN_READINESS_NOT_DEMONSTRATED",
+    "P1_requires_all_P0_pass": true,
+    "P2_requires_all_P1_pass": true,
+    "stop_at_first_failure": true,
+    "success_status": "AUTHORIZED_TO_PREPARE_H24_TRAIN_PROTOCOL",
+    "success_never_means_training_authorized": true
+  },
+  "evidence_contract": {
+    "persist_raw_operands_not_producer_verdicts": true,
+    "independent_recomputation_required": true,
+    "canonical_JSON_UTF8_LF": true,
+    "per_test_evidence_schema_required_before_implementation": true,
+    "inverse_expected_failure_must_be_observed": true,
+    "missing_or_nonfinite_required_evidence_is_failure": true
+  },
+  "tests": [
+    {
+      "schema_version": 1,
+      "id": "H24-A01-GRAPH-DIRECTION",
+      "namespace": "H24_TEST_V1",
+      "phase": "P0",
+      "objective": "Prove the typed harmonic graph orientation without conflating H1 identity with proper harmonic ascent.",
+      "exact_input": "Enumerate every retained typed relation for integer source pitches 24..76 and harmonic ranks 1..20 with q(p,h)<=128.",
+      "procedure": "Enumerate and persist the complete typed edge set E, then independently recompute E, q, relation_type and every primary/inverse condition.",
+      "oracle": {
+        "observed_key_set_equals_E": true,
+        "exactly_one_record_per_key": true,
+        "no_record_outside_E": true,
+        "every_observation_coordinate_matches_recomputed_q": true,
+        "every_relation_type_matches_harmonic_rank": true,
+        "all_H1_relations_are_identity": true,
+        "all_H2_to_H20_relations_are_strictly_ascending": true,
+        "no_relation_is_descending": true,
+        "C4_to_C3_relation_count": 0
+      },
+      "pass_rule": "Any primary invariant failure or any inverse mutation not rejected fails H24-A01-GRAPH-DIRECTION.",
+      "inverse_check": [
+        {
+          "id": "H24-A01-I1",
+          "mutation": "replace one H1 identity target with a different coordinate",
+          "required_result": "FAIL"
+        },
+        {
+          "id": "H24-A01-I2",
+          "mutation": "replace one H2_to_H20 target with its source coordinate",
+          "required_result": "FAIL"
+        },
+        {
+          "id": "H24-A01-I3",
+          "mutation": "inject one descending relation",
+          "required_result": "FAIL"
+        },
+        {
+          "id": "H24-A01-I4",
+          "mutation": "relabel one H1 relation as PROPER_HARMONIC_ASCENT",
+          "required_result": "FAIL"
+        },
+        {
+          "id": "H24-A01-I5",
+          "mutation": "omit one required relation key from E",
+          "required_result": "FAIL"
+        },
+        {
+          "id": "H24-A01-I6",
+          "mutation": "duplicate one otherwise valid relation record",
+          "required_result": "FAIL"
+        },
+        {
+          "id": "H24-A01-I7",
+          "mutation": "perturb one observation_coordinate by +0.25 semitone while keeping it greater than source_pitch",
+          "required_result": "FAIL"
+        }
+      ],
+      "metrics": [
+        "observed_key_count",
+        "expected_key_count",
+        "duplicate_key_count",
+        "extra_key_count",
+        "missing_key_count",
+        "coordinate_mismatch_count",
+        "relation_type_mismatch_count",
+        "descending_relation_count",
+        "C4_to_C3_relation_count",
+        "inverse_expected_failure_observed"
+      ],
+      "artifacts": [
+        "typed_edges.json",
+        "recomputed_expected_edges.json",
+        "oracle_comparison.json",
+        "inverse_checks.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "A correct orientation graph is necessary but not sufficient evidence that spectral mixtures are identifiable or that censoring improves transcription.",
+      "evidence_schema": {
+        "primary_required_fields": [
+          "typed_edges",
+          "recomputed_expected_edges",
+          "missing_keys",
+          "extra_keys",
+          "duplicate_keys",
+          "coordinate_mismatches",
+          "relation_type_mismatches"
+        ],
+        "inverse_required_fields": [
+          "H24-A01-I1",
+          "H24-A01-I2",
+          "H24-A01-I3",
+          "H24-A01-I4",
+          "H24-A01-I5",
+          "H24-A01-I6",
+          "H24-A01-I7"
+        ],
+        "independent_recomputer": "H24-A01 closed contract recomputer"
+      },
+      "predecessor_test_id": "A01",
+      "predecessor_resolved_sha256": "47c307af605846e27102e565a32cc621dbc8e6c4c54aef1b72aebcaeea5d39b2",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "ideal continuous frequency scaling factors 2^(s/12), s in [-24,-12,-1,0,1,12,24], and the exact six relative cutoffs",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-A02",
+      "inverse_check": "the exact raised-cosine robustness mask must be labelled an approximation, not analytic equality",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "pitch_shift_cutoff equivalence",
+      "oracle": "analytic equality under ideal scaling; sampled float64 check uses rtol=1e-10 and atol=1e-12",
+      "pass_rule": "symbolic equality and every sampled comparison within the sealed tolerance",
+      "phase": "P0",
+      "procedure": "derive transformed cutoff on the original spectrum",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "analytic_pairs",
+            "operator": "allclose_pairs",
+            "expected": null,
+            "rtol": 1e-10,
+            "atol": 1e-12
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "cosine_approximation_max_error",
+            "operator": "gt",
+            "expected": 0.0,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "A02",
+      "predecessor_resolved_sha256": "3c1669fc14017f724990825b779e806a78735675aca64d3f31670309f7af13c6",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "equivariant ideal spectrum",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-A03",
+      "inverse_check": "shuffle waveform while preserving pitch/cutoff geometry",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "kill trivial disappearance index",
+      "oracle": "single disappearance index is TRIVIAL_FEATURE",
+      "pass_rule": "no autonomous discriminative claim remains",
+      "phase": "P0",
+      "procedure": "predict disappearance using pitch and cutoff only",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "feature_class",
+            "operator": "eq",
+            "expected": "TRIVIAL_FEATURE",
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "disappearance_indices",
+            "operator": "all_equal",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "shuffled_disappearance_indices",
+            "operator": "all_equal",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "A03",
+      "predecessor_resolved_sha256": "7ba9d81a910ddc01f8d05b63d8f9685a1047ac9b5b81abdc7495a50b5fab8cfd",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "two latent explanations rendering identical waveform",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-A04",
+      "inverse_check": "any target separation is leakage",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "non-identifiability",
+      "oracle": "identical features and AMBIGUOUS",
+      "pass_rule": "exact equality and exact AMBIGUOUS",
+      "phase": "P0",
+      "procedure": "compute all allowed features",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "latent_feature_hashes",
+            "operator": "all_equal",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "decision",
+            "operator": "eq",
+            "expected": "AMBIGUOUS",
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "target_conditioned_feature_hashes",
+            "operator": "all_equal",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "A04",
+      "predecessor_resolved_sha256": "51105db5471eda61138d52497fcd07963bcda89cdf82917a8c8723fd0914fcd4",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "S1C, one emit-capable source and two strings at the same MIDI with identical waveform",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-A05",
+      "inverse_check": "force K_source or collapse the two pitch cardinalities and require failure",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "separate latent pitch emission pitch and physical sources",
+      "oracle": "S1C has K_latent_pitch=1/K_emit_pitch=0; emit-capable single pitch has 1/1; identical unison has K_latent_pitch=K_emit_pitch=1 while K_source is AMBIGUOUS",
+      "pass_rule": "no K_pitch alias and no false K_source certainty",
+      "phase": "P0",
+      "procedure": "compare the three named cardinalities",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "cardinality_triplets",
+            "operator": "eq",
+            "expected": [
+              [
+                1,
+                0,
+                1
+              ],
+              [
+                1,
+                1,
+                1
+              ],
+              [
+                1,
+                1,
+                "AMBIGUOUS"
+              ]
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "collapsed_cardinality_triplets",
+            "operator": "ne",
+            "expected": [
+              [
+                1,
+                0,
+                1
+              ],
+              [
+                1,
+                1,
+                1
+              ],
+              [
+                1,
+                1,
+                "AMBIGUOUS"
+              ]
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "A05",
+      "predecessor_resolved_sha256": "04a48dd72660ce923f98fe562514ef410b05a820e2daf667e5cfbf8fe338e098",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "37 emission candidates 40..76, 53 latent source hypotheses 24..76 and 89 observation coordinates 40..128",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-A06",
+      "inverse_check": "treating latent MIDI36 or observation 128 as emit-capable must fail",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "pitch domain cardinality",
+      "oracle": "exact counts 37/53/89; latent 24..39 and observations 77..128 are evidence-only; no coordinate 129",
+      "pass_rule": "exact counts endpoints and firewall",
+      "phase": "P0",
+      "procedure": "enumerate all three distinct domains and verify 76+12*log2(20)=127.86313713864834 is covered",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "domain_counts",
+            "operator": "eq",
+            "expected": [
+              37,
+              53,
+              89
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "domain_endpoints",
+            "operator": "eq",
+            "expected": [
+              [
+                40,
+                76
+              ],
+              [
+                24,
+                76
+              ],
+              [
+                40,
+                128
+              ]
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "maximum_h20_coordinate",
+            "operator": "close",
+            "expected": 127.86313713864834,
+            "rtol": 1e-12,
+            "atol": 1e-12
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "forbidden_emit_coordinates",
+            "operator": "none_in",
+            "expected": [
+              40,
+              76
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "A06",
+      "predecessor_resolved_sha256": "66647fd391333f8447c9fd01409043a0b60425a4aab52a4b0d0b833c0e7978bb",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "same harmonic geometry at multiple F0",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-A07",
+      "inverse_check": "absolute-only cutoff must expose pitch bias",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "relative cutoff semantics",
+      "oracle": "geometry aligns in relative coordinates",
+      "pass_rule": "directionally identical masks modulo supported bins",
+      "phase": "P0",
+      "procedure": "express cutoffs as cutoff_over_F0 and harmonic rank",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "relative_geometry_hashes",
+            "operator": "all_equal",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "absolute_geometry_hashes",
+            "operator": "not_all_equal",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "A07",
+      "predecessor_resolved_sha256": "b61947088b5df84fe143b288407cda6d87b9b52560ed4f7ca239044a036af875",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "hop 256 window 4096 at 44100 Hz",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-A08",
+      "inverse_check": "one future sample must fail",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "causal timing",
+      "oracle": "no sample after current causal boundary",
+      "pass_rule": "maximum future index equals zero",
+      "phase": "P0",
+      "procedure": "enumerate sample support for frame t",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "maximum_future_sample_offset",
+            "operator": "eq",
+            "expected": 0,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "injected_future_sample_offset",
+            "operator": "gt",
+            "expected": 0,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "A08",
+      "predecessor_resolved_sha256": "09e02d4648e01aff4bcb9948e027f9005b3461d07be8a6c4e9e74733aeb201bb",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "each of the six base waveforms, candidates 40..76 and cutoffs [1,2,3,4,8,20]",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-D01",
+      "inverse_check": "permute mask storage and recover canonical outputs",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "shared spectrum parity",
+      "oracle": "same raw normalized null and residual curves",
+      "pass_rule": "rtol=1e-10 atol=1e-12; masks/categories exact",
+      "phase": "P0",
+      "procedure": "compare vectorized and scalar float64 references",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "scalar_vector_pairs",
+            "operator": "allclose_pairs",
+            "expected": null,
+            "rtol": 1e-10,
+            "atol": 1e-12
+          },
+          {
+            "name": "mask_pairs",
+            "operator": "all_exact_pairs",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "permuted_then_canonical_pairs",
+            "operator": "allclose_pairs",
+            "expected": null,
+            "rtol": 1e-10,
+            "atol": 1e-12
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "D01",
+      "predecessor_resolved_sha256": "17b39363e1761ba7cfd24b09fb3b4a08af3f50fd5ddf284ddfacd9a678297a7d",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "same structure at scaled amplitudes",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-D02",
+      "inverse_check": "zero-energy case must be invalid not negative",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "raw versus normalized separation",
+      "oracle": "raw scales and normalized structure is invariant when defined",
+      "pass_rule": "correct direction plus finite validity",
+      "phase": "P0",
+      "procedure": "compute both channels",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "normalized_gain_curves",
+            "operator": "allclose_all",
+            "expected": null,
+            "rtol": 1e-10,
+            "atol": 1e-12
+          },
+          {
+            "name": "raw_gain_levels",
+            "operator": "strictly_gain_ordered",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "zero_energy_validity",
+            "operator": "eq",
+            "expected": "INVALID_MASKED",
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "D02",
+      "predecessor_resolved_sha256": "c8239baf4838c6790fa98578e64418586fd0b2085e69ccf8802fe3e5ba97fda7",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "for each p=40..76 set P[k] so every nonempty harmonic kernel has equal unit projected energy and every empty kernel is masked",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-D03",
+      "inverse_check": "force one empty kernel into the denominator and require failure",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "support-aware geometric null removal",
+      "oracle": "S_residual_norm=0 and S_residual_raw=0 for every supported p/c; unsupported terms never enter either sum",
+      "pass_rule": "absolute error <=1e-12 and validity bits exact",
+      "phase": "P0",
+      "procedure": "apply each actual spectral mask and its sealed K(p,h,c) null",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "supported_residual_abs_max",
+            "operator": "le",
+            "expected": 1e-12,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "unsupported_term_counted",
+            "operator": "eq",
+            "expected": 0,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "empty_kernel_denominator_result",
+            "operator": "eq",
+            "expected": "REJECTED",
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "D03",
+      "predecessor_resolved_sha256": "d98229d1ab248bf64fa887d7875c91bbbb3ecedeba7c411e5d31208edb25a281",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "candidate p=40 with two explicitly synthesized shared spectra: A has equal projected energy in H1..H5 and B has the same total projected energy concentrated in H1; same p and six real spectral masks",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-D04",
+      "inverse_check": "a pitch-only proxy produces identical A/B outputs and must fail",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "nontrivial information beyond pitch",
+      "oracle": "the curves differ at at least one of c=1,2,3,4 by more than 1e-12 while pitch is identical",
+      "pass_rule": "scalar/vector parity and each declared nontrivial difference exact within tolerance",
+      "phase": "P0",
+      "procedure": "compute sealed P_c, raw, normalized, support-aware null and residual curves",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "same_pitch_curve_max_difference_c1_c4",
+            "operator": "gt",
+            "expected": 1e-12,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "scalar_vector_pairs",
+            "operator": "allclose_pairs",
+            "expected": null,
+            "rtol": 1e-10,
+            "atol": 1e-12
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "pitch_only_curve_hashes",
+            "operator": "all_equal",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "D04",
+      "predecessor_resolved_sha256": "a577f422f99466ce002e7d361fd8a11ead2eba59aa2f2e70147b35b4bd44fdc9",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "gain-scaled copies",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-D05",
+      "inverse_check": "raw-only improvement is insufficient",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "nontrivial information beyond gain",
+      "oracle": "normalized evidence preserves structure",
+      "pass_rule": "direction preserved",
+      "phase": "P0",
+      "procedure": "compare normalized curves and summaries",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "normalized_gain_curves",
+            "operator": "allclose_all",
+            "expected": null,
+            "rtol": 1e-10,
+            "atol": 1e-12
+          },
+          {
+            "name": "raw_gain_levels",
+            "operator": "not_all_equal",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "raw_only_claim",
+            "operator": "eq",
+            "expected": "INSUFFICIENT",
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "D05",
+      "predecessor_resolved_sha256": "504e1f7fdbe250f524a9a715a74e59d4ba40417b14a9be907556f24d2cdd7aad",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "the sealed hard spectral mask and the sealed 25-cent raised-cosine robustness mask on S1C S1P S2 S3 S4 S5",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-D06",
+      "inverse_check": "a deliberately shifted 200-cent cutoff must break at least one curve comparison and be detected",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "filter-family robustness",
+      "oracle": "S1C/S1P remain no new birth, S3 remains ALREADY_ACTIVE_HISTORY, S2/S4 remain BIRTH_SUPPORTED_DELAYED_ONE_HOP, S5 remains AMBIGUOUS",
+      "pass_rule": "all six categorical oracles and delays exact under both families",
+      "phase": "P0",
+      "procedure": "repeat every core oracle with both families and the same hop-level state machine",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "hard_categories",
+            "operator": "eq",
+            "expected": [
+              "NO_BIRTH",
+              "NO_BIRTH",
+              "BIRTH_SUPPORTED_DELAYED_ONE_HOP",
+              "ALREADY_ACTIVE_HISTORY",
+              "BIRTH_SUPPORTED_DELAYED_ONE_HOP",
+              "AMBIGUOUS"
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "cosine_categories",
+            "operator": "eq",
+            "expected": [
+              "NO_BIRTH",
+              "NO_BIRTH",
+              "BIRTH_SUPPORTED_DELAYED_ONE_HOP",
+              "ALREADY_ACTIVE_HISTORY",
+              "BIRTH_SUPPORTED_DELAYED_ONE_HOP",
+              "AMBIGUOUS"
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "shifted_200c_curve_hash_pairs",
+            "operator": "any_different_pair",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "D06",
+      "predecessor_resolved_sha256": "87f48b9af9eba03d3dc59c9eeae4f2cd3d05b8c3b1c3fd05d9009c7e6ec431d0",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "S1P and S4 at phases [0,pi/2,pi,3pi/2] from the sealed numeric contract",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-D07",
+      "inverse_check": "a phase label supplied without waveform change must have no effect",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "phase robustness",
+      "oracle": "S1P remains one-source/no-birth and S4 remains two-source/birth for every phase; S5 remains AMBIGUOUS",
+      "pass_rule": "all categorical oracles exact; numeric comparisons use sealed tolerance",
+      "phase": "P0",
+      "procedure": "repeat all evidence and categorical oracles",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "S1P_phase_categories",
+            "operator": "all_eq",
+            "expected": "NO_BIRTH",
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "S4_phase_categories",
+            "operator": "all_eq",
+            "expected": "BIRTH_SUPPORTED_DELAYED_ONE_HOP",
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "S5_category",
+            "operator": "eq",
+            "expected": "AMBIGUOUS",
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "unchanged_waveform_phase_label_hashes",
+            "operator": "all_equal",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "D07",
+      "predecessor_resolved_sha256": "a1dc23174143b382c3e044016c73c9076458daaea67d78b65730dc5bf39b60c8",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "event_sample_offset fixture variants [0,1,255,256,3840,4095] replayed hop-by-hop from INACTIVE",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-D08",
+      "inverse_check": "inject fixture onset coordinate or samples_seen into runtime state/features and require schema failure",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "window boundary state-machine semantics without onset-coordinate leakage",
+      "oracle": "target-hop categories [ALREADY_ACTIVE_HISTORY,ALREADY_ACTIVE_HISTORY,ALREADY_ACTIVE_HISTORY,ALREADY_ACTIVE_HISTORY,PENDING_NEW_AWAITING_ONE_HOP,PENDING_NEW_AWAITING_ONE_HOP]; both final variants become BIRTH_SUPPORTED_DELAYED_ONE_HOP at t+1",
+      "pass_rule": "exact transition traces, pending lifetime=1, delay=1 and forbidden runtime fields absent",
+      "phase": "P0",
+      "procedure": "run the hop-level INACTIVE/PENDING_NEW/ACTIVE machine, retain every transition, and assert runtime schema contains neither onset_coordinate nor samples_seen",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "target_hop_categories",
+            "operator": "eq",
+            "expected": [
+              "ALREADY_ACTIVE_HISTORY",
+              "ALREADY_ACTIVE_HISTORY",
+              "ALREADY_ACTIVE_HISTORY",
+              "ALREADY_ACTIVE_HISTORY",
+              "PENDING_NEW_AWAITING_ONE_HOP",
+              "PENDING_NEW_AWAITING_ONE_HOP"
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "resolved_categories",
+            "operator": "eq",
+            "expected": [
+              "BIRTH_SUPPORTED_DELAYED_ONE_HOP",
+              "BIRTH_SUPPORTED_DELAYED_ONE_HOP"
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "pending_lifetimes",
+            "operator": "all_eq",
+            "expected": 1,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "transition_traces",
+            "operator": "d08_traces_exact",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "runtime_fields",
+            "operator": "eq",
+            "expected": [
+              "pitch",
+              "state",
+              "first_seen_hop"
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "forbidden_runtime_fields_result",
+            "operator": "eq",
+            "expected": "REJECTED",
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "D08",
+      "predecessor_resolved_sha256": "636d2d96c73b48335f28ec9230044efdab106537e0b569fe9881b9031ffaf6a0",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "S1P S2 S4 crossed with cents [-35,-15,0,15,35] and B [0,0.0001,0.0004], excluding only baseline (0,0)",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-D09",
+      "inverse_check": "a 100-cent undeclared shift must be rejected by manifest validation",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "cents and inharmonicity",
+      "oracle": "the base categorical oracle is unchanged for every declared pair",
+      "pass_rule": "all 42 variant IDs pass their exact categorical oracle; no additional smoothness threshold is used",
+      "phase": "P0",
+      "procedure": "synthesize partial f_h=h*F0*sqrt(1+B*h^2) then apply the stated cents shift",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "variant_count",
+            "operator": "eq",
+            "expected": 42,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "variant_categories_match_base",
+            "operator": "all_true",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "undeclared_100c_manifest_result",
+            "operator": "eq",
+            "expected": "REJECTED",
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "D09",
+      "predecessor_resolved_sha256": "cf35233da99667d00ff597a2b77758ff9a1ac85f8545c25b0bdd2799329f1050",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "S1P S2 S4 crossed with white/pink noise and SNR [40,20,10,0] dB plus exact-zero silence fixture",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-D10",
+      "inverse_check": "pitch-shaped harmonic noise not present in the manifest must be rejected",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "noise robustness",
+      "oracle": "base categorical oracle remains exact at 40/20/10 dB; at 0 dB only the sealed state AMBIGUOUS_OR_OOD is accepted; silence is SILENCE_UNEXPLAINED",
+      "pass_rule": "all 24 noise IDs and silence ID match those exact categories",
+      "phase": "P0",
+      "procedure": "compute all channels and masks",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "robust_category_count",
+            "operator": "eq",
+            "expected": 18,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "robust_categories_match_base",
+            "operator": "all_true",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "zero_db_categories",
+            "operator": "all_in",
+            "expected": [
+              "AMBIGUOUS_OR_OOD"
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "silence_category",
+            "operator": "eq",
+            "expected": "SILENCE_UNEXPLAINED",
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "pitch_shaped_noise_manifest_result",
+            "operator": "eq",
+            "expected": "REJECTED",
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "D10",
+      "predecessor_resolved_sha256": "7a363e1d3286e170d8877b34dd6d3431a2d25322594f448a04c74ecb30a3028f",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "full curves and k90 k50 k10 unnormalized AUC_raw normalized AUC slope curvature peak residual and residual_at_c4",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-D11",
+      "inverse_check": "divide AUC_raw by B and require duplicate-channel detection",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "summary fidelity",
+      "oracle": "summaries cannot replace matrix and raw/normalized AUC are non-identical channels",
+      "pass_rule": "primary matrix retained and the gain-direction checks pass",
+      "phase": "P0",
+      "procedure": "compare cases with same summaries but different curves and verify AUC_raw changes under gain while AUC_normalized does not",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "primary_curve_retained",
+            "operator": "eq",
+            "expected": true,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "same_summary_curve_hashes",
+            "operator": "any_different_pair",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "raw_auc_gain_values",
+            "operator": "not_all_equal",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "normalized_auc_gain_values",
+            "operator": "allclose_all",
+            "expected": null,
+            "rtol": 1e-10,
+            "atol": 1e-12
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "duplicated_auc_channel_hashes",
+            "operator": "all_equal",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "D11",
+      "predecessor_resolved_sha256": "cb6c9d34afe21fd09c9833f5211a41459fca07ca4a00022a290dcecbcd9f16b2",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "designed monotone and two-regime spectra",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-D12",
+      "inverse_check": "monotone curve cannot report rebound",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "rebound and regime change meaning",
+      "oracle": "rebound/regime flags match construction",
+      "pass_rule": "exact fixture oracle",
+      "phase": "P0",
+      "procedure": "measure features",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "monotone_rebound",
+            "operator": "eq",
+            "expected": false,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "two_regime_flag",
+            "operator": "eq",
+            "expected": true,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "mutated_monotone_rebound",
+            "operator": "eq",
+            "expected": true,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "D12",
+      "predecessor_resolved_sha256": "be4e52923ea74a4296e67f646fc9736776d9b5591a4ca1883cfa99f971c6fa5e",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "analytical coordinates 127 and 128 with every harmonic slot h=1..20",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-D13",
+      "inverse_check": "coercing unsupported values to negative must fail",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "missing frequency support",
+      "oracle": "each unsupported harmonic_observation_valid=false and is masked, never zero evidence",
+      "pass_rule": "all 40 validity bits match f_h<=22050 and nonempty kernel support exactly",
+      "phase": "P0",
+      "procedure": "apply Nyquist and triangular-band support rules",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "validity_bits",
+            "operator": "support_formula_exact",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "unsupported_value_representation",
+            "operator": "eq",
+            "expected": "MASKED_NOT_ZERO",
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "negative_coercion_result",
+            "operator": "eq",
+            "expected": "REJECTED",
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "D13",
+      "predecessor_resolved_sha256": "a9fe7aa710e1ef062240af24599d51b39d8b4c5499f872fa83592239732f2c8e",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "silence tiny energy large gain and boundary values",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-D14",
+      "inverse_check": "silent divide-by-zero fails",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "numerical safety",
+      "oracle": "no NaN or infinity; invalidity explicit",
+      "pass_rule": "exact finite-or-masked invariant",
+      "phase": "P0",
+      "procedure": "compute all features",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "unmasked_nonfinite_count",
+            "operator": "eq",
+            "expected": 0,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "invalidity_explicit",
+            "operator": "eq",
+            "expected": true,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "silent_divide_result",
+            "operator": "eq",
+            "expected": "REJECTED",
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "D14",
+      "predecessor_resolved_sha256": "8ea554e30ea1ff87333f9ad5bddbdb919c17f1a5c9d2e8face61f952c81f5e26",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "S1C and S1P",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-S1",
+      "inverse_check": "remove old F0 and require loss of explanation",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "one old source explains harmonics",
+      "oracle": "one source; C3/C4 explained; no birth",
+      "pass_rule": "exact categorical oracle",
+      "phase": "P0",
+      "procedure": "compare one-source and extra-source explanations",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "decision",
+            "operator": "eq",
+            "expected": "NO_BIRTH",
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "cardinalities",
+            "operator": "eq",
+            "expected": [
+              1,
+              0,
+              1
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "without_old_F0_explanation",
+            "operator": "eq",
+            "expected": "LOST",
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "S1",
+      "predecessor_resolved_sha256": "fdaea63ea5b30a207b02f1a67a19adb28c316a8b902758a1e673fd533809e6e5",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "two-hop replay of S2 at MIDI64",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-S2",
+      "inverse_check": "remove attack and own harmonics",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "new high fundamental",
+      "oracle": "MIDI64 required and BIRTH_SUPPORTED_DELAYED_ONE_HOP",
+      "pass_rule": "exact transition, delay=1 and every tuple component serialized",
+      "phase": "P0",
+      "procedure": "create hop-level proposal, enter PENDING_NEW, then evaluate the sealed birth tuple and K versus K+1 at t+1",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "state_trace",
+            "operator": "eq",
+            "expected": [
+              "INACTIVE",
+              "PENDING_NEW",
+              "BIRTH_SUPPORTED_DELAYED_ONE_HOP"
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "decision_delay_hops",
+            "operator": "eq",
+            "expected": 1,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "birth_pitch",
+            "operator": "eq",
+            "expected": 64,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "birth_tuple_complete",
+            "operator": "eq",
+            "expected": true,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "without_attack_and_own_harmonics",
+            "operator": "in",
+            "expected": [
+              "AMBIGUOUS",
+              "NO_BIRTH"
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "S2",
+      "predecessor_resolved_sha256": "85cdc70d197b95467e2b09195fda33bdf81b0ca1892f4597d615f5bacd21f65c",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "S3",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-S3",
+      "inverse_check": "add controlled new onset",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "old resonance only",
+      "oracle": "no new source",
+      "pass_rule": "exact categorical oracle",
+      "phase": "P0",
+      "procedure": "evaluate source birth",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "decision",
+            "operator": "eq",
+            "expected": "ALREADY_ACTIVE_HISTORY",
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "birth",
+            "operator": "eq",
+            "expected": false,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "controlled_onset_decision",
+            "operator": "in",
+            "expected": [
+              "PENDING_NEW_AWAITING_ONE_HOP",
+              "BIRTH_SUPPORTED_DELAYED_ONE_HOP"
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "S3",
+      "predecessor_resolved_sha256": "4253329317bedab1020aef9d8267cdaaea093fb670457c9b4c1e8132f4c93520",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "two-hop replay of S4 entirely in product domain",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-S4",
+      "inverse_check": "remove MIDI64 onset and own H2..H4 evidence and require AMBIGUOUS or NO_BIRTH",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "shared old harmonic plus new fundamental",
+      "oracle": "two-source explanation preferred and MIDI64 BIRTH_SUPPORTED_DELAYED_ONE_HOP",
+      "pass_rule": "Delta_R improvement_valid, tuple rule, cardinalities and delay=1 exact",
+      "phase": "P0",
+      "procedure": "compare MIDI40-only with MIDI40+MIDI64 using the sealed NNLS residual and birth tuple after one pending hop",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "state_trace",
+            "operator": "eq",
+            "expected": [
+              "INACTIVE",
+              "PENDING_NEW",
+              "BIRTH_SUPPORTED_DELAYED_ONE_HOP"
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "decision_delay_hops",
+            "operator": "eq",
+            "expected": 1,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "birth_pitch",
+            "operator": "eq",
+            "expected": 64,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "improvement_valid",
+            "operator": "eq",
+            "expected": true,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "cardinalities",
+            "operator": "eq",
+            "expected": [
+              2,
+              2,
+              2
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "without_MIDI64_own_evidence",
+            "operator": "in",
+            "expected": [
+              "AMBIGUOUS",
+              "NO_BIRTH"
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "S4",
+      "predecessor_resolved_sha256": "a67d89b08c6adbe7b1478f7eb14903460314cd10ba999913281715425760b99b",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "S5",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-S5",
+      "inverse_check": "any forced binary decision is KILL",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "respect impossible collision",
+      "oracle": "AMBIGUOUS",
+      "pass_rule": "exact AMBIGUOUS",
+      "phase": "P0",
+      "procedure": "compute every allowed feature",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "decision",
+            "operator": "eq",
+            "expected": "AMBIGUOUS",
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "cardinalities",
+            "operator": "eq",
+            "expected": [
+              "AMBIGUOUS",
+              "AMBIGUOUS",
+              "AMBIGUOUS"
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "forced_binary_decision",
+            "operator": "in",
+            "expected": [
+              "BIRTH",
+              "NO_BIRTH"
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "S5",
+      "predecessor_resolved_sha256": "eb086be77a309e5d6b14322538efb0878dc5be3eff711f774507d8e88639239b",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "paired signals identical through t and different after t",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-C01",
+      "inverse_check": "future perturbation changes t is KILL",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "no future dependence",
+      "oracle": "exact equality",
+      "pass_rule": "bitwise or documented machine equality",
+      "phase": "P1",
+      "procedure": "compare features and decisions at t",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "causal_feature_hash_pair",
+            "operator": "pair_equal",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "causal_decision_pair",
+            "operator": "pair_equal",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "future_sensitive_feature_hash_pair",
+            "operator": "pair_different",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "C01",
+      "predecessor_resolved_sha256": "78a394cc8642104543b7fbd3a786da4139be6688a8a458d3d8eb3463cdcb6901",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "the base temporal stream translated later by exactly d=[0,1,2,4] hops under replay_stream_contract.C02_translation_exception",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-C02",
+      "inverse_check": "shift waveform without shifting replay hop indexes and require failure; within-window event_sample_offset remains a separate family",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "time translation",
+      "oracle": "same state sequence and decision modulo the declared hop-index shift",
+      "pass_rule": "exact categorical/delay parity for all four shifts",
+      "phase": "P1",
+      "procedure": "extend stream length by d*256, shift old onset, new onset, target hop and resolution hop together, preserve the silent first valid window, and replay from INACTIVE",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "translated_state_traces",
+            "operator": "all_equal",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "translated_delays",
+            "operator": "all_eq",
+            "expected": 1,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "translations_hops",
+            "operator": "eq",
+            "expected": [
+              0,
+              1,
+              2,
+              4
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "unshifted_index_trace_pair",
+            "operator": "pair_different",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "C02",
+      "predecessor_resolved_sha256": "9ec07429e0f34de3ded20fd3a73d6c77e761fa45c78cb5616d458bde819589a2",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "S2/S3/S4/S5 replayed hop-by-hop",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-C03",
+      "inverse_check": "replace any component by a fixture-label bit, inject onset_coordinate, or relabel S3 NO_BIRTH and require failure",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "source-birth decomposition",
+      "oracle": "S2/S4 BIRTH_SUPPORTED_DELAYED_ONE_HOP, S3 ALREADY_ACTIVE_HISTORY with birth=false, S5 AMBIGUOUS",
+      "pass_rule": "all numeric components, states and delays match scalar references exactly; no sample coordinate field exists",
+      "phase": "P1",
+      "procedure": "compute O,N,G,X,Delta_R and improvement_valid only from sealed audio formulas and run the hop-level state machine; do not form a weighted scalar",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "categories",
+            "operator": "eq",
+            "expected": [
+              "BIRTH_SUPPORTED_DELAYED_ONE_HOP",
+              "ALREADY_ACTIVE_HISTORY",
+              "BIRTH_SUPPORTED_DELAYED_ONE_HOP",
+              "AMBIGUOUS"
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "tuple_keys",
+            "operator": "eq",
+            "expected": [
+              "O",
+              "N",
+              "G",
+              "X",
+              "Delta_R",
+              "improvement_valid"
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "forbidden_dependency_count",
+            "operator": "eq",
+            "expected": 0,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "forbidden_dependency_injections_rejected",
+            "operator": "all_true",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "C03",
+      "predecessor_resolved_sha256": "843936a34580655d92f6d45dadd3fba19854c79928a7859e278390b098eb4e6a",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "ACTIVE MIDI64 with a newest-hop repeated attack versus ACTIVE MIDI64 uninterrupted decay",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-C04",
+      "inverse_check": "using new-pitch improvement_valid or incrementing any cardinality must fail",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "same-pitch retrigger versus decay",
+      "oracle": "repeated attack RETRIGGER_SUPPORTED; uninterrupted decay ALREADY_ACTIVE_HISTORY; both keep all three cardinalities unchanged",
+      "pass_rule": "exact states, retrigger NoteOn count [1,0], and no Delta_R dependency",
+      "phase": "P1",
+      "procedure": "apply only the sealed retrigger rule after confirming p is in H_old(t)",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "decisions",
+            "operator": "eq",
+            "expected": [
+              "RETRIGGER_SUPPORTED",
+              "ALREADY_ACTIVE_HISTORY"
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "retrigger_noteon_counts",
+            "operator": "eq",
+            "expected": [
+              1,
+              0
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "cardinality_deltas",
+            "operator": "all_eq",
+            "expected": 0,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "new_pitch_route_result",
+            "operator": "eq",
+            "expected": "REJECTED",
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "C04",
+      "predecessor_resolved_sha256": "b1c41ca3004907e88ef4e793e21dbe2bd1696425cad7c6b4ca2ef0157d1829e4",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "S3 and S4 at old-source ages [0,1,2,4,8,15] hops",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-C05",
+      "inverse_check": "replace causal age by a label-derived age and require schema rejection",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "old-source age",
+      "oracle": "S3 remains ALREADY_ACTIVE_HISTORY with birth=false at all ages; S4 MIDI64 becomes BIRTH_SUPPORTED_DELAYED_ONE_HOP while MIDI40 remains active; numeric old-source explanation is non-increasing with age",
+      "pass_rule": "states/categories/delay exact and every adjacent old-source explanation difference <=1e-12",
+      "phase": "P1",
+      "procedure": "replay with identical current new-source evidence and only causal decay history changed",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "S3_age_categories",
+            "operator": "all_eq",
+            "expected": "ALREADY_ACTIVE_HISTORY",
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "S4_age_categories",
+            "operator": "all_eq",
+            "expected": "BIRTH_SUPPORTED_DELAYED_ONE_HOP",
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "old_source_explanation",
+            "operator": "nonincreasing",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 1e-12
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "label_age_schema_result",
+            "operator": "eq",
+            "expected": "REJECTED",
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "C05",
+      "predecessor_resolved_sha256": "2d9f5b3b7c0453d98c364eac0f73e80433bdbddef4138d2827744247b1cd95cd",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "all causal buffers and hops",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-C06",
+      "inverse_check": "hidden stability vote fails",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "latency accounting",
+      "oracle": "additional lookahead=0",
+      "pass_rule": "exact zero",
+      "phase": "P1",
+      "procedure": "trace required sample/frame age",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "additional_lookahead_samples",
+            "operator": "eq",
+            "expected": 0,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "hidden_stability_vote_lookahead",
+            "operator": "gt",
+            "expected": 0,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "C06",
+      "predecessor_resolved_sha256": "af5d81561a0536d822288e76536a81cff058a2dbe48edcceff26e79472f40563",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "S4 observation at MIDI64 compatible with MIDI40 H4 and MIDI64 H1",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-F01",
+      "inverse_check": "replace additive prediction by exclusive assignment and require higher or equal residual plus contract failure",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "shared partial",
+      "oracle": "both dictionary columns may contribute to the same q row and no exclusive ownership flag exists",
+      "pass_rule": "reconstruction equals A*a and is invariant to column order within tolerance",
+      "phase": "P1",
+      "procedure": "solve the sealed nonnegative additive objective over H={40,64}",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "additive_reconstruction_pair",
+            "operator": "allclose_pair",
+            "expected": null,
+            "rtol": 1e-10,
+            "atol": 1e-12
+          },
+          {
+            "name": "column_order_residual_pair",
+            "operator": "close_pair",
+            "expected": null,
+            "rtol": 1e-10,
+            "atol": 1e-12
+          },
+          {
+            "name": "exclusive_ownership_flag_present",
+            "operator": "eq",
+            "expected": false,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "exclusive_residual_minus_additive",
+            "operator": "ge",
+            "expected": 0.0,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "exclusive_contract_result",
+            "operator": "eq",
+            "expected": "REJECTED",
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "F01",
+      "predecessor_resolved_sha256": "7b2934358d2066a9c015ecc51eb2ef18e3cac72ea58a57f6a57c9ab29b489e48",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "sealed observation vector with one component outside every declared dictionary column",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-F02",
+      "inverse_check": "add its matching source column and require Delta_R improvement",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "global residual",
+      "oracle": "unexplained residual remains in y-yhat and R(H)>1e-12",
+      "pass_rule": "residual vector and scalar objective reconcile",
+      "phase": "P1",
+      "procedure": "solve R(H) exactly as contracted",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "unexplained_residual",
+            "operator": "gt",
+            "expected": 1e-12,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "residual_vector_scalar_pair",
+            "operator": "close_pair",
+            "expected": null,
+            "rtol": 1e-10,
+            "atol": 1e-12
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "matching_column_delta_R",
+            "operator": "gt",
+            "expected": 0.0,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "F02",
+      "predecessor_resolved_sha256": "f26d1b4c2abd8610aeb0e1eb5c6b53ca732edebd3928c0d8a9361266d214e432",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "same hypothesis set in all tested permutations",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-F03",
+      "inverse_check": "tie handling deterministic",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "candidate order invariance",
+      "oracle": "same result",
+      "pass_rule": "exact parity",
+      "phase": "P1",
+      "procedure": "factorize",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "permutation_residuals",
+            "operator": "allclose_all",
+            "expected": null,
+            "rtol": 1e-10,
+            "atol": 1e-12
+          },
+          {
+            "name": "permutation_amplitude_maps",
+            "operator": "all_equal",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "tie_winner_indices",
+            "operator": "all_eq",
+            "expected": 0,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "F03",
+      "predecessor_resolved_sha256": "5d18f36c2b989900cabf0d91ce643390a70c54c04d89f266eb2051f08a561ce1",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "same harmonic graph in different traversal orders",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-F04",
+      "inverse_check": "shared partial stress case",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "graph order invariance",
+      "oracle": "same result",
+      "pass_rule": "exact parity",
+      "phase": "P1",
+      "procedure": "factorize",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "graph_traversal_residuals",
+            "operator": "allclose_all",
+            "expected": null,
+            "rtol": 1e-10,
+            "atol": 1e-12
+          },
+          {
+            "name": "graph_traversal_amplitude_maps",
+            "operator": "all_equal",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "shared_partial_stress_parity",
+            "operator": "eq",
+            "expected": true,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "F04",
+      "predecessor_resolved_sha256": "2ad23289d8e80dd03251bf7a3856d96ad6ed0c21fcb6d725a7c702635c35f4bd",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "silence S1C one emit pitch two emit pitches triad physical unison",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-K01",
+      "inverse_check": "count S1C MIDI36 as emit-capable and require failure",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "K_latent_pitch versus K_emit_pitch",
+      "oracle": "K_latent_pitch=[0,1,1,2,3,1] and K_emit_pitch=[0,0,1,2,3,1]",
+      "pass_rule": "exact arrays and the forbidden K_pitch alias absent",
+      "phase": "P1",
+      "procedure": "count acoustically identifiable latent pitches and the emit-capable subset separately",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "K_latent_pitch",
+            "operator": "eq",
+            "expected": [
+              0,
+              1,
+              1,
+              2,
+              3,
+              1
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "K_emit_pitch",
+            "operator": "eq",
+            "expected": [
+              0,
+              0,
+              1,
+              2,
+              3,
+              1
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "forbidden_K_pitch_alias_present",
+            "operator": "eq",
+            "expected": false,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "S1C_MIDI36_emit_count",
+            "operator": "eq",
+            "expected": 1,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "K01",
+      "predecessor_resolved_sha256": "6a469e6501aa69be708949365a0a3ad366e4f714aac8d218072b5ac0277b7d2d",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "same fixtures",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-K02",
+      "inverse_check": "force two sources from same-pitch identical waveform",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "K_source",
+      "oracle": "may differ from both pitch cardinalities when identifiable and is AMBIGUOUS for identical unison waveform",
+      "pass_rule": "no false certainty",
+      "phase": "P1",
+      "procedure": "estimate or abstain",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "physical_unison_K_source",
+            "operator": "all_eq",
+            "expected": "AMBIGUOUS",
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "forced_unison_K_source",
+            "operator": "all_eq",
+            "expected": 2,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "K02",
+      "predecessor_resolved_sha256": "bb4210fdc11d9cd70992ae066a64247d1ecac2489e060b5bb52de6a902ba826d",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "S1 S4 S5",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-K03",
+      "inverse_check": "source-order permutation",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "K versus K+1",
+      "oracle": "no birth for S1; improvement plus independent evidence for S4; identical-feature ambiguity for S5",
+      "pass_rule": "numeric objectives reconcile within tolerance and categories exact",
+      "phase": "P1",
+      "procedure": "compute R(H), R(H union {r}), Delta_R and sealed improvement_valid, then apply the separate birth tuple rule",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "numeric_objective_reconciliation",
+            "operator": "allclose_pairs",
+            "expected": null,
+            "rtol": 1e-10,
+            "atol": 1e-12
+          },
+          {
+            "name": "categories",
+            "operator": "eq",
+            "expected": [
+              "NO_BIRTH",
+              "BIRTH_SUPPORTED_DELAYED_ONE_HOP",
+              "AMBIGUOUS"
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "source_order_result_pair",
+            "operator": "pair_equal",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "K03",
+      "predecessor_resolved_sha256": "04931f5e389e2f42d6f90f21fd78488ef657d398e7a4f180f29c9fab6ed96545",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "identical pitch sets in different orders",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-K04",
+      "inverse_check": "duplicate handling explicit",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "set permutation invariance",
+      "oracle": "same set output",
+      "pass_rule": "exact",
+      "phase": "P1",
+      "procedure": "evaluate",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "set_permutation_results",
+            "operator": "all_equal",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "duplicate_handling",
+            "operator": "eq",
+            "expected": "EXPLICIT_DEDUPLICATION",
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "K04",
+      "predecessor_resolved_sha256": "3c97ba3b28a21604aec2da312f9cbe379f4febd1cfd03540747345cb90851a0d",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "wrong-F0 harmonic-head output plus contradictory independent spectrum",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-AC01",
+      "inverse_check": "remove independent observation",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "false harmonic head",
+      "oracle": "conflict detected; no self-confirmation",
+      "pass_rule": "exact conflict state",
+      "phase": "P1",
+      "procedure": "compare channels",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "channel_state",
+            "operator": "eq",
+            "expected": "CONFLICT_RETAINED",
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "self_confirmation",
+            "operator": "eq",
+            "expected": false,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "without_independent_observation_state",
+            "operator": "in",
+            "expected": [
+              "INCOMPLETE",
+              "AMBIGUOUS"
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "AC01",
+      "predecessor_resolved_sha256": "6bceac38c63f954e558ffa22d2915f9b9acafd31febcc59c22f9aafb186dc6cc",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "supportive independent spectrum plus adverse conditional head",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-AC02",
+      "inverse_check": "swap channels",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "head-spectrum disagreement inverse",
+      "oracle": "disagreement retained",
+      "pass_rule": "neither channel erased",
+      "phase": "P1",
+      "procedure": "compare channels",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "disagreement_retained",
+            "operator": "eq",
+            "expected": true,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "channels_erased",
+            "operator": "eq",
+            "expected": false,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "swapped_channel_state",
+            "operator": "eq",
+            "expected": "DISAGREEMENT_RETAINED",
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "AC02",
+      "predecessor_resolved_sha256": "a8b719984ced534e8d201e378546d14d223eeaebffd1986e731e979cd5e11662",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "strong frame/F0 output without independent structure",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-AC03",
+      "inverse_check": "add independent harmonic evidence",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "F0 head alone",
+      "oracle": "incomplete or ambiguous confidence",
+      "pass_rule": "not fully confirmed",
+      "phase": "P1",
+      "procedure": "compute confidence state",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "head_only_state",
+            "operator": "in",
+            "expected": [
+              "INCOMPLETE",
+              "AMBIGUOUS"
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "with_independent_structure_state",
+            "operator": "eq",
+            "expected": "CONFIRMED",
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "AC03",
+      "predecessor_resolved_sha256": "b006d27bd3b6de20527f99bd9916bfc1fe2466224072911ec089626572b0c352",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "same p/c with distinct structures",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-AC04",
+      "inverse_check": "if equal then KILL censoring",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "null residual discrimination",
+      "oracle": "residual curves differ",
+      "pass_rule": "directional invariant",
+      "phase": "P1",
+      "procedure": "subtract S_null",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "residual_curve_hash_pair",
+            "operator": "pair_different",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "forced_equal_residual_hash_pair",
+            "operator": "pair_equal",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "AC04",
+      "predecessor_resolved_sha256": "20f77406a45f2946059e8971cde2fdc24b0e938fa3e0d879949dc805f1ab4eb4",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "physically plausible and implausible assignments",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-G01",
+      "inverse_check": "disable prior",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "soft string fret prior",
+      "oracle": "soft penalty only",
+      "pass_rule": "acoustically supported note never hard-deleted",
+      "phase": "P1",
+      "procedure": "score with unknown/slack",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "supported_note_hard_deleted",
+            "operator": "eq",
+            "expected": false,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "prior_kind",
+            "operator": "eq",
+            "expected": "SOFT_WITH_UNKNOWN_SLACK",
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "disabled_prior_note_set_pair",
+            "operator": "pair_equal",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "G01",
+      "predecessor_resolved_sha256": "51020cb9a8fe2d6c2be8537df01826d47a1e02bcc8a2cfacf91b4b19842fbfef",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "continuous pitch trajectory",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-G02",
+      "inverse_check": "quantized control",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "bend",
+      "oracle": "no forced semitone births from prior",
+      "pass_rule": "continuity or ambiguity",
+      "phase": "P1",
+      "procedure": "evaluate source continuity",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "bend_decisions",
+            "operator": "all_in",
+            "expected": [
+              "CONTINUITY",
+              "AMBIGUOUS"
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "forced_semitone_birth_count",
+            "operator": "eq",
+            "expected": 0,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "quantized_control_birth_count",
+            "operator": "gt",
+            "expected": 0,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "G02",
+      "predecessor_resolved_sha256": "21741dd7af60bf2f7b36c86083eb4fe59af7938720ea346bf0d73ca12b3b7c54",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "causal fret trajectory",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-G03",
+      "inverse_check": "cross-string alternative",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "slide",
+      "oracle": "softly plausible without hard string ownership",
+      "pass_rule": "no impossible discrete jump rule",
+      "phase": "P1",
+      "procedure": "evaluate",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "slide_state",
+            "operator": "eq",
+            "expected": "SOFTLY_PLAUSIBLE",
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "hard_string_owner_present",
+            "operator": "eq",
+            "expected": false,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "cross_string_alternative_retained",
+            "operator": "eq",
+            "expected": true,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "G03",
+      "predecessor_resolved_sha256": "bb4e030e3b354f7470aaa5b217f46b0d7f3f72e2cd68e1b55e9ecaad65ba5f96",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "ACTIVE source with periodic cents modulation, plus a paired newest-hop same-pitch repeated attack",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-G04",
+      "inverse_check": "route the retrigger through K versus K+1 and require failure",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "vibrato",
+      "oracle": "vibrato alone ALREADY_ACTIVE_HISTORY with no retrigger; paired attack RETRIGGER_SUPPORTED; both preserve cardinalities",
+      "pass_rule": "no repeated births from vibrato and exact one retrigger in the paired control",
+      "phase": "P1",
+      "procedure": "run the active-state retrigger rule",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "decisions",
+            "operator": "eq",
+            "expected": [
+              "ALREADY_ACTIVE_HISTORY",
+              "RETRIGGER_SUPPORTED"
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "retrigger_counts",
+            "operator": "eq",
+            "expected": [
+              0,
+              1
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "cardinality_deltas",
+            "operator": "all_eq",
+            "expected": 0,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "K_plus_one_route_result",
+            "operator": "eq",
+            "expected": "REJECTED",
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "G04",
+      "predecessor_resolved_sha256": "a11fe053172e9f5bc1201a958ad7747112f142f81a206449bf1ade8ffda0a10c",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "two strings same MIDI in the two exact physical_unison variants",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-G05",
+      "inverse_check": "forcing K_source=2 from envelope difference must fail",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "physical unison",
+      "oracle": "both pitch counts=1 and K_source=AMBIGUOUS for both variants; distinct temporal evidence is serialized but cannot prove two physical instances",
+      "pass_rule": "exact categories and no inaccessible K_source=2 target",
+      "phase": "P1",
+      "procedure": "compare K_latent_pitch, K_emit_pitch and K_source under the one-column-per-pitch factorization",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "K_latent_pitch",
+            "operator": "all_eq",
+            "expected": 1,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "K_emit_pitch",
+            "operator": "all_eq",
+            "expected": 1,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "K_source",
+            "operator": "all_eq",
+            "expected": "AMBIGUOUS",
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "temporal_evidence_serialized",
+            "operator": "eq",
+            "expected": true,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "envelope_forced_K_source",
+            "operator": "all_eq",
+            "expected": 2,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "G05",
+      "predecessor_resolved_sha256": "93feb8a3a946792d05c69130591fa38193ccb3cd39303005666f5c622563d090",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "weak or missing fundamental with harmonic structure",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-G06",
+      "inverse_check": "normal fretted note",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "natural harmonic",
+      "oracle": "natural_harmonic or unknown allowed",
+      "pass_rule": "no fictitious hard F0",
+      "phase": "P1",
+      "procedure": "apply prior",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "natural_harmonic_states",
+            "operator": "all_in",
+            "expected": [
+              "NATURAL_HARMONIC",
+              "UNKNOWN"
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "normal_fretted_state",
+            "operator": "eq",
+            "expected": "NORMAL_FRETTED",
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "G06",
+      "predecessor_resolved_sha256": "05af97903876b06a0c21b5b36c80cf746c469bc1b5c6e8675500d602afaccdb6",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "secondary decaying component without independent attack",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-G07",
+      "inverse_check": "add independent onset",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "sympathetic resonance",
+      "oracle": "resonance/observation allowed without MIDI birth",
+      "pass_rule": "no automatic source",
+      "phase": "P1",
+      "procedure": "evaluate source birth",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "resonance_birth_count",
+            "operator": "eq",
+            "expected": 0,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "resonance_state",
+            "operator": "in",
+            "expected": [
+              "RESONANCE",
+              "OBSERVATION_ONLY"
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "independent_onset_birth_count",
+            "operator": "eq",
+            "expected": 1,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "G07",
+      "predecessor_resolved_sha256": "b30f199df0ba27bd6c217add417343696444c552185ca89201230ee01af3bb79",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "dense compatible spectrum",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-G08",
+      "inverse_check": "six-source boundary",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "more than six acoustic hypotheses",
+      "oracle": "tension reported, hypotheses not silently removed",
+      "pass_rule": "unknown/slack preserved",
+      "phase": "P1",
+      "procedure": "apply guitar prior",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "hypothesis_count",
+            "operator": "gt",
+            "expected": 6,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "tension_reported",
+            "operator": "eq",
+            "expected": true,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "silently_removed_count",
+            "operator": "eq",
+            "expected": 0,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "six_source_boundary_preserved",
+            "operator": "eq",
+            "expected": true,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "G08",
+      "predecessor_resolved_sha256": "da16f5c1e0a24f0875b62737762e0d9354cb242675f73df20e0f204de0221969",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "strong analytical observations at every integer coordinate 77 through 128",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-V01",
+      "inverse_check": "pitch 76 remains emit-capable",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "virtual firewall",
+      "oracle": "observations retained, MIDI emission impossible",
+      "pass_rule": "zero emissions above 76 including coordinate 128",
+      "phase": "P1",
+      "procedure": "run analytical observation path and MIDI boundary",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "retained_observation_coordinates",
+            "operator": "eq",
+            "expected": [
+              77,
+              78,
+              79,
+              80,
+              81,
+              82,
+              83,
+              84,
+              85,
+              86,
+              87,
+              88,
+              89,
+              90,
+              91,
+              92,
+              93,
+              94,
+              95,
+              96,
+              97,
+              98,
+              99,
+              100,
+              101,
+              102,
+              103,
+              104,
+              105,
+              106,
+              107,
+              108,
+              109,
+              110,
+              111,
+              112,
+              113,
+              114,
+              115,
+              116,
+              117,
+              118,
+              119,
+              120,
+              121,
+              122,
+              123,
+              124,
+              125,
+              126,
+              127,
+              128
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "emissions_above_76",
+            "operator": "eq",
+            "expected": 0,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "pitch76_emit_capable",
+            "operator": "eq",
+            "expected": true,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "V01",
+      "predecessor_resolved_sha256": "ce76a228ee764142fd89f91c322dacf7c6e8ae6ae1c2232d1376c3a85d120cc4",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "coordinates 40 76 77 127 128 and rejected 129",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-V02",
+      "inverse_check": "any emission at 77/127/128 or validity at 129 fails",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "range endpoints",
+      "oracle": "40/76 emit-capable, 77/127/128 evidence-only, 129 invalid",
+      "pass_rule": "exact categories",
+      "phase": "P1",
+      "procedure": "enumerate masks, analytic validity and output capability",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "endpoint_categories",
+            "operator": "eq",
+            "expected": {
+              "40": "EMIT",
+              "76": "EMIT",
+              "77": "EVIDENCE_ONLY",
+              "127": "EVIDENCE_ONLY",
+              "128": "EVIDENCE_ONLY",
+              "129": "INVALID"
+            },
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "forbidden_endpoint_emission_count",
+            "operator": "gt",
+            "expected": 0,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "V02",
+      "predecessor_resolved_sha256": "64feb60fa2b49c1fe25f88ccd197a37688856158d6932be53c5174187d819263",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "low F0 with partials above 76",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-V03",
+      "inverse_check": "remove low F0",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "high harmonic support",
+      "oracle": "can explain low F0 without high MIDI event",
+      "pass_rule": "exact separation",
+      "phase": "P1",
+      "procedure": "use virtual observations only as evidence",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "low_F0_explained",
+            "operator": "eq",
+            "expected": true,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "high_MIDI_emission_count",
+            "operator": "eq",
+            "expected": 0,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "without_low_F0_explained",
+            "operator": "eq",
+            "expected": false,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "V03",
+      "predecessor_resolved_sha256": "4b0f7a2645bef0be9cd25bfe201a78d4cd781585da7f28237cb1b2987715eba2",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "zeros and near-zero noise",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-O01",
+      "inverse_check": "add structured harmonic source",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "silence OOD",
+      "oracle": "silence/unexplained not confident pitches",
+      "pass_rule": "exact state",
+      "phase": "P1",
+      "procedure": "evaluate",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "silence_states",
+            "operator": "all_in",
+            "expected": [
+              "SILENCE",
+              "UNEXPLAINED"
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "confident_pitch_count",
+            "operator": "eq",
+            "expected": 0,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "structured_source_state",
+            "operator": "eq",
+            "expected": "EXPLAINED_HARMONIC_SOURCE",
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "O01",
+      "predecessor_resolved_sha256": "6254fbfd0e48352aaf56cd5e19270d8ccaf1bcb8e3155363c5c36bb37363af2b",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "chirps impulses and nonharmonic stacks",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-O02",
+      "inverse_check": "matched harmonic stack",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "non-guitar synthetic OOD",
+      "oracle": "OOD/unexplained allowed",
+      "pass_rule": "no forced guitar factorization",
+      "phase": "P1",
+      "procedure": "evaluate",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "OOD_states",
+            "operator": "all_in",
+            "expected": [
+              "OOD",
+              "UNEXPLAINED"
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "forced_guitar_factorization_count",
+            "operator": "eq",
+            "expected": 0,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "matched_harmonic_stack_state",
+            "operator": "eq",
+            "expected": "EXPLAINED_HARMONIC_SOURCE",
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "O02",
+      "predecessor_resolved_sha256": "bb67ce3e77339c31cf23ea467636fef62bed271e02ce3633753a96cdea3f57d3",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "all core and OOD cases",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-O03",
+      "inverse_check": "redact target and reproduce trace",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "explanation completeness",
+      "oracle": "decision trace contains causal reasons without labels",
+      "pass_rule": "schema complete",
+      "phase": "P1",
+      "procedure": "serialize evidence channels residual and ambiguity",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "trace_required_fields_present",
+            "operator": "eq",
+            "expected": true,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "label_dependency_count",
+            "operator": "eq",
+            "expected": 0,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "redacted_target_trace_hash_pair",
+            "operator": "pair_equal",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "O03",
+      "predecessor_resolved_sha256": "bd5cc6c775e7e23643473feec012b46a5947caa1071d23ceb93b57a758d90b59",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "raw unthresholded scores",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-O04",
+      "inverse_check": "hardcoded probability cutoff fails",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "future calibration readiness",
+      "oracle": "scores preserved without selecting a threshold",
+      "pass_rule": "no calibration decision",
+      "phase": "P1",
+      "procedure": "serialize only",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "raw_score_count",
+            "operator": "gt",
+            "expected": 0,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "selected_threshold",
+            "operator": "eq",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "hardcoded_cutoff_result",
+            "operator": "eq",
+            "expected": "REJECTED",
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "O04",
+      "predecessor_resolved_sha256": "252e6287975bec745ae9c825cd30518bb7cbee68a95c109ce33f9caafc0dcc22",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "the exact closed 175-ID preregistered fixture manifest",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-I01",
+      "inverse_check": "inject one malformed fixture and require fail-closed before publication",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "end-to-end synthetic pipeline",
+      "oracle": "executed_fixture_ids equals preregistered_fixture_ids and all local oracles reconcile",
+      "pass_rule": "exact set equality, count 175, no missing or silently dropped case",
+      "phase": "P1",
+      "procedure": "synthesis to spectrum to censoring to factorization to decision to report",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "executed_fixture_ids",
+            "operator": "eq",
+            "expected": "__PLAN_FIXTURE_IDS__",
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "fixture_count",
+            "operator": "eq",
+            "expected": 175,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "local_oracle_failure_count",
+            "operator": "eq",
+            "expected": 0,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "malformed_fixture_publication_result",
+            "operator": "eq",
+            "expected": "REJECTED_BEFORE_PUBLICATION",
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "I01",
+      "predecessor_resolved_sha256": "e45766e961f5f0b5ab493b43bda36b4cdb850db7283d07e35a6e4afbae7553a4",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "all P0/P1 phase outputs and hashes",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-I02",
+      "inverse_check": "interrupt immediately before rename and require no final directory",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "atomic publication",
+      "oracle": "partial output never authoritative",
+      "pass_rule": "failure leaves no final directory and success leaves no staging directory",
+      "phase": "P1",
+      "procedure": "write staging, verify exact required files and SHA-256, then same-filesystem atomic rename",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "success_final_exists",
+            "operator": "eq",
+            "expected": true,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "success_staging_exists",
+            "operator": "eq",
+            "expected": false,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "partial_final_observed",
+            "operator": "eq",
+            "expected": false,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "pre_rename_interrupt_final_exists",
+            "operator": "eq",
+            "expected": false,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "I02",
+      "predecessor_resolved_sha256": "0f39a5b0eba1b7e5691d1820985151ca8a516c9049803ea58ffb3763eb59c797",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "same fixture seed and config",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-R01",
+      "inverse_check": "different seed recorded",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "repeatability",
+      "oracle": "byte-identical structured outputs",
+      "pass_rule": "exact",
+      "phase": "P2",
+      "procedure": "repeat process",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "repeat_output_hash_pair",
+            "operator": "pair_equal",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "different_seed_pair",
+            "operator": "pair_different",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "R01",
+      "predecessor_resolved_sha256": "a2ed96477ca571c887461063cdb07a887583d5cfa8a9c1d1794cde0b18ad64a0",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "same supported CPU runtime",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-R02",
+      "inverse_check": "thread-count variation measured",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "CPU determinism",
+      "oracle": "documented exact or machine-tolerance parity",
+      "pass_rule": "contracted parity",
+      "phase": "P2",
+      "procedure": "repeat",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "same_runtime_output_pairs",
+            "operator": "allclose_pairs",
+            "expected": null,
+            "rtol": 1e-10,
+            "atol": 1e-12
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "thread_variation_measurement_count",
+            "operator": "gt",
+            "expected": 0,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "R02",
+      "predecessor_resolved_sha256": "c51b1f063eaa24254b0ba07f527eecff32a776e3dcfa51a2e6eb9fdce9821de1",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "the exact 175-fixture manifest evaluated scalar, batch size 1, 7, 32 and one final partial batch",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-R03",
+      "inverse_check": "dropping the final partial batch must be detected by exact ID-set inequality",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "batch scalar parity",
+      "oracle": "categories/masks exact and float64 features equal within rtol=1e-10 atol=1e-12",
+      "pass_rule": "every value passes the sealed comparison",
+      "phase": "P2",
+      "procedure": "canonicalize by fixture_id and compare",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "batch_output_pairs",
+            "operator": "allclose_pairs",
+            "expected": null,
+            "rtol": 1e-10,
+            "atol": 1e-12
+          },
+          {
+            "name": "batch_ID_sets",
+            "operator": "all_equal",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "dropped_partial_batch_ID_set_equal",
+            "operator": "eq",
+            "expected": false,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "R03",
+      "predecessor_resolved_sha256": "381a0daebf38975da11aba7bef278fca408c091d8da281fe00eb2d35cc467f28",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "instrumented execution graph",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-P01",
+      "inverse_check": "candidate count increase does not increase encodings",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "one shared encoder",
+      "oracle": "one per frame",
+      "pass_rule": "exact count",
+      "phase": "P2",
+      "procedure": "count spectral encodings",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "spectral_encodings_per_frame",
+            "operator": "all_eq",
+            "expected": 1,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "encoding_counts_by_candidate_count",
+            "operator": "all_eq",
+            "expected": 1,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "P01",
+      "predecessor_resolved_sha256": "b21b57b4b2fcb2844be6ffaa6b1985c4c19f8286db0bd3e5f0216ba4abec7837",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "37 emission F0 candidates by exactly 6 cutoffs over one shared spectrum; 89 observation coordinates are a separate factorization tensor",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-P02",
+      "inverse_check": "a 89x6 candidate matrix or any emit-capable q>76 must fail",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "mask vectorization",
+      "oracle": "live censoring matrix shape is exactly 37x6, observation vector shape 89, and one spectral encoding is reused",
+      "pass_rule": "exact shapes, one spectral encoding per frame and no full inference per pitch/cutoff",
+      "phase": "P2",
+      "procedure": "profile operations and tensor shapes",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "live_censoring_shape",
+            "operator": "eq",
+            "expected": [
+              37,
+              6
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "observation_shape",
+            "operator": "eq",
+            "expected": [
+              89
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "spectral_encodings",
+            "operator": "eq",
+            "expected": 1,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "emit_capable_above_76",
+            "operator": "eq",
+            "expected": 0,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "invalid_89x6_candidate_matrix_result",
+            "operator": "eq",
+            "expected": "REJECTED",
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "P02",
+      "predecessor_resolved_sha256": "2a9a49bfb9cfabdef1546ffb56dde16a7c497390e888f70fbaa35e19db9579ad",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "the same 60-second 10336-hop stream as P04 after a 10-second warm-up",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-P03",
+      "inverse_check": "a diagnostic implementation retaining every frame must exceed retained frames and fail",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "memory bound",
+      "oracle": "retained frames<=16, tracked arrays<=67108864 bytes, post-warm-up RSS max-min<=33554432 bytes",
+      "pass_rule": "all three exact upper bounds pass and final retained-frame count<=16",
+      "phase": "P2",
+      "procedure": "measure internal retained-frame count, allocator-tracked array bytes and process RSS once per second",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "maximum_retained_frames",
+            "operator": "le",
+            "expected": 16,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "maximum_tracked_array_bytes",
+            "operator": "le",
+            "expected": 67108864,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "post_warmup_RSS_range_bytes",
+            "operator": "le",
+            "expected": 33554432,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "final_retained_frames",
+            "operator": "le",
+            "expected": 16,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "retain_every_frame_count",
+            "operator": "gt",
+            "expected": 16,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "P03",
+      "predecessor_resolved_sha256": "afa6e5aacfac0a936b2498dda790f47408c8a68b1f65de527920b9bbc254f5b4",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "60-second synthetic stream, 10336 hops, one warm-up second excluded, 6 cutoffs, one CPU worker",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-P04",
+      "inverse_check": "12-cutoff stress run is diagnostic only and must not replace the 6-cutoff result",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "live throughput",
+      "oracle": "p95<=5.804988662131519 ms, p99<=5.804988662131519 ms, max<=11.609977324263038 ms, maximum backlog<=1 hop, final backlog=0, added lookahead=0",
+      "pass_rule": "every bound passes; no post-hoc relaxation",
+      "phase": "P2",
+      "procedure": "measure p50 p90 p95 p99 max, backlog and final drain",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "hop_count",
+            "operator": "eq",
+            "expected": 10336,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "p50_ms",
+            "operator": "ge",
+            "expected": 0.0,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "p90_ms",
+            "operator": "ge",
+            "expected": 0.0,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "p95_ms",
+            "operator": "le",
+            "expected": 5.804988662131519,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "p99_ms",
+            "operator": "le",
+            "expected": 5.804988662131519,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "max_ms",
+            "operator": "le",
+            "expected": 11.609977324263038,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "maximum_backlog_hops",
+            "operator": "le",
+            "expected": 1,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "final_backlog_hops",
+            "operator": "eq",
+            "expected": 0,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "drain_hops",
+            "operator": "ge",
+            "expected": 0,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "added_lookahead_samples",
+            "operator": "eq",
+            "expected": 0,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "stress_cutoff_count",
+            "operator": "eq",
+            "expected": 12,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "stress_measurement_hop_count",
+            "operator": "eq",
+            "expected": 10336,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "stress_replaced_primary",
+            "operator": "eq",
+            "expected": false,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "P04",
+      "predecessor_resolved_sha256": "75126b44e481bfd01558b13be033929b73b96d8269994bb2b55bd00911fdb31c",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "instrumented causal path",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-P05",
+      "inverse_check": "hidden buffering detected",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "latency decomposition",
+      "oracle": "algorithmic lookahead remains zero",
+      "pass_rule": "every component reported",
+      "phase": "P2",
+      "procedure": "report window hop feature inference decoder MIDI costs",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "reported_components",
+            "operator": "eq",
+            "expected": [
+              "window",
+              "hop",
+              "feature",
+              "inference",
+              "decoder",
+              "MIDI"
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "component_elapsed_ns",
+            "operator": "timing_components_exact",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "algorithmic_lookahead_samples",
+            "operator": "eq",
+            "expected": 0,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "hidden_buffering_samples",
+            "operator": "gt",
+            "expected": 0,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "P05",
+      "predecessor_resolved_sha256": "4cab511327be9e34316176eee496a88d78413b97194520becaf399988e366457",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "the exact 175 fixtures at 6 cutoffs, then deterministic log2-spaced harmonic-rank grids of 16 and 32 points including endpoints 1 and 20",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-TS01",
+      "inverse_check": "an improvement only in a summary value without changing a failed categorical oracle cannot justify teacher",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "teacher necessity",
+      "oracle": "TEACHER_NOT_NEEDED if 6 cutoffs passes every oracle; TEACHER_JUSTIFIED only if at least one named fixture fails at 6 and passes at 16 or 32 while no fixture that passed at 6 regresses",
+      "pass_rule": "exact fixture-ID sets supporting the selected category are serialized; every fixture accounted for",
+      "phase": "P2",
+      "procedure": "evaluate the same categorical fixture oracles with no fitted parameters",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "fixture_accounted_count",
+            "operator": "eq",
+            "expected": 175,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "selected_category",
+            "operator": "in",
+            "expected": [
+              "TEACHER_NOT_NEEDED",
+              "TEACHER_JUSTIFIED"
+            ],
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "selection_rule_satisfied",
+            "operator": "eq",
+            "expected": true,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "selection_evidence",
+            "operator": "ts01_evidence_exact",
+            "expected": null,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "summary_only_improvement_justifies_teacher",
+            "operator": "eq",
+            "expected": false,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "TS01",
+      "predecessor_resolved_sha256": "bff8b1df36b3fa37b12f1503a85634ef4d6f587d1c266df1bf77a0683a551d84",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    },
+    {
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition.",
+      "exact_input": "the future teacher proposal resolved from TS01 with its exact feature and target schema",
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, inverse_expected_failure_observed != true, or inverse_unexpectedly_passes_primary_oracle == true is FAIL.",
+      "id": "H24-TS02",
+      "inverse_check": "inject one teacher target dependency on sample t+1 and require fail-closed before fit",
+      "metrics": [
+        "oracle_value_or_category",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "objective": "student target safety",
+      "oracle": "all student features use current/past audio only; teacher target may summarize current-window multiscale evidence but cannot use future audio, real labels, split identity or locked data",
+      "pass_rule": "dependency graph has zero forbidden edges and maximum future sample offset=0",
+      "phase": "P2",
+      "procedure": "audit every student input dependency and teacher target timestamp",
+      "namespace": "H24_TEST_V1",
+      "evidence_schema": {
+        "primary_rules": [
+          {
+            "name": "forbidden_dependency_count",
+            "operator": "eq",
+            "expected": 0,
+            "rtol": 0.0,
+            "atol": 0.0
+          },
+          {
+            "name": "maximum_future_sample_offset",
+            "operator": "eq",
+            "expected": 0,
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "inverse_rules": [
+          {
+            "name": "future_t_plus_1_dependency_result",
+            "operator": "eq",
+            "expected": "REJECTED_BEFORE_FIT",
+            "rtol": 0.0,
+            "atol": 0.0
+          }
+        ],
+        "producer_verdict_field_forbidden": true,
+        "independent_recomputation_required": true
+      },
+      "predecessor_test_id": "TS02",
+      "predecessor_resolved_sha256": "670dad5c14fbc83da0ecaca971ab5af376e30064ab17e3f97f3e0a5c686240bd",
+      "outcome_carried_forward": false,
+      "producer_pass_boolean_allowed": false,
+      "implementation_exists": false,
+      "test_executed": false
+    }
+  ],
+  "fixture_reference_contract": {
+    "conceptual_base_aliases": {
+      "S1C": "H24-F-S1C",
+      "S1P": "H24-F-S1P",
+      "S2": "H24-F-S2",
+      "S3": "H24-F-S3",
+      "S4": "H24-F-S4",
+      "S5": "H24-F-S5"
+    },
+    "predecessor_fixture_token_rule": "Any exact predecessor fixture token X denotes exactly the H24 population record whose predecessor_fixture_id is X; its executable H24 identity is H24-F-X.",
+    "free_text_does_not_authorize_unlisted_fixture": true,
+    "all_resolved_fixture_references_must_exist_in_bound_population_manifest": true,
+    "predecessor_waveform_or_outcome_reuse_forbidden": true
+  }
+}
