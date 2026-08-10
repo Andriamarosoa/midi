@@ -52,3 +52,13 @@ locked_test_used=false
 Les tests démontrent notamment que l’état de consommation existe avant le
 premier appel de l’adapter scientifique et qu’une erreur post-consommation est
 persistée sans deuxième tentative.
+
+## H22a — scellement du snapshot exact
+
+La revue pré-consommation a approuvé la mécanique et la science mais a refusé
+qu’un futur HEAD puisse être autorisé par un nouveau marqueur. H22a ferme ce
+point sans auto-référence : le runner exige que son parent soit exactement le
+commit H22 revu `5810061e…`, que HEAD soit son unique descendant direct et que
+le diff contienne exactement les cinq fichiers H22a listés dans le contrat.
+Le marqueur continue de lier simultanément le SHA brut du contrat et le HEAD
+final. Un commit ultérieur échoue donc avant le premier hachage d’actif.

@@ -26,7 +26,7 @@ class H22ExecutionContractTests(unittest.TestCase):
             self.raw,
             (json.dumps(self.contract, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n").encode("utf-8"),
         )
-        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "76815328f959deae0e55a7980118699f8430be506523be2d64fe14d0ac11dfaa")
+        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), "decb9e9398819294f797938dde834aa83cddb41bf537b757df74cf1291ea9ae6")
         self.assertEqual(self.contract["parent_h21_commit"], "384b0248106cd94344c6eaef5fbd5975d78a46ad")
         self.assertEqual(self.contract["h21_raw_sha256"], h22.H21_RAW_SHA256)
         self.assertEqual(
@@ -51,6 +51,21 @@ class H22ExecutionContractTests(unittest.TestCase):
         self.assertFalse(one_shot["automatic_retry"])
         self.assertFalse(one_shot["same_population_rerun"])
         self.assertFalse(self.contract["locked_test_used"])
+
+    def test_h22a_snapshot_is_exactly_one_commit_above_reviewed_h22(self):
+        self.assertEqual(h22.EXPECTED_EXECUTION_PARENT_COMMIT, "5810061e10685b7d13088f3b0d8ad549f5ac48d4")
+        expected = {
+            "configs/provisional_resolution_frame_fallback_h22_execution_contract.json",
+            "readme/README.md",
+            "readme/results/2026-08-10_provisional-resolution-frame-fallback-h22-runner.md",
+            "src/polyphonic/run_provisional_resolution_frame_fallback_h17.py",
+            "tests/test_provisional_resolution_frame_fallback_h22_execution.py",
+        }
+        self.assertEqual(set(self.contract["execution_commit_changed_files"]), expected)
+        source = self.runner_path.read_text(encoding="utf-8")
+        self.assertIn('"rev-parse", "HEAD^"', source)
+        self.assertIn('"rev-list", "--count"', source)
+        self.assertIn('"diff", "--name-only"', source)
 
     def test_import_is_zero_science_and_runner_has_no_caller_overrides(self):
         tree = ast.parse(self.runner_path.read_text(encoding="utf-8"))

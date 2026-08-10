@@ -39,6 +39,7 @@ DECODER_CONFIG_SHA256 = "c16be48271912c99c4237345e8406e39b88490b5565047757f6ca9e
 AUDIO_POLICY_SHA256 = "45edbb712415c5b62f10a1405678fc28cee083891131108b2875ce8f71abcd3e"
 EXPECTED_RECORDINGS = 146
 EXPECTED_GROUPS = 51
+EXPECTED_EXECUTION_PARENT_COMMIT = "5810061e10685b7d13088f3b0d8ad549f5ac48d4"
 PHASES = ("opening", "inference", "decoder", "target", "reconciliation", "metrics", "publication")
 _SCIENCE_TERMS = re.compile(
     r"(?i)(?:candidate_reason|frame_fallback|true_noteon|false_noteon|target|rd_false|bootstrap|probabilit|score|class_balance)"
@@ -208,6 +209,16 @@ def _load_and_verify_preflight(repository: Path) -> tuple[H17Paths, tuple[Sealed
         raise RuntimeError("H22 execution contract status mismatch")
     if contract.get("h21_raw_sha256") != H21_RAW_SHA256:
         raise RuntimeError("H22 does not bind exact H21 bytes")
+    if _git(paths.repository, "rev-parse", "HEAD^") != EXPECTED_EXECUTION_PARENT_COMMIT:
+        raise RuntimeError("sealed execution parent commit mismatch")
+    if _git(paths.repository, "rev-list", "--count", f"{EXPECTED_EXECUTION_PARENT_COMMIT}..HEAD") != "1":
+        raise RuntimeError("sealed execution must be exactly one commit above H22")
+    changed = tuple(sorted(filter(None, _git(
+        paths.repository, "diff", "--name-only", EXPECTED_EXECUTION_PARENT_COMMIT, "HEAD"
+    ).splitlines())))
+    expected_changed = contract.get("execution_commit_changed_files")
+    if not isinstance(expected_changed, list) or changed != tuple(sorted(expected_changed)):
+        raise RuntimeError("sealed execution changed-file set mismatch")
     _require_blob(paths.repository, str(H20_RELATIVE).replace("\\", "/"), H20_GIT_BLOB)
     _require_blob(paths.repository, str(H21_RELATIVE).replace("\\", "/"), H21_GIT_BLOB)
     runner_blob = contract.get("runner_git_blob")

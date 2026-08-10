@@ -32,6 +32,9 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   Runner : `src/polyphonic/run_provisional_resolution_frame_fallback_h17.py`.
   Rapport d’implémentation :
   `readme/results/2026-08-10_provisional-resolution-frame-fallback-h22-runner.md`.
+  H22a ajoute le scellement non auto-référentiel du snapshot d’exécution :
+  parent exact `5810061e…`, un seul commit descendant et ensemble exact de cinq
+  fichiers modifiés, en plus du SHA du contrat et du HEAD liés par le marqueur.
 - H21 a scellé sur le worker Mac prévu, sans science, le runtime, le checkpoint
   brut et les actifs exacts des `146` prises / `51` groupes H18a. Chaque entrée
   conserve chemins logiques/résolus, `audio_member`, tailles et SHA-256 bruts;
