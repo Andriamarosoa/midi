@@ -18,11 +18,13 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 - Mise à jour : `2026-08-10`.
 - Étape : `provisional_resolution_frame_fallback_h18_metadata_audit`.
-- Statut : `en cours — fresh_discovery_population_established`, revue externe requise avant H19.
-- H18 a effectué uniquement l'audit de métadonnées autorisé après H17. Le
-  checkpoint `1ce8ac44…` est identifié exactement comme `epoch-07.keras` du run
-  harmonique lié au manifeste `b28cb17c…`; ses `572` prises train représentent
-  `219` groupes de fit exacts avec le grouping gelé `e43187b4…`. Le candidat
+- Statut : `en cours — fresh_discovery_population_established_after_h18a_fit_provenance_resolution`, revue externe requise avant H19.
+- H18/H18a a effectué uniquement l'audit de métadonnées autorisé après H17. Le
+  checkpoint `1ce8ac44…` est identifié par son fichier historique brut comme
+  `epoch-07.keras`. Sa transaction lie le commit train `33251d7…`, le manifeste
+  `b28cb17c…` et le plan d'époques `d039ac2c…`. Les colonnes d'indices des plans
+  1 à 7 couvrent chacune les `572` prises train sans manque; elles représentent
+  exactement `219` groupes de fit avec le grouping gelé `e43187b4…`. Le candidat
   métadonné contient `754` prises / `285` groupes avec chemins audio/labels
   déclarés présents, sans ouverture de leur contenu. Après soustraction exacte
   de H8 consommé (`31` groupes), V2 indépendant consommé (`20`), test verrouillé

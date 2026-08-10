@@ -29,6 +29,13 @@ class FrameFallbackH18MetadataAuditTest(unittest.TestCase):
             audit["status"], "fresh_discovery_population_established"
         )
         self.assertEqual(
+            audit["h18a_provenance_resolution"]["status"],
+            "checkpoint_fit_group_provenance_established",
+        )
+        self.assertFalse(
+            audit["h18a_provenance_resolution"]["scientific_execution_authorized"]
+        )
+        self.assertEqual(
             audit["h17"]["commit"],
             "3a3e65ab532a4983fadae89c842b544228c3b028",
         )
@@ -61,6 +68,31 @@ class FrameFallbackH18MetadataAuditTest(unittest.TestCase):
         self.assertEqual(provenance["fit_leakage_group_count"], 219)
         self.assertEqual(
             len(set(provenance["fit_leakage_group_keys"])), 219
+        )
+        evidence = provenance["evidence"]
+        self.assertEqual(
+            evidence["transaction_manifest_sha256"],
+            "b28cb17cfb80a82860ab44635b2c6d05718243e027a8fc8199fe72e27f1b8ed7",
+        )
+        self.assertEqual(
+            evidence["transaction_plan_sha256"],
+            "d039ac2cfba31cc9560f80ed2da7230c1d039ef9dbaea38d56574d4c0b550714",
+        )
+        self.assertEqual(evidence["transaction_completed_epochs"], 7)
+        self.assertEqual(evidence["union_unique_train_recording_indices"], 572)
+        self.assertEqual(evidence["missing_train_recording_indices"], [])
+        self.assertEqual(
+            evidence["unique_train_recordings_per_epoch_1_through_7"],
+            {str(epoch): 572 for epoch in range(1, 8)},
+        )
+        source_files = evidence["source_files"]
+        self.assertEqual(
+            source_files["epoch7_checkpoint"]["sha256"],
+            provenance["checkpoint_sha256"],
+        )
+        self.assertEqual(
+            source_files["epoch7_transaction"]["sha256"],
+            "ff0e2c1aeadf551c2dcce200bd2617ac57c34cf0d363c0754e5517a3f89427ef",
         )
 
     def test_exact_set_subtraction_and_minimum(self) -> None:

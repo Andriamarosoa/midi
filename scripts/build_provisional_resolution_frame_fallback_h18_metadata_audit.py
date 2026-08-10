@@ -7,12 +7,15 @@ assets it checks path existence; it never opens audio, labels, or checkpoints.
 from __future__ import annotations
 
 import argparse
+import ast
 import csv
 import hashlib
 import json
 import re
+import struct
 import subprocess
 import unicodedata
+import zipfile
 from collections import Counter, defaultdict
 from pathlib import Path
 
@@ -35,6 +38,14 @@ MANIFEST_SHA256 = (
 )
 GROUPING_BLOB = "e43187b4e8ba0775a74114faf406703dd6c3187c"
 MINIMUM_GROUPS = 20
+HISTORICAL_RUN_NAME = "polyphonic_dual_stream_bass_harmonic_presence_20260801_195145"
+HISTORICAL_CONFIG_SHA256 = "a02913c5d4366c935ba9ecc073bc786a6d05c0800e73d98c6d964546f3f5185f"
+HISTORICAL_RUNTIME_SHA256 = "c23ff1684b23e875e2ace5cb50cbdb8c850018c83518a3884e1f268455d045ac"
+HISTORICAL_STATUS_SHA256 = "a3b7dafb184c2dc80bd6cc1bd51eac9a2b609f617ba3f90cb6a9f8cdbd587d33"
+HISTORICAL_PLAN_SHA256 = "d039ac2cfba31cc9560f80ed2da7230c1d039ef9dbaea38d56574d4c0b550714"
+HISTORICAL_PLAN_SIDECAR_SHA256 = "96f630a89d2c9f572afadb31ed5b54022f8a4883dd7bac3172e45f47692dca6a"
+HISTORICAL_EPOCH7_TRANSACTION_SHA256 = "ff0e2c1aeadf551c2dcce200bd2617ac57c34cf0d363c0754e5517a3f89427ef"
+HISTORICAL_TRAIN_COMMIT = "33251d7a64de14766f4e80b1bf0914492f84847b"
 
 
 def _sha256(raw: bytes) -> str:
@@ -107,7 +118,131 @@ def _git_blob_at(repo: Path, commit: str, path: Path) -> str:
     return result.stdout.strip()
 
 
-def build(repo: Path, manifest: Path) -> dict[str, object]:
+def _npy_order_recording_indices(archive: zipfile.ZipFile, name: str) -> set[int]:
+    """Read only the integer recording-index column of an epoch-plan NPY."""
+
+    with archive.open(name, "r") as handle:
+        if handle.read(6) != b"\x93NUMPY":
+            raise RuntimeError(f"{name} is not an NPY member.")
+        major, minor = handle.read(2)
+        if (major, minor) == (1, 0):
+            header_size = struct.unpack("<H", handle.read(2))[0]
+        elif major in (2, 3):
+            header_size = struct.unpack("<I", handle.read(4))[0]
+        else:
+            raise RuntimeError(f"{name} uses an unsupported NPY version.")
+        header = ast.literal_eval(handle.read(header_size).decode("latin1").strip())
+        descriptor = header.get("descr")
+        if descriptor not in ("<i4", "|i4", "<i8", "|i8"):
+            raise RuntimeError(f"{name} recording refs are not little-endian integers.")
+        if header.get("fortran_order") is not False:
+            raise RuntimeError(f"{name} unexpectedly uses Fortran order.")
+        shape = tuple(header.get("shape", ()))
+        if len(shape) != 2 or shape[1] != 2 or shape[0] < 1:
+            raise RuntimeError(f"{name} does not contain (recording, frame) refs.")
+        raw = handle.read()
+    item_size = 4 if descriptor in ("<i4", "|i4") else 8
+    if len(raw) != shape[0] * 2 * item_size:
+        raise RuntimeError(f"{name} payload length is inconsistent with its shape.")
+    format_code = "<ii" if item_size == 4 else "<qq"
+    return {recording for recording, _frame in struct.iter_unpack(format_code, raw)}
+
+
+def _historical_fit_evidence(
+    repo: Path, historical_run: Path, manifest_sha256: str, train_count: int
+) -> tuple[dict[str, object], set[int]]:
+    if historical_run.name != HISTORICAL_RUN_NAME:
+        raise RuntimeError("H18a historical run directory name mismatch.")
+    paths = {
+        "config": historical_run / "config.json",
+        "runtime": historical_run / "runtime.json",
+        "training_status": historical_run / "training_status.json",
+        "epoch_plan": historical_run / "epoch_plans.npz",
+        "epoch_plan_sidecar": historical_run / "epoch_plans.npz.json",
+        "epoch7_transaction": historical_run / "epoch_transactions/epoch-07.json",
+        "epoch7_checkpoint": historical_run / "epochs/epoch-07.keras",
+    }
+    expected = {
+        "config": HISTORICAL_CONFIG_SHA256,
+        "runtime": HISTORICAL_RUNTIME_SHA256,
+        "training_status": HISTORICAL_STATUS_SHA256,
+        "epoch_plan": HISTORICAL_PLAN_SHA256,
+        "epoch_plan_sidecar": HISTORICAL_PLAN_SIDECAR_SHA256,
+        "epoch7_transaction": HISTORICAL_EPOCH7_TRANSACTION_SHA256,
+        "epoch7_checkpoint": CHECKPOINT_SHA256,
+    }
+    evidence_files: dict[str, object] = {}
+    for name, path in paths.items():
+        raw = path.read_bytes()
+        digest = _sha256(raw)
+        if digest != expected[name]:
+            raise RuntimeError(f"H18a historical {name} SHA-256 mismatch.")
+        evidence_files[name] = {
+            "logical_path": str(path.relative_to(historical_run.parent.parent.parent)).replace("\\", "/"),
+            "sha256": digest,
+            "size_bytes": len(raw),
+        }
+
+    config = json.loads(paths["config"].read_bytes())
+    runtime = json.loads(paths["runtime"].read_bytes())
+    status = json.loads(paths["training_status"].read_bytes())
+    sidecar = json.loads(paths["epoch_plan_sidecar"].read_bytes())
+    transaction = json.loads(paths["epoch7_transaction"].read_bytes())
+    signatures = transaction.get("signatures", {})
+    if (
+        config.get("train", {}).get("run_name")
+        != "polyphonic_dual_stream_bass_harmonic_presence"
+        or config.get("train", {}).get("epochs") != 8
+        or runtime.get("git_commit") != HISTORICAL_TRAIN_COMMIT
+        or runtime.get("smoke_test") is not False
+        or status.get("status") != "complete"
+        or status.get("locked_test_used") is not False
+        or sidecar.get("sha256") != HISTORICAL_PLAN_SHA256
+        or sidecar.get("epochs") != 8
+        or sidecar.get("locked_test_used") is not False
+        or signatures.get("commit") != HISTORICAL_TRAIN_COMMIT
+        or signatures.get("manifest_sha256") != manifest_sha256
+        or signatures.get("plan_sha256") != HISTORICAL_PLAN_SHA256
+        or transaction.get("locked_test_used") is not False
+        or transaction.get("policy_post", {}).get("completed_epochs") != 7
+    ):
+        raise RuntimeError("H18a historical run metadata chain is inconsistent.")
+
+    per_epoch: dict[str, int] = {}
+    used: set[int] = set()
+    with zipfile.ZipFile(paths["epoch_plan"], "r") as archive:
+        for epoch in range(7):
+            indices = _npy_order_recording_indices(
+                archive, f"epoch_{epoch:04d}__order.npy"
+            )
+            if indices != set(range(train_count)):
+                raise RuntimeError(
+                    f"H18a epoch {epoch + 1} does not cover every train recording."
+                )
+            per_epoch[str(epoch + 1)] = len(indices)
+            used.update(indices)
+
+    return {
+        "historical_run_name": HISTORICAL_RUN_NAME,
+        "source_files": evidence_files,
+        "runtime_git_commit": HISTORICAL_TRAIN_COMMIT,
+        "train_code_git_blob": _git_blob_at(
+            repo, HISTORICAL_TRAIN_COMMIT, Path("src/polyphonic/train.py")
+        ),
+        "data_code_git_blob": _git_blob_at(
+            repo, HISTORICAL_TRAIN_COMMIT, Path("src/polyphonic/data.py")
+        ),
+        "transaction_manifest_sha256": signatures["manifest_sha256"],
+        "transaction_plan_sha256": signatures["plan_sha256"],
+        "transaction_completed_epochs": 7,
+        "unique_train_recordings_per_epoch_1_through_7": per_epoch,
+        "union_unique_train_recording_indices": len(used),
+        "missing_train_recording_indices": sorted(set(range(train_count)) - used),
+        "derivation": "epoch-07 raw SHA -> epoch-07 transaction -> frozen plan SHA and manifest SHA -> recording-index column of epoch plans 1..7 -> manifest train rows in original order",
+    }, used
+
+
+def build(repo: Path, manifest: Path, historical_run: Path) -> dict[str, object]:
     manifest_raw = manifest.read_bytes()
     if _sha256(manifest_raw) != MANIFEST_SHA256:
         raise RuntimeError("H18 source manifest SHA-256 mismatch.")
@@ -133,9 +268,12 @@ def build(repo: Path, manifest: Path) -> dict[str, object]:
     locked_groups = set(
         h8["forbidden_cohorts"]["locked_test"]["leakage_group_keys"]
     )
-    fit_groups = {
-        _leakage_group_key(row) for row in rows if row["split"] == "train"
-    }
+    train_rows = [row for row in rows if row["split"] == "train"]
+    fit_evidence, fit_recording_indices = _historical_fit_evidence(
+        repo, historical_run, _sha256(manifest_raw), len(train_rows)
+    )
+    fit_rows = [train_rows[index] for index in sorted(fit_recording_indices)]
+    fit_groups = {_leakage_group_key(row) for row in fit_rows}
 
     candidates: list[dict[str, str]] = []
     missing: list[str] = []
@@ -210,6 +348,12 @@ def build(repo: Path, manifest: Path) -> dict[str, object]:
         "schema_version": 1,
         "purpose": "provisional_resolution_frame_fallback_h18_metadata_audit",
         "status": status,
+        "h18a_provenance_resolution": {
+            "status": "checkpoint_fit_group_provenance_established",
+            "previous_h18_review": "not_approved_checkpoint_fit_provenance_was_self_asserted",
+            "resolution": "preexisting raw checkpoint, epoch-07 transaction, config, runtime, status, frozen epoch-plan archive, manifest, and frozen training code are now linked; epoch-plan recording references prove the exact fit population",
+            "scientific_execution_authorized": False,
+        },
         "h17": {
             "commit": H17_COMMIT,
             "contract_path": H17_CONTRACT.as_posix(),
@@ -240,20 +384,14 @@ def build(repo: Path, manifest: Path) -> dict[str, object]:
         },
         "checkpoint_fit_provenance": {
             "checkpoint_sha256": CHECKPOINT_SHA256,
-            "historical_run": "polyphonic_dual_stream_bass_harmonic_presence_20260801_195145",
+            "historical_run": HISTORICAL_RUN_NAME,
             "checkpoint_name": "epoch-07.keras",
             "fit_manifest_sha256": MANIFEST_SHA256,
             "fit_partition": "train",
-            "fit_recording_count": 572,
+            "fit_recording_count": len(fit_rows),
             "fit_leakage_group_count": len(fit_groups),
             "fit_leakage_group_keys": sorted(fit_groups),
-            "evidence": {
-                "versioned_readme_path": "readme/README.md",
-                "versioned_readme_git_blob": _git_blob_at(
-                    repo, H17_COMMIT, Path("readme/README.md")
-                ),
-                "statement": "The accepted H17 parent records this exact epoch-07 checkpoint, run, full 572-row train split, and manifest SHA; the exact groups are derived from those train rows with the frozen grouping blob.",
-            },
+            "evidence": fit_evidence,
             "exact_group_provenance_established": True,
         },
         "candidate_universe": {
@@ -318,9 +456,12 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo", type=Path, required=True)
     parser.add_argument("--manifest", type=Path, required=True)
+    parser.add_argument("--historical-run", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
-    payload = build(args.repo.resolve(), args.manifest.resolve())
+    payload = build(
+        args.repo.resolve(), args.manifest.resolve(), args.historical_run.resolve()
+    )
     with args.output.open("w", encoding="utf-8", newline="\n") as handle:
         handle.write(
             json.dumps(

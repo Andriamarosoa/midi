@@ -31,7 +31,7 @@ independent_v2_opened           = false
 locked_test_opened              = false
 ```
 
-## Provenance du checkpoint de transcription
+## Provenance H18a du checkpoint de transcription
 
 Le checkpoint gelé est :
 
@@ -43,11 +43,45 @@ manifeste     b28cb17cfb80a82860ab44635b2c6d05718243e027a8fc8199fe72e27f1b8ed7
 fit           572 prises train / 219 groupes de fuite
 ```
 
-Le parent H17 versionné relie ce checkpoint, ce run et le split train complet au
-même manifeste brut. Les `219` groupes sont les valeurs exactes de
-`leakage_group_key()` sur les `572` lignes train du manifeste, avec le blob de
-grouping gelé `e43187b4e8ba0775a74114faf406703dd6c3187c`. Aucun groupe n'a été
-approximé à partir d'un nom de fichier ou d'un échantillon.
+La première version H18 associait insuffisamment ces éléments depuis sa propre
+constante et n'a pas été approuvée. H18a a donc relu uniquement les artefacts de
+provenance préexistants du run historique, sans charger le checkpoint :
+
+```text
+config.json SHA-256
+a02913c5d4366c935ba9ecc073bc786a6d05c0800e73d98c6d964546f3f5185f
+
+runtime.json SHA-256
+c23ff1684b23e875e2ace5cb50cbdb8c850018c83518a3884e1f268455d045ac
+
+training_status.json SHA-256
+a3b7dafb184c2dc80bd6cc1bd51eac9a2b609f617ba3f90cb6a9f8cdbd587d33
+
+epoch-07 transaction SHA-256
+ff0e2c1aeadf551c2dcce200bd2617ac57c34cf0d363c0754e5517a3f89427ef
+
+epoch plans SHA-256
+d039ac2cfba31cc9560f80ed2da7230c1d039ef9dbaea38d56574d4c0b550714
+
+epoch plan sidecar SHA-256
+96f630a89d2c9f572afadb31ed5b54022f8a4883dd7bac3172e45f47692dca6a
+
+epoch-07.keras SHA-256
+1ce8ac44ca7156d4bc058b5b37580805f2ab6536b380636c04b9a31b1a411325
+```
+
+La transaction époque 7 lie explicitement le commit train `33251d7…`, le SHA du
+manifeste `b28cb17c…`, le SHA du plan `d039ac2c…`, sept époques terminées et
+`locked_test_used=false`. Sans lire aucune feature scientifique, H18a a parcouru
+uniquement la colonne entière `recording_index` des plans persistés : chaque
+époque 1 à 7 contient les `572` indices train, l'union en contient `572` et la
+liste des indices manquants est vide.
+
+Les `219` groupes sont donc les valeurs exactes de `leakage_group_key()` sur les
+`572` lignes train réellement référencées par les plans ayant produit
+`epoch-07.keras`, avec le blob de grouping gelé
+`e43187b4e8ba0775a74114faf406703dd6c3187c`. Aucun groupe n'est approximé à
+partir d'un résultat, d'un nom de fichier ou du seul nombre de lignes du split.
 
 ## Sources métadonnées
 
