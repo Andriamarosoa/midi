@@ -6,6 +6,7 @@ import hashlib
 import json
 from pathlib import Path
 import pickle
+import tempfile
 import unittest
 from unittest import mock
 
@@ -53,6 +54,9 @@ class HarmonicCensoringH23DormantExecutionTests(unittest.TestCase):
                 "exact_changed_files": changed,
                 "capability_source_blob": "b" * 40,
                 "runner_source_blob": "c" * 40,
+                "executor_claim_transcript_contract_raw_sha256": (
+                    capability.H23_EXECUTOR_CLAIM_TRANSCRIPT_CONTRACT_RAW_SHA256
+                ),
             },
             "runtime_identity": {
                 "implementation": "CPython",
@@ -66,6 +70,7 @@ class HarmonicCensoringH23DormantExecutionTests(unittest.TestCase):
                 "success_destination": "tmp/h23/success",
                 "terminal_record_destination": "tmp/h23/terminal",
                 "authorization_marker": "tmp/h23/consumed.json",
+                "transcript_path": "tmp/h23/transcript.jsonl",
             },
             "external_review": {
                 "verdict": "APPROVED",
@@ -87,6 +92,9 @@ class HarmonicCensoringH23DormantExecutionTests(unittest.TestCase):
                 "implementation_commit": "a" * 40,
                 "capability_source_blob": "b" * 40,
                 "runner_source_blob": "c" * 40,
+                "executor_claim_transcript_contract_raw_sha256": (
+                    capability.H23_EXECUTOR_CLAIM_TRANSCRIPT_CONTRACT_RAW_SHA256
+                ),
             },
             "external_review": {
                 "verdict": "APPROVED",
@@ -155,6 +163,10 @@ class HarmonicCensoringH23DormantExecutionTests(unittest.TestCase):
         )
         self.assertEqual(parsed.capability_source_blob, "b" * 40)
         self.assertEqual(parsed.runner_source_blob, "c" * 40)
+        self.assertEqual(
+            parsed.executor_claim_transcript_contract_raw_sha256,
+            capability.H23_EXECUTOR_CLAIM_TRANSCRIPT_CONTRACT_RAW_SHA256,
+        )
 
     def test_seal_parser_rejects_training_locked_test_and_path_escape(self) -> None:
         for name in ("training_authorized", "locked_test_used", "H17_population_used"):
@@ -192,47 +204,13 @@ class HarmonicCensoringH23DormantExecutionTests(unittest.TestCase):
         seal_path = self.root / capability.H23_AUTHORIZATION_SEAL_RELATIVE_PATH
         activation_raw = activation_path.read_bytes()
         seal_raw = seal_path.read_bytes()
-        activation = capability.validate_h23_authorization_activation_payload(
-            json.loads(activation_raw), raw_sha256=hashlib.sha256(activation_raw).hexdigest()
-        )
-        seal = capability.validate_h23_authorization_seal_payload(
-            json.loads(seal_raw), raw_sha256=hashlib.sha256(seal_raw).hexdigest()
-        )
-        self.assertEqual(
-            activation.authorization_seal_sha256,
-            hashlib.sha256(seal_raw).hexdigest(),
-        )
-        self.assertEqual(activation.implementation_commit, seal.reviewed_execution_commit)
-        self.assertEqual(activation.capability_source_blob, seal.capability_source_blob)
-        self.assertEqual(activation.runner_source_blob, seal.runner_source_blob)
-        changed = tuple(
-            sorted(
-                capability._git(
-                    self.root,
-                    "diff-tree",
-                    "--no-commit-id",
-                    "--name-only",
-                    "-r",
-                    seal.reviewed_execution_commit,
-                ).splitlines()
+        with self.assertRaisesRegex(ValueError, "executor_claim_transcript"):
+            capability.validate_h23_authorization_activation_payload(
+                json.loads(activation_raw), raw_sha256=hashlib.sha256(activation_raw).hexdigest()
             )
-        )
-        self.assertEqual(changed, seal.exact_changed_files)
-        for relative, expected in (
-            (capability.H23_CAPABILITY_SOURCE_RELATIVE_PATH, seal.capability_source_blob),
-            (capability.H23_RUNNER_SOURCE_RELATIVE_PATH, seal.runner_source_blob),
-        ):
-            self.assertEqual(
-                capability._git(
-                    self.root,
-                    "rev-parse",
-                    f"{seal.reviewed_execution_commit}:{relative.as_posix()}",
-                ),
-                expected,
-            )
-            self.assertEqual(
-                capability._git(self.root, "hash-object", relative.as_posix()),
-                expected,
+        with self.assertRaisesRegex(ValueError, "executor_claim_transcript"):
+            capability.validate_h23_authorization_seal_payload(
+                json.loads(seal_raw), raw_sha256=hashlib.sha256(seal_raw).hexdigest()
             )
         self.assertNotIn(capability.H23_AUTHORIZATION_ACTIVATION_COMMIT_ENV, __import__("os").environ)
 
@@ -391,24 +369,20 @@ class HarmonicCensoringH23DormantExecutionTests(unittest.TestCase):
         self.assertIsNone(terminal["scientific_verdict"])
         self.assertFalse(terminal["training_authorized"])
 
-    def test_terminal_draft_cannot_be_published_without_claimed_capability(self) -> None:
-        payload = runner.build_h23_operational_terminal_record(
-            self.plan,
-            self._results(2),
-            error_type="RuntimeError",
-            error_message="administrative-only",
-        )
+    def test_terminal_finalizer_accepts_no_caller_results_or_transcript_path(self) -> None:
         self.assertFalse(hasattr(runner, "publish_h23_terminal_record_atomically"))
-        self.assertFalse(capability.H23_CONSUMPTION_CLAIM_IMPLEMENTED)
-        with self.assertRaisesRegex(PermissionError, "not implemented"):
+        self.assertTrue(capability.H23_CONSUMPTION_CLAIM_IMPLEMENTED)
+        with self.assertRaises(TypeError):
             capability.claim_h23_synthetic_execution_capability(object())
-        with self.assertRaisesRegex(PermissionError, "finalization is dormant"):
-            runner.finalize_and_publish_h23_terminal_record(
-                self.plan, payload, object()
+        with self.assertRaises(TypeError):
+            runner.finalize_and_publish_h23_terminal_record(self.root, object())
+        with self.assertRaises(TypeError):
+            runner.finalize_and_publish_h23_terminal_record(  # type: ignore[call-arg]
+                self.root, object(), [], Path("caller.jsonl")
             )
 
-    def test_runner_is_dormant_and_never_claims_a_structural_lookalike(self) -> None:
-        self.assertFalse(runner.PRODUCTION_H23_SCIENTIFIC_EXECUTOR_IMPLEMENTED)
+    def test_runner_is_implemented_but_old_activation_keeps_it_dormant(self) -> None:
+        self.assertTrue(runner.PRODUCTION_H23_SCIENTIFIC_EXECUTOR_IMPLEMENTED)
         with self.assertRaises(TypeError):
             runner.run_authorized_h23_synthetic_execution(self.root, object())
         with mock.patch.object(capability, "load_h23_harness_plan") as load_plan:
@@ -434,7 +408,8 @@ class HarmonicCensoringH23DormantExecutionTests(unittest.TestCase):
         runner_source = (
             self.root / capability.H23_RUNNER_SOURCE_RELATIVE_PATH
         ).read_text(encoding="utf-8")
-        self.assertNotIn("claim_h23_synthetic_execution_capability", runner_source)
+        self.assertIn("claim_h23_synthetic_execution_capability", runner_source)
+        self.assertNotIn("_legacy_finalize_and_publish", runner_source)
 
 
 if __name__ == "__main__":

@@ -17,8 +17,19 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `harmonic_censoring_h23_executor_claim_transcript_contract`.
-- Statut : `preuve d’émission administrative approuvée; contrat claim+executor+transcript défini pour revue; aucune consommation ni science autorisée`.
+- Étape : `harmonic_censoring_h23_claim_executor_transcript_implementation`.
+- Statut : `implémentation dormante terminée; nouveau seal et nouvelle activation encore absents; aucune population consommée`.
+- Le commit courant implémente ensemble la claim durable `O_EXCL`, le snapshot
+  complet d’autorité, le synthétiseur/exécuteur H23, le transcript JSONL
+  canonique hash-chain et le finalizer autoritatif qui recalcule le verdict
+  depuis les octets persistés. L’ancien couple activation/seal `31b116c…` est
+  désormais rejeté structurellement car il ne lie ni le nouveau contrat
+  `8126edc0…` ni le chemin du transcript. Aucun nouveau seal/activation n’est
+  ajouté par cette étape : le code reste donc inexécutable en production.
+  Les tests utilisent uniquement des répertoires temporaires et des événements
+  administratifs synthétiques; aucune waveform, population H17, donnée réelle,
+  modèle, checkpoint ou test verrouillé n’a été chargé. Rapport :
+  `readme/results/2026-08-10_harmonic-censoring-h23-claim-executor-transcript-implementation.md`.
 - La revue externe de `84179a1…` approuve la preuve administrative et autorise
   uniquement le contrat de la future chaîne autoritative. Le claim devra être
   `O_EXCL` puis `fsync(file)+fsync(directory)` avant la première waveform et
