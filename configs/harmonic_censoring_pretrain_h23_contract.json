@@ -112,6 +112,7 @@
     "graph_traversal_order_must_not_change_result": true
   },
   "factorization_and_source_birth_contract": {
+    "cardinality_names": "K_latent_pitch is the number of acoustically identifiable distinct source-pitch hypotheses in r=24..76; K_emit_pitch is the number of acoustically identifiable distinct pitches in the emission subset 40..76; K_source is physical source count and may remain AMBIGUOUS even when either pitch count is known. The name K_pitch alone is forbidden.",
     "observation_vector": "For q=40..128, y_q=sqrt(max(sum_k P[k]*phi(q,1,k),0)) when the q,H1 kernel has support; unsupported q is masked, never zero-filled.",
     "dictionary": "For latent source r=24..76 and observation q=40..128, A[q,r]=sum over h=1..20 of (1/h)*max(0,1-abs(100*(q-(r+12*log2(h))))/35); each column is divided by its masked L2 norm, or marked invalid if that norm is zero.",
     "shared_partial_rule": "Predicted observation is yhat_q=sum_r A[q,r]*a_r with a_r>=0. Contributions at a collision add; no observation is exclusively assigned to one source.",
@@ -243,12 +244,12 @@
       "harmonic_amplitude": "0.4/h before any declared amplitude_gain variant",
       "default_phase_radians": 0.0,
       "storage": "IEEE float32 mono WAV at 44100 Hz plus the exact float64 waveform array hash before cast; no peak or RMS normalization and no clipping",
-      "S1C": {"sources":[{"pitch":36,"harmonics":[1,2,3,4,5],"envelope":"old"}],"oracle":{"K_pitch":1,"K_source":1,"birth":false}},
-      "S1P": {"sources":[{"pitch":40,"harmonics":[1,2,3,4,5],"envelope":"old"}],"oracle":{"K_pitch":1,"K_source":1,"birth":false}},
-      "S2": {"sources":[{"pitch":64,"harmonics":[1,2,3,4],"envelope":"new"}],"oracle":{"required_pitches":[64],"K_pitch":1,"K_source":1,"birth_pitch":64}},
-      "S3": {"sources":[{"pitch":40,"harmonics":[1,2,3,4,5],"envelope":"old"}],"oracle":{"K_pitch":1,"K_source":1,"birth":false}},
-      "S4": {"sources":[{"pitch":40,"harmonics":[1,2,3,4,5],"envelope":"old"},{"pitch":64,"harmonics":[1,2,3,4],"envelope":"new"}],"oracle":{"required_pitches":[40,64],"K_pitch":2,"K_source":2,"birth_pitch":64}},
-      "S5": {"waveform":"0.1*e_old(n)*sin(theta(40,4,n,0))","latent_explanations":["old_pitch40_H4_only","pitch64_H1_with_exact_same_envelope_and_no_independent_onset_or_harmonics"],"oracle":{"K_pitch":"AMBIGUOUS","K_source":"AMBIGUOUS","birth":"AMBIGUOUS"}}
+      "S1C": {"sources":[{"pitch":36,"harmonics":[1,2,3,4,5],"envelope":"old"}],"oracle":{"K_latent_pitch":1,"K_emit_pitch":0,"K_source":1,"birth":false}},
+      "S1P": {"sources":[{"pitch":40,"harmonics":[1,2,3,4,5],"envelope":"old"}],"oracle":{"K_latent_pitch":1,"K_emit_pitch":1,"K_source":1,"birth":false}},
+      "S2": {"sources":[{"pitch":64,"harmonics":[1,2,3,4],"envelope":"new"}],"oracle":{"required_pitches":[64],"K_latent_pitch":1,"K_emit_pitch":1,"K_source":1,"birth_pitch":64}},
+      "S3": {"sources":[{"pitch":40,"harmonics":[1,2,3,4,5],"envelope":"old"}],"oracle":{"K_latent_pitch":1,"K_emit_pitch":1,"K_source":1,"birth":false}},
+      "S4": {"sources":[{"pitch":40,"harmonics":[1,2,3,4,5],"envelope":"old"},{"pitch":64,"harmonics":[1,2,3,4],"envelope":"new"}],"oracle":{"required_pitches":[40,64],"K_latent_pitch":2,"K_emit_pitch":2,"K_source":2,"birth_pitch":64}},
+      "S5": {"waveform":"0.1*e_old(n)*sin(theta(40,4,n,0))","latent_explanations":["old_pitch40_H4_only","pitch64_H1_with_exact_same_envelope_and_no_independent_onset_or_harmonics"],"oracle":{"K_latent_pitch":"AMBIGUOUS","K_emit_pitch":"AMBIGUOUS","K_source":"AMBIGUOUS","birth":"AMBIGUOUS"}}
     },
     "named_variant_value_contract": {
       "chord_spec": {
@@ -283,7 +284,7 @@
       },
       "physical_unison": {
         "same_waveform_two_sources":{"second_source_gain":1.0,"second_source_phase":0.0,"second_source_envelope":"identical"},
-        "distinct_envelopes_two_sources":{"second_source_gain":0.7,"second_source_phase":1.5707963267948966,"second_source_envelope":"new"}
+        "distinct_envelopes_two_sources":{"second_source_gain":0.7,"second_source_phase":1.5707963267948966,"second_source_envelope":"e_second(n)=0 for n<3584; for m=n-3584>=0, min(1,(m+1)/32)*exp(-m/1024)"}
       },
       "synthetic_OOD": {
         "impulse":"x[3072]=0.4 and all other samples zero",
@@ -305,15 +306,15 @@
       "envelope_attack_decay_hops": "replace e_new attack length by max(1,attack_hops*256+1) samples and decay denominator by decay_tau_hops*256 samples; onset sample remains 3072",
       "cents_inharmonicity": "for every synthesized partial replace h*F0 by h*F0*2^(cents/1200)*sqrt(1+B*h^2); amplitudes, envelopes and target stay unchanged",
       "noise": "add the exactly specified seeded unit-RMS colour at the declared SNR after clean synthesis; at 0 dB replace the categorical oracle by AMBIGUOUS_OR_OOD, otherwise preserve the base oracle",
-      "neighbour_semitones": "add one new-envelope source at base primary birth pitch plus offset, with harmonics/amplitudes identical to that birth source; add that pitch to required_pitches, increment K_pitch and K_source by one, and set its birth supported",
-      "interval_semitones": "add one old-envelope source at the first source pitch plus interval, with harmonics 1..4 and base amplitudes; add its pitch to required_pitches and increment identifiable K_pitch/K_source by one",
-      "chord_spec": "replace S2's single MIDI64 source by simultaneous new-envelope sources at 64 plus each declared chord offset; each uses harmonics 1..4 and base amplitudes; required_pitches is that exact sorted set and K_pitch=K_source=set size",
-      "physical_unison": "add a second MIDI64 source using the declared gain, phase and envelope; K_pitch remains 1; K_source=AMBIGUOUS for identical envelope/waveform and 2 only for distinct_envelopes_two_sources",
+      "neighbour_semitones": "add one new-envelope source at base primary birth pitch plus offset, with harmonics/amplitudes identical to that birth source; add that pitch to required_pitches, increment K_latent_pitch, K_emit_pitch and K_source by one, and set its birth supported",
+      "interval_semitones": "add one old-envelope source at the first source pitch plus interval, with harmonics 1..4 and base amplitudes; add its pitch to required_pitches and increment identifiable K_latent_pitch/K_emit_pitch/K_source by one",
+      "chord_spec": "replace S2's single MIDI64 source by simultaneous new-envelope sources at 64 plus each declared chord offset; each uses harmonics 1..4 and base amplitudes; required_pitches is that exact sorted set and K_latent_pitch=K_emit_pitch=K_source=set size",
+      "physical_unison": "add a second MIDI64 source using the declared gain, phase and envelope; K_latent_pitch=K_emit_pitch=1; K_source=AMBIGUOUS for identical envelope/waveform and 2 only for distinct_envelopes_two_sources, whose onset 3584, 32-sample attack and 1024-sample decay differ from the original onset 3072, 64-sample attack and 2048-sample decay",
       "technique": "apply the named continuous instantaneous-frequency trajectory to S2 MIDI64 H1..H4 over the declared hop count, preserving harmonic ratios, source identity and K_source=1; no intermediate semitone birth is allowed",
-      "natural_harmonic": "replace S1P retained harmonics and H1 amplitude exactly by named_variant_value_contract.natural_harmonic; K_pitch=1 and source identity may be NATURAL_HARMONIC_OR_UNKNOWN, never an added MIDI birth",
+      "natural_harmonic": "replace S1P retained harmonics and H1 amplitude exactly by named_variant_value_contract.natural_harmonic; K_latent_pitch=K_emit_pitch=1 and source identity may be NATURAL_HARMONIC_OR_UNKNOWN, never an added MIDI birth",
       "sympathetic_resonance": "add to S3 a same-window old-envelope sinusoid at MIDI64 H1 with the declared relative amplitude and no onset/own harmonics; K_source and birth are AMBIGUOUS_OR_RESONANCE, never BIRTH_SUPPORTED",
       "old_source_age_hops": "left-shift the old envelope origin by age_hops*256 samples, i.e. exp(-(n+age_hops*256)/4096); current new source, pitches and target categories remain unchanged",
-      "event_sample_offset": "replace new_onset_sample by the declared sample index; samples before it are zero for new sources and the same 64-sample attack/2048-sample decay begins there; causal validity mask records truncated evidence",
+      "event_sample_offset": "replace new_onset_sample by the declared sample index; samples before it are zero for new sources and the same 64-sample attack/2048-sample decay begins there. Exact oracle: offsets 0,1,255,256,3840 leave at least one full hop of causal samples and inherit the base BIRTH_SUPPORTED oracle; offset 4095 leaves one sample and is AMBIGUOUS_INSUFFICIENT_CAUSAL_EVIDENCE, never NO_BIRTH. The available_new_source_samples field equals 4096-offset and the causal validity mask records truncation.",
       "pitch_boundary": "for 40 or 76 replace S2 source/candidate pitch 64 by that MIDI pitch and preserve harmonics/oracle; for analytical_128 keep the S2 waveform unchanged, evaluate only q=128 H1 observation validity/firewall, create no source/candidate at 128 and require emission_pitch_valid=false",
       "silence": "replace the complete waveform by 4096 exact float64 zeros and oracle by SILENCE_UNEXPLAINED with every normalization_valid=false",
       "synthetic_OOD": "replace the complete S2 waveform by the exact named OOD waveform; remove source/required_pitches targets and set oracle OOD_OR_UNEXPLAINED"
@@ -433,7 +434,7 @@
       {"id":"A02","objective":"pitch_shift_cutoff equivalence","exact_input":"ideal continuous frequency scaling factors 2^(s/12), s in [-24,-12,-1,0,1,12,24], and the exact six relative cutoffs","procedure":"derive transformed cutoff on the original spectrum","oracle":"analytic equality under ideal scaling; sampled float64 check uses rtol=1e-10 and atol=1e-12","pass_rule":"symbolic equality and every sampled comparison within the sealed tolerance","inverse_check":"the exact raised-cosine robustness mask must be labelled an approximation, not analytic equality"},
       {"id":"A03","objective":"kill trivial disappearance index","exact_input":"equivariant ideal spectrum","procedure":"predict disappearance using pitch and cutoff only","oracle":"single disappearance index is TRIVIAL_FEATURE","pass_rule":"no autonomous discriminative claim remains","inverse_check":"shuffle waveform while preserving pitch/cutoff geometry"},
       {"id":"A04","objective":"non-identifiability","exact_input":"two latent explanations rendering identical waveform","procedure":"compute all allowed features","oracle":"identical features and AMBIGUOUS","pass_rule":"exact equality and exact AMBIGUOUS","inverse_check":"any target separation is leakage"},
-      {"id":"A05","objective":"separate pitch and physical sources","exact_input":"one source versus two strings at same MIDI with identical waveform","procedure":"compare observable contracts","oracle":"K_pitch=1 while K_source is unidentifiable","pass_rule":"no false K_source certainty","inverse_check":"force K_source and require failure"},
+      {"id":"A05","objective":"separate latent pitch emission pitch and physical sources","exact_input":"S1C, one emit-capable source and two strings at the same MIDI with identical waveform","procedure":"compare the three named cardinalities","oracle":"S1C has K_latent_pitch=1/K_emit_pitch=0; emit-capable single pitch has 1/1; identical unison has K_latent_pitch=K_emit_pitch=1 while K_source is AMBIGUOUS","pass_rule":"no K_pitch alias and no false K_source certainty","inverse_check":"force K_source or collapse the two pitch cardinalities and require failure"},
       {"id":"A06","objective":"pitch domain cardinality","exact_input":"37 emission candidates 40..76, 53 latent source hypotheses 24..76 and 89 observation coordinates 40..128","procedure":"enumerate all three distinct domains and verify 76+12*log2(20)=127.86313713864834 is covered","oracle":"exact counts 37/53/89; latent 24..39 and observations 77..128 are evidence-only; no coordinate 129","pass_rule":"exact counts endpoints and firewall","inverse_check":"treating latent MIDI36 or observation 128 as emit-capable must fail"},
       {"id":"A07","objective":"relative cutoff semantics","exact_input":"same harmonic geometry at multiple F0","procedure":"express cutoffs as cutoff_over_F0 and harmonic rank","oracle":"geometry aligns in relative coordinates","pass_rule":"directionally identical masks modulo supported bins","inverse_check":"absolute-only cutoff must expose pitch bias"},
       {"id":"A08","objective":"causal timing","exact_input":"hop 256 window 4096 at 44100 Hz","procedure":"enumerate sample support for frame t","oracle":"no sample after current causal boundary","pass_rule":"maximum future index equals zero","inverse_check":"one future sample must fail"}
@@ -474,8 +475,8 @@
       {"id":"F02","objective":"global residual","exact_input":"sealed observation vector with one component outside every declared dictionary column","procedure":"solve R(H) exactly as contracted","oracle":"unexplained residual remains in y-yhat and R(H)>1e-12","pass_rule":"residual vector and scalar objective reconcile","inverse_check":"add its matching source column and require Delta_R improvement"},
       {"id":"F03","objective":"candidate order invariance","exact_input":"same hypothesis set in all tested permutations","procedure":"factorize","oracle":"same result","pass_rule":"exact parity","inverse_check":"tie handling deterministic"},
       {"id":"F04","objective":"graph order invariance","exact_input":"same harmonic graph in different traversal orders","procedure":"factorize","oracle":"same result","pass_rule":"exact parity","inverse_check":"shared partial stress case"},
-      {"id":"K01","objective":"K_pitch","exact_input":"silence one pitch two pitches triad physical unison","procedure":"count observable pitches","oracle":"0 1 2 3 1","pass_rule":"exact","inverse_check":"duplicate source same MIDI"},
-      {"id":"K02","objective":"K_source","exact_input":"same fixtures","procedure":"estimate or abstain","oracle":"differs from K_pitch when identifiable and AMBIGUOUS otherwise","pass_rule":"no false certainty","inverse_check":"identical unison waveform"},
+      {"id":"K01","objective":"K_latent_pitch versus K_emit_pitch","exact_input":"silence S1C one emit pitch two emit pitches triad physical unison","procedure":"count acoustically identifiable latent pitches and the emit-capable subset separately","oracle":"K_latent_pitch=[0,1,1,2,3,1] and K_emit_pitch=[0,0,1,2,3,1]","pass_rule":"exact arrays and the forbidden K_pitch alias absent","inverse_check":"count S1C MIDI36 as emit-capable and require failure"},
+      {"id":"K02","objective":"K_source","exact_input":"same fixtures","procedure":"estimate or abstain","oracle":"may differ from both pitch cardinalities when identifiable and is AMBIGUOUS for identical unison waveform","pass_rule":"no false certainty","inverse_check":"force two sources from same-pitch identical waveform"},
       {"id":"K03","objective":"K versus K+1","exact_input":"S1 S4 S5","procedure":"compute R(H), R(H union {r}), Delta_R and sealed improvement_valid, then apply the separate birth tuple rule","oracle":"no birth for S1; improvement plus independent evidence for S4; identical-feature ambiguity for S5","pass_rule":"numeric objectives reconcile within tolerance and categories exact","inverse_check":"source-order permutation"},
       {"id":"K04","objective":"set permutation invariance","exact_input":"identical pitch sets in different orders","procedure":"evaluate","oracle":"same set output","pass_rule":"exact","inverse_check":"duplicate handling explicit"}
     ],
@@ -490,7 +491,7 @@
       {"id":"G02","objective":"bend","exact_input":"continuous pitch trajectory","procedure":"evaluate source continuity","oracle":"no forced semitone births from prior","pass_rule":"continuity or ambiguity","inverse_check":"quantized control"},
       {"id":"G03","objective":"slide","exact_input":"causal fret trajectory","procedure":"evaluate","oracle":"softly plausible without hard string ownership","pass_rule":"no impossible discrete jump rule","inverse_check":"cross-string alternative"},
       {"id":"G04","objective":"vibrato","exact_input":"periodic cents modulation","procedure":"evaluate","oracle":"one source unless independent attack evidence","pass_rule":"no repeated births","inverse_check":"true retrigger inserted"},
-      {"id":"G05","objective":"physical unison","exact_input":"two strings same MIDI","procedure":"compare K_pitch and K_source","oracle":"K_pitch=1 and K_source may be 2 or AMBIGUOUS","pass_rule":"no contradiction","inverse_check":"single-string matched waveform"},
+      {"id":"G05","objective":"physical unison","exact_input":"two strings same MIDI in the two exact physical_unison variants","procedure":"compare K_latent_pitch, K_emit_pitch and K_source","oracle":"both pitch counts=1; identical waveform gives K_source=AMBIGUOUS; the separately observable onset/envelope variant gives K_source=2","pass_rule":"exact categories and reconstructed two-envelope waveform differs from every one-envelope amplitude/phase equivalent","inverse_check":"replace e_second by the original e_new and require K_source=AMBIGUOUS"},
       {"id":"G06","objective":"natural harmonic","exact_input":"weak or missing fundamental with harmonic structure","procedure":"apply prior","oracle":"natural_harmonic or unknown allowed","pass_rule":"no fictitious hard F0","inverse_check":"normal fretted note"},
       {"id":"G07","objective":"sympathetic resonance","exact_input":"secondary decaying component without independent attack","procedure":"evaluate source birth","oracle":"resonance/observation allowed without MIDI birth","pass_rule":"no automatic source","inverse_check":"add independent onset"},
       {"id":"G08","objective":"more than six acoustic hypotheses","exact_input":"dense compatible spectrum","procedure":"apply guitar prior","oracle":"tension reported, hypotheses not silently removed","pass_rule":"unknown/slack preserved","inverse_check":"six-source boundary"}
@@ -574,7 +575,7 @@
       "three_anti_confirmation_channels_are_separate",
       "no_label_or_future_audio_leakage",
       "shared_partials_and_order_invariance",
-      "K_pitch_and_K_source_are_separate",
+      "K_latent_pitch_K_emit_pitch_and_K_source_are_separate_and_K_pitch_alias_absent",
       "virtual_observation_firewall_passes",
       "determinism_and_atomic_outputs_pass",
       "one_shared_encoder_and_at_most_six_live_cutoffs",

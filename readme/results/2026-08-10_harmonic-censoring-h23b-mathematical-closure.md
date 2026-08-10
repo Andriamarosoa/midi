@@ -75,6 +75,20 @@ famille possède maintenant une transformation déterministe précisant : source
 ajoutée/remplacée, fréquence, enveloppe, pitch, target/cardinalité et cas
 spécial evidence-only. Le matérialisateur futur n'a plus de choix scientifique.
 
+## B16 — ambiguïtés finales de la seconde revue
+
+La seconde revue de H23b a demandé trois précisions supplémentaires :
+
+- `distinct_envelopes_two_sources` utilise désormais un second onset à 3584,
+  une attaque de 32 samples et une décroissance de 1024 samples, réellement
+  distincts de l'enveloppe originale ; l'unison identique reste `AMBIGUOUS` ;
+- l'ancien nom `K_pitch` est interdit et remplacé partout par
+  `K_latent_pitch` et `K_emit_pitch`, séparés de `K_source` ; S1C vaut donc
+  exactement `1/0/1` ;
+- les offsets `0,1,255,256,3840` conservent au moins un hop causal et héritent
+  de `BIRTH_SUPPORTED`, tandis que `4095` produit exactement
+  `AMBIGUOUS_INSUFFICIENT_CAUSAL_EVIDENCE`.
+
 ## État
 
 Les compteurs structurels restent `27 P0 + 35 P1 + 10 P2 = 72`, et

@@ -47,7 +47,8 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `S_null` et `S_residual`. Le plan impose les fixtures S1–S5, dont
   `S5=AMBIGUOUS`, un analogue physiquement réalisable à partir de MIDI 40,
   l'anti-auto-confirmation, le partage des partiels, la comparaison
-  `K_pitch/K_source` et `K/K+1`, le firewall analytique 40–127 vers la sortie
+  `K_latent_pitch/K_emit_pitch/K_source` et `K/K+1`, le firewall analytique
+  40–128 vers la sortie
   MIDI 40–76, les variantes guitare, l'OOD, le déterminisme et la viabilité
   live à lookahead nul. P0 doit d'abord démontrer une information non triviale
   au-delà du pitch et du gain; sinon l'idée est tuée avant tout modèle. Le
