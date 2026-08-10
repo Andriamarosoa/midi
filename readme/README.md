@@ -17,8 +17,24 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `harmonic_censoring_h24_manifests_full_test_plan`.
-- Statut : `correctif contractuel H24 en attente de seconde revue; aucune fixture, implémentation ou exécution autorisée`.
+- Étape : `harmonic_censoring_h24_dormant_harness`.
+- Statut : `harness dormant H24 implémenté, sans population, waveform ni exécution scientifique; en attente de revue sémantique externe`.
+- La revue externe a approuvé `16e612ba…` comme fermeture complète des manifests
+  et du plan H24, puis autorisé uniquement le harness dormant. Le nouveau
+  contrat `harmonic_censoring_h24_dormant_harness_contract.json` lie les quatre
+  artefacts approuvés par SHA et maintient toutes les capacités de production,
+  synthèse, P0/P1/P2, données réelles, H17, modèle, entraînement et locked-test
+  à `false`. Le loader résout strictement `175` spécifications et `72` tests,
+  traduit chaque fixture en recette immutable sans waveform, enregistre un
+  producteur dormant et un recomputer indépendant pour chaque test, implémente
+  les `27` opérateurs et l’unique sentinelle, puis applique la non-vacuité et
+  les cardinalités avant tout opérateur. Un plan remplacé ou construit hors
+  factory est refusé. `123` tests administratifs H24/H23/H20 réussissent en
+  `1,447 s`; aucun evaluator scientifique, fixture, waveform ou donnée réelle
+  n’a été exécuté. Rapport :
+  `readme/results/2026-08-10_harmonic-censoring-h24-dormant-harness.md`.
+  La prochaine action reste uniquement la revue sémantique externe de ce
+  commit dormant; aucune création de population n’est autorisée.
 - La revue externe de `4cfd4a60…` a validé cardinalités, namespaces, bindings,
   kill rules et scope zéro-science, mais a refusé l’implémentation pour trois
   ambiguïtés contractuelles. Le correctif ferme maintenant les `27` opérateurs

@@ -71,3 +71,4 @@ configs/harmonic_censoring_h24_successor_contract.json text eol=lf
 configs/harmonic_censoring_h24_population_manifest.json text eol=lf
 configs/harmonic_censoring_h24_test_manifest.json text eol=lf
 configs/harmonic_censoring_h24_manifest_binding_contract.json text eol=lf
+configs/harmonic_censoring_h24_dormant_harness_contract.json text eol=lf

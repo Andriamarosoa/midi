@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "purpose": "harmonic_censoring_h24_dormant_harness_contract",
+  "status": "implementation_authorized_dormant_only_pending_external_review",
+  "authorization_source": {
+    "reviewed_commit": "16e612bad8e61ea554d194a5fc88f74b07f4f7d9",
+    "authorization": "AUTHORIZED_TO_IMPLEMENT_H24_DORMANT_HARNESS_ONLY"
+  },
+  "sealed_inputs": {
+    "successor_contract": {
+      "path": "configs/harmonic_censoring_h24_successor_contract.json",
+      "sha256": "184d3847a594ffaca263b45befe70d1f5aa63ade0a0ef599d969ba044f4e680a"
+    },
+    "population_manifest": {
+      "path": "configs/harmonic_censoring_h24_population_manifest.json",
+      "sha256": "52c88c74c837ad3c6109be466df38bac862e10d93c187fe60e8c5da30bd4b02b"
+    },
+    "test_manifest": {
+      "path": "configs/harmonic_censoring_h24_test_manifest.json",
+      "sha256": "7f87e486ffc6fdc2bfa60a5c617eca9b1ce78c570c1d72910173193ad1f7b416"
+    },
+    "manifest_binding": {
+      "path": "configs/harmonic_censoring_h24_manifest_binding_contract.json",
+      "sha256": "242c00d4d5fd3b9e777676b563f28b94b724159bde81307aebbba9e46608a1b5"
+    }
+  },
+  "implementation_surface": {
+    "loader": "src/polyphonic/harmonic_censoring_h24.py",
+    "operator_recomputer": "src/polyphonic/harmonic_censoring_h24_operators.py",
+    "fixture_translation_count": 175,
+    "evaluator_registration_count": 72,
+    "operator_count": 27,
+    "sentinel_count": 1,
+    "producer_callable": false,
+    "waveform_materializer_callable": false,
+    "scientific_evaluator_callable": false,
+    "recomputer_accepts_persisted_operands_only": true,
+    "producer_verdict_is_authoritative": false
+  },
+  "state_transition": {
+    "bound_test_manifest_snapshot": {
+      "status": "test_specifications_only_not_implemented",
+      "evaluators_implemented": false,
+      "oracles_implemented": false,
+      "tests_executed": false
+    },
+    "state_after_this_contract": {
+      "strict_loader_implemented": true,
+      "fixture_recipe_translator_implemented": true,
+      "closed_operator_recomputer_implemented": true,
+      "dormant_evaluator_registry_implemented": true,
+      "evidence_producers_callable": false,
+      "population_materialized": false,
+      "waveforms_synthesized": false,
+      "scientific_tests_executed": false
+    },
+    "historical_manifest_is_not_rewritten": true
+  },
+  "dormancy": {
+    "population_materialization_authorized": false,
+    "waveform_synthesis_authorized": false,
+    "scientific_test_execution_authorized": false,
+    "P0_authorized": false,
+    "P1_authorized": false,
+    "P2_authorized": false,
+    "production_capability_implemented": false,
+    "claim_marker_implemented": false,
+    "real_data_access_authorized": false,
+    "H17_population_use_authorized": false,
+    "model_or_checkpoint_access_authorized": false,
+    "training_or_calibration_authorized": false,
+    "locked_test_used": false
+  },
+  "review_boundary": "A separate semantic review is required before any population creation capability may be defined."
+}
