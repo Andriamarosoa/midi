@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "purpose": "provisional_resolution_frame_fallback_h19_synthetic_conformance",
+  "status": "provisional_resolution_frame_fallback_h19_synthetic_conformance_demonstrated",
+  "scope": {
+    "synthetic_conformance_only": true,
+    "real_data_accessed": false,
+    "checkpoint_loaded": false,
+    "model_inference": false,
+    "real_reason_counts_computed": false,
+    "real_targets_extracted": false,
+    "real_rd_or_bootstrap_computed": false,
+    "h18a_population_consumed": false,
+    "locked_test_used": false
+  },
+  "passive_exposure_contract": {
+    "source": "immutable PolyphonicMidiEvent.reason on already-emitted NoteOns",
+    "decoder_modified": false,
+    "decoder_decision_or_state_input": false,
+    "observer_returns_same_ordered_event_objects": true,
+    "eligible_reasons": [
+      "model_onset",
+      "frame_attack",
+      "chord_completion",
+      "frame_fallback"
+    ],
+    "excluded_but_counted_reasons": [
+      "legacy",
+      "retrigger"
+    ],
+    "unexpected_reason_status": "frame_fallback_execution_invalid"
+  },
+  "target_contract": {
+    "reuse_exact_existing_extractor": "src.polyphonic.provisional_resolution_age1.extract_exact_causal_age1_targets",
+    "new_matching_rule": false,
+    "true_noteon_to_false_noteon": {
+      "1": 0,
+      "0": 1
+    },
+    "excluded_or_unmatchable_rows_remain_excluded": true,
+    "maximum_causal_latency_ms": 250.0
+  },
+  "primary_metric": {
+    "name": "RD_false",
+    "definition": "P(false_noteon=1 | F=1) - P(false_noteon=1 | F=0)",
+    "F": "1 iff candidate_reason_at_noteon == frame_fallback",
+    "positive_requires_all": {
+      "total_eligible_noteons_minimum": 200,
+      "eligible_frame_fallback_noteons_minimum": 50,
+      "eligible_comparator_noteons_minimum": 50,
+      "global_rd_false_minimum_inclusive": 0.1,
+      "group_resampled_95pct_ci_lower_bound_strictly_greater_than": 0.0
+    },
+    "secondary_can_change_verdict": false
+  },
+  "bootstrap": {
+    "method": "group_resampled_percentile_bootstrap",
+    "replicate_count": 10000,
+    "rng": "numpy.random.Generator(numpy.random.PCG64(721629268))",
+    "seed": 721629268,
+    "immutable_group_universe_required": true,
+    "empty_groups_retained": true,
+    "sample_exactly_G_groups_with_replacement": true,
+    "invalid_replicate": "either F stratum absent",
+    "minimum_valid_replicates": 9500,
+    "percentiles": [2.5, 97.5],
+    "method_parameter": "linear",
+    "retry_allowed": false
+  },
+  "synthetic_proofs": {
+    "passive_observer_event_identity": true,
+    "decoder_event_and_full_state_parity": true,
+    "all_reason_taxonomy_values": true,
+    "unexpected_reason_fail_closed": true,
+    "exact_existing_causal_target_reused": true,
+    "legacy_and_retrigger_counted_but_excluded": true,
+    "rd_formula_and_thresholds": true,
+    "bootstrap_determinism_and_order_invariance": true,
+    "empty_group_semantics": true,
+    "secondary_outputs_non_gating": true
+  },
+  "provenance_bindings": {
+    "accepted_h17_commit": "3a3e65ab532a4983fadae89c842b544228c3b028",
+    "accepted_h18a_commit": "3f9a15540d783c32486a9e0d50446efdb637ba60",
+    "h18a_audit_git_blob": "c06459b5877526a515930561b15a5e9a08c3af31",
+    "h18a_audit_raw_sha256": "580ea2a77cd68798946c324d190082d5b960e5d1280fd93527b8ac47116fcff9",
+    "reviewed_decoder_reason_taxonomy_blob": "27026d368081fadc4fa282954428f0377020e723",
+    "target_source_blobs": [
+      "c63b9751e5acef49fb51b5e2a8264b00d6e60893",
+      "98c3f2e87b89df599e71068ab4ae874f69172c5a",
+      "42f7954b75b0994f43d7f59c62c1ff1b04c0a81d"
+    ]
+  },
+  "post_conformance_status": "provisional_resolution_frame_fallback_h19_synthetic_conformance_demonstrated",
+  "scientific_execution_authorized": false,
+  "next_action": "External review of H19. Do not access the 146-recording H18a discovery population."
+}

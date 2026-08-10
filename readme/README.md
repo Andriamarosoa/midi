@@ -17,8 +17,21 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `provisional_resolution_frame_fallback_h18_metadata_audit`.
-- Statut : `en cours — fresh_discovery_population_established_after_h18a_fit_provenance_resolution`, revue externe requise avant H19.
+- Étape : `provisional_resolution_frame_fallback_h19_synthetic_conformance`.
+- Statut : `en cours — provisional_resolution_frame_fallback_h19_synthetic_conformance_demonstrated`, revue externe requise avant toute science réelle.
+- H19 démontre uniquement sur objets synthétiques que la raison immuable déjà
+  portée par chaque `PolyphonicMidiEvent` peut être observée après émission sans
+  modifier événements ni état du décodeur. `frame_fallback` définit `F=1`;
+  `model_onset`, `frame_attack` et `chord_completion` définissent le comparateur;
+  `legacy` et `retrigger` sont comptés mais exclus; toute autre raison échoue
+  fermée. Le target causal H17 existant est réutilisé directement. La fonction
+  pure `RD_false` et le bootstrap de 10 000 groupes, PCG64 seed `721629268`,
+  univers immuable avec groupes vides et minimum 9 500 réplications valides
+  passent leurs tests synthétiques. Le décodeur reste au blob `27026d36…` et la
+  population H18a de 146 prises / 51 groupes n’est pas consommée. Contrat :
+  `configs/provisional_resolution_frame_fallback_h19_synthetic_conformance.json`.
+  Rapport :
+  `readme/results/2026-08-10_provisional-resolution-frame-fallback-h19-synthetic-conformance.md`.
 - H18/H18a a effectué uniquement l'audit de métadonnées autorisé après H17. Le
   checkpoint `1ce8ac44…` est identifié par son fichier historique brut comme
   `epoch-07.keras`. Sa transaction lie le commit train `33251d7…`, le manifeste
@@ -1330,6 +1343,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-10 — matérialisation binaire contrôlée des artefacts V2 scellés](results/2026-08-10_causal-candidate-v2-artifact-materialization.md)
 - [2026-08-10 — diagnostic V2 train/dev CPU, résultat exploratoire non promotionnel](results/2026-08-10_causal-candidate-v2-train-dev-diagnostic-run.md)
 - [2026-08-10 — contrat d'évaluation V2 indépendante GAPS/Guitar-TECHS, sans calcul](results/2026-08-10_causal-candidate-v2-independent-validation-contract.md)
+- [2026-08-10 — conformité synthétique H19 du risque `frame_fallback`](results/2026-08-10_provisional-resolution-frame-fallback-h19-synthetic-conformance.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)
