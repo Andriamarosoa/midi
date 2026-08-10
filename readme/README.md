@@ -17,8 +17,19 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `harmonic_censoring_h23_reviewed_activation_seal_refresh`.
-- Statut : `nouveau couple activation + seal défini contractuellement et non injecté; aucune capability émise; aucune population consommée`.
+- Étape : `harmonic_censoring_h23_synthetic_one_shot_terminal_result`.
+- Statut : `population synthétique H23 consommée; hypothèse tuée sur A01; aucun retry autorisé`.
+- L’unique passe synthétique H23 autorisée a créé son claim durable puis s’est
+  arrêtée conformément à la règle P0 au premier test `A01`. Le résultat
+  autoritatif est `H23_SYNTHETIC_HYPOTHESIS_KILLED` : `1/72` test exécuté,
+  `0/1` réussi, `71` non exécutés et `0/175` fixture matérialisée. Aucune donnée
+  réelle, population H17 ou locked-test n’a été utilisée. Le primaire A01
+  échoue parce que le graphe préenregistré inclut `H1`, donc des arêtes identité
+  `pitch → pitch`, alors que l’oracle scellé exige strictement
+  `edge[1] > edge[0]`. L’inverse descendante passe. Le transcript, le marker et
+  le rapport terminal sont persistés et hashés sur le Mac; aucun retry n’est
+  autorisé. Rapport :
+  `readme/results/2026-08-10_harmonic-censoring-h23-synthetic-one-shot-result.md`.
 - La revue externe approuve `1025ac56…` et autorise uniquement la création du
   nouveau couple contractuel. Le seal lie ce commit d'implémentation, son vrai
   diff-tree de cinq fichiers, les blobs capability/runner, les trois contrats,
@@ -1618,6 +1629,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-10 — définition séparée de l’activation et du seal H23](results/2026-08-10_harmonic-censoring-h23-activation-and-seal-definition.md)
 - [2026-08-10 — émission administrative de la capability H23 sur Mac](results/2026-08-10_harmonic-censoring-h23-administrative-capability-issuance.md)
 - [2026-08-10 — contrat claim, exécuteur scientifique et transcript H23](results/2026-08-10_harmonic-censoring-h23-executor-claim-transcript-contract.md)
+- [2026-08-10 — résultat terminal de l’unique passe synthétique H23](results/2026-08-10_harmonic-censoring-h23-synthetic-one-shot-result.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)
