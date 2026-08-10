@@ -115,6 +115,12 @@ fins de hop, les enveloppes globales et la continuité de phase sont scellées.
 Les variantes temporelles dérivent obligatoirement leurs états de ce replay,
 jamais d'un état injecté ou d'une extension implicite avant `g=0`.
 
+Les trois dernières transformations héritées du format 4096 sont globalisées :
+`silence` contient exactement 12 544 zéros, la seconde enveloppe d'unison est
+définie pour tout `g=0..12543` avec onset global `g=12160`, et la résonance
+sympathique partage l'origine globale `g=4096` et `e_old(g)` sans apparition
+dans la seule fenêtre cible.
+
 ## État
 
 Les compteurs structurels restent `27 P0 + 35 P1 + 10 P2 = 72`, et

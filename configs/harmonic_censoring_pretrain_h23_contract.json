@@ -326,7 +326,7 @@
       },
       "physical_unison": {
         "same_waveform_two_sources":{"second_source_gain":1.0,"second_source_phase":0.0,"second_source_envelope":"identical"},
-        "distinct_envelopes_two_sources":{"second_source_gain":0.7,"second_source_phase":1.5707963267948966,"second_source_envelope":"e_second(n)=0 for n<3968; for m=n-3968>=0, min(1,(m+1)/32)*exp(-m/1024)"}
+        "distinct_envelopes_two_sources":{"second_source_gain":0.7,"second_source_phase":1.5707963267948966,"second_source_global_onset_sample":12160,"second_source_envelope":"for every g=0..12543: e_second(g)=0 for g<12160; for m=g-12160>=0, min(1,(m+1)/32)*exp(-m/1024)"}
       },
       "synthetic_OOD": {
         "impulse":"x[g=12032]=0.4 and every other global sample is zero",
@@ -354,11 +354,11 @@
       "physical_unison": "add a second MIDI64 waveform component using the declared gain, phase and envelope; K_latent_pitch=K_emit_pitch=1 and K_source=AMBIGUOUS for both variants because the sealed factorization has one column per pitch and cannot represent two physical instances at the same pitch. The distinct variant is retained only to verify temporal evidence is preserved without claiming source count.",
       "technique": "apply the named continuous instantaneous-frequency trajectory to S2 MIDI64 H1..H4 over the declared hop count, preserving harmonic ratios, source identity and K_source=1; no intermediate semitone birth is allowed",
       "natural_harmonic": "replace S1P retained harmonics and H1 amplitude exactly by named_variant_value_contract.natural_harmonic; K_latent_pitch=K_emit_pitch=1 and source identity may be NATURAL_HARMONIC_OR_UNKNOWN, never an added MIDI birth",
-      "sympathetic_resonance": "add to S3 a same-window old-envelope sinusoid at MIDI64 H1 with the declared relative amplitude and no onset/own harmonics; K_source and birth are AMBIGUOUS_OR_RESONANCE, never BIRTH_SUPPORTED",
+      "sympathetic_resonance": "for every global g=0..12543 add to S3 a MIDI64 H1 sinusoid multiplied by the declared relative amplitude and the exact old-source global envelope e_old(g), with the same global origin g=4096, continuous global phase and no separate onset or own harmonics; K_source and birth are AMBIGUOUS_OR_RESONANCE, never BIRTH_SUPPORTED",
       "old_source_age_hops": "keep the old onset fixed at global g=4096 and replace its envelope for g>=4096 by exp(-((g-4096)+age_hops*256)/8192); samples g<4096 remain exact zero, replay schedule and targets unchanged",
       "event_sample_offset": "Fixture-only waveform transform: replace new_onset_sample by the declared current-window index, then replay hop-by-hop from INACTIVE without exposing that coordinate to the runtime. At the target hop offsets 0,1,255,256 have already completed pending resolution and yield ALREADY_ACTIVE_HISTORY; offsets 3840 and 4095 are first proposed at that hop and both yield PENDING_NEW_AWAITING_ONE_HOP, then BIRTH_SUPPORTED_DELAYED_ONE_HOP at t+1 for sealed S2/S4. The coordinate and available sample count are oracle diagnostics only, absent from features/state.",
       "pitch_boundary": "for 40 or 76 replace S2 source/candidate pitch 64 by that MIDI pitch and preserve harmonics/oracle; for analytical_128 keep the S2 waveform unchanged, evaluate only q=128 H1 observation validity/firewall, create no source/candidate at 128 and require emission_pitch_valid=false",
-      "silence": "replace the complete waveform by 4096 exact float64 zeros and oracle by SILENCE_UNEXPLAINED with every normalization_valid=false",
+      "silence": "replace the complete global stream by exactly 12544 float64 zeros, replay the same 34 hop ends, and set oracle SILENCE_UNEXPLAINED with every normalization_valid=false",
       "synthetic_OOD": "replace the complete S2 waveform by the exact named OOD waveform; remove source/required_pitches targets and set oracle OOD_OR_UNEXPLAINED"
     },
     "closed_variant_manifest": {
