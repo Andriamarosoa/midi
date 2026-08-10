@@ -18,7 +18,17 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 - Mise à jour : `2026-08-10`.
 - Étape : `harmonic_censoring_multiscale_h23_pretrain_contract`.
-- Statut : `terminé — huit bloqueurs de revue H23 corrigés contractuellement; nouvelle revue externe requise avant toute implémentation ou exécution P0`.
+- Statut : `terminé — bloqueurs mathématiques H23b fermés contractuellement; nouvelle revue externe requise avant toute implémentation ou exécution P0`.
+- La seconde revue externe a confirmé les huit corrections H23a mais identifié
+  sept blocages mathématiques. H23b les ferme sans calcul : domaine latent
+  `24..76` séparé des `37` candidats MIDI et des `89` observations; cas
+  produit MIDI `40+64`; vrai masque spectral appliqué à `P[k]`; null
+  support-aware; summaries non constantes; factorisation NNLS, résidu,
+  `K/K+1` et tuple causal de source-birth entièrement définis; matrice live
+  exactement `37×6`; chacune des `169` variantes possède une transformation
+  waveform/target explicite. L'univers reste `6+169=175`, les `72` tests et
+  leur ordre restent inchangés. Rapport :
+  `readme/results/2026-08-10_harmonic-censoring-h23b-mathematical-closure.md`.
 - La première revue externe de H23 a confirmé les `72` tests et la couverture
   scientifique, mais a refusé l'exécution pour huit degrés de liberté. H23a
   les ferme sans calcul : `I01/I02` ont une phase P1 unique; formules
@@ -1443,6 +1453,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-10 — exécution réelle H17, résultat atomique négatif pour l’enrichissement `frame_fallback`](results/2026-08-10_provisional-resolution-frame-fallback-h17-real-execution.md)
 - [2026-08-10 — contrat pré-train H23 du censoring harmonique multiscale](results/2026-08-10_harmonic-censoring-pretrain-h23-contract.md)
 - [2026-08-10 — corrections de revue H23a du contrat de censoring](results/2026-08-10_harmonic-censoring-h23-review-corrections.md)
+- [2026-08-10 — fermeture mathématique H23b du contrat de censoring](results/2026-08-10_harmonic-censoring-h23b-mathematical-closure.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)

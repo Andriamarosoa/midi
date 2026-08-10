@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "purpose": "harmonic_censoring_multiscale_pretrain_h23_contract",
-  "status": "pretrain_test_plan_review_blockers_corrected_external_re_review_required",
+  "status": "pretrain_test_plan_mathematics_closed_external_re_review_required",
   "scope": {
     "contract_only": true,
     "implementation_authorized": false,
@@ -41,6 +41,10 @@
     "physical_midi_output_min": 40,
     "physical_midi_output_max": 76,
     "emission_candidate_pitch_count": 37,
+    "latent_source_hypothesis_min": 24,
+    "latent_source_hypothesis_max": 76,
+    "latent_source_hypothesis_count": 53,
+    "latent_sources_below_40_are_evidence_only_and_never_emit": true,
     "virtual_observation_coordinate_min": 40,
     "virtual_observation_coordinate_max_inclusive": 128,
     "virtual_observation_coordinate_count": 89,
@@ -54,32 +58,37 @@
   },
   "mathematical_contract": {
     "shared_representation": "For x[0:4096], w[n]=0.5-0.5*cos(2*pi*n/4096), X[k]=rfft(x[n]*w[n]), P[k]=abs(X[k])^2, f[k]=k*44100/4096; compute once per frame in float64.",
-    "candidate_axis": "physical emission candidate MIDI pitch p in the inclusive integer range 40..76",
+    "emission_candidate_axis": "physical MIDI emission candidate p in the inclusive integer range 40..76; exactly 37 rows enter the live pitch-by-censoring matrix",
+    "latent_source_axis": "factorization-only source hypothesis r in integer MIDI 24..76; r<40 can explain observations but can never emit and is excluded from the 37-row live candidate matrix",
     "virtual_observation_axis": "analytical semitone coordinate q in 40..128 inclusive; q>76 is evidence-only and cannot emit MIDI",
     "fundamental_frequency": "F0(p)=440*2^((p-69)/12)",
     "harmonic_frequency": "f_h(p)=h*F0(p), h in 1..20",
     "harmonic_band_kernel": "phi(p,h,k)=max(0,1-abs(1200*log2(f[k]/f_h(p)))/35) for f[k]>0 and f_h(p)<=22050; otherwise 0",
-    "harmonic_band_energy": "E(p,h)=sum_k P[k]*phi(p,h,k)",
+    "harmonic_band_energy": "E(p,h)=sum_k P[k]*phi(p,h,k); harmonic_observation_valid(p,h) iff f_h(p)<=22050 and sum_k(phi(p,h,k))>0",
     "harmonic_weight": "w_h=1/h",
-    "censoring_axis": "c in the exact ascending harmonic-rank grid [1,2,3,4,8,20]; baseline is c=20; a term is retained iff h<=c",
-    "raw_evidence": "S_raw(p,c)=sum_{h=1..20,h<=c,f_h(p)<=22050} w_h*E(p,h)",
+    "censoring_axis": "c in the exact ascending harmonic-rank grid [1,2,3,4,8,20]; hard cutoff frequency is c*F0(p); baseline is c=20",
+    "primary_spectral_censor": "M_hard(p,c,k)=1 iff 0<f[k]<=min(c*F0(p),22050), otherwise 0; P_c(p,c,k)=P[k]*M_hard(p,c,k)",
+    "robustness_spectral_censor": "M_cos(p,c,k)=1 below -12.5 cents from c*F0(p), 0 above +12.5 cents, and 0.5-0.5*sin(pi*z/2) for z in [-1,1] across that exact 25-cent interval; P_c=P*M_cos",
+    "censored_harmonic_energy": "E_c(p,h,c)=sum_k P_c(p,c,k)*phi(p,h,k)",
+    "raw_evidence": "S_raw(p,c)=sum over h=1..20 with harmonic_observation_valid(p,h) of w_h*E_c(p,h,c)",
     "normalization_denominator": "B(p)=S_raw(p,20)",
     "normalization_valid": "B(p)>max(1e-24,1e-12*sum_k(P[k]))",
     "normalized_evidence": "S_norm(p,c)=S_raw(p,c)/B(p) iff normalization_valid; otherwise masked invalid, never zero-filled",
-    "geometric_null": "S_null(p,c)=sum_{h<=c,f_h(p)<=22050} w_h / sum_{h<=20,f_h(p)<=22050} w_h; depends only on p, c, Nyquist and the fixed weights",
+    "geometric_null": "Let K(p,h,c)=sum_k M(p,c,k)*phi(p,h,k)/sum_k phi(p,h,k) only when harmonic_observation_valid(p,h), else masked. S_null(p,c)=sum_valid_h w_h*K(p,h,c)/sum_valid_h w_h*K(p,h,20). This is support-aware and uses the same hard or cosine mask family as S_raw.",
     "normalized_residual_evidence": "S_residual_norm(p,c)=S_norm(p,c)-S_null(p,c) iff normalization_valid",
     "raw_residual_evidence": "S_residual_raw(p,c)=S_raw(p,c)-B(p)*S_null(p,c)",
-    "primary_representation": "pitch_by_censoring_matrix",
+    "primary_representation": "exactly 37 emission-candidate rows p=40..76 by 6 censoring columns; latent-source and observation tensors are separate",
     "summary_definitions": {
       "k90_k50_k10": "For q in {0.90,0.50,0.10}, k_q is the smallest c in [1,2,3,4,8,20] for which S_norm(p,c)>=q; null if normalization_valid is false or no crossing exists.",
-      "AUC_raw": "Trapezoidal integral of S_raw(p,c)/max(B(p),1e-24) over u=log2(c), divided by log2(20)-log2(1).",
+      "AUC_raw": "Trapezoidal integral of unnormalized S_raw(p,c) over u=log2(c), divided by log2(20)-log2(1); it retains physical power units and is not gain-invariant.",
       "AUC_normalized": "Trapezoidal integral of S_norm(p,c) over u=log2(c), divided by log2(20)-log2(1); invalid when normalization_valid is false.",
       "slope": "Adjacent first differences divided by adjacent log2(c) differences; maximum slope uses the lowest-c interval on ties.",
       "curvature": "Second divided differences on the six ordered log2(c) coordinates.",
       "roughness": "Sum of absolute curvature components.",
-      "regime_change": "Index of maximum absolute curvature, lowest-c tie break; no thresholded count is allowed in H23.",
-      "final_residual": "S_residual_norm(p,20).",
-      "positive_rebound": "Not a P0 feature because nonnegative cumulative S_raw is monotone. Retained only as a future nonlinear-scorer diagnostic requiring a separate contract."
+      "regime_change": "Single index of maximum absolute curvature, lowest-c tie break; null when fewer than three valid cutoff values exist. The normative key is singular regime_change.",
+      "peak_absolute_residual": "max_c abs(S_residual_norm(p,c)); ties use the lowest c; invalid when normalization_valid is false.",
+      "residual_at_c4": "S_residual_norm(p,4); invalid when normalization_valid is false.",
+      "positive_rebound": "Adjacent positive increase in S_residual_norm after a prior negative decrease; retained as a diagnostic because actual spectral censoring can produce non-monotone residuals, never as a thresholded P0 decision."
     },
     "summaries_are_secondary": [
       "AUC_raw",
@@ -88,11 +97,12 @@
       "k50",
       "k10",
       "maximum_slope_and_location",
-      "positive_rebound_future_only",
+      "positive_rebound",
       "roughness",
-      "regime_changes",
+      "regime_change",
       "curvature",
-      "final_residual"
+      "peak_absolute_residual",
+      "residual_at_c4"
     ],
     "forbidden_primary_representation": "single_disappearance_index",
     "oriented_harmonic_graph": "F0_to_h_times_F0_for_h_greater_or_equal_to_1_only",
@@ -100,6 +110,21 @@
     "exclusive_partial_ownership_forbidden": true,
     "candidate_order_must_not_change_result": true,
     "graph_traversal_order_must_not_change_result": true
+  },
+  "factorization_and_source_birth_contract": {
+    "observation_vector": "For q=40..128, y_q=sqrt(max(sum_k P[k]*phi(q,1,k),0)) when the q,H1 kernel has support; unsupported q is masked, never zero-filled.",
+    "dictionary": "For latent source r=24..76 and observation q=40..128, A[q,r]=sum over h=1..20 of (1/h)*max(0,1-abs(100*(q-(r+12*log2(h))))/35); each column is divided by its masked L2 norm, or marked invalid if that norm is zero.",
+    "shared_partial_rule": "Predicted observation is yhat_q=sum_r A[q,r]*a_r with a_r>=0. Contributions at a collision add; no observation is exclusively assigned to one source.",
+    "objective": "For a declared hypothesis set H, choose a_H as the nonnegative minimizer of R(H)=sum_valid_q (y_q-sum_{r in H}A[q,r]*a_r)^2. If multiple minimizers exist, choose minimum L2 norm and then lexicographically smallest amplitudes in ascending r order.",
+    "K_vs_Kplus1": "Delta_R(H,r)=R(H)-R(H union {r}); improvement_valid iff Delta_R>max(1e-12,1e-10*max(R(H),1e-24)). A source is not declared born from Delta_R alone.",
+    "temporal_inputs": "Compute the same B_t(p)=S_raw_t(p,20) on the current causal 4096-sample window and B_prev(p) on the immediately preceding hop-aligned causal window; no future sample is permitted.",
+    "onset_rise": "O(p)=max(0,B_t(p)-B_prev(p))/max(B_t(p),1e-24) when both normalization masks are valid; otherwise masked.",
+    "harmonic_novelty": "N(p)=sum_{h=2..4,valid} w_h*max(0,E_t(p,h)-E_prev(p,h))/max(sum_{h=2..4,valid}w_h*E_t(p,h),1e-24); otherwise masked.",
+    "new_energy": "G(p)=max(0,B_t(p)-B_prev(p))/max(sum_k P_t[k],1e-24); otherwise masked.",
+    "old_source_explanation": "X(H_old,p)=1-Delta_R(H_old,p)/max(R(H_old),1e-24), clipped to [0,1], when R(H_old)>1e-24; if R(H_old)<=1e-24 it is 1 when Delta_R<=1e-12 and 0 otherwise.",
+    "source_birth_tuple": "T_birth(p)=(O(p),N(p),G(p),X(H_old,p),Delta_R(H_old,p),improvement_valid). H23 does not combine this tuple into a learned or weighted scalar.",
+    "synthetic_birth_oracle": "BIRTH_SUPPORTED iff O,N,G are all valid and >1e-12, improvement_valid=true, and X<1-1e-12; NO_BIRTH iff improvement_valid=false or all of O,N,G<=1e-12; otherwise AMBIGUOUS.",
+    "identical_waveform_rule": "If two declared latent explanations render byte-identical float64 waveforms and every allowed tuple component is identical, output AMBIGUOUS regardless of cardinality prior."
   },
   "sealed_P0_numeric_contract": {
     "primary_dtype": "float64",
@@ -120,7 +145,7 @@
     "window_event_sample_offsets": [0, 1, 255, 256, 3840, 4095],
     "neighbour_offsets_semitones": [-2, -1, 1, 2],
     "interval_variants_semitones": [7, 12],
-    "primary_mask_family": "hard nonnegative harmonic-rank inclusion h<=c on the shared power spectrum",
+    "primary_mask_family": "hard nonnegative low-pass mask M_hard(p,c,k) applied to the shared power spectrum before harmonic-band evidence",
     "robustness_mask_family": "raised-cosine transition in log-frequency of exactly 25 cents centred on c*F0, applied to P[k] before the same harmonic-band computation",
     "ambiguous_branch_allowed_only_when": "the fixture oracle is AMBIGUOUS or every explicitly named independent discriminator is exactly absent by construction",
     "posthoc_parameter_change_allowed": false
@@ -152,6 +177,7 @@
     ],
     "validity_masks_required": [
       "candidate_pitch_valid",
+      "latent_source_valid",
       "cutoff_valid",
       "frequency_support_valid",
       "normalization_valid",
@@ -163,11 +189,12 @@
       "virtual_observation_only"
     ],
     "validity_mask_semantics": {
-      "candidate_pitch_valid": "true iff p is an integer in 40..76 for an emission candidate",
+      "candidate_pitch_valid": "true iff p is an integer in 40..76 for one of the 37 emission candidates; latent_source_valid is separate and true for integer r in 24..76",
+      "latent_source_valid": "true iff r is an integer in 24..76; r<40 remains factorization-only and emission_pitch_valid=false",
       "cutoff_valid": "true iff c is exactly one of [1,2,3,4,8,20]",
       "frequency_support_valid": "true iff the requested coordinate maps to a positive frequency not above Nyquist",
       "normalization_valid": "the exact B(p) inequality in mathematical_contract",
-      "harmonic_observation_valid": "true iff f_h(p)<=22050 and sum_k(phi(p,h,k))>0",
+      "harmonic_observation_valid": "true iff f_h(p)<=22050 and sum_k(phi(p,h,k))>0; only valid terms enter S_raw, S_null, residuals or factorization",
       "emission_pitch_valid": "true iff the output pitch is an integer in 40..76; always false for analytical coordinates 77..128",
       "causal_window_valid": "true iff all 4096 samples are current-or-past samples for the evaluated frame",
       "onset_evidence_available": "true iff the causal onset channel is present for the current hop; false is missing, not zero onset",
@@ -200,11 +227,11 @@
   },
   "synthetic_fixture_contract": {
     "base_cases": {
-      "S1C": "conceptual C2 with H2 H3 H4 H5 decaying; one source; C3/C4 explained; no source birth",
+      "S1C": "latent-domain diagnostic MIDI36 with H2 H3 H4 H5 decaying; factorization evidence-only below MIDI40; one source; no MIDI emission and no source birth",
       "S1P": "physically representable MIDI40 analogue of S1C preserving harmonic ratios",
-      "S2": "true C4 with its H2 H3 H4 attacked at t0; C4 required; source birth present",
-      "S3": "old decaying C2 around t0 and nothing new; no source birth",
-      "S4": "old decaying C2 plus new true C4; shared C4 frequency is old H4 and new H1; two-source explanation preferred",
+      "S2": "true MIDI64 with its H2 H3 H4 attacked at t0; MIDI64 required; source birth present",
+      "S3": "old decaying MIDI40 around t0 and nothing new; no source birth",
+      "S4": "old decaying MIDI40 plus new true MIDI64; shared MIDI64 frequency is old H4 and new H1; two-source explanation preferred entirely inside the product domain",
       "S5": "same shared frequency without independent onset, harmonics or envelope; exact AMBIGUOUS required"
     },
     "base_fixture_exact_parameters": {
@@ -218,10 +245,10 @@
       "storage": "IEEE float32 mono WAV at 44100 Hz plus the exact float64 waveform array hash before cast; no peak or RMS normalization and no clipping",
       "S1C": {"sources":[{"pitch":36,"harmonics":[1,2,3,4,5],"envelope":"old"}],"oracle":{"K_pitch":1,"K_source":1,"birth":false}},
       "S1P": {"sources":[{"pitch":40,"harmonics":[1,2,3,4,5],"envelope":"old"}],"oracle":{"K_pitch":1,"K_source":1,"birth":false}},
-      "S2": {"sources":[{"pitch":60,"harmonics":[1,2,3,4],"envelope":"new"}],"oracle":{"required_pitches":[60],"K_pitch":1,"K_source":1,"birth_pitch":60}},
-      "S3": {"sources":[{"pitch":36,"harmonics":[1,2,3,4,5],"envelope":"old"}],"oracle":{"K_pitch":1,"K_source":1,"birth":false}},
-      "S4": {"sources":[{"pitch":36,"harmonics":[1,2,3,4,5],"envelope":"old"},{"pitch":60,"harmonics":[1,2,3,4],"envelope":"new"}],"oracle":{"required_pitches":[36,60],"K_pitch":2,"K_source":2,"birth_pitch":60}},
-      "S5": {"waveform":"0.1*e_old(n)*sin(theta(36,4,n,0))","latent_explanations":["old_pitch36_H4_only","pitch60_H1_with_exact_same_envelope_and_no_independent_onset_or_harmonics"],"oracle":{"K_pitch":"AMBIGUOUS","K_source":"AMBIGUOUS","birth":"AMBIGUOUS"}}
+      "S2": {"sources":[{"pitch":64,"harmonics":[1,2,3,4],"envelope":"new"}],"oracle":{"required_pitches":[64],"K_pitch":1,"K_source":1,"birth_pitch":64}},
+      "S3": {"sources":[{"pitch":40,"harmonics":[1,2,3,4,5],"envelope":"old"}],"oracle":{"K_pitch":1,"K_source":1,"birth":false}},
+      "S4": {"sources":[{"pitch":40,"harmonics":[1,2,3,4,5],"envelope":"old"},{"pitch":64,"harmonics":[1,2,3,4],"envelope":"new"}],"oracle":{"required_pitches":[40,64],"K_pitch":2,"K_source":2,"birth_pitch":64}},
+      "S5": {"waveform":"0.1*e_old(n)*sin(theta(40,4,n,0))","latent_explanations":["old_pitch40_H4_only","pitch64_H1_with_exact_same_envelope_and_no_independent_onset_or_harmonics"],"oracle":{"K_pitch":"AMBIGUOUS","K_source":"AMBIGUOUS","birth":"AMBIGUOUS"}}
     },
     "named_variant_value_contract": {
       "chord_spec": {
@@ -272,6 +299,25 @@
         "mixing":"noise_gain=rms(clean)/(rms(noise)*10^(snr_db/20)); exact-zero clean uses rms(clean)=1 only for the OOD pink-noise-burst fixture"
       }
     },
+    "variant_transform_rules": {
+      "amplitude_gain": "multiply every source amplitude in the named base waveform by the scalar; do not change pitch, phase, envelopes or oracle category",
+      "relative_phase_radians": "add the scalar phase to harmonics h>=2 only; H1 phase remains the base phase; all other fields unchanged",
+      "envelope_attack_decay_hops": "replace e_new attack length by max(1,attack_hops*256+1) samples and decay denominator by decay_tau_hops*256 samples; onset sample remains 3072",
+      "cents_inharmonicity": "for every synthesized partial replace h*F0 by h*F0*2^(cents/1200)*sqrt(1+B*h^2); amplitudes, envelopes and target stay unchanged",
+      "noise": "add the exactly specified seeded unit-RMS colour at the declared SNR after clean synthesis; at 0 dB replace the categorical oracle by AMBIGUOUS_OR_OOD, otherwise preserve the base oracle",
+      "neighbour_semitones": "add one new-envelope source at base primary birth pitch plus offset, with harmonics/amplitudes identical to that birth source; add that pitch to required_pitches, increment K_pitch and K_source by one, and set its birth supported",
+      "interval_semitones": "add one old-envelope source at the first source pitch plus interval, with harmonics 1..4 and base amplitudes; add its pitch to required_pitches and increment identifiable K_pitch/K_source by one",
+      "chord_spec": "replace S2's single MIDI64 source by simultaneous new-envelope sources at 64 plus each declared chord offset; each uses harmonics 1..4 and base amplitudes; required_pitches is that exact sorted set and K_pitch=K_source=set size",
+      "physical_unison": "add a second MIDI64 source using the declared gain, phase and envelope; K_pitch remains 1; K_source=AMBIGUOUS for identical envelope/waveform and 2 only for distinct_envelopes_two_sources",
+      "technique": "apply the named continuous instantaneous-frequency trajectory to S2 MIDI64 H1..H4 over the declared hop count, preserving harmonic ratios, source identity and K_source=1; no intermediate semitone birth is allowed",
+      "natural_harmonic": "replace S1P retained harmonics and H1 amplitude exactly by named_variant_value_contract.natural_harmonic; K_pitch=1 and source identity may be NATURAL_HARMONIC_OR_UNKNOWN, never an added MIDI birth",
+      "sympathetic_resonance": "add to S3 a same-window old-envelope sinusoid at MIDI64 H1 with the declared relative amplitude and no onset/own harmonics; K_source and birth are AMBIGUOUS_OR_RESONANCE, never BIRTH_SUPPORTED",
+      "old_source_age_hops": "left-shift the old envelope origin by age_hops*256 samples, i.e. exp(-(n+age_hops*256)/4096); current new source, pitches and target categories remain unchanged",
+      "event_sample_offset": "replace new_onset_sample by the declared sample index; samples before it are zero for new sources and the same 64-sample attack/2048-sample decay begins there; causal validity mask records truncated evidence",
+      "pitch_boundary": "for 40 or 76 replace S2 source/candidate pitch 64 by that MIDI pitch and preserve harmonics/oracle; for analytical_128 keep the S2 waveform unchanged, evaluate only q=128 H1 observation validity/firewall, create no source/candidate at 128 and require emission_pitch_valid=false",
+      "silence": "replace the complete waveform by 4096 exact float64 zeros and oracle by SILENCE_UNEXPLAINED with every normalization_valid=false",
+      "synthetic_OOD": "replace the complete S2 waveform by the exact named OOD waveform; remove source/required_pitches targets and set oracle OOD_OR_UNEXPLAINED"
+    },
     "closed_variant_manifest": {
       "id_rule": "<base_id>__<axis>__<value_tokens_in_declared_order>; tokens use the exact JSON scalar spellings with dot replaced by p and minus by m",
       "combination_policy": "one_factor_at_a_time_only; no undeclared Cartesian cross-axis combinations",
@@ -298,6 +344,7 @@
       "base_count": 6,
       "variant_count": 169,
       "expected_total_fixture_count": 175,
+      "variant_transform_rule_key_invariant": "sorted(keys(variant_transform_rules)) == sorted(unique axis values in variant_families); exact expected key count=17",
       "manifest_materialization": "A zero-science generator must materialize the exact IDs/specs and SHA-256 before any fixture waveform is synthesized.",
       "execution_exhaustiveness_invariant": "executed_fixture_ids == preregistered_fixture_ids",
       "omission_after_observation_allowed": false,
@@ -387,49 +434,49 @@
       {"id":"A03","objective":"kill trivial disappearance index","exact_input":"equivariant ideal spectrum","procedure":"predict disappearance using pitch and cutoff only","oracle":"single disappearance index is TRIVIAL_FEATURE","pass_rule":"no autonomous discriminative claim remains","inverse_check":"shuffle waveform while preserving pitch/cutoff geometry"},
       {"id":"A04","objective":"non-identifiability","exact_input":"two latent explanations rendering identical waveform","procedure":"compute all allowed features","oracle":"identical features and AMBIGUOUS","pass_rule":"exact equality and exact AMBIGUOUS","inverse_check":"any target separation is leakage"},
       {"id":"A05","objective":"separate pitch and physical sources","exact_input":"one source versus two strings at same MIDI with identical waveform","procedure":"compare observable contracts","oracle":"K_pitch=1 while K_source is unidentifiable","pass_rule":"no false K_source certainty","inverse_check":"force K_source and require failure"},
-      {"id":"A06","objective":"pitch domain cardinality","exact_input":"physical candidates 40..76 and analytical coordinates 40..128 inclusive","procedure":"enumerate both domains and verify 76+12*log2(20)=127.86313713864834 is covered","oracle":"37 emission candidates, 89 analytical coordinates, coordinate 128 evidence-only and no coordinate 129","pass_rule":"exact counts endpoints and firewall","inverse_check":"treating analytical coordinate 128 as an emit-capable MIDI note must fail"},
+      {"id":"A06","objective":"pitch domain cardinality","exact_input":"37 emission candidates 40..76, 53 latent source hypotheses 24..76 and 89 observation coordinates 40..128","procedure":"enumerate all three distinct domains and verify 76+12*log2(20)=127.86313713864834 is covered","oracle":"exact counts 37/53/89; latent 24..39 and observations 77..128 are evidence-only; no coordinate 129","pass_rule":"exact counts endpoints and firewall","inverse_check":"treating latent MIDI36 or observation 128 as emit-capable must fail"},
       {"id":"A07","objective":"relative cutoff semantics","exact_input":"same harmonic geometry at multiple F0","procedure":"express cutoffs as cutoff_over_F0 and harmonic rank","oracle":"geometry aligns in relative coordinates","pass_rule":"directionally identical masks modulo supported bins","inverse_check":"absolute-only cutoff must expose pitch bias"},
       {"id":"A08","objective":"causal timing","exact_input":"hop 256 window 4096 at 44100 Hz","procedure":"enumerate sample support for frame t","oracle":"no sample after current causal boundary","pass_rule":"maximum future index equals zero","inverse_check":"one future sample must fail"}
     ],
     "P0_DSP": [
       {"id":"D01","objective":"shared spectrum parity","exact_input":"each of the six base waveforms, candidates 40..76 and cutoffs [1,2,3,4,8,20]","procedure":"compare vectorized and scalar float64 references","oracle":"same raw normalized null and residual curves","pass_rule":"rtol=1e-10 atol=1e-12; masks/categories exact","inverse_check":"permute mask storage and recover canonical outputs"},
       {"id":"D02","objective":"raw versus normalized separation","exact_input":"same structure at scaled amplitudes","procedure":"compute both channels","oracle":"raw scales and normalized structure is invariant when defined","pass_rule":"correct direction plus finite validity","inverse_check":"zero-energy case must be invalid not negative"},
-      {"id":"D03","objective":"geometric null removal","exact_input":"flat E(p,h)=1 for every Nyquist-valid h on all candidates 40..76 and six cutoffs","procedure":"apply the sealed closed-form S_null without labels","oracle":"S_residual_norm=0 and S_residual_raw=0","pass_rule":"absolute error <=1e-12","inverse_check":"replace one E(p,h) by 2 and require a nonzero residual"},
-      {"id":"D04","objective":"nontrivial information beyond pitch","exact_input":"candidate p=40 with analytic harmonic energies A=[1,1,1,1,1,0...0] and B=[5,0,0,0,0,0...0], identical p, cutoffs and total unweighted energy","procedure":"compute sealed raw normalized null and residual curves","oracle":"A and B equal their closed-form expected curves and differ at c=1,2,3,4 by more than 1e-12","pass_rule":"every closed-form comparison absolute error <=1e-12 and each named difference >1e-12","inverse_check":"a pitch-only proxy produces identical A/B outputs and must fail"},
+      {"id":"D03","objective":"support-aware geometric null removal","exact_input":"for each p=40..76 set P[k] so every nonempty harmonic kernel has equal unit projected energy and every empty kernel is masked","procedure":"apply each actual spectral mask and its sealed K(p,h,c) null","oracle":"S_residual_norm=0 and S_residual_raw=0 for every supported p/c; unsupported terms never enter either sum","pass_rule":"absolute error <=1e-12 and validity bits exact","inverse_check":"force one empty kernel into the denominator and require failure"},
+      {"id":"D04","objective":"nontrivial information beyond pitch","exact_input":"candidate p=40 with two explicitly synthesized shared spectra: A has equal projected energy in H1..H5 and B has the same total projected energy concentrated in H1; same p and six real spectral masks","procedure":"compute sealed P_c, raw, normalized, support-aware null and residual curves","oracle":"the curves differ at at least one of c=1,2,3,4 by more than 1e-12 while pitch is identical","pass_rule":"scalar/vector parity and each declared nontrivial difference exact within tolerance","inverse_check":"a pitch-only proxy produces identical A/B outputs and must fail"},
       {"id":"D05","objective":"nontrivial information beyond gain","exact_input":"gain-scaled copies","procedure":"compare normalized curves and summaries","oracle":"normalized evidence preserves structure","pass_rule":"direction preserved","inverse_check":"raw-only improvement is insufficient"},
       {"id":"D06","objective":"filter-family robustness","exact_input":"the sealed hard harmonic-rank mask and the sealed 25-cent raised-cosine robustness mask on S1C S1P S2 S3 S4 S5","procedure":"repeat every core oracle with both families","oracle":"S1/S3 remain no-birth, S2/S4 remain birth, S5 remains AMBIGUOUS","pass_rule":"all six categorical oracles exact under both families","inverse_check":"a deliberately shifted 200-cent cutoff must break at least one curve comparison and be detected"},
       {"id":"D07","objective":"phase robustness","exact_input":"S1P and S4 at phases [0,pi/2,pi,3pi/2] from the sealed numeric contract","procedure":"repeat all evidence and categorical oracles","oracle":"S1P remains one-source/no-birth and S4 remains two-source/birth for every phase; S5 remains AMBIGUOUS","pass_rule":"all categorical oracles exact; numeric comparisons use sealed tolerance","inverse_check":"a phase label supplied without waveform change must have no effect"},
       {"id":"D08","objective":"window boundary robustness","exact_input":"same event shifted across first and last supported samples","procedure":"translate without future access","oracle":"validity changes are explicit and no spurious birth appears","pass_rule":"translation-consistent supported region","inverse_check":"boundary artifact birth fails"},
       {"id":"D09","objective":"cents and inharmonicity","exact_input":"S1P S2 S4 crossed with cents [-35,-15,0,15,35] and B [0,0.0001,0.0004], excluding only baseline (0,0)","procedure":"synthesize partial f_h=h*F0*sqrt(1+B*h^2) then apply the stated cents shift","oracle":"the base categorical oracle is unchanged for every declared pair","pass_rule":"all 42 variant IDs pass their exact categorical oracle; no additional smoothness threshold is used","inverse_check":"a 100-cent undeclared shift must be rejected by manifest validation"},
       {"id":"D10","objective":"noise robustness","exact_input":"S1P S2 S4 crossed with white/pink noise and SNR [40,20,10,0] dB plus exact-zero silence fixture","procedure":"compute all channels and masks","oracle":"base categorical oracle remains exact at 40/20/10 dB; at 0 dB only the sealed state AMBIGUOUS_OR_OOD is accepted; silence is SILENCE_UNEXPLAINED","pass_rule":"all 24 noise IDs and silence ID match those exact categories","inverse_check":"pitch-shaped harmonic noise not present in the manifest must be rejected"},
-      {"id":"D11","objective":"summary fidelity","exact_input":"full curves and k90 k50 k10 AUC slope curvature residual","procedure":"compare cases with same summaries but different curves","oracle":"summaries cannot replace matrix","pass_rule":"primary matrix retained","inverse_check":"summary-only collision documented"},
+      {"id":"D11","objective":"summary fidelity","exact_input":"full curves and k90 k50 k10 unnormalized AUC_raw normalized AUC slope curvature peak residual and residual_at_c4","procedure":"compare cases with same summaries but different curves and verify AUC_raw changes under gain while AUC_normalized does not","oracle":"summaries cannot replace matrix and raw/normalized AUC are non-identical channels","pass_rule":"primary matrix retained and the gain-direction checks pass","inverse_check":"divide AUC_raw by B and require duplicate-channel detection"},
       {"id":"D12","objective":"rebound and regime change meaning","exact_input":"designed monotone and two-regime spectra","procedure":"measure features","oracle":"rebound/regime flags match construction","pass_rule":"exact fixture oracle","inverse_check":"monotone curve cannot report rebound"},
       {"id":"D13","objective":"missing frequency support","exact_input":"analytical coordinates 127 and 128 with every harmonic slot h=1..20","procedure":"apply Nyquist and triangular-band support rules","oracle":"each unsupported harmonic_observation_valid=false and is masked, never zero evidence","pass_rule":"all 40 validity bits match f_h<=22050 and nonempty kernel support exactly","inverse_check":"coercing unsupported values to negative must fail"},
       {"id":"D14","objective":"numerical safety","exact_input":"silence tiny energy large gain and boundary values","procedure":"compute all features","oracle":"no NaN or infinity; invalidity explicit","pass_rule":"exact finite-or-masked invariant","inverse_check":"silent divide-by-zero fails"}
     ],
     "P0_core_synthetic": [
       {"id":"S1","objective":"one old source explains harmonics","exact_input":"S1C and S1P","procedure":"compare one-source and extra-source explanations","oracle":"one source; C3/C4 explained; no birth","pass_rule":"exact categorical oracle","inverse_check":"remove old F0 and require loss of explanation"},
-      {"id":"S2","objective":"new high fundamental","exact_input":"S2","procedure":"evaluate birth and K versus K+1","oracle":"C4 required and birth positive","pass_rule":"exact categorical oracle","inverse_check":"remove attack and own harmonics"},
+      {"id":"S2","objective":"new high fundamental","exact_input":"S2 at MIDI64","procedure":"evaluate the sealed birth tuple and K versus K+1 objective","oracle":"MIDI64 required and BIRTH_SUPPORTED","pass_rule":"exact categorical oracle and every tuple component serialized","inverse_check":"remove attack and own harmonics"},
       {"id":"S3","objective":"old resonance only","exact_input":"S3","procedure":"evaluate source birth","oracle":"no new source","pass_rule":"exact categorical oracle","inverse_check":"add controlled new onset"},
-      {"id":"S4","objective":"shared old harmonic plus new fundamental","exact_input":"S4","procedure":"compare C2-only with C2+C4 using independent observations","oracle":"two-source explanation preferred and C4 birth","pass_rule":"exact direction","inverse_check":"remove C4 own evidence and approach ambiguity"},
+      {"id":"S4","objective":"shared old harmonic plus new fundamental","exact_input":"S4 entirely in product domain","procedure":"compare MIDI40-only with MIDI40+MIDI64 using the sealed NNLS residual and birth tuple","oracle":"two-source explanation preferred and MIDI64 BIRTH_SUPPORTED","pass_rule":"Delta_R improvement_valid, tuple rule and cardinalities exact","inverse_check":"remove MIDI64 onset and own H2..H4 evidence and require AMBIGUOUS or NO_BIRTH"},
       {"id":"S5","objective":"respect impossible collision","exact_input":"S5","procedure":"compute every allowed feature","oracle":"AMBIGUOUS","pass_rule":"exact AMBIGUOUS","inverse_check":"any forced binary decision is KILL"}
     ],
     "P1_causality_and_birth": [
       {"id":"C01","objective":"no future dependence","exact_input":"paired signals identical through t and different after t","procedure":"compare features and decisions at t","oracle":"exact equality","pass_rule":"bitwise or documented machine equality","inverse_check":"future perturbation changes t is KILL"},
       {"id":"C02","objective":"time translation","exact_input":"same event at valid offsets","procedure":"shift event and causal state together","oracle":"same decision modulo frame index","pass_rule":"exact categorical parity","inverse_check":"boundary cases separated"},
-      {"id":"C03","objective":"source-birth decomposition","exact_input":"all 16 binary tuples of onset, harmonic_novelty, new_energy, old_source_explanation on a fixed S4 geometry","procedure":"set each present positive channel to 1 and absent channel to 0; compute signed birth evidence onset+novelty+energy-old_explanation","oracle":"flipping any of the first three 0->1 changes the signed evidence by +1; flipping old_source_explanation 0->1 changes it by -1","pass_rule":"all 64 one-bit directional comparisons exact","inverse_check":"a +1 old-source flip increasing birth must fail"},
+      {"id":"C03","objective":"source-birth decomposition","exact_input":"S2/S3/S4/S5 paired current and previous causal windows","procedure":"compute O,N,G,X,Delta_R and improvement_valid only from the sealed formulas; do not form a weighted scalar","oracle":"S2/S4 satisfy BIRTH_SUPPORTED, S3 NO_BIRTH, S5 AMBIGUOUS","pass_rule":"all numeric components match scalar references and categories match exactly","inverse_check":"replace any component by a fixture-label bit and require schema rejection"},
       {"id":"C04","objective":"retrigger versus decay","exact_input":"same MIDI decay then new attack versus uninterrupted decay","procedure":"compare temporal evidence","oracle":"retrigger only with new causal evidence","pass_rule":"exact fixture oracle","inverse_check":"gain-only decay bump control"},
       {"id":"C05","objective":"old-source age","exact_input":"S3 and S4 at old-source ages [0,1,2,4,8,15] hops","procedure":"repeat with identical current new-source evidence and only causal decay history changed","oracle":"S3 remains no-birth at all ages; S4 remains birth when its independent onset/own-harmonic evidence is present; numeric old-source explanation is non-increasing with age","pass_rule":"categories exact and every adjacent old-source explanation difference <=1e-12","inverse_check":"replace causal age by a label-derived age and require schema rejection"},
       {"id":"C06","objective":"latency accounting","exact_input":"all causal buffers and hops","procedure":"trace required sample/frame age","oracle":"additional lookahead=0","pass_rule":"exact zero","inverse_check":"hidden stability vote fails"}
     ],
     "P1_factorization_cardinality": [
-      {"id":"F01","objective":"shared partial","exact_input":"one observed bin compatible with two F0 hypotheses","procedure":"factorize jointly","oracle":"bin may support both hypotheses","pass_rule":"no exclusive ownership","inverse_check":"candidate-order swap"},
-      {"id":"F02","objective":"global residual","exact_input":"mixture with deliberately unexplained component","procedure":"fit allowed hypotheses","oracle":"unexplained residual remains explicit","pass_rule":"not silently assigned","inverse_check":"add matching source"},
+      {"id":"F01","objective":"shared partial","exact_input":"S4 observation at MIDI64 compatible with MIDI40 H4 and MIDI64 H1","procedure":"solve the sealed nonnegative additive objective over H={40,64}","oracle":"both dictionary columns may contribute to the same q row and no exclusive ownership flag exists","pass_rule":"reconstruction equals A*a and is invariant to column order within tolerance","inverse_check":"replace additive prediction by exclusive assignment and require higher or equal residual plus contract failure"},
+      {"id":"F02","objective":"global residual","exact_input":"sealed observation vector with one component outside every declared dictionary column","procedure":"solve R(H) exactly as contracted","oracle":"unexplained residual remains in y-yhat and R(H)>1e-12","pass_rule":"residual vector and scalar objective reconcile","inverse_check":"add its matching source column and require Delta_R improvement"},
       {"id":"F03","objective":"candidate order invariance","exact_input":"same hypothesis set in all tested permutations","procedure":"factorize","oracle":"same result","pass_rule":"exact parity","inverse_check":"tie handling deterministic"},
       {"id":"F04","objective":"graph order invariance","exact_input":"same harmonic graph in different traversal orders","procedure":"factorize","oracle":"same result","pass_rule":"exact parity","inverse_check":"shared partial stress case"},
       {"id":"K01","objective":"K_pitch","exact_input":"silence one pitch two pitches triad physical unison","procedure":"count observable pitches","oracle":"0 1 2 3 1","pass_rule":"exact","inverse_check":"duplicate source same MIDI"},
       {"id":"K02","objective":"K_source","exact_input":"same fixtures","procedure":"estimate or abstain","oracle":"differs from K_pitch when identifiable and AMBIGUOUS otherwise","pass_rule":"no false certainty","inverse_check":"identical unison waveform"},
-      {"id":"K03","objective":"K versus K+1","exact_input":"S1 S4 S5","procedure":"record residual difference Delta_R_K","oracle":"no necessary extra source for S1; necessary independent evidence for S4; tie/ambiguity for S5","pass_rule":"exact direction only; no arbitrary magnitude","inverse_check":"source-order permutation"},
+      {"id":"K03","objective":"K versus K+1","exact_input":"S1 S4 S5","procedure":"compute R(H), R(H union {r}), Delta_R and sealed improvement_valid, then apply the separate birth tuple rule","oracle":"no birth for S1; improvement plus independent evidence for S4; identical-feature ambiguity for S5","pass_rule":"numeric objectives reconcile within tolerance and categories exact","inverse_check":"source-order permutation"},
       {"id":"K04","objective":"set permutation invariance","exact_input":"identical pitch sets in different orders","procedure":"evaluate","oracle":"same set output","pass_rule":"exact","inverse_check":"duplicate handling explicit"}
     ],
     "P1_anti_confirmation": [
@@ -466,7 +513,7 @@
       {"id":"R02","objective":"CPU determinism","exact_input":"same supported CPU runtime","procedure":"repeat","oracle":"documented exact or machine-tolerance parity","pass_rule":"contracted parity","inverse_check":"thread-count variation measured"},
       {"id":"R03","objective":"batch scalar parity","exact_input":"the exact 175-fixture manifest evaluated scalar, batch size 1, 7, 32 and one final partial batch","procedure":"canonicalize by fixture_id and compare","oracle":"categories/masks exact and float64 features equal within rtol=1e-10 atol=1e-12","pass_rule":"every value passes the sealed comparison","inverse_check":"dropping the final partial batch must be detected by exact ID-set inequality"},
       {"id":"P01","objective":"one shared encoder","exact_input":"instrumented execution graph","procedure":"count spectral encodings","oracle":"one per frame","pass_rule":"exact count","inverse_check":"candidate count increase does not increase encodings"},
-      {"id":"P02","objective":"mask vectorization","exact_input":"89 analytical coordinates by exactly 6 cutoffs","procedure":"profile operations","oracle":"masking reuses one representation","pass_rule":"one spectral encoding per frame and no full inference per pitch/cutoff","inverse_check":"scalar reference parity at rtol=1e-10 atol=1e-12"},
+      {"id":"P02","objective":"mask vectorization","exact_input":"37 emission F0 candidates by exactly 6 cutoffs over one shared spectrum; 89 observation coordinates are a separate factorization tensor","procedure":"profile operations and tensor shapes","oracle":"live censoring matrix shape is exactly 37x6, observation vector shape 89, and one spectral encoding is reused","pass_rule":"exact shapes, one spectral encoding per frame and no full inference per pitch/cutoff","inverse_check":"a 89x6 candidate matrix or any emit-capable q>76 must fail"},
       {"id":"P03","objective":"memory bound","exact_input":"the same 60-second 10336-hop stream as P04 after a 10-second warm-up","procedure":"measure internal retained-frame count, allocator-tracked array bytes and process RSS once per second","oracle":"retained frames<=16, tracked arrays<=67108864 bytes, post-warm-up RSS max-min<=33554432 bytes","pass_rule":"all three exact upper bounds pass and final retained-frame count<=16","inverse_check":"a diagnostic implementation retaining every frame must exceed retained frames and fail"},
       {"id":"P04","objective":"live throughput","exact_input":"60-second synthetic stream, 10336 hops, one warm-up second excluded, 6 cutoffs, one CPU worker","procedure":"measure p50 p90 p95 p99 max, backlog and final drain","oracle":"p95<=5.804988662131519 ms, p99<=5.804988662131519 ms, max<=11.609977324263038 ms, maximum backlog<=1 hop, final backlog=0, added lookahead=0","pass_rule":"every bound passes; no post-hoc relaxation","inverse_check":"12-cutoff stress run is diagnostic only and must not replace the 6-cutoff result"},
       {"id":"P05","objective":"latency decomposition","exact_input":"instrumented causal path","procedure":"report window hop feature inference decoder MIDI costs","oracle":"algorithmic lookahead remains zero","pass_rule":"every component reported","inverse_check":"hidden buffering detected"},
