@@ -17,8 +17,19 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `harmonic_censoring_h24_population_materialization_contract`.
-- Statut : `contrat de matérialisation H24 et frontière one-shot définis; trace NumPy des trajectoires et six OOD fermée; sans materializer, claim, waveform ni exécution; en attente de revue externe`.
+- Étape : `harmonic_censoring_h24_dormant_population_materializer`.
+- Statut : `contrat H24 approuvé; materializer, capability, claim et publisher atomique implémentés mais strictement dormants; aucun seal, marker, waveform, population ni exécution; en attente de revue externe`.
+- La revue externe a approuvé `2cf2be8e…` et autorisé uniquement
+  `AUTHORIZED_TO_IMPLEMENT_H24_DORMANT_MATERIALIZER_CLAIM_AND_ATOMIC_PUBLISHER_ONLY`.
+  Le nouveau module lie le contrat `b48aa4f…`, réimplémente exactement la trace
+  numérique scellée, ferme la capability à 18 champs par identité, prépare le
+  preflight sans NumPy, le futur `O_EXCL`, le staging/index/receipt/rehash et les
+  publications atomiques. Aucun seal d'activation n'existe et l'entrée publique
+  refuse explicitement le bridge NumPy même après claim. Les tests du claim
+  mockent l'écriture : aucun marker ni octet scientifique n'est créé. `158`
+  tests H24/H23/H20 réussissent en `2,130 s`. Rapport :
+  `readme/results/2026-08-10_harmonic-censoring-h24-dormant-population-materializer.md`.
+  Toute activation ou tentative one-shot reste interdite avant nouvelle revue.
 - La revue externe de `10aa49a8…` a approuvé conceptuellement le one-shot et
   la séparation science/matérialisation, mais a refusé le contrat final pour
   quatre ambiguïtés : defaults source incomplets, ordre numérique/RNG non
