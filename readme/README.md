@@ -27,6 +27,9 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   seal et les blobs d’implémentation, tandis qu’un worker OS mono-usage devra
   injecter le commit d’activation complet déjà revu. `HEAD`, le worktree et le
   blob Git de l’activation seront vérifiés avant le seal et avant le plan H23.
+  `exact_changed_files` reste le diff exact du commit revu; une source inchangée
+  n’y est pas ajoutée artificiellement, car les blobs des deux sources sont
+  vérifiés séparément au commit revu et dans le checkout courant.
   Aucun artefact d’activation ou seal n’existe encore. Rapport :
   `readme/results/2026-08-10_harmonic-censoring-h23-seal-activation-transition.md`.
 - Après l'approbation finale du contrat `ee00bcf6…`, les modules de capability

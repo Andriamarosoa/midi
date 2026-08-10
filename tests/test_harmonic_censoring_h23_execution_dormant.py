@@ -140,6 +140,21 @@ class HarmonicCensoringH23DormantExecutionTests(unittest.TestCase):
                     forged, raw_sha256="d" * 64
                 )
 
+    def test_seal_accepts_exact_diff_when_unchanged_runner_is_blob_bound(self) -> None:
+        payload = self._seal_payload()
+        payload["bindings"]["exact_changed_files"] = [  # type: ignore[index]
+            capability.H23_CAPABILITY_SOURCE_RELATIVE_PATH.as_posix()
+        ]
+        parsed = capability.validate_h23_authorization_seal_payload(
+            payload, raw_sha256="d" * 64
+        )
+        self.assertEqual(
+            parsed.exact_changed_files,
+            (capability.H23_CAPABILITY_SOURCE_RELATIVE_PATH.as_posix(),),
+        )
+        self.assertEqual(parsed.capability_source_blob, "b" * 40)
+        self.assertEqual(parsed.runner_source_blob, "c" * 40)
+
     def test_seal_parser_rejects_training_locked_test_and_path_escape(self) -> None:
         for name in ("training_authorized", "locked_test_used", "H17_population_used"):
             payload = self._seal_payload()

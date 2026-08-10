@@ -166,6 +166,12 @@ class HarmonicCensoringH23ExecutionCapabilityContractTests(unittest.TestCase):
         ):
             self.assertFalse(seal[right], right)
         self.assertTrue(seal["must_bind_this_contract_raw_sha256"])
+        self.assertTrue(
+            seal["source_blob_may_be_bound_without_being_modified_in_reviewed_commit"]
+        )
+        self.assertTrue(
+            seal["both_source_blobs_must_match_reviewed_commit_and_current_checkout"]
+        )
 
     def test_future_activation_breaks_hash_cycle_and_is_OS_bound(self) -> None:
         activation = self.contract["future_seal_activation"]

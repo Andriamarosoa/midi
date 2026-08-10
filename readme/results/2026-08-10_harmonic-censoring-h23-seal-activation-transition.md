@@ -55,6 +55,13 @@ Le commit futur pourra donc ajouter le seal et l’activation sans modifier les
 deux sources d’implémentation que le seal atteste. Il n’existe aucune
 dépendance `source → SHA seal → source`.
 
+Le champ `exact_changed_files` doit rester l’égalité exacte du `diff-tree` du
+commit d’implémentation revu. Il n’est pas obligé de contenir une source restée
+inchangée dans ce commit : les deux sources sont protégées séparément en
+exigeant que leurs blobs liés soient identiques au commit revu **et** au
+checkout courant. Cette séparation permet de sceller `7e19bba7…`, qui modifie
+la capability mais réutilise volontairement le runner déjà revu.
+
 ## Dormance actuelle
 
 L’ordre du loader est fail-closed : l’absence de la variable OS provoque
@@ -76,14 +83,14 @@ aucune waveform et aucun test scientifique ne sont utilisés.
 
 ```text
 contrat capability
-taille       16 667 octets
-SHA-256 brut d63f230cff679d4df65042bc083791a6a158dda730589db7f153a396b5fc4b3b
-blob Git     e71c365d2e6199c26e5b6df0fd2b1a7202d0dd1a
+taille       16 826 octets
+SHA-256 brut 87f9288ad25816573fd6076856320f182829cb77e4643bf887d2b1571ad819ec
+blob Git     92baa8e7b34172762ab5f7dd276df4541de3222f
 
 source capability
-taille       26 181 octets
-SHA-256 brut 4eac79a90b2488bd4afbd8ed96b6c8da9dca0fd8ef91664017f87cea547f41e1
-blob Git     037a49fde9f976dcb7513557fa7b5c35df767275
+taille       25 910 octets
+SHA-256 brut ea5c887b71dd4d24077f6db76678d2098ce4ac7d5f3c24f98e43d9435a8074ca
+blob Git     24efe3daee1e99a3d4298452cd5eba9e9fa5f6be
 
 runner inchangé
 taille       15 057 octets
@@ -91,8 +98,8 @@ SHA-256 brut cf2cf6c0fa3b9e3b48a1607d03174eacdd3511c3db790b154c4e00673dadd0d6
 blob Git     3699212be4db17df99acfddb864c0a25f56dcea4
 ```
 
-Résultats : `25` tests ciblés, puis `56` tests H23/H17/H20 réussis en
-`0,567 s`. `json.tool`, `py_compile` et `git diff --check`
+Résultats : `26` tests ciblés réussis en `0,172 s`, puis `57` tests H23/H17/H20
+réussis en `0,694 s`. `json.tool`, `py_compile` et `git diff --check`
 réussissent.
 
 ## État

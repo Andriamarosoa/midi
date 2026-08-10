@@ -138,7 +138,9 @@
     "must_bind_this_contract_raw_sha256": true,
     "must_bind_exact_future_capability_source_blob": true,
     "must_bind_exact_future_runner_source_blob": true,
-    "must_bind_exact_changed_file_set": true
+    "must_bind_exact_changed_file_set": true,
+    "source_blob_may_be_bound_without_being_modified_in_reviewed_commit": true,
+    "both_source_blobs_must_match_reviewed_commit_and_current_checkout": true
   },
   "future_seal_activation": {
     "purpose": "break_seal_source_hash_circularity_without_modifying_attested_implementation_blobs",

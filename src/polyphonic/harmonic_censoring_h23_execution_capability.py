@@ -31,7 +31,7 @@ H23_CAPABILITY_CONTRACT_RELATIVE_PATH = Path(
     "configs/harmonic_censoring_h23_synthetic_execution_capability_contract.json"
 )
 H23_CAPABILITY_CONTRACT_SHA256 = (
-    "d63f230cff679d4df65042bc083791a6a158dda730589db7f153a396b5fc4b3b"
+    "87f9288ad25816573fd6076856320f182829cb77e4643bf887d2b1571ad819ec"
 )
 H23_AUTHORIZATION_SEAL_RELATIVE_PATH = Path(
     "configs/harmonic_censoring_h23_synthetic_execution_authorization_seal.json"
@@ -311,13 +311,6 @@ def validate_h23_authorization_seal_payload(
         or files != sorted(set(files))
     ):
         raise ValueError("H23 exact_changed_files must be a sorted unique list.")
-    required_sources = {
-        H23_CAPABILITY_SOURCE_RELATIVE_PATH.as_posix(),
-        H23_RUNNER_SOURCE_RELATIVE_PATH.as_posix(),
-    }
-    if not required_sources.issubset(files):
-        raise ValueError("H23 implementation changed-file set omits runner sources.")
-
     runtime = _require_object(payload["runtime_identity"], "runtime_identity")
     expected_runtime = {
         "implementation": "CPython",
