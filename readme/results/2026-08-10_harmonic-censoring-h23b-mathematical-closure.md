@@ -99,6 +99,13 @@ possède sa propre règle `RETRIGGER_SUPPORTED` sans `Delta_R` ni changement de
 cardinalité. L'attente d'un hop n'utilise aucun futur au moment de la décision,
 mais son `decision_delay_hops=1` est archivé explicitement.
 
+La machine ne localise jamais l'onset à l'intérieur du hop. Toute proposition
+audio au niveau du hop entre systématiquement dans `PENDING_NEW`, puis est
+résolue une seule fois au hop suivant. `onset_coordinate` et `samples_seen`
+sont interdits dans les features et l'état runtime ; ils restent uniquement
+des propriétés d'oracle des waveforms synthétiques. Toutes les nouvelles notes
+ont donc un délai contractuel d'un hop, sans lookahead futur.
+
 ## État
 
 Les compteurs structurels restent `27 P0 + 35 P1 + 10 P2 = 72`, et
