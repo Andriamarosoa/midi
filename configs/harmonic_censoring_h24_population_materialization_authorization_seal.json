@@ -2,14 +2,14 @@
   "schema_version": 1,
   "purpose": "harmonic_censoring_h24_population_materialization_authorization_seal",
   "status": "reviewed_dormant_materializer_authorized_for_one_shot_activation",
-  "reviewed_materializer_commit": "101103e63420de3703c045142291a9f231373f77",
+  "reviewed_materializer_commit": "c51d8eaf7dbb8370456d92f9a76ec3f336d98016",
   "exact_changed_files": [
     "readme/README.md",
-    "readme/results/2026-08-10_harmonic-censoring-h24-dormant-population-materializer.md",
+    "readme/results/2026-08-10_harmonic-censoring-h24-dormant-operational-numpy-bridge.md",
     "src/polyphonic/harmonic_censoring_h24_population_materializer.py",
     "tests/test_harmonic_censoring_h24_population_materializer_dormant.py"
   ],
-  "materializer_source_blob": "16210df0830eb62cc32f6900af51ad3d9e4972e5",
+  "materializer_source_blob": "1f76391592ab0f4725147504bcb059f0c3d89e50",
   "materialization_contract_raw_sha256": "b48aa4f417a9857983c79809efe24137d6b82ad0984d20e906286477f05a14ca",
   "authorized_action": "AUTHORIZED_TO_ACTIVATE_H24_ONE_SHOT_POPULATION_MATERIALIZATION"
 }

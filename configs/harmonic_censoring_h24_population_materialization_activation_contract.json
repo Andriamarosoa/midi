@@ -1,19 +1,19 @@
 {
   "schema_version": 1,
   "purpose": "harmonic_censoring_h24_population_materialization_activation_contract",
-  "status": "contract_only_pending_external_review_no_runtime_authority",
+  "status": "activation_commit_created_pending_external_review_no_runtime_authority",
   "authorization_seal": {
     "path": "configs/harmonic_censoring_h24_population_materialization_authorization_seal.json",
-    "raw_sha256": "3d5849b89c31037bbd07be391c3a7e8e5ef53b55f65fa4c6a8be0e19bb0ef218"
+    "raw_sha256": "a4f8e48efacdadb57c75e9ac2db7d66673cd98d5672d7626dfaa28c5828d2b81"
   },
   "reviewed_materializer": {
-    "commit": "101103e63420de3703c045142291a9f231373f77",
+    "commit": "c51d8eaf7dbb8370456d92f9a76ec3f336d98016",
     "source_path": "src/polyphonic/harmonic_censoring_h24_population_materializer.py",
-    "source_blob": "16210df0830eb62cc32f6900af51ad3d9e4972e5",
+    "source_blob": "1f76391592ab0f4725147504bcb059f0c3d89e50",
     "materialization_contract_raw_sha256": "b48aa4f417a9857983c79809efe24137d6b82ad0984d20e906286477f05a14ca",
     "exact_changed_files": [
       "readme/README.md",
-      "readme/results/2026-08-10_harmonic-censoring-h24-dormant-population-materializer.md",
+      "readme/results/2026-08-10_harmonic-censoring-h24-dormant-operational-numpy-bridge.md",
       "src/polyphonic/harmonic_censoring_h24_population_materializer.py",
       "tests/test_harmonic_censoring_h24_population_materializer_dormant.py"
     ]
@@ -26,11 +26,10 @@
     "checkout_HEAD_must_equal_environment_value": true,
     "authorization_seal_bytes_must_equal_blob_at_activation_commit": true,
     "activation_commit_exact_changed_files": [
-      ".gitattributes",
       "configs/harmonic_censoring_h24_population_materialization_activation_contract.json",
       "configs/harmonic_censoring_h24_population_materialization_authorization_seal.json",
       "readme/README.md",
-      "readme/results/2026-08-10_harmonic-censoring-h24-population-materialization-activation-contract.md",
+      "readme/results/2026-08-10_harmonic-censoring-h24-population-materialization-activation-transition.md",
       "tests/test_harmonic_censoring_h24_population_materialization_activation_contract.py",
       "tests/test_harmonic_censoring_h24_population_materializer_dormant.py"
     ],
@@ -82,9 +81,8 @@
     "scientific_execution_authorized_now": false
   },
   "required_next_sequence": [
-    "external_review_authorization_seal_and_activation_contract",
-    "separate_authorization_to_implement_and_review_the_operational_numpy_bridge",
-    "external_review_exact_activation_commit_and_OS_binding",
+    "external_review_exact_activation_commit_and_refreshed_seal",
+    "separate_explicit_authorization_to_inject_the_exact_OS_binding",
     "single_zero_science_preflight",
     "single_durable_exclusive_claim",
     "single_population_materialization",

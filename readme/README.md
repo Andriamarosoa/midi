@@ -17,6 +17,19 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
+- Étape : `harmonic_censoring_h24_population_materialization_activation_transition`.
+- Statut : `seal rafraîchi et commit d'activation contractuel créé; revue externe obligatoire; aucune autorité runtime`.
+- Le commit d'activation autorisé lie exactement le matérialiseur revu
+  `c51d8eaf…`, son blob source `1f763915…`, le seal SHA-256 `a4f8e48e…`
+  et le contrat d'activation SHA-256 `3c40e7d0…`. La topologie est fermée à
+  six fichiers de contrat, tests et documentation. Aucun binding OS n'est
+  stocké, aucune capability n'est émise, aucun claim/marker n'est créé,
+  NumPy réel n'est pas importé et aucune population ni mesure P0/P1/P2 n'est
+  produite. La prochaine action est uniquement la revue externe de ce commit
+  exact; une autorisation séparée restera nécessaire avant d'injecter le SHA
+  du commit depuis l'OS. Rapport :
+  `readme/results/2026-08-10_harmonic-censoring-h24-population-materialization-activation-transition.md`.
+- Mise à jour : `2026-08-10`.
 - Étape : `harmonic_censoring_h24_dormant_operational_numpy_bridge`.
 - Statut : `seal/contrat approuvés; bridge NumPy H24 implémenté mais rendu inexécutable par le seal source volontairement obsolète; aucun claim, import NumPy réel, marker, waveform, population ni exécution; en attente de revue externe`.
 - La revue externe a approuvé `5864cc35…` puis autorisé uniquement

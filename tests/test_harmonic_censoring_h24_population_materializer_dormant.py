@@ -355,16 +355,16 @@ class H24DormantPopulationMaterializerTests(unittest.TestCase):
             ("capability",),
         )
 
-    def test_current_reviewed_seal_cannot_bind_the_new_bridge_source(self):
+    def test_refreshed_seal_binds_the_reviewed_bridge_source(self):
         seal_path = ROOT / materializer.H24_AUTHORIZATION_SEAL_RELATIVE_PATH
         seal = json.loads(seal_path.read_text(encoding="utf-8"))
         current_blob = materializer._git(
             ROOT, "hash-object", materializer.H24_MATERIALIZER_SOURCE_RELATIVE_PATH.as_posix()
         )
-        self.assertNotEqual(current_blob, seal["materializer_source_blob"])
+        self.assertEqual(current_blob, seal["materializer_source_blob"])
         self.assertEqual(
             seal["reviewed_materializer_commit"],
-            "101103e63420de3703c045142291a9f231373f77",
+            "c51d8eaf7dbb8370456d92f9a76ec3f336d98016",
         )
 
     def test_bridge_binding_failure_precedes_numpy_import_and_records_consumption(self):

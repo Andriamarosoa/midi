@@ -10,9 +10,9 @@ from src.polyphonic import harmonic_censoring_h24_population_materializer as mat
 ROOT = Path(__file__).resolve().parents[1]
 SEAL_PATH = ROOT / "configs/harmonic_censoring_h24_population_materialization_authorization_seal.json"
 ACTIVATION_PATH = ROOT / "configs/harmonic_censoring_h24_population_materialization_activation_contract.json"
-EXPECTED_SEAL_SHA256 = "3d5849b89c31037bbd07be391c3a7e8e5ef53b55f65fa4c6a8be0e19bb0ef218"
-REVIEWED_COMMIT = "101103e63420de3703c045142291a9f231373f77"
-REVIEWED_SOURCE_BLOB = "16210df0830eb62cc32f6900af51ad3d9e4972e5"
+EXPECTED_SEAL_SHA256 = "a4f8e48efacdadb57c75e9ac2db7d66673cd98d5672d7626dfaa28c5828d2b81"
+REVIEWED_COMMIT = "c51d8eaf7dbb8370456d92f9a76ec3f336d98016"
+REVIEWED_SOURCE_BLOB = "1f76391592ab0f4725147504bcb059f0c3d89e50"
 
 
 def _load(path: Path) -> tuple[bytes, dict[str, object]]:
@@ -85,11 +85,10 @@ class H24PopulationMaterializationActivationContractTests(unittest.TestCase):
         self.assertEqual(
             binding["activation_commit_exact_changed_files"],
             [
-                ".gitattributes",
                 "configs/harmonic_censoring_h24_population_materialization_activation_contract.json",
                 "configs/harmonic_censoring_h24_population_materialization_authorization_seal.json",
                 "readme/README.md",
-                "readme/results/2026-08-10_harmonic-censoring-h24-population-materialization-activation-contract.md",
+                "readme/results/2026-08-10_harmonic-censoring-h24-population-materialization-activation-transition.md",
                 "tests/test_harmonic_censoring_h24_population_materialization_activation_contract.py",
                 "tests/test_harmonic_censoring_h24_population_materializer_dormant.py",
             ],
@@ -121,7 +120,7 @@ class H24PopulationMaterializationActivationContractTests(unittest.TestCase):
     def test_contract_is_dormant_and_does_not_issue_runtime_authority(self):
         self.assertEqual(
             self.activation["status"],
-            "contract_only_pending_external_review_no_runtime_authority",
+            "activation_commit_created_pending_external_review_no_runtime_authority",
         )
         dormancy = self.activation["current_dormancy"]
         self.assertFalse(dormancy["this_contract_grants_runtime_authority"])
