@@ -19,6 +19,17 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 - Mise à jour : `2026-08-10`.
 - Étape : `harmonic_censoring_multiscale_h23_pretrain_contract`.
 - Statut : `contrat H23 approuvé — implémentation déterministe du harness autorisée; exécution P0 et tout calcul scientifique toujours interdits`.
+- Le harness H23 dispose maintenant d'une frontière d'implémentation pure :
+  le contrat canonique LF est lié à son SHA-256, les `175` spécifications de
+  fixtures et les `72` contrats de tests sont résolus, ordonnés et hachés de
+  manière déterministe, et le manifeste obtenu déclare explicitement
+  `waveforms_synthesized=false` / `tests_executed=false`. Le module n'importe
+  ni NumPy, ni TensorFlow, ni loader de données et ne contient aucun chemin de
+  synthèse DSP. Une garde distincte refuse toujours toute exécution synthétique
+  parce que les deux autorisations nécessaires restent à `false`. Les tests
+  ajoutés sont uniquement contractuels et n'ouvrent aucun actif scientifique.
+  Rapport :
+  `readme/results/2026-08-10_harmonic-censoring-h23-harness-implementation.md`.
 - La revue finale du commit `1e5075f5d9eb23bdab077bed3faeb6c58c61942e`
   conclut `APPROUVÉ` et ne relève plus aucun fail-open structurel. Le gate
   machine-readable autorise uniquement l'implémentation du harness synthétique.
@@ -1003,13 +1014,11 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 ## Prochaine action réelle
 
-1. Variante V1 close : ne pas modifier le seuil `0,31`, ne pas refaire son fit
-   et ne pas relancer cette validation.
-2. Attendre une décision explicite avant de préenregistrer une hypothèse
-   distincte de porte après ranking/sélection, juste avant l'émission NoteOn.
-3. Conserver le test verrouillé fermé : aucun nouveau fit, recalibration,
-   validation, export, live ou sélection/promotion de seuil n'est autorisé à
-   cette étape.
+1. Faire relire le commit d'implémentation pure du harness H23.
+2. Ne synthétiser aucune des `175` fixtures et ne lancer aucun test P0/P1/P2
+   avant un contrat d'exécution séparé, explicite et approuvé.
+3. Conserver les données réelles, H17, les modèles, le fit, la calibration et
+   le test verrouillé fermés.
 
 ## État archivé — dual-stream du 30 juillet (remplacé)
 
@@ -1461,6 +1470,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-10 — contrat pré-train H23 du censoring harmonique multiscale](results/2026-08-10_harmonic-censoring-pretrain-h23-contract.md)
 - [2026-08-10 — corrections de revue H23a du contrat de censoring](results/2026-08-10_harmonic-censoring-h23-review-corrections.md)
 - [2026-08-10 — fermeture mathématique H23b du contrat de censoring](results/2026-08-10_harmonic-censoring-h23b-mathematical-closure.md)
+- [2026-08-10 — implémentation pure du resolver/materializer H23](results/2026-08-10_harmonic-censoring-h23-harness-implementation.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)

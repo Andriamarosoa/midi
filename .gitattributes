@@ -45,3 +45,4 @@ configs/provisional_resolution_frame_fallback_h22_execution_contract.json text e
 src/polyphonic/run_provisional_resolution_frame_fallback_h17.py text eol=lf
 tests/test_provisional_resolution_frame_fallback_h22_execution.py text eol=lf
 readme/results/2026-08-10_provisional-resolution-frame-fallback-h22-runner.md text eol=lf
+configs/harmonic_censoring_pretrain_h23_contract.json text eol=lf
