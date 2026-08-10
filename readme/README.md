@@ -17,6 +17,19 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
+- Étape : `harmonic_censoring_h24_scientific_execution_authorization_contract`.
+- Statut : `population H24 matérialisée et auditée; contrat scientifique contract-only défini; aucune autorité P0/P1/P2`.
+- `H24_SYNTHETIC_V1` est publié sur le Mac avec `175` fixtures, `525`
+  fichiers fixture, index `b45b63c4…`, receipt `8a8128dc…`, marker
+  `3185adfd…` et terminal `50ec58c8…`; l'audit read-only confirme tous les
+  hashes, l'ordre, les tailles waveform et l'absence d'extra. Le nouveau
+  contrat SHA-256 `63355a01…` lie ces octets aux manifests, contrats et sources
+  H24, puis exige une future capability scientifique, un seal/activation
+  séparés et un claim scientifique distinct avant tout décodage waveform.
+  Aucun evaluator/oracle, P0/P1/P2, donnée réelle, H17, locked-test ou training
+  n'est autorisé. Rapport :
+  `readme/results/2026-08-10_harmonic-censoring-h24-scientific-execution-authorization-contract.md`.
+- Mise à jour : `2026-08-10`.
 - Étape : `harmonic_censoring_h24_population_materialization_activation_transition`.
 - Statut : `seal rafraîchi et commit d'activation contractuel créé; revue externe obligatoire; aucune autorité runtime`.
 - Le commit d'activation autorisé lie exactement le matérialiseur revu

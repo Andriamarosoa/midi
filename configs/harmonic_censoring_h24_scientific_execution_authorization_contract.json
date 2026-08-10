@@ -1,0 +1,252 @@
+{
+  "schema_version": 1,
+  "purpose": "harmonic_censoring_h24_scientific_execution_authorization_contract",
+  "status": "contract_only_population_published_external_review_required",
+  "authorization_basis": {
+    "reviewed_activation_commit": "e7c2eecf49ede43b3334266c74b1fe438f9e793d",
+    "external_verdict": "APPROVED_H24_MATERIALIZED_POPULATION_PUBLICATION_AUDIT",
+    "authorized_action": "AUTHORIZED_TO_DEFINE_H24_SCIENTIFIC_EXECUTION_AUTHORIZATION_CONTRACT_ONLY"
+  },
+  "scope": {
+    "contract_only": true,
+    "scientific_capability_implementation_authorized": false,
+    "scientific_capability_issuance_authorized": false,
+    "scientific_claim_authorized": false,
+    "evaluator_or_oracle_execution_authorized": false,
+    "P0_execution_authorized": false,
+    "P1_execution_authorized": false,
+    "P2_execution_authorized": false,
+    "population_modification_or_retry_authorized": false,
+    "real_data_access_authorized": false,
+    "H17_population_use_authorized": false,
+    "model_or_checkpoint_access_authorized": false,
+    "training_or_calibration_authorized": false,
+    "locked_test_used": false
+  },
+  "published_population_binding": {
+    "population_id": "H24_SYNTHETIC_V1",
+    "population_consumed": true,
+    "population_materialized": true,
+    "activation_commit": "e7c2eecf49ede43b3334266c74b1fe438f9e793d",
+    "reviewed_materializer_commit": "c51d8eaf7dbb8370456d92f9a76ec3f336d98016",
+    "materializer_source_blob": "1f76391592ab0f4725147504bcb059f0c3d89e50",
+    "authorization_seal_raw_sha256": "a4f8e48efacdadb57c75e9ac2db7d66673cd98d5672d7626dfaa28c5828d2b81",
+    "materialization_activation_contract_raw_sha256": "3c40e7d001f1bfecd48bd20999e35476a96d083ab9db12d86873d9bdcf4d1b6b",
+    "materialization_contract_raw_sha256": "b48aa4f417a9857983c79809efe24137d6b82ad0984d20e906286477f05a14ca",
+    "claim_marker": {
+      "path": "tmp/local/harmonic_censoring_h24_synthetic_v1/H24_SYNTHETIC_V1.consumed.json",
+      "raw_sha256": "3185adfdba7615900062378d7a230d9b990913d3197c2e9d1b006abbc0e62b85d",
+      "byte_count": 1805,
+      "mode": "0600"
+    },
+    "success_directory": "tmp/local/harmonic_censoring_h24_synthetic_v1/population",
+    "staging_directory": "tmp/local/harmonic_censoring_h24_synthetic_v1/population.materializing",
+    "terminal": {
+      "path": "tmp/local/harmonic_censoring_h24_synthetic_v1/materialization_terminal.json",
+      "raw_sha256": "50ec58c81d1a0ae533599676536d141c7f98ac337686c1baf66517bc3e39c54eb",
+      "byte_count": 591,
+      "status": "H24_SYNTHETIC_V1_POPULATION_MATERIALIZED"
+    },
+    "receipt": {
+      "path": "tmp/local/harmonic_censoring_h24_synthetic_v1/population/population_receipt.json",
+      "raw_sha256": "8a8128dc97c61f4203a89e116787f9eae319e7c146fbcd06b4432c4108f92cd5"
+    },
+    "index": {
+      "path": "tmp/local/harmonic_censoring_h24_synthetic_v1/population/population_index.jsonl",
+      "raw_sha256": "b45b63c477a3db13d161779bb28067c0b2b6fa5c4cc80c985199e9347e1eff15",
+      "row_count": 175,
+      "ordered_fixture_ids_sha256": "d4b23a898d8775f772e91933ace7c90c2e7b5a808e32bf9955088287bbe9670f"
+    },
+    "fixture_count": 175,
+    "fixture_file_count": 525,
+    "published_file_count": 527,
+    "waveform_file_count": 175,
+    "waveform_byte_count_each": 100352,
+    "first_failed_fixture_id": null,
+    "scientific_tests_executed": 0,
+    "locked_test_used": false,
+    "staging_must_be_absent": true,
+    "success_must_be_present": true,
+    "population_bytes_are_immutable": true,
+    "repair_regeneration_or_materialization_retry_allowed": false
+  },
+  "sealed_scientific_inputs": {
+    "successor_contract": {
+      "path": "configs/harmonic_censoring_h24_successor_contract.json",
+      "raw_sha256": "184d3847a594ffaca263b45befe70d1f5aa63ade0a0ef599d969ba044f4e680a"
+    },
+    "population_manifest": {
+      "path": "configs/harmonic_censoring_h24_population_manifest.json",
+      "raw_sha256": "52c88c74c837ad3c6109be466df38bac862e10d93c187fe60e8c5da30bd4b02b"
+    },
+    "test_manifest": {
+      "path": "configs/harmonic_censoring_h24_test_manifest.json",
+      "raw_sha256": "7f87e486ffc6fdc2bfa60a5c617eca9b1ce78c570c1d72910173193ad1f7b416"
+    },
+    "manifest_binding": {
+      "path": "configs/harmonic_censoring_h24_manifest_binding_contract.json",
+      "raw_sha256": "242c00d4d5fd3b9e777676b563f28b94b724159bde81307aebbba9e46608a1b5"
+    },
+    "dormant_harness_contract": {
+      "path": "configs/harmonic_censoring_h24_dormant_harness_contract.json",
+      "raw_sha256": "72675c6dda2128aa0036b7f0f2379de535fd74445a029f020f24f3f6f15fff39"
+    },
+    "materialization_contract": {
+      "path": "configs/harmonic_censoring_h24_population_materialization_one_shot_contract.json",
+      "raw_sha256": "b48aa4f417a9857983c79809efe24137d6b82ad0984d20e906286477f05a14ca"
+    },
+    "approved_harness_source": {
+      "path": "src/polyphonic/harmonic_censoring_h24.py",
+      "commit": "1b6aa27536dd5bfceba62d6bc5c9a499b4c11f18",
+      "git_blob": "1a8759d6587b05e9064c6e033a7b906bd6e2955b"
+    },
+    "approved_operator_source": {
+      "path": "src/polyphonic/harmonic_censoring_h24_operators.py",
+      "commit": "1b6aa27536dd5bfceba62d6bc5c9a499b4c11f18",
+      "git_blob": "7e72ed05dcbebd1f3ed546733a811fbc3be5495e"
+    },
+    "test_namespace": "H24_TEST_V1",
+    "test_count": 72,
+    "phase_counts": {
+      "P0": 27,
+      "P1": 35,
+      "P2": 10
+    },
+    "fixture_or_test_addition_omission_duplicate_or_reordering_allowed": false
+  },
+  "future_scientific_capability": {
+    "name": "AttestedH24ScientificExecutionCapability",
+    "implementation_exists_now": false,
+    "factory_exists_now": false,
+    "constructor_publicly_callable": false,
+    "factory_must_be_separately_implemented_and_reviewed": true,
+    "identity_only_process_local_attestation_required": true,
+    "copy_pickle_replace_or_manual_construction_must_fail": true,
+    "serialization_allowed": false,
+    "cross_process_reuse_allowed": false,
+    "single_use": true,
+    "must_bind": [
+      "this_contract_raw_sha256",
+      "future_reviewed_scientific_implementation_commit",
+      "future_capability_source_blob",
+      "future_runner_source_blob",
+      "all_sealed_scientific_input_hashes",
+      "published_population_marker_terminal_receipt_and_index_hashes",
+      "all_525_fixture_file_hashes_from_the_index",
+      "exact_175_fixture_ID_order",
+      "exact_72_test_ID_order_and_phase_partition",
+      "runtime_identity",
+      "fixed_scientific_claim_staging_success_terminal_and_transcript_paths"
+    ],
+    "preissue_fail_closed_requirements": [
+      "OS_bound_reviewed_scientific_activation_commit_matches_HEAD",
+      "worktree_clean",
+      "future_scientific_seal_and_activation_bytes_match_reviewed_commit",
+      "population_marker_terminal_receipt_index_hashes_match",
+      "all_525_fixture_file_hashes_and_175_waveform_sizes_match_without_decoding",
+      "no_extra_duplicate_or_reordered_fixture",
+      "all_sealed_contract_manifest_and_source_bindings_match",
+      "runtime_is_CPython_3_11_9_NumPy_1_26_4_arm64_CPU_one_thread",
+      "H17_real_data_locked_test_model_checkpoint_and_training_inputs_absent",
+      "future_scientific_claim_staging_success_terminal_and_transcript_paths_absent"
+    ]
+  },
+  "future_scientific_authorization_seal": {
+    "required_as_separate_reviewed_file": true,
+    "exists_now": false,
+    "path": "configs/harmonic_censoring_h24_scientific_execution_authorization_seal.json",
+    "raw_sha256": null,
+    "reviewed_scientific_implementation_commit": null,
+    "capability_issuance_authorized": false,
+    "scientific_claim_authorized": false,
+    "scientific_execution_authorized": false,
+    "P0_execution_authorized": false,
+    "P1_execution_authorized": false,
+    "P2_execution_authorized": false,
+    "must_bind_this_contract_raw_sha256": true,
+    "must_bind_exact_future_capability_and_runner_blobs": true,
+    "must_bind_published_population_hashes": true,
+    "must_bind_exact_changed_file_set": true
+  },
+  "future_scientific_activation": {
+    "required_as_separate_reviewed_file": true,
+    "exists_now": false,
+    "path": "configs/harmonic_censoring_h24_scientific_execution_activation.json",
+    "OS_environment_variable": "H24_SCIENTIFIC_EXECUTION_AUTHORIZATION_COMMIT",
+    "checkout_HEAD_must_equal_OS_bound_commit": true,
+    "activation_bytes_must_equal_blob_at_OS_bound_commit": true,
+    "worktree_must_be_clean": true,
+    "activation_and_seal_bindings_must_match_exactly": true,
+    "unreviewed_HEAD_may_be_inferred_as_authority": false
+  },
+  "future_scientific_one_shot_boundary": {
+    "population_consumption_marker_is_not_the_scientific_execution_claim": true,
+    "separate_scientific_claim_required": true,
+    "claim_method": "atomic_create_exclusive_before_first_waveform_decode_or_evaluator",
+    "scientific_execution_consumed_after_successful_claim": true,
+    "automatic_retry_allowed": false,
+    "manual_retry_allowed": false,
+    "failure_after_claim_remains_consumed": true,
+    "partial_output_authoritative": false,
+    "claim_staging_success_terminal_and_transcript_paths_must_be_fixed_by_future_seal": true
+  },
+  "future_execution_order": {
+    "steps": [
+      "zero_science_population_and_binding_preflight",
+      "process_local_scientific_capability_issuance",
+      "durable_scientific_execution_claim",
+      "decode_exact_175_published_waveforms",
+      "P0_exact_27_tests",
+      "P1_exact_35_tests_if_all_P0_pass",
+      "P2_exact_10_tests_if_all_P1_pass",
+      "atomic_scientific_terminal_publication"
+    ],
+    "P1_requires_all_P0_pass": true,
+    "P2_requires_all_P1_pass": true,
+    "stop_on_first_failed_test": true,
+    "execute_unlisted_test_allowed": false,
+    "skip_or_dynamic_selection_allowed": false,
+    "post_observation_parameter_or_contract_change_allowed": false,
+    "producer_verdict_is_authoritative": false,
+    "independent_oracle_recomputation_required": true
+  },
+  "future_terminal_contract": {
+    "success_requires_all_72_tests_in_exact_order": true,
+    "failure_requires_exact_executed_prefix_and_first_failed_test": true,
+    "unexecuted_suffix_status": "NOT_RUN_BY_KILL_RULE",
+    "operational_failure_status": "H24_EXECUTION_INCONCLUSIVE_CONSUMED",
+    "operational_failure_is_not_scientific_verdict": true,
+    "terminal_must_bind_population_and_execution_claim_hashes": true,
+    "atomic_staging_verify_rename_required": true,
+    "result_may_authorize_training": false,
+    "result_may_access_real_data_or_locked_test": false
+  },
+  "contract_definition_exact_changed_files": [
+    ".gitattributes",
+    "configs/harmonic_censoring_h24_scientific_execution_authorization_contract.json",
+    "readme/README.md",
+    "readme/results/2026-08-10_harmonic-censoring-h24-scientific-execution-authorization-contract.md",
+    "tests/test_harmonic_censoring_h24_scientific_execution_authorization_contract.py"
+  ],
+  "required_next_sequence": [
+    "external_review_this_contract_only_commit",
+    "separate_authorization_to_implement_dormant_scientific_capability_and_runner",
+    "external_review_implementation_commit",
+    "separate_reviewed_scientific_authorization_seal_and_activation",
+    "OS_bound_exact_activation_commit",
+    "zero_science_population_preflight",
+    "process_local_scientific_capability_issuance",
+    "durable_scientific_execution_claim",
+    "P0_then_P1_then_P2_with_kill_rules"
+  ],
+  "current_dormancy": {
+    "this_contract_grants_scientific_authority": false,
+    "scientific_capability_or_runner_implemented_now": false,
+    "scientific_seal_or_activation_exists_now": false,
+    "scientific_claim_or_terminal_created_now": false,
+    "waveforms_decoded_now": false,
+    "P0_P1_P2_executed_now": false,
+    "scientific_tests_executed_now": 0,
+    "locked_test_used": false
+  }
+}
