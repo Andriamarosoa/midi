@@ -60,6 +60,39 @@ class HarmonicCensoringH23ExecutorClaimTranscriptContractTests(unittest.TestCase
         self.assertTrue(implementation["new_activation_and_seal_binding_new_source_blobs_required"])
         self.assertTrue(implementation["new_activation_and_seal_require_separate_external_review"])
 
+    def test_executor_contract_is_self_bound_across_future_authority_chain(self) -> None:
+        authority = self.contract["executor_claim_transcript_contract_authority"]
+        self.assertEqual(
+            authority["contract_path"],
+            "configs/harmonic_censoring_h23_executor_claim_transcript_contract.json",
+        )
+        self.assertEqual(
+            authority["future_source_constant_name"],
+            "H23_EXECUTOR_CLAIM_TRANSCRIPT_CONTRACT_RAW_SHA256",
+        )
+        for name in (
+            "approved_raw_sha256_is_hash_of_exact_reviewed_contract_bytes",
+            "future_source_constant_must_equal_approved_contract_raw_sha256",
+            "future_new_seal_must_bind_executor_claim_transcript_contract_raw_sha256",
+            "future_activation_must_bind_same_executor_claim_transcript_contract_raw_sha256",
+            "future_capability_factory_must_verify_contract_bytes_before_issuance",
+            "future_capability_marker_header_and_finalizer_must_preserve_same_contract_raw_sha256",
+            "contract_raw_sha256_must_be_bound_to_reviewed_implementation_commit",
+        ):
+            self.assertTrue(authority[name], name)
+        self.assertFalse(authority["contract_version_substitution_after_review_allowed"])
+
+        field = "executor_claim_transcript_contract_raw_sha256"
+        self.assertIn(
+            field,
+            self.contract["future_capability_authority_snapshot"]["required_immutable_fields"],
+        )
+        self.assertIn(field, self.contract["future_claim_contract"]["marker_required_fields"])
+        self.assertIn(
+            field,
+            self.contract["future_transcript_contract"]["event_schemas"]["HEADER"]["exact_fields"],
+        )
+
     def test_future_capability_snapshots_activation_authority_before_claim(self) -> None:
         snapshot = self.contract["future_capability_authority_snapshot"]
         required = set(snapshot["required_immutable_fields"])
@@ -68,6 +101,7 @@ class HarmonicCensoringH23ExecutorClaimTranscriptContractTests(unittest.TestCase
                 "authorization_activation_commit",
                 "authorization_activation_sha256",
                 "authorization_seal_sha256",
+                "executor_claim_transcript_contract_raw_sha256",
                 "implementation_commit",
                 "capability_source_blob",
                 "runner_source_blob",
@@ -182,6 +216,33 @@ class HarmonicCensoringH23ExecutorClaimTranscriptContractTests(unittest.TestCase
             ]
         )
 
+    def test_transcript_derived_hashes_have_exact_byte_level_definitions(self) -> None:
+        transcript = self.contract["future_transcript_contract"]
+        derived = transcript["derived_hash_definitions"]
+        serialization = derived["ordered_ID_list_serialization"]
+        self.assertEqual(
+            serialization["serialization"],
+            "json.dumps(list,ensure_ascii=True,separators=(',',':'),allow_nan=False).encode('UTF-8') + b'\\n'",
+        )
+        self.assertTrue(serialization["JSON_array_order_is_semantically_significant"])
+        self.assertTrue(serialization["no_sorting_deduplication_normalization_or_whitespace_allowed"])
+        self.assertEqual(
+            derived["ordered_fixture_ids_sha256"],
+            "SHA256_of_ordered_ID_list_serialization_for_exact_175_fixture_IDs",
+        )
+        self.assertEqual(
+            derived["ordered_test_ids_sha256"],
+            "SHA256_of_ordered_ID_list_serialization_for_exact_72_resolved_test_IDs",
+        )
+        self.assertEqual(
+            derived["transcript_prefix_sha256"],
+            "SHA256_of_concatenation_of_exact_persisted_canonical_line_bytes_from_HEADER_through_event_immediately_preceding_TERMINAL_inclusive_with_every_trailing_LF",
+        )
+        self.assertTrue(derived["transcript_prefix_excludes_TERMINAL_line"])
+        self.assertTrue(
+            derived["finalizer_must_recompute_all_three_derived_hashes_from_persisted_bytes_and_resolved_manifests"]
+        )
+
     def test_finalizer_reopens_persisted_marker_and_transcript_only(self) -> None:
         finalizer = self.contract["future_authoritative_finalization"]
         self.assertEqual(
@@ -194,7 +255,12 @@ class HarmonicCensoringH23ExecutorClaimTranscriptContractTests(unittest.TestCase
             "must_reopen_marker_from_sealed_path",
             "must_reopen_transcript_from_sealed_path",
             "must_hash_exact_persisted_marker_bytes",
+            "must_rehash_executor_claim_transcript_contract_from_sealed_path",
+            "must_require_executor_claim_transcript_contract_sha256_equal_seal_capability_marker_header_and_source_constant",
             "must_validate_complete_transcript_hash_chain",
+            "must_recompute_ordered_fixture_ids_sha256_from_exact_resolved_175_ID_order",
+            "must_recompute_ordered_test_ids_sha256_from_exact_resolved_72_ID_order",
+            "must_recompute_transcript_prefix_sha256_from_exact_persisted_preterminal_line_bytes",
             "must_recompute_all_bindings_counts_IDs_order_and_kill_rule",
             "must_recompute_each_pass_fail_from_persisted_evidence_and_preregistered_oracle",
         ):
@@ -230,11 +296,14 @@ class HarmonicCensoringH23ExecutorClaimTranscriptContractTests(unittest.TestCase
         )
         self.assertFalse(sequence["negative_inconclusive_or_crashed_population_retry_allowed"])
         tests = set(self.contract["required_future_tests_before_new_seal"])
-        self.assertEqual(len(tests), 22)
+        self.assertEqual(len(tests), 25)
         for required in (
             "claim_uses_O_EXCL_and_second_process_loses",
             "caller_fabricated_72_PASS_objects_cannot_finalize",
             "success_requires_72_PASS_and_all_175_fixture_IDs",
+            "executor_claim_transcript_contract_SHA_is_bound_by_seal_capability_marker_header_source_and_finalizer",
+            "ordered_fixture_and_test_ID_hashes_use_exact_canonical_JSON_array_bytes_with_LF",
+            "terminal_prefix_hash_uses_exact_persisted_preterminal_line_bytes",
             "old_31b116_activation_and_seal_cannot_authorize_new_executor_blobs",
             "real_data_model_H17_and_locked_test_paths_fail_before_claim",
         ):

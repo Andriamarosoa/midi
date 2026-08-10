@@ -32,6 +32,11 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   activation+seal avant claim; aucune autorité ne sera relue depuis l’env.
   Les quatre événements JSONL ont désormais un envelope et un jeu de clés
   exacts, sans champs supplémentaires, et leur hash inclut le LF terminal.
+  Le SHA brut du présent contrat sera lui-même lié par le futur seal,
+  l’activation, la capability, le marker, le header, la constante source et le
+  finalizer. Les hashes des listes ordonnées utilisent un tableau JSON canonique
+  UTF-8+LF exact; le hash du préfixe terminal couvre les octets persistés du
+  header à la ligne préterminale, chaque LF inclus.
   Rapport :
   `readme/results/2026-08-10_harmonic-censoring-h23-executor-claim-transcript-contract.md`.
 - La revue externe de `31b116c…` approuve le couple activation+seal et autorise

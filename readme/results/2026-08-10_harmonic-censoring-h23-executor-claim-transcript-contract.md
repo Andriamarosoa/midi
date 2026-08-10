@@ -14,9 +14,9 @@ et n’exécute aucun test P0/P1/P2.
 
 ```text
 configs/harmonic_censoring_h23_executor_claim_transcript_contract.json
-taille       17 885 octets
-SHA-256 brut 2d727fc660e40f601605067ae4d5c0c89e08de7a5efc7b704d8a24e526a10d4c
-blob Git     5a81c1c016b0ab596f9ce688346c6a9af0549f5d
+taille       20 691 octets
+SHA-256 brut 8126edc0a27fe43bbb41f0d8e874c1355e01f9f1185c1a71d70048fcaea661ef
+blob Git     e93175c4b113a1f60bcb1c537fb0a3e29a05dc48
 ```
 
 Le contrat lie les `175` fixtures, les `72` tests `27/35/10`, les quatre SHA
@@ -57,6 +57,13 @@ pourra jamais reprendre une valeur d’autorité depuis l’environnement ou une
 relecture mutable : une revalidation éventuelle pourra seulement confirmer
 l’égalité au snapshot, sinon elle échouera avant `O_EXCL`.
 
+Le SHA brut du présent contrat claim/executor/transcript sera une autorité à
+part entière. Le futur seal et l’activation devront le lier; la factory devra
+le vérifier avant issuance; la capability devra le snapshotter; le marker et
+le HEADER devront l’écrire; une constante du source d’implémentation devra lui
+être égale; le finalizer devra rehacher le chemin scellé et exiger l’égalité de
+toutes ces copies. Aucune substitution de version après revue n’est permise.
+
 ## Transcript autoritatif
 
 Le transcript sera un JSONL canonique LF append-only, chaîné par SHA-256 et
@@ -88,12 +95,32 @@ octets canoniques exacts de la ligne précédente, LF terminal inclus. Le schém
 d’évidence et le SHA du contrat de test doivent correspondre à l’oracle
 préenregistré pour le `test_id`.
 
+Les trois hashes dérivés ont une définition byte-level normative :
+
+```text
+ordered_fixture_ids_sha256
+ordered_test_ids_sha256
+  = SHA256(json.dumps(liste ordonnée exacte,
+                      ensure_ascii=True,
+                      separators=(",", ":"),
+                      allow_nan=False).encode("UTF-8") + b"\n")
+
+transcript_prefix_sha256
+  = SHA256(concaténation des octets canoniques persistés,
+           de HEADER à l’événement précédant immédiatement TERMINAL,
+           chaque ligne avec son LF terminal)
+```
+
+Aucun tri, dédoublonnage, normalisation ou espace supplémentaire n’est permis.
+Le terminal lui-même est exclu du hash de préfixe.
+
 ## Finalisation depuis les octets persistés
 
 Le finalizer futur n’acceptera aucun résultat ou chemin du caller. Il rouvrira
 le marker et le transcript uniquement depuis les chemins de la capability
 claimée, rehachera les octets, vérifiera la chaîne complète, les bindings, les
-IDs, l’ordre, les comptes et la kill rule.
+IDs, l’ordre, les comptes, les trois hashes dérivés, le SHA du présent contrat
+sur toute la chaîne d’autorité et la kill rule.
 
 ```text
 succès : 72/72 PASS + couverture exacte des 175 fixtures
@@ -129,16 +156,16 @@ Le couple activation/seal de `31b116c…` est explicitement non réutilisable.
 
 ```text
 tests/test_harmonic_censoring_h23_executor_claim_transcript_contract.py
-taille       13 373 octets
-SHA-256 brut a36fe080c0f68bf73bdbd8789df20193579d66e83dd0356618367d22d430fa5c
-blob Git     69bb0bcbc8f7813db5fb041b4236e595a875f589
+taille       17 415 octets
+SHA-256 brut cb7d41882c8ac83f1df8a5a143d98019f8e1fa3671d322f2fe0adb12be75e2cb
+blob Git     bd124046f2df2343b78cc13f39dbd14a4731ab01
 ```
 
-Les `11` tests ne font que parser le JSON et vérifier ses invariants. Aucun
+Les `13` tests ne font que parser le JSON et vérifier ses invariants. Aucun
 module scientifique, actif, modèle, waveform ou population n’est utilisé.
 
-Résultats : `11` tests ciblés réussis en `0,002 s`, puis `69` tests
-H23/H17/H20 réussis en `0,827 s`. `json.tool`, `py_compile` et
+Résultats : `13` tests ciblés réussis en `0,002 s`, puis `71` tests
+H23/H17/H20 réussis en `0,999 s`. `json.tool`, `py_compile` et
 `git diff --check` réussissent.
 
 ## État

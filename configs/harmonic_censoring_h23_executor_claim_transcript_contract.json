@@ -70,6 +70,18 @@
     "future_worker_must_run_exact_new_activation_commit": true,
     "no_scientific_execution_in_implementation_or_seal_definition_commits": true
   },
+  "executor_claim_transcript_contract_authority": {
+    "contract_path": "configs/harmonic_censoring_h23_executor_claim_transcript_contract.json",
+    "approved_raw_sha256_is_hash_of_exact_reviewed_contract_bytes": true,
+    "future_source_constant_name": "H23_EXECUTOR_CLAIM_TRANSCRIPT_CONTRACT_RAW_SHA256",
+    "future_source_constant_must_equal_approved_contract_raw_sha256": true,
+    "future_new_seal_must_bind_executor_claim_transcript_contract_raw_sha256": true,
+    "future_activation_must_bind_same_executor_claim_transcript_contract_raw_sha256": true,
+    "future_capability_factory_must_verify_contract_bytes_before_issuance": true,
+    "future_capability_marker_header_and_finalizer_must_preserve_same_contract_raw_sha256": true,
+    "contract_raw_sha256_must_be_bound_to_reviewed_implementation_commit": true,
+    "contract_version_substitution_after_review_allowed": false
+  },
   "future_capability_authority_snapshot": {
     "required_immutable_fields": [
       "authorization_activation_commit",
@@ -80,6 +92,7 @@
       "runner_source_blob",
       "H23_contract_raw_sha256",
       "capability_contract_raw_sha256",
+      "executor_claim_transcript_contract_raw_sha256",
       "fixture_manifest_sha256",
       "resolved_test_manifest_sha256",
       "runtime_identity",
@@ -126,6 +139,7 @@
       "runner_source_blob",
       "H23_contract_raw_sha256",
       "capability_contract_raw_sha256",
+      "executor_claim_transcript_contract_raw_sha256",
       "fixture_manifest_sha256",
       "resolved_test_manifest_sha256",
       "runtime_identity",
@@ -217,6 +231,19 @@
     "first_event_previous_event_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
     "each_event_sha256_is_over_exact_canonical_line_bytes": true,
     "previous_event_sha256_definition": "SHA256_of_exact_canonical_bytes_of_immediately_preceding_line_including_trailing_LF",
+    "derived_hash_definitions": {
+      "ordered_ID_list_serialization": {
+        "input": "exact_ordered_array_of_manifest_ID_strings_without_normalization",
+        "serialization": "json.dumps(list,ensure_ascii=True,separators=(',',':'),allow_nan=False).encode('UTF-8') + b'\\n'",
+        "JSON_array_order_is_semantically_significant": true,
+        "no_sorting_deduplication_normalization_or_whitespace_allowed": true
+      },
+      "ordered_fixture_ids_sha256": "SHA256_of_ordered_ID_list_serialization_for_exact_175_fixture_IDs",
+      "ordered_test_ids_sha256": "SHA256_of_ordered_ID_list_serialization_for_exact_72_resolved_test_IDs",
+      "transcript_prefix_sha256": "SHA256_of_concatenation_of_exact_persisted_canonical_line_bytes_from_HEADER_through_event_immediately_preceding_TERMINAL_inclusive_with_every_trailing_LF",
+      "transcript_prefix_excludes_TERMINAL_line": true,
+      "finalizer_must_recompute_all_three_derived_hashes_from_persisted_bytes_and_resolved_manifests": true
+    },
     "common_event_exact_fields": [
       "schema_version",
       "event_index",
@@ -258,6 +285,7 @@
           "runner_source_blob",
           "H23_contract_raw_sha256",
           "capability_contract_raw_sha256",
+          "executor_claim_transcript_contract_raw_sha256",
           "fixture_manifest_sha256",
           "resolved_test_manifest_sha256",
           "runtime_identity",
@@ -347,7 +375,12 @@
     "must_reopen_marker_from_sealed_path": true,
     "must_reopen_transcript_from_sealed_path": true,
     "must_hash_exact_persisted_marker_bytes": true,
+    "must_rehash_executor_claim_transcript_contract_from_sealed_path": true,
+    "must_require_executor_claim_transcript_contract_sha256_equal_seal_capability_marker_header_and_source_constant": true,
     "must_validate_complete_transcript_hash_chain": true,
+    "must_recompute_ordered_fixture_ids_sha256_from_exact_resolved_175_ID_order": true,
+    "must_recompute_ordered_test_ids_sha256_from_exact_resolved_72_ID_order": true,
+    "must_recompute_transcript_prefix_sha256_from_exact_persisted_preterminal_line_bytes": true,
     "must_recompute_all_bindings_counts_IDs_order_and_kill_rule": true,
     "must_recompute_each_pass_fail_from_persisted_evidence_and_preregistered_oracle": true,
     "must_reject_any_event_after_first_failure_except_terminal_event": true,
@@ -404,7 +437,10 @@
     "executor_accepts_no_caller_test_results_or_selection",
     "first_waveform_cannot_precede_durable_marker",
     "transcript_header_binds_marker_seal_activation_sources_contracts_manifests_runtime",
+    "executor_claim_transcript_contract_SHA_is_bound_by_seal_capability_marker_header_source_and_finalizer",
     "transcript_event_indexes_and_hash_chain_are_exact",
+    "ordered_fixture_and_test_ID_hashes_use_exact_canonical_JSON_array_bytes_with_LF",
+    "terminal_prefix_hash_uses_exact_persisted_preterminal_line_bytes",
     "all_fixture_materializations_bind_spec_waveform_and_target_hashes",
     "test_events_equal_resolved_72_ID_order",
     "P0_failure_stops_before_P1_and_writes_exact_NOT_RUN_suffix",
