@@ -19,6 +19,18 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 - Mise à jour : `2026-08-10`.
 - Étape : `harmonic_censoring_h24_population_materialization_contract`.
 - Statut : `contrat de matérialisation H24 et frontière one-shot définis, sans materializer, claim, waveform ni exécution; en attente de revue externe`.
+- La revue externe de `10aa49a8…` a approuvé conceptuellement le one-shot et
+  la séparation science/matérialisation, mais a refusé le contrat final pour
+  quatre ambiguïtés : defaults source incomplets, ordre numérique/RNG non
+  normatif, valeurs des lignes d'index et hash des IDs sous-spécifiés, puis
+  schémas capability/marker/runtime non fermés. Le correctif contract-only
+  impose tous les defaults optionnels, une trace exacte des primitives NumPy,
+  l'ordre sources/harmoniques/additions et des deux tirages pink-noise, les
+  treize valeurs de chaque ligne `i`, la sérialisation canonique des IDs, et
+  les ensembles de champs immutables de la capability, du marker et du runtime.
+  Des adversariaux refusent default manquant, RNG inversé, dtype ambigu, hash
+  d'IDs alternatif, autorité marker manquante et champ runtime additionnel.
+  Aucune capacité opérationnelle n'est créée.
 - La revue externe a approuvé `1b6aa275…` comme harness H24 dormant
   sémantiquement fermé et autorisé uniquement la définition du contrat de
   matérialisation/consommation. Le nouveau contrat lie le commit approuvé, ses
@@ -31,7 +43,7 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   les sorties partielles resteront non autoritatives. La matérialisation restera
   strictement séparée de P0/P1/P2. Aucun code `src/`, materializer, capability,
   claim, marker, waveform ou résultat scientifique n'est créé ici. `136` tests
-  contractuels H24/H23/H20 réussissent en `1,913 s`. Rapport :
+  `142` tests contractuels H24/H23/H20 réussissent en `1,986 s`. Rapport :
   `readme/results/2026-08-10_harmonic-censoring-h24-population-materialization-contract.md`.
   La prochaine action est uniquement la revue externe de ce contrat; toute
   implémentation ou synthèse reste interdite.

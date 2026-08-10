@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "purpose": "harmonic_censoring_h24_population_materialization_and_one_shot_contract",
-  "status": "contract_only_external_review_required",
+  "status": "contract_only_corrected_external_review_required",
   "authorization_basis": {
     "reviewed_harness_commit": "1b6aa27536dd5bfceba62d6bc5c9a499b4c11f18",
     "external_verdict": "APPROVED_H24_DORMANT_HARNESS_SEMANTICS",
@@ -83,6 +83,22 @@
     "seed_rule": "unsigned_little_endian_uint64(first_8_bytes(SHA256(UTF8('H24|'+fixture_id))))",
     "rng": "numpy.random.Generator(numpy.random.PCG64(synthesis_seed))",
     "seed_must_equal_manifest_value": true,
+    "required_source_fields": ["pitch", "harmonics", "envelope"],
+    "source_defaults_exact": {
+      "gain": 1.0,
+      "cents": 0.0,
+      "inharmonicity_B": 0.0,
+      "fundamental_amplitude": 1.0,
+      "h1_phase": 0.0,
+      "phase": 0.0,
+      "old_source_age_hops": 0,
+      "onset": 12032,
+      "attack_hops": 0,
+      "decay_tau_hops": 8,
+      "technique": null,
+      "instantaneous_pitch_offset": 0.0
+    },
+    "source_default_resolution_rule": "for each optional source field use the recipe value when present, otherwise exactly source_defaults_exact[field]; unknown source fields are forbidden; pitch, harmonics and envelope have no defaults and must be present",
     "source_frequency_hz": "440*2^((pitch+instantaneous_pitch_offset-69)/12)*harmonic*2^(cents/1200)*sqrt(1+B*harmonic^2)",
     "source_harmonic_amplitude": "gain*(0.4/harmonic), additionally multiplied by fundamental_amplitude only for harmonic=1",
     "source_phase": "2*pi*cumsum(frequency,float64)/44100; subtract first phase; add h1_phase for H1 and phase for H2+",
@@ -181,6 +197,86 @@
     "shape_or_dtype_mismatch_forbidden": true,
     "same_runtime_repeat_requirement": "all 100352 waveform bytes and SHA256 must be byte-identical"
   },
+  "numpy_numeric_execution_trace_v1": {
+    "normative_status": "exact operation sequence; algebraically equivalent rewrites are forbidden",
+    "initialization": [
+      "samples = np.arange(12544, dtype=np.float64)",
+      "waveform = np.zeros(samples.shape, dtype=np.float64)"
+    ],
+    "source_and_harmonic_order": {
+      "sources": "iterate the resolved recipe source list from index 0 upward without sorting",
+      "harmonics": "iterate each source harmonics list from index 0 upward without sorting or deduplication",
+      "source_accumulation": "complete every harmonic of one source before the next source",
+      "addition": "for each harmonic execute waveform += gain * amplitude * envelope * np.sin(phase) exactly once",
+      "pairwise_tree_reduction_vectorization_fma_or_fastmath_forbidden": true
+    },
+    "source_trace": [
+      "pitch = float(source['pitch'])",
+      "harmonics = tuple(int(value) for value in source['harmonics'])",
+      "gain = float(resolved gain)",
+      "phase_offset = float(resolved phase)",
+      "cents = float(resolved cents)",
+      "inharmonicity = float(resolved inharmonicity_B)",
+      "pitch_offset = exact technique trajectory array or np.zeros(samples.shape,dtype=np.float64)",
+      "amplitude = 0.4 / harmonic",
+      "if harmonic == 1: amplitude *= float(resolved fundamental_amplitude)",
+      "frequency = 440.0 * np.power(2.0,(pitch+pitch_offset-69.0)/12.0) * harmonic * math.pow(2.0,cents/1200.0) * math.sqrt(1.0+inharmonicity*harmonic*harmonic)",
+      "phase = 2.0 * np.pi * np.cumsum(frequency,dtype=np.float64) / 44100.0",
+      "phase -= phase[0]",
+      "phase += phase_offset if harmonic >= 2 else float(resolved h1_phase)",
+      "waveform += gain * amplitude * envelope * np.sin(phase)"
+    ],
+    "envelope_primitives": {
+      "old": "np.zeros float64; valid=samples>=4096; result[valid]=np.exp(-((samples[valid]-4096)+old_source_age_hops*256)/8192.0)",
+      "new": "np.zeros float64; valid=samples>=onset; elapsed=samples[valid]-onset; attack_samples=max(1,attack_hops*256+1); decay_samples=decay_tau_hops*256; result[valid]=np.minimum(1.0,(elapsed+1.0)/attack_samples)*np.exp(-elapsed/decay_samples)",
+      "second_distinct": "np.zeros float64; valid=samples>=12160; elapsed=samples[valid]-12160; result[valid]=np.minimum(1.0,(elapsed+1.0)/32.0)*np.exp(-elapsed/1024.0)"
+    },
+    "noise_rng_call_order": {
+      "white": [
+        "generator = np.random.Generator(np.random.PCG64(seed))",
+        "noise = generator.standard_normal(12544).astype(np.float64)",
+        "noise -= np.mean(noise)",
+        "rms = float(np.sqrt(np.mean(noise * noise)))",
+        "noise = noise / rms"
+      ],
+      "pink": [
+        "generator = np.random.Generator(np.random.PCG64(seed))",
+        "bins = 12544 // 2 + 1",
+        "real = generator.standard_normal(bins)",
+        "imag = generator.standard_normal(bins)",
+        "values = real + 1j * imag",
+        "values *= 1.0 / np.sqrt(np.maximum(np.arange(bins), 1))",
+        "values[0] = values[0].real",
+        "values[-1] = values[-1].real",
+        "noise = np.fft.irfft(values, n=12544).astype(np.float64)",
+        "noise -= np.mean(noise)",
+        "rms = float(np.sqrt(np.mean(noise * noise)))",
+        "noise = noise / rms"
+      ],
+      "combined_shape_draw_or_interleaved_real_imag_draw_forbidden": true
+    },
+    "noise_mix_trace": [
+      "clean_rms = float(np.sqrt(np.mean(waveform * waveform)))",
+      "clean_reference = clean_rms if clean_rms > 0.0 else 1.0",
+      "noise_gain = clean_reference / math.pow(10.0, float(snr_db) / 20.0)",
+      "waveform += noise * noise_gain"
+    ],
+    "OOD_accumulation_order": {
+      "nonharmonic_stack_frequencies_hz": [233, 377, 611, 997, 1597],
+      "nonharmonic_stack_order": "iterate the listed frequencies left to right and execute slice += term for each",
+      "inharmonic_bell_harmonic_order": [1, 2, 3, 4, 5, 6, 7, 8],
+      "inharmonic_bell_order": "iterate listed harmonics left to right and execute waveform[valid] += term for each"
+    },
+    "final_validation_and_encoding": [
+      "require waveform.dtype == np.float64",
+      "require waveform.shape == (12544,)",
+      "require np.all(np.isfinite(waveform))",
+      "raw = waveform.astype('<f8', copy=False).tobytes(order='C')",
+      "require len(raw) == 100352"
+    ],
+    "reference_runtime_only_byte_identity": true,
+    "cross_runtime_byte_identity_claimed": false
+  },
   "materialized_fixture_bytes": {
     "fixture_directory_inside_population": "fixtures",
     "waveform_extension": ".f64le",
@@ -220,6 +316,30 @@
     "line_count": 175,
     "index_sha256": "SHA256 of exact 175 canonical lines including every trailing LF",
     "all_referenced_files_must_be_reopened_and_rehashed_before_publication": true
+  },
+  "population_index_line_value_contract": {
+    "for_line_i": {
+      "ordinal": "exact integer i in 0..174",
+      "fixture_id": "population_manifest.fixture_ids[i]",
+      "synthesis_seed": "translated_recipes[i].synthesis_seed and equal to the recomputed seed rule",
+      "specification_path": "'fixtures/' + format(i,'06d') + '__' + fixture_id + '.spec.json'",
+      "specification_sha256": "SHA256 of the reopened specification_path bytes and equal to translated_recipes[i].source_specification_sha256",
+      "target_path": "'fixtures/' + format(i,'06d') + '__' + fixture_id + '.target.json'",
+      "target_sha256": "SHA256 of the reopened target_path canonical expected_target bytes",
+      "waveform_path": "'fixtures/' + format(i,'06d') + '__' + fixture_id + '.f64le'",
+      "waveform_sha256": "SHA256 of the reopened waveform_path exact 100352 bytes",
+      "waveform_byte_count": 100352,
+      "sample_count": 12544,
+      "sample_rate_hz": 44100,
+      "dtype": "<f8"
+    },
+    "all_values_must_be_recomputed_from_sealed_inputs_and_reopened_files": true,
+    "caller_supplied_index_value_forbidden": true
+  },
+  "ordered_fixture_ids_sha256_contract": {
+    "canonical_bytes": "json.dumps(population_manifest.fixture_ids, ensure_ascii=false, allow_nan=false, sort_keys=true, separators=(',',':')).encode('utf-8') + b'\\n'",
+    "sha256": "SHA256(canonical_bytes)",
+    "alternative_join_delimiter_or_missing_trailing_LF_forbidden": true
   },
   "population_receipt_contract": {
     "path_inside_population": "population_receipt.json",
@@ -268,14 +388,19 @@
     "symlinks_hardlinks_devices_and_special_files_forbidden": true
   },
   "future_runtime_identity": {
-    "implementation": "CPython",
-    "python_version": "3.11.9",
-    "numpy_version": "1.26.4",
-    "architecture": "arm64",
-    "execution_device": "CPU",
-    "thread_count": 1,
-    "sample_rate_hz": 44100,
-    "hop_samples": 256,
+    "receipt_and_marker_exact_object": {
+      "implementation": "CPython",
+      "python_version": "3.11.9",
+      "numpy_version": "1.26.4",
+      "architecture": "arm64",
+      "execution_device": "CPU",
+      "thread_count": 1,
+      "sample_rate_hz": 44100,
+      "hop_samples": 256
+    },
+    "additional_runtime_fields_forbidden": true,
+    "population_receipt_runtime_identity_must_equal_exact_object": true,
+    "claim_marker_runtime_identity_must_equal_exact_object": true,
     "runtime_mismatch_must_fail_before_claim": true,
     "numpy_import_before_claim_forbidden": true,
     "waveform_allocation_before_claim_forbidden": true,
@@ -301,6 +426,7 @@
     "must_verify_fixed_paths_are_new_except_parent_root": true,
     "must_verify_no_existing_claim_staging_success_or_terminal": true,
     "must_verify_runtime_without_importing_numpy": true,
+    "numpy_version_preclaim_probe": "importlib.metadata.version('numpy') exactly; importing the numpy module remains forbidden before claim",
     "real_data_model_checkpoint_H17_or_locked_test_path_must_fail": true,
     "scientific_test_dispatch_forbidden": true,
     "preflight_failure_consumes_population": false
@@ -308,7 +434,7 @@
   "one_shot_consumption_boundary": {
     "population_id": "H24_SYNTHETIC_V1",
     "claim_method": "os.open(path, O_CREAT|O_EXCL|O_WRONLY, 0600)",
-    "marker_bytes": "canonical UTF-8/LF JSON from an identity-attested immutable capability",
+    "marker_bytes": "canonical UTF-8/LF JSON with the exact schema and values in future_claim_marker_contract, sourced only from an identity-attested immutable capability",
     "marker_file_fsync_required": true,
     "marker_close_required": true,
     "marker_parent_directory_fsync_required": true,
@@ -321,6 +447,75 @@
     "manual_same_population_retry_allowed": false,
     "cross_process_second_claim_must_fail": true,
     "claim_or_marker_is_not_implemented_or_created_by_this_contract": true
+  },
+  "future_identity_attested_capability_contract": {
+    "capability_name": "AttestedH24PopulationMaterializationCapability",
+    "constructor_publicly_callable": false,
+    "factory_required": true,
+    "identity_only_private_registry_with_weak_reference_or_equivalent": true,
+    "serialization_copy_pickle_dataclasses_replace_or_manual_construction_must_fail": true,
+    "single_use": true,
+    "cross_process_reuse_allowed": false,
+    "exact_immutable_fields": [
+      "population_id",
+      "materialization_contract_raw_sha256",
+      "implementation_commit",
+      "materializer_source_blob",
+      "harness_source_blob",
+      "operator_source_blob",
+      "successor_contract_raw_sha256",
+      "population_manifest_raw_sha256",
+      "test_manifest_raw_sha256",
+      "manifest_binding_raw_sha256",
+      "dormant_harness_contract_raw_sha256",
+      "authorization_seal_path",
+      "authorization_seal_raw_sha256",
+      "claim_marker_path",
+      "staging_directory",
+      "success_directory",
+      "terminal_record_path",
+      "runtime_identity"
+    ],
+    "additional_fields_forbidden": true,
+    "all_values_must_come_from_revalidated_sealed_files_checkout_and_fixed_contract_paths": true,
+    "caller_supplied_authority_value_forbidden": true
+  },
+  "future_claim_marker_contract": {
+    "canonicalization": "UTF-8 sorted-key compact JSON plus one trailing LF",
+    "exact_fields": [
+      "schema_version",
+      "purpose",
+      "population_id",
+      "materialization_contract_raw_sha256",
+      "implementation_commit",
+      "materializer_source_blob",
+      "harness_source_blob",
+      "operator_source_blob",
+      "successor_contract_raw_sha256",
+      "population_manifest_raw_sha256",
+      "test_manifest_raw_sha256",
+      "manifest_binding_raw_sha256",
+      "dormant_harness_contract_raw_sha256",
+      "authorization_seal_path",
+      "authorization_seal_raw_sha256",
+      "claim_marker_path",
+      "staging_directory",
+      "success_directory",
+      "terminal_record_path",
+      "runtime_identity",
+      "population_consumed"
+    ],
+    "fixed_values": {
+      "schema_version": 1,
+      "purpose": "harmonic_censoring_h24_population_materialization_claim",
+      "population_id": "H24_SYNTHETIC_V1",
+      "population_consumed": true
+    },
+    "authority_fields_must_equal_attested_capability_exactly": true,
+    "runtime_identity_must_equal_future_runtime_identity_receipt_and_marker_exact_object": true,
+    "paths_must_equal_future_fixed_paths": true,
+    "additional_fields_forbidden": true,
+    "timestamp_random_nonce_hostname_pid_or_caller_metadata_forbidden": true
   },
   "future_materialization_sequence": {
     "exact_order": [

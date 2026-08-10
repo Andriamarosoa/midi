@@ -30,7 +30,7 @@ configs/harmonic_censoring_h24_population_materialization_one_shot_contract.json
 a pour SHA-256 :
 
 ```text
-007796e30ca0b49d50628958f1fd58c7967d155726f6cb09fbe1388baa827a2e
+b98c81dc5ab44c57449bc8bebdda074222b7340282af0f7a9f7e53243bb97588
 ```
 
 Il lie les snapshots déjà approuvés :
@@ -70,6 +70,30 @@ Le contrat ferme les `17` axes de variante, les enveloppes, trajectoires,
 fréquences, phases, bruit PCG64, six OOD et les valeurs nommées nécessaires.
 Il ne réutilise aucun seed, waveform, ID ou outcome H23.
 
+### Correction après revue de `10aa49a8…`
+
+La première revue a validé la structure one-shot, mais refusé le contrat final
+car deux implémentations pouvaient encore produire des octets différents. Le
+correctif impose désormais exactement :
+
+```text
+defaults source : gain=1, cents=0, B=0, fundamental_amplitude=1,
+                  h1_phase=0, phase=0, old_source_age_hops=0,
+                  onset=12032, attack=0, decay=8, technique=null,
+                  instantaneous_pitch_offset=0
+
+ordre : sources puis harmoniques dans l'ordre recette,
+        une addition float64 à la fois, sans tri/réduction/FMA/fastmath
+
+pink RNG : standard_normal(bins) pour real,
+           puis standard_normal(bins) pour imag,
+           jamais un tirage combiné/interleaved
+```
+
+La trace normative donne les appels exacts `np.power`, `math.pow`,
+`math.sqrt`, `np.cumsum`, `np.exp`, `np.sin`, `np.mean`, `np.sqrt` et
+`np.fft.irfft`, ainsi que l'ordre d'accumulation des OOD.
+
 ## Octets et hashes futurs
 
 Chaque waveform sera publiée comme octets bruts :
@@ -90,6 +114,11 @@ fichiers seront rouverts et rehachés avant publication.
 
 Les hashes prouvent l'identité des octets, pas la validité scientifique.
 
+Pour chaque ligne `i`, les treize champs de l'index sont maintenant liés
+explicitement au manifest, à la recette et aux fichiers rouverts. Le hash de
+la liste ordonnée est exactement le SHA-256 du tableau JSON canonique des 175
+IDs avec LF final; toute jointure alternative est interdite.
+
 ## Frontière de consommation
 
 Le préflight futur devra vérifier tous les SHA, HEAD, worktree, runtime, blobs,
@@ -107,6 +136,14 @@ os.open(marker, O_CREAT | O_EXCL | O_WRONLY, 0600)
 L'existence du marker suffit à déclarer `H24_SYNTHETIC_V1` consommé, même si
 le marker est partiel ou corrompu. Après `O_EXCL`, erreur, crash ou timeout ne
 permettent aucun retry, resume, repair ou seconde tentative.
+
+La future capability est process-local, identity-attested, non sérialisable et
+possède un ensemble fermé de 18 bindings. Le marker possède exactement ses
+bindings d'autorité plus `schema_version`, `purpose` et
+`population_consumed=true`. Il lie notamment contrat, commit/blob materializer,
+blobs harness/opérateurs, cinq SHA H24, seal, chemins fixes et objet runtime.
+Le runtime du marker et du reçu doit être exactement le même objet à huit
+champs; hostname, PID, timestamp, nonce et metadata caller sont interdits.
 
 ## Atomicité et interruption
 
@@ -138,7 +175,7 @@ des fichiers, index/reçu, claim durable avant NumPy, non-retry et impossibilit�
 de promouvoir une sortie partielle.
 
 ```text
-136 tests H24/H23/H20 réussis en 1,913 s
+142 tests H24/H23/H20 réussis en 1,986 s
 aucun fichier src/ modifié
 aucune waveform synthétisée
 aucune fixture matérialisée
