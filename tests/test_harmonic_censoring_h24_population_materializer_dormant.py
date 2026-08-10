@@ -371,6 +371,10 @@ class H24DormantPopulationMaterializerTests(unittest.TestCase):
         checked = object()
         with mock.patch.object(
             materializer,
+            "require_attested_h24_population_materialization_capability",
+            return_value=checked,
+        ), mock.patch.object(
+            materializer,
             "require_claimed_h24_population_materialization_capability",
             return_value=checked,
         ), mock.patch.object(
@@ -393,7 +397,12 @@ class H24DormantPopulationMaterializerTests(unittest.TestCase):
         terminal = MappingProxyType({"status": "synthetic"})
         calls: list[str] = []
 
+        def attested(value):
+            calls.append("attested")
+            return checked
+
         def claimed(value):
+            self.assertIs(value, checked)
             calls.append("claimed")
             return checked
 
@@ -414,6 +423,10 @@ class H24DormantPopulationMaterializerTests(unittest.TestCase):
 
         with mock.patch.object(
             materializer,
+            "require_attested_h24_population_materialization_capability",
+            side_effect=attested,
+        ), mock.patch.object(
+            materializer,
             "require_claimed_h24_population_materialization_capability",
             side_effect=claimed,
         ), mock.patch.object(
@@ -433,7 +446,9 @@ class H24DormantPopulationMaterializerTests(unittest.TestCase):
                 materializer.materialize_and_publish_h24_population(object()),  # type: ignore[arg-type]
                 terminal,
             )
-        self.assertEqual(calls, ["claimed", "bound", "numpy", "published"])
+        self.assertEqual(
+            calls, ["attested", "claimed", "bound", "numpy", "published"]
+        )
         failure_terminal.assert_not_called()
 
     def test_bridge_rejects_wrong_numpy_version_before_materialization(self):
@@ -442,6 +457,10 @@ class H24DormantPopulationMaterializerTests(unittest.TestCase):
             "WrongNumpy", (), {"__name__": "numpy", "__version__": "2.0.0"}
         )()
         with mock.patch.object(
+            materializer,
+            "require_attested_h24_population_materialization_capability",
+            return_value=checked,
+        ), mock.patch.object(
             materializer,
             "require_claimed_h24_population_materialization_capability",
             return_value=checked,
@@ -458,6 +477,29 @@ class H24DormantPopulationMaterializerTests(unittest.TestCase):
                 materializer.materialize_and_publish_h24_population(object())  # type: ignore[arg-type]
         import_module.assert_called_once_with("numpy")
         publish.assert_not_called()
+        failure_terminal.assert_called_once_with(checked)
+
+    def test_claimed_revalidation_failure_is_inside_the_terminal_envelope(self):
+        checked = object()
+        with mock.patch.object(
+            materializer,
+            "require_attested_h24_population_materialization_capability",
+            return_value=checked,
+        ), mock.patch.object(
+            materializer,
+            "require_claimed_h24_population_materialization_capability",
+            side_effect=ValueError("claimed marker bytes changed"),
+        ), mock.patch.object(
+            materializer, "_require_operational_numpy_bridge_binding"
+        ) as binding, mock.patch.object(
+            materializer.importlib, "import_module"
+        ) as import_module, mock.patch.object(
+            materializer, "_write_postclaim_bridge_failure_terminal"
+        ) as failure_terminal:
+            with self.assertRaisesRegex(ValueError, "claimed marker bytes changed"):
+                materializer.materialize_and_publish_h24_population(object())  # type: ignore[arg-type]
+        binding.assert_not_called()
+        import_module.assert_not_called()
         failure_terminal.assert_called_once_with(checked)
 
     def test_durable_writer_uses_exclusive_flags_and_mode_0600(self):

@@ -35,6 +35,13 @@ consommation et tente d'écrire le terminal
 `H24_POPULATION_MATERIALIZATION_INCONCLUSIVE_CONSUMED`. Le corps privé conserve
 sa propre gestion terminale pour les erreurs pendant la matérialisation.
 
+Après la première revue, l'enveloppe a été resserrée : l'attestation exacte de
+la capability reste nécessaire avant le `try`, car une valeur non attestée ne
+peut pas fournir de chemins sûrs. En revanche, la toute première revalidation
+`require_claimed` est maintenant à l'intérieur du `try`. Si un marker durable
+existe mais que ses octets ne se revalident plus, l'erreur déclenche donc aussi
+la tentative de terminal négatif consommé avant d'être relancée.
+
 ## Dormance opérationnelle
 
 Le seal actuellement présent lie encore le materializer approuvé
@@ -56,7 +63,8 @@ Les tests utilisent uniquement mocks et inspection :
 
 - le seal actuel ne correspond pas au nouveau blob source ;
 - un échec de binding précède tout import NumPy ;
-- l'ordre dynamique est claim → binding → import exact → corps privé ;
+- l'ordre dynamique est attestation → claim → binding → import exact → corps privé ;
+- l'échec de la première revalidation claimed est inclus dans l'enveloppe terminale ;
 - une version NumPy autre que 1.26.4 est refusée avant matérialisation ;
 - toute erreur post-claim appelle la mécanique terminale négative ;
 - aucun NumPy réel n'est importé par le test du bridge.
@@ -65,7 +73,7 @@ P0/P1/P2, données réelles, H17, locked-test, training et preuve scientifique
 restent interdits.
 
 ```text
-170 tests H24/H23/H20 réussis en 2,202 s
+171 tests H24/H23/H20 réussis en 2,185 s
 py_compile réussi
 git diff --check réussi
 ```

@@ -1243,8 +1243,9 @@ def materialize_and_publish_h24_population(
 ) -> Mapping[str, object]:
     """Import exact NumPy only after claim and a distinct reviewed activation."""
 
-    checked = require_claimed_h24_population_materialization_capability(capability)
+    checked = require_attested_h24_population_materialization_capability(capability)
     try:
+        checked = require_claimed_h24_population_materialization_capability(checked)
         _require_operational_numpy_bridge_binding(checked)
         np = importlib.import_module("numpy")
         if getattr(np, "__name__", None) != "numpy" or getattr(

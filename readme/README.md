@@ -27,8 +27,12 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   négatif consommé. Le seal actuel lie toujours le blob antérieur `16210df0…` :
   le preflight refuse donc toute capability contre ce nouveau source. Un futur
   commit distinct devra rafraîchir le seal, être revu, puis être OS-bound avant
-  que le bridge puisse devenir utilisable. `170` tests H24/H23/H20 réussissent
-  en `2,202 s`. Rapport :
+  que le bridge puisse devenir utilisable. Après revue de `3ea3eefd…`, la
+  revalidation `require_claimed` a été déplacée dans l'enveloppe terminale :
+  seule l'attestation de type/identité, nécessaire pour obtenir une autorité
+  sûre, la précède. Une revalidation de marker déjà consommé qui échoue produit
+  donc elle aussi le terminal négatif. `171` tests H24/H23/H20 réussissent en
+  `2,185 s`. Rapport :
   `readme/results/2026-08-10_harmonic-censoring-h24-dormant-operational-numpy-bridge.md`.
 - La revue externe a approuvé `101103e6…` puis autorisé uniquement
   `AUTHORIZED_TO_DEFINE_H24_POPULATION_MATERIALIZATION_AUTHORIZATION_SEAL_AND_ACTIVATION_CONTRACT_ONLY`.
