@@ -17,8 +17,16 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `harmonic_censoring_h23_activation_and_seal_definition`.
-- Statut : `transition OS-bound approuvée; activation+seal définis pour revue; injection, capability, claim, synthèse et P0/P1/P2 interdits`.
+- Étape : `harmonic_censoring_h23_administrative_capability_issuance`.
+- Statut : `activation+seal approuvés; capability administrative émise puis détruite; claim, marker, synthèse et P0/P1/P2 interdits`.
+- La revue externe de `31b116c…` approuve le couple activation+seal et autorise
+  l’injection OS administrative du commit exact. Le worker Mac CPU a passé le
+  preflight, émis une capability process-local attestée, puis s’est arrêté
+  exactement sur le garde `PRODUCTION_H23_SCIENTIFIC_EXECUTOR_IMPLEMENTED=false`.
+  Le job `h23-admin-capability-31b116c` termine `exited_nonzero/1`, sans marker,
+  destination, terminal, waveform ni test P0/P1/P2. La population synthétique
+  reste non consommée. Rapport :
+  `readme/results/2026-08-10_harmonic-censoring-h23-administrative-capability-issuance.md`.
 - La revue externe de `f384cea…` approuve la transition et autorise la
   définition séparée des deux artefacts. Le seal canonique lie le commit revu,
   son vrai `diff-tree`, les blobs capability/runner, les contrats et manifests,
@@ -1528,6 +1536,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-10 — contrat de future capability d’exécution synthétique H23](results/2026-08-10_harmonic-censoring-h23-synthetic-execution-capability-contract.md)
 - [2026-08-10 — transition d’activation du seal H23 sans circularité](results/2026-08-10_harmonic-censoring-h23-seal-activation-transition.md)
 - [2026-08-10 — définition séparée de l’activation et du seal H23](results/2026-08-10_harmonic-censoring-h23-activation-and-seal-definition.md)
+- [2026-08-10 — émission administrative de la capability H23 sur Mac](results/2026-08-10_harmonic-censoring-h23-administrative-capability-issuance.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)
