@@ -29,8 +29,9 @@ Le nouveau module `src/polyphonic/harmonic_censoring_h23.py` :
 - résout les 72 entrées du catalogue avec tous les champs hérités, dans l'ordre
   exact `P0=27`, `P1=35`, `P2=10` ;
 - produit en mémoire deux manifests canoniques explicitement non exécutés ;
-- expose une garde qui refuse toute exécution tant que l'autorisation du
-  contrat et celle de la revue ne sont pas toutes deux vraies.
+- expose une garde qui refuse inconditionnellement toute exécution dans ce
+  commit. Les dataclasses restent de simples valeurs et ne sont jamais des
+  capabilities : même deux booléens forgés à `true` ne peuvent ouvrir P0.
 
 Le contrat est aussi forcé en LF dans `.gitattributes`.
 
@@ -62,7 +63,7 @@ C:\Users\user\Desktop\midi\.venv\Scripts\python.exe -B -m unittest tests.test_ha
 Résultat initial :
 
 ```text
-8 tests réussis en 0,022 s
+9 tests réussis en 0,023 s
 ```
 
 Les tests vérifient uniquement les octets/structures du contrat, les comptes,
@@ -70,8 +71,18 @@ l'ordre, les IDs, seeds, hashes, quelques targets résolus, le déterminisme des
 manifests et le refus de toute exécution. Les fichiers temporaires de test sont
 des copies textuelles du contrat ; aucune fixture audio n'est créée.
 
-La vérification finale élargie aux contrats H17/H20 historiques donne `25`
-tests réussis en `0,352 s`; `py_compile` et `git diff --check` réussissent aussi.
+La vérification finale élargie aux contrats H17/H20 historiques donne `26`
+tests réussis en `0,423 s`; `py_compile` et `git diff --check` réussissent aussi.
+
+## Correctif de revue de la capability
+
+La revue externe de `0bdc2a66...` a confirmé tout le resolver mais a refusé sa
+garde initiale : un appelant pouvait fabriquer un nouveau `H23HarnessPlan` avec
+les deux booléens d'autorisation à `true`. La garde ne consulte désormais plus
+ces valeurs pour décider. Elle lève toujours `PermissionError`; un futur droit
+d'exécution exigera donc un changement de contrat **et** de code revu. Le test
+adversarial forge explicitement le plan avec `dataclasses.replace()` et vérifie
+le refus.
 
 ## État et prochaine porte
 

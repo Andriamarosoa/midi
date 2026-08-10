@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 import hashlib
 import json
 from pathlib import Path
@@ -160,6 +161,18 @@ class HarmonicCensoringH23HarnessTests(unittest.TestCase):
             require_h23_synthetic_execution_authorized(self.plan)
         with self.assertRaises(TypeError):
             require_h23_synthetic_execution_authorized(object())  # type: ignore[arg-type]
+
+    def test_forged_true_flags_cannot_authorize_execution(self) -> None:
+        forged_flags = replace(
+            self.plan.flags,
+            synthetic_execution_authorized=True,
+            reviewed_synthetic_execution_authorized=True,
+        )
+        forged_plan = replace(self.plan, flags=forged_flags)
+        with self.assertRaisesRegex(
+            PermissionError, "synthetic execution is not authorized"
+        ):
+            require_h23_synthetic_execution_authorized(forged_plan)
 
     def test_modified_or_crlf_contract_is_rejected_before_resolution(self) -> None:
         original = (self.root / H23_CONTRACT_RELATIVE_PATH).read_bytes()

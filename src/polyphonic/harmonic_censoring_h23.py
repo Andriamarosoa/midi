@@ -625,14 +625,17 @@ def require_h23_synthetic_execution_authorized(plan: H23HarnessPlan) -> None:
     """Fail closed until a later reviewed contract authorizes actual P0 work."""
     if not isinstance(plan, H23HarnessPlan):
         raise TypeError("H23 execution requires an exact resolved harness plan.")
-    if (
-        plan.flags.synthetic_execution_authorized is not True
-        or plan.flags.reviewed_synthetic_execution_authorized is not True
-    ):
-        raise PermissionError(
-            "H23 synthetic execution is not authorized; fixture synthesis and P0 "
-            "execution require a separate reviewed execution contract."
-        )
+    # This implementation commit is intentionally incapable of authorizing
+    # execution.  Public/frozen dataclasses are value containers, not
+    # capabilities: changing their booleans (including with dataclasses.replace)
+    # must never turn a dormant plan into an execution authority.  A later
+    # reviewed execution commit must introduce a separately attested capability
+    # and replace this unconditional denial in code as well as in the contract.
+    raise PermissionError(
+        "H23 synthetic execution is not authorized by this implementation; "
+        "fixture synthesis and P0 execution require a separate reviewed "
+        "contract-and-code execution capability."
+    )
 
 
 __all__ = [

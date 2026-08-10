@@ -25,9 +25,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   manière déterministe, et le manifeste obtenu déclare explicitement
   `waveforms_synthesized=false` / `tests_executed=false`. Le module n'importe
   ni NumPy, ni TensorFlow, ni loader de données et ne contient aucun chemin de
-  synthèse DSP. Une garde distincte refuse toujours toute exécution synthétique
-  parce que les deux autorisations nécessaires restent à `false`. Les tests
-  ajoutés sont uniquement contractuels et n'ouvrent aucun actif scientifique.
+  synthèse DSP. Une garde distincte refuse inconditionnellement toute exécution
+  synthétique dans ce commit, même si un appelant forge les deux booléens du
+  plan à `true`. Les tests ajoutés sont uniquement contractuels et n'ouvrent
+  aucun actif scientifique.
   Rapport :
   `readme/results/2026-08-10_harmonic-censoring-h23-harness-implementation.md`.
 - La revue finale du commit `1e5075f5d9eb23bdab077bed3faeb6c58c61942e`
