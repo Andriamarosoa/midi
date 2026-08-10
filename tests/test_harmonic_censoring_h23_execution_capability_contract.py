@@ -126,13 +126,20 @@ class HarmonicCensoringH23ExecutionCapabilityContractTests(unittest.TestCase):
         self.assertIsNone(seal["reviewed_execution_commit"])
         self.assertFalse(seal["capability_issuance_authorized"])
         self.assertFalse(seal["synthetic_execution_authorized"])
-        self.assertFalse(seal["P0_execution_authorized"])
+        for right in (
+            "scientific_execution_authorized",
+            "P0_execution_authorized",
+            "P1_execution_authorized",
+            "P2_execution_authorized",
+        ):
+            self.assertFalse(seal[right], right)
         self.assertTrue(seal["must_bind_this_contract_raw_sha256"])
 
     def test_one_shot_consumption_boundary_is_before_first_waveform(self) -> None:
         boundary = self.contract["one_shot_boundary"]
         self.assertIsNone(boundary["authorization_marker_path"])
-        self.assertIsNone(boundary["result_destination"])
+        self.assertIsNone(boundary["success_result_destination"])
+        self.assertIsNone(boundary["terminal_record_destination"])
         self.assertEqual(boundary["claim_method"], "atomic_create_exclusive")
         self.assertEqual(
             boundary["persist_before_first_fixture_waveform_synthesis"],
@@ -156,7 +163,7 @@ class HarmonicCensoringH23ExecutionCapabilityContractTests(unittest.TestCase):
                 "P0",
                 "P1",
                 "P2",
-                "atomic_publication",
+                "atomic_terminal_outcome_publication",
             ],
         )
         self.assertTrue(phases["P1_requires_all_P0_pass"])
@@ -170,9 +177,22 @@ class HarmonicCensoringH23ExecutionCapabilityContractTests(unittest.TestCase):
             self.assertFalse(phases[name])
         publication = self.contract["future_atomic_publication"]
         self.assertTrue(publication["staging_then_verify_then_atomic_rename"])
-        self.assertTrue(publication["all_175_fixture_ids_required"])
-        self.assertTrue(publication["all_72_test_ids_required"])
-        self.assertTrue(publication["failure_or_timeout_must_not_publish_final_destination"])
+        success = publication["success_publication"]
+        self.assertTrue(success["requires_all_175_fixture_ids"])
+        self.assertTrue(success["requires_all_72_test_ids"])
+        scientific_failure = publication["scientific_failure_publication"]
+        self.assertTrue(scientific_failure["atomic_terminal_negative_publication_required"])
+        self.assertFalse(scientific_failure["all_175_fixture_ids_required"])
+        self.assertFalse(scientific_failure["all_72_test_ids_required"])
+        self.assertEqual(
+            scientific_failure["unexecuted_test_ids_status"],
+            "NOT_RUN_BY_KILL_RULE",
+        )
+        operational = publication["operational_failure_publication"]
+        self.assertEqual(
+            operational["outcome"], "H23_EXECUTION_INCONCLUSIVE_FAIL_CLOSED"
+        )
+        self.assertTrue(operational["must_never_be_reported_as_scientific_verdict"])
         verdict = self.contract["future_verdict_contract"]
         self.assertEqual(verdict["only_positive_status"], "AUTHORIZED_TO_PREPARE_TRAIN_PROTOCOL")
         self.assertEqual(verdict["explicitly_not"], "TRAIN_AUTHORIZED")
@@ -187,10 +207,34 @@ class HarmonicCensoringH23ExecutionCapabilityContractTests(unittest.TestCase):
         self.assertFalse(preflight["waveform_allocation_allowed_during_preflight"])
         self.assertFalse(preflight["fixture_spec_or_test_set_mutation_allowed"])
         adversarial = set(self.contract["required_future_adversarial_tests_before_issuance"])
-        self.assertEqual(len(adversarial), 16)
+        self.assertEqual(len(adversarial), 20)
         self.assertIn("dataclasses_replace_on_plan_or_capability_is_rejected", adversarial)
         self.assertIn("second_capability_claim_fails_cross_process", adversarial)
-        self.assertIn("partial_staging_never_becomes_final_destination", adversarial)
+        self.assertIn("partial_staging_never_becomes_success_destination", adversarial)
+        self.assertIn(
+            "P0_failure_atomically_publishes_terminal_negative_with_NOT_RUN_suffix",
+            adversarial,
+        )
+        self.assertIn(
+            "seal_missing_any_scientific_P0_P1_or_P2_right_refuses_capability",
+            adversarial,
+        )
+
+    def test_review_sequence_prevents_self_authorization(self) -> None:
+        sequence = self.contract["future_review_sequence"]
+        self.assertEqual(
+            sequence["order"][:4],
+            [
+                "capability_and_runner_implementation_commit",
+                "external_review_of_implementation",
+                "separate_authorization_seal_commit_binding_reviewed_implementation",
+                "external_review_of_authorization_seal",
+            ],
+        )
+        self.assertTrue(sequence["implementation_commit_may_not_self_authorize"])
+        self.assertTrue(
+            sequence["authorization_seal_must_bind_already_reviewed_implementation_commit"]
+        )
 
     def test_allowed_files_exclude_both_scientific_contract_and_harness(self) -> None:
         allowed = set(self.contract["contract_definition_allowed_files"])

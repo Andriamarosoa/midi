@@ -82,7 +82,9 @@
       "runtime_identity_matches",
       "CPU_only_and_one_thread",
       "destination_does_not_exist",
+      "terminal_record_destination_does_not_exist",
       "authorization_marker_does_not_exist",
+      "future_authorization_seal_explicitly_authorizes_scientific_P0_P1_and_P2_execution",
       "H17_and_locked_test_paths_are_absent_from_all_inputs"
     ],
     "attestation_storage": "identity_only_private_registry_with_weak_reference_or_equivalent_noncopyable_token",
@@ -96,6 +98,7 @@
       "future_execution_commit",
       "runtime_identity",
       "destination",
+      "terminal_record_destination",
       "authorization_marker"
     ],
     "capability_single_use": true,
@@ -110,7 +113,10 @@
     "reviewed_execution_commit": null,
     "capability_issuance_authorized": false,
     "synthetic_execution_authorized": false,
+    "scientific_execution_authorized": false,
     "P0_execution_authorized": false,
+    "P1_execution_authorized": false,
+    "P2_execution_authorized": false,
     "must_bind_this_contract_raw_sha256": true,
     "must_bind_exact_future_capability_source_blob": true,
     "must_bind_exact_future_runner_source_blob": true,
@@ -131,7 +137,8 @@
   },
   "one_shot_boundary": {
     "authorization_marker_path": null,
-    "result_destination": null,
+    "success_result_destination": null,
+    "terminal_record_destination": null,
     "paths_must_be_fixed_by_future_authorization_seal": true,
     "claim_method": "atomic_create_exclusive",
     "persist_before_first_fixture_waveform_synthesis": {
@@ -152,7 +159,7 @@
       "P0",
       "P1",
       "P2",
-      "atomic_publication"
+      "atomic_terminal_outcome_publication"
     ],
     "P1_requires_all_P0_pass": true,
     "P2_requires_all_P1_pass": true,
@@ -192,14 +199,40 @@
   },
   "future_atomic_publication": {
     "staging_then_verify_then_atomic_rename": true,
-    "destination_must_be_new": true,
-    "all_175_fixture_ids_required": true,
-    "all_72_test_ids_required": true,
-    "executed_fixture_ids_must_equal_preregistered_fixture_ids": true,
-    "executed_test_ids_must_equal_resolved_test_ids_in_order": true,
-    "all_required_H23_atomic_artifacts_required": true,
-    "sha256_manifest_required": true,
-    "failure_or_timeout_must_not_publish_final_destination": true,
+    "success_and_terminal_destinations_must_be_distinct_and_new": true,
+    "success_publication": {
+      "requires_all_175_fixture_ids": true,
+      "requires_all_72_test_ids": true,
+      "executed_fixture_ids_must_equal_preregistered_fixture_ids": true,
+      "executed_test_ids_must_equal_resolved_test_ids_in_order": true,
+      "all_required_H23_atomic_artifacts_required": true,
+      "sha256_manifest_required": true,
+      "only_outcome_allowed": "AUTHORIZED_TO_PREPARE_TRAIN_PROTOCOL"
+    },
+    "scientific_failure_publication": {
+      "stop_immediately_after_first_failed_test": true,
+      "atomic_terminal_negative_publication_required": true,
+      "all_175_fixture_ids_required": false,
+      "all_72_test_ids_required": false,
+      "must_include_exact_executed_test_prefix_in_order": true,
+      "must_include_first_failed_test_id_and_evidence": true,
+      "unexecuted_test_ids_status": "NOT_RUN_BY_KILL_RULE",
+      "must_include_all_unexecuted_preregistered_test_ids": true,
+      "must_include_consumption_marker_and_state": true,
+      "allowed_outcomes": [
+        "H23_SYNTHETIC_HYPOTHESIS_KILLED",
+        "H23_PRETRAIN_READINESS_NOT_DEMONSTRATED"
+      ],
+      "must_not_publish_success_destination": true
+    },
+    "operational_failure_publication": {
+      "outcome": "H23_EXECUTION_INCONCLUSIVE_FAIL_CLOSED",
+      "must_never_be_reported_as_scientific_verdict": true,
+      "must_not_publish_success_destination": true,
+      "atomic_terminal_inconclusive_record_required_when_process_can_finalize": true,
+      "consumption_marker_remains_authoritative_if_process_cannot_finalize": true,
+      "must_include_known_executed_prefix_and_operational_error_when_available": true
+    },
     "report_must_include": [
       "contract_and_source_bindings",
       "runtime_identity",
@@ -215,6 +248,19 @@
       "fit_performed_false",
       "global_go_status"
     ]
+  },
+  "future_review_sequence": {
+    "order": [
+      "capability_and_runner_implementation_commit",
+      "external_review_of_implementation",
+      "separate_authorization_seal_commit_binding_reviewed_implementation",
+      "external_review_of_authorization_seal",
+      "capability_issuance",
+      "atomic_consumption_claim",
+      "synthetic_execution"
+    ],
+    "implementation_commit_may_not_self_authorize": true,
+    "authorization_seal_must_bind_already_reviewed_implementation_commit": true
   },
   "future_verdict_contract": {
     "only_positive_status": "AUTHORIZED_TO_PREPARE_TRAIN_PROTOCOL",
@@ -243,7 +289,11 @@
     "duplicate_missing_or_reordered_test_ID_fails_before_consumption",
     "second_capability_claim_fails_cross_process",
     "failure_after_first_waveform_keeps_consumed_state_and_forbids_retry",
-    "partial_staging_never_becomes_final_destination"
+    "partial_staging_never_becomes_success_destination",
+    "P0_failure_atomically_publishes_terminal_negative_with_NOT_RUN_suffix",
+    "P1_or_P2_failure_atomically_publishes_terminal_negative_with_NOT_RUN_suffix",
+    "timeout_or_crash_is_inconclusive_not_scientific_verdict",
+    "seal_missing_any_scientific_P0_P1_or_P2_right_refuses_capability"
   ],
   "contract_definition_allowed_files": [
     ".gitattributes",

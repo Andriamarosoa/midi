@@ -17,9 +17,9 @@ Fichier :
 
 ```text
 configs/harmonic_censoring_h23_synthetic_execution_capability_contract.json
-taille : 10 747 octets
-SHA-256 brut : 230ee3bd9c60f87a794473a70483a3e24be8300d78037632d18ef4f703bf9f77
-blob Git avant commit : 37e69ef5bd2c84cc52a2f53786151b5a8b157553
+taille : 13 216 octets
+SHA-256 brut : 3f386e15171fd4c41fa258fa83877bb8c86e24b39ea5df642f39b32b5760a4b5
+blob Git avant commit : b3834559f0dfde24df5a027e46a36225e9f75602
 ```
 
 Le contrat lie :
@@ -52,7 +52,9 @@ aucun chemin H17 ou locked-test
 ```
 
 Le futur seal n’existe pas encore : chemins, SHA, commit et droits restent
-`null/false`.
+`null/false`. Il devra autoriser explicitement et simultanément l’émission de
+la capability, l’exécution synthétique/scientifique et chacune des phases
+`P0/P1/P2`. L’absence d’un seul de ces droits interdira l’émission.
 
 ## Frontière one-shot
 
@@ -71,16 +73,30 @@ zero-science preflight
 → P0
 → P1 seulement si tout P0 passe
 → P2 seulement si tout P1 passe
-→ publication atomique
+→ publication atomique du résultat terminal
 ```
 
 Aucun skip, ajout, ordre dynamique ou changement post-observation n’est admis.
 
 ## Publication et verdict
 
-La publication future exigera staging, vérification complète et rename
-atomique, avec égalité exacte des 175 IDs et des 72 tests ordonnés. Un timeout
-ou une erreur ne pourra pas créer la destination finale.
+La publication future distingue trois sorties :
+
+- **succès complet** : seuls les `175` IDs et `72` tests ordonnés complets
+  peuvent produire `AUTHORIZED_TO_PREPARE_TRAIN_PROTOCOL` dans la destination
+  de succès ;
+- **échec scientifique** : arrêt immédiat, puis publication atomique obligatoire
+  d’un terminal négatif avec le préfixe exact exécuté, le premier test fautif,
+  tous les IDs restants marqués `NOT_RUN_BY_KILL_RULE`, le marker de
+  consommation et le verdict négatif ;
+- **crash/timeout/incomplétude opérationnelle** : statut
+  `H23_EXECUTION_INCONCLUSIVE_FAIL_CLOSED`, jamais présenté comme un verdict
+  scientifique et jamais publié dans la destination de succès. Si le processus
+  ne peut pas finaliser son terminal inconclusif, le marker de consommation
+  demeure l’autorité durable et interdit le retry.
+
+Ainsi, l’exigence `175/72` ne concerne que le succès complet et ne peut plus
+empêcher la conservation autoritative d’une falsification précoce.
 
 Le seul statut positif possible reste :
 
@@ -99,14 +115,14 @@ Commande :
 C:\Users\user\Desktop\midi\.venv\Scripts\python.exe -B -m unittest tests.test_harmonic_censoring_h23_execution_capability_contract
 ```
 
-Résultat : `10 tests réussis en 0,130 s`.
+Résultat : `11 tests réussis en 0,156 s`.
 
 Les tests ne font que parser le JSON, vérifier ses valeurs et comparer les
 blobs Git déjà versionnés. Aucun import NumPy/TensorFlow, actif, waveform,
 modèle ou test scientifique n’est impliqué.
 
 La vérification finale élargie aux tests du harness et aux contrats historiques
-H17/H20 donne `36 tests réussis en 0,538 s`. `json.tool`, `py_compile` et
+H17/H20 donne `42 tests réussis en 0,572 s`. `json.tool`, `py_compile` et
 `git diff --check` réussissent; l'ensemble modifié contient exactement les cinq
 fichiers autorisés par ce contrat.
 
@@ -125,6 +141,7 @@ H17_population_used                   false
 locked_test_used                      false
 ```
 
-La seule prochaine action est la revue externe de ce contrat. Même une revue
-positive n’exécutera rien : elle pourra seulement autoriser séparément
-l’implémentation de la capability toujours dormante.
+La séquence future est explicitement non auto-référentielle : commit
+d’implémentation du runner/capability, revue, commit de seal séparé liant cette
+implémentation déjà revue, revue du seal, puis seulement émission/claim/exécution.
+La seule prochaine action reste la revue externe de ce contrat corrigé.

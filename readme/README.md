@@ -22,10 +22,14 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 - Le contrat séparé de future capability lie le harness approuvé `e97674cd…`,
   le contrat H23 `719eba0a…`, les manifests `175/72` et le runtime futur. Il
   impose une capability non constructible/copiable, un seal d'autorisation
-  ultérieur encore inexistant, un claim one-shot avant la première waveform,
-  l'ordre P0→P1→P2 et une publication atomique. Tous les droits restent à
-  `false`; la garde inconditionnelle du harness n'est pas modifiée. Les dix
-  tests ajoutés sont contractuels uniquement. Rapport :
+  ultérieur encore inexistant avec droits scientifiques et P0/P1/P2 explicites,
+  un claim one-shot avant la première waveform, l'ordre P0→P1→P2 et une
+  publication atomique distincte pour succès complet, échec scientifique
+  terminal et incident opérationnel inconclusif. Un échec scientifique publiera
+  son préfixe exécuté et les IDs restants `NOT_RUN_BY_KILL_RULE`; l'exigence
+  `175/72` ne s'applique qu'au succès. Tous les droits restent à `false`; la
+  garde inconditionnelle du harness n'est pas modifiée. Les onze tests ajoutés
+  sont contractuels uniquement. Rapport :
   `readme/results/2026-08-10_harmonic-censoring-h23-synthetic-execution-capability-contract.md`.
 - La revue externe finale de `e97674cd1d1c3a12ff113f98789105941ab17030`
   conclut `APPROUVÉ`. Elle confirme le resolver/materializer, le test adversarial
