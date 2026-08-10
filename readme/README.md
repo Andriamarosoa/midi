@@ -17,8 +17,19 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `harmonic_censoring_h23_administrative_capability_issuance`.
-- Statut : `activation+seal approuvés; capability administrative émise puis détruite; claim, marker, synthèse et P0/P1/P2 interdits`.
+- Étape : `harmonic_censoring_h23_executor_claim_transcript_contract`.
+- Statut : `preuve d’émission administrative approuvée; contrat claim+executor+transcript défini pour revue; aucune consommation ni science autorisée`.
+- La revue externe de `84179a1…` approuve la preuve administrative et autorise
+  uniquement le contrat de la future chaîne autoritative. Le claim devra être
+  `O_EXCL` puis `fsync(file)+fsync(directory)` avant la première waveform et
+  restera consommé après toute erreur. L’exécuteur n’acceptera aucun résultat
+  ou choix du caller; le transcript JSONL canonique hash-chain liera marker,
+  seal, activation, sources, manifests, runtime, fixtures et tests. Le
+  finalizer relira uniquement les octets persistés. Claim, exécuteur,
+  transcript et finalizer devront être implémentés et revus ensemble, puis un
+  nouveau seal/activation sera obligatoire : le couple `31b116c…` ne pourra
+  pas autoriser leurs nouveaux blobs. Rapport :
+  `readme/results/2026-08-10_harmonic-censoring-h23-executor-claim-transcript-contract.md`.
 - La revue externe de `31b116c…` approuve le couple activation+seal et autorise
   l’injection OS administrative du commit exact. Le worker Mac CPU a passé le
   preflight, émis une capability process-local attestée, puis s’est arrêté
@@ -1537,6 +1548,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-10 — transition d’activation du seal H23 sans circularité](results/2026-08-10_harmonic-censoring-h23-seal-activation-transition.md)
 - [2026-08-10 — définition séparée de l’activation et du seal H23](results/2026-08-10_harmonic-censoring-h23-activation-and-seal-definition.md)
 - [2026-08-10 — émission administrative de la capability H23 sur Mac](results/2026-08-10_harmonic-censoring-h23-administrative-capability-issuance.md)
+- [2026-08-10 — contrat claim, exécuteur scientifique et transcript H23](results/2026-08-10_harmonic-censoring-h23-executor-claim-transcript-contract.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)
