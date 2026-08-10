@@ -17,8 +17,21 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `provisional_resolution_age1_persistence_h12_real_execution_binding`.
-- Statut : `terminé — provisional_resolution_age1_persistence_h12_real_execution_binding_sealed, aucune exécution scientifique autorisée`.
+- Étape : `provisional_resolution_age1_persistence_h13_fixed_group_universe`.
+- Statut : `terminé — provisional_resolution_age1_persistence_h13_execution_seal_ready, aucune exécution scientifique autorisée`.
+- H13 corrige avant toute consommation le seul écart découvert pendant la revue
+  H12 : le bootstrap reçoit désormais explicitement l'univers immuable des `31`
+  groupes H8, même lorsqu'un groupe ne produit aucune ligne scientifique
+  éligible. Chaque réplication tire toujours exactement `G=31` groupes avec
+  remise; un groupe vide contribue zéro ligne mais son tirage compte. Les lignes
+  hors univers, groupes dupliqués ou identifiants non canoniques échouent
+  fermés. Le runner final sans argument dérive lui-même cet univers depuis les
+  métadonnées H8 et un futur marqueur devra lier les octets du contrat H13. Les
+  tests sont uniquement synthétiques et le preflight reste zéro-science.
+  Contrat :
+  `configs/provisional_resolution_age1_persistence_h13_execution_seal.json`.
+  Rapport :
+  `readme/results/2026-08-10_provisional-resolution-age1-h13-fixed-group-universe.md`.
 - H12 supprime l'injection scientifique restante : le vrai point d'entrée n'a
   aucun argument de cohorte, groupes interdits, manifeste/plan, checkpoint,
   config, métrique, seed ou bootstrap. Il lie le contrat H11 `ea6032e1…`, la

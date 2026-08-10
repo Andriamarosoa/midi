@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "purpose": "provisional_resolution_age1_persistence_h13_fixed_group_universe",
+  "status": "provisional_resolution_age1_persistence_h13_execution_seal_ready",
+  "verdict": "age1_persistence_h13_fixed_group_universe_conformance_demonstrated",
+  "accepted_h12": {
+    "contract_raw_sha256": "d1f9e80227776c8d6c81fc91d7a2df8982425eaadf786b7406ca54f33fa41fce",
+    "reviewed_commit": "d91548959df319f242c7f33fe8d578ed05dbffc6",
+    "reviewed_concrete_runner_blob": "4aba24acc1d3a435285e7260485f1bd4a358bf61"
+  },
+  "source_bindings": {
+    "old_h10_metric_blob": "a343c5057ec2a84f3e42c6be6e6e7b641c0f1a70",
+    "corrected_metric_blob": "5e40574dab4a53e0ce5b2288536d337f0da66fa9",
+    "corrected_h12_binding_blob": "1e5b54c365df82a6504068ab9a8385eef6d23ae5",
+    "final_h13_runner_blob": "675e77e7182e5efbd91a1af35c86b9e242370a24"
+  },
+  "sealed_group_universe": {
+    "source": "configs/provisional_resolution_age1_persistence_h8_selected_cohort.json",
+    "source_raw_sha256": "4dd76bd13c33ccb3946bfdbcf6f575d4550fb0c5588095e23da3b6e3f84bce1f",
+    "derivation": "sorted_unique_leakage_group_key_from_raw_h8_metadata",
+    "count": 31,
+    "caller_override": false,
+    "eligible_row_requirement_per_group": false
+  },
+  "bootstrap_conformance": {
+    "replicate_count": 10000,
+    "seed": 721629268,
+    "rng": "numpy.random.Generator(numpy.random.PCG64)",
+    "minimum_valid_replicates": 9500,
+    "sample_size_per_replicate": "exactly_len_sealed_cohort_group_universe",
+    "empty_sampled_group_contribution": "zero_rows_while_draw_still_counts",
+    "single_class_replicate": "invalid_excluded_without_retry"
+  },
+  "global_metric": {
+    "eligible_rows_only": true,
+    "fabricate_empty_group_rows": false,
+    "impute_signal_or_target": false,
+    "minimum_valid_observations": 200,
+    "both_target_classes_required": true
+  },
+  "real_entrypoint": {
+    "callable": "src.polyphonic.provisional_resolution_age1_h13.run_real_h7_discovery",
+    "parameters": [],
+    "group_universe_derived_internally": true,
+    "future_marker_binds_raw_h13_contract_sha256": true,
+    "invoked_in_h13": false
+  },
+  "terminal_flags": {
+    "scientific_execution_authorized": false,
+    "execution_marker_created": false,
+    "runner_invoked": false,
+    "h8_scientific_assets_opened": false,
+    "h8_discovery_consumed": false,
+    "real_targets_extracted": false,
+    "real_signals_extracted": false,
+    "real_metrics_computed": false,
+    "locked_test_used": false,
+    "consumed_v2_cohort_used": false
+  },
+  "next_action": "external_review_before_any_authorization_marker_or_real_h7_execution"
+}

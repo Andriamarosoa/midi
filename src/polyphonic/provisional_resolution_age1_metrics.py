@@ -133,23 +133,58 @@ def _row_order(row: GroupedAge1EvaluationRow) -> tuple[object, ...]:
     )
 
 
+def canonical_group_universe(values: Sequence[str]) -> tuple[str, ...]:
+    """Validate and canonicalize the sealed cohort leakage-group universe."""
+    checked = tuple(_metadata(value, "cohort_group_id") for value in values)
+    if not checked:
+        raise ValueError("cohort_group_universe must contain at least one group.")
+    if len(set(checked)) != len(checked):
+        raise ValueError("cohort_group_universe must not contain duplicates.")
+    return tuple(sorted(checked))
+
+
+def _require_rows_in_group_universe(
+    rows: Sequence[GroupedAge1EvaluationRow],
+    cohort_group_universe: Sequence[str],
+) -> tuple[tuple[GroupedAge1EvaluationRow, ...], tuple[str, ...]]:
+    checked = tuple(rows)
+    if not all(isinstance(row, GroupedAge1EvaluationRow) for row in checked):
+        raise ValueError("rows must contain only GroupedAge1EvaluationRow values.")
+    universe = canonical_group_universe(cohort_group_universe)
+    outside = sorted({row.leakage_group_key for row in checked}.difference(universe))
+    if outside:
+        raise ValueError("scientific row leakage_group_key is outside cohort_group_universe.")
+    return checked, universe
+
+
 def expand_group_sample(
     rows: Sequence[GroupedAge1EvaluationRow],
     sampled_group_ids: Sequence[str],
+    *,
+    cohort_group_universe: Sequence[str] | None = None,
 ) -> tuple[GroupedAge1EvaluationRow, ...]:
     """Expand sampled groups with replacement while preserving multiplicity."""
     grouped: dict[str, list[GroupedAge1EvaluationRow]] = {}
     checked = tuple(rows)
     if not all(isinstance(row, GroupedAge1EvaluationRow) for row in checked):
         raise ValueError("rows must contain only GroupedAge1EvaluationRow values.")
+    universe = (
+        canonical_group_universe(cohort_group_universe)
+        if cohort_group_universe is not None
+        else tuple(sorted({row.leakage_group_key for row in checked}))
+    )
+    if not universe:
+        raise ValueError("At least one evaluation group is required.")
+    if any(row.leakage_group_key not in universe for row in checked):
+        raise ValueError("scientific row leakage_group_key is outside cohort_group_universe.")
     for row in sorted(checked, key=_row_order):
         grouped.setdefault(row.leakage_group_key, []).append(row)
     expanded = []
     for raw_group in sampled_group_ids:
         group = _metadata(raw_group, "sampled_group_id")
-        if group not in grouped:
-            raise ValueError("sampled_group_id is absent from the evaluation rows.")
-        expanded.extend(grouped[group])
+        if group not in universe:
+            raise ValueError("sampled_group_id is outside cohort_group_universe.")
+        expanded.extend(grouped.get(group, ()))
     return tuple(expanded)
 
 
@@ -162,18 +197,19 @@ class GroupBootstrapResult:
     seed: int
     rng: str
     percentile_method: str
+    cohort_group_count: int
     lower_95: float | None
     upper_95: float | None
 
 
 def grouped_roc_auc_bootstrap(
     rows: Sequence[GroupedAge1EvaluationRow],
+    *,
+    cohort_group_universe: Sequence[str],
 ) -> GroupBootstrapResult:
     """Sample exactly G leakage groups with replacement for every replicate."""
-    eligible = _eligible(rows)
-    group_ids = tuple(sorted({row.leakage_group_key for row in eligible}))
-    if not group_ids:
-        raise ValueError("At least one eligible leakage group is required.")
+    checked, group_ids = _require_rows_in_group_universe(rows, cohort_group_universe)
+    eligible = _eligible(checked)
     grouped = {
         group: tuple(row for row in eligible if row.leakage_group_key == group)
         for group in group_ids
@@ -187,9 +223,12 @@ def grouped_roc_auc_bootstrap(
             for index in sampled_indexes
             for row in grouped[group_ids[int(index)]]
         )
+        sampled_targets = [row.scientific_row.true_noteon for row in sampled]
+        if len(set(sampled_targets)) != 2:
+            continue
         try:
             auc_values.append(binary_roc_auc(
-                [row.scientific_row.true_noteon for row in sampled],
+                sampled_targets,
                 [row.scientific_row.S1 for row in sampled],
             ))
         except UndefinedRocAucError:
@@ -205,6 +244,7 @@ def grouped_roc_auc_bootstrap(
             seed=BOOTSTRAP_SEED,
             rng="numpy.random.Generator(numpy.random.PCG64)",
             percentile_method="numpy.percentile(method=linear)",
+            cohort_group_count=len(group_ids),
             lower_95=None,
             upper_95=None,
         )
@@ -223,6 +263,7 @@ def grouped_roc_auc_bootstrap(
         seed=BOOTSTRAP_SEED,
         rng="numpy.random.Generator(numpy.random.PCG64)",
         percentile_method="numpy.percentile(method=linear)",
+        cohort_group_count=len(group_ids),
         lower_95=float(lower),
         upper_95=float(upper),
     )
@@ -287,10 +328,13 @@ def _attrition_payload(
 def evaluate_h7_synthetic_metrics(
     rows: Sequence[GroupedAge1EvaluationRow],
     *,
+    cohort_group_universe: Sequence[str],
     malformed_or_nonfinite_signal_cases: int = 0,
 ) -> H7SyntheticMetricReport:
     """Apply the frozen H7/H8 metric gates to already-supplied synthetic rows."""
-    checked = tuple(rows)
+    checked, group_universe = _require_rows_in_group_universe(
+        rows, cohort_group_universe
+    )
     if not checked or not all(isinstance(row, GroupedAge1EvaluationRow) for row in checked):
         raise ValueError("rows must be a non-empty grouped H7 sequence.")
     eligible = _eligible(checked)
@@ -335,7 +379,9 @@ def evaluate_h7_synthetic_metrics(
     global_auc = binary_roc_auc(targets, [row.scientific_row.S1 for row in eligible])
     s0_auc = binary_roc_auc(targets, [row.scientific_row.S0 for row in eligible])
     d1_auc = binary_roc_auc(targets, [row.scientific_row.D1 for row in eligible])
-    bootstrap = grouped_roc_auc_bootstrap(eligible)
+    bootstrap = grouped_roc_auc_bootstrap(
+        eligible, cohort_group_universe=group_universe
+    )
     corpus_results = []
     for corpus in sorted({row.corpus_category for row in eligible}):
         corpus_rows = tuple(row for row in eligible if row.corpus_category == corpus)
@@ -394,6 +440,7 @@ __all__ = [
     "MINIMUM_VALID_BOOTSTRAP_REPLICATE_COUNT",
     "UndefinedRocAucError",
     "binary_roc_auc",
+    "canonical_group_universe",
     "evaluate_h7_synthetic_metrics",
     "expand_group_sample",
     "grouped_roc_auc_bootstrap",

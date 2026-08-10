@@ -48,7 +48,7 @@ DECODER_CANONICAL_SHA256 = "7f6a93b566c2e042ec943821b5d35bdaa9151fe97711cd946370
 HISTORICAL_DECODER_BLOB = "4233186147c0946372ddb2e9e3dd3343daeb26eb"
 INSTRUMENTED_DECODER_BLOB = "27026d368081fadc4fa282954428f0377020e723"
 H9_IMPLEMENTATION_BLOB = "22b93d2b5a6e2a3826eddc4aee0057d68fe34141"
-H10_METRIC_BLOB = "a343c5057ec2a84f3e42c6be6e6e7b641c0f1a70"
+H10_METRIC_BLOB = "5e40574dab4a53e0ce5b2288536d337f0da66fa9"
 H11_ORCHESTRATOR_BLOB = "6ea9ba6637788552b5f3318b1f2dfac6fd52f71e"
 H7_COMMIT = "e3e2be144282ecf0079ba22831abfb6439b16ac3"
 
@@ -185,6 +185,14 @@ def _load_h8_metadata(path: Path) -> tuple[tuple[SealedH8Recording, ...], tuple[
     return tuple(by_key[item.recording_key] for item in checked), tuple(sorted(groups))
 
 
+def h8_group_universe(records: Sequence[SealedH8Recording]) -> tuple[str, ...]:
+    """Return the immutable group universe encoded by sealed H8 metadata."""
+    groups = tuple(sorted({record.h11.leakage_group_key for record in records}))
+    if len(groups) != 31:
+        raise RuntimeError("H13 real H8 group universe must contain exactly 31 groups.")
+    return groups
+
+
 def _asset_path(worker_root: Path, identity: str) -> Path:
     root = (worker_root / "data").resolve(strict=True)
     path = (root / identity).resolve(strict=True)
@@ -295,6 +303,7 @@ def _run_h12_preflight(
     )
     require_h12_config_payloads(paths)
     records, forbidden = _load_h8_metadata(paths.h8_cohort)
+    group_universe = h8_group_universe(records)
     verify_h8_asset_bytes(paths, records)
     identity = runtime_identity()
     require_h12_runtime(identity)
@@ -314,7 +323,7 @@ def _run_h12_preflight(
     return {
         "status": "h7_real_execution_preflight_ready",
         "recordings": len(records),
-        "leakage_groups": len({record.h11.leakage_group_key for record in records}),
+        "leakage_groups": len(group_universe),
         "forbidden_groups": len(forbidden),
         "runtime": identity,
         "scientific_execution_authorized": False,
@@ -458,28 +467,9 @@ class ConcreteH7ScientificAdapter:
 
 
 def run_real_h7_discovery() -> tuple[Any, Any]:
-    """Non-injectable future entrypoint; marker authorization is still required."""
-    repository_root = Path(__file__).resolve().parents[2]
-    data_root = os.environ.get("MIDI_DATA_ROOT")
-    if not data_root:
-        raise RuntimeError("H12 requires MIDI_DATA_ROOT from the Mac worker.")
-    worker_root = Path(data_root).resolve(strict=True).parent
-    paths = sealed_h12_paths(repository_root, worker_root)
-    preflight = _run_h12_preflight(
-        paths, authorization_marker_must_be_absent=False
-    )
-    if preflight["status"] != "h7_real_execution_preflight_ready":
-        raise RuntimeError("H12 preflight did not reach ready status.")
-    records, forbidden = _load_h8_metadata(paths.h8_cohort)
-    adapter = ConcreteH7ScientificAdapter(paths, records)
-    return run_h11_once(
-        marker_path=paths.authorization_marker,
-        expected_contract_sha256=H11_CONTRACT_SHA256,
-        destination=paths.result_destination,
-        recordings=tuple(record.h11 for record in records), adapter=adapter,
-        metric_callable=evaluate_h7_synthetic_metrics, forbidden_groups=forbidden,
-        expected_manifest_sha256=MANIFEST_SHA256, expected_plan_sha256=PLAN_SHA256,
-    )
+    """Compatibility entrypoint delegated to the final H13 execution seal."""
+    from .provisional_resolution_age1_h13 import run_real_h7_discovery as run_h13
+    return run_h13()
 
 
 def main() -> None:
@@ -503,7 +493,7 @@ def main() -> None:
 __all__ = [
     "AUDIO_POLICY_SHA256", "CHECKPOINT_SHA256", "ConcreteH7ScientificAdapter",
     "DECODER_CANONICAL_SHA256", "DECODER_RAW_SHA256", "H10_METRIC_BLOB", "H11_CONTRACT_SHA256", "H11_ORCHESTRATOR_BLOB", "H12Paths",
-    "H8_COHORT_SHA256", "H9_IMPLEMENTATION_BLOB", "HISTORICAL_DECODER_BLOB",
+    "H8_COHORT_SHA256", "H9_IMPLEMENTATION_BLOB", "HISTORICAL_DECODER_BLOB", "h8_group_universe",
     "INSTRUMENTED_DECODER_BLOB", "MANIFEST_SHA256", "MODEL_CONFIG_SHA256",
     "PLAN_SHA256", "SealedH8Recording", "require_h12_config_payloads", "require_h12_runtime",
     "require_h12_source_bindings", "run_h12_preflight", "run_real_h7_discovery",

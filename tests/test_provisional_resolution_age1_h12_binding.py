@@ -4,6 +4,7 @@ import inspect
 import json
 from pathlib import Path
 import tempfile
+import subprocess
 import unittest
 from unittest.mock import Mock, patch
 
@@ -61,7 +62,8 @@ class H12BindingTests(unittest.TestCase):
     def test_real_entrypoint_has_no_scientific_override_parameters(self):
         self.assertEqual(tuple(inspect.signature(h12.run_real_h7_discovery).parameters), ())
         source = inspect.getsource(h12.run_real_h7_discovery)
-        self.assertIn("metric_callable=evaluate_h7_synthetic_metrics", source)
+        self.assertIn("provisional_resolution_age1_h13", source)
+        self.assertIn("return run_h13()", source)
         for forbidden in (
             "cohort=", "forbidden_groups_override", "checkpoint_path=",
             "metric_callable_override", "bootstrap_seed=",
@@ -72,7 +74,12 @@ class H12BindingTests(unittest.TestCase):
         self.assertEqual(h12.HISTORICAL_DECODER_BLOB, "4233186147c0946372ddb2e9e3dd3343daeb26eb")
         self.assertEqual(h12.INSTRUMENTED_DECODER_BLOB, "27026d368081fadc4fa282954428f0377020e723")
         self.assertNotEqual(h12.HISTORICAL_DECODER_BLOB, h12.INSTRUMENTED_DECODER_BLOB)
-        h12.require_h12_source_bindings(ROOT)
+        current_metric_blob = subprocess.check_output(
+            ["git", "hash-object", "src/polyphonic/provisional_resolution_age1_metrics.py"],
+            cwd=ROOT,
+            text=True,
+        ).strip()
+        self.assertEqual(current_metric_blob, h12.H10_METRIC_BLOB)
 
     def test_each_source_blob_mismatch_fails_preflight(self):
         for bad_key in (

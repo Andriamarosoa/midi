@@ -81,6 +81,13 @@ def _balanced_rows(count: int = 240) -> tuple[GroupedAge1EvaluationRow, ...]:
     )
 
 
+def _universe(
+    rows: tuple[GroupedAge1EvaluationRow, ...] | list[GroupedAge1EvaluationRow],
+    *extra: str,
+) -> tuple[str, ...]:
+    return tuple(sorted({row.leakage_group_key for row in rows}.union(extra)))
+
+
 class ProvisionalResolutionAge1H10MetricTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -154,9 +161,13 @@ class ProvisionalResolutionAge1H10MetricTests(unittest.TestCase):
             _row(index, index % 2, 0.8 if index % 2 else 0.2, group=f"g-{index % 2}")
             for index in range(MINIMUM_VALID_AGE1_OBSERVATION_COUNT - 1)
         )
-        self.assertEqual(evaluate_h7_synthetic_metrics(short).status, AGE1_SIGNAL_INSUFFICIENT)
+        self.assertEqual(evaluate_h7_synthetic_metrics(
+            short, cohort_group_universe=_universe(short)
+        ).status, AGE1_SIGNAL_INSUFFICIENT)
         single = tuple(_row(index, 1, 0.8, group=f"g-{index % 3}") for index in range(200))
-        self.assertEqual(evaluate_h7_synthetic_metrics(single).status, AGE1_SIGNAL_SINGLE_CLASS)
+        self.assertEqual(evaluate_h7_synthetic_metrics(
+            single, cohort_group_universe=_universe(single)
+        ).status, AGE1_SIGNAL_SINGLE_CLASS)
 
     def test_group_sampling_uses_group_ids_and_preserves_full_multiplicity(self) -> None:
         rows = (
@@ -169,10 +180,55 @@ class ProvisionalResolutionAge1H10MetricTests(unittest.TestCase):
         self.assertEqual([row.recording_key for row in expanded[:4]], ["direct", "mic", "direct", "mic"])
         self.assertEqual([row.leakage_group_key for row in expanded], ["shared", "shared", "shared", "shared", "small"])
 
+    def test_sealed_empty_group_remains_in_g_and_is_sampleable_without_rows(self) -> None:
+        rows = tuple(
+            _row(index, index % 2, 0.8 if index % 2 else 0.2, group=("a" if index < 120 else "b"))
+            for index in range(240)
+        )
+        universe = ("b", "empty", "a")
+        expanded = expand_group_sample(
+            rows,
+            ("a", "empty", "a"),
+            cohort_group_universe=universe,
+        )
+        self.assertEqual(len(expanded), 240)
+        self.assertTrue(all(row.leakage_group_key == "a" for row in expanded))
+        result = grouped_roc_auc_bootstrap(rows, cohort_group_universe=universe)
+        self.assertEqual(result.cohort_group_count, 3)
+        self.assertEqual(result.requested_replicates, BOOTSTRAP_REPLICATE_COUNT)
+
+    def test_group_universe_is_fail_closed_and_input_order_canonical(self) -> None:
+        rows = _balanced_rows()
+        universe = _universe(rows)
+        forward = grouped_roc_auc_bootstrap(rows, cohort_group_universe=universe)
+        reverse = grouped_roc_auc_bootstrap(
+            tuple(reversed(rows)), cohort_group_universe=tuple(reversed(universe))
+        )
+        self.assertEqual(forward, reverse)
+        with self.assertRaisesRegex(ValueError, "duplicates"):
+            grouped_roc_auc_bootstrap(rows, cohort_group_universe=universe + (universe[0],))
+        with self.assertRaisesRegex(ValueError, "non-empty"):
+            grouped_roc_auc_bootstrap(rows, cohort_group_universe=universe + ("",))
+        with self.assertRaisesRegex(ValueError, "outside"):
+            grouped_roc_auc_bootstrap(rows, cohort_group_universe=("other",))
+
+    def test_empty_groups_can_make_resampling_inconclusive(self) -> None:
+        rows = tuple(
+            _row(index, index % 2, 0.8 if index % 2 else 0.2, group="observed")
+            for index in range(200)
+        )
+        universe = ("observed",) + tuple(f"empty-{index}" for index in range(9))
+        result = grouped_roc_auc_bootstrap(rows, cohort_group_universe=universe)
+        self.assertEqual(result.cohort_group_count, 10)
+        self.assertEqual(result.status, GROUP_RESAMPLING_INCONCLUSIVE)
+        self.assertLess(result.valid_replicates, MINIMUM_VALID_BOOTSTRAP_REPLICATE_COUNT)
+
     def test_fixed_group_bootstrap_and_report_are_deterministic_and_order_invariant(self) -> None:
         rows = _balanced_rows()
-        first = evaluate_h7_synthetic_metrics(rows)
-        second = evaluate_h7_synthetic_metrics(tuple(reversed(rows)))
+        first = evaluate_h7_synthetic_metrics(rows, cohort_group_universe=_universe(rows))
+        second = evaluate_h7_synthetic_metrics(
+            tuple(reversed(rows)), cohort_group_universe=tuple(reversed(_universe(rows)))
+        )
         self.assertEqual(first.canonical_json_bytes(), second.canonical_json_bytes())
         self.assertEqual(first.status, AGE1_SIGNAL_DEMONSTRATED)
         self.assertEqual(first.global_s1_auc, 1.0)
@@ -189,7 +245,9 @@ class ProvisionalResolutionAge1H10MetricTests(unittest.TestCase):
             [_row(index, 0, 0.2, group="negative") for index in range(100)]
             + [_row(100 + index, 1, 0.8, group="positive") for index in range(100)]
         )
-        result = grouped_roc_auc_bootstrap(rows)
+        result = grouped_roc_auc_bootstrap(
+            rows, cohort_group_universe=("negative", "positive")
+        )
         self.assertEqual(result.requested_replicates, 10_000)
         self.assertLess(result.valid_replicates, MINIMUM_VALID_BOOTSTRAP_REPLICATE_COUNT)
         self.assertEqual(result.status, GROUP_RESAMPLING_INCONCLUSIVE)
@@ -205,7 +263,7 @@ class ProvisionalResolutionAge1H10MetricTests(unittest.TestCase):
         duplicated_small = expand_group_sample(rows, ("small-a", "small-a", "small-b"))
         self.assertEqual(len(duplicated_small), 30)
         self.assertEqual(sum(row.leakage_group_key == "small-a" for row in duplicated_small), 20)
-        result = grouped_roc_auc_bootstrap(rows)
+        result = grouped_roc_auc_bootstrap(rows, cohort_group_universe=_universe(rows))
         self.assertEqual(result.status, "complete")
         self.assertEqual(result.valid_replicates, 10_000)
         self.assertEqual((result.lower_95, result.upper_95), (1.0, 1.0))
@@ -222,7 +280,9 @@ class ProvisionalResolutionAge1H10MetricTests(unittest.TestCase):
             _row(1000 + index, 1, 0.9, group="single-corpus-group", corpus="single-corpus")
             for index in range(20)
         )
-        report = evaluate_h7_synthetic_metrics(tuple(rows))
+        report = evaluate_h7_synthetic_metrics(
+            tuple(rows), cohort_group_universe=_universe(rows)
+        )
         single = next(item for item in report.per_corpus if item.corpus_category == "single-corpus")
         self.assertEqual(single.status, AUC_UNAVAILABLE_SINGLE_CLASS)
         self.assertIsNone(single.auc)
@@ -234,7 +294,7 @@ class ProvisionalResolutionAge1H10MetricTests(unittest.TestCase):
             _row(1, 0, 0.2, group="g", age1_status=AGE1_OBSERVATION_UNAVAILABLE),
             _row(2, 0, 0.2, group="g", target_status=TARGET_EXCLUDED_INVALID_FRAME),
         )
-        report = evaluate_h7_synthetic_metrics(rows)
+        report = evaluate_h7_synthetic_metrics(rows, cohort_group_universe=_universe(rows))
         attrition = report.attrition
         self.assertEqual(attrition["emitted_noteons_initially_considered"], 3)
         self.assertEqual(attrition["noteons_with_exact_age1_observation"], 1)
@@ -247,6 +307,7 @@ class ProvisionalResolutionAge1H10MetricTests(unittest.TestCase):
         )
         malformed = evaluate_h7_synthetic_metrics(
             rows,
+            cohort_group_universe=_universe(rows),
             malformed_or_nonfinite_signal_cases=1,
         )
         self.assertEqual(malformed.status, AGE1_SIGNAL_EXECUTION_INVALID)
