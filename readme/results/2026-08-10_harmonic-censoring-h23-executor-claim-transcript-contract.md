@@ -14,9 +14,9 @@ et n’exécute aucun test P0/P1/P2.
 
 ```text
 configs/harmonic_censoring_h23_executor_claim_transcript_contract.json
-taille       14 736 octets
-SHA-256 brut 0a333f6fea4ab9b8dcf94384fd19cc9f019a5f36016e4e03078c5ac797e25ed3
-blob Git     fc3ec602d5ba0a623d454cb3c5d2a0bb883ba74a
+taille       17 885 octets
+SHA-256 brut 2d727fc660e40f601605067ae4d5c0c89e08de7a5efc7b704d8a24e526a10d4c
+blob Git     5a81c1c016b0ab596f9ce688346c6a9af0549f5d
 ```
 
 Le contrat lie les `175` fixtures, les `72` tests `27/35/10`, les quatre SHA
@@ -50,6 +50,13 @@ les `72` tests ordonnés seront dérivés uniquement du plan H23 résolu.
 Claim, exécuteur, writer/verifier de transcript et finalizer devront être
 implémentés dans le même commit, puis revus ensemble.
 
+La future capability devra aussi snapshotter de manière immuable et attestée
+le commit et le SHA de l’activation, le SHA du seal, les blobs sources, les
+contrats/manifests, le runtime et tous les chemins. Après émission, le claim ne
+pourra jamais reprendre une valeur d’autorité depuis l’environnement ou une
+relecture mutable : une revalidation éventuelle pourra seulement confirmer
+l’égalité au snapshot, sinon elle échouera avant `O_EXCL`.
+
 ## Transcript autoritatif
 
 Le transcript sera un JSONL canonique LF append-only, chaîné par SHA-256 et
@@ -64,6 +71,22 @@ persisté après le marker. Il contiendra :
 
 Chaque résultat de test sera `fsync` avant le suivant. Les index seront
 contigus et chaque ligne liera le SHA exact de la précédente.
+
+Les quatre types de ligne ont maintenant un envelope exact commun :
+
+```text
+schema_version
+event_index
+event_type
+previous_event_sha256
+```
+
+Les seules valeurs de `event_type` sont `HEADER`, `FIXTURE_MATERIALIZED`,
+`TEST_RESULT` et `TERMINAL`. Chaque type possède un jeu exhaustif de clés ;
+aucun champ supplémentaire n’est accepté. Le hash précédent est celui des
+octets canoniques exacts de la ligne précédente, LF terminal inclus. Le schéma
+d’évidence et le SHA du contrat de test doivent correspondre à l’oracle
+préenregistré pour le `test_id`.
 
 ## Finalisation depuis les octets persistés
 
@@ -106,16 +129,16 @@ Le couple activation/seal de `31b116c…` est explicitement non réutilisable.
 
 ```text
 tests/test_harmonic_censoring_h23_executor_claim_transcript_contract.py
-taille       10 872 octets
-SHA-256 brut db7551362cca36c3040d5b0d7b4482965504de210f9e2ad67c2799d89b52c388
-blob Git     20df650d9338adccd0b7894e5b533465956f3627
+taille       13 373 octets
+SHA-256 brut a36fe080c0f68bf73bdbd8789df20193579d66e83dd0356618367d22d430fa5c
+blob Git     69bb0bcbc8f7813db5fb041b4236e595a875f589
 ```
 
-Les `10` tests ne font que parser le JSON et vérifier ses invariants. Aucun
+Les `11` tests ne font que parser le JSON et vérifier ses invariants. Aucun
 module scientifique, actif, modèle, waveform ou population n’est utilisé.
 
-Résultats : `10` tests ciblés réussis en `0,001 s`, puis `68` tests
-H23/H17/H20 réussis en `0,835 s`. `json.tool`, `py_compile` et
+Résultats : `11` tests ciblés réussis en `0,002 s`, puis `69` tests
+H23/H17/H20 réussis en `0,827 s`. `json.tool`, `py_compile` et
 `git diff --check` réussissent.
 
 ## État

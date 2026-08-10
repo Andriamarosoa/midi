@@ -60,6 +60,26 @@ class HarmonicCensoringH23ExecutorClaimTranscriptContractTests(unittest.TestCase
         self.assertTrue(implementation["new_activation_and_seal_binding_new_source_blobs_required"])
         self.assertTrue(implementation["new_activation_and_seal_require_separate_external_review"])
 
+    def test_future_capability_snapshots_activation_authority_before_claim(self) -> None:
+        snapshot = self.contract["future_capability_authority_snapshot"]
+        required = set(snapshot["required_immutable_fields"])
+        self.assertTrue(
+            {
+                "authorization_activation_commit",
+                "authorization_activation_sha256",
+                "authorization_seal_sha256",
+                "implementation_commit",
+                "capability_source_blob",
+                "runner_source_blob",
+                "marker_path",
+                "transcript_path",
+            }.issubset(required)
+        )
+        self.assertTrue(snapshot["claim_marker_values_must_come_only_from_this_snapshot"])
+        self.assertTrue(snapshot["claim_may_not_read_environment_for_authority_after_capability_issuance"])
+        self.assertTrue(snapshot["optional_preclaim_file_revalidation_may_only_confirm_equality_to_snapshot"])
+        self.assertTrue(snapshot["any_revalidation_difference_must_fail_before_O_EXCL"])
+
     def test_claim_is_durable_before_waveform_and_never_retryable(self) -> None:
         claim = self.contract["future_claim_contract"]
         self.assertEqual(
@@ -129,11 +149,38 @@ class HarmonicCensoringH23ExecutorClaimTranscriptContractTests(unittest.TestCase
         self.assertEqual(transcript["canonicalization"]["separators"], [",", ":"])
         self.assertTrue(transcript["canonicalization"]["each_hashed_record_includes_trailing_LF"])
         self.assertEqual(transcript["first_event_previous_event_sha256"], "0" * 64)
-        self.assertIn("marker_sha256", transcript["header_required_bindings"])
-        self.assertIn("waveform_sha256", transcript["fixture_materialization_event_fields"])
-        self.assertIn("evidence", transcript["test_result_event_fields"])
-        self.assertIn("evidence_sha256", transcript["test_result_event_fields"])
+        self.assertEqual(
+            transcript["previous_event_sha256_definition"],
+            "SHA256_of_exact_canonical_bytes_of_immediately_preceding_line_including_trailing_LF",
+        )
+        self.assertEqual(
+            transcript["common_event_exact_fields"],
+            ["schema_version", "event_index", "event_type", "previous_event_sha256"],
+        )
+        self.assertEqual(
+            transcript["event_type_exact_values"],
+            ["HEADER", "FIXTURE_MATERIALIZED", "TEST_RESULT", "TERMINAL"],
+        )
+        self.assertFalse(transcript["additional_event_fields_allowed"])
+        schemas = transcript["event_schemas"]
+        self.assertEqual(set(schemas), set(transcript["event_type_exact_values"]))
+        for event_type, schema in schemas.items():
+            with self.subTest(event_type=event_type):
+                self.assertEqual(schema["fixed_values"]["event_type"], event_type)
+                self.assertEqual(schema["fixed_values"]["schema_version"], 1)
+                self.assertEqual(len(schema["exact_fields"]), len(set(schema["exact_fields"])))
+                self.assertTrue(set(transcript["common_event_exact_fields"]).issubset(schema["exact_fields"]))
+        self.assertIn("marker_sha256", schemas["HEADER"]["exact_fields"])
+        self.assertIn("waveform_sha256", schemas["FIXTURE_MATERIALIZED"]["exact_fields"])
+        self.assertIn("evidence", schemas["TEST_RESULT"]["exact_fields"])
+        self.assertIn("evidence_sha256", schemas["TEST_RESULT"]["exact_fields"])
+        self.assertIn("resolved_test_contract_sha256", schemas["TEST_RESULT"]["exact_fields"])
         self.assertTrue(transcript["evidence_must_be_inline_canonical_and_match_evidence_sha256"])
+        self.assertTrue(
+            transcript[
+                "evidence_schema_must_equal_preregistered_oracle_evidence_schema_for_test_id"
+            ]
+        )
 
     def test_finalizer_reopens_persisted_marker_and_transcript_only(self) -> None:
         finalizer = self.contract["future_authoritative_finalization"]

@@ -70,6 +70,32 @@
     "future_worker_must_run_exact_new_activation_commit": true,
     "no_scientific_execution_in_implementation_or_seal_definition_commits": true
   },
+  "future_capability_authority_snapshot": {
+    "required_immutable_fields": [
+      "authorization_activation_commit",
+      "authorization_activation_sha256",
+      "authorization_seal_sha256",
+      "implementation_commit",
+      "capability_source_blob",
+      "runner_source_blob",
+      "H23_contract_raw_sha256",
+      "capability_contract_raw_sha256",
+      "fixture_manifest_sha256",
+      "resolved_test_manifest_sha256",
+      "runtime_identity",
+      "marker_path",
+      "transcript_path",
+      "success_destination",
+      "terminal_destination"
+    ],
+    "snapshot_created_only_by_reviewed_factory_after_activation_and_seal_preflight": true,
+    "snapshot_is_identity_attested_immutable_process_local_and_nonserializable": true,
+    "claim_marker_values_must_come_only_from_this_snapshot": true,
+    "claim_may_not_read_environment_for_authority_after_capability_issuance": true,
+    "claim_may_not_replace_snapshot_values_with_fresh_file_values": true,
+    "optional_preclaim_file_revalidation_may_only_confirm_equality_to_snapshot": true,
+    "any_revalidation_difference_must_fail_before_O_EXCL": true
+  },
   "future_claim_contract": {
     "claim_method": "os_open_O_CREAT_O_EXCL_O_WRONLY_mode_0600",
     "claim_path_must_come_only_from_new_reviewed_seal": true,
@@ -190,63 +216,125 @@
     "each_event_contains_previous_event_sha256": true,
     "first_event_previous_event_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
     "each_event_sha256_is_over_exact_canonical_line_bytes": true,
+    "previous_event_sha256_definition": "SHA256_of_exact_canonical_bytes_of_immediately_preceding_line_including_trailing_LF",
+    "common_event_exact_fields": [
+      "schema_version",
+      "event_index",
+      "event_type",
+      "previous_event_sha256"
+    ],
+    "event_type_exact_values": [
+      "HEADER",
+      "FIXTURE_MATERIALIZED",
+      "TEST_RESULT",
+      "TERMINAL"
+    ],
+    "additional_event_fields_allowed": false,
     "fsync_after_header": true,
     "fsync_after_each_test_result": true,
     "fsync_after_terminal_event": true,
     "fsync_parent_directory_before_terminal_publication": true,
-    "header_required_bindings": [
-      "marker_relative_path",
-      "marker_sha256",
-      "authorization_activation_commit",
-      "authorization_activation_sha256",
-      "authorization_seal_sha256",
-      "implementation_commit",
-      "capability_source_blob",
-      "runner_source_blob",
-      "H23_contract_raw_sha256",
-      "capability_contract_raw_sha256",
-      "fixture_manifest_sha256",
-      "resolved_test_manifest_sha256",
-      "runtime_identity",
-      "ordered_fixture_ids_sha256",
-      "ordered_test_ids_sha256"
-    ],
     "fixture_materialization_event_required_for_each_synthesized_fixture": true,
-    "fixture_materialization_event_fields": [
-      "fixture_id",
-      "fixture_spec_sha256",
-      "waveform_sha256",
-      "target_sha256",
-      "sample_count",
-      "finite_sample_count",
-      "nonfinite_sample_count"
-    ],
-    "test_result_event_fields": [
-      "test_id",
-      "phase",
-      "resolved_order_index",
-      "passed",
-      "fixture_ids_exercised",
-      "evidence_schema",
-      "evidence",
-      "evidence_sha256",
-      "inverse_check_count",
-      "nonfinite_count",
-      "mask_count",
-      "latency_measurements",
-      "memory_measurements"
-    ],
+    "event_schemas": {
+      "HEADER": {
+        "fixed_values": {
+          "schema_version": 1,
+          "event_type": "HEADER",
+          "event_index": 0,
+          "previous_event_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "exact_fields": [
+          "schema_version",
+          "event_index",
+          "event_type",
+          "previous_event_sha256",
+          "marker_relative_path",
+          "marker_sha256",
+          "authorization_activation_commit",
+          "authorization_activation_sha256",
+          "authorization_seal_sha256",
+          "implementation_commit",
+          "capability_source_blob",
+          "runner_source_blob",
+          "H23_contract_raw_sha256",
+          "capability_contract_raw_sha256",
+          "fixture_manifest_sha256",
+          "resolved_test_manifest_sha256",
+          "runtime_identity",
+          "ordered_fixture_ids_sha256",
+          "ordered_test_ids_sha256"
+        ]
+      },
+      "FIXTURE_MATERIALIZED": {
+        "fixed_values": {
+          "schema_version": 1,
+          "event_type": "FIXTURE_MATERIALIZED"
+        },
+        "exact_fields": [
+          "schema_version",
+          "event_index",
+          "event_type",
+          "previous_event_sha256",
+          "fixture_id",
+          "fixture_spec_sha256",
+          "waveform_sha256",
+          "target_sha256",
+          "sample_count",
+          "finite_sample_count",
+          "nonfinite_sample_count"
+        ]
+      },
+      "TEST_RESULT": {
+        "fixed_values": {
+          "schema_version": 1,
+          "event_type": "TEST_RESULT"
+        },
+        "exact_fields": [
+          "schema_version",
+          "event_index",
+          "event_type",
+          "previous_event_sha256",
+          "test_id",
+          "phase",
+          "resolved_order_index",
+          "resolved_test_contract_sha256",
+          "passed",
+          "fixture_ids_exercised",
+          "evidence_schema",
+          "evidence",
+          "evidence_sha256",
+          "inverse_check_count",
+          "nonfinite_count",
+          "mask_count",
+          "latency_measurements",
+          "memory_measurements"
+        ]
+      },
+      "TERMINAL": {
+        "fixed_values": {
+          "schema_version": 1,
+          "event_type": "TERMINAL"
+        },
+        "exact_fields": [
+          "schema_version",
+          "event_index",
+          "event_type",
+          "previous_event_sha256",
+          "outcome_class",
+          "executed_test_count",
+          "passed_test_count",
+          "first_failed_test_id",
+          "not_run_test_ids",
+          "materialized_fixture_ids",
+          "transcript_prefix_sha256"
+        ]
+      }
+    },
+    "every_event_key_set_must_equal_its_event_schema_exact_fields": true,
     "evidence_must_be_inline_canonical_and_match_evidence_sha256": true,
+    "resolved_test_contract_sha256_must_match_resolved_test_for_test_id": true,
+    "evidence_schema_must_equal_preregistered_oracle_evidence_schema_for_test_id": true,
     "materialized_fixture_ids_must_equal_union_of_dependencies_for_executed_test_prefix": true,
-    "terminal_event_fields": [
-      "outcome_class",
-      "executed_test_count",
-      "passed_test_count",
-      "first_failed_test_id",
-      "not_run_test_ids",
-      "materialized_fixture_ids",
-      "transcript_prefix_sha256"
-    ],
     "transcript_must_never_contain_free_form_caller_result_objects": true
   },
   "future_authoritative_finalization": {

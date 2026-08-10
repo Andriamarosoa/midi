@@ -28,7 +28,11 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   finalizer relira uniquement les octets persistés. Claim, exécuteur,
   transcript et finalizer devront être implémentés et revus ensemble, puis un
   nouveau seal/activation sera obligatoire : le couple `31b116c…` ne pourra
-  pas autoriser leurs nouveaux blobs. Rapport :
+  pas autoriser leurs nouveaux blobs. La capability future snapshottera
+  activation+seal avant claim; aucune autorité ne sera relue depuis l’env.
+  Les quatre événements JSONL ont désormais un envelope et un jeu de clés
+  exacts, sans champs supplémentaires, et leur hash inclut le LF terminal.
+  Rapport :
   `readme/results/2026-08-10_harmonic-censoring-h23-executor-claim-transcript-contract.md`.
 - La revue externe de `31b116c…` approuve le couple activation+seal et autorise
   l’injection OS administrative du commit exact. Le worker Mac CPU a passé le
