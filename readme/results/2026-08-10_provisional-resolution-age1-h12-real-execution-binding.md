@@ -82,6 +82,36 @@ TensorFlow : sa version `2.15.1` est lue via les métadonnées de paquet.
 Le statut de réussite est `h7_real_execution_preflight_ready`, avec
 `h8_discovery_consumed=false`.
 
+### Preuve Mac zéro-science
+
+Après synchronisation fast-forward du Mac sur
+`d91548959df319f242c7f33fe8d578ed05dbffc6`, le seul mode exécuté a été :
+
+```text
+MIDI_FORCE_CPU=1
+MIDI_DATA_ROOT=/Users/amcarene/midi-worker/data
+python -m src.polyphonic.provisional_resolution_age1_h12 --preflight-only
+```
+
+Résultat canonique :
+
+```json
+{"execution_marker_created":false,"forbidden_groups":58,"h8_discovery_consumed":false,"h8_scientific_assets_opened":false,"leakage_groups":31,"real_metrics_computed":false,"real_signals_extracted":false,"real_targets_extracted":false,"recordings":101,"runtime":{"architecture":"arm64","darwin":"24.5.0","device":"cpu","macos":"15.5","numpy":"1.26.4","python":"3.11.9","tensorflow":"2.15.1"},"scientific_execution_authorized":false,"status":"h7_real_execution_preflight_ready"}
+```
+
+Le HEAD Mac est exactement `d9154895…`, le worktree est propre, et ces quatre
+chemins sont absents après le preflight :
+
+```text
+tmp/local/provisional_resolution_age1_h7_discovery_authorization.json
+tmp/local/provisional_resolution_age1_h7_discovery_authorization.json.claimed
+tmp/local/provisional_resolution_age1_h7_discovery_result
+tmp/local/provisional_resolution_age1_h7_discovery_result.failure.json
+```
+
+Cette opération a uniquement lu/haché les octets et métadonnées autorisés. Le
+runner réel n'a pas été invoqué.
+
 ## Tests synthétiques
 
 ```powershell

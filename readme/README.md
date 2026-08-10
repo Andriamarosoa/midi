@@ -27,7 +27,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   moteur H10 au blob `a343c505…`. Le seul adapter de production utilise les
   loaders historiques, une inférence, le collecteur passif direct et le moteur
   H10 direct. Le mode preflight vérifie octets, métadonnées, runtime et absence
-  de marqueur sans ouvrir ni décoder de contenu scientifique. Contrat :
+  de marqueur sans ouvrir ni décoder de contenu scientifique. Le preflight Mac
+  sur `d9154895…` a atteint `h7_real_execution_preflight_ready` avec `101`
+  prises, `31` groupes, runtime exact et les quatre chemins one-shot absents;
+  H8 reste non consommée. Contrat :
   `configs/provisional_resolution_age1_persistence_h12_real_execution_binding.json`.
   Rapport :
   `readme/results/2026-08-10_provisional-resolution-age1-h12-real-execution-binding.md`.
