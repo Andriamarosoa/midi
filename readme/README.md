@@ -17,8 +17,21 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `provisional_resolution_frame_fallback_h20_real_execution_contract`.
-- Statut : `en cours — provisional_resolution_frame_fallback_h20_real_execution_contract_defined`, revue externe requise avant H21 ou toute science réelle.
+- Étape : `provisional_resolution_frame_fallback_h21_zero_science_preflight`.
+- Statut : `terminé — provisional_resolution_frame_fallback_h21_zero_science_preflight_sealed`, revue externe requise avant H22 ou toute science réelle.
+- H21 a scellé sur le worker Mac prévu, sans science, le runtime, le checkpoint
+  brut et les actifs exacts des `146` prises / `51` groupes H18a. Chaque entrée
+  conserve chemins logiques/résolus, `audio_member`, tailles et SHA-256 bruts;
+  `87` chemins audio et `146` chemins labels uniques ont été attestés. Le
+  checkpoint brut `1ce8ac44…` fait `5 587 783` octets. TensorFlow/Keras n’ont pas
+  été importés; aucun audio n’a été décodé et aucun label parsé. La destination
+  future, le marqueur, son claim et l’état de consommation restent absents; le
+  blob du futur runner reste `null`. L’artefact canonique H21 a pour SHA-256
+  `acb8ced104ec99afd7f6f966be17b84ce4d436e5582137b6ec6048a90dfe3331`.
+  Aucun runner, autorisation ou consommation n’a été créé. Artefact :
+  `configs/provisional_resolution_frame_fallback_h21_zero_science_preflight.json`.
+  Rapport :
+  `readme/results/2026-08-10_provisional-resolution-frame-fallback-h21-zero-science-preflight.md`.
 - H20 lie sans exécuter la future expérience H17 : chaîne H17/H17a/H18a/H19a,
   décodeur, target causal, univers de groupes, grouping et checkpoint. La seule
   population prospective reste exactement H18a (`146` prises / `51` groupes),
