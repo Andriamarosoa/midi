@@ -27,7 +27,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   de contrat, manifest, source ou runtime échoue avant toute création du
   marker. La préparation du répertoire précède la revalidation; après celle-ci,
   l'opération filesystem suivante est le `os.open(O_CREAT|O_EXCL|O_WRONLY)`.
-  `79` tests contractuels H23/H20 réussissent sans appeler les evaluators.
+  Le correctif post-revue exige aussi `HEAD == activation_commit` au préclaim.
+  Après claim, le loader du contrat scientifique lit ses octets une seule fois,
+  vérifie leur SHA contre `claimed.contract_sha256`, puis parse exactement ce
+  buffer. `81` tests contractuels H23/H20 réussissent sans appeler les evaluators.
   Aucun seal, activation, claim réel, marker, waveform ou P0/P1/P2 n'est créé.
   Rapport :
   `readme/results/2026-08-10_harmonic-censoring-h23-preclaim-toctou-hardening.md`.

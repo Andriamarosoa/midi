@@ -740,6 +740,8 @@ def _revalidate_h23_claim_authority(
 
     if _git(repository, "status", "--porcelain"):
         raise RuntimeError("H23 preclaim requires the issued clean worktree.")
+    if _git(repository, "rev-parse", "HEAD") != capability.authorization_activation_commit:
+        raise ValueError("H23 preclaim HEAD changed after capability issuance.")
 
     for relative, approved_commit, expected in (
         (H23_CONTRACT_RELATIVE_PATH, H23_APPROVED_HARNESS_COMMIT, H23_CONTRACT_GIT_BLOB),

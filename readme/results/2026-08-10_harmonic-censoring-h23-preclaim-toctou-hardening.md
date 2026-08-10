@@ -22,6 +22,7 @@ les dépendances qui déterminent l'exécution :
 - blobs du commit d'implémentation pour la capability, le runner et le
   recomputer pur `harmonic_censoring_h23_oracles.py` ;
 - worktree toujours propre ;
+- `HEAD` toujours égal au commit d'activation attesté ;
 - identité CPython/NumPy/arm64/CPU et quatre variables de threads toujours
   identiques au snapshot émis ;
 - absence des quatre destinations one-shot.
@@ -31,11 +32,19 @@ revalidation. Le payload canonique est également préparé en mémoire avant el
 Après son retour, `_write_exclusive_durable_file(..., create_parent=False)`
 effectue directement le `os.open(...O_EXCL...)` irréversible.
 
+Le premier reload post-claim du contrat scientifique prend désormais le SHA
+attesté en argument. Il lit le fichier une fois, compare
+`sha256(raw) == claimed.contract_sha256`, puis parse ces mêmes octets. Une
+mutation entre préclaim et consommation scientifique produit donc une erreur
+après consommation, sans jamais faire utiliser le contrat divergent.
+
 ## Tests administratifs
 
 Les nouveaux tests prouvent qu'une divergence des octets contractuels, du
-manifest résolu, du recomputer pur ou du runtime est rejetée avant l'appel à
-la primitive exclusive. Un test d'ordre impose la séquence exacte :
+manifest résolu, du recomputer pur, du runtime ou d'un `HEAD` pourtant propre
+est rejetée avant l'appel à la primitive exclusive. Un autre test modifie le
+contrat avant son reload post-claim et vérifie son refus avant parsing. Le test
+d'ordre impose la séquence exacte :
 
 ```text
 revalidate
@@ -45,7 +54,7 @@ revalidate
 Validation locale sans science :
 
 ```text
-72 tests H23 réussis
+74 tests H23 réussis
 7 tests H20 réussis
 py_compile réussi
 git diff --check réussi

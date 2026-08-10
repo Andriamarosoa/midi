@@ -148,6 +148,8 @@ class HarmonicCensoringH23ClaimTranscriptImplementationTests(unittest.TestCase):
         self.assertEqual(repository, self.repository)
         if arguments == ("status", "--porcelain"):
             return ""
+        if arguments == ("rev-parse", "HEAD"):
+            return "f" * 40
         if arguments[0] == "hash-object":
             relative = arguments[1]
             return {
@@ -554,6 +556,50 @@ class HarmonicCensoringH23ClaimTranscriptImplementationTests(unittest.TestCase):
         ):
             capability.claim_h23_synthetic_execution_capability(self.attested)
         exclusive.assert_not_called()
+
+    def test_clean_head_drift_fails_before_o_excl(self) -> None:
+        def drifted_git(repository: Path, *arguments: str) -> str:
+            if arguments == ("rev-parse", "HEAD"):
+                return "0" * 40
+            return self._matching_preclaim_git(repository, *arguments)
+
+        with (
+            mock.patch.object(capability, "_sha256", side_effect=self._matching_raw_hashes()),
+            mock.patch.object(capability, "load_h23_harness_plan", return_value=self.plan),
+            mock.patch.object(capability, "_git", side_effect=drifted_git),
+            mock.patch.object(
+                capability,
+                "_resolve_bound_path",
+                return_value=(
+                    self.repository
+                    / capability.H23_EXECUTOR_CLAIM_TRANSCRIPT_CONTRACT_RELATIVE_PATH
+                ),
+            ),
+            mock.patch.object(capability, "_write_exclusive_durable_file") as exclusive,
+            self.assertRaisesRegex(ValueError, "HEAD changed"),
+        ):
+            capability.claim_h23_synthetic_execution_capability(self.attested)
+        exclusive.assert_not_called()
+        self.assertFalse(self.attested.authorization_marker.exists())
+
+    def test_postclaim_contract_reload_hashes_the_same_bytes_before_parsing(self) -> None:
+        contract_path = (
+            self.repository / "configs/harmonic_censoring_pretrain_h23_contract.json"
+        )
+        contract_path.parent.mkdir(parents=True, exist_ok=True)
+        raw = b'{"mathematical_contract":{},"feature_schema_contract":{}}\n'
+        contract_path.write_bytes(raw)
+        expected = hashlib.sha256(raw).hexdigest()
+        loaded = runner._load_h23_scientific_contract(
+            self.repository, expected_sha256=expected
+        )
+        self.assertEqual(dict(loaded["mathematical_contract"]), {})
+
+        contract_path.write_bytes(raw.replace(b"{}", b'{"drift":true}', 1))
+        with self.assertRaisesRegex(ValueError, "claimed snapshot"):
+            runner._load_h23_scientific_contract(
+                self.repository, expected_sha256=expected
+            )
 
     def test_revalidation_is_the_last_step_before_exclusive_open(self) -> None:
         events: list[str] = []

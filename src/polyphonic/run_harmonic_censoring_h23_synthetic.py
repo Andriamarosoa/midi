@@ -792,8 +792,12 @@ def _require_mapping(value: object, label: str) -> Mapping[str, object]:
     return value
 
 
-def _load_h23_scientific_contract(repository: Path) -> Mapping[str, object]:
+def _load_h23_scientific_contract(
+    repository: Path, *, expected_sha256: str
+) -> Mapping[str, object]:
     raw = (repository / "configs/harmonic_censoring_pretrain_h23_contract.json").read_bytes()
+    if hashlib.sha256(raw).hexdigest() != expected_sha256:
+        raise ValueError("H23 scientific contract bytes differ from the claimed snapshot.")
     payload = json.loads(
         raw,
         object_pairs_hook=_reject_duplicate_pairs,
@@ -3349,7 +3353,9 @@ def run_authorized_h23_synthetic_execution(
         np = importlib.import_module("numpy")
         if np.__version__ != "1.26.4":
             raise RuntimeError("H23 scientific executor NumPy identity mismatch.")
-        contract = _load_h23_scientific_contract(repository)
+        contract = _load_h23_scientific_contract(
+            repository, expected_sha256=claimed.contract_sha256
+        )
         scientific_hashes = {
             "cutoff_contract_sha256": hashlib.sha256(
                 _canonical_json_line(contract["mathematical_contract"])
