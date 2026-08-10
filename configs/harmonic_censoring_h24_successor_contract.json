@@ -57,6 +57,26 @@
       "maximum": 20
     },
     "coordinate_formula": "q(p,h)=p+12*log2(h)",
+    "admissible_relation_key_set": {
+      "symbol": "E",
+      "definition": "E={(p,h) in Z^2 | 24<=p<=76, 1<=h<=20, h^12<=2^(128-p)}",
+      "integer_boundary_equivalence": "h^12<=2^(128-p) is the exact integer-arithmetic equivalent of p+12*log2(h)<=128 and is normative for membership.",
+      "observed_key_projection": "observed_keys=[(record.source_pitch,record.harmonic_rank) for every persisted record]",
+      "coverage_invariant": "set(observed_keys)==E",
+      "uniqueness_invariant": "len(observed_keys)==len(set(observed_keys))",
+      "extra_record_invariant": "no observed key outside E",
+      "order_is_semantically_irrelevant": true
+    },
+    "coordinate_numeric_semantics": {
+      "stored_type": "finite_JSON_number",
+      "recompute_type": "IEEE_754_binary64",
+      "recompute_expression": "float(source_pitch)+12.0*math.log2(float(harmonic_rank))",
+      "comparison_operator": "abs(observed-expected)<=max(1e-12,1e-15*abs(expected))",
+      "absolute_tolerance": 1e-12,
+      "relative_tolerance": 1e-15,
+      "nonfinite_observation_result": "FAIL",
+      "membership_must_not_use_floating_coordinate": true
+    },
     "relation_partition": {
       "fundamental_reflexive_relation": {
         "rank": 1,
@@ -94,10 +114,17 @@
   },
   "first_successor_test_contract": {
     "id": "H24-A01-GRAPH-DIRECTION",
+    "namespace": "H24_TEST_V1",
+    "namespace_member_id_pattern": "^H24-[A-Z0-9-]+$",
     "phase": "P0",
     "objective": "Prove the typed harmonic graph orientation without conflating H1 identity with proper harmonic ascent.",
     "input": "Enumerate every retained typed relation for integer source pitches 24..76 and harmonic ranks 1..20 with q(p,h)<=128.",
     "primary_oracle": {
+      "observed_key_set_equals_E": true,
+      "exactly_one_record_per_key": true,
+      "no_record_outside_E": true,
+      "every_observation_coordinate_matches_recomputed_q": true,
+      "every_relation_type_matches_harmonic_rank": true,
       "all_H1_relations_are_identity": true,
       "all_H2_to_H20_relations_are_strictly_ascending": true,
       "no_relation_is_descending": true,
@@ -123,10 +150,27 @@
         "id": "H24-A01-I4",
         "mutation": "relabel one H1 relation as PROPER_HARMONIC_ASCENT",
         "required_result": "FAIL"
+      },
+      {
+        "id": "H24-A01-I5",
+        "mutation": "omit one required relation key from E",
+        "required_result": "FAIL"
+      },
+      {
+        "id": "H24-A01-I6",
+        "mutation": "duplicate one otherwise valid relation record",
+        "required_result": "FAIL"
+      },
+      {
+        "id": "H24-A01-I7",
+        "mutation": "perturb one observation_coordinate by +0.25 semitone while keeping it greater than source_pitch",
+        "required_result": "FAIL"
       }
     ],
     "producer_pass_boolean_forbidden": true,
     "oracle_must_recompute_from_persisted_typed_edges": true,
+    "oracle_must_recompute_E_with_exact_integer_membership": true,
+    "oracle_must_reject_empty_observed_records": true,
     "failure_rule": "Any primary invariant failure or any inverse mutation not rejected fails H24-A01-GRAPH-DIRECTION."
   },
   "future_contract_requirements": {

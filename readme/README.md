@@ -23,7 +23,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   harmonique typé : `H1` est la relation réflexive `FUNDAMENTAL_IDENTITY`,
   tandis que `H2–H20` sont les seules arêtes `PROPER_HARMONIC_ASCENT`
   strictement ascendantes. Le nouveau test `H24-A01-GRAPH-DIRECTION` sépare les
-  deux invariants et quatre inverses adversariales. Les namespaces futurs sont
+  deux invariants. L’ensemble admissible `E` est défini par arithmétique entière
+  exacte; le futur oracle devra imposer couverture, unicité, absence d’extra,
+  recomputation de `q(p,h)`, typage dérivé du rang et sept inverses adversariales.
+  Les namespaces futurs sont
   `H24_SYNTHETIC_V1` et `H24_TEST_V1`; aucun manifest, fixture, evaluator,
   oracle ou calcul H24 n’existe encore. H23 reste consommé et non relançable.
   Rapport :

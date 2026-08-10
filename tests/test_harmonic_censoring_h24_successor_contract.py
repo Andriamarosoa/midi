@@ -67,13 +67,47 @@ class HarmonicCensoringH24SuccessorContractTest(unittest.TestCase):
         self.assertTrue(graph["edge_record_extra_fields_forbidden"])
         self.assertIn("C4 never explains C3", graph["graph_invariants"])
 
-    def test_successor_A01_has_primary_and_four_distinct_inverses(self):
+    def test_expected_key_set_is_exact_complete_and_unique(self):
+        expected = self.contract["harmonic_graph_semantics"]["admissible_relation_key_set"]
+        self.assertEqual(expected["symbol"], "E")
+        self.assertEqual(
+            expected["definition"],
+            "E={(p,h) in Z^2 | 24<=p<=76, 1<=h<=20, h^12<=2^(128-p)}",
+        )
+        self.assertEqual(expected["coverage_invariant"], "set(observed_keys)==E")
+        self.assertEqual(
+            expected["uniqueness_invariant"],
+            "len(observed_keys)==len(set(observed_keys))",
+        )
+        self.assertTrue(expected["order_is_semantically_irrelevant"])
+
+    def test_coordinate_is_recomputed_with_closed_numeric_semantics(self):
+        numeric = self.contract["harmonic_graph_semantics"]["coordinate_numeric_semantics"]
+        self.assertEqual(numeric["stored_type"], "finite_JSON_number")
+        self.assertEqual(numeric["recompute_type"], "IEEE_754_binary64")
+        self.assertEqual(
+            numeric["recompute_expression"],
+            "float(source_pitch)+12.0*math.log2(float(harmonic_rank))",
+        )
+        self.assertEqual(numeric["absolute_tolerance"], 1e-12)
+        self.assertEqual(numeric["relative_tolerance"], 1e-15)
+        self.assertEqual(numeric["nonfinite_observation_result"], "FAIL")
+        self.assertTrue(numeric["membership_must_not_use_floating_coordinate"])
+
+    def test_successor_A01_has_primary_and_seven_distinct_inverses(self):
         test = self.contract["first_successor_test_contract"]
         self.assertEqual(test["id"], "H24-A01-GRAPH-DIRECTION")
+        self.assertEqual(test["namespace"], "H24_TEST_V1")
+        self.assertEqual(test["namespace_member_id_pattern"], "^H24-[A-Z0-9-]+$")
         self.assertEqual(test["phase"], "P0")
         self.assertEqual(
             test["primary_oracle"],
             {
+                "observed_key_set_equals_E": True,
+                "exactly_one_record_per_key": True,
+                "no_record_outside_E": True,
+                "every_observation_coordinate_matches_recomputed_q": True,
+                "every_relation_type_matches_harmonic_rank": True,
                 "all_H1_relations_are_identity": True,
                 "all_H2_to_H20_relations_are_strictly_ascending": True,
                 "no_relation_is_descending": True,
@@ -82,11 +116,14 @@ class HarmonicCensoringH24SuccessorContractTest(unittest.TestCase):
         )
         inverses = test["inverse_mutations"]
         self.assertEqual([item["id"] for item in inverses], [
-            "H24-A01-I1", "H24-A01-I2", "H24-A01-I3", "H24-A01-I4"
+            "H24-A01-I1", "H24-A01-I2", "H24-A01-I3", "H24-A01-I4",
+            "H24-A01-I5", "H24-A01-I6", "H24-A01-I7"
         ])
         self.assertTrue(all(item["required_result"] == "FAIL" for item in inverses))
         self.assertTrue(test["producer_pass_boolean_forbidden"])
         self.assertTrue(test["oracle_must_recompute_from_persisted_typed_edges"])
+        self.assertTrue(test["oracle_must_recompute_E_with_exact_integer_membership"])
+        self.assertTrue(test["oracle_must_reject_empty_observed_records"])
 
     def test_no_manifest_or_execution_is_authorized(self):
         forbidden = set(self.contract["forbidden_now"])

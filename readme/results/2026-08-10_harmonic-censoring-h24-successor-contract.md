@@ -18,8 +18,8 @@ Contrat H24 canonique :
 
 ```text
 configs/harmonic_censoring_h24_successor_contract.json
-6046 octets
-SHA-256 d4b543ce1752974540d0779587dd0baf28bb747085d2017da5ef31bf850541fb
+8123 octets
+SHA-256 184d3847a594ffaca263b45befe70d1f5aa63ade0a0ef599d969ba044f4e680a
 ```
 
 ## Post-mortem A01
@@ -87,6 +87,25 @@ Quatre inverses distinctes devront être rejetées : H1 non identité, harmoniqu
 propre rendue identité, arête descendante injectée et H1 mensongèrement typée
 comme harmonique propre. Le futur oracle devra recomputer le verdict depuis les
 arêtes typées persistées et ne pourra accepter un booléen du producteur.
+
+La correction de revue ferme aussi la vacuité. L’ensemble attendu est défini
+exactement, sans comparaison flottante à la frontière :
+
+```text
+E = {(p,h) entiers |
+     24 ≤ p ≤ 76,
+     1 ≤ h ≤ 20,
+     h^12 ≤ 2^(128-p)}
+```
+
+Les clés observées doivent égaler `E`, exactement une fois chacune, sans extra.
+Pour chaque ligne, le recomputer vérifie ensuite `observation_coordinate` contre
+`p + 12*log2(h)` en binary64 avec `atol=1e-12` et `rtol=1e-15`, puis dérive
+obligatoirement `relation_type` depuis `h`.
+
+Trois adversariaux supplémentaires doivent échouer : relation obligatoire
+omise, relation dupliquée et coordonnée perturbée de `+0,25` demi-ton tout en
+restant ascendante. Le test porte explicitement le namespace `H24_TEST_V1`.
 
 ## Nouvelle identité, aucune population actuelle
 
