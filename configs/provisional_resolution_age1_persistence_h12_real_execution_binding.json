@@ -1,0 +1,136 @@
+{
+  "schema_version": 1,
+  "purpose": "provisional_resolution_age1_persistence_h12_real_execution_binding",
+  "status": "provisional_resolution_age1_persistence_h12_real_execution_binding_sealed",
+  "accepted_h11": {
+    "commit": "486450cd1dcdef775e95756aabf9756f5ebbe3bd",
+    "contract_path": "configs/provisional_resolution_age1_persistence_h11_execution_contract.json",
+    "contract_raw_lf_sha256": "ea6032e1e2cbd3da8a9bd2facb864df6eea5740692d00f952353d399b1facf8e"
+  },
+  "decoder_identities": {
+    "historical_behavioural_baseline": {
+      "commit": "e3e2be144282ecf0079ba22831abfb6439b16ac3",
+      "git_blob": "4233186147c0946372ddb2e9e3dd3343daeb26eb",
+      "role": "historical population-changing behaviour provenance"
+    },
+    "instrumented_h7_execution": {
+      "git_blob": "27026d368081fadc4fa282954428f0377020e723",
+      "role": "same reviewed decoder behaviour plus passive H9 collector interface",
+      "neutrality_proof_commit": "963cf72c8e60e2d669e659de037f910658637984"
+    },
+    "future_execution_uses": "instrumented_h7_execution",
+    "provisional_state_resolver": null,
+    "causal_candidate_gate": null,
+    "independent_note_threshold": null
+  },
+  "scientific_source_bindings": {
+    "h11_orchestrator": {
+      "path": "src/polyphonic/provisional_resolution_age1_h11.py",
+      "git_blob": "6ea9ba6637788552b5f3318b1f2dfac6fd52f71e",
+      "role": "exact join, reconciliation, one-shot claim and atomic publication"
+    },
+    "h9": {
+      "path": "src/polyphonic/provisional_resolution_age1.py",
+      "git_blob": "22b93d2b5a6e2a3826eddc4aee0057d68fe34141",
+      "apis": [
+        "PassiveAge1SignalCollector",
+        "PassiveAge1SignalCollector.require_no_pending_age1_at_end",
+        "extract_exact_causal_age1_targets",
+        "join_age1_signals_and_targets"
+      ]
+    },
+    "h10": {
+      "path": "src/polyphonic/provisional_resolution_age1_metrics.py",
+      "git_blob": "a343c5057ec2a84f3e42c6be6e6e7b641c0f1a70",
+      "entrypoint": "evaluate_h7_synthetic_metrics",
+      "caller_override": false
+    }
+  },
+  "sealed_inputs": {
+    "h8_cohort": {
+      "path": "configs/provisional_resolution_age1_persistence_h8_selected_cohort.json",
+      "raw_sha256": "4dd76bd13c33ccb3946bfdbcf6f575d4550fb0c5588095e23da3b6e3f84bce1f",
+      "recordings": 101,
+      "leakage_groups": 31,
+      "partition": "dev",
+      "caller_override": false
+    },
+    "manifest_sha256": "b28cb17cfb80a82860ab44635b2c6d05718243e027a8fc8199fe72e27f1b8ed7",
+    "partition_plan_sha256": "a8347e4e6300dc59b48eab253186fd60ae21cd769fa21d647db4d7e0893685f4",
+    "asset_evidence_sha256": "12dd74f2c868d884f9189e1c8d07c1e7e1cec4e984fda5a68ce434c05e586507",
+    "checkpoint_sha256": "1ce8ac44ca7156d4bc058b5b37580805f2ab6536b380636c04b9a31b1a411325",
+    "model_config_sha256": "245285783eb395e1c16f9773cf9a15565510ba289467d63ad6a7d725bae19804",
+    "decoder_config_raw_sha256": "c16be48271912c99c4237345e8406e39b88490b5565047757f6ca9e905615f96",
+    "decoder_config_canonical_sha256": "7f6a93b566c2e042ec943821b5d35bdaa9151fe97711cd9463704aba20de178d",
+    "audio_policy_sha256": "45edbb712415c5b62f10a1405678fc28cee083891131108b2875ce8f71abcd3e",
+    "caller_scientific_overrides": false
+  },
+  "concrete_adapter": {
+    "class": "src.polyphonic.provisional_resolution_age1_h12.ConcreteH7ScientificAdapter",
+    "verify_provenance": "existence_size_raw_sha_and_exact_archive_member_before_open",
+    "open_recording": "historical_PolyphonicCorpus_single_sealed_ManifestItem",
+    "infer_once": "historical_PolyphonicSequence_and_predict_compat_with_frozen_checkpoint",
+    "decode_once": "instrumented_decoder_with_direct_PassiveAge1SignalCollector_and_all_population_gates_disabled",
+    "extract_targets": "direct_extract_exact_causal_age1_targets_with_frozen_truth_notes",
+    "duplicated_scientific_logic": false
+  },
+  "real_entrypoint": {
+    "callable": "src.polyphonic.provisional_resolution_age1_h12.run_real_h7_discovery",
+    "cohort_argument": false,
+    "forbidden_groups_argument": false,
+    "manifest_or_plan_argument": false,
+    "checkpoint_or_config_argument": false,
+    "metric_callable_argument": false,
+    "seed_or_bootstrap_argument": false,
+    "requires_separate_one_shot_marker": true,
+    "invoked_in_h12": false
+  },
+  "preflight": {
+    "callable": "src.polyphonic.provisional_resolution_age1_h12.run_h12_preflight",
+    "status": "h7_real_execution_preflight_ready",
+    "allowed": [
+      "raw_hash_contract_configs_checkpoint_manifest_plan_evidence_assets",
+      "parse_h8_metadata_only",
+      "count_101_recordings_31_groups",
+      "validate_forbidden_group_intersection",
+      "validate_paths_sizes_and_zip_member_metadata",
+      "read_package_version_metadata",
+      "require_marker_claimed_and_destination_absent"
+    ],
+    "forbidden": [
+      "decode_audio",
+      "parse_scientific_labels",
+      "load_keras_model",
+      "instantiate_scientific_dataset",
+      "open_recording",
+      "infer_once",
+      "decode_once",
+      "extract_targets",
+      "evaluate_metrics"
+    ],
+    "consumes_h8": false
+  },
+  "runtime": {
+    "python": "3.11.9",
+    "numpy": "1.26.4",
+    "tensorflow_package_metadata": "2.15.1",
+    "macos": "15.5",
+    "darwin": "24.5.0",
+    "architecture": "arm64",
+    "device": "cpu",
+    "midi_force_cpu": "1"
+  },
+  "terminal_flags": {
+    "scientific_execution_authorized": false,
+    "execution_marker_created": false,
+    "runner_invoked": false,
+    "h8_scientific_assets_opened": false,
+    "h8_discovery_consumed": false,
+    "real_targets_extracted": false,
+    "real_signals_extracted": false,
+    "real_metrics_computed": false,
+    "locked_test_used": false,
+    "consumed_v2_cohort_used": false
+  },
+  "next_action": "external_review_before_any_authorization_marker_or_real_h7_execution"
+}

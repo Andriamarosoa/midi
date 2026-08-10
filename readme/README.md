@@ -17,8 +17,20 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `provisional_resolution_age1_persistence_h11_execution_contract`.
-- Statut : `terminé — provisional_resolution_age1_persistence_h11_execution_contract_sealed, aucune exécution scientifique autorisée`.
+- Étape : `provisional_resolution_age1_persistence_h12_real_execution_binding`.
+- Statut : `terminé — provisional_resolution_age1_persistence_h12_real_execution_binding_sealed, aucune exécution scientifique autorisée`.
+- H12 supprime l'injection scientifique restante : le vrai point d'entrée n'a
+  aucun argument de cohorte, groupes interdits, manifeste/plan, checkpoint,
+  config, métrique, seed ou bootstrap. Il lie le contrat H11 `ea6032e1…`, la
+  cohorte H8 `4dd76bd1…`, le blob historique du décodeur `42331861…`, le blob
+  instrumenté neutre H9 `27026d36…`, les APIs H9 au blob `22b93d2b…` et le
+  moteur H10 au blob `a343c505…`. Le seul adapter de production utilise les
+  loaders historiques, une inférence, le collecteur passif direct et le moteur
+  H10 direct. Le mode preflight vérifie octets, métadonnées, runtime et absence
+  de marqueur sans ouvrir ni décoder de contenu scientifique. Contrat :
+  `configs/provisional_resolution_age1_persistence_h12_real_execution_binding.json`.
+  Rapport :
+  `readme/results/2026-08-10_provisional-resolution-age1-h12-real-execution-binding.md`.
 - H11 scelle uniquement le futur runner one-shot H7. La provenance fixe le
   checkpoint `1ce8ac44…`, le YAML `24528578…`, le décodeur `c16be482…`, la
   politique audio LF `45edbb71…`, Python `3.11.9`, NumPy `1.26.4`, TensorFlow
