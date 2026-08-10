@@ -1,0 +1,231 @@
+{
+  "schema_version": 1,
+  "purpose": "provisional_resolution_frame_fallback_h20_real_execution_binding_contract",
+  "status": "provisional_resolution_frame_fallback_h20_real_execution_contract_defined",
+  "parent_commit": "9e6ffa9d9087f0b5ce386d7a177ef35bd7cd8708",
+  "objective": "Pre-register every constraint of a possible future real H17/H17a execution testing whether frame_fallback emitted NoteOns have excess causal false-NoteOn risk versus model_onset, frame_attack, and chord_completion.",
+  "scope": {
+    "contract_only": true,
+    "runner_implemented": false,
+    "authorization_created": false,
+    "scientific_execution_authorized": false,
+    "scientific_assets_opened": false,
+    "checkpoint_loaded": false,
+    "inference_run": false,
+    "decoder_run": false,
+    "real_reasons_inspected": false,
+    "real_targets_extracted": false,
+    "real_metrics_computed": false,
+    "fresh_population_consumed": false,
+    "locked_test_used": false
+  },
+  "scientific_bindings": {
+    "h17_original_commit": "3a3e65ab532a4983fadae89c842b544228c3b028",
+    "h17_contract_git_blob": "f8d8e71f8d2b98955c2e19fedf2f4019ab4cca2f",
+    "h17a_amendment_commit": "9e6ffa9d9087f0b5ce386d7a177ef35bd7cd8708",
+    "h17a_amendment_contract_git_blob": "04385284698d3caafa8ae3e63e2e2cfe6bee1024",
+    "h18a_commit": "3f9a15540d783c32486a9e0d50446efdb637ba60",
+    "h18a_audit_git_blob": "c06459b5877526a515930561b15a5e9a08c3af31",
+    "h18a_audit_raw_sha256": "580ea2a77cd68798946c324d190082d5b960e5d1280fd93527b8ac47116fcff9",
+    "h19a_commit": "a28068a55d711ad4dd24e31736974bdf30533c00",
+    "h19a_contract_git_blob": "108458ac0a432d8dc71b79093f0d0e10335588cf",
+    "h19a_implementation_git_blob": "e85622c92d040cf857a82bc3f1d20a23bd228ef3",
+    "decoder_git_blob": "27026d368081fadc4fa282954428f0377020e723",
+    "exact_causal_target_extractor_git_blob": "22b93d2b5a6e2a3826eddc4aee0057d68fe34141",
+    "canonical_group_universe_engine_git_blob": "5e40574dab4a53e0ce5b2288536d337f0da66fa9",
+    "grouping_implementation_git_blob": "e43187b4e8ba0775a74114faf406703dd6c3187c",
+    "checkpoint_sha256": "1ce8ac44ca7156d4bc058b5b37580805f2ab6536b380636c04b9a31b1a411325",
+    "target_source_git_blobs": [
+      "c63b9751e5acef49fb51b5e2a8264b00d6e60893",
+      "98c3f2e87b89df599e71068ab4ae874f69172c5a",
+      "42f7954b75b0994f43d7f59c62c1ff1b04c0a81d"
+    ],
+    "mismatch_status": "frame_fallback_execution_invalid",
+    "mismatch_must_fail_before_scientific_access": true
+  },
+  "population_binding": {
+    "source": "accepted H18a audit artifact only",
+    "recording_count": 146,
+    "leakage_group_count": 51,
+    "classification": "fresh_discovery_only_not_independent_validation",
+    "selected_by_h18a": true,
+    "scientifically_opened": false,
+    "consumed": false,
+    "manual_reselection_allowed": false,
+    "random_sampling_allowed": false,
+    "corpus_balancing_allowed": false,
+    "duration_filtering_allowed": false,
+    "reason_frequency_filtering_allowed": false,
+    "target_or_class_filtering_allowed": false,
+    "post_hoc_removal_allowed": false,
+    "immutable_group_universe_after_materialization": true,
+    "zero_eligible_row_groups_remain_in_universe": true
+  },
+  "forbidden_populations": {
+    "sets": [
+      "H8_consumed_cohort",
+      "consumed_independent_V2_cohort",
+      "locked_test",
+      "checkpoint_fit_groups",
+      "every_group_excluded_by_H18a"
+    ],
+    "substitution_allowed": false,
+    "missing_or_corrupt_asset_policy": "fail_closed_execution_invalid_without_replacement"
+  },
+  "reason_taxonomy": {
+    "F_equals_1": ["frame_fallback"],
+    "F_equals_0_comparator": ["model_onset", "frame_attack", "chord_completion"],
+    "excluded_and_counted": ["harmonic_strong_frame", "legacy", "retrigger"],
+    "all_other_reasons_status": "frame_fallback_execution_invalid",
+    "harmonic_strong_frame_reason_reconstruction_allowed": false
+  },
+  "target_contract": {
+    "new_matching_code_or_rule_allowed": false,
+    "use_bound_exact_causal_target_extractor": true,
+    "false_noteon_for_eligible_matchable_only": "1 - true_noteon",
+    "maximum_causal_latency_ms": 250.0,
+    "unmatchable_or_excluded_targets_remain_excluded": true,
+    "future_reference_target_allowed": false,
+    "alternate_matching_tolerance_allowed": false
+  },
+  "primary_metric": {
+    "name": "RD_false",
+    "definition": "P(false_noteon=1 | F=1) - P(false_noteon=1 | F=0)",
+    "positive_requires_all": {
+      "eligible_noteons_minimum": 200,
+      "eligible_frame_fallback_minimum": 50,
+      "eligible_comparator_minimum": 50,
+      "RD_false_minimum_inclusive": 0.1,
+      "group_bootstrap_lower_95_strictly_greater_than": 0.0
+    },
+    "positive_status": "frame_fallback_false_risk_enrichment_demonstrated",
+    "negative_status": "frame_fallback_false_risk_enrichment_not_demonstrated",
+    "secondary_output_may_alter_verdict": false
+  },
+  "bootstrap": {
+    "replicate_count": 10000,
+    "rng": "numpy.random.Generator(numpy.random.PCG64(721629268))",
+    "seed": 721629268,
+    "sealed_group_count": 51,
+    "sample_exactly_G_group_ids_with_replacement": true,
+    "include_all_eligible_rows_preserving_multiplicity": true,
+    "empty_groups_remain_sampleable_and_contribute_zero_rows": true,
+    "invalid_replicate": "either F stratum absent",
+    "invalid_replicate_retry_allowed": false,
+    "minimum_valid_replicates": 9500,
+    "percentiles": [2.5, 97.5],
+    "interpolation": "linear",
+    "row_recording_frame_or_noteon_bootstrap_allowed": false
+  },
+  "mandatory_attrition": {
+    "required_counts": [
+      "emitted_noteons_initially_considered",
+      "audio_aware_activation_noteons_in_h17_population",
+      "frame_fallback_eligible_count",
+      "comparator_eligible_count",
+      "excluded_harmonic_strong_frame_count",
+      "excluded_legacy_count",
+      "excluded_retrigger_count",
+      "target_unmatchable_or_excluded_count",
+      "malformed_reason_count",
+      "malformed_or_nonfinite_target_count"
+    ],
+    "silent_deletion_allowed": false,
+    "counts_must_reconcile_with_processed_emitted_noteons": true
+  },
+  "future_execution_phases": [
+    "opening", "inference", "decoder", "target", "reconciliation", "metrics", "publication"
+  ],
+  "operational_failure_provenance": {
+    "bounded_non_scientific_information_only": true,
+    "scientific_intermediate_values_allowed": false
+  },
+  "future_one_shot_authorization": {
+    "single_use": true,
+    "authorization_marker_created_by_h20": false,
+    "separate_external_approval_required": true,
+    "future_marker_must_bind_final_execution_contract_hash": true,
+    "claim_must_be_atomic": true,
+    "caller_overrides_forbidden": [
+      "cohort", "checkpoint", "decoder", "target_extractor", "reason_taxonomy",
+      "thresholds", "bootstrap_seed_or_count", "group_universe", "output_destination_semantics"
+    ]
+  },
+  "consumption_boundary": {
+    "not_consumed_by": [
+      "H20", "metadata_inspection", "structural_tests", "runtime_inspection",
+      "asset_existence_checks", "later_explicitly_authorized_raw_hash_verification"
+    ],
+    "boundary": "immediately before first scientific opening or parsing of any H18a audio or scientific label after all zero-science checks succeed",
+    "persist_atomically_before_boundary": {"fresh_population_consumed": true},
+    "failure_after_boundary": {
+      "population_remains_consumed": true,
+      "automatic_retry_allowed": false,
+      "same_population_rerun_allowed": false,
+      "partial_artifact_verdict_rescue_allowed": false,
+      "result": "fail_closed_inconclusive_unless_complete_atomic_result_exists"
+    }
+  },
+  "future_publication": {
+    "atomic": true,
+    "required_logical_outputs": [
+      "grouped_scientific_rows", "attrition_report", "H17_metric_and_verdict_report", "execution_provenance"
+    ],
+    "intermediate_location": "execution_staging_area_only",
+    "partial_result_authoritative_on_failure": false,
+    "operational_failure_provenance_may_remain": true,
+    "manual_staging_inspection_to_rescue_verdict_allowed": false
+  },
+  "unresolved_pre_execution_values": {
+    "future_runtime_identity": null,
+    "exact_local_asset_paths": null,
+    "raw_hashes_of_146_selected_audio_assets": null,
+    "raw_hashes_of_corresponding_scientific_labels": null,
+    "exact_future_result_destination": null,
+    "future_authorization_marker_path": null,
+    "future_runner_source_blob": null,
+    "require_later_zero_science_preparation_contract": true
+  },
+  "inconclusive_or_failure_statuses": [
+    "frame_fallback_signal_insufficient_valid_observations",
+    "frame_fallback_exposed_population_insufficient",
+    "frame_fallback_comparator_population_insufficient",
+    "group_resampling_inconclusive",
+    "frame_fallback_execution_invalid"
+  ],
+  "failure_policy": {
+    "automatic_retry_from_any_status": false,
+    "operational_failure_after_consumption_may_be_positive_or_negative_verdict": false
+  },
+  "post_result_restrictions": {
+    "alternate_candidate_reason": false,
+    "reason_category_merge": false,
+    "harmonic_strong_frame_reconstruction": false,
+    "candidate_score_rescue": false,
+    "frame_or_onset_feature_rescue": false,
+    "threshold_sweep": false,
+    "classifier": false,
+    "observed_result_subgroup_selection": false,
+    "same_cohort_optimization_rerun": false,
+    "locked_test_access": false,
+    "H8_or_V2_reuse": false
+  },
+  "positive_result_would_establish_only": "frame_fallback defines a higher-risk emitted-NoteOn population",
+  "positive_result_would_not_validate": [
+    "resolver", "rejection_of_frame_fallback", "new_threshold", "improved_MIDI_performance", "V3"
+  ],
+  "h20_allowed_files": [
+    "configs/provisional_resolution_frame_fallback_h20_real_execution_contract.json",
+    "tests/test_provisional_resolution_frame_fallback_h20_contract.py",
+    "readme/results/2026-08-10_provisional-resolution-frame-fallback-h20-real-execution-contract.md",
+    "readme/README.md",
+    ".gitattributes"
+  ],
+  "h20_forbidden_actions": [
+    "modify_src", "create_runner", "create_authorization_marker", "worker_scientific_command",
+    "inspect_audio", "parse_labels", "hash_or_open_scientific_assets", "load_checkpoint",
+    "import_TensorFlow", "run_inference", "run_decoder_on_real_data", "count_real_reasons",
+    "extract_real_targets", "compute_real_RD", "bootstrap_real_rows", "access_locked_test"
+  ],
+  "next_action": "External review of H20 only. Do not implement H21 or a runner automatically."
+}

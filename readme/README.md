@@ -17,8 +17,21 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `provisional_resolution_frame_fallback_h17a_reason_taxonomy_amendment`.
-- Statut : `en cours — provisional_resolution_frame_fallback_h17a_preregistration_amendment_recorded`, revue externe requise avant toute science réelle.
+- Étape : `provisional_resolution_frame_fallback_h20_real_execution_contract`.
+- Statut : `en cours — provisional_resolution_frame_fallback_h20_real_execution_contract_defined`, revue externe requise avant H21 ou toute science réelle.
+- H20 lie sans exécuter la future expérience H17 : chaîne H17/H17a/H18a/H19a,
+  décodeur, target causal, univers de groupes, grouping et checkpoint. La seule
+  population prospective reste exactement H18a (`146` prises / `51` groupes),
+  non ouverte et non consommée, sans resélection ni remplacement possible. La
+  taxonomie amendée, `RD_false`, les seuils, le bootstrap et les dix compteurs
+  d’attrition sont figés. Une future consommation devra être atomique juste
+  avant le premier accès scientifique et toute publication devra être atomique.
+  Runtime, chemins/hashes des actifs, destination, marqueur et blob du runner
+  restent `null` pour un futur contrat zéro-science séparé. Aucun runner ou
+  marqueur n’existe. Contrat :
+  `configs/provisional_resolution_frame_fallback_h20_real_execution_contract.json`.
+  Rapport :
+  `readme/results/2026-08-10_provisional-resolution-frame-fallback-h20-real-execution-contract.md`.
 - H17a formalise avant toute donnée l’amendement découvert par revue statique :
   le décodeur gelé peut émettre `harmonic_strong_frame`. Le contrat H17
   historique reste immuable; sa question, `F`, son comparateur, son target, son
@@ -1357,6 +1370,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-10 — contrat d'évaluation V2 indépendante GAPS/Guitar-TECHS, sans calcul](results/2026-08-10_causal-candidate-v2-independent-validation-contract.md)
 - [2026-08-10 — conformité synthétique H19 du risque `frame_fallback`](results/2026-08-10_provisional-resolution-frame-fallback-h19-synthetic-conformance.md)
 - [2026-08-10 — amendement H17a pré-exécution de la taxonomie des raisons](results/2026-08-10_provisional-resolution-frame-fallback-h17a-taxonomy-amendment.md)
+- [2026-08-10 — contrat H20 de liaison d'une future exécution réelle H17](results/2026-08-10_provisional-resolution-frame-fallback-h20-real-execution-contract.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)
