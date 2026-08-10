@@ -9,7 +9,7 @@
     "reviewed_contract_commit_with_transcript_gap": "02bb76b2afad70b68e850ceff3a3e6bdeff55925",
     "contract_correction_authorized_action": "AUTHORIZED_TO_CORRECT_H24_SCIENTIFIC_EXECUTION_CONTRACT_TRANSCRIPT_AND_TERMINAL_CLOSURE_ONLY",
     "dormant_implementation_authorized_action": "AUTHORIZED_TO_IMPLEMENT_H24_DORMANT_SCIENTIFIC_CAPABILITY_AND_RUNNER_ONLY",
-    "path_topology_correction_authorized_action": "AUTHORIZED_TO_CORRECT_H24_DORMANT_SCIENTIFIC_PATH_TOPOLOGY_GUARDS"
+    "path_topology_correction_authorized_action": "AUTHORIZED_TO_CORRECT_H24_DORMANT_SCIENTIFIC_PATH_TOPOLOGY_GUARDS_ONLY"
   },
   "scope": {
     "contract_only": false,
@@ -400,8 +400,7 @@
     "readme/README.md",
     "readme/results/2026-08-10_harmonic-censoring-h24-scientific-execution-authorization-contract.md",
     "src/polyphonic/harmonic_censoring_h24_scientific_capability.py",
-    "tests/test_harmonic_censoring_h24_scientific_execution_authorization_contract.py",
-    "tests/test_harmonic_censoring_h24_scientific_execution_dormant.py"
+    "tests/test_harmonic_censoring_h24_scientific_execution_authorization_contract.py"
   ],
   "required_next_sequence": [
     "external_review_implementation_commit",

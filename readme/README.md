@@ -48,7 +48,7 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   correctif autorisé ferme désormais ce namespace avant claim et n'autorise
   que trois descendances canoniques : `success→transcript`,
   `success→evidence` et `staging→transcript.part`. Le contrat schéma `4` a
-  le SHA-256 `4f061cb2…`; aucune voie scientifique n'a été activée.
+  le SHA-256 `4d33f80b…`; aucune voie scientifique n'a été activée.
   Aucun evaluator/oracle, P0/P1/P2, donnée réelle, H17, locked-test ou training
   n'est autorisé. Rapport :
   `readme/results/2026-08-10_harmonic-censoring-h24-scientific-execution-authorization-contract.md`.

@@ -109,7 +109,7 @@ La revue externe de `e705afe5c21f84f53ea2ebd3e95b8236ee591999` a
 approuvé la structure dormante, mais a refusé le passage aux producteurs tant
 que les chemins du futur seal pouvaient entrer dans la population publiée ou
 s'imbriquer entre eux. La portée appliquée est strictement
-`AUTHORIZED_TO_CORRECT_H24_DORMANT_SCIENTIFIC_PATH_TOPOLOGY_GUARDS`.
+`AUTHORIZED_TO_CORRECT_H24_DORMANT_SCIENTIFIC_PATH_TOPOLOGY_GUARDS_ONLY`.
 
 Le preflight pré-claim rejette maintenant `claim`, `staging`, `success` ou
 `terminal` s'ils sont situés dans le namespace de contrôle de matérialisation
@@ -125,7 +125,7 @@ Cela interdit notamment un claim sous la population, un terminal sous success,
 un claim dont le parent est staging, ou un success descendant de staging. Les
 tests adversariaux appellent le garde pur sans créer de fichier. Le contrat
 passe au schéma `4`, SHA-256
-`4f061cb2c426ce28872ede54821bc6fdf227cda211b8957d0b546342cc781d06`.
+`4d33f80b27d8e5086548596fb377d00a8327cff53f12540969709f456ed21ea9`.
 
 ## Dormance
 
@@ -141,7 +141,7 @@ seconde matérialisation n'est autorisée.
 ## Vérification
 
 La suite administrative ciblée H24/H23/H20, incluant le correctif topologique,
-réussit avec `200` tests en `3,492 s`. `py_compile` et `git diff --check`
+réussit avec `200` tests en `3,121 s`. `py_compile` et `git diff --check`
 réussissent également.
 
 ## Étape suivante

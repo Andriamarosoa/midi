@@ -31,7 +31,7 @@ class H24ScientificExecutionAuthorizationContractTests(unittest.TestCase):
             self.contract["authorization_basis"][
                 "path_topology_correction_authorized_action"
             ],
-            "AUTHORIZED_TO_CORRECT_H24_DORMANT_SCIENTIFIC_PATH_TOPOLOGY_GUARDS",
+            "AUTHORIZED_TO_CORRECT_H24_DORMANT_SCIENTIFIC_PATH_TOPOLOGY_GUARDS_ONLY",
         )
         self.assertEqual(
             self.contract["status"],
@@ -435,7 +435,6 @@ class H24ScientificExecutionAuthorizationContractTests(unittest.TestCase):
             "readme/results/2026-08-10_harmonic-censoring-h24-scientific-execution-authorization-contract.md",
             "src/polyphonic/harmonic_censoring_h24_scientific_capability.py",
             "tests/test_harmonic_censoring_h24_scientific_execution_authorization_contract.py",
-            "tests/test_harmonic_censoring_h24_scientific_execution_dormant.py",
         ]
         self.assertEqual(self.contract["contract_definition_exact_changed_files"], expected)
         dormancy = self.contract["current_dormancy"]
