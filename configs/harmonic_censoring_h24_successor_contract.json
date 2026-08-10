@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "purpose": "harmonic_censoring_h24_successor_contract",
+  "status": "contract_only_not_executable",
+  "scope": {
+    "contract_only": true,
+    "implementation_authorized": false,
+    "synthetic_population_creation_authorized": false,
+    "synthetic_execution_authorized": false,
+    "scientific_execution_authorized": false,
+    "real_data_access_authorized": false,
+    "training_authorized": false,
+    "h17_population_used": false,
+    "locked_test_used": false
+  },
+  "predecessor_closure": {
+    "predecessor_name": "H23",
+    "terminal_status": "H23_SYNTHETIC_HYPOTHESIS_KILLED",
+    "terminal_test_id": "A01",
+    "synthetic_population_consumed": true,
+    "retry_forbidden": true,
+    "reinterpretation_forbidden": true,
+    "terminal_documentation_commit": "2b2d4ee2bc4875974147cd8009ffe5647ae9c02d",
+    "consumption_marker_sha256": "23b6983d1e94a5a161dae98ca2f9c54118b5d0eab665a6996763c3dd7252149f",
+    "transcript_sha256": "ff169cccf4ffce6ff863b7f102c448075b696eeffb37610250dbc5d45a1308d8",
+    "terminal_report_sha256": "670f072b70ae52786daa214b56871fae68b83aaf6e3caf8ac7c4c499c7ee7116"
+  },
+  "postmortem": {
+    "observed_edge_count": 1060,
+    "observed_descending_edge_count": 0,
+    "observed_C4_to_C3_edge_count": 0,
+    "failure_mechanism": "H1 generated reflexive pitch_to_same_pitch relations while the sealed H23 all_edges_ascending oracle required strict target_pitch_greater_than_source_pitch for every relation.",
+    "classification": "predecessor_contract_semantic_incompatibility",
+    "does_not_change_predecessor_verdict": true
+  },
+  "successor_identity": {
+    "hypothesis_name": "H24",
+    "population_namespace": "H24_SYNTHETIC_V1",
+    "test_namespace": "H24_TEST_V1",
+    "must_not_reuse_H23_population_ids": true,
+    "must_not_reuse_H23_test_ids": true,
+    "future_population_manifest_required": true,
+    "future_test_manifest_required": true,
+    "future_manifest_bytes_must_be_reviewed_before_execution": true,
+    "current_population_manifest_exists": false,
+    "current_test_manifest_exists": false
+  },
+  "harmonic_graph_semantics": {
+    "source_pitch_domain": {
+      "minimum_midi": 24,
+      "maximum_midi": 76,
+      "integer_only": true
+    },
+    "observation_coordinate_maximum": 128.0,
+    "harmonic_rank_domain": {
+      "minimum": 1,
+      "maximum": 20
+    },
+    "coordinate_formula": "q(p,h)=p+12*log2(h)",
+    "relation_partition": {
+      "fundamental_reflexive_relation": {
+        "rank": 1,
+        "relation_type": "FUNDAMENTAL_IDENTITY",
+        "required_invariant": "q(p,1)==p",
+        "is_proper_harmonic_edge": false,
+        "is_ascending_edge": false
+      },
+      "proper_harmonic_relation": {
+        "rank_minimum": 2,
+        "rank_maximum": 20,
+        "relation_type": "PROPER_HARMONIC_ASCENT",
+        "required_invariant": "q(p,h)>p",
+        "is_proper_harmonic_edge": true,
+        "is_ascending_edge": true
+      }
+    },
+    "graph_invariants": [
+      "every retained H1 relation is reflexive",
+      "every retained H2_to_H20 relation is strictly ascending",
+      "no retained relation is descending",
+      "a higher coordinate never explains a lower source coordinate",
+      "C4 never explains C3",
+      "coordinate coincidence does not reverse source_to_observation direction"
+    ],
+    "edge_record_schema": [
+      "source_pitch",
+      "harmonic_rank",
+      "observation_coordinate",
+      "relation_type"
+    ],
+    "edge_record_extra_fields_forbidden": true,
+    "energy_or_amplitude_must_not_define_edge_orientation": true,
+    "temporal_causality_must_not_define_edge_orientation": true
+  },
+  "first_successor_test_contract": {
+    "id": "H24-A01-GRAPH-DIRECTION",
+    "phase": "P0",
+    "objective": "Prove the typed harmonic graph orientation without conflating H1 identity with proper harmonic ascent.",
+    "input": "Enumerate every retained typed relation for integer source pitches 24..76 and harmonic ranks 1..20 with q(p,h)<=128.",
+    "primary_oracle": {
+      "all_H1_relations_are_identity": true,
+      "all_H2_to_H20_relations_are_strictly_ascending": true,
+      "no_relation_is_descending": true,
+      "C4_to_C3_relation_count": 0
+    },
+    "inverse_mutations": [
+      {
+        "id": "H24-A01-I1",
+        "mutation": "replace one H1 identity target with a different coordinate",
+        "required_result": "FAIL"
+      },
+      {
+        "id": "H24-A01-I2",
+        "mutation": "replace one H2_to_H20 target with its source coordinate",
+        "required_result": "FAIL"
+      },
+      {
+        "id": "H24-A01-I3",
+        "mutation": "inject one descending relation",
+        "required_result": "FAIL"
+      },
+      {
+        "id": "H24-A01-I4",
+        "mutation": "relabel one H1 relation as PROPER_HARMONIC_ASCENT",
+        "required_result": "FAIL"
+      }
+    ],
+    "producer_pass_boolean_forbidden": true,
+    "oracle_must_recompute_from_persisted_typed_edges": true,
+    "failure_rule": "Any primary invariant failure or any inverse mutation not rejected fails H24-A01-GRAPH-DIRECTION."
+  },
+  "future_contract_requirements": {
+    "all_other_H23_scientific_questions_must_be_re_preregistered_under_H24_ids": true,
+    "copying_H23_oracle_outcomes_is_forbidden": true,
+    "new_fixture_and_test_manifests_must_use_H24_namespaces": true,
+    "manifest_cardinalities_must_not_be_inherited_without_new_derivation": true,
+    "new_one_shot_consumption_boundary_required": true,
+    "new_external_review_required_before_implementation": true,
+    "separate_external_review_required_before_population_creation": true,
+    "separate_operational_authorization_required_before_execution": true
+  },
+  "forbidden_now": [
+    "editing_or_retrying_H23",
+    "creating_H24_waveforms",
+    "creating_H24_fixture_or_test_manifests",
+    "implementing_H24_evaluators_or_oracles",
+    "running_any_H24_test",
+    "opening_real_audio_or_labels",
+    "using_H17",
+    "training_or_calibrating",
+    "export_or_live",
+    "locked_test"
+  ],
+  "next_action": "external_review_of_this_contract_only"
+}

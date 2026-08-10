@@ -17,8 +17,17 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `harmonic_censoring_h23_synthetic_one_shot_terminal_result`.
-- Statut : `population synthétique H23 consommée; hypothèse tuée sur A01; aucun retry autorisé`.
+- Étape : `harmonic_censoring_h24_successor_contract`.
+- Statut : `successeur H24 défini contractuellement; aucune implémentation, population ou exécution autorisée`.
+- Après approbation de la clôture H23, H24 définit prospectivement un graphe
+  harmonique typé : `H1` est la relation réflexive `FUNDAMENTAL_IDENTITY`,
+  tandis que `H2–H20` sont les seules arêtes `PROPER_HARMONIC_ASCENT`
+  strictement ascendantes. Le nouveau test `H24-A01-GRAPH-DIRECTION` sépare les
+  deux invariants et quatre inverses adversariales. Les namespaces futurs sont
+  `H24_SYNTHETIC_V1` et `H24_TEST_V1`; aucun manifest, fixture, evaluator,
+  oracle ou calcul H24 n’existe encore. H23 reste consommé et non relançable.
+  Rapport :
+  `readme/results/2026-08-10_harmonic-censoring-h24-successor-contract.md`.
 - L’unique passe synthétique H23 autorisée a créé son claim durable puis s’est
   arrêtée conformément à la règle P0 au premier test `A01`. Le résultat
   autoritatif est `H23_SYNTHETIC_HYPOTHESIS_KILLED` : `1/72` test exécuté,
@@ -1630,6 +1639,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-10 — émission administrative de la capability H23 sur Mac](results/2026-08-10_harmonic-censoring-h23-administrative-capability-issuance.md)
 - [2026-08-10 — contrat claim, exécuteur scientifique et transcript H23](results/2026-08-10_harmonic-censoring-h23-executor-claim-transcript-contract.md)
 - [2026-08-10 — résultat terminal de l’unique passe synthétique H23](results/2026-08-10_harmonic-censoring-h23-synthetic-one-shot-result.md)
+- [2026-08-10 — contrat successeur H24 après clôture H23](results/2026-08-10_harmonic-censoring-h24-successor-contract.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)
