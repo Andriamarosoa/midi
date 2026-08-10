@@ -65,3 +65,4 @@ readme/results/2026-08-10_harmonic-censoring-h23-dormant-execution-implementatio
 readme/results/2026-08-10_harmonic-censoring-h23-seal-activation-transition.md text eol=lf
 readme/results/2026-08-10_harmonic-censoring-h23-activation-and-seal-definition.md text eol=lf
 readme/results/2026-08-10_harmonic-censoring-h23-administrative-capability-issuance.md text eol=lf
+readme/results/2026-08-10_harmonic-censoring-h23-preclaim-toctou-hardening.md text eol=lf

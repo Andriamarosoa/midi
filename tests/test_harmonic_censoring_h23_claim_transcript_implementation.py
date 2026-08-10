@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 import hashlib
 import json
 from pathlib import Path
@@ -142,6 +143,55 @@ class HarmonicCensoringH23ClaimTranscriptImplementationTests(unittest.TestCase):
     def _claim(self):
         with mock.patch.object(capability, "_revalidate_h23_claim_authority"):
             return capability.claim_h23_synthetic_execution_capability(self.attested)
+
+    def _matching_preclaim_git(self, repository: Path, *arguments: str) -> str:
+        self.assertEqual(repository, self.repository)
+        if arguments == ("status", "--porcelain"):
+            return ""
+        if arguments[0] == "hash-object":
+            relative = arguments[1]
+            return {
+                capability.H23_CONTRACT_RELATIVE_PATH.as_posix(): capability.H23_CONTRACT_GIT_BLOB,
+                capability.H23_HARNESS_RELATIVE_PATH.as_posix(): capability.H23_HARNESS_GIT_BLOB,
+                capability.H23_HARNESS_TEST_RELATIVE_PATH.as_posix(): capability.H23_HARNESS_TEST_GIT_BLOB,
+                capability.H23_CAPABILITY_SOURCE_RELATIVE_PATH.as_posix(): "b" * 40,
+                capability.H23_RUNNER_SOURCE_RELATIVE_PATH.as_posix(): "c" * 40,
+                capability.H23_ORACLE_SOURCE_RELATIVE_PATH.as_posix(): "9" * 40,
+            }[relative]
+        if arguments[0] == "rev-parse":
+            relative = arguments[1].split(":", 1)[1]
+            return {
+                capability.H23_CONTRACT_RELATIVE_PATH.as_posix(): capability.H23_CONTRACT_GIT_BLOB,
+                capability.H23_HARNESS_RELATIVE_PATH.as_posix(): capability.H23_HARNESS_GIT_BLOB,
+                capability.H23_HARNESS_TEST_RELATIVE_PATH.as_posix(): capability.H23_HARNESS_TEST_GIT_BLOB,
+                capability.H23_CAPABILITY_SOURCE_RELATIVE_PATH.as_posix(): "b" * 40,
+                capability.H23_RUNNER_SOURCE_RELATIVE_PATH.as_posix(): "c" * 40,
+                capability.H23_ORACLE_SOURCE_RELATIVE_PATH.as_posix(): "9" * 40,
+            }[relative]
+        raise AssertionError(f"unexpected git arguments: {arguments!r}")
+
+    def _matching_raw_hashes(self):
+        return iter(
+            (
+                "e" * 64,
+                "d" * 64,
+                capability.H23_CAPABILITY_CONTRACT_SHA256,
+                capability.H23_EXECUTOR_CLAIM_TRANSCRIPT_CONTRACT_RAW_SHA256,
+                capability.H23_CONTRACT_SHA256,
+            )
+        )
+
+    def _preclaim_runtime_environment(self):
+        return mock.patch.dict(
+            capability.os.environ,
+            {
+                "MIDI_FORCE_CPU": "1",
+                "OMP_NUM_THREADS": "1",
+                "OPENBLAS_NUM_THREADS": "1",
+                "MKL_NUM_THREADS": "1",
+                "NUMEXPR_NUM_THREADS": "1",
+            },
+        )
 
     def _write_transcript(
         self,
@@ -417,6 +467,117 @@ class HarmonicCensoringH23ClaimTranscriptImplementationTests(unittest.TestCase):
             with self.assertRaises(FileExistsError):
                 capability.claim_h23_synthetic_execution_capability(self.attested)
         self.assertEqual(self.attested.authorization_marker.read_bytes(), b"{")
+
+    def test_preclaim_contract_plan_and_source_drift_fail_before_o_excl(self) -> None:
+        cases = (
+            (
+                "raw contract",
+                mock.patch.object(capability, "_sha256", return_value="0" * 64),
+                mock.patch.object(capability, "load_h23_harness_plan", return_value=self.plan),
+                mock.patch.object(capability, "_git", side_effect=self._matching_preclaim_git),
+                "authority bytes changed",
+            ),
+            (
+                "resolved manifest",
+                mock.patch.object(capability, "_sha256", side_effect=self._matching_raw_hashes()),
+                mock.patch.object(
+                    capability,
+                    "load_h23_harness_plan",
+                    return_value=replace(self.plan, fixture_manifest_sha256="0" * 64),
+                ),
+                mock.patch.object(capability, "_git", side_effect=self._matching_preclaim_git),
+                "resolved plan or manifests changed",
+            ),
+            (
+                "oracle source",
+                mock.patch.object(capability, "_sha256", side_effect=self._matching_raw_hashes()),
+                mock.patch.object(capability, "load_h23_harness_plan", return_value=self.plan),
+                mock.patch.object(
+                    capability,
+                    "_git",
+                    side_effect=lambda repository, *arguments: (
+                        "8" * 40
+                        if arguments
+                        == (
+                            "hash-object",
+                            capability.H23_ORACLE_SOURCE_RELATIVE_PATH.as_posix(),
+                        )
+                        else self._matching_preclaim_git(repository, *arguments)
+                    ),
+                ),
+                "source bytes changed",
+            ),
+        )
+        for label, hash_patch, plan_patch, git_patch, message in cases:
+            with self.subTest(label=label):
+                with (
+                    hash_patch,
+                    plan_patch,
+                    git_patch,
+                    mock.patch.object(
+                        capability,
+                        "_resolve_bound_path",
+                        return_value=(
+                            self.repository
+                            / capability.H23_EXECUTOR_CLAIM_TRANSCRIPT_CONTRACT_RELATIVE_PATH
+                        ),
+                    ),
+                    mock.patch.object(
+                        capability, "_write_exclusive_durable_file"
+                    ) as exclusive,
+                    self.assertRaisesRegex((ValueError, RuntimeError), message),
+                ):
+                    capability.claim_h23_synthetic_execution_capability(self.attested)
+                exclusive.assert_not_called()
+                self.assertFalse(self.attested.authorization_marker.exists())
+
+    def test_preclaim_runtime_drift_fails_before_o_excl(self) -> None:
+        with (
+            mock.patch.object(capability, "_sha256", side_effect=self._matching_raw_hashes()),
+            mock.patch.object(capability, "load_h23_harness_plan", return_value=self.plan),
+            mock.patch.object(capability, "_git", side_effect=self._matching_preclaim_git),
+            mock.patch.object(
+                capability,
+                "_resolve_bound_path",
+                return_value=(
+                    self.repository
+                    / capability.H23_EXECUTOR_CLAIM_TRANSCRIPT_CONTRACT_RELATIVE_PATH
+                ),
+            ),
+            mock.patch.object(capability.platform, "python_implementation", return_value="PyPy"),
+            mock.patch.object(capability.platform, "python_version", return_value="3.11.9"),
+            mock.patch.object(capability.platform, "machine", return_value="arm64"),
+            mock.patch.object(capability.importlib.metadata, "version", return_value="1.26.4"),
+            self._preclaim_runtime_environment(),
+            mock.patch.object(capability, "_write_exclusive_durable_file") as exclusive,
+            self.assertRaisesRegex(RuntimeError, "runtime identity changed"),
+        ):
+            capability.claim_h23_synthetic_execution_capability(self.attested)
+        exclusive.assert_not_called()
+
+    def test_revalidation_is_the_last_step_before_exclusive_open(self) -> None:
+        events: list[str] = []
+
+        def revalidate(value):
+            self.assertIs(value, self.attested)
+            events.append("revalidate")
+
+        def exclusive(path, raw, *, create_parent=True):
+            self.assertEqual(path, self.attested.authorization_marker)
+            self.assertFalse(create_parent)
+            self.assertTrue(raw.endswith(b"\n"))
+            events.append("O_EXCL")
+
+        with (
+            mock.patch.object(
+                capability, "_revalidate_h23_claim_authority", side_effect=revalidate
+            ),
+            mock.patch.object(
+                capability, "_write_exclusive_durable_file", side_effect=exclusive
+            ),
+        ):
+            capability.claim_h23_synthetic_execution_capability(self.attested)
+        self.assertEqual(events, ["revalidate", "O_EXCL"])
 
     def test_unclaimed_capability_cannot_create_transcript(self) -> None:
         with self.assertRaisesRegex(PermissionError, "not durably claimed"):

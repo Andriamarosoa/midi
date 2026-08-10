@@ -17,8 +17,20 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `harmonic_censoring_h23_semantic_evaluator_fix`.
-- Statut : `correctif dormant des expériences exactes terminé et en attente de revue externe; nouveau seal et nouvelle activation absents; aucune population consommée`.
+- Étape : `harmonic_censoring_h23_preclaim_toctou_hardening`.
+- Statut : `durcissement TOCTOU dormant terminé et en attente de revue externe; nouveau seal et nouvelle activation absents; aucune population consommée`.
+- La revue externe approuve `a84f106a…` comme correction sémantique dormante
+  des 72 procédures et autorise uniquement le commit TOCTOU séparé. Ce
+  durcissement rehache désormais, juste avant le `O_EXCL` irréversible,
+  l'activation, le seal, les trois contrats, le plan et ses deux manifests
+  résolus, le harness, le runner, le recomputer pur et le runtime. Une dérive
+  de contrat, manifest, source ou runtime échoue avant toute création du
+  marker. La préparation du répertoire précède la revalidation; après celle-ci,
+  l'opération filesystem suivante est le `os.open(O_CREAT|O_EXCL|O_WRONLY)`.
+  `79` tests contractuels H23/H20 réussissent sans appeler les evaluators.
+  Aucun seal, activation, claim réel, marker, waveform ou P0/P1/P2 n'est créé.
+  Rapport :
+  `readme/results/2026-08-10_harmonic-censoring-h23-preclaim-toctou-hardening.md`.
 - La revue externe de `6e016783…` valide le registre 72/72 et la recomputation
   indépendante mais refuse encore le TOCTOU : plusieurs producteurs écrivaient
   une conclusion attendue. Le nouveau correctif exécute effectivement les

@@ -67,6 +67,9 @@ H23_CAPABILITY_SOURCE_RELATIVE_PATH = Path(
 H23_RUNNER_SOURCE_RELATIVE_PATH = Path(
     "src/polyphonic/run_harmonic_censoring_h23_synthetic.py"
 )
+H23_ORACLE_SOURCE_RELATIVE_PATH = Path(
+    "src/polyphonic/harmonic_censoring_h23_oracles.py"
+)
 
 def _sha256(raw: bytes) -> str:
     return hashlib.sha256(raw).hexdigest()
@@ -627,11 +630,14 @@ def _canonical_json_line(value: object) -> bytes:
     ).encode("utf-8")
 
 
-def _write_exclusive_durable_file(path: Path, raw: bytes) -> None:
+def _write_exclusive_durable_file(
+    path: Path, raw: bytes, *, create_parent: bool = True
+) -> None:
     """Create one irreversible claim file; never clean it up after O_EXCL."""
 
     destination = Path(path)
-    destination.parent.mkdir(parents=True, exist_ok=True)
+    if create_parent:
+        destination.parent.mkdir(parents=True, exist_ok=True)
     descriptor = os.open(
         destination,
         os.O_CREAT | os.O_EXCL | os.O_WRONLY | getattr(os, "O_BINARY", 0),
@@ -693,7 +699,7 @@ def _h23_marker_payload(
 def _revalidate_h23_claim_authority(
     capability: AttestedH23SyntheticExecutionCapability,
 ) -> None:
-    """Confirm the issued snapshot without reading mutable environment authority."""
+    """Rehash every scientific dependency immediately before irreversible claim."""
 
     repository = capability.repository_root
     expected_files = (
@@ -703,20 +709,104 @@ def _revalidate_h23_claim_authority(
         ),
         (H23_AUTHORIZATION_SEAL_RELATIVE_PATH, capability.authorization_seal_sha256),
         (
+            H23_CAPABILITY_CONTRACT_RELATIVE_PATH,
+            capability.capability_contract_sha256,
+        ),
+        (
             H23_EXECUTOR_CLAIM_TRANSCRIPT_CONTRACT_RELATIVE_PATH,
             capability.executor_claim_transcript_contract_raw_sha256,
         ),
+        (H23_CONTRACT_RELATIVE_PATH, capability.contract_sha256),
     )
     for relative, expected in expected_files:
         actual = _sha256(_resolve_bound_path(repository, relative).read_bytes())
         if actual != expected:
             raise ValueError(f"H23 preclaim authority bytes changed for {relative}.")
-    for relative, expected in (
+
+    # The fixture and resolved-test manifests are generated, not persisted.
+    # Re-resolve them from the just-rehashed contract and require the exact
+    # issued digests.  This closes contract -> plan/manifest drift as one
+    # fail-closed preclaim check.
+    plan = load_h23_harness_plan(repository)
+    if (
+        plan.contract_sha256 != capability.contract_sha256
+        or plan.fixture_manifest_sha256 != capability.fixture_manifest_sha256
+        or plan.resolved_test_manifest_sha256
+        != capability.resolved_test_manifest_sha256
+        or len(plan.fixtures) != 175
+        or len(plan.tests) != 72
+    ):
+        raise ValueError("H23 preclaim resolved plan or manifests changed.")
+
+    if _git(repository, "status", "--porcelain"):
+        raise RuntimeError("H23 preclaim requires the issued clean worktree.")
+
+    for relative, approved_commit, expected in (
+        (H23_CONTRACT_RELATIVE_PATH, H23_APPROVED_HARNESS_COMMIT, H23_CONTRACT_GIT_BLOB),
+        (H23_HARNESS_RELATIVE_PATH, H23_APPROVED_HARNESS_COMMIT, H23_HARNESS_GIT_BLOB),
+        (
+            H23_HARNESS_TEST_RELATIVE_PATH,
+            H23_APPROVED_HARNESS_COMMIT,
+            H23_HARNESS_TEST_GIT_BLOB,
+        ),
+    ):
+        reviewed = _git(
+            repository, "rev-parse", f"{approved_commit}:{relative.as_posix()}"
+        )
+        current = _git(repository, "hash-object", relative.as_posix())
+        if reviewed != expected or current != expected:
+            raise ValueError(f"H23 preclaim harness bytes changed for {relative}.")
+
+    for relative, sealed_blob in (
         (H23_CAPABILITY_SOURCE_RELATIVE_PATH, capability.capability_source_blob),
         (H23_RUNNER_SOURCE_RELATIVE_PATH, capability.runner_source_blob),
     ):
-        if _git(repository, "hash-object", relative.as_posix()) != expected:
+        reviewed = _git(
+            repository,
+            "rev-parse",
+            f"{capability.implementation_commit}:{relative.as_posix()}",
+        )
+        current = _git(repository, "hash-object", relative.as_posix())
+        if reviewed != sealed_blob or current != sealed_blob:
             raise ValueError(f"H23 preclaim source bytes changed for {relative}.")
+
+    # The pure oracle module is imported by the scientific runner.  Its blob is
+    # attested by the reviewed implementation commit even though the historical
+    # seal schema only names the capability and runner blobs explicitly.
+    oracle_blob = _git(
+        repository,
+        "rev-parse",
+        f"{capability.implementation_commit}:{H23_ORACLE_SOURCE_RELATIVE_PATH.as_posix()}",
+    )
+    if (
+        _git(repository, "hash-object", H23_ORACLE_SOURCE_RELATIVE_PATH.as_posix())
+        != oracle_blob
+    ):
+        raise ValueError(
+            f"H23 preclaim source bytes changed for {H23_ORACLE_SOURCE_RELATIVE_PATH}."
+        )
+
+    actual_runtime = {
+        "implementation": platform.python_implementation(),
+        "python_version": platform.python_version(),
+        "numpy_version": importlib.metadata.version("numpy"),
+        "architecture": platform.machine().lower(),
+        "execution_device": "CPU" if os.environ.get("MIDI_FORCE_CPU") == "1" else "UNKNOWN",
+        "thread_count": 1
+        if all(
+            os.environ.get(name) == "1"
+            for name in (
+                "OMP_NUM_THREADS",
+                "OPENBLAS_NUM_THREADS",
+                "MKL_NUM_THREADS",
+                "NUMEXPR_NUM_THREADS",
+            )
+        )
+        else 0,
+    }
+    if actual_runtime != dict(capability.runtime_identity):
+        raise RuntimeError("H23 preclaim runtime identity changed after issuance.")
+
     for path in (
         capability.success_destination,
         capability.terminal_record_destination,
@@ -847,10 +937,16 @@ def _build_h23_capability_authority():
             raise FileExistsError("H23 capability was already claimed in this process.")
         if existing_claim is not None:
             claimed_capabilities.pop(identity, None)
-        _revalidate_h23_claim_authority(checked)
         payload = _h23_marker_payload(checked)
         raw = _canonical_json_line(payload)
-        _write_exclusive_durable_file(checked.authorization_marker, raw)
+        # Directory preparation is reversible and occurs before the final
+        # authority revalidation.  After it returns, the very next filesystem
+        # operation is the irreversible O_CREAT|O_EXCL claim.
+        checked.authorization_marker.parent.mkdir(parents=True, exist_ok=True)
+        _revalidate_h23_claim_authority(checked)
+        _write_exclusive_durable_file(
+            checked.authorization_marker, raw, create_parent=False
+        )
         marker_sha256 = _sha256(raw)
         reference = weakref.ref(checked)
         claimed_capabilities[identity] = (reference, binding(checked), marker_sha256)
