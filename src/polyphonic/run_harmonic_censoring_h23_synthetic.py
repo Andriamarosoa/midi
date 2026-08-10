@@ -21,6 +21,7 @@ from typing import Mapping, Sequence
 from .harmonic_censoring_h23 import H23HarnessPlan, H23ResolvedTest
 from .harmonic_censoring_h23_execution_capability import (
     AttestedH23SyntheticExecutionCapability,
+    H23_CONSUMPTION_CLAIM_IMPLEMENTED,
     issue_h23_synthetic_execution_capability,
     require_attested_h23_synthetic_execution_capability,
     require_claimed_h23_synthetic_execution_capability,
@@ -207,6 +208,14 @@ def finalize_and_publish_h23_terminal_record(
 ) -> Path:
     """Create authority only from a claimed capability and its real marker."""
 
+    if (
+        not PRODUCTION_H23_SCIENTIFIC_EXECUTOR_IMPLEMENTED
+        or not H23_CONSUMPTION_CLAIM_IMPLEMENTED
+    ):
+        raise PermissionError(
+            "H23 terminal finalization is dormant until a separately reviewed "
+            "scientific executor and claim boundary exist."
+        )
     checked = require_claimed_h23_synthetic_execution_capability(capability)
     if (
         plan.contract_sha256 != checked.contract_sha256

@@ -22,11 +22,14 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 - Après l'approbation finale du contrat `ee00bcf6…`, les modules de capability
   et de runner ont été ajoutés sans exécuteur scientifique. Le seal reste
   inexistant (`SHA=None`), la factory échoue avant le resolver et le runner ne
-  référence pas le claim. Les six droits futurs sont validés séparément, la
-  capability est attestée par une closure sans token/registre exposé. Les trois
+  référence pas le claim. Le claim public est désormais un refus inconditionnel
+  (`H23_CONSUMPTION_CLAIM_IMPLEMENTED=false`). Les six droits futurs sont
+  validés séparément; la capability est attestée par une closure sans
+  token/registre exposé, dans un threat model explicitement non hostile et non
+  réflexif qui exigera une frontière OS s'il est élargi. Les trois
   builders succès/kill/inconclusif ne produisent que des brouillons sans
-  `global_go_status`; la finalisation autoritative exige une capability déjà
-  claimée, le marker réel et la destination scellée. Les onze tests ajoutés
+  `global_go_status`; la finalisation autoritative refuse aussi tant que
+  l'exécuteur scientifique et le claim restent absents. Les onze tests ajoutés
   sont purs et ne synthétisent rien. Rapport :
   `readme/results/2026-08-10_harmonic-censoring-h23-dormant-execution-implementation.md`.
 - Le contrat séparé de future capability lie le harness approuvé `e97674cd…`,

@@ -112,6 +112,25 @@ class HarmonicCensoringH23ExecutionCapabilityContractTests(unittest.TestCase):
         self.assertTrue(capability["capability_single_use"])
         self.assertFalse(capability["capability_cross_process_reuse_allowed"])
         self.assertFalse(capability["capability_serialization_allowed"])
+        threat = capability["threat_model"]
+        self.assertFalse(
+            threat["arbitrary_CPython_closure_or_memory_introspection_is_claimed_secure"]
+        )
+        self.assertFalse(threat["hostile_code_inside_the_same_Python_process_is_in_scope"])
+        self.assertFalse(
+            threat["untrusted_plugins_exec_eval_debuggers_or_reflection_allowed_in_scientific_worker"]
+        )
+        self.assertTrue(threat["single_purpose_reviewed_worker_process_required"])
+        self.assertTrue(
+            threat[
+                "OS_process_or_equivalent_authority_boundary_required_before_hostile_same_process_code_can_enter_scope"
+            ]
+        )
+        self.assertTrue(
+            threat[
+                "current_dormant_commit_must_expose_no_effective_claim_or_authoritative_terminal_path"
+            ]
+        )
         self.assertIn(
             "this_capability_contract_raw_SHA256_matches_a_future_separate_authorization_seal",
             capability["factory_must_require_all"],

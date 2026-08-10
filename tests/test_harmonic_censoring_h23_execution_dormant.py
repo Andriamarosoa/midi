@@ -259,7 +259,10 @@ class HarmonicCensoringH23DormantExecutionTests(unittest.TestCase):
             error_message="administrative-only",
         )
         self.assertFalse(hasattr(runner, "publish_h23_terminal_record_atomically"))
-        with self.assertRaises(TypeError):
+        self.assertFalse(capability.H23_CONSUMPTION_CLAIM_IMPLEMENTED)
+        with self.assertRaisesRegex(PermissionError, "not implemented"):
+            capability.claim_h23_synthetic_execution_capability(object())
+        with self.assertRaisesRegex(PermissionError, "finalization is dormant"):
             runner.finalize_and_publish_h23_terminal_record(
                 self.plan, payload, object()
             )

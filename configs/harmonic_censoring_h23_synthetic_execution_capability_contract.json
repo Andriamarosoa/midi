@@ -108,7 +108,17 @@
     ],
     "capability_single_use": true,
     "capability_cross_process_reuse_allowed": false,
-    "capability_serialization_allowed": false
+    "capability_serialization_allowed": false,
+    "threat_model": {
+      "protected_scope": "accidental_or_non_reflective_use_through_supported_public_APIs",
+      "manual_construction_means": "public_constructor_dataclass_mapping_copy_pickle_replace_or_object_new_without_factory_attestation",
+      "arbitrary_CPython_closure_or_memory_introspection_is_claimed_secure": false,
+      "hostile_code_inside_the_same_Python_process_is_in_scope": false,
+      "untrusted_plugins_exec_eval_debuggers_or_reflection_allowed_in_scientific_worker": false,
+      "single_purpose_reviewed_worker_process_required": true,
+      "OS_process_or_equivalent_authority_boundary_required_before_hostile_same_process_code_can_enter_scope": true,
+      "current_dormant_commit_must_expose_no_effective_claim_or_authoritative_terminal_path": true
+    }
   },
   "future_execution_authorization_seal": {
     "required_as_separate_reviewed_file": true,

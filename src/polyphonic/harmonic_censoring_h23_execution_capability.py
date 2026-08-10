@@ -16,14 +16,12 @@ import os
 from pathlib import Path
 import platform
 import subprocess
-import threading
 from typing import Mapping, Sequence
 import weakref
 
 from .harmonic_censoring_h23 import (
     H23_CONTRACT_SHA256,
     H23HarnessPlan,
-    canonical_json_bytes,
     load_h23_harness_plan,
 )
 
@@ -32,13 +30,14 @@ H23_CAPABILITY_CONTRACT_RELATIVE_PATH = Path(
     "configs/harmonic_censoring_h23_synthetic_execution_capability_contract.json"
 )
 H23_CAPABILITY_CONTRACT_SHA256 = (
-    "95458fc4e261d5cf7e4e9aed78bc379a9940b22c39ae7799b53c6301a3d8363f"
+    "0320b8a317863aa8a2e85086e98a28d646d69fe26fa469f7806911b3b51e874c"
 )
 H23_AUTHORIZATION_SEAL_RELATIVE_PATH = Path(
     "configs/harmonic_censoring_h23_synthetic_execution_authorization_seal.json"
 )
 # A later, separately reviewed seal commit must replace this with its raw hash.
 H23_AUTHORIZATION_SEAL_SHA256: str | None = None
+H23_CONSUMPTION_CLAIM_IMPLEMENTED = False
 
 H23_FIXTURE_MANIFEST_SHA256 = (
     "acfa37b987deb19884c9f60cf3410717b68788eb466396402aaf992b3224e19c"
@@ -444,8 +443,6 @@ def _build_h23_capability_authority():
     registered_capabilities: dict[
         int, tuple[weakref.ReferenceType[object], tuple[object, ...]]
     ] = {}
-    claimed_capabilities: dict[int, weakref.ReferenceType[object]] = {}
-    claim_lock = threading.Lock()
 
     def binding(
         value: AttestedH23SyntheticExecutionCapability,
@@ -516,79 +513,36 @@ def _build_h23_capability_authority():
             registered = registered_capabilities.get(identity)
             if registered is not None and registered[0] is reference:
                 registered_capabilities.pop(identity, None)
-            if claimed_capabilities.get(identity) is reference:
-                claimed_capabilities.pop(identity, None)
-
         reference = weakref.ref(created, cleanup)
         registered_capabilities[identity] = (reference, binding(created))
         return created
 
-    def claim(
-        value: object,
-    ) -> AttestedH23SyntheticExecutionCapability:
-        """Persist population consumption atomically before the first waveform."""
-
-        with claim_lock:
-            capability = require(value)
-            claimed = claimed_capabilities.get(id(capability))
-            if claimed is not None and claimed() is capability:
-                raise RuntimeError("H23 capability was already claimed.")
-            marker_payload = canonical_json_bytes(
-                {
-                    "schema_version": 1,
-                    "purpose": "harmonic_censoring_h23_synthetic_population_consumption",
-                    "synthetic_population_consumed": True,
-                    "authorization_seal_sha256": capability.authorization_seal_sha256,
-                    "implementation_commit": capability.implementation_commit,
-                    "fixture_manifest_sha256": capability.fixture_manifest_sha256,
-                    "resolved_test_manifest_sha256": capability.resolved_test_manifest_sha256,
-                    "approved_harness_git_blob": capability.approved_harness_git_blob,
-                }
-            )
-            capability.authorization_marker.parent.mkdir(parents=True, exist_ok=True)
-            descriptor = os.open(
-                capability.authorization_marker,
-                os.O_WRONLY | os.O_CREAT | os.O_EXCL,
-                0o600,
-            )
-            try:
-                with os.fdopen(descriptor, "wb") as stream:
-                    stream.write(marker_payload)
-                    stream.flush()
-                    os.fsync(stream.fileno())
-                directory_descriptor = os.open(
-                    capability.authorization_marker.parent, os.O_RDONLY
-                )
-                try:
-                    os.fsync(directory_descriptor)
-                finally:
-                    os.close(directory_descriptor)
-            except BaseException:
-                # The marker is never removed: a failed claim remains consumed.
-                raise
-            reference = weakref.ref(capability)
-            claimed_capabilities[id(capability)] = reference
-            return capability
-
-    def require_claimed(
-        value: object,
-    ) -> AttestedH23SyntheticExecutionCapability:
-        capability = require(value)
-        reference = claimed_capabilities.get(id(capability))
-        if reference is None or reference() is not capability:
-            raise PermissionError("H23 capability has not crossed its one-shot claim.")
-        return capability
-
-    return issue, require, claim, require_claimed
+    return issue, require
 
 
 (
     issue_h23_synthetic_execution_capability,
     require_attested_h23_synthetic_execution_capability,
-    claim_h23_synthetic_execution_capability,
-    require_claimed_h23_synthetic_execution_capability,
 ) = _build_h23_capability_authority()
 del _build_h23_capability_authority
+
+
+def claim_h23_synthetic_execution_capability(value: object) -> None:
+    """Remain unreachable until a reviewed scientific-executor commit exists."""
+
+    del value
+    raise PermissionError(
+        "H23 consumption claim is not implemented in this dormant commit."
+    )
+
+
+def require_claimed_h23_synthetic_execution_capability(value: object) -> None:
+    """No object can be claimed while the scientific executor is absent."""
+
+    del value
+    raise PermissionError(
+        "H23 claimed capability cannot exist in this dormant commit."
+    )
 
 
 __all__ = [
@@ -597,6 +551,7 @@ __all__ = [
     "H23_AUTHORIZATION_SEAL_RELATIVE_PATH",
     "H23_AUTHORIZATION_SEAL_SHA256",
     "H23_CAPABILITY_CONTRACT_SHA256",
+    "H23_CONSUMPTION_CLAIM_IMPLEMENTED",
     "claim_h23_synthetic_execution_capability",
     "issue_h23_synthetic_execution_capability",
     "load_h23_authorization_seal",

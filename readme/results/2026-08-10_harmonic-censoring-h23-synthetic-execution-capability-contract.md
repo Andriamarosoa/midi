@@ -17,9 +17,9 @@ Fichier :
 
 ```text
 configs/harmonic_censoring_h23_synthetic_execution_capability_contract.json
-taille : 13 847 octets
-SHA-256 brut : 95458fc4e261d5cf7e4e9aed78bc379a9940b22c39ae7799b53c6301a3d8363f
-blob Git avant commit : bcbd3c48d1c445290a68408d26cd515692be1543
+taille : 14 636 octets
+SHA-256 brut : 0320b8a317863aa8a2e85086e98a28d646d69fe26fa469f7806911b3b51e874c
+blob Git avant commit : 64b788e0a0caa770e1e822eaacc4dac1df939bdc
 ```
 
 Le contrat lie :
@@ -36,6 +36,14 @@ La capability future devra être non constructible par le caller, non copiable,
 non sérialisable et attestée par identité via une factory séparément revue.
 Une dataclass, un mapping ou une copie `dataclasses.replace()` ne pourra jamais
 être une capability.
+
+Le modèle de menace est maintenant explicite : cette attestation protège les
+API supportées contre l’usage accidentel ou la construction non réflexive. Elle
+ne prétend pas résister à un code Python hostile capable d’inspecter les
+closures ou la mémoire du même processus. Le futur worker scientifique devra
+donc être mono-usage, revu et sans plugin, `exec`, debugger ou réflexion non
+fiable. Si du code hostile same-process doit entrer dans le périmètre, une
+frontière de processus/OS (ou équivalent) devra être ajoutée avant tout seal.
 
 La factory devra notamment vérifier avant émission :
 

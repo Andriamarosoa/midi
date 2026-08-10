@@ -12,14 +12,14 @@ aucun test P0/P1/P2.
 
 ```text
 src/polyphonic/harmonic_censoring_h23_execution_capability.py
-taille       23 661 octets
-SHA-256 brut 7d2f6b232544cdc65b5bc06fb79ced8bdd272b3867c9d9baf96597b83fc3e970
-blob Git     919ff6af30cd1412355be7fe569812b13ef254f9
+taille       21 335 octets
+SHA-256 brut de20cab9d542426af6b772ca60ce4af4a13ec67023ef36b6b8aecefcb884a25e
+blob Git     e280aac30f5cde835989c177b45d850e9ed9199b
 
 src/polyphonic/run_harmonic_censoring_h23_synthetic.py
-taille       14 713 octets
-SHA-256 brut a397cf02df05e61f95ad23fca6e7c0981efa129f6eaab7e13ad6a6b6ebc11c0d
-blob Git     036d2b7b08496ac29078cebafb9b033208c01325
+taille       15 057 octets
+SHA-256 brut cf2cf6c0fa3b9e3b48a1607d03174eacdd3511c3db790b154c4e00673dadd0d6
+blob Git     3699212be4db17df99acfddb864c0a25f56dcea4
 ```
 
 Les deux sources sont forcées en LF par `.gitattributes`. Elles n’importent ni
@@ -34,6 +34,11 @@ registre ou helper d’attestation n’est exposé comme attribut du module. Une
 dataclass, un mapping, un clone
 `object.__new__`, `copy`, `deepcopy`, `pickle` ou `dataclasses.replace` ne donne
 aucune autorité.
+
+Cette closure n’est pas présentée comme une frontière contre une introspection
+CPython hostile. Le contrat limite désormais explicitement ce mécanisme aux API
+supportées et exige un worker mono-usage sans code non fiable. Une frontière OS
+sera obligatoire avant d’élargir ce modèle de menace.
 
 Le futur parser de seal exige séparément les six droits :
 
@@ -62,9 +67,16 @@ n’existe pas.
 
 ## Claim et runner dormants
 
-Le mécanisme futur de claim est codé en `O_EXCL`, persiste
-`synthetic_population_consumed=true` et ne supprime jamais le marker après une
-erreur. Il est toutefois inatteignable sans capability attestée.
+Le claim n’est plus seulement inatteignable : il est explicitement **non
+implémenté** dans ce commit :
+
+```text
+H23_CONSUMPTION_CLAIM_IMPLEMENTED = false
+```
+
+Son API publique lève inconditionnellement `PermissionError` et ne contient
+aucun chemin `O_EXCL`, marker ou registre claimed. Le claim persistant devra
+être ajouté dans le même futur commit revu que l’exécuteur scientifique.
 
 Le runner conserve explicitement :
 
@@ -86,11 +98,12 @@ non autoritatifs**, sans champ `global_go_status`. Un brouillon ne porte que
 - incident opérationnel `H23_EXECUTION_INCONCLUSIVE_FAIL_CLOSED`, sans verdict
   scientifique.
 
-La seule finalisation autoritative exige une capability attestée **et déjà
-claimée**, relit le marker réel, vérifie exactement son contenu et son SHA,
-réconcilie plan/manifests/capability, puis force la destination succès ou
-terminale scellée avant le rename atomique. Aucun caller ne peut fournir un
-simple SHA sous forme de chaîne ni choisir une destination arbitraire.
+Le code de future finalisation sait vérifier une capability claimée, relire le
+marker réel, reconstruire le draft et forcer la destination scellée. Mais il
+commence maintenant par refuser inconditionnellement tant que
+`PRODUCTION_H23_SCIENTIFIC_EXECUTOR_IMPLEMENTED=false` ou que le claim n’est pas
+implémenté. Il n’existe donc dans ce commit aucun chemin vers
+`authoritative=true` ou `global_go_status`, même avec une capability légitime.
 
 ## Vérifications autorisées
 
@@ -100,7 +113,7 @@ C:\Users\user\Desktop\midi\.venv\Scripts\python.exe -B -m unittest tests.test_ha
 
 Résultat : `11 tests réussis en 0,015 s`.
 
-La suite contractuelle élargie H23/H17/H20 donne `53 tests réussis en 0,630 s`.
+La suite contractuelle élargie H23/H17/H20 donne `53 tests réussis en 0,658 s`.
 `py_compile` et `git diff --check` réussissent.
 
 Les tests utilisent uniquement des mappings synthétiques, le resolver dormant
