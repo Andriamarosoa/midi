@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "purpose": "future_runner_operational_failure_provenance_hardening",
+  "status": "provisional_resolution_age1_h16_operational_provenance_hardened",
+  "scope": "future_infrastructure_only",
+  "source_bindings": {
+    "h11_operational_orchestrator_blob": "80d7d17361a69203526dc40f79a9b2659dfc916d",
+    "synthetic_test_blob": "e9891e70b1ae9b63a3c09967023851cc085d8b00"
+  },
+  "persistent_phase_ids": [
+    "opening",
+    "inference",
+    "decoder",
+    "target",
+    "reconciliation",
+    "metrics",
+    "publication"
+  ],
+  "failure_provenance": {
+    "phase": true,
+    "exception_type": true,
+    "bounded_message_characters": 512,
+    "scientific_vocabulary_redacted": true,
+    "bounded_operational_traceback_frames": 32,
+    "traceback_contains_source_lines": false,
+    "traceback_contains_locals": false,
+    "recording_index_and_key_if_applicable": true,
+    "atomic_json_replacement": true
+  },
+  "forbidden_payloads": [
+    "S0",
+    "S1",
+    "D1",
+    "targets",
+    "class_balance",
+    "probabilities",
+    "scores",
+    "AUC",
+    "bootstrap_results",
+    "scientific_intermediates"
+  ],
+  "h14_closure": {
+    "terminal_status": "provisional_resolution_age1_persistence_h14_closed_inconclusive_after_consumed_runtime_failure",
+    "h8_consumed": true,
+    "retry_forbidden": true,
+    "reopened_by_h16": false
+  },
+  "terminal_flags": {
+    "scientific_execution_authorized": false,
+    "real_runner_invoked": false,
+    "h8_opened": false,
+    "model_loaded": false,
+    "inference_run": false,
+    "scientific_metric_computed": false,
+    "locked_test_used": false
+  },
+  "next_action": "external_review_of_future_only_operational_infrastructure"
+}

@@ -12,7 +12,9 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import shutil
+import traceback
 from typing import Any, Callable, Mapping, Protocol, Sequence
 
 from .provisional_resolution_age1 import (
@@ -31,6 +33,20 @@ H11_STATUS = "provisional_resolution_age1_persistence_h11_execution_contract_sea
 EXECUTION_INVALID = "age1_signal_execution_invalid"
 EXPECTED_RECORDINGS = 101
 EXPECTED_GROUPS = 31
+OPERATIONAL_PHASES = (
+    "opening",
+    "inference",
+    "decoder",
+    "target",
+    "reconciliation",
+    "metrics",
+    "publication",
+)
+MAXIMUM_OPERATIONAL_ERROR_MESSAGE_CHARS = 512
+MAXIMUM_OPERATIONAL_TRACEBACK_FRAMES = 32
+_SCIENTIFIC_ERROR_TERMS = re.compile(
+    r"(?i)(?:\bS[01]\b|\bD1\b|true_noteon|target|class(?:_balance)?|auc|bootstrap|probabilit|score)"
+)
 
 
 def sha256_file(path: Path) -> str:
@@ -43,6 +59,41 @@ def sha256_file(path: Path) -> str:
 
 def canonical_json_bytes(payload: object) -> bytes:
     return (json.dumps(payload, sort_keys=True, separators=(",", ":")) + "\n").encode("utf-8")
+
+
+def write_json_atomically(path: Path, payload: object) -> None:
+    """Replace one small operational JSON without exposing partial bytes."""
+    destination = Path(path)
+    temporary = destination.with_name(f".{destination.name}.tmp-{os.getpid()}")
+    if temporary.exists():
+        raise FileExistsError("Operational provenance temporary path already exists.")
+    try:
+        temporary.write_bytes(canonical_json_bytes(payload))
+        os.replace(temporary, destination)
+    except Exception:
+        temporary.unlink(missing_ok=True)
+        raise
+
+
+def bounded_operational_error_message(error: BaseException) -> str:
+    """Keep a bounded operational message, redacting scientific vocabulary."""
+    message = " ".join(str(error).split())
+    if _SCIENTIFIC_ERROR_TERMS.search(message):
+        return "[redacted_non_operational_exception_message]"
+    return message[:MAXIMUM_OPERATIONAL_ERROR_MESSAGE_CHARS]
+
+
+def bounded_operational_traceback(error: BaseException) -> tuple[dict[str, object], ...]:
+    """Persist stack locations only: never source lines, locals or values."""
+    frames = traceback.extract_tb(error.__traceback__)[-MAXIMUM_OPERATIONAL_TRACEBACK_FRAMES:]
+    return tuple(
+        {
+            "file": Path(frame.filename).name,
+            "function": frame.name,
+            "line": frame.lineno,
+        }
+        for frame in frames
+    )
 
 
 def require_raw_sha256s(
@@ -146,20 +197,28 @@ def process_h11_recording(
     adapter: H11ScientificAdapter,
     *,
     mark_consumed: Callable[[H11Recording], None],
+    record_phase: Callable[[str, H11Recording | None, int | None], None] | None = None,
+    recording_index: int | None = None,
 ) -> tuple[tuple[GroupedAge1EvaluationRow, ...], dict[str, object]]:
     """Execute one frozen-order recording pipeline with one inference call."""
+    phase = record_phase or (lambda _phase, _recording, _index: None)
+    phase("opening", recording, recording_index)
     adapter.verify_provenance(recording)
     # Conservatively cross the irrevocable consumption boundary before the
     # adapter can open or parse any scientific asset.
     mark_consumed(recording)
     with adapter.open_recording(recording) as opened:
+        phase("inference", recording, recording_index)
         predictions = adapter.infer_once(opened)
+        phase("decoder", recording, recording_index)
         decoded = adapter.decode_once(opened, predictions, recording)
         if not isinstance(decoded, H11DecodedRecording):
             raise RuntimeError(f"{EXECUTION_INVALID}: decoder result type mismatch")
         if decoded.pending_age1 != 0:
             raise RuntimeError(f"{EXECUTION_INVALID}: unresolved_age1_pending_at_end_of_recording")
+        phase("target", recording, recording_index)
         targets = tuple(adapter.extract_targets(opened, decoded.emitted_events))
+    phase("reconciliation", recording, recording_index)
     rows = join_age1_signals_and_targets(decoded.signals, targets)
     emitted_noteons = sum(getattr(event, "kind", None) == "note_on" for event in decoded.emitted_events)
     if emitted_noteons != len(decoded.signals) or len(targets) != len(decoded.signals):
@@ -192,6 +251,7 @@ def orchestrate_h11_discovery(
     expected_manifest_sha256: str,
     expected_plan_sha256: str,
     mark_consumed: Callable[[H11Recording], None],
+    record_phase: Callable[[str, H11Recording | None, int | None], None] | None = None,
 ) -> tuple[H11RunSummary, H7SyntheticMetricReport]:
     cohort = require_h11_cohort(
         recordings,
@@ -201,14 +261,20 @@ def orchestrate_h11_discovery(
     )
     all_rows: list[GroupedAge1EvaluationRow] = []
     attrition: list[dict[str, object]] = []
-    for recording in cohort:  # Deliberately no retry loop.
+    phase = record_phase or (lambda _phase, _recording, _index: None)
+    for recording_index, recording in enumerate(cohort):  # Deliberately no retry loop.
         rows, summary = process_h11_recording(
-            recording, adapter, mark_consumed=mark_consumed
+            recording,
+            adapter,
+            mark_consumed=mark_consumed,
+            record_phase=phase,
+            recording_index=recording_index,
         )
         all_rows.extend(rows)
         attrition.append(summary)
     if len(attrition) != EXPECTED_RECORDINGS:
         raise RuntimeError(f"{EXECUTION_INVALID}: partial cohort before metrics")
+    phase("metrics", None, None)
     metric = metric_callable(tuple(all_rows))
     return H11RunSummary(
         processed_recordings=len(attrition),
@@ -291,16 +357,48 @@ def run_h11_once(
         marker_path, expected_contract_sha256=expected_contract_sha256
     )
     consumed = False
+    phase_path = claimed.with_suffix(claimed.suffix + ".phase.json")
+    current_phase: dict[str, object] = {
+        "phase": "claimed",
+        "recording_index": None,
+        "recording_key": None,
+    }
+
+    def record_phase(
+        phase: str,
+        recording: H11Recording | None,
+        recording_index: int | None,
+    ) -> None:
+        nonlocal current_phase
+        if phase not in OPERATIONAL_PHASES:
+            raise ValueError("Unknown operational provenance phase.")
+        if recording is None:
+            if recording_index is not None:
+                raise ValueError("Global operational phase cannot have a recording index.")
+            recording_key = None
+        else:
+            if type(recording_index) is not int or not 0 <= recording_index < EXPECTED_RECORDINGS:
+                raise ValueError("Recording operational phase requires a valid index.")
+            recording_key = recording.recording_key
+        current_phase = {
+            "contract_sha256": expected_contract_sha256,
+            "phase": phase,
+            "recording_index": recording_index,
+            "recording_key": recording_key,
+            "state": "claimed_running",
+        }
+        write_json_atomically(phase_path, current_phase)
 
     def mark_consumed(_recording: H11Recording) -> None:
         nonlocal consumed
         if not consumed:
             consumed = True
-            claimed.with_suffix(claimed.suffix + ".state.json").write_bytes(
-                canonical_json_bytes({
+            write_json_atomically(
+                claimed.with_suffix(claimed.suffix + ".state.json"),
+                {
                     "h8_discovery_consumed": True,
                     "state": "claimed_running",
-                })
+                },
             )
 
     try:
@@ -312,7 +410,9 @@ def run_h11_once(
             expected_manifest_sha256=expected_manifest_sha256,
             expected_plan_sha256=expected_plan_sha256,
             mark_consumed=mark_consumed,
+            record_phase=record_phase,
         )
+        record_phase("publication", None, None)
         publish_h11_success_atomically(
             destination,
             summary,
@@ -329,19 +429,26 @@ def run_h11_once(
         failure = Path(destination).with_suffix(Path(destination).suffix + ".failure.json")
         if failure.exists():
             raise RuntimeError("H11 failure provenance already exists.") from error
-        failure.write_bytes(canonical_json_bytes({
+        write_json_atomically(failure, {
             "contract_sha256": expected_contract_sha256,
+            "error_message": bounded_operational_error_message(error),
             "error_type": type(error).__name__,
             "h8_discovery_consumed": consumed,
+            "operational_traceback": bounded_operational_traceback(error),
+            "phase": current_phase.get("phase"),
+            "recording_index": current_phase.get("recording_index"),
+            "recording_key": current_phase.get("recording_key"),
             "state": "failed",
-        }))
+        })
         raise
 
 
 __all__ = [
     "EXECUTION_INVALID", "EXPECTED_GROUPS", "EXPECTED_RECORDINGS", "H11DecodedRecording",
     "H11Recording", "H11RunSummary", "H11ScientificAdapter", "H11_STATUS",
+    "MAXIMUM_OPERATIONAL_ERROR_MESSAGE_CHARS", "MAXIMUM_OPERATIONAL_TRACEBACK_FRAMES",
+    "OPERATIONAL_PHASES", "bounded_operational_error_message", "bounded_operational_traceback",
     "canonical_json_bytes", "claim_one_shot_authorization", "orchestrate_h11_discovery",
     "process_h11_recording", "publish_h11_success_atomically", "require_h11_cohort",
-    "require_raw_sha256s", "run_h11_once", "sha256_file",
+    "require_raw_sha256s", "run_h11_once", "sha256_file", "write_json_atomically",
 ]

@@ -19,6 +19,19 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 - Mise à jour : `2026-08-10`.
 - Étape : `provisional_resolution_age1_persistence_h14_permanent_closure`.
 - Statut : `terminé — provisional_resolution_age1_persistence_h14_closed_inconclusive_after_consumed_runtime_failure`.
+- Infrastructure suivante : H16 durcit uniquement la provenance des futurs
+  runners. Avant `opening`, `inference`, `decoder`, `target`, `reconciliation`,
+  `metrics` et `publication`, une phase non scientifique est remplacée
+  atomiquement. Sur échec futur, phase, type, message borné/redacté, pile bornée
+  sans source/locals et index/clé d'enregistrement sont conservés. Aucune valeur
+  S0/S1/D1, target, classe, probabilité, AUC ou bootstrap n'est journalisée.
+  H16 ne rouvre pas H14/H8 et n'autorise aucune exécution. Contrat :
+  `configs/provisional_resolution_age1_h16_operational_provenance_contract.json`.
+  Les scellements H12/H13 historiques restent inchangés : leur liaison à
+  l'ancien blob H11 n'est pas mise à jour. Tout futur runner nécessitera donc
+  un nouveau contrat de liaison revu séparément.
+  Rapport :
+  `readme/results/2026-08-10_provisional-resolution-age1-h16-operational-provenance.md`.
 - H14 est définitivement clos après un `RuntimeError` post-consommation. Le
   marqueur a été réclamé, le state persistant prouve
   `h8_discovery_consumed=true`, aucun répertoire final n'existe et la provenance

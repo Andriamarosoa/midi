@@ -16,6 +16,9 @@ from src.polyphonic.provisional_resolution_age1 import (
 )
 from src.polyphonic.provisional_resolution_age1_h11 import (
     EXECUTION_INVALID,
+    MAXIMUM_OPERATIONAL_ERROR_MESSAGE_CHARS,
+    MAXIMUM_OPERATIONAL_TRACEBACK_FRAMES,
+    OPERATIONAL_PHASES,
     H11DecodedRecording,
     H11Recording,
     claim_one_shot_authorization,
@@ -146,8 +149,21 @@ class H11OrchestrationTests(unittest.TestCase):
     def test_one_recording_order_and_same_single_prediction(self):
         adapter = Adapter()
         consumed = []
-        rows, summary = process_h11_recording(cohort()[0], adapter, mark_consumed=lambda item: consumed.append(item.recording_key))
+        phases = []
+        rows, summary = process_h11_recording(
+            cohort()[0],
+            adapter,
+            mark_consumed=lambda item: consumed.append(item.recording_key),
+            record_phase=lambda phase, recording, index: phases.append(
+                (phase, None if recording is None else recording.recording_key, index)
+            ),
+            recording_index=0,
+        )
         self.assertEqual(consumed, [cohort()[0].recording_key])
+        self.assertEqual([phase for phase, _key, _index in phases], [
+            "opening", "inference", "decoder", "target", "reconciliation",
+        ])
+        self.assertTrue(all(index == 0 for _phase, _key, index in phases))
         self.assertEqual([name for name, _ in adapter.trace], ["verify", "open", "infer", "decode", "target", "close"])
         self.assertEqual(adapter.inference_calls, 1)
         self.assertEqual(len(adapter.prediction_ids), 1)
@@ -253,6 +269,73 @@ class H11OrchestrationTests(unittest.TestCase):
             self.assertTrue(failure.is_file())
             self.assertTrue(json.loads(failure.read_text())["h8_discovery_consumed"])
             self.assertFalse(marker.exists())
+
+    def test_future_failure_provenance_records_phase_and_redacts_science(self):
+        class InferenceFailure(Adapter):
+            def infer_once(self, opened):
+                raise RuntimeError("S1=0.91 target=1 AUC=0.88")
+
+        with tempfile.TemporaryDirectory() as root:
+            marker = Path(root) / "authorization.json"
+            destination = Path(root) / "final"
+            self._marker(marker)
+            with self.assertRaisesRegex(RuntimeError, "S1=0.91"):
+                run_h11_once(
+                    marker_path=marker,
+                    expected_contract_sha256="c" * 64,
+                    destination=destination,
+                    recordings=cohort(),
+                    adapter=InferenceFailure(),
+                    metric_callable=lambda _rows: metric_report(),
+                    forbidden_groups=(),
+                    expected_manifest_sha256=MANIFEST,
+                    expected_plan_sha256=PLAN,
+                )
+            claimed = marker.with_suffix(".json.claimed")
+            phase = json.loads(claimed.with_suffix(".claimed.phase.json").read_text())
+            failure = json.loads(destination.with_suffix(".failure.json").read_text())
+            self.assertEqual(phase["phase"], "inference")
+            self.assertEqual(phase["recording_index"], 0)
+            self.assertEqual(phase["recording_key"], "recording-000")
+            self.assertEqual(failure["phase"], "inference")
+            self.assertEqual(failure["error_type"], "RuntimeError")
+            self.assertEqual(
+                failure["error_message"],
+                "[redacted_non_operational_exception_message]",
+            )
+            self.assertLessEqual(len(failure["error_message"]), MAXIMUM_OPERATIONAL_ERROR_MESSAGE_CHARS)
+            self.assertLessEqual(len(failure["operational_traceback"]), MAXIMUM_OPERATIONAL_TRACEBACK_FRAMES)
+            rendered = json.dumps(failure).lower()
+            for forbidden in ("s1=", "target=", "auc=", "0.91", "0.88"):
+                self.assertNotIn(forbidden, rendered)
+            for frame in failure["operational_traceback"]:
+                self.assertEqual(set(frame), {"file", "function", "line"})
+
+    def test_success_phase_provenance_reaches_publication_without_science(self):
+        with tempfile.TemporaryDirectory() as root:
+            marker = Path(root) / "authorization.json"
+            destination = Path(root) / "final"
+            self._marker(marker)
+            run_h11_once(
+                marker_path=marker,
+                expected_contract_sha256="c" * 64,
+                destination=destination,
+                recordings=cohort(),
+                adapter=Adapter(),
+                metric_callable=lambda _rows: metric_report(),
+                forbidden_groups=(),
+                expected_manifest_sha256=MANIFEST,
+                expected_plan_sha256=PLAN,
+            )
+            phase_path = marker.with_suffix(".json.claimed.phase.json")
+            payload = json.loads(phase_path.read_text())
+            self.assertEqual(payload["phase"], "publication")
+            self.assertIsNone(payload["recording_index"])
+            self.assertIsNone(payload["recording_key"])
+            self.assertEqual(set(OPERATIONAL_PHASES), {
+                "opening", "inference", "decoder", "target", "reconciliation",
+                "metrics", "publication",
+            })
 
     def test_one_shot_success_claims_and_publishes_once(self):
         with tempfile.TemporaryDirectory() as root:
