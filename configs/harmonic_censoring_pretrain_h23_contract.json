@@ -1,0 +1,412 @@
+{
+  "schema_version": 1,
+  "purpose": "harmonic_censoring_multiscale_pretrain_h23_contract",
+  "status": "pretrain_test_plan_defined_external_review_required",
+  "scope": {
+    "contract_only": true,
+    "implementation_authorized": false,
+    "synthetic_execution_authorized": false,
+    "scientific_execution_authorized": false,
+    "real_data_access_authorized": false,
+    "training_authorized": false,
+    "fit_performed": false,
+    "calibration_performed": false,
+    "h17_population_used": false,
+    "locked_test_used": false
+  },
+  "scientific_question": "Can a causal multiscale harmonic-censoring representation provide non-trivial evidence for fundamental attribution, source birth, harmonic false-note rejection and source cardinality after removing pitch/cutoff geometry and global-energy effects?",
+  "hypotheses": {
+    "primary": "A shared causal spectral representation observed through relative low-pass censoring contains residual structural information beyond candidate pitch and total energy.",
+    "source_birth": "A new source is supported by a causal combination of onset, harmonic novelty, new energy and unexplained residual after accounting for older sources.",
+    "factorization": "Global comparison of K versus K+1 sources with shared partials is safer than exclusive partial ownership or independent pitch decisions.",
+    "non_identifiability": "Exactly coincident contributions without independent onset, envelope or harmonic evidence are not identifiable and must produce AMBIGUOUS."
+  },
+  "non_objectives": [
+    "training_or_fitting_any_model",
+    "threshold_selection_or_probability_calibration",
+    "opening_real_audio_or_scientific_labels",
+    "reusing_the_consumed_H17_population",
+    "using_locked_test_assets",
+    "emitting_MIDI_outside_40_76",
+    "solving_exactly_non_identifiable_mixtures",
+    "waveform_subtraction_without_phase",
+    "hard_string_or_fret_ownership",
+    "running_30_to_50_live_pitch_shift_inferences"
+  ],
+  "product_contract": {
+    "sample_rate_hz": 44100,
+    "hop_samples": 256,
+    "causal_window_samples": 4096,
+    "future_lookahead_samples": 0,
+    "physical_midi_output_min": 40,
+    "physical_midi_output_max": 76,
+    "virtual_observation_pitch_min": 40,
+    "virtual_observation_pitch_max_inclusive": 127,
+    "virtual_pitch_count": 88,
+    "harmonics_per_candidate": 20,
+    "live_cutoff_count_allowed": [4, 6],
+    "offline_teacher_cutoff_count_allowed": [16, 32]
+  },
+  "mathematical_contract": {
+    "shared_representation": "one causal spectrum or log-frequency representation per frame",
+    "candidate_axis": "MIDI pitch p",
+    "censoring_axis": "relative cutoff c expressed as cutoff_over_F0 or harmonic rank h_c",
+    "raw_evidence": "S_raw(p,c): candidate evidence after applying relative censoring without energy renormalization",
+    "normalized_evidence": "S_norm(p,c): same evidence after preregistered energy normalization",
+    "geometric_null": "S_null(p,c): expected curve caused only by candidate pitch and cutoff geometry",
+    "residual_evidence": "S_residual(p,c)=S(p,c)-S_null(p,c)",
+    "primary_representation": "pitch_by_censoring_matrix",
+    "summaries_are_secondary": [
+      "AUC_raw",
+      "AUC_normalized",
+      "k90",
+      "k50",
+      "k10",
+      "maximum_slope_and_location",
+      "positive_rebound",
+      "roughness",
+      "regime_changes",
+      "curvature",
+      "final_residual"
+    ],
+    "forbidden_primary_representation": "single_disappearance_index",
+    "oriented_harmonic_graph": "F0_to_h_times_F0_for_h_greater_or_equal_to_1_only",
+    "shared_partials_allowed": true,
+    "exclusive_partial_ownership_forbidden": true,
+    "candidate_order_must_not_change_result": true,
+    "graph_traversal_order_must_not_change_result": true
+  },
+  "feature_schema_contract": {
+    "feature_sources_allowed": [
+      "current_and_past_audio_within_the_4096_sample_causal_window",
+      "candidate_pitch_hypothesis",
+      "relative_censoring_masks",
+      "independent_spectral_observation",
+      "causally_available_onset_and_envelope_evidence",
+      "causally_available_old_source_state"
+    ],
+    "three_channels_must_remain_separate": [
+      "F0_hypothesis",
+      "conditional_harmonic_head_prediction",
+      "independent_signal_derived_spectral_observation"
+    ],
+    "forbidden_features": [
+      "target",
+      "future_audio",
+      "future_labels",
+      "reference_note_identity",
+      "dataset_split_encoded_as_signal",
+      "post_decision_decoder_state",
+      "post_emission_rank_or_selection",
+      "ground_truth_string_or_fret",
+      "H17_outcome_or_population_membership"
+    ],
+    "validity_masks_required": [
+      "candidate_pitch_valid",
+      "cutoff_valid",
+      "frequency_support_valid",
+      "causal_window_valid",
+      "onset_evidence_available",
+      "old_source_context_available",
+      "virtual_observation_only"
+    ],
+    "targets_are_not_features": true,
+    "unidentifiable_target": "AMBIGUOUS",
+    "missing_or_invalid_is_not_negative": true,
+    "provenance_required": [
+      "contract_sha256",
+      "fixture_id",
+      "synthesis_seed",
+      "sample_rate",
+      "hop_samples",
+      "window_samples",
+      "cutoff_definition",
+      "feature_schema_sha256",
+      "code_commit",
+      "real_data_used",
+      "h17_population_used",
+      "locked_test_used",
+      "fit_performed"
+    ]
+  },
+  "synthetic_fixture_contract": {
+    "base_cases": {
+      "S1C": "conceptual C2 with H2 H3 H4 H5 decaying; one source; C3/C4 explained; no source birth",
+      "S1P": "physically representable MIDI40 analogue of S1C preserving harmonic ratios",
+      "S2": "true C4 with its H2 H3 H4 attacked at t0; C4 required; source birth present",
+      "S3": "old decaying C2 around t0 and nothing new; no source birth",
+      "S4": "old decaying C2 plus new true C4; shared C4 frequency is old H4 and new H1; two-source explanation preferred",
+      "S5": "same shared frequency without independent onset, harmonics or envelope; exact AMBIGUOUS required"
+    },
+    "variant_axes": [
+      "amplitude",
+      "relative_phase",
+      "attack_and_decay_envelopes",
+      "inharmonicity_and_cents_offset",
+      "noise_level_and_colour",
+      "neighbouring_semitones",
+      "octaves_and_fifths",
+      "dyads_and_dense_chords",
+      "physical_unisons",
+      "bends_slides_vibrato",
+      "natural_harmonics",
+      "sympathetic_resonance",
+      "age_of_old_source_at_t0",
+      "window_boundary_position",
+      "pitches_40_76_and_virtual_127",
+      "silence",
+      "synthetic_OOD"
+    ],
+    "deterministic_synthesis_only": true,
+    "real_recordings_forbidden": true,
+    "basic_pitch_as_oracle_forbidden": true
+  },
+  "test_record_schema": [
+    "id",
+    "phase",
+    "objective",
+    "exact_input",
+    "procedure",
+    "oracle",
+    "metrics",
+    "pass_rule",
+    "fail_rule",
+    "artifacts",
+    "drawback",
+    "inverse_check"
+  ],
+  "test_record_resolution": {
+    "rule": "Every catalogue entry inherits every missing field below; an explicit per-test field overrides the inherited value.",
+    "phase_resolution": "The phase field is the enclosing test_catalogue key for that entry.",
+    "inherited_defaults": {
+      "metrics": [
+        "oracle_value_or_category",
+        "pass_rule_boolean",
+        "validity_mask_counts",
+        "nonfinite_count",
+        "inverse_check_boolean"
+      ],
+      "fail_rule": "Any violation of the explicit oracle/pass_rule, any nonfinite unmasked value, any missing required artifact, or a passing inverse control is FAIL.",
+      "artifacts": [
+        "resolved_test_contract.json",
+        "input_fixture_spec.json",
+        "observed_values.json",
+        "oracle_comparison.json",
+        "inverse_check.json",
+        "sha256_manifest.json"
+      ],
+      "drawback": "Record the strongest alternative explanation, any dependence on pitch/gain/filter/window geometry, and whether the test can only demonstrate a necessary rather than sufficient condition."
+    },
+    "resolved_record_must_contain_every_test_record_schema_field": true
+  },
+  "test_catalogue": {
+    "P0_analytic": [
+      {"id":"A01","objective":"harmonic direction","exact_input":"F0 and H1-H20 graph","procedure":"enumerate every edge","oracle":"all edges are low_to_high and C4 never explains C3","pass_rule":"exact invariant","inverse_check":"inject one descending edge and require failure"},
+      {"id":"A02","objective":"pitch_shift_cutoff equivalence","exact_input":"ideal frequency scaling and fixed cutoff","procedure":"derive transformed cutoff on original spectrum","oracle":"analytic equality under stated ideal assumptions","pass_rule":"symbolic or numerical equality at machine tolerance","inverse_check":"non-ideal interpolation/filter case must be labelled approximation"},
+      {"id":"A03","objective":"kill trivial disappearance index","exact_input":"equivariant ideal spectrum","procedure":"predict disappearance using pitch and cutoff only","oracle":"single disappearance index is TRIVIAL_FEATURE","pass_rule":"no autonomous discriminative claim remains","inverse_check":"shuffle waveform while preserving pitch/cutoff geometry"},
+      {"id":"A04","objective":"non-identifiability","exact_input":"two latent explanations rendering identical waveform","procedure":"compute all allowed features","oracle":"identical features and AMBIGUOUS","pass_rule":"exact equality and exact AMBIGUOUS","inverse_check":"any target separation is leakage"},
+      {"id":"A05","objective":"separate pitch and physical sources","exact_input":"one source versus two strings at same MIDI with identical waveform","procedure":"compare observable contracts","oracle":"K_pitch=1 while K_source is unidentifiable","pass_rule":"no false K_source certainty","inverse_check":"force K_source and require failure"},
+      {"id":"A06","objective":"pitch domain cardinality","exact_input":"inclusive integer pitches 40 through 127","procedure":"enumerate","oracle":"88 virtual pitches and no 128","pass_rule":"exact count and endpoints","inverse_check":"127 treated as count rather than endpoint must fail"},
+      {"id":"A07","objective":"relative cutoff semantics","exact_input":"same harmonic geometry at multiple F0","procedure":"express cutoffs as cutoff_over_F0 and harmonic rank","oracle":"geometry aligns in relative coordinates","pass_rule":"directionally identical masks modulo supported bins","inverse_check":"absolute-only cutoff must expose pitch bias"},
+      {"id":"A08","objective":"causal timing","exact_input":"hop 256 window 4096 at 44100 Hz","procedure":"enumerate sample support for frame t","oracle":"no sample after current causal boundary","pass_rule":"maximum future index equals zero","inverse_check":"one future sample must fail"}
+    ],
+    "P0_DSP": [
+      {"id":"D01","objective":"shared spectrum parity","exact_input":"one waveform and all pitch/cutoff masks","procedure":"compare vectorized and scalar reference","oracle":"same raw curves","pass_rule":"machine-tolerance equality","inverse_check":"permute masks"},
+      {"id":"D02","objective":"raw versus normalized separation","exact_input":"same structure at scaled amplitudes","procedure":"compute both channels","oracle":"raw scales and normalized structure is invariant when defined","pass_rule":"correct direction plus finite validity","inverse_check":"zero-energy case must be invalid not negative"},
+      {"id":"D03","objective":"geometric null removal","exact_input":"pitch/cutoff-only synthetic baselines","procedure":"estimate S_null without labels","oracle":"residual removes deterministic geometry","pass_rule":"null residual is zero at numerical tolerance","inverse_check":"structured harmonic fixture retains nonzero residual"},
+      {"id":"D04","objective":"nontrivial information beyond pitch","exact_input":"same pitch/cutoff with different harmonic structures","procedure":"compare residual curves","oracle":"S_residual differs in preregistered direction","pass_rule":"directional invariant","inverse_check":"pitch-only proxy must not pass"},
+      {"id":"D05","objective":"nontrivial information beyond gain","exact_input":"gain-scaled copies","procedure":"compare normalized curves and summaries","oracle":"normalized evidence preserves structure","pass_rule":"direction preserved","inverse_check":"raw-only improvement is insufficient"},
+      {"id":"D06","objective":"filter-family robustness","exact_input":"at least two causal mask/filter realizations","procedure":"repeat core fixtures","oracle":"scientific direction does not reverse","pass_rule":"all core directions agree","inverse_check":"filter-specific reversal blocks progression"},
+      {"id":"D07","objective":"phase robustness","exact_input":"phase sweep with same magnitudes","procedure":"repeat curves","oracle":"no target decision determined only by arbitrary phase","pass_rule":"oracle class stable or explicitly ambiguous","inverse_check":"phase-locked shortcut fails"},
+      {"id":"D08","objective":"window boundary robustness","exact_input":"same event shifted across first and last supported samples","procedure":"translate without future access","oracle":"validity changes are explicit and no spurious birth appears","pass_rule":"translation-consistent supported region","inverse_check":"boundary artifact birth fails"},
+      {"id":"D09","objective":"cents and inharmonicity","exact_input":"preregistered cents/inharmonicity sweep","procedure":"shift partial locations","oracle":"smooth degradation, no class discontinuity from binning","pass_rule":"monotonic or explicitly bounded direction","inverse_check":"single-bin cliff fails"},
+      {"id":"D10","objective":"noise robustness","exact_input":"silence plus coloured-noise sweep","procedure":"compute evidence","oracle":"silence/noise does not create structured F0 confidence","pass_rule":"unexplained or OOD","inverse_check":"pitch-shaped noise shortcut fails"},
+      {"id":"D11","objective":"summary fidelity","exact_input":"full curves and k90 k50 k10 AUC slope curvature residual","procedure":"compare cases with same summaries but different curves","oracle":"summaries cannot replace matrix","pass_rule":"primary matrix retained","inverse_check":"summary-only collision documented"},
+      {"id":"D12","objective":"rebound and regime change meaning","exact_input":"designed monotone and two-regime spectra","procedure":"measure features","oracle":"rebound/regime flags match construction","pass_rule":"exact fixture oracle","inverse_check":"monotone curve cannot report rebound"},
+      {"id":"D13","objective":"missing frequency support","exact_input":"high virtual pitches near 127","procedure":"apply masks beyond supported harmonics","oracle":"invalid mask not zero evidence","pass_rule":"validity mask exact","inverse_check":"unsupported equals negative fails"},
+      {"id":"D14","objective":"numerical safety","exact_input":"silence tiny energy large gain and boundary values","procedure":"compute all features","oracle":"no NaN or infinity; invalidity explicit","pass_rule":"exact finite-or-masked invariant","inverse_check":"silent divide-by-zero fails"}
+    ],
+    "P0_core_synthetic": [
+      {"id":"S1","objective":"one old source explains harmonics","exact_input":"S1C and S1P","procedure":"compare one-source and extra-source explanations","oracle":"one source; C3/C4 explained; no birth","pass_rule":"exact categorical oracle","inverse_check":"remove old F0 and require loss of explanation"},
+      {"id":"S2","objective":"new high fundamental","exact_input":"S2","procedure":"evaluate birth and K versus K+1","oracle":"C4 required and birth positive","pass_rule":"exact categorical oracle","inverse_check":"remove attack and own harmonics"},
+      {"id":"S3","objective":"old resonance only","exact_input":"S3","procedure":"evaluate source birth","oracle":"no new source","pass_rule":"exact categorical oracle","inverse_check":"add controlled new onset"},
+      {"id":"S4","objective":"shared old harmonic plus new fundamental","exact_input":"S4","procedure":"compare C2-only with C2+C4 using independent observations","oracle":"two-source explanation preferred and C4 birth","pass_rule":"exact direction","inverse_check":"remove C4 own evidence and approach ambiguity"},
+      {"id":"S5","objective":"respect impossible collision","exact_input":"S5","procedure":"compute every allowed feature","oracle":"AMBIGUOUS","pass_rule":"exact AMBIGUOUS","inverse_check":"any forced binary decision is KILL"}
+    ],
+    "P1_causality_and_birth": [
+      {"id":"C01","objective":"no future dependence","exact_input":"paired signals identical through t and different after t","procedure":"compare features and decisions at t","oracle":"exact equality","pass_rule":"bitwise or documented machine equality","inverse_check":"future perturbation changes t is KILL"},
+      {"id":"C02","objective":"time translation","exact_input":"same event at valid offsets","procedure":"shift event and causal state together","oracle":"same decision modulo frame index","pass_rule":"exact categorical parity","inverse_check":"boundary cases separated"},
+      {"id":"C03","objective":"source-birth decomposition","exact_input":"orthogonal sweeps of onset novelty energy and old-source explanation","procedure":"toggle one component at a time","oracle":"each component affects only documented mechanism","pass_rule":"preregistered direction","inverse_check":"old-source explanation increase cannot increase birth"},
+      {"id":"C04","objective":"retrigger versus decay","exact_input":"same MIDI decay then new attack versus uninterrupted decay","procedure":"compare temporal evidence","oracle":"retrigger only with new causal evidence","pass_rule":"exact fixture oracle","inverse_check":"gain-only decay bump control"},
+      {"id":"C05","objective":"old-source age","exact_input":"S3/S4 over multiple t0 ages","procedure":"repeat without changing future support","oracle":"confidence degrades explicitly rather than flipping arbitrarily","pass_rule":"documented monotone or ambiguous direction","inverse_check":"age encoded from labels fails"},
+      {"id":"C06","objective":"latency accounting","exact_input":"all causal buffers and hops","procedure":"trace required sample/frame age","oracle":"additional lookahead=0","pass_rule":"exact zero","inverse_check":"hidden stability vote fails"}
+    ],
+    "P1_factorization_cardinality": [
+      {"id":"F01","objective":"shared partial","exact_input":"one observed bin compatible with two F0 hypotheses","procedure":"factorize jointly","oracle":"bin may support both hypotheses","pass_rule":"no exclusive ownership","inverse_check":"candidate-order swap"},
+      {"id":"F02","objective":"global residual","exact_input":"mixture with deliberately unexplained component","procedure":"fit allowed hypotheses","oracle":"unexplained residual remains explicit","pass_rule":"not silently assigned","inverse_check":"add matching source"},
+      {"id":"F03","objective":"candidate order invariance","exact_input":"same hypothesis set in all tested permutations","procedure":"factorize","oracle":"same result","pass_rule":"exact parity","inverse_check":"tie handling deterministic"},
+      {"id":"F04","objective":"graph order invariance","exact_input":"same harmonic graph in different traversal orders","procedure":"factorize","oracle":"same result","pass_rule":"exact parity","inverse_check":"shared partial stress case"},
+      {"id":"K01","objective":"K_pitch","exact_input":"silence one pitch two pitches triad physical unison","procedure":"count observable pitches","oracle":"0 1 2 3 1","pass_rule":"exact","inverse_check":"duplicate source same MIDI"},
+      {"id":"K02","objective":"K_source","exact_input":"same fixtures","procedure":"estimate or abstain","oracle":"differs from K_pitch when identifiable and AMBIGUOUS otherwise","pass_rule":"no false certainty","inverse_check":"identical unison waveform"},
+      {"id":"K03","objective":"K versus K+1","exact_input":"S1 S4 S5","procedure":"record residual difference Delta_R_K","oracle":"no necessary extra source for S1; necessary independent evidence for S4; tie/ambiguity for S5","pass_rule":"exact direction only; no arbitrary magnitude","inverse_check":"source-order permutation"},
+      {"id":"K04","objective":"set permutation invariance","exact_input":"identical pitch sets in different orders","procedure":"evaluate","oracle":"same set output","pass_rule":"exact","inverse_check":"duplicate handling explicit"}
+    ],
+    "P1_anti_confirmation": [
+      {"id":"AC01","objective":"false harmonic head","exact_input":"wrong-F0 harmonic-head output plus contradictory independent spectrum","procedure":"compare channels","oracle":"conflict detected; no self-confirmation","pass_rule":"exact conflict state","inverse_check":"remove independent observation"},
+      {"id":"AC02","objective":"head-spectrum disagreement inverse","exact_input":"supportive independent spectrum plus adverse conditional head","procedure":"compare channels","oracle":"disagreement retained","pass_rule":"neither channel erased","inverse_check":"swap channels"},
+      {"id":"AC03","objective":"F0 head alone","exact_input":"strong frame/F0 output without independent structure","procedure":"compute confidence state","oracle":"incomplete or ambiguous confidence","pass_rule":"not fully confirmed","inverse_check":"add independent harmonic evidence"},
+      {"id":"AC04","objective":"null residual discrimination","exact_input":"same p/c with distinct structures","procedure":"subtract S_null","oracle":"residual curves differ","pass_rule":"directional invariant","inverse_check":"if equal then KILL censoring"}
+    ],
+    "P1_guitar_and_variants": [
+      {"id":"G01","objective":"soft string fret prior","exact_input":"physically plausible and implausible assignments","procedure":"score with unknown/slack","oracle":"soft penalty only","pass_rule":"acoustically supported note never hard-deleted","inverse_check":"disable prior"},
+      {"id":"G02","objective":"bend","exact_input":"continuous pitch trajectory","procedure":"evaluate source continuity","oracle":"no forced semitone births from prior","pass_rule":"continuity or ambiguity","inverse_check":"quantized control"},
+      {"id":"G03","objective":"slide","exact_input":"causal fret trajectory","procedure":"evaluate","oracle":"softly plausible without hard string ownership","pass_rule":"no impossible discrete jump rule","inverse_check":"cross-string alternative"},
+      {"id":"G04","objective":"vibrato","exact_input":"periodic cents modulation","procedure":"evaluate","oracle":"one source unless independent attack evidence","pass_rule":"no repeated births","inverse_check":"true retrigger inserted"},
+      {"id":"G05","objective":"physical unison","exact_input":"two strings same MIDI","procedure":"compare K_pitch and K_source","oracle":"K_pitch=1 and K_source may be 2 or AMBIGUOUS","pass_rule":"no contradiction","inverse_check":"single-string matched waveform"},
+      {"id":"G06","objective":"natural harmonic","exact_input":"weak or missing fundamental with harmonic structure","procedure":"apply prior","oracle":"natural_harmonic or unknown allowed","pass_rule":"no fictitious hard F0","inverse_check":"normal fretted note"},
+      {"id":"G07","objective":"sympathetic resonance","exact_input":"secondary decaying component without independent attack","procedure":"evaluate source birth","oracle":"resonance/observation allowed without MIDI birth","pass_rule":"no automatic source","inverse_check":"add independent onset"},
+      {"id":"G08","objective":"more than six acoustic hypotheses","exact_input":"dense compatible spectrum","procedure":"apply guitar prior","oracle":"tension reported, hypotheses not silently removed","pass_rule":"unknown/slack preserved","inverse_check":"six-source boundary"}
+    ],
+    "P1_virtual_OOD_explanation": [
+      {"id":"V01","objective":"virtual firewall","exact_input":"strong virtual observations 77 through 127","procedure":"run analytical head and MIDI boundary","oracle":"observations retained, MIDI emission impossible","pass_rule":"zero emissions above 76","inverse_check":"pitch 76 remains emit-capable"},
+      {"id":"V02","objective":"range endpoints","exact_input":"pitches 40 76 77 127","procedure":"enumerate masks and outputs","oracle":"correct validity and firewall","pass_rule":"exact","inverse_check":"pitch 128 fails"},
+      {"id":"V03","objective":"high harmonic support","exact_input":"low F0 with partials above 76","procedure":"use virtual observations only as evidence","oracle":"can explain low F0 without high MIDI event","pass_rule":"exact separation","inverse_check":"remove low F0"},
+      {"id":"O01","objective":"silence OOD","exact_input":"zeros and near-zero noise","procedure":"evaluate","oracle":"silence/unexplained not confident pitches","pass_rule":"exact state","inverse_check":"add structured harmonic source"},
+      {"id":"O02","objective":"non-guitar synthetic OOD","exact_input":"chirps impulses and nonharmonic stacks","procedure":"evaluate","oracle":"OOD/unexplained allowed","pass_rule":"no forced guitar factorization","inverse_check":"matched harmonic stack"},
+      {"id":"O03","objective":"explanation completeness","exact_input":"all core and OOD cases","procedure":"serialize evidence channels residual and ambiguity","oracle":"decision trace contains causal reasons without labels","pass_rule":"schema complete","inverse_check":"redact target and reproduce trace"},
+      {"id":"O04","objective":"future calibration readiness","exact_input":"raw unthresholded scores","procedure":"serialize only","oracle":"scores preserved without selecting a threshold","pass_rule":"no calibration decision","inverse_check":"hardcoded probability cutoff fails"}
+    ],
+    "P2_determinism_performance_teacher": [
+      {"id":"R01","objective":"repeatability","exact_input":"same fixture seed and config","procedure":"repeat process","oracle":"byte-identical structured outputs","pass_rule":"exact","inverse_check":"different seed recorded"},
+      {"id":"R02","objective":"CPU determinism","exact_input":"same supported CPU runtime","procedure":"repeat","oracle":"documented exact or machine-tolerance parity","pass_rule":"contracted parity","inverse_check":"thread-count variation measured"},
+      {"id":"R03","objective":"batch scalar parity","exact_input":"same frames","procedure":"compare batch sizes","oracle":"same features and decisions","pass_rule":"exact or machine tolerance","inverse_check":"last partial batch"},
+      {"id":"P01","objective":"one shared encoder","exact_input":"instrumented execution graph","procedure":"count spectral encodings","oracle":"one per frame","pass_rule":"exact count","inverse_check":"candidate count increase does not increase encodings"},
+      {"id":"P02","objective":"mask vectorization","exact_input":"88 virtual pitches by 4 and 6 cutoffs","procedure":"profile operations","oracle":"masking reuses representation","pass_rule":"no full inference per pitch/cutoff","inverse_check":"scalar reference parity"},
+      {"id":"P03","objective":"memory bound","exact_input":"long synthetic stream","procedure":"measure resident buffers","oracle":"memory independent of stream duration","pass_rule":"bounded growth","inverse_check":"flush/reset boundaries"},
+      {"id":"P04","objective":"live throughput","exact_input":"prolonged synthetic stream at hop cadence","procedure":"measure p50 p90 p95 p99 max and backlog","oracle":"no sustained backlog and no added lookahead","pass_rule":"budget must be preregistered before execution; no post-hoc relaxation","inverse_check":"4 versus 6 cutoffs"},
+      {"id":"P05","objective":"latency decomposition","exact_input":"instrumented causal path","procedure":"report window hop feature inference decoder MIDI costs","oracle":"algorithmic lookahead remains zero","pass_rule":"every component reported","inverse_check":"hidden buffering detected"},
+      {"id":"TS01","objective":"teacher necessity","exact_input":"same fixtures at 6 and 16-32 cutoffs","procedure":"compare oracle decisions and curve reconstruction","oracle":"teacher justified only by specific synthetic information absent at 6","pass_rule":"documented incremental mechanism","inverse_check":"if no gain abandon teacher"},
+      {"id":"TS02","objective":"student target safety","exact_input":"offline teacher outputs only","procedure":"audit future target proposal","oracle":"teacher cannot use future audio or labels as student features","pass_rule":"schema proof before any fit","inverse_check":"future-conditioned teacher target blocks training"},
+      {"id":"I01","objective":"end-to-end synthetic pipeline","exact_input":"all approved fixtures","procedure":"synthesis to spectrum to censoring to factorization to decision to report","oracle":"all local oracles reconcile","pass_rule":"no missing or silently dropped case","inverse_check":"inject malformed fixture"},
+      {"id":"I02","objective":"atomic publication","exact_input":"phase outputs and hashes","procedure":"write staging verify then rename","oracle":"partial output never authoritative","pass_rule":"failure leaves no final directory","inverse_check":"interrupt before rename"}
+    ]
+  },
+  "phase_order": {
+    "P0": ["A01-A08", "D01-D14", "S1-S5_with_S1C_and_S1P"],
+    "P1": ["C01-C06", "F01-F04", "K01-K04", "AC01-AC04", "G01-G08", "V01-V03", "O01-O04", "I01-I02"],
+    "P2": ["R01-R03", "P01-P05", "TS01-TS02"],
+    "ordering_is_mandatory": true,
+    "P1_requires_all_P0_pass": true,
+    "P2_requires_all_P1_pass": true
+  },
+  "minimal_P0": {
+    "tests": ["A01", "A03", "A04", "A05", "A06", "A07", "D01", "D03", "D04", "D05", "D08", "D11", "S1", "S2", "S3", "S4", "S5"],
+    "fixtures": ["S1C", "S1P", "S2", "S3", "S4", "S5"],
+    "per_fixture_outputs": ["baseline", "six_cutoffs", "raw", "normalized", "null", "residual"],
+    "decisions": {
+      "CENSORING_NONTRIVIAL": ["yes", "no"],
+      "SOURCE_BIRTH_SYNTHETICALLY_IDENTIFIABLE": ["yes", "no"],
+      "NONIDENTIFIABLE_CASE_RESPECTED": ["yes", "no"]
+    },
+    "kill_rules": [
+      "CENSORING_NONTRIVIAL == no",
+      "SOURCE_BIRTH_SYNTHETICALLY_IDENTIFIABLE == no",
+      "NONIDENTIFIABLE_CASE_RESPECTED == no",
+      "S5 != AMBIGUOUS",
+      "any_future_audio_dependency",
+      "any_label_leakage",
+      "pitch_or_gain_only_shortcut_explains_the_result"
+    ]
+  },
+  "global_go_contract": {
+    "only_positive_status": "AUTHORIZED_TO_PREPARE_TRAIN_PROTOCOL",
+    "explicitly_not": "TRAIN_AUTHORIZED",
+    "requires_all": [
+      "all_P0_P1_P2_tests_pass",
+      "S5_exactly_AMBIGUOUS",
+      "MIDI40_product_analogue_passes",
+      "raw_normalized_null_residual_are_separate",
+      "nontrivial_information_beyond_pitch_and_gain",
+      "three_anti_confirmation_channels_are_separate",
+      "no_label_or_future_audio_leakage",
+      "shared_partials_and_order_invariance",
+      "K_pitch_and_K_source_are_separate",
+      "virtual_observation_firewall_passes",
+      "determinism_and_atomic_outputs_pass",
+      "one_shared_encoder_and_at_most_six_live_cutoffs",
+      "additional_lookahead_is_zero",
+      "live_memory_is_bounded_and_no_backlog_is_sustained",
+      "real_data_used_false",
+      "H17_population_used_false",
+      "locked_test_used_false",
+      "fit_performed_false"
+    ]
+  },
+  "required_atomic_artifacts": {
+    "root": "artifacts/harmonic_censoring_pretrain/<contract_sha256>/",
+    "contracts": [
+      "pretrain_contract.json",
+      "feature_schema.json",
+      "cutoff_contract.json",
+      "synthetic_fixture_manifest.json",
+      "synthetic_oracle_manifest.json",
+      "latent_pitch_domain_contract.json",
+      "virtual_observation_contract.json",
+      "live_budget_contract.json"
+    ],
+    "reports": [
+      "p0_analytic_report.json",
+      "p0_dsp_report.json",
+      "p0_core_synthetic_report.json",
+      "p1_variant_report.json",
+      "p1_factorization_report.json",
+      "p1_cardinality_report.json",
+      "p1_causality_report.json",
+      "p1_auto_confirmation_report.json",
+      "p1_virtual_head_report.json",
+      "p1_guitar_prior_report.json",
+      "p1_ood_report.json",
+      "p1_determinism_report.json",
+      "p2_live_performance_report.json",
+      "p2_teacher_readiness_report.json",
+      "pretrain_readiness_report.json"
+    ],
+    "per_fixture": ["fixture.wav", "fixture.spec.json", "fixture.target.json", "fixture.features.npz_or_json"],
+    "plots": [
+      "raw_censoring_curves.png",
+      "normalized_censoring_curves.png",
+      "null_curves.png",
+      "residual_censoring_curves.png",
+      "pitch_x_cutoff_heatmap.png",
+      "harmonic_observation_heatmap.png",
+      "temporal_birth_evidence.png",
+      "factorization_graph.png",
+      "residual_by_hypothesis.png",
+      "K_vs_Kplus1.png"
+    ],
+    "publication": "write_to_staging_verify_all_files_and_sha256_then_atomic_rename",
+    "partial_report_is_authoritative": false
+  },
+  "residual_risks_even_if_all_tests_pass": [
+    "exact_waveform_superposition_remains_non_identifiable",
+    "missing_fundamental_can_have_multiple_explanations",
+    "physical_source_count_can_be_unknown_for_same_MIDI_unisons",
+    "4096_samples_may_not_contain_enough_evidence_after_a_recent_onset",
+    "synthetic_success_does_not_imply_real_audio_gain",
+    "existing_network_heads_may_be_correlated",
+    "real_guitar_body_pickup_coupling_and_nonlinearity_may_break_ideal_fixtures",
+    "real_OOD_is_not_validated",
+    "probabilities_are_not_calibrated"
+  ],
+  "stop_conditions": [
+    "opening_project_audio",
+    "parsing_project_scientific_labels",
+    "loading_a_checkpoint_or_model",
+    "running_inference_on_real_data",
+    "fitting_or_calibrating",
+    "reusing_H17_or_any_consumed_population",
+    "accessing_locked_test",
+    "implementing_or_running_P0_before_external_review"
+  ],
+  "next_action": "External review of H23 only. Do not implement or execute P0 automatically."
+}

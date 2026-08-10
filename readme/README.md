@@ -17,8 +17,26 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-10`.
-- Étape : `provisional_resolution_frame_fallback_h17_real_execution_complete`.
-- Statut : `terminé — résultat atomique complet; population H21 définitivement consommée; aucun retry autorisé`.
+- Étape : `harmonic_censoring_multiscale_h23_pretrain_contract`.
+- Statut : `terminé — contrat pré-train uniquement; revue externe requise avant toute implémentation ou exécution P0`.
+- H23 préenregistre sans code scientifique ni calcul le plan complet de
+  falsification du censoring harmonique multiscale. Il remplace l'idée de
+  dizaines de pitch-shifts par une représentation spectrale causale partagée
+  et une matrice `pitch × cutoff relatif`, séparée en `S_raw`, `S_norm`,
+  `S_null` et `S_residual`. Le plan impose les fixtures S1–S5, dont
+  `S5=AMBIGUOUS`, un analogue physiquement réalisable à partir de MIDI 40,
+  l'anti-auto-confirmation, le partage des partiels, la comparaison
+  `K_pitch/K_source` et `K/K+1`, le firewall analytique 40–127 vers la sortie
+  MIDI 40–76, les variantes guitare, l'OOD, le déterminisme et la viabilité
+  live à lookahead nul. P0 doit d'abord démontrer une information non triviale
+  au-delà du pitch et du gain; sinon l'idée est tuée avant tout modèle. Le
+  seul statut positif futur est `AUTHORIZED_TO_PREPARE_TRAIN_PROTOCOL`, jamais
+  `TRAIN_AUTHORIZED`. `real_data_used=false`, `H17_population_used=false`,
+  `locked_test_used=false`, `fit_performed=false`. Contrat :
+  `configs/harmonic_censoring_pretrain_h23_contract.json`. Rapport :
+  `readme/results/2026-08-10_harmonic-censoring-pretrain-h23-contract.md`.
+- L'état terminal H17 reste inchangé : résultat atomique complet, population
+  H21 définitivement consommée et aucun retry autorisé.
 - H17 réel a traité exactement `146/146` prises et `51/51` groupes au commit
   `2794ac91…`, sur CPU, sans erreur et sans test verrouillé. Sur `29 317`
   NoteOn éligibles, le taux faux est `0,3825822651` pour `frame_fallback`
@@ -1412,6 +1430,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-10 — amendement H17a pré-exécution de la taxonomie des raisons](results/2026-08-10_provisional-resolution-frame-fallback-h17a-taxonomy-amendment.md)
 - [2026-08-10 — contrat H20 de liaison d'une future exécution réelle H17](results/2026-08-10_provisional-resolution-frame-fallback-h20-real-execution-contract.md)
 - [2026-08-10 — exécution réelle H17, résultat atomique négatif pour l’enrichissement `frame_fallback`](results/2026-08-10_provisional-resolution-frame-fallback-h17-real-execution.md)
+- [2026-08-10 — contrat pré-train H23 du censoring harmonique multiscale](results/2026-08-10_harmonic-censoring-pretrain-h23-contract.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)
