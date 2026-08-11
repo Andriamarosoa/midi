@@ -20,23 +20,25 @@
     "exists_in_this_commit": false,
     "required_status": "reviewed_H25_population_materialization_authorized_once",
     "required_action": "AUTHORIZED_TO_MATERIALIZE_H25_SYNTHETIC_V1_ONCE",
-    "must_bind_future_issuer_commit_and_blob": true,
-    "exact_fields": ["schema_version", "purpose", "status", "authorized_action", "activation_commit", "reviewed_authority_commit", "authority_source_blob", "authority_contract_sha256", "reviewed_materializer_commit", "materializer_source_blob", "sealed_input_raw_sha256"],
+    "must_bind_reviewed_authority_commit_and_exact_HEAD_blob": true,
+    "must_not_contain_future_activation_commit": true,
+    "exact_fields": ["schema_version", "purpose", "status", "authorized_action", "reviewed_authority_commit", "authority_source_blob", "authority_contract_sha256", "reviewed_materializer_commit", "materializer_source_blob", "sealed_input_raw_sha256"],
     "missing_or_mismatched_seal_fails_before_runtime_preflight": true
   },
   "future_OS_binding": {
     "environment_variable": "H25_POPULATION_MATERIALIZATION_AUTHORIZATION_COMMIT",
     "external_seal_sha256_environment_variable": "H25_POPULATION_MATERIALIZATION_AUTHORIZATION_SEAL_SHA256",
     "present_or_set_by_this_commit": false,
-    "must_equal_future_activation_commit": true
+    "must_equal_repository_HEAD": true,
+    "seal_must_not_self_reference_activation_commit": true
   },
   "issuer_preconditions_exact_order": [
     "require future authorization seal exists and raw hash is externally bound",
     "require OS authorization commit binding",
-    "require repository HEAD equals future reviewed issuer commit",
+    "require OS authorization commit equals repository HEAD without appearing in seal bytes",
     "require worktree clean",
     "require reviewed materializer commit is ancestor and its exact source blob is bound by seal",
-    "require current authority issuer blob and contract blob equal seal",
+    "require current HEAD authority issuer blob and contract bytes equal seal",
     "require all five sealed inputs raw SHA and historical git blobs",
     "load dormant plan and require exact 36 IDs order",
     "require exact runtime and output paths before NumPy",

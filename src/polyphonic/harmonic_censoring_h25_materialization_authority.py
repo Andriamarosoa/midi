@@ -29,13 +29,13 @@ def _git(root: Path, *args: str) -> str:
     return subprocess.check_output(["git", *args], cwd=root, text=True, encoding="utf-8").strip()
 
 
-def _validate_future_seal(root: Path, raw: bytes) -> dict[str, object]:
+def _validate_future_seal(root: Path, raw: bytes) -> tuple[dict[str, object], str]:
     external_digest = os.environ.get(AUTHORIZATION_SEAL_SHA256_ENV)
     if external_digest is None or hashlib.sha256(raw).hexdigest() != external_digest:
         raise PermissionError("H25 authorization seal external SHA binding mismatch before parsing.")
     seal = materializer.parse_sealed_json(raw, "materialization authorization seal")
     expected_fields = {
-        "schema_version", "purpose", "status", "authorized_action", "activation_commit",
+        "schema_version", "purpose", "status", "authorized_action",
         "reviewed_authority_commit", "authority_source_blob", "authority_contract_sha256",
         "reviewed_materializer_commit", "materializer_source_blob", "sealed_input_raw_sha256",
     }
@@ -47,7 +47,8 @@ def _validate_future_seal(root: Path, raw: bytes) -> dict[str, object]:
         raise PermissionError("H25 authorization seal is not active.")
     if seal.get("reviewed_materializer_commit") != REVIEWED_MATERIALIZER_COMMIT or seal.get("materializer_source_blob") != REVIEWED_MATERIALIZER_BLOB:
         raise ValueError("H25 reviewed materializer binding mismatch.")
-    if _git(root, "rev-parse", "HEAD") != seal.get("activation_commit") or os.environ.get(AUTHORIZATION_ENV) != seal.get("activation_commit"):
+    activation_head = _git(root, "rev-parse", "HEAD")
+    if os.environ.get(AUTHORIZATION_ENV) != activation_head:
         raise PermissionError("H25 activation HEAD/OS binding mismatch.")
     if _git(root, "status", "--porcelain"):
         raise RuntimeError("H25 issuance requires a clean worktree.")
@@ -56,6 +57,9 @@ def _validate_future_seal(root: Path, raw: bytes) -> dict[str, object]:
     authority_blob = _git(root, "rev-parse", f"{seal['reviewed_authority_commit']}:src/polyphonic/harmonic_censoring_h25_materialization_authority.py")
     if authority_blob != seal.get("authority_source_blob"):
         raise ValueError("H25 authority source blob mismatch.")
+    current_authority_blob = _git(root, "rev-parse", "HEAD:src/polyphonic/harmonic_censoring_h25_materialization_authority.py")
+    if current_authority_blob != seal.get("authority_source_blob"):
+        raise ValueError("H25 authority HEAD blob mismatch.")
     contract_raw = (root / AUTHORITY_CONTRACT).read_bytes()
     if hashlib.sha256(contract_raw).hexdigest() != seal.get("authority_contract_sha256"):
         raise ValueError("H25 authority contract SHA mismatch.")
@@ -71,7 +75,7 @@ def _validate_future_seal(root: Path, raw: bytes) -> dict[str, object]:
             raise ValueError(f"H25 sealed input Git blob mismatch for {name}.")
     if _git(root, "rev-parse", "HEAD:src/polyphonic/harmonic_censoring_h25_population_materializer.py") != REVIEWED_MATERIALIZER_BLOB:
         raise ValueError("H25 materializer HEAD blob mismatch.")
-    return seal
+    return seal, activation_head
 
 
 class IssuedH25MaterializationAuthority:
@@ -115,7 +119,7 @@ def issue_h25_materialization_authority(repository_root: Path) -> IssuedH25Mater
     seal_path = (root / AUTHORIZATION_SEAL).resolve()
     if not seal_path.is_file():
         raise PermissionError("H25 materialization issuer remains dormant: authorization seal absent.")
-    seal = _validate_future_seal(root, seal_path.read_bytes())
+    seal, activation_head = _validate_future_seal(root, seal_path.read_bytes())
     with _ISSUE_LOCK:
         if _ISSUED:
             raise PermissionError("H25 materialization authority was already issued in this process.")
@@ -123,7 +127,7 @@ def issue_h25_materialization_authority(repository_root: Path) -> IssuedH25Mater
         materializer.require_reference_environment_before_numpy(plan)
         materializer._require_output_paths_before_numpy(plan)
         capability = materializer.H25MaterializationCapability(
-            plan, seal["activation_commit"], REVIEWED_MATERIALIZER_BLOB,
+            plan, activation_head, REVIEWED_MATERIALIZER_BLOB,
             _token=materializer._CAPABILITY_TOKEN,
         )
         wrapper = IssuedH25MaterializationAuthority(capability, _token=_WRAPPER_TOKEN)

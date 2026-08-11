@@ -14,3 +14,8 @@ waveform, phase scientifique, donnée réelle ou locked-test n’a été utilis�
 Après revue, un second binding OS transporte obligatoirement le SHA-256 externe
 des bytes du futur seal ; il est vérifié avant parsing. Les cinq Git blobs et
 le blob materializer approuvé sont aussi recalculés depuis `HEAD:<path>`.
+
+La topologie future est acyclique : le seal ne contient aucun
+`activation_commit`; l'activation est transportée séparément par l'OS et doit
+égaler `HEAD`. Le blob de l'issuer à ce `HEAD` doit être identique au blob
+d'autorité revu/scellé, empêchant une modification de l'issuer à l'activation.

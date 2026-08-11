@@ -55,6 +55,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 - Le futur issuer exige en plus un SHA-256 du seal transporté extérieurement
   par une seconde variable OS et le vérifie avant parsing. Il revalide aussi
   les cinq Git blobs et le blob materializer depuis `HEAD:<path>`.
+- Le seal ne contient plus le SHA du futur commit d'activation : le binding
+  d'activation est externe (`AUTHORIZATION_COMMIT == HEAD`) et évite toute
+  auto-référence Git. Le blob de l'issuer au `HEAD` doit rester exactement le
+  blob d'autorité revu et scellé.
 - Les manifests H25 définissent exactement `36` fixtures neuves, équilibrées
   `12 positive / 12 negative / 12 ambiguous`, et `27` tests ordonnés
   `9 P0 / 9 P1 / 9 P2`. P1 consomme chaque fixture exactement une fois ;
