@@ -14,19 +14,20 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: dormant corrected materialization authority contract seal loader implemented with artificial tests only; no real authority or execution. -->
+<!-- H26_CORRECTION_STATUS: dormant corrected materialization authority contract seal loader reviewed and closed; no real authority or execution. -->
 ## État courant
 
 - Mise à jour : `2026-08-11`.
 - État courant :
-  `H26_CORRECTED_MATERIALIZATION_AUTHORITY_CONTRACT_EXTERNAL_SEAL_LOADER_DORMANT_IMPLEMENTED_PENDING_REVIEW`.
-- Le loader dormant du seal externe corrigé vérifie le blob exact du seal avant
+  `H26_CORRECTED_MATERIALIZATION_AUTHORITY_CONTRACT_EXTERNAL_SEAL_LOADER_DORMANT_REVIEWED_AND_CLOSED`.
+- Le loader dormant du seal externe corrigé, implémenté au commit
+  `88593f7f065e7492af566e2ca90577c09916923e`, est désormais relu et clos. Il vérifie le blob exact du seal avant
   interprétation, impose son schéma, ses bindings et tous ses états
   `false`/`null`, puis relit le contrat corrigé en bytes Git LF. Il vérifie le
   blob `94f255c5…`, la longueur 19 310, le SHA-256 `a82b00cf…` et le blob
-  historique `fd5e40fb…` du validateur de preuve. Il ne crée aucun objet ou
-  fichier opérationnel. Rapport :
-  `readme/results/2026-08-11_harmonic-censoring-h26-materialization-authority-contract-external-seal-loader-dormant-implementation.md`.
+  historique `fd5e40fb…` du validateur de preuve. Cette clôture ne crée aucun
+  objet ou fichier opérationnel. Rapport de clôture :
+  `readme/results/2026-08-11_harmonic-censoring-h26-materialization-authority-contract-external-seal-loader-review-closure.md`.
 - Le seal externe déclaratif du contrat corrigé d'autorité de matérialisation
   lie maintenant son commit `84d1a196…`, son blob Git `94f255c5…` et le
   SHA-256 `a82b00cf…` calculé sur les 19 310 octets exacts de ce blob. Il lie
