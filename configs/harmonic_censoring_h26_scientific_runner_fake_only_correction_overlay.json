@@ -1,0 +1,39 @@
+{
+  "schema_identity": "H26_SCIENTIFIC_RUNNER_FAKE_ONLY_CORRECTION_OVERLAY_V1",
+  "schema_version": 1,
+  "status": "ADDITIVE_DORMANT_CORRECTION_PENDING_EXTERNAL_REVIEW",
+  "reason": "ARBITRARY_CALLABLE_EXECUTION_BOUNDARY_REMOVED",
+  "historical_binding": {
+    "C19": {
+      "commit": "11956c7ca6132473ba8e2c4561c33160e7ca04be",
+      "runner_git_blob_sha": "4382deb847473bd8e408b1cd6c33a1bb6d0845b5",
+      "classification": "historical_runner_with_arbitrary_callable_boundary"
+    }
+  },
+  "effective_binding": {
+    "R15": {
+      "commit": "2062affefa6096e2969e8ba8b76b3683c41e0064",
+      "runner_git_blob_sha": "222b8acc69c738f39343cce349ead8d753e003f5",
+      "classification": "structural_fake_only_runner"
+    }
+  },
+  "effective_boundary": {
+    "caller_provided_callable_accepted": false,
+    "executable_payload_accepted": false,
+    "exact_fake_sequence_type_required": true,
+    "fake_population_identity_required": true,
+    "fixed_internal_p0_p1_p2_demonstration_only": true,
+    "arbitrary_callable_rejected_before_first_call": true
+  },
+  "scientific_contract_commit": "784f28ade989fbff18d9c184d4b4b1d65a0082cc",
+  "scientific_contract_git_blob_sha": "718a08fb3516d07c744d34f646b0715d0bc27516",
+  "scientific_contract_raw_sha256": "a9925212ee007d44f5ff3727397e59bef0be57451aa3010bebbeeca8a6040a4c",
+  "scientific_contract_and_seal_changed": false,
+  "p0_executed": false,
+  "p1_executed": false,
+  "p2_executed": false,
+  "real_science_executed": false,
+  "locked_test_used": false,
+  "creation_authorized_now": false,
+  "next_action": "External review of R15 and this overlay before Cfinal"
+}
