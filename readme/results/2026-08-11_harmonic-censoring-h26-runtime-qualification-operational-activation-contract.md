@@ -60,15 +60,29 @@ La racine future doit etre un chemin POSIX absolu canonique et absent. Tous les
 chemins sont derives sans choix du caller :
 
 ```text
-authority/{authority_id}.json
+authority/{authority_raw_sha256}.json
 claim/{claim_id}.json
 observer-entry/{observer_entry_evidence_id}.json
 runtime-record/{claim_id}.json
 receipt/{claim_id}.json
 ```
 
+Le `authority_id` amont reste une valeur ASCII libre validee dans l'artefact et
+continue de participer aux identites logiques claim/evidence. Il n'est jamais
+injecte brut dans le filesystem. Apres validation complete de l'authority en
+memoire, ses octets canoniques sont hashes et seul
+`authority_raw_sha256`, exactement `[0-9a-f]{64}`, devient l'identite du slot
+authority et de son staging. Les `claim_id` et `observer_entry_evidence_id`
+restent utilisables car leurs contrats imposent un prefixe fixe suivi d'un
+SHA-256 lowercase.
+
 Chaque chemin de staging est egalement determine. Aucun suffixe temporel,
 aleatoire, numerique ou fallback de collision n'est permis.
+
+L'ordre de preflight exige donc : activation validee, racine liee, authority
+exacte validee en memoire, canonicalisation, SHA externe, derivation de tous
+les chemins, puis verification d'absence/non-symlink avant la premiere
+publication.
 
 L'ordre futur est ferme : authority durable, claim create-exclusive qui
 consomme l'authority, evidence create-exclusive depuis l'interieur de l'entree

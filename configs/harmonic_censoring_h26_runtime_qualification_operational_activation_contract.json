@@ -151,8 +151,11 @@
     "filesystem_check_or_creation_authorized_now": false
   },
   "deterministic_future_paths": {
-    "authority": "{administrative_root}/authority/{authority_id}.json",
-    "authority_staging": "{administrative_root}/authority/.{authority_id}.json.staging",
+    "authority_slot_identity": "authority_raw_sha256",
+    "authority_raw_sha256_definition": "lowercase_hex(SHA256(exact canonical validated runtime authority bytes))",
+    "authority_raw_sha256_exact_regex": "^[0-9a-f]{64}$",
+    "authority": "{administrative_root}/authority/{authority_raw_sha256}.json",
+    "authority_staging": "{administrative_root}/authority/.{authority_raw_sha256}.json.staging",
     "claim_slot": "{administrative_root}/claim/{claim_id}.json",
     "claim_staging": "{administrative_root}/claim/.{claim_id}.json.staging",
     "observer_entry_evidence_slot": "{administrative_root}/observer-entry/{observer_entry_evidence_id}.json",
@@ -162,6 +165,9 @@
     "terminal_receipt": "{administrative_root}/receipt/{claim_id}.json",
     "terminal_receipt_staging": "{administrative_root}/receipt/.{claim_id}.json.staging",
     "all_paths_are_exactly_derived": true,
+    "raw_authority_id_in_any_filesystem_path_forbidden": true,
+    "authority_id_remains_unchanged_inside_authority_and_upstream_claim_evidence_derivations": true,
+    "claim_id_and_observer_entry_evidence_id_are_filesystem_safe_fixed_prefix_plus_lowercase_sha256": true,
     "caller_selected_alternate_path_forbidden": true,
     "numeric_timestamp_random_suffix_and_collision_fallback_forbidden": true,
     "every_final_and_staging_path_must_be_absent_before_first_attempt": true,
@@ -172,9 +178,13 @@
       "validate the exact reviewed activation contract and its future external seal",
       "validate the future activation object and issuer capability",
       "bind one canonical absent administrative_root",
-      "derive every final and staging path without filesystem normalization",
+      "validate the exact runtime authority object completely in memory",
+      "serialize the validated runtime authority to exact canonical bytes",
+      "compute authority_raw_sha256 externally and require exactly 64 lowercase hexadecimal characters",
+      "derive the authority final and staging paths only from authority_raw_sha256",
+      "derive claim evidence record and receipt final and staging paths from their approved deterministic identities without filesystem normalization",
       "verify all final and staging paths absent and all path components non-symlink",
-      "validate the exact authority object before publication"
+      "reconfirm that authority_id was never used as a filesystem path component"
     ],
     "publication_order": [
       "publish authority by create-exclusive staging write durable sync and atomic no-replace rename",

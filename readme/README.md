@@ -27,6 +27,9 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   lie toute la pile runtime approuvee jusqu'au proof-validator aval. Aucun
   objet, chemin, runtime ou calcul n'est cree ou consulte. Rapport :
   `readme/results/2026-08-11_harmonic-censoring-h26-runtime-qualification-operational-activation-contract.md`.
+  Le correctif suivant interdit explicitement l'`authority_id` brut dans tout
+  chemin : le slot authority est derive uniquement du SHA-256 canonique externe
+  de l'authority validee, exactement 64 caracteres hexadecimaux lowercase.
 - La revue externe du validateur dormant `fee9b981...` est close sans
   bloqueur. Elle confirme le module `0e6fbe5f...`, le test `a4b1f52d...`, les
   bindings exacts du contrat, du seal-loader et du proof-validator, ainsi que
