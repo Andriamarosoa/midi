@@ -61,6 +61,35 @@ APPROVED_DORMANT_QUALIFIER_COMMIT = (
 APPROVED_DORMANT_QUALIFIER_GIT_BLOB_SHA = (
     "ef24d9ebdc4ae834b3b872175fb7e098330a68bf"
 )
+MATERIALIZATION_AUTHORITY_CONTRACT_COMMIT = (
+    "236a84b4eb928b102bc1548fb2b32d1bffda2e63"
+)
+MATERIALIZATION_AUTHORITY_CONTRACT_GIT_BLOB_SHA = (
+    "dd5bcbff325e74f74e7bde4d425a11ac84aa264d"
+)
+TARGET_RUNTIME_ROLE = "H26_PRIMARY_MATERIALIZATION_RUNTIME"
+_APPROVED_RUNTIME_QUALIFICATION_CONTRACT_COMMIT = (
+    "89cc0659de3afb5194afcf8e7ea9ac6c300e1f92"
+)
+_APPROVED_RUNTIME_QUALIFICATION_CONTRACT_GIT_BLOB_SHA = (
+    "c3a021872dfd3a99b6977fdef1302d5edc755fea"
+)
+_APPROVED_RUNTIME_QUALIFICATION_CONTRACT_RAW_SHA256 = (
+    "eec08691f12f673f86ed3839379865cbe6087e974a6745b1a4ef6cecea839736"
+)
+_APPROVED_DORMANT_QUALIFIER_COMMIT_BINDING = (
+    "25a08630d6ad99d5e3432a277b99b9603990458a"
+)
+_APPROVED_DORMANT_QUALIFIER_GIT_BLOB_SHA_BINDING = (
+    "ef24d9ebdc4ae834b3b872175fb7e098330a68bf"
+)
+_APPROVED_MATERIALIZATION_AUTHORITY_CONTRACT_COMMIT = (
+    "236a84b4eb928b102bc1548fb2b32d1bffda2e63"
+)
+_APPROVED_MATERIALIZATION_AUTHORITY_CONTRACT_GIT_BLOB_SHA = (
+    "dd5bcbff325e74f74e7bde4d425a11ac84aa264d"
+)
+_APPROVED_TARGET_RUNTIME_ROLE = "H26_PRIMARY_MATERIALIZATION_RUNTIME"
 
 _CLAIM_DOMAIN = b"H26_RUNTIME_QUALIFICATION_CLAIM_ID_V1"
 _CLAIM_PREFIX = "h26-runtime-claim-v1-"
@@ -430,6 +459,13 @@ def external_raw_sha256(raw: bytes) -> str:
     return hashlib.sha256(raw).hexdigest()
 
 
+def canonical_artifact_raw_sha256(value: Mapping[str, Any]) -> str:
+    """Hash a purely in-memory artifact using the approved canonical codec."""
+    if not isinstance(value, Mapping):
+        raise ValueError("artifact must be an object")
+    return external_raw_sha256(canonical_json_bytes(value))
+
+
 def validate_authority_id(authority_id: str) -> str:
     if not isinstance(authority_id, str) or not authority_id:
         raise ValueError("authority_id must be a non-empty ASCII string")
@@ -533,6 +569,168 @@ def validate_receipt_keyset(value: Mapping[str, Any]) -> None:
     validate_exact_keyset(value, RECEIPT_REQUIRED_FIELDS, label="receipt")
 
 
+def _require_exact_fields(
+    value: Mapping[str, Any], expected: Mapping[str, Any], *, label: str
+) -> None:
+    for key, expected_value in expected.items():
+        actual = value.get(key)
+        if type(actual) is not type(expected_value) or actual != expected_value:
+            raise ValueError(f"{label} {key} mismatch")
+
+
+def _require_artifact_validator_bindings() -> None:
+    bindings = {
+        "execution contract commit": (
+            EXECUTION_AUTHORITY_CONTRACT_COMMIT,
+            _APPROVED_EXECUTION_AUTHORITY_CONTRACT_COMMIT,
+        ),
+        "execution contract raw SHA256": (
+            EXECUTION_AUTHORITY_CONTRACT_RAW_SHA256,
+            _APPROVED_EXECUTION_AUTHORITY_CONTRACT_RAW_SHA256,
+        ),
+        "runtime qualification contract commit": (
+            RUNTIME_QUALIFICATION_CONTRACT_COMMIT,
+            _APPROVED_RUNTIME_QUALIFICATION_CONTRACT_COMMIT,
+        ),
+        "runtime qualification contract blob": (
+            RUNTIME_QUALIFICATION_CONTRACT_GIT_BLOB_SHA,
+            _APPROVED_RUNTIME_QUALIFICATION_CONTRACT_GIT_BLOB_SHA,
+        ),
+        "runtime qualification contract raw SHA256": (
+            RUNTIME_QUALIFICATION_CONTRACT_RAW_SHA256,
+            _APPROVED_RUNTIME_QUALIFICATION_CONTRACT_RAW_SHA256,
+        ),
+        "qualifier commit": (
+            APPROVED_DORMANT_QUALIFIER_COMMIT,
+            _APPROVED_DORMANT_QUALIFIER_COMMIT_BINDING,
+        ),
+        "qualifier blob": (
+            APPROVED_DORMANT_QUALIFIER_GIT_BLOB_SHA,
+            _APPROVED_DORMANT_QUALIFIER_GIT_BLOB_SHA_BINDING,
+        ),
+        "materialization authority contract commit": (
+            MATERIALIZATION_AUTHORITY_CONTRACT_COMMIT,
+            _APPROVED_MATERIALIZATION_AUTHORITY_CONTRACT_COMMIT,
+        ),
+        "materialization authority contract blob": (
+            MATERIALIZATION_AUTHORITY_CONTRACT_GIT_BLOB_SHA,
+            _APPROVED_MATERIALIZATION_AUTHORITY_CONTRACT_GIT_BLOB_SHA,
+        ),
+        "target runtime role": (
+            TARGET_RUNTIME_ROLE,
+            _APPROVED_TARGET_RUNTIME_ROLE,
+        ),
+    }
+    for label, (actual, expected) in bindings.items():
+        if actual != expected:
+            raise ValueError(f"{label} binding mismatch")
+
+
+def validate_artificial_authority(authority: Mapping[str, Any]) -> None:
+    """Validate an in-memory authority-shaped mapping without issuing it."""
+    _require_artifact_validator_bindings()
+    validate_authority_keyset(authority)
+    expected = {
+        "schema_identity": "H26_RUNTIME_QUALIFICATION_EXECUTION_AUTHORITY_V1",
+        "schema_version": 1,
+        "execution_authority_contract_commit": EXECUTION_AUTHORITY_CONTRACT_COMMIT,
+        "execution_authority_contract_raw_sha256": EXECUTION_AUTHORITY_CONTRACT_RAW_SHA256,
+        "runtime_qualification_contract_commit": RUNTIME_QUALIFICATION_CONTRACT_COMMIT,
+        "runtime_qualification_contract_git_blob_sha": RUNTIME_QUALIFICATION_CONTRACT_GIT_BLOB_SHA,
+        "runtime_qualification_contract_raw_sha256": RUNTIME_QUALIFICATION_CONTRACT_RAW_SHA256,
+        "qualifier_commit": APPROVED_DORMANT_QUALIFIER_COMMIT,
+        "qualifier_git_blob_sha": APPROVED_DORMANT_QUALIFIER_GIT_BLOB_SHA,
+        "materialization_authority_contract_commit": MATERIALIZATION_AUTHORITY_CONTRACT_COMMIT,
+        "materialization_authority_contract_git_blob_sha": MATERIALIZATION_AUTHORITY_CONTRACT_GIT_BLOB_SHA,
+        "target_runtime_role": TARGET_RUNTIME_ROLE,
+        "single_use": True,
+        "maximum_claims_per_authority": 1,
+        "maximum_observer_invocations": 1,
+        "authority_consumed_by_first_claim_creation": True,
+        "retry_allowed": False,
+        "execution_authorized": True,
+    }
+    _require_exact_fields(authority, expected, label="authority")
+    validate_authority_id(authority["authority_id"])
+
+
+def validate_artificial_claim(
+    authority: Mapping[str, Any],
+    claim: Mapping[str, Any],
+    authority_raw_sha256: str,
+) -> None:
+    """Validate an in-memory claim against canonical authority bytes."""
+    validate_artificial_authority(authority)
+    supplied_authority_sha = _validate_sha256(
+        authority_raw_sha256, "authority_raw_sha256"
+    )
+    actual_authority_sha = canonical_artifact_raw_sha256(authority)
+    if supplied_authority_sha != actual_authority_sha:
+        raise ValueError("authority_raw_sha256 does not match canonical authority bytes")
+    validate_claim_keyset(claim)
+    authority_id = authority["authority_id"]
+    expected = {
+        "schema_identity": "H26_RUNTIME_QUALIFICATION_SINGLE_USE_CLAIM_V1",
+        "schema_version": 1,
+        "claim_id": derive_claim_id(authority_id, supplied_authority_sha),
+        "authority_id": authority_id,
+        "authority_raw_sha256": supplied_authority_sha,
+        "execution_authority_contract_commit": authority[
+            "execution_authority_contract_commit"
+        ],
+        "execution_authority_contract_raw_sha256": authority[
+            "execution_authority_contract_raw_sha256"
+        ],
+        "runtime_qualification_contract_commit": RUNTIME_QUALIFICATION_CONTRACT_COMMIT,
+        "runtime_qualification_contract_git_blob_sha": RUNTIME_QUALIFICATION_CONTRACT_GIT_BLOB_SHA,
+        "runtime_qualification_contract_raw_sha256": RUNTIME_QUALIFICATION_CONTRACT_RAW_SHA256,
+        "qualifier_commit": APPROVED_DORMANT_QUALIFIER_COMMIT,
+        "qualifier_git_blob_sha": APPROVED_DORMANT_QUALIFIER_GIT_BLOB_SHA,
+        "target_runtime_role": TARGET_RUNTIME_ROLE,
+        "single_use": True,
+        "maximum_claims_per_authority": 1,
+        "maximum_observer_invocations": 1,
+        "authority_consumed": True,
+        "claim_consumed": True,
+        "retry_allowed": False,
+    }
+    _require_exact_fields(claim, expected, label="claim")
+
+
+def validate_artificial_observer_entry_evidence(
+    authority: Mapping[str, Any],
+    claim: Mapping[str, Any],
+    evidence: Mapping[str, Any],
+    authority_raw_sha256: str,
+    claim_raw_sha256: str,
+) -> None:
+    """Validate in-memory observer-entry evidence without creating evidence."""
+    validate_artificial_claim(authority, claim, authority_raw_sha256)
+    supplied_claim_sha = _validate_sha256(claim_raw_sha256, "claim_raw_sha256")
+    actual_claim_sha = canonical_artifact_raw_sha256(claim)
+    if supplied_claim_sha != actual_claim_sha:
+        raise ValueError("claim_raw_sha256 does not match canonical claim bytes")
+    validate_observer_entry_evidence_keyset(evidence)
+    expected = {
+        "schema_identity": "H26_RUNTIME_QUALIFICATION_OBSERVER_ENTRY_EVIDENCE_V1",
+        "schema_version": 1,
+        "observer_entry_evidence_id": derive_observer_entry_evidence_id(
+            authority["authority_id"],
+            authority_raw_sha256,
+            claim["claim_id"],
+            supplied_claim_sha,
+        ),
+        "authority_id": authority["authority_id"],
+        "authority_raw_sha256": authority_raw_sha256,
+        "claim_id": claim["claim_id"],
+        "claim_raw_sha256": supplied_claim_sha,
+        "qualifier_commit": APPROVED_DORMANT_QUALIFIER_COMMIT,
+        "qualifier_git_blob_sha": APPROVED_DORMANT_QUALIFIER_GIT_BLOB_SHA,
+        "observer_entry_ordinal": 1,
+    }
+    _require_exact_fields(evidence, expected, label="observer entry evidence")
+
+
 __all__ = [
     "APPROVED_DORMANT_QUALIFIER_COMMIT",
     "APPROVED_DORMANT_QUALIFIER_GIT_BLOB_SHA",
@@ -545,11 +743,15 @@ __all__ = [
     "EXECUTION_AUTHORITY_CONTRACT_RAW_SHA256",
     "EXTERNAL_SEAL_COMMIT",
     "EXTERNAL_SEAL_GIT_BLOB_SHA",
+    "MATERIALIZATION_AUTHORITY_CONTRACT_COMMIT",
+    "MATERIALIZATION_AUTHORITY_CONTRACT_GIT_BLOB_SHA",
     "OBSERVER_ENTRY_EVIDENCE_REQUIRED_FIELDS",
     "RECEIPT_REQUIRED_FIELDS",
     "RUNTIME_QUALIFICATION_CONTRACT_COMMIT",
     "RUNTIME_QUALIFICATION_CONTRACT_GIT_BLOB_SHA",
     "RUNTIME_QUALIFICATION_CONTRACT_RAW_SHA256",
+    "TARGET_RUNTIME_ROLE",
+    "canonical_artifact_raw_sha256",
     "canonical_json_bytes",
     "canonical_execution_contract_raw_sha256",
     "derive_claim_id",
@@ -561,6 +763,9 @@ __all__ = [
     "load_runtime_execution_external_seal",
     "parse_canonical_json_bytes",
     "validate_authority_id",
+    "validate_artificial_authority",
+    "validate_artificial_claim",
+    "validate_artificial_observer_entry_evidence",
     "validate_authority_keyset",
     "validate_claim_keyset",
     "validate_exact_keyset",

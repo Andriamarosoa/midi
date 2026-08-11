@@ -47,6 +47,12 @@ ef24d9ebdc4ae834b3b872175fb7e098330a68bf
 - vérification du SHA-256 brut `c7f6da69…` sur les octets Git LF exacts du
   contrat, avec équivalence contrôlée des checkouts LF et CRLF;
 - rejet de tout seal altéré, mauvais binding public ou état opérationnel actif.
+- SHA canonique purement mémoire de tout mapping artificiel;
+- validation complète de l'authority artificielle et de ses bindings fixes;
+- validation du claim artificiel après recalcul du SHA authority, inheritance
+  exacte et redérivation de `claim_id`;
+- validation de la preuve observer-entry artificielle après recalcul du SHA
+  claim et redérivation complète de son ID.
 
 ## Validation dormante
 
@@ -56,7 +62,7 @@ Commande exécutée avec le virtualenv déjà présent dans le dépôt principal
 C:\Users\user\Desktop\midi\.venv\Scripts\python.exe -B -m unittest tests.test_harmonic_censoring_h26_runtime_execution_primitives_dormant
 ```
 
-Résultat final : `33 tests réussis`.
+Résultat final : `41 tests réussis`.
 
 La suite couvre notamment tous les échappements prescrits, le rejet des formes
 non canoniques, deux vecteurs SHA-256 calculés indépendamment, l'égalité
@@ -65,6 +71,9 @@ fermés.
 
 La suite finale ajoute les cas seal exact, seal modifié, faux SHA brut,
 ancienne/mauvaise identité de blob et parité LF/CRLF des octets Git canoniques.
+Elle couvre aussi toutes les liaisons authority fixes, les SHA authority/claim,
+l'inheritance du claim, les identités claim/evidence, l'ordinal d'entrée et
+l'absence d'effet filesystem des validateurs.
 
 ## État terminal de cette étape
 

@@ -327,5 +327,196 @@ class ContractAndSchemaTests(unittest.TestCase):
                 self.assertNotIn(forbidden, source)
 
 
+class ArtificialArtifactValidatorTests(unittest.TestCase):
+    def authority(self) -> dict[str, object]:
+        return {
+            "schema_identity": "H26_RUNTIME_QUALIFICATION_EXECUTION_AUTHORITY_V1",
+            "schema_version": 1,
+            "execution_authority_contract_commit": runtime.EXECUTION_AUTHORITY_CONTRACT_COMMIT,
+            "execution_authority_contract_raw_sha256": runtime.EXECUTION_AUTHORITY_CONTRACT_RAW_SHA256,
+            "runtime_qualification_contract_commit": runtime.RUNTIME_QUALIFICATION_CONTRACT_COMMIT,
+            "runtime_qualification_contract_git_blob_sha": runtime.RUNTIME_QUALIFICATION_CONTRACT_GIT_BLOB_SHA,
+            "runtime_qualification_contract_raw_sha256": runtime.RUNTIME_QUALIFICATION_CONTRACT_RAW_SHA256,
+            "qualifier_commit": runtime.APPROVED_DORMANT_QUALIFIER_COMMIT,
+            "qualifier_git_blob_sha": runtime.APPROVED_DORMANT_QUALIFIER_GIT_BLOB_SHA,
+            "materialization_authority_contract_commit": runtime.MATERIALIZATION_AUTHORITY_CONTRACT_COMMIT,
+            "materialization_authority_contract_git_blob_sha": runtime.MATERIALIZATION_AUTHORITY_CONTRACT_GIT_BLOB_SHA,
+            "target_runtime_role": runtime.TARGET_RUNTIME_ROLE,
+            "authority_id": "artificial-authority-A",
+            "single_use": True,
+            "maximum_claims_per_authority": 1,
+            "maximum_observer_invocations": 1,
+            "authority_consumed_by_first_claim_creation": True,
+            "retry_allowed": False,
+            "execution_authorized": True,
+            "issued_at": "artificial-issued-at",
+            "issuer_identity": "artificial-issuer",
+        }
+
+    def claim(
+        self, authority: dict[str, object], authority_sha: str
+    ) -> dict[str, object]:
+        authority_id = str(authority["authority_id"])
+        return {
+            "schema_identity": "H26_RUNTIME_QUALIFICATION_SINGLE_USE_CLAIM_V1",
+            "schema_version": 1,
+            "claim_id": runtime.derive_claim_id(authority_id, authority_sha),
+            "authority_id": authority_id,
+            "authority_raw_sha256": authority_sha,
+            "execution_authority_contract_commit": authority[
+                "execution_authority_contract_commit"
+            ],
+            "execution_authority_contract_raw_sha256": authority[
+                "execution_authority_contract_raw_sha256"
+            ],
+            "runtime_qualification_contract_commit": runtime.RUNTIME_QUALIFICATION_CONTRACT_COMMIT,
+            "runtime_qualification_contract_git_blob_sha": runtime.RUNTIME_QUALIFICATION_CONTRACT_GIT_BLOB_SHA,
+            "runtime_qualification_contract_raw_sha256": runtime.RUNTIME_QUALIFICATION_CONTRACT_RAW_SHA256,
+            "qualifier_commit": runtime.APPROVED_DORMANT_QUALIFIER_COMMIT,
+            "qualifier_git_blob_sha": runtime.APPROVED_DORMANT_QUALIFIER_GIT_BLOB_SHA,
+            "target_runtime_role": runtime.TARGET_RUNTIME_ROLE,
+            "single_use": True,
+            "maximum_claims_per_authority": 1,
+            "maximum_observer_invocations": 1,
+            "authority_consumed": True,
+            "claim_consumed": True,
+            "retry_allowed": False,
+        }
+
+    def evidence(
+        self,
+        authority: dict[str, object],
+        authority_sha: str,
+        claim: dict[str, object],
+        claim_sha: str,
+    ) -> dict[str, object]:
+        return {
+            "schema_identity": "H26_RUNTIME_QUALIFICATION_OBSERVER_ENTRY_EVIDENCE_V1",
+            "schema_version": 1,
+            "observer_entry_evidence_id": runtime.derive_observer_entry_evidence_id(
+                str(authority["authority_id"]),
+                authority_sha,
+                str(claim["claim_id"]),
+                claim_sha,
+            ),
+            "authority_id": authority["authority_id"],
+            "authority_raw_sha256": authority_sha,
+            "claim_id": claim["claim_id"],
+            "claim_raw_sha256": claim_sha,
+            "qualifier_commit": runtime.APPROVED_DORMANT_QUALIFIER_COMMIT,
+            "qualifier_git_blob_sha": runtime.APPROVED_DORMANT_QUALIFIER_GIT_BLOB_SHA,
+            "observer_entry_ordinal": 1,
+        }
+
+    def test_exact_artificial_authority_is_accepted(self) -> None:
+        runtime.validate_artificial_authority(self.authority())
+
+    def test_public_binding_cannot_redirect_artifact_validators(self) -> None:
+        authority = self.authority()
+        original = runtime.RUNTIME_QUALIFICATION_CONTRACT_COMMIT
+        try:
+            runtime.RUNTIME_QUALIFICATION_CONTRACT_COMMIT = "0" * 40
+            with self.assertRaisesRegex(ValueError, "binding mismatch"):
+                runtime.validate_artificial_authority(authority)
+        finally:
+            runtime.RUNTIME_QUALIFICATION_CONTRACT_COMMIT = original
+
+    def test_each_fixed_authority_binding_mutation_is_rejected(self) -> None:
+        authority = self.authority()
+        mutable_fields = tuple(
+            key for key in authority
+            if key not in {"authority_id", "issued_at", "issuer_identity"}
+        )
+        for key in mutable_fields:
+            with self.subTest(key=key):
+                altered = dict(authority)
+                value = altered[key]
+                if type(value) is bool:
+                    altered[key] = not value
+                elif type(value) is int:
+                    altered[key] = value + 1
+                else:
+                    altered[key] = str(value) + "-changed"
+                with self.assertRaisesRegex(ValueError, key):
+                    runtime.validate_artificial_authority(altered)
+
+    def test_authority_canonical_sha_exact_and_false(self) -> None:
+        authority = self.authority()
+        authority_sha = runtime.canonical_artifact_raw_sha256(authority)
+        claim = self.claim(authority, authority_sha)
+        runtime.validate_artificial_claim(authority, claim, authority_sha)
+        with self.assertRaisesRegex(ValueError, "canonical authority bytes"):
+            runtime.validate_artificial_claim(authority, claim, "0" * 64)
+
+    def test_exact_claim_and_requested_mutations(self) -> None:
+        authority = self.authority()
+        authority_sha = runtime.canonical_artifact_raw_sha256(authority)
+        claim = self.claim(authority, authority_sha)
+        runtime.validate_artificial_claim(authority, claim, authority_sha)
+        mutations = {
+            "authority_raw_sha256": "0" * 64,
+            "claim_id": "h26-runtime-claim-v1-" + "0" * 64,
+            "execution_authority_contract_commit": "0" * 40,
+            "execution_authority_contract_raw_sha256": "0" * 64,
+            "qualifier_commit": "0" * 40,
+            "runtime_qualification_contract_commit": "0" * 40,
+        }
+        for key, changed in mutations.items():
+            with self.subTest(key=key):
+                altered = dict(claim)
+                altered[key] = changed
+                with self.assertRaises(ValueError):
+                    runtime.validate_artificial_claim(authority, altered, authority_sha)
+
+    def test_exact_evidence_is_accepted(self) -> None:
+        authority = self.authority()
+        authority_sha = runtime.canonical_artifact_raw_sha256(authority)
+        claim = self.claim(authority, authority_sha)
+        claim_sha = runtime.canonical_artifact_raw_sha256(claim)
+        evidence = self.evidence(authority, authority_sha, claim, claim_sha)
+        runtime.validate_artificial_observer_entry_evidence(
+            authority, claim, evidence, authority_sha, claim_sha
+        )
+
+    def test_evidence_requested_mutations_are_rejected(self) -> None:
+        authority = self.authority()
+        authority_sha = runtime.canonical_artifact_raw_sha256(authority)
+        claim = self.claim(authority, authority_sha)
+        claim_sha = runtime.canonical_artifact_raw_sha256(claim)
+        evidence = self.evidence(authority, authority_sha, claim, claim_sha)
+        mutations = {
+            "claim_raw_sha256": "0" * 64,
+            "claim_id": "h26-runtime-claim-v1-" + "0" * 64,
+            "observer_entry_evidence_id": "h26-runtime-entry-v1-" + "0" * 64,
+            "observer_entry_ordinal": 2,
+        }
+        for key, changed in mutations.items():
+            with self.subTest(key=key):
+                altered = dict(evidence)
+                altered[key] = changed
+                with self.assertRaises(ValueError):
+                    runtime.validate_artificial_observer_entry_evidence(
+                        authority, claim, altered, authority_sha, claim_sha
+                    )
+        with self.assertRaisesRegex(ValueError, "canonical claim bytes"):
+            runtime.validate_artificial_observer_entry_evidence(
+                authority, claim, evidence, authority_sha, "0" * 64
+            )
+
+    def test_logical_mutation_changes_sha_and_validation_has_no_effect(self) -> None:
+        authority = self.authority()
+        original_sha = runtime.canonical_artifact_raw_sha256(authority)
+        altered = dict(authority)
+        altered["issuer_identity"] = "another-artificial-issuer"
+        self.assertNotEqual(
+            original_sha, runtime.canonical_artifact_raw_sha256(altered)
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            before = tuple(Path(directory).iterdir())
+            runtime.validate_artificial_authority(authority)
+            after = tuple(Path(directory).iterdir())
+            self.assertEqual(before, after)
+
+
 if __name__ == "__main__":
     unittest.main()
