@@ -616,14 +616,48 @@ def produce_h26_fixture_evidence(
 ) -> H26EvidenceRecord:
     plan, expected_population_index_sha256 = _require_scientific(capability)
     from .harmonic_censoring_h26_materializer import (
-        H26BoundObservation, _validity_masks, encode_waveform,
+        H26BoundObservation, _validity_masks, bind_h26_population_observation,
+        encode_waveform,
     )
     if type(observation) is not H26BoundObservation or observation.fixture_id != fixture_id:
         raise ValueError("H26 evidence requires the exact bound observation.")
     if observation.population_index_sha256 != expected_population_index_sha256:
         raise ValueError("H26 evidence population binding mismatch.")
+    rebound = bind_h26_population_observation(
+        np, plan, observation.population_root,
+        expected_population_index_sha256=expected_population_index_sha256,
+        fixture_id=fixture_id,
+    )
+    declared_binding = (
+        observation.population_root,
+        observation.population_index_sha256,
+        observation.waveform_sha256,
+        observation.sample_valid_sha256,
+        observation.invalid_candidate_partial_ranks,
+        observation.alternate_waveform_sha256,
+    )
+    sealed_binding = (
+        rebound.population_root,
+        rebound.population_index_sha256,
+        rebound.waveform_sha256,
+        rebound.sample_valid_sha256,
+        rebound.invalid_candidate_partial_ranks,
+        rebound.alternate_waveform_sha256,
+    )
+    if declared_binding != sealed_binding:
+        raise ValueError("H26 observation metadata diverges from sealed population record.")
     if hashlib.sha256(encode_waveform(np, observation.waveform)).hexdigest() != observation.waveform_sha256:
         raise ValueError("H26 bound waveform mutated after verification.")
+    if (
+        (observation.alternate_waveform is None)
+        != (rebound.alternate_waveform is None)
+    ):
+        raise ValueError("H26 alternate observation diverges from sealed population record.")
+    if observation.alternate_waveform is not None and (
+        hashlib.sha256(encode_waveform(np, observation.alternate_waveform)).hexdigest()
+        != rebound.alternate_waveform_sha256
+    ):
+        raise ValueError("H26 alternate observation bytes diverge from sealed population record.")
     policy = H26NumericalPolicy.from_plan(plan)
     fixture = plan.fixture(fixture_id)
     expected_masks = _validity_masks(np, fixture)
@@ -636,7 +670,10 @@ def produce_h26_fixture_evidence(
         != expected_masks.invalid_candidate_partial_ranks
     ):
         raise ValueError("H26 evidence validity masks are not bound.")
-    waveform = observation.waveform
+    # All scientific inputs below come from the record re-read from the sealed
+    # index at consumption time, never from a caller-constructed dataclass.
+    observation = rebound
+    waveform = rebound.waveform
     params = fixture["parameters"]
     proposal_hop_end = int(plan.specifications["global_timeline"]["target_hop_end"])
     resolution_hop_end = int(plan.specifications["global_timeline"]["resolution_hop_end"])
@@ -713,11 +750,11 @@ def produce_h26_fixture_evidence(
         support_valid = required_support_is_valid(
             np, sample_valid=sample_valid,
             invalid_candidate_partial_ranks=observation.invalid_candidate_partial_ranks,
-            target_hop_end=resolution_hop_end, exclusive_partial_ranks_used=(), policy=policy,
+            target_hop_end=proposal_hop_end, exclusive_partial_ranks_used=(), policy=policy,
         )
         measurements = H26Measurements(
             True, bool(support_valid), bool(observation_equivalent), (), (),
-            0.0, 0.0, (), (), 0.0, resolution_hop_end,
+            0.0, 0.0, (), (), 0.0, proposal_hop_end,
         )
         resolution = resolve_h26(plan.contract, measurements)
         state_after = finish_h26_causal_proposal(
@@ -730,7 +767,7 @@ def produce_h26_fixture_evidence(
             operands={
                 "candidate_active": True, "support_valid": support_valid,
                 "observation_equivalent": observation_equivalent,
-                "maximum_sample_read": resolution_hop_end,
+                "maximum_sample_read": proposal_hop_end,
                 "proposal_hop_end": proposal_hop_end,
                 "resolution_hop_end": resolution_hop_end,
                 "state_before": proposal.state, "state_after": state_after,
@@ -741,13 +778,13 @@ def produce_h26_fixture_evidence(
         )
     time_support_valid = required_support_is_valid(
         np, sample_valid=sample_valid,
-        invalid_candidate_partial_ranks=(), target_hop_end=resolution_hop_end,
+        invalid_candidate_partial_ranks=(), target_hop_end=proposal_hop_end,
         exclusive_partial_ranks_used=(), policy=policy,
     )
     if not time_support_valid or observation_equivalent:
         measurements = H26Measurements(
             False, time_support_valid, observation_equivalent, (), (),
-            0.0, 0.0, (), (), 0.0, resolution_hop_end,
+            0.0, 0.0, (), (), 0.0, proposal_hop_end,
         )
         resolution = resolve_h26(plan.contract, measurements)
         state_after = finish_h26_causal_proposal(
@@ -760,7 +797,7 @@ def produce_h26_fixture_evidence(
             operands={
                 "candidate_active": False, "support_valid": time_support_valid,
                 "observation_equivalent": observation_equivalent,
-                "maximum_sample_read": resolution_hop_end,
+                "maximum_sample_read": proposal_hop_end,
                 "proposal_hop_end": proposal_hop_end,
                 "resolution_hop_end": resolution_hop_end,
                 "state_before": proposal.state, "state_after": state_after,
@@ -771,7 +808,7 @@ def produce_h26_fixture_evidence(
     current_short = causal_spectrum(
         np,
         extract_causal_view(
-            np, waveform, hop_end=resolution_hop_end, length=policy.short_view_samples,
+            np, waveform, hop_end=proposal_hop_end, length=policy.short_view_samples,
         ),
         policy=policy,
     )
@@ -779,18 +816,17 @@ def produce_h26_fixture_evidence(
         np, current_short, candidate_pitch=int(fixture["candidate_pitch"]),
         active_pitches=active, candidate_ranks=candidate_ranks, policy=policy,
         cents=cents, inharmonicity=inharmonicity,
-        transform_order=transform_order,
     )
     support_valid = required_support_is_valid(
         np, sample_valid=sample_valid,
         invalid_candidate_partial_ranks=observation.invalid_candidate_partial_ranks,
-        target_hop_end=resolution_hop_end, exclusive_partial_ranks_used=exclusive,
+        target_hop_end=proposal_hop_end, exclusive_partial_ranks_used=exclusive,
         policy=policy,
     )
     if not support_valid:
         measurements = H26Measurements(
             False, False, False, exclusive, (), 0.0, 0.0, (), (),
-            0.0, resolution_hop_end,
+            0.0, proposal_hop_end,
         )
         resolution = resolve_h26(plan.contract, measurements)
         state_after = finish_h26_causal_proposal(
@@ -804,7 +840,7 @@ def produce_h26_fixture_evidence(
                 "candidate_active": False, "support_valid": False,
                 "observation_equivalent": False,
                 "exclusive_partial_ranks": exclusive,
-                "maximum_sample_read": resolution_hop_end,
+                "maximum_sample_read": proposal_hop_end,
                 "proposal_hop_end": proposal_hop_end,
                 "resolution_hop_end": resolution_hop_end,
                 "state_before": proposal.state, "state_after": state_after,
@@ -813,12 +849,13 @@ def produce_h26_fixture_evidence(
             },
         )
     raw_operands = extract_raw_operands(
-        np, waveform, target_hop_end=resolution_hop_end,
+        np, waveform, target_hop_end=proposal_hop_end,
         candidate_pitch=int(fixture["candidate_pitch"]), active_pitches=active,
         candidate_active=candidate_active,
         observation_equivalent=observation_equivalent,
         support_valid=support_valid, policy=policy, candidate_partial_ranks=candidate_ranks,
         cents=cents, inharmonicity=inharmonicity,
+        transform_order=transform_order,
     )
     measurements = measurements_from_raw_operands(policy, raw_operands)
     resolution = resolve_h26(plan.contract, measurements)

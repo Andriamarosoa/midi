@@ -27,6 +27,14 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   sans issuer; aucune waveform H26, aucun P0/P1/P2 et aucun runtime scientifique
   n'ont été exécutés. Rapport :
   `readme/results/2026-08-11_harmonic-censoring-h26-dormant-stack-implementation.md`.
+- Après le refus externe de `62c6ab70…`, le producer relit désormais l'index
+  scellé au moment de consommer une observation et refuse toute dataclass dont
+  les octets ou métadonnées divergent du record réel. Toutes les mesures audio
+  restent ancrées au `target_hop_end=16383`; seule la résolution terminale a
+  lieu un hop plus tard à `16639`. Le recomputer lie indépendamment chaque
+  perturbation à son test, sa grille et sa cellule scellés, y compris les
+  coordonnées décalées P2. Le câblage complet artificiel du producer est
+  maintenant exercé; aucune science ni matérialisation H26 n'a été exécutée.
 - La préinscription H26 sépare désormais un certificat positif de naissance et
   un certificat négatif falsifiant une proposition candidate d'amplitude
   minimale préenregistrée. L'absence d'évidence indépendante seule produit

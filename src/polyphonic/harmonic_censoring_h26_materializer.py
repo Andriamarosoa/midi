@@ -53,6 +53,7 @@ class H26P2Transform:
 @dataclass(frozen=True)
 class H26BoundObservation:
     fixture_id: str
+    population_root: Path
     population_index_sha256: str
     waveform_sha256: str
     waveform: Any
@@ -450,7 +451,8 @@ def bind_h26_population_observation(
         if not np.all(np.isfinite(alternate)):
             raise ValueError("H26 alternate waveform invalid.")
     return H26BoundObservation(
-        fixture_id=fixture_id, population_index_sha256=index_sha,
+        fixture_id=fixture_id, population_root=root,
+        population_index_sha256=index_sha,
         waveform_sha256=str(record["waveform_sha256"]), waveform=waveform,
         sample_valid_sha256=str(record["sample_valid_sha256"]),
         sample_valid=sample_valid,

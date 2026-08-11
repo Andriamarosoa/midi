@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import itertools
 import math
 from typing import Mapping, Sequence
 
@@ -59,16 +60,94 @@ def _float_tuple(record: Mapping[str, object], key: str, *, infinity_allowed: bo
     return values
 
 
-def _require_causal_state(plan: H26DormantPlan, operands: Mapping[str, object]) -> str:
+def _p2_cells(plan: H26DormantPlan, grid_id: str) -> tuple[Mapping[str, object], ...]:
+    grid = plan.contract["p2_perturbation_grids"].get(grid_id)
+    if not isinstance(grid, Mapping):
+        raise ValueError("H26 recomputer P2 grid missing.")
+    if grid_id == "P2_GAIN_V1":
+        return tuple({"scale": value} for value in grid["common_linear_amplitude_scales"])
+    if grid_id == "P2_PHASE_V1":
+        return tuple({"phase_radians": value} for value in grid["global_phase_radians"])
+    if grid_id == "P2_NOISE_V1":
+        return tuple(
+            {"colour": colour, "snr_db": snr, "decimal_snr_db_string": decimal}
+            for colour in grid["colours"]
+            for snr, decimal in zip(grid["snr_db"], grid["decimal_snr_db_strings"])
+        )
+    if grid_id == "P2_CENTS_INHARMONICITY_V1":
+        return tuple(
+            {"cents": cents, "B": value}
+            for cents, value in itertools.product(grid["cents"], grid["B"])
+        )
+    if grid_id == "P2_HOP_SHIFT_V1":
+        hop = int(plan.contract["causal_contract"]["hop_samples"])
+        return tuple(
+            {"hop_shift": value, "sample_shift": hop * value}
+            for value in grid["hop_shifts"]
+        )
+    if grid_id == "P2_PERMUTATION_V1":
+        return tuple(
+            {"active_pitch_order": active, "candidate_partial_order": partial, "transform_order": transform}
+            for active, partial, transform in itertools.product(
+                grid["active_pitch_orders"], grid["candidate_partial_orders"], grid["transform_orders"]
+            )
+        )
+    if grid_id == "P2_RUNTIME_V1":
+        return (
+            {"runtime": "primary", "identity": grid["primary"]},
+            {"runtime": "secondary", "identity": grid["secondary"]},
+        )
+    raise ValueError("H26 recomputer unsupported P2 grid.")
+
+
+def _expected_causal_coordinates(
+    plan: H26DormantPlan, fixture_id: str, perturbation: object,
+) -> tuple[int, int]:
+    timeline = plan.specifications["global_timeline"]
+    proposal = int(timeline["target_hop_end"])
+    resolution = int(timeline["resolution_hop_end"])
+    if perturbation is None:
+        return proposal, resolution
+    if not isinstance(perturbation, Mapping) or set(perturbation) != {"test_id", "grid_id", "cell"}:
+        raise ValueError("H26 recomputer perturbation schema mismatch.")
+    test_id, grid_id, cell = perturbation["test_id"], perturbation["grid_id"], perturbation["cell"]
+    if type(test_id) is not str or type(grid_id) is not str or not isinstance(cell, Mapping):
+        raise ValueError("H26 recomputer perturbation identity invalid.")
+    test = next((item for item in plan.tests if item.test_id == test_id), None)
+    if (
+        test is None or test.phase != "P2" or test.perturbation_grid_id != grid_id
+        or fixture_id not in test.fixture_ids
+    ):
+        raise ValueError("H26 recomputer perturbation test/grid/fixture binding mismatch.")
+    canonical = tuple(dict(value) for value in _p2_cells(plan, grid_id))
+    if dict(cell) not in canonical:
+        raise ValueError("H26 recomputer perturbation cell is outside sealed grid.")
+    if grid_id == "P2_HOP_SHIFT_V1":
+        shift = int(cell["sample_shift"])
+        proposal += shift
+        resolution += shift
+    return proposal, resolution
+
+
+def _require_causal_state(
+    plan: H26DormantPlan, fixture_id: str, operands: Mapping[str, object],
+) -> str:
     proposal = operands.get("proposal_hop_end")
     resolution = operands.get("resolution_hop_end")
     maximum = operands.get("maximum_sample_read")
     before = operands.get("state_before")
     after = operands.get("state_after")
     hop = int(plan.contract["causal_contract"]["hop_samples"])
-    if type(proposal) is not int or type(resolution) is not int or resolution - proposal != hop:
+    expected_proposal, expected_resolution = _expected_causal_coordinates(
+        plan, fixture_id, operands.get("perturbation"),
+    )
+    if (
+        type(proposal) is not int or type(resolution) is not int
+        or (proposal, resolution) != (expected_proposal, expected_resolution)
+        or resolution - proposal != hop
+    ):
         raise ValueError("H26 recomputer causal delay mismatch.")
-    if type(maximum) is not int or maximum > resolution:
+    if type(maximum) is not int or maximum > proposal:
         raise ValueError("H26 recomputer future read detected.")
     if before != "PENDING_NEW" or after not in {
         "BIRTH_SUPPORTED", "NO_BIRTH", "AMBIGUOUS", "ALREADY_ACTIVE_HISTORY",
@@ -142,7 +221,7 @@ def recompute_h26_evidence_from_raw_operands(
     maximum_read = operands.get("maximum_sample_read")
     if type(maximum_read) is not int or maximum_read < 0:
         raise ValueError("H26 maximum sample read invalid.")
-    declared_state_after = _require_causal_state(plan, operands)
+    declared_state_after = _require_causal_state(plan, fixture_id, operands)
     common_short_circuit_fields = {
         "candidate_active", "support_valid", "observation_equivalent",
         "maximum_sample_read", "proposal_hop_end", "resolution_hop_end",

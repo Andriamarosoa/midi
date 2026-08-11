@@ -46,7 +46,7 @@ et de petits opérandes artificiels qui ne correspondent à aucune fixture H26.
 ```text
 python -B -m py_compile ...                                  PASS
 python -B -m unittest tests.test_harmonic_censoring_h26_dormant_stack
-18 tests en 0,030 s                                          PASS
+22 tests en 0,140 s                                          PASS
 git diff --check                                             PASS
 ```
 
@@ -82,3 +82,29 @@ La revue stricte a refusé la première implémentation. Le correctif courant :
   terminal.
 
 Ce correctif reste entièrement dormant et n'a produit aucune observation H26.
+
+## Correctif après rejet externe de `62c6ab70`
+
+La seconde revue a relevé trois défauts de câblage dans des chemins futurs que
+la dormance rendait inaccessibles aux tests initiaux. Le correctif courant :
+
+- retire l'argument invalide `transform_order` de
+  `exclusive_partial_ranks()` et le transmet uniquement à
+  `extract_raw_operands()`, où il gouverne réellement la grille de dilution ;
+- conserve les quatre fenêtres preregistrées au hop cible `16383` et borne
+  `maximum_sample_read` à ce même hop, tandis que l'état terminal reste à
+  `16639`, exactement 256 samples plus tard ;
+- ajoute le chemin racine attesté à `H26BoundObservation`, relit et rehache
+  l'index scellé ainsi que ses fichiers au moment de la consommation, compare
+  les métadonnées et octets fournis au record, puis n'utilise que les tableaux
+  reconstruits depuis cet index ;
+- fait confronter indépendamment par le recomputer tout payload P2 au test,
+  à la grille, à la cellule et au fixture scellés, avec coordonnées baseline
+  ou `P2_HOP_SHIFT_V1` exactes ;
+- ajoute un test artificiel du chemin complet du producer qui aurait échoué
+  sur l'ancienne signature, un adversarial de construction directe de
+  `H26BoundObservation`, un contrôle des endpoints et un contrôle P2.
+
+La portée reste strictement dormante : aucun index H26 réel, waveform H26,
+P0/P1/P2, runtime secondaire, authority, capability, claim, donnée réelle,
+modèle, entraînement ou locked-test n'a été créé ou exécuté.
