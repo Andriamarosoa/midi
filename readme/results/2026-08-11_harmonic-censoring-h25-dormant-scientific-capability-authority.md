@@ -119,12 +119,13 @@ primaire. Si `<terminal>.part` existe après un échec entre écriture et rename
 il reste intact et ne bloque pas la publication atomique de
 `forensic-inconclusive.json`.
 
-## Dormance effective
+## Dormance effective après définition du seal
 
-Les artefacts requis suivants sont absents :
+Le seal scientifique et le payload secondaire sont maintenant définis et
+attendent leur revue externe. Les autorités d'exécution suivantes restent
+absentes :
 
 ```text
-configs/harmonic_censoring_h25_scientific_execution_authorization_seal.json
 configs/harmonic_censoring_h25_scientific_execution_activation.json
 H25_SCIENTIFIC_EXECUTION_AUTHORIZATION_COMMIT
 H25_SCIENTIFIC_EXECUTION_AUTHORIZATION_SEAL_SHA256
@@ -142,8 +143,9 @@ donnée réelle / locked-test      non / non
 modèle / training                non / non
 ```
 
-La prochaine transition est uniquement la revue externe de ce bloc. Aucun
-seal, activation, binding OS, capability, claim ou P0 n'est autorisé ici.
+La prochaine transition est uniquement la revue externe du seal et du payload
+secondaire. Aucune activation, binding OS, capability, claim, exécution du
+payload ou P0 n'est autorisé ici.
 
 ## Validation locale TEST-ONLY
 

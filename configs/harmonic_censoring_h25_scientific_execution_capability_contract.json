@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "purpose": "harmonic_censoring_h25_scientific_execution_capability_contract",
-  "status": "dormant_capability_authority_correction_external_review_required",
+  "status": "authorization_seal_and_secondary_observer_payload_defined_external_review_required",
   "authorized_basis": "AUTHORIZED_TO_DEFINE_AND_IMPLEMENT_H25_DORMANT_SCIENTIFIC_CAPABILITY_CONTRACT_AND_ONE_SHOT_AUTHORITY_ONLY",
   "correction_basis": "AUTHORIZED_TO_CORRECT_H25_DORMANT_SCIENTIFIC_ACTIVATION_TOPOLOGY_P2_007_EVIDENCE_AND_FORENSIC_CLOSURE_ONLY",
   "reviewed_scientific_base": {
@@ -43,7 +43,7 @@
     "activation_path": "configs/harmonic_censoring_h25_scientific_execution_activation.json",
     "OS_commit_environment": "H25_SCIENTIFIC_EXECUTION_AUTHORIZATION_COMMIT",
     "OS_seal_sha256_environment": "H25_SCIENTIFIC_EXECUTION_AUTHORIZATION_SEAL_SHA256",
-    "seal_exists_now": false,
+    "seal_exists_now": true,
     "activation_exists_now": false,
     "OS_binding_set_now": false,
     "seal_exact_fields": ["schema_version", "purpose", "status", "authorized_action", "reviewed_authority_commit", "authority_source_blob", "runner_source_blob", "engine_source_blob", "recomputer_source_blob", "capability_contract_sha256", "population_index_sha256", "population_provenance_sha256", "population_receipt_sha256", "administrative_qualification_record_path", "administrative_qualification_sha256", "secondary_runtime_command", "secondary_runtime_timeout_seconds", "secondary_runtime_identity"],
@@ -83,7 +83,7 @@
   "cross_runtime_P2_007": {
     "manual_observation_injection_forbidden": true,
     "secondary_process_is_launched_automatically_after_claim": true,
-    "secondary_command_and_runtime_identity_bound_in_future_activation": true,
+    "secondary_command_and_runtime_identity_bound_in_reviewed_authorization_seal": true,
     "secondary_runtime_identity_exact_fields": ["implementation", "version", "platform_system", "platform_release", "platform_machine", "resolved_executable", "executable_size_bytes", "executable_sha256", "command_sha256", "observer_payload_path", "observer_payload_size_bytes", "observer_payload_sha256"],
     "transport": "canonical JSON over dedicated child stdout and no control stdin",
     "child_receives_only_sealed_population_and_plan_bindings": true,
@@ -97,7 +97,7 @@
     "contract_and_dormant_authority_only": true,
     "scientific_capability_emitted_now": false,
     "scientific_claim_created_now": false,
-    "seal_created_now": false,
+    "seal_created_now": true,
     "activation_created_now": false,
     "OS_binding_created_now": false,
     "population_opened_now": false,
@@ -106,5 +106,5 @@
     "locked_test_used": false,
     "model_checkpoint_training_calibration_used": false
   },
-  "next_action": "external_review_before_any_scientific_seal_activation_OS_binding_capability_claim_or_P0"
+  "next_action": "external_review_before_any_activation_OS_binding_capability_claim_observer_execution_or_P0"
 }

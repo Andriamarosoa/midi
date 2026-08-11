@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "purpose": "harmonic_censoring_h25_scientific_execution_authorization_seal",
+  "status": "reviewed_H25_scientific_execution_authorized_once",
+  "authorized_action": "AUTHORIZED_TO_EXECUTE_H25_SYNTHETIC_V1_ONCE",
+  "reviewed_authority_commit": "496331664023d505588a1bfcf0dd4a0c3ad01e77",
+  "authority_source_blob": "c907dcc4cd18289dccdd324570b51e797ee35d30",
+  "runner_source_blob": "2468d6ac73ce37a645d08d75441a9a08689a8b4c",
+  "engine_source_blob": "171602b54a8023e2c85c128aca14ec053da176ad",
+  "recomputer_source_blob": "25c6abaf220ff52913e233bdc21719e8e18bb637",
+  "capability_contract_sha256": "fdbb2bd3cbd2bd9f8c35ec9e7bc31655bf727bc11796e9b68ff13c1367f0994a",
+  "population_index_sha256": "814d8c368ac67ce65ed20c9e90e634ceffe706db1cc5e642cc3c61ff37ab5f53",
+  "population_provenance_sha256": "cadc154a84674f6e58cf412d71f73407d0c07388f3bf470fa2368a1b810825db",
+  "population_receipt_sha256": "dbab85910151ce25c186f478797c86604a94e6cf486dda7e0c4b7b8eeb4fddd9",
+  "administrative_qualification_record_path": "tmp/local/h25_preclaim_admin_lifecycle_qualification_b913744/qualification_record.json",
+  "administrative_qualification_sha256": "54bd361a99223dd24d6e4f0883ace47572965604c406efe69e5564f675d14ee1",
+  "secondary_runtime_command": [
+    "/Users/amcarene/midi-worker/.venv/bin/python",
+    "/Users/amcarene/midi-worker/repository/src/polyphonic/harmonic_censoring_h25_secondary_runtime_observer.py"
+  ],
+  "secondary_runtime_timeout_seconds": 120,
+  "secondary_runtime_identity": {
+    "implementation": "CPython",
+    "version": "3.11.9",
+    "platform_system": "Darwin",
+    "platform_release": "24.5.0",
+    "platform_machine": "arm64",
+    "resolved_executable": "/Library/Frameworks/Python.framework/Versions/3.11/bin/python3.11",
+    "executable_size_bytes": 152624,
+    "executable_sha256": "4e28e811a89aeac6eed668ae641c7f85f5831e42e8dc6cd9a85a3bcc032ec46a",
+    "command_sha256": "93601a8cd24d6ae7869b8e7f8ace98ae17d80aa324f56954f244cba089379fb3",
+    "observer_payload_path": "/Users/amcarene/midi-worker/repository/src/polyphonic/harmonic_censoring_h25_secondary_runtime_observer.py",
+    "observer_payload_size_bytes": 10330,
+    "observer_payload_sha256": "fcc0c269e2c940aeaf0cc249fe5ad77a960d9f1324a3ba140d5601fceb69800d"
+  }
+}

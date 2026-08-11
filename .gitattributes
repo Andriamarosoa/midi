@@ -96,5 +96,7 @@ configs/harmonic_censoring_h25_scientific_execution_authorization_seal.json text
 configs/harmonic_censoring_h25_scientific_execution_activation.json text eol=lf
 src/polyphonic/harmonic_censoring_h25_scientific_capability.py text eol=lf
 src/polyphonic/run_harmonic_censoring_h25_scientific.py text eol=lf
+src/polyphonic/harmonic_censoring_h25_secondary_runtime_observer.py text eol=lf
+configs/harmonic_censoring_h25_scientific_execution_authorization_seal.json text eol=lf
 tests/test_harmonic_censoring_h25_scientific_capability_dormant.py text eol=lf
 readme/results/2026-08-11_harmonic-censoring-h25-dormant-scientific-capability-authority.md text eol=lf
