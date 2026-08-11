@@ -17,8 +17,20 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-11`.
-- Étape : `harmonic_censoring_h25_preclaim_administrative_lifecycle_harness`.
-- Statut : `qualification administrative pré-claim H25 réussie et close; 19/19 résultats recomputés, 16 surrogate claims préservés, aucun worker ou usage scientifique; prochaine hypothèse H25 interdite sans nouveau contrat`.
+- Étape : `harmonic_censoring_h25_scientific_hypothesis_execution_contract`.
+- Statut : `contrat scientifique H25 pitch-dilution + causal 4096/8192 défini sans implémentation ni calcul; revue externe obligatoire avant manifest, population ou runner`.
+- H25 préenregistre une hypothèse limitée : une courbe de dilution vectorisée,
+  normalisée par le support et combinée à deux fenêtres causales finissant au
+  même hop (`4096` primaire, `8192` confirmation), peut aider à distinguer une
+  nouvelle fondamentale lorsqu'une attaque ou structure harmonique indépendante
+  existe. La transformation seule ne peut jamais séparer deux contributions
+  exactement confondues ; le raw disappearance index est interdit et ces cas
+  doivent rester `AMBIGUOUS`. La grille est figée à `0..88` demi-tons, calculée
+  depuis un seul spectre et non par `89` inférences. P0/P1/P2, kill rules,
+  lifecycle one-shot et namespaces neufs `H25_SYNTHETIC_V1/H25_TEST_V1` sont
+  définis, mais aucun manifest, fixture, waveform, runner, claim ou calcul
+  n'existe. Rapport :
+  `readme/results/2026-08-11_harmonic-censoring-h25-scientific-hypothesis-execution-contract.md`.
 - L'unique qualification administrative H25 autorisée a été exécutée sur le
   commit exact `b91374473e28b1bb4ad42a73f62af4171411588d` et a produit
   `H25_ADMIN_LIFECYCLE_QUALIFICATION_PASSED`. Les `13` probes real-OS et les
@@ -1964,6 +1976,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-11 — implémentation du harness administratif pré-claim H25](results/2026-08-11_harmonic-censoring-h25-preclaim-administrative-lifecycle-harness.md)
 - [2026-08-11 — correction de l'entrypoint de qualification administrative H25](results/2026-08-11_harmonic-censoring-h25-administrative-qualification-entrypoint.md)
 - [2026-08-11 — résultat de la qualification administrative pré-claim H25](results/2026-08-11_harmonic-censoring-h25-administrative-lifecycle-qualification-result.md)
+- [2026-08-11 — contrat scientifique H25 pitch-dilution et causal 4096/8192](results/2026-08-11_harmonic-censoring-h25-scientific-hypothesis-execution-contract.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)

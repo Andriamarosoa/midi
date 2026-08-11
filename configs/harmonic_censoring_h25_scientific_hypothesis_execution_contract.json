@@ -1,0 +1,361 @@
+{
+  "schema_version": 1,
+  "purpose": "harmonic_censoring_h25_scientific_hypothesis_execution_contract",
+  "status": "contract_only_pending_external_review",
+  "authority": {
+    "authorized_action": "AUTHORIZED_TO_DEFINE_AND_COMMIT_H25_SCIENTIFIC_HYPOTHESIS_AND_EXECUTION_CONTRACT_ONLY",
+    "administrative_qualification_status": "H25_ADMIN_LIFECYCLE_QUALIFICATION_PASSED",
+    "administrative_qualification_record_sha256": "54bd361a99223dd24d6e4f0883ace47572965604c406efe69e5564f675d14ee1",
+    "administrative_entrypoint_commit": "b91374473e28b1bb4ad42a73f62af4171411588d",
+    "administrative_closure_commit": "ebd5c0d86f8159d49f41dcafa13a07881421e9b6",
+    "administrative_record_reuse_as_scientific_claim_forbidden": true
+  },
+  "scope": {
+    "contract_only": true,
+    "implementation_authorized": false,
+    "population_or_manifest_creation_authorized": false,
+    "waveform_synthesis_authorized": false,
+    "runner_or_executor_authorized": false,
+    "capability_issuance_authorized": false,
+    "claim_authorized": false,
+    "seal_activation_or_OS_binding_authorized": false,
+    "scientific_P0_P1_P2_execution_authorized": false,
+    "numpy_scientific_execution_authorized": false,
+    "real_data_access_authorized": false,
+    "H17_population_use_authorized": false,
+    "H24_population_or_test_reuse_authorized": false,
+    "locked_test_used": false,
+    "model_or_checkpoint_access_authorized": false,
+    "training_or_calibration_authorized": false
+  },
+  "predecessor_firewall": {
+    "H17_status": "frame_fallback_false_risk_enrichment_not_demonstrated",
+    "H17_population_consumed": true,
+    "H17_population_or_rows_must_not_be_opened_or_reused": true,
+    "H24_status": "H24_EXECUTION_INCONCLUSIVE_CONSUMED",
+    "H24_scientific_P0_P1_P2_counts": [0, 0, 0],
+    "H24_population_claim_or_test_ID_reuse_forbidden": true,
+    "H24_must_not_be_reinterpreted_as_scientific_evidence": true,
+    "H25_requires_new_population_and_test_namespaces": true
+  },
+  "scientific_question": "Can a vectorized support-normalized pitch-dilution trajectory derived from one shared causal spectrum, when combined with strictly causal 4096-sample and 8192-sample evidence ending at the same hop, distinguish an identifiable new fundamental from a lingering harmonic without claiming to resolve exactly coincident non-identifiable sources?",
+  "hypotheses": {
+    "primary": "After removing pitch/support geometry and gain, the joint dilution-residual and causal-birth representation differs between old-source harmonic persistence and an independently attacked new fundamental whenever independent onset or own-harmonic evidence exists.",
+    "null_transform_only": "Applying deterministic pitch scaling or its equivalent relative spectral censor to the whole mixture preserves exact frequency collisions and provides no source attribution by itself.",
+    "null_geometry": "The raw transform index at which a component leaves support is determined by pitch and observation limits and is not an admissible discriminative feature.",
+    "non_identifiability": "Two latent explanations that produce byte-identical causal samples and identical allowed state must yield identical features and AMBIGUOUS.",
+    "long_context_role": "The 8192-sample view may confirm persistence or decay of evidence observed in the 4096-sample view, but it may not use future samples, introduce a second onset decision, or override exact non-identifiability.",
+    "falsifiable_positive_condition": "On every preregistered identifiable positive fixture, the independent new fundamental must be supported after one causal hop; on every preregistered harmonic-only negative fixture no new fundamental may be supported; every preregistered exact collision must remain AMBIGUOUS."
+  },
+  "non_objectives": [
+    "claiming_that_repeated_pitch_transposition_alone_separates_coincident_sources",
+    "using_a_raw_disappearance_or_survival_index_as_a_feature",
+    "running_30_to_50_model_inferences_per_candidate",
+    "waveform_subtraction_without_phase_or_source_identity",
+    "exclusive_ownership_of_shared_partials",
+    "inferring_string_or_fret_identity",
+    "training_fitting_or_calibrating_any_model",
+    "opening_real_audio_labels_H17_or_locked_test",
+    "emitting_MIDI_from_analytical_observation_coordinates"
+  ],
+  "signal_and_coordinate_contract": {
+    "sample_rate_hz": 44100,
+    "hop_samples": 256,
+    "short_causal_window_samples": 4096,
+    "long_causal_window_samples": 8192,
+    "both_windows_end_at_same_current_hop": true,
+    "future_lookahead_samples": 0,
+    "decision_delay_hops_for_new_source": 1,
+    "physical_MIDI_output_min": 40,
+    "physical_MIDI_output_max": 76,
+    "latent_source_pitch_min": 24,
+    "latent_source_pitch_max": 76,
+    "analytical_observation_coordinate_min": 40,
+    "analytical_observation_coordinate_max_inclusive": 128,
+    "H1_relation_type": "FUNDAMENTAL_IDENTITY",
+    "H2_to_H20_relation_type": "PROPER_HARMONIC_ASCENT",
+    "descending_source_to_observation_relation_forbidden": true,
+    "shared_partial_contributions_are_additive": true,
+    "exclusive_partial_ownership_forbidden": true
+  },
+  "pitch_dilution_operator_contract": {
+    "name": "H25_SUPPORT_NORMALIZED_DILUTION_V1",
+    "input": "one float64 shared power spectrum per causal window; no repeated model inference and no resynthesized pitch-shifted waveform",
+    "transform_index_semantics": "integer semitone-equivalent support shift s on the exact ordered grid 0..88 inclusive",
+    "transform_grid_semitones": [
+      0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+      10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+      20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+      30, 31, 32, 33, 34, 35, 36, 37, 38, 39,
+      40, 41, 42, 43, 44, 45, 46, 47, 48, 49,
+      50, 51, 52, 53, 54, 55, 56, 57, 58, 59,
+      60, 61, 62, 63, 64, 65, 66, 67, 68, 69,
+      70, 71, 72, 73, 74, 75, 76, 77, 78, 79,
+      80, 81, 82, 83, 84, 85, 86, 87, 88
+    ],
+    "transform_grid_step_semitones": 1,
+    "transform_grid_count": 89,
+    "transform_grid_rationale": "88 semitones spans the complete declared analytical coordinate interval from MIDI40 to coordinate128; unsupported candidate-shift pairs are masked",
+    "transform_grid_change_after_contract_review_forbidden": true,
+    "vectorization_requirement": "all transform indices for all candidate pitches are computed in one deterministic vectorized operator from the same spectrum",
+    "analytic_equivalence_requirement": "ideal whole-spectrum pitch scaling and relative cutoff remapping must agree analytically before sampled implementation is allowed",
+    "support_mask": "each transformed observation is explicitly valid or invalid under positive-frequency, RFFT-kernel and Nyquist support; invalid observations are masked and never zero-filled",
+    "geometric_null": "for every candidate and transform index, recompute the expected response caused only by finite support and the same kernel/mask family",
+    "normalized_curve": "divide the observed dilution trajectory by a preregistered positive baseline only when the baseline validity inequality holds",
+    "residual_curve": "subtract the support-aware geometric null from the normalized curve",
+    "raw_disappearance_index_forbidden": true,
+    "aligned_whole_mixture_transform_is_equivariant_control_not_positive_evidence": true,
+    "exact_collision_must_remain_identical_under_every_transform": true,
+    "candidate_order_must_not_change_any_curve": true,
+    "scalar_reference_required_for_every_vectorized_result": true
+  },
+  "analytic_graph_and_numeric_contract": {
+    "expected_relation_keys": "E={(p,h) integer | 24<=p<=76, 1<=h<=20, h^12<=2^(128-p)}",
+    "expected_relation_key_set_must_match_exactly_without_omission_duplicate_or_extra": true,
+    "observation_coordinate": "q(p,h)=p+12*log2(h) in binary64",
+    "H1_oracle": "h=1 implies q(p,1)=p and relation_type=FUNDAMENTAL_IDENTITY",
+    "proper_harmonic_oracle": "2<=h<=20 implies q(p,h)>p and relation_type=PROPER_HARMONIC_ASCENT",
+    "primary_dtype": "float64",
+    "same_runtime_rtol": 1e-10,
+    "same_runtime_atol": 1e-12,
+    "integer_boolean_category_mask_tolerance": 0,
+    "normalization_baseline_valid": "B>max(1e-24,1e-12*total_window_power)",
+    "unmasked_NaN_or_infinity_is_failure": true,
+    "invalid_support_is_masked_not_zero_filled": true,
+    "posthoc_tolerance_change_forbidden": true
+  },
+  "causal_evidence_contract": {
+    "short_view": "4096 samples ending at hop t provide the primary current harmonic and onset evidence",
+    "long_view": "8192 samples ending at the same hop t provide only persistence, decay and old-source context",
+    "previous_hop_views": "the immediately preceding 4096 and 8192 windows end exactly 256 samples earlier",
+    "allowed_birth_components": [
+      "short_window_onset_rise",
+      "short_window_harmonic_novelty",
+      "short_window_new_energy",
+      "long_window_persistence_or_decay",
+      "old_source_explanation_residual",
+      "support_normalized_dilution_residual_curve",
+      "candidate_and_observation_validity_masks"
+    ],
+    "forbidden_inputs": [
+      "future_audio",
+      "future_labels",
+      "target",
+      "fixture_ID",
+      "reference_note_identity",
+      "ground_truth_onset_coordinate",
+      "string_or_fret",
+      "post_decision_decoder_state",
+      "post_emission_rank_or_selection",
+      "H17_outcome_or_membership",
+      "raw_transform_disappearance_index"
+    ],
+    "state_machine": ["INACTIVE", "PENDING_NEW", "ACTIVE"],
+    "first_observation_rule": "an inactive signal-derived proposal enters PENDING_NEW without NoteOn",
+    "resolution_rule": "exactly one hop later, all preregistered current-and-past evidence resolves to BIRTH_SUPPORTED, NO_BIRTH or AMBIGUOUS; PENDING_NEW may not persist",
+    "active_source_rule": "an already active pitch is old-source context and cannot be counted as a new source without a separately preregistered retrigger rule",
+    "no_backfill_or_posthoc_threshold_change": true
+  },
+  "future_population_requirements": {
+    "population_namespace": "H25_SYNTHETIC_V1",
+    "test_namespace": "H25_TEST_V1",
+    "population_manifest_currently_exists": false,
+    "test_manifest_currently_exists": false,
+    "all_fixture_and_test_IDs_must_be_new": true,
+    "H23_H24_fixture_or_test_bytes_may_not_be_copied": true,
+    "deterministic_synthetic_only": true,
+    "real_recordings_forbidden": true,
+    "required_fixture_families": [
+      "isolated_single_fundamental_with_own_harmonics",
+      "old_fundamental_with_lingering_harmonic_only",
+      "new_fundamental_overlapping_an_old_harmonic_with_independent_attack",
+      "new_fundamental_overlapping_an_old_harmonic_without_independent_evidence",
+      "two_distinct_fundamentals_with_shared_partial",
+      "exactly_coincident_byte_identical_non_identifiable_explanations",
+      "natural_harmonic_and_missing_fundamental",
+      "inharmonicity_and_cents_offset",
+      "amplitude_gain_and_phase",
+      "white_and_pink_noise",
+      "window_and_hop_boundary",
+      "pitch_domain_and_Nyquist_boundary",
+      "silence_and_tiny_energy",
+      "synthetic_OOD"
+    ],
+    "required_balancing_axes": [
+      "positive_negative_ambiguous",
+      "candidate_pitch_band",
+      "interval_and_harmonic_rank",
+      "old_source_age",
+      "new_source_attack_position",
+      "gain_phase_noise_inharmonicity"
+    ],
+    "exact_cardinalities_and_ID_order_must_be_fixed_before_waveform_synthesis": true,
+    "manifest_and_fixture_spec_SHA256_must_be_reviewed_before_materialization": true,
+    "population_bytes_must_be_materialized_and_reviewed_before_capability_or_claim": true
+  },
+  "phase_contract": {
+    "fixed_order": ["P0", "P1", "P2"],
+    "P1_requires_all_P0_pass": true,
+    "P2_requires_all_P1_pass": true,
+    "P0": {
+      "name": "analytic_operator_and_non_identifiability",
+      "required_categories": [
+        "typed_H1_identity_and_H2_H20_ascent_graph",
+        "pitch_shift_relative_cutoff_analytic_equivalence",
+        "raw_disappearance_index_rejected_as_geometry",
+        "exact_collision_transform_invariance_and_AMBIGUOUS",
+        "vectorized_scalar_float64_parity",
+        "support_and_geometric_null_exactness",
+        "4096_and_8192_same_hop_causality",
+        "gain_phase_and_candidate_order_invariance",
+        "finite_or_explicitly_masked_numeric_outputs"
+      ],
+      "pass_rule": "every preregistered P0 test and inverse passes exactly under the future sealed tolerances",
+      "kill_rule": "the first P0 failure atomically publishes H25_SYNTHETIC_HYPOTHESIS_KILLED, records all remaining P0/P1/P2 tests as NOT_RUN_BY_KILL_RULE and forbids population reuse"
+    },
+    "P1": {
+      "name": "causal_identifiability_and_harmonic_false_note_rejection",
+      "required_categories": [
+        "identifiable_new_fundamental_birth",
+        "old_harmonic_only_no_birth",
+        "shared_partial_two_source_birth",
+        "natural_harmonic_no_false_fundamental",
+        "exact_collision_AMBIGUOUS",
+        "one_hop_resolution_and_no_future_dependence",
+        "short_primary_long_confirmation_role_separation"
+      ],
+      "pass_rule": "all identifiable positives are BIRTH_SUPPORTED after exactly one hop, all harmonic-only negatives are NO_BIRTH or ALREADY_ACTIVE_HISTORY, and all exact non-identifiable fixtures are AMBIGUOUS; no family-average compensation is allowed",
+      "kill_rule": "the first P1 failure stops before P2 and publishes H25_IDENTIFIABILITY_NOT_DEMONSTRATED with every remaining test NOT_RUN_BY_KILL_RULE"
+    },
+    "P2": {
+      "name": "robustness_determinism_and_pretrain_readiness",
+      "required_categories": [
+        "future_suffix_invariance",
+        "hop_translation_and_window_boundary",
+        "gain_phase_noise_cents_and_inharmonicity",
+        "pitch_Nyquist_and_missing_support",
+        "candidate_and_transform_order_invariance",
+        "same_runtime_byte_determinism",
+        "cross_runtime_category_and_mask_determinism",
+        "bounded_CPU_runtime_and_memory_report",
+        "complete_attrition_and_no_omitted_fixture"
+      ],
+      "pass_rule": "every preregistered P2 test passes; every input is reconciled exactly and no nonfinite unmasked value exists",
+      "kill_rule": "the first P2 failure publishes H25_PRETRAIN_READINESS_NOT_DEMONSTRATED and records the remaining tests NOT_RUN_BY_KILL_RULE"
+    }
+  },
+  "decision_contract": {
+    "all_P0_P1_P2_pass": "H25_SYNTHETIC_PRETRAIN_EVIDENCE_PASSED",
+    "first_P0_failure": "H25_SYNTHETIC_HYPOTHESIS_KILLED",
+    "first_P1_failure": "H25_IDENTIFIABILITY_NOT_DEMONSTRATED",
+    "first_P2_failure": "H25_PRETRAIN_READINESS_NOT_DEMONSTRATED",
+    "ordinary_postclaim_operational_error": "H25_EXECUTION_INCONCLUSIVE_CONSUMED",
+    "preclaim_failure": "H25_EXECUTION_PRECLAIM_ABORTED_NOT_CONSUMED",
+    "all_P0_P1_P2_pass_is_not_training_or_real_validation_authority": true,
+    "posthoc_threshold_grid_population_bootstrap_or_taxonomy_change_forbidden": true,
+    "retry_after_claim_forbidden": true,
+    "failure_or_inconclusive_population_reuse_forbidden": true
+  },
+  "scientific_lifecycle_contract": {
+    "single_reviewed_entrypoint_owns_preflight_capability_claim_P0_P1_P2_and_closure": true,
+    "same_process_owns_capability_claim_execution_and_closure": true,
+    "no_human_pause_or_postclaim_injection": true,
+    "complete_phase_authority_fixed_before_claim": true,
+    "claim_is_last_irreversible_action_before_automatic_P0": true,
+    "script_transport_separate_from_control_stdin": true,
+    "stdin_EOF_parent_disconnect_signal_and_timeout_have_predeclared_closures": true,
+    "success_failure_and_inconclusive_publish_atomically": true,
+    "all_test_records_and_NOT_RUN_suffix_published_in_manifest_order": true,
+    "every_result_recomputed_from_persisted_inputs_before_terminal": true,
+    "no_process_local_capability_expected_to_survive_exit": true,
+    "administrative_qualification_record_binding_required_before_capability": true
+  },
+  "future_one_shot_topology": {
+    "claim_path": "tmp/local/harmonic_censoring_h25_scientific_v1.consumed.json",
+    "staging_directory": "tmp/local/harmonic_censoring_h25_scientific_v1.staging",
+    "success_directory": "tmp/local/harmonic_censoring_h25_scientific_v1",
+    "transcript_staging_path": "tmp/local/harmonic_censoring_h25_scientific_v1.staging/scientific_transcript.jsonl.part",
+    "transcript_success_path": "tmp/local/harmonic_censoring_h25_scientific_v1/scientific_transcript.jsonl",
+    "evidence_staging_directory": "tmp/local/harmonic_censoring_h25_scientific_v1.staging/evidence",
+    "terminal_path": "tmp/local/harmonic_censoring_h25_scientific_v1.terminal.json",
+    "all_paths_must_be_absent_before_claim": true,
+    "claim_created_with_O_EXCL_and_fsync": true,
+    "claim_never_deleted_recreated_or_reused": true,
+    "namespace_must_not_overlap_H17_H23_H24_or_administrative_qualification": true
+  },
+  "future_provenance_runtime_and_authority_requirements": {
+    "required_preclaim_bindings": [
+      "contract_path_size_SHA256",
+      "population_manifest_path_size_SHA256",
+      "test_manifest_path_size_SHA256",
+      "materialized_population_receipt_path_size_SHA256",
+      "administrative_qualification_record_path_size_SHA256",
+      "harness_runner_recomputer_source_path_size_SHA256",
+      "runtime_probe_path_size_SHA256",
+      "clean_exact_git_HEAD",
+      "all_one_shot_paths_absent"
+    ],
+    "runtime_must_be_fixed_before_population_materialization": [
+      "CPython_full_version",
+      "NumPy_full_version",
+      "macOS_version",
+      "arm64_architecture",
+      "CPU_only",
+      "single_thread",
+      "BLAS_and_accelerate_identity",
+      "locale_timezone_and_hash_seed",
+      "resolved_executable_and_venv"
+    ],
+    "future_authority_artifacts_required": [
+      "capability_contract",
+      "dormant_capability_and_runner",
+      "execution_authorization_seal",
+      "activation_record",
+      "OS_environment_binding"
+    ],
+    "each_artifact_requires_separate_external_review_before_next_transition": true,
+    "seal_activation_and_OS_binding_do_not_exist_now": true
+  },
+  "required_future_reports": {
+    "population_report": [
+      "fixture_and_test_counts_by_phase_family_target_pitch_band",
+      "all_IDs_and_SHA256",
+      "support_and_validity_mask_counts",
+      "no_overlap_with_predecessor_namespaces"
+    ],
+    "execution_attrition": [
+      "expected_tests",
+      "executed_tests",
+      "passed_failed_not_run_counts",
+      "fixtures_opened_by_phase",
+      "surrogate_or_scientific_claim_state",
+      "nonfinite_and_invalid_mask_counts",
+      "worker_and_process_exit_state"
+    ],
+    "scientific_report": [
+      "phase_and_test_level_results",
+      "exact_first_failure_or_all_pass",
+      "positive_negative_ambiguous_counts",
+      "dilution_curve_and_geometric_null_diagnostics",
+      "4096_8192_role_separation_diagnostics",
+      "causal_delay_and_future_invariance",
+      "runtime_and_memory",
+      "decision_contract_verdict"
+    ]
+  },
+  "forbidden_now": [
+    "create_H25_population_or_test_manifest",
+    "choose_transform_grid_from_observed_results",
+    "synthesize_or_decode_any_waveform",
+    "implement_harness_runner_recomputer_or_producer",
+    "issue_capability_or_create_claim",
+    "create_seal_activation_or_OS_binding",
+    "import_NumPy_for_scientific_use",
+    "execute_P0_P1_or_P2",
+    "open_real_data_H17_or_locked_test",
+    "load_model_or_checkpoint",
+    "train_fit_calibrate_export_or_live",
+    "reuse_or_delete_any_H24_or_H25_administrative_claim"
+  ],
+  "next_action": "external_review_of_H25_scientific_hypothesis_and_execution_contract_only"
+}
