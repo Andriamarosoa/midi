@@ -49,6 +49,7 @@ _COMMIT = re.compile(r"^[0-9a-f]{40}$")
 _AT_FDCWD = -2
 _RENAME_EXCL = 0x00000004
 _CAPABILITIES: dict[int, weakref.ReferenceType["_H26RuntimeBoundaryCapability"]] = {}
+_OBSERVER_CAPABILITIES: dict[int, weakref.ReferenceType["_H26ObserverEntryCapability"]] = {}
 
 
 class _H26RuntimeBoundaryCapability:
@@ -56,6 +57,13 @@ class _H26RuntimeBoundaryCapability:
 
     def __new__(cls):
         raise TypeError("H26 runtime boundary capability has no public constructor")
+
+
+class _H26ObserverEntryCapability:
+    __slots__ = ("execution", "claim_id", "__weakref__")
+
+    def __new__(cls):
+        raise TypeError("H26 observer-entry capability has no public constructor")
 
 
 def _repo_root() -> Path:
@@ -153,6 +161,39 @@ def _require_capability(value: object) -> _H26RuntimeBoundaryCapability:
     if _git_output("status", "--porcelain=v1"):
         raise PermissionError("H26 runtime boundary requires a clean worktree")
     return value
+
+
+def _require_observer_capability(value: object) -> _H26ObserverEntryCapability:
+    reference = _OBSERVER_CAPABILITIES.get(id(value))
+    if (
+        type(value) is not _H26ObserverEntryCapability
+        or reference is None
+        or reference() is not value
+    ):
+        raise PermissionError("H26 observer requires an attested entry boundary")
+    _require_capability(value.execution)
+    return value
+
+
+def _enter_observer_boundary(
+    capability: _H26RuntimeBoundaryCapability,
+    claim_id: str,
+    claim_path: Path,
+) -> _H26ObserverEntryCapability:
+    _require_capability(capability)
+    if claim_path.is_symlink() or not claim_path.is_file():
+        raise PermissionError("H26 observer boundary requires the durable claim")
+    observer = object.__new__(_H26ObserverEntryCapability)
+    observer.execution = capability
+    observer.claim_id = claim_id
+    identity = id(observer)
+
+    def cleanup(reference):
+        if _OBSERVER_CAPABILITIES.get(identity) is reference:
+            _OBSERVER_CAPABILITIES.pop(identity, None)
+
+    _OBSERVER_CAPABILITIES[identity] = weakref.ref(observer, cleanup)
+    return observer
 
 
 def _require_execution_boundary() -> _H26RuntimeBoundaryCapability:
@@ -257,11 +298,15 @@ def _claim(authority: Mapping[str, Any], authority_sha: str) -> dict[str, Any]:
 
 
 def _evidence(
+    observer_capability: _H26ObserverEntryCapability,
     authority: Mapping[str, Any],
     authority_sha: str,
     claim: Mapping[str, Any],
     claim_sha: str,
 ) -> dict[str, Any]:
+    observer = _require_observer_capability(observer_capability)
+    if observer.claim_id != claim["claim_id"]:
+        raise PermissionError("H26 observer boundary claim mismatch")
     return {
         "schema_identity": "H26_RUNTIME_QUALIFICATION_OBSERVER_ENTRY_EVIDENCE_V1",
         "schema_version": 1,
@@ -417,9 +462,9 @@ def _publish(
 
 
 def _observe_primary_runtime(
-    capability: _H26RuntimeBoundaryCapability,
+    capability: _H26ObserverEntryCapability,
 ) -> qualifier.RuntimeObservation:
-    _require_capability(capability)
+    _require_observer_capability(capability)
     numpy_module = importlib.import_module("numpy")
     multiarray_module = importlib.import_module("numpy.core._multiarray_umath")
     multiarray_path = Path(str(multiarray_module.__file__))
@@ -473,21 +518,29 @@ def execute_h26_runtime_qualification_once() -> dict[str, Any]:
     primitives.validate_artificial_claim(authority, claim, authority_sha)
     claim_raw = primitives.canonical_json_bytes(claim)
     claim_sha = hashlib.sha256(claim_raw).hexdigest()
-    evidence = _evidence(authority, authority_sha, claim, claim_sha)
+    evidence_id = primitives.derive_observer_entry_evidence_id(
+        AUTHORITY_ID, authority_sha, str(claim["claim_id"]), claim_sha
+    )
+    paths = _paths(authority_sha, str(claim["claim_id"]), evidence_id)
+    _preflight_paths(capability, paths)
+
+    _publish(capability, *paths["authority"], authority_raw)
+    _publish(capability, *paths["claim"], claim_raw)
+    observer_capability = _enter_observer_boundary(
+        capability, str(claim["claim_id"]), paths["claim"][0]
+    )
+    evidence = _evidence(
+        observer_capability, authority, authority_sha, claim, claim_sha
+    )
     primitives.validate_artificial_observer_entry_evidence(
         authority, claim, evidence, authority_sha, claim_sha
     )
     evidence_raw = primitives.canonical_json_bytes(evidence)
     evidence_sha = hashlib.sha256(evidence_raw).hexdigest()
-    paths = _paths(authority_sha, str(claim["claim_id"]), str(evidence["observer_entry_evidence_id"]))
-    _preflight_paths(capability, paths)
-
-    _publish(capability, *paths["authority"], authority_raw)
-    _publish(capability, *paths["claim"], claim_raw)
     _publish(capability, *paths["evidence"], evidence_raw)
 
     try:
-        observation = _observe_primary_runtime(capability)
+        observation = _observe_primary_runtime(observer_capability)
         record = qualifier.build_runtime_qualification_record(
             qualifier.load_runtime_qualification_contract(), observation
         )

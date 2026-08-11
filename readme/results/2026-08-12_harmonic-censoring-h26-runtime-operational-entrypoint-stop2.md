@@ -25,6 +25,9 @@ observer-entry evidence created inside the boundary, private capability-gated
 real observer, runtime record, and terminal receipt last. If observation or
 record publication fails after observer entry, an inconclusive terminal receipt
 is written and the original error is re-raised; no cleanup or retry exists.
+Only the deterministic evidence ID/path is derived during preflight. The
+evidence object itself cannot be constructed until the durable claim exists and
+a distinct identity-attested observer-entry capability has been minted.
 
 Tests cover missing boundary, forged capability, exact publication order,
 qualified record/receipt and the observer-failure terminal receipt using only

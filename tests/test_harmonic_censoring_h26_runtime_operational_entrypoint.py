@@ -100,6 +100,11 @@ class H26RuntimeOperationalEntrypointTests(unittest.TestCase):
             runner._observe_primary_runtime(forged)
         with self.assertRaises(PermissionError):
             runner._publish(forged, Path("x"), Path("y"), b"{}\n")
+        forged_observer = object.__new__(runner._H26ObserverEntryCapability)
+        forged_observer.execution = forged
+        forged_observer.claim_id = "claim"
+        with self.assertRaises(PermissionError):
+            runner._evidence(forged_observer, {}, "a" * 64, {}, "b" * 64)
 
     def test_complete_temporary_flow_publishes_in_exact_order(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -109,6 +114,8 @@ class H26RuntimeOperationalEntrypointTests(unittest.TestCase):
             )
             order = []
             original_publish = runner._publish
+            original_enter = runner._enter_observer_boundary
+            original_evidence = runner._evidence
 
             def publish(*arguments):
                 order.append(arguments[1].parent.name)
@@ -118,6 +125,14 @@ class H26RuntimeOperationalEntrypointTests(unittest.TestCase):
                 if destination.exists():
                     raise FileExistsError(str(destination))
                 os.rename(source, destination)
+
+            def enter(*arguments):
+                order.append("observer-boundary")
+                return original_enter(*arguments)
+
+            def create_evidence(*arguments):
+                order.append("evidence-create")
+                return original_evidence(*arguments)
 
             with contexts[0], contexts[1], contexts[2], contexts[3], contexts[4], contexts[5], contexts[6], mock.patch.object(
                 runner,
@@ -133,17 +148,24 @@ class H26RuntimeOperationalEntrypointTests(unittest.TestCase):
                 runner.os, "fchmod", create=True
             ), mock.patch.object(
                 runner, "_sync_directory"
+            ), mock.patch.object(
+                runner, "_enter_observer_boundary", side_effect=enter
+            ), mock.patch.object(
+                runner, "_evidence", side_effect=create_evidence
             ), mock.patch.object(runner, "_publish", side_effect=publish):
                 result = runner.execute_h26_runtime_qualification_once()
 
             self.assertEqual(
                 order,
-                ["authority", "claim", "observer-entry", "runtime-record", "receipt"],
+                [
+                    "authority", "claim", "observer-boundary", "evidence-create",
+                    "observer-entry", "runtime-record", "receipt",
+                ],
             )
             observer.assert_called_once()
             self.assertEqual(result["observer_invocation_count"], 1)
             self.assertEqual(result["terminal_status"], qualifier.STATUS_QUALIFIED)
-            for name in order:
+            for name in ("authority", "claim", "observer-entry", "runtime-record", "receipt"):
                 files = tuple((root / name).iterdir())
                 self.assertEqual(len(files), 1)
                 self.assertFalse(files[0].name.startswith("."))
