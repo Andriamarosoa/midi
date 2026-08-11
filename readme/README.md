@@ -14,7 +14,7 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: declarative measurements, exact collisions, P2 grids and all 34 remaining baseline waveform recipes closed after external rejections; population and authorization unchanged. -->
+<!-- H26_CORRECTION_STATUS: dormant preregistration and implementation reviewed and closed through 60b8d90b; population and authorization unchanged. -->
 ## État courant
 
 - Mise à jour : `2026-08-11`.
@@ -27,8 +27,8 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   runtime scientifique, donnée réelle, modèle, entraînement, calibration ou
   locked-test. Rapport :
   `readme/results/2026-08-11_harmonic-censoring-h26-dormant-stack-review-closure.md`.
-- Statut : `paquet H26 déclaratif dormant corrigé après deux refus externes de sous-spécification; mesures, collisions, grilles P2 et 34 recettes baseline désormais fermées; 40 fixtures et 27 tests inchangés, 0 waveform, aucune implémentation/exécution/authority/capability/claim`.
-- Implémentation dormante H26 en cours de revue externe : loader strict lié aux
+- Statut : `préinscription et implémentation dormante H26 revues et clôturées au commit 60b8d90b; 40 fixtures et 27 tests préenregistrés inchangés, 0 waveform, aucune exécution/authority/capability/claim`.
+- Implémentation dormante H26 revue et clôturée au commit `60b8d90b…` : loader strict lié aux
   trois SHA, synthèse future inaccessible, masques dérivés des recettes,
   mesures causales 4096/8192, NNLS fixe, resolver quatre issues, transforms P2,
   opérandes bruts et recomputer indépendant. Les deux capabilities restent
