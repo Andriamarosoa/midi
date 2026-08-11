@@ -46,7 +46,7 @@ et de petits opérandes artificiels qui ne correspondent à aucune fixture H26.
 ```text
 python -B -m py_compile ...                                  PASS
 python -B -m unittest tests.test_harmonic_censoring_h26_dormant_stack
-13 tests en 0,024 s                                          PASS
+18 tests en 0,030 s                                          PASS
 git diff --check                                             PASS
 ```
 
@@ -61,3 +61,24 @@ clôture H25 désormais présents. Aucun échec ne traverse un fichier H26 et ce
 Le commit reste `implementation-only`, sans autorisation de matérialisation ou
 d'exécution. Il doit être relu avant tout futur seal, capability, fixture,
 waveform, P0/P1/P2 ou claim H26.
+
+## Correctif après rejet externe de `9ea6ed4a`
+
+La revue stricte a refusé la première implémentation. Le correctif courant :
+
+- rend les deux classes capability inconstructibles sans aucun token de module ;
+- gèle récursivement tout le plan JSON et refuse les mutations imbriquées ;
+- remplace les entrées waveform/masques libres par un futur binding vérifiable
+  au SHA de l'index, aux SHA des waveforms et du masque exact ;
+- dérive l'équivalence uniquement de deux tableaux float64 non nuls et
+  byte-identiques, jamais de l'identité du fixture ;
+- centralise le centre fréquentiel cents+B et l'utilise pour synthèse, bandes,
+  exclusivité et base harmonique ;
+- représente explicitement `PENDING_NEW` au hop de proposition, puis une issue
+  terminale exactement 256 samples plus tard ;
+- applique `transform_order` à l'énumération 24..96 de la courbe de dilution,
+  tout en canonisant la courbe finale ;
+- fait revalider au recomputer la frontière causale, la courbe 24..96 et l'état
+  terminal.
+
+Ce correctif reste entièrement dormant et n'a produit aucune observation H26.

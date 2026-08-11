@@ -59,6 +59,24 @@ def _float_tuple(record: Mapping[str, object], key: str, *, infinity_allowed: bo
     return values
 
 
+def _require_causal_state(plan: H26DormantPlan, operands: Mapping[str, object]) -> str:
+    proposal = operands.get("proposal_hop_end")
+    resolution = operands.get("resolution_hop_end")
+    maximum = operands.get("maximum_sample_read")
+    before = operands.get("state_before")
+    after = operands.get("state_after")
+    hop = int(plan.contract["causal_contract"]["hop_samples"])
+    if type(proposal) is not int or type(resolution) is not int or resolution - proposal != hop:
+        raise ValueError("H26 recomputer causal delay mismatch.")
+    if type(maximum) is not int or maximum > resolution:
+        raise ValueError("H26 recomputer future read detected.")
+    if before != "PENDING_NEW" or after not in {
+        "BIRTH_SUPPORTED", "NO_BIRTH", "AMBIGUOUS", "ALREADY_ACTIVE_HISTORY",
+    }:
+        raise ValueError("H26 recomputer causal state mismatch.")
+    return str(after)
+
+
 def recompute_h26_resolution(
     plan: H26DormantPlan, *, fixture_id: str,
     measurement: Mapping[str, object],
@@ -124,7 +142,16 @@ def recompute_h26_evidence_from_raw_operands(
     maximum_read = operands.get("maximum_sample_read")
     if type(maximum_read) is not int or maximum_read < 0:
         raise ValueError("H26 maximum sample read invalid.")
+    declared_state_after = _require_causal_state(plan, operands)
+    common_short_circuit_fields = {
+        "candidate_active", "support_valid", "observation_equivalent",
+        "maximum_sample_read", "proposal_hop_end", "resolution_hop_end",
+        "state_before", "state_after", "active_pitches", "candidate_pitch",
+        "perturbation",
+    }
     if active:
+        if set(operands) != common_short_circuit_fields:
+            raise ValueError("H26 active raw operand schema mismatch.")
         measurement: Mapping[str, object] = {
             "candidate_active": True, "support_valid": valid,
             "observation_equivalent": equivalent,
@@ -133,12 +160,21 @@ def recompute_h26_evidence_from_raw_operands(
             "candidate_lower_bounds": (), "negative_margin_ratios": (),
             "long_window_persistence": 0.0,
             "maximum_sample_read": maximum_read,
+            "pitch_dilution_curve": (),
         }
         resolution = recompute_h26_resolution(
             plan, fixture_id=fixture_id, measurement=measurement,
         )
+        if declared_state_after != resolution.outcome:
+            raise ValueError("H26 active causal terminal state mismatch.")
         return H26RecomputedEvidence(fixture_id, measurement, resolution)
     if not valid or equivalent:
+        allowed = (
+            common_short_circuit_fields,
+            common_short_circuit_fields | {"exclusive_partial_ranks"},
+        )
+        if set(operands) not in allowed:
+            raise ValueError("H26 masked raw operand schema mismatch.")
         ranks_raw = operands.get("exclusive_partial_ranks", ())
         if type(ranks_raw) not in (list, tuple) or any(type(rank) is not int for rank in ranks_raw):
             raise ValueError("H26 masked raw ranks invalid.")
@@ -151,10 +187,13 @@ def recompute_h26_evidence_from_raw_operands(
             "candidate_lower_bounds": (), "negative_margin_ratios": (),
             "long_window_persistence": 0.0,
             "maximum_sample_read": maximum_read,
+            "pitch_dilution_curve": (),
         }
         resolution = recompute_h26_resolution(
             plan, fixture_id=fixture_id, measurement=measurement,
         )
+        if declared_state_after != resolution.outcome:
+            raise ValueError("H26 masked causal terminal state mismatch.")
         return H26RecomputedEvidence(fixture_id, measurement, resolution)
     required = {
         "candidate_active", "support_valid", "observation_equivalent",
@@ -162,7 +201,9 @@ def recompute_h26_evidence_from_raw_operands(
         "current_short_total_power", "previous_short_total_power",
         "active_only_residual", "active_plus_candidate_residual",
         "current_long_total_power", "previous_long_total_power",
+        "pitch_dilution_residual_triplets",
         "maximum_sample_read", "active_pitches", "candidate_pitch", "perturbation",
+        "proposal_hop_end", "resolution_hop_end", "state_before", "state_after",
     }
     if set(operands) != required:
         raise ValueError("H26 raw operand schema mismatch.")
@@ -184,6 +225,29 @@ def recompute_h26_evidence_from_raw_operands(
     previous_long = _finite(operands, "previous_long_total_power")
     if min(shared, previous_short, active_residual, candidate_residual, current_long, previous_long) < 0.0 or current_short <= 1e-24:
         raise ValueError("H26 raw power/residual operand invalid.")
+    triplets_raw = operands["pitch_dilution_residual_triplets"]
+    if type(triplets_raw) not in (list, tuple) or len(triplets_raw) != 73:
+        raise ValueError("H26 pitch-dilution residual grid missing.")
+    triplets: list[tuple[int, float, float]] = []
+    for raw in triplets_raw:
+        if type(raw) not in (list, tuple) or len(raw) != 3 or type(raw[0]) is not int:
+            raise ValueError("H26 pitch-dilution residual row invalid.")
+        first, second = float(raw[1]), float(raw[2])
+        if not math.isfinite(first) or not math.isfinite(second) or min(first, second) < 0.0:
+            raise ValueError("H26 pitch-dilution residual value invalid.")
+        triplets.append((raw[0], first, second))
+    if {row[0] for row in triplets} != set(range(24, 97)):
+        raise ValueError("H26 pitch-dilution pitch grid mismatch.")
+    candidate_pitch = operands["candidate_pitch"]
+    if type(candidate_pitch) is not int:
+        raise ValueError("H26 candidate pitch operand invalid.")
+    candidate_row = next(row for row in triplets if row[0] == candidate_pitch)
+    if candidate_row[1:] != (active_residual, candidate_residual):
+        raise ValueError("H26 candidate residuals diverge from dilution grid.")
+    curve = tuple(sorted(
+        (pitch, max(0.0, first - second) / max(first, 1e-24))
+        for pitch, first, second in triplets
+    ))
     lower_factor = float(
         plan.contract["measurement_definitions"]["global_synthetic_timbre_v1"]["lower_envelope_factor"]
     )
@@ -201,8 +265,11 @@ def recompute_h26_evidence_from_raw_operands(
         "candidate_lower_bounds": bounds, "negative_margin_ratios": margins,
         "long_window_persistence": persistence,
         "maximum_sample_read": maximum_read,
+        "pitch_dilution_curve": curve,
     }
     resolution = recompute_h26_resolution(plan, fixture_id=fixture_id, measurement=measurement)
+    if declared_state_after != resolution.outcome:
+        raise ValueError("H26 causal terminal state mismatch.")
     return H26RecomputedEvidence(fixture_id, measurement, resolution)
 
 

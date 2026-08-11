@@ -7,30 +7,24 @@ kernels accept only explicit operands so they can be tested on non-H26 toy data.
 from __future__ import annotations
 
 from dataclasses import dataclass
+import hashlib
 import itertools
 import math
 from typing import Any, Mapping, Sequence
 
-from .harmonic_censoring_h26_contract import H26DormantPlan
-
-
-_SCIENTIFIC_TOKEN = object()
+from .harmonic_censoring_h26_contract import (
+    H26DormantPlan, h26_f0_hz, h26_partial_center_hz,
+)
 
 
 class H26ScientificCapability:
-    """Future-only authority. No issuer exists in the dormant stack."""
+    """Placeholder type; no instance can exist in the dormant stack."""
 
-    __slots__ = ("plan", "population_sha256", "_token")
+    __slots__ = ()
 
-    def __init__(
-        self, plan: H26DormantPlan, population_sha256: str,
-        *, _token: object = None,
-    ) -> None:
-        if _token is not _SCIENTIFIC_TOKEN:
-            raise PermissionError("H26 scientific capability has no issuer.")
-        self.plan = plan
-        self.population_sha256 = population_sha256
-        self._token = _token
+    def __new__(cls, *args: object, **kwargs: object) -> "H26ScientificCapability":
+        del cls, args, kwargs
+        raise PermissionError("H26 scientific capability has no issuer.")
 
 
 @dataclass(frozen=True)
@@ -109,6 +103,7 @@ class H26Measurements:
     negative_margin_ratios: tuple[float, ...]
     long_window_persistence: float
     maximum_sample_read: int
+    pitch_dilution_curve: tuple[tuple[int, float], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -126,6 +121,7 @@ class H26RawOperands:
     current_long_total_power: float
     previous_long_total_power: float
     maximum_sample_read: int
+    pitch_dilution_residual_triplets: tuple[tuple[int, float, float], ...]
 
 
 @dataclass(frozen=True)
@@ -144,8 +140,66 @@ class H26EvidenceRecord:
     operands: Mapping[str, object]
 
 
+@dataclass(frozen=True)
+class H26CausalProposal:
+    candidate_pitch: int
+    proposal_hop_end: int
+    resolution_hop_end: int
+    state: str = "PENDING_NEW"
+
+
+def begin_h26_causal_proposal(
+    policy: H26NumericalPolicy, *, candidate_pitch: int,
+    proposal_hop_end: int, resolution_hop_end: int,
+) -> H26CausalProposal:
+    if type(candidate_pitch) is not int or not 0 <= candidate_pitch <= 127:
+        raise ValueError("H26 proposal pitch invalid.")
+    if resolution_hop_end - proposal_hop_end != policy.hop_samples:
+        raise ValueError("H26 resolution must occur exactly one hop after proposal.")
+    return H26CausalProposal(candidate_pitch, proposal_hop_end, resolution_hop_end)
+
+
+def finish_h26_causal_proposal(
+    proposal: H26CausalProposal, resolution: H26Resolution,
+    *, maximum_sample_read: int,
+) -> str:
+    if proposal.state != "PENDING_NEW":
+        raise ValueError("H26 resolution requires PENDING_NEW state.")
+    if maximum_sample_read > proposal.resolution_hop_end:
+        raise ValueError("H26 resolution read beyond its causal boundary.")
+    if resolution.outcome not in {"BIRTH_SUPPORTED", "NO_BIRTH", "AMBIGUOUS", "ALREADY_ACTIVE_HISTORY"}:
+        raise ValueError("H26 resolution outcome invalid.")
+    return resolution.outcome
+
+
 def f0_hz(pitch: int) -> float:
-    return 440.0 * 2.0 ** ((float(pitch) - 69.0) / 12.0)
+    return h26_f0_hz(pitch)
+
+
+def partial_center_hz(
+    pitch: int, rank: int, *, cents: float, inharmonicity: float,
+) -> float:
+    return h26_partial_center_hz(
+        pitch, rank, cents=cents, inharmonicity=inharmonicity,
+    )
+
+
+def nonzero_observations_are_byte_equivalent(
+    np: Any, primary: Any, alternate: Any,
+) -> bool:
+    left = np.asarray(primary)
+    right = np.asarray(alternate)
+    if (
+        left.dtype != np.float64 or right.dtype != np.float64
+        or left.ndim != 1 or right.shape != left.shape
+        or not np.all(np.isfinite(left)) or not np.all(np.isfinite(right))
+    ):
+        raise ValueError("H26 equivalence operands invalid.")
+    return (
+        left.astype("<f8", copy=False).tobytes(order="C")
+        == right.astype("<f8", copy=False).tobytes(order="C")
+        and bool(np.any(left != 0.0))
+    )
 
 
 def extract_causal_view(np: Any, waveform: Any, *, hop_end: int, length: int) -> Any:
@@ -233,11 +287,11 @@ def exclusive_partial_ranks(
     active_masks: list[Any] = []
     for pitch in sorted(active_pitches):
         for rank in policy.harmonic_ranks:
-            center = rank * f0_hz(pitch) * 2.0 ** (cents / 1200.0) * math.sqrt(1.0 + inharmonicity * rank * rank)
+            center = partial_center_hz(pitch, rank, cents=cents, inharmonicity=inharmonicity)
             active_masks.append(triangular_cents_kernel(np, spectrum.frequencies_hz, center, policy=policy) > 0.0)
     exclusive: list[int] = []
     for rank in sorted(candidate_ranks):
-        center = rank * f0_hz(candidate_pitch) * 2.0 ** (cents / 1200.0) * math.sqrt(1.0 + inharmonicity * rank * rank)
+        center = partial_center_hz(candidate_pitch, rank, cents=cents, inharmonicity=inharmonicity)
         candidate_mask = triangular_cents_kernel(np, spectrum.frequencies_hz, center, policy=policy) > 0.0
         if int(np.count_nonzero(candidate_mask)) < policy.minimum_valid_bins:
             continue
@@ -257,7 +311,7 @@ def harmonic_basis(
     for column, pitch in enumerate(ordered):
         values = np.zeros(spectrum.power.size, dtype=np.float64)
         for rank in policy.harmonic_ranks:
-            center = rank * f0_hz(pitch) * 2.0 ** (cents / 1200.0) * math.sqrt(1.0 + inharmonicity * rank * rank)
+            center = partial_center_hz(pitch, rank, cents=cents, inharmonicity=inharmonicity)
             kernel = triangular_cents_kernel(np, spectrum.frequencies_hz, center, policy=policy)
             factor = 1.0 / float(rank * rank)
             for index in range(1, kernel.size):
@@ -319,12 +373,20 @@ def factorization_residual(
     return fixed_nnls_v1(np, basis, y, policy=policy)
 
 
+def pitch_dilution_pitch_order(transform_order: str) -> tuple[int, ...]:
+    if transform_order == "ascending":
+        return tuple(range(24, 97))
+    if transform_order == "descending":
+        return tuple(range(96, 23, -1))
+    raise ValueError("H26 transform enumeration order invalid.")
+
+
 def extract_measurements(
     np: Any, waveform: Any, *, target_hop_end: int, candidate_pitch: int,
     active_pitches: Sequence[int], candidate_active: bool,
     observation_equivalent: bool, support_valid: bool,
     policy: H26NumericalPolicy, candidate_partial_ranks: Sequence[int],
-    cents: float = 0.0, inharmonicity: float = 0.0,
+    transform_order: str, cents: float = 0.0, inharmonicity: float = 0.0,
 ) -> H26Measurements:
     operands = extract_raw_operands(
         np, waveform, target_hop_end=target_hop_end,
@@ -333,6 +395,7 @@ def extract_measurements(
         support_valid=support_valid, policy=policy,
         candidate_partial_ranks=candidate_partial_ranks,
         cents=cents, inharmonicity=inharmonicity,
+        transform_order=transform_order,
     )
     return measurements_from_raw_operands(policy, operands)
 
@@ -343,6 +406,7 @@ def extract_raw_operands(
     observation_equivalent: bool, support_valid: bool,
     policy: H26NumericalPolicy, candidate_partial_ranks: Sequence[int],
     cents: float = 0.0, inharmonicity: float = 0.0,
+    transform_order: str,
 ) -> H26RawOperands:
     current_short = causal_spectrum(np, extract_causal_view(np, waveform, hop_end=target_hop_end, length=policy.short_view_samples), policy=policy)
     previous_short = causal_spectrum(np, extract_causal_view(np, waveform, hop_end=target_hop_end - policy.hop_samples, length=policy.short_view_samples), policy=policy)
@@ -354,24 +418,40 @@ def extract_raw_operands(
         policy=policy, cents=cents, inharmonicity=inharmonicity,
     )
     shared, _ = band_energy(
-        np, current_short, f0_hz(candidate_pitch), policy=policy,
+        np, current_short,
+        partial_center_hz(candidate_pitch, 1, cents=cents, inharmonicity=inharmonicity),
+        policy=policy,
         require_minimum_bins=False,
     )
     energies = tuple(
-        band_energy(np, current_short, rank * f0_hz(candidate_pitch), policy=policy)[0]
+        band_energy(
+            np, current_short,
+            partial_center_hz(candidate_pitch, rank, cents=cents, inharmonicity=inharmonicity),
+            policy=policy,
+        )[0]
         for rank in exclusive
     )
     active = tuple(sorted(set(int(value) for value in active_pitches)))
-    active_residual = factorization_residual(np, current_short, active, policy=policy, cents=cents, inharmonicity=inharmonicity).residual
-    candidate_residual = factorization_residual(
-        np, current_short, tuple(sorted(set(active) | {int(candidate_pitch)})),
-        policy=policy, cents=cents, inharmonicity=inharmonicity,
-    ).residual
+    pitch_grid = pitch_dilution_pitch_order(transform_order)
+    triplets: list[tuple[int, float, float]] = []
+    for pitch in pitch_grid:
+        independently_recomputed_active = factorization_residual(
+            np, current_short, active, policy=policy,
+            cents=cents, inharmonicity=inharmonicity,
+        ).residual
+        independently_recomputed_augmented = factorization_residual(
+            np, current_short, tuple(sorted(set(active) | {pitch})),
+            policy=policy, cents=cents, inharmonicity=inharmonicity,
+        ).residual
+        triplets.append((pitch, independently_recomputed_active, independently_recomputed_augmented))
+    candidate_triplet = next(item for item in triplets if item[0] == candidate_pitch)
+    active_residual, candidate_residual = candidate_triplet[1], candidate_triplet[2]
     return H26RawOperands(
         bool(candidate_active), bool(support_valid), bool(observation_equivalent),
         exclusive, energies, shared, current_short.total_power,
         previous_short.total_power, active_residual, candidate_residual,
         current_long.total_power, previous_long.total_power, int(target_hop_end),
+        tuple(triplets),
     )
 
 
@@ -426,6 +506,17 @@ def measurements_from_raw_operands(
     persistence = (
         operands.current_long_total_power - operands.previous_long_total_power
     ) / max(operands.current_long_total_power, policy.power_floor)
+    if {pitch for pitch, _, _ in operands.pitch_dilution_residual_triplets} != set(range(24, 97)):
+        raise ValueError("H26 pitch-dilution grid mismatch.")
+    curve = tuple(sorted(
+        (
+            int(pitch),
+            max(0.0, float(active_residual) - float(augmented_residual))
+            / max(float(active_residual), policy.power_floor),
+        )
+        for pitch, active_residual, augmented_residual
+        in operands.pitch_dilution_residual_triplets
+    ))
     values = (
         *ratios, *bounds, *margins, onset, improvement, persistence,
         operands.shared_band_energy, operands.previous_short_total_power,
@@ -438,7 +529,7 @@ def measurements_from_raw_operands(
         operands.candidate_active, operands.support_valid,
         operands.observation_equivalent, operands.exclusive_partial_ranks,
         ratios, onset, improvement, bounds, margins, persistence,
-        operands.maximum_sample_read,
+        operands.maximum_sample_read, curve,
     )
 
 
@@ -511,26 +602,48 @@ def p2_cells(contract: Mapping[str, object], grid_id: str) -> tuple[Mapping[str,
     raise ValueError("H26 unsupported P2 grid.")
 
 
-def _require_scientific(capability: H26ScientificCapability) -> H26DormantPlan:
-    if type(capability) is not H26ScientificCapability or capability._token is not _SCIENTIFIC_TOKEN:
-        raise PermissionError("H26 exact scientific capability required.")
-    return capability.plan
+def _require_scientific(
+    capability: H26ScientificCapability,
+) -> tuple[H26DormantPlan, str]:
+    del capability
+    raise PermissionError("H26 science remains dormant; no capability can exist.")
 
 
 def produce_h26_fixture_evidence(
     np: Any, capability: H26ScientificCapability, *, fixture_id: str,
-    waveform: Any, sample_valid: Any,
-    invalid_candidate_partial_ranks: Sequence[int],
+    observation: object,
     p2_transform: object | None = None,
 ) -> H26EvidenceRecord:
-    plan = _require_scientific(capability)
+    plan, expected_population_index_sha256 = _require_scientific(capability)
+    from .harmonic_censoring_h26_materializer import (
+        H26BoundObservation, _validity_masks, encode_waveform,
+    )
+    if type(observation) is not H26BoundObservation or observation.fixture_id != fixture_id:
+        raise ValueError("H26 evidence requires the exact bound observation.")
+    if observation.population_index_sha256 != expected_population_index_sha256:
+        raise ValueError("H26 evidence population binding mismatch.")
+    if hashlib.sha256(encode_waveform(np, observation.waveform)).hexdigest() != observation.waveform_sha256:
+        raise ValueError("H26 bound waveform mutated after verification.")
     policy = H26NumericalPolicy.from_plan(plan)
     fixture = plan.fixture(fixture_id)
+    expected_masks = _validity_masks(np, fixture)
+    sample_valid = np.asarray(observation.sample_valid)
+    mask_raw = sample_valid.astype(np.uint8).tobytes(order="C")
+    if (
+        hashlib.sha256(mask_raw).hexdigest() != observation.sample_valid_sha256
+        or mask_raw != expected_masks.sample_valid.astype(np.uint8).tobytes(order="C")
+        or observation.invalid_candidate_partial_ranks
+        != expected_masks.invalid_candidate_partial_ranks
+    ):
+        raise ValueError("H26 evidence validity masks are not bound.")
+    waveform = observation.waveform
     params = fixture["parameters"]
-    target_hop_end = int(plan.specifications["global_timeline"]["target_hop_end"])
+    proposal_hop_end = int(plan.specifications["global_timeline"]["target_hop_end"])
+    resolution_hop_end = int(plan.specifications["global_timeline"]["resolution_hop_end"])
     cents = 0.0
     inharmonicity = 0.0
     candidate_ranks = policy.harmonic_ranks
+    transform_order = "ascending"
     perturbation: Mapping[str, object] | None = None
     if p2_transform is not None:
         from .harmonic_censoring_h26_materializer import (
@@ -544,7 +657,8 @@ def produce_h26_fixture_evidence(
         )
         if rebuilt != p2_transform:
             raise ValueError("H26 evidence P2 transform is not canonical.")
-        target_hop_end = p2_transform.target_hop_end
+        proposal_hop_end = p2_transform.target_hop_end
+        resolution_hop_end = p2_transform.resolution_hop_end
         cents = float(p2_transform.collision_overrides.get("cents", 0.0))
         inharmonicity = float(p2_transform.collision_overrides.get("B", 0.0))
         if p2_transform.recipe is not None:
@@ -560,7 +674,23 @@ def produce_h26_fixture_evidence(
             "test_id": p2_transform.test_id, "grid_id": p2_transform.grid_id,
             "cell": dict(p2_transform.cell),
         }
-    observation_equivalent = fixture_id in plan.collision_fixture_ids
+        if p2_transform.grid_id == "P2_PERMUTATION_V1":
+            transform_order = str(p2_transform.cell["transform_order"])
+    proposal = begin_h26_causal_proposal(
+        policy, candidate_pitch=int(fixture["candidate_pitch"]),
+        proposal_hop_end=proposal_hop_end,
+        resolution_hop_end=resolution_hop_end,
+    )
+    observation_equivalent = False
+    if observation.alternate_waveform is not None:
+        alternate_raw = encode_waveform(np, observation.alternate_waveform)
+        if hashlib.sha256(alternate_raw).hexdigest() != observation.alternate_waveform_sha256:
+            raise ValueError("H26 alternate observation mutated after verification.")
+        if not nonzero_observations_are_byte_equivalent(
+            np, waveform, observation.alternate_waveform,
+        ):
+            raise ValueError("H26 latent observations are not nonzero byte-equivalent.")
+        observation_equivalent = True
     active: tuple[int, ...]
     if "active_pitches" in params:
         active = tuple(int(value) for value in params["active_pitches"])
@@ -569,8 +699,9 @@ def produce_h26_fixture_evidence(
     else:
         active = ()
     candidate_active = False
-    for transition in params.get("prior_transitions", []):
-        if type(transition) is not dict or transition.get("pitch") != fixture["candidate_pitch"]:
+    transitions = params["prior_transitions"] if "prior_transitions" in params else ()
+    for transition in transitions:
+        if not isinstance(transition, Mapping) or transition.get("pitch") != fixture["candidate_pitch"]:
             continue
         if transition.get("kind") == "note_on":
             candidate_active = True
@@ -581,14 +712,17 @@ def produce_h26_fixture_evidence(
     if candidate_active:
         support_valid = required_support_is_valid(
             np, sample_valid=sample_valid,
-            invalid_candidate_partial_ranks=invalid_candidate_partial_ranks,
-            target_hop_end=target_hop_end, exclusive_partial_ranks_used=(), policy=policy,
+            invalid_candidate_partial_ranks=observation.invalid_candidate_partial_ranks,
+            target_hop_end=resolution_hop_end, exclusive_partial_ranks_used=(), policy=policy,
         )
         measurements = H26Measurements(
             True, bool(support_valid), bool(observation_equivalent), (), (),
-            0.0, 0.0, (), (), 0.0, target_hop_end,
+            0.0, 0.0, (), (), 0.0, resolution_hop_end,
         )
         resolution = resolve_h26(plan.contract, measurements)
+        state_after = finish_h26_causal_proposal(
+            proposal, resolution, maximum_sample_read=measurements.maximum_sample_read,
+        )
         return H26EvidenceRecord(
             fixture_id=fixture_id,
             measurement={key: getattr(measurements, key) for key in measurements.__dataclass_fields__},
@@ -596,7 +730,10 @@ def produce_h26_fixture_evidence(
             operands={
                 "candidate_active": True, "support_valid": support_valid,
                 "observation_equivalent": observation_equivalent,
-                "maximum_sample_read": target_hop_end,
+                "maximum_sample_read": resolution_hop_end,
+                "proposal_hop_end": proposal_hop_end,
+                "resolution_hop_end": resolution_hop_end,
+                "state_before": proposal.state, "state_after": state_after,
                 "active_pitches": (int(fixture["candidate_pitch"]),),
                 "candidate_pitch": fixture["candidate_pitch"],
                 "perturbation": perturbation,
@@ -604,15 +741,18 @@ def produce_h26_fixture_evidence(
         )
     time_support_valid = required_support_is_valid(
         np, sample_valid=sample_valid,
-        invalid_candidate_partial_ranks=(), target_hop_end=target_hop_end,
+        invalid_candidate_partial_ranks=(), target_hop_end=resolution_hop_end,
         exclusive_partial_ranks_used=(), policy=policy,
     )
     if not time_support_valid or observation_equivalent:
         measurements = H26Measurements(
             False, time_support_valid, observation_equivalent, (), (),
-            0.0, 0.0, (), (), 0.0, target_hop_end,
+            0.0, 0.0, (), (), 0.0, resolution_hop_end,
         )
         resolution = resolve_h26(plan.contract, measurements)
+        state_after = finish_h26_causal_proposal(
+            proposal, resolution, maximum_sample_read=measurements.maximum_sample_read,
+        )
         return H26EvidenceRecord(
             fixture_id=fixture_id,
             measurement={key: getattr(measurements, key) for key in measurements.__dataclass_fields__},
@@ -620,7 +760,10 @@ def produce_h26_fixture_evidence(
             operands={
                 "candidate_active": False, "support_valid": time_support_valid,
                 "observation_equivalent": observation_equivalent,
-                "maximum_sample_read": target_hop_end,
+                "maximum_sample_read": resolution_hop_end,
+                "proposal_hop_end": proposal_hop_end,
+                "resolution_hop_end": resolution_hop_end,
+                "state_before": proposal.state, "state_after": state_after,
                 "active_pitches": active, "candidate_pitch": fixture["candidate_pitch"],
                 "perturbation": perturbation,
             },
@@ -628,7 +771,7 @@ def produce_h26_fixture_evidence(
     current_short = causal_spectrum(
         np,
         extract_causal_view(
-            np, waveform, hop_end=target_hop_end, length=policy.short_view_samples,
+            np, waveform, hop_end=resolution_hop_end, length=policy.short_view_samples,
         ),
         policy=policy,
     )
@@ -636,19 +779,23 @@ def produce_h26_fixture_evidence(
         np, current_short, candidate_pitch=int(fixture["candidate_pitch"]),
         active_pitches=active, candidate_ranks=candidate_ranks, policy=policy,
         cents=cents, inharmonicity=inharmonicity,
+        transform_order=transform_order,
     )
     support_valid = required_support_is_valid(
         np, sample_valid=sample_valid,
-        invalid_candidate_partial_ranks=invalid_candidate_partial_ranks,
-        target_hop_end=target_hop_end, exclusive_partial_ranks_used=exclusive,
+        invalid_candidate_partial_ranks=observation.invalid_candidate_partial_ranks,
+        target_hop_end=resolution_hop_end, exclusive_partial_ranks_used=exclusive,
         policy=policy,
     )
     if not support_valid:
         measurements = H26Measurements(
             False, False, False, exclusive, (), 0.0, 0.0, (), (),
-            0.0, target_hop_end,
+            0.0, resolution_hop_end,
         )
         resolution = resolve_h26(plan.contract, measurements)
+        state_after = finish_h26_causal_proposal(
+            proposal, resolution, maximum_sample_read=measurements.maximum_sample_read,
+        )
         return H26EvidenceRecord(
             fixture_id=fixture_id,
             measurement={key: getattr(measurements, key) for key in measurements.__dataclass_fields__},
@@ -657,13 +804,16 @@ def produce_h26_fixture_evidence(
                 "candidate_active": False, "support_valid": False,
                 "observation_equivalent": False,
                 "exclusive_partial_ranks": exclusive,
-                "maximum_sample_read": target_hop_end,
+                "maximum_sample_read": resolution_hop_end,
+                "proposal_hop_end": proposal_hop_end,
+                "resolution_hop_end": resolution_hop_end,
+                "state_before": proposal.state, "state_after": state_after,
                 "active_pitches": active, "candidate_pitch": fixture["candidate_pitch"],
                 "perturbation": perturbation,
             },
         )
     raw_operands = extract_raw_operands(
-        np, waveform, target_hop_end=target_hop_end,
+        np, waveform, target_hop_end=resolution_hop_end,
         candidate_pitch=int(fixture["candidate_pitch"]), active_pitches=active,
         candidate_active=candidate_active,
         observation_equivalent=observation_equivalent,
@@ -672,12 +822,18 @@ def produce_h26_fixture_evidence(
     )
     measurements = measurements_from_raw_operands(policy, raw_operands)
     resolution = resolve_h26(plan.contract, measurements)
+    state_after = finish_h26_causal_proposal(
+        proposal, resolution, maximum_sample_read=measurements.maximum_sample_read,
+    )
     return H26EvidenceRecord(
         fixture_id=fixture_id,
         measurement={key: getattr(measurements, key) for key in measurements.__dataclass_fields__},
         resolution={key: getattr(resolution, key) for key in resolution.__dataclass_fields__},
         operands={
             **{key: getattr(raw_operands, key) for key in raw_operands.__dataclass_fields__},
+            "proposal_hop_end": proposal_hop_end,
+            "resolution_hop_end": resolution_hop_end,
+            "state_before": proposal.state, "state_after": state_after,
             "active_pitches": active, "candidate_pitch": fixture["candidate_pitch"],
             "perturbation": perturbation,
         },
@@ -689,10 +845,13 @@ def require_h26_scientific_execution_authorized(_: object = None) -> None:
 
 
 __all__ = [
-    "H26EvidenceRecord", "H26Measurements", "H26RawOperands", "H26ResidualResult", "H26Resolution",
-    "H26ScientificCapability", "H26Spectrum", "H26NumericalPolicy", "band_energy", "causal_spectrum",
+    "H26CausalProposal", "H26EvidenceRecord", "H26Measurements", "H26RawOperands", "H26ResidualResult", "H26Resolution",
+    "H26ScientificCapability", "H26Spectrum", "H26NumericalPolicy", "band_energy",
+    "begin_h26_causal_proposal", "causal_spectrum", "finish_h26_causal_proposal",
     "exclusive_partial_ranks", "extract_causal_view", "extract_measurements", "extract_raw_operands",
-    "f0_hz", "factorization_residual", "fixed_nnls_v1", "harmonic_basis",
-    "p2_cells", "produce_h26_fixture_evidence", "require_h26_scientific_execution_authorized",
+    "f0_hz", "factorization_residual", "fixed_nnls_v1", "harmonic_basis", "partial_center_hz",
+    "nonzero_observations_are_byte_equivalent", "p2_cells",
+    "pitch_dilution_pitch_order", "produce_h26_fixture_evidence",
+    "require_h26_scientific_execution_authorized",
     "measurements_from_raw_operands", "required_support_is_valid", "resolve_h26", "triangular_cents_kernel",
 ]

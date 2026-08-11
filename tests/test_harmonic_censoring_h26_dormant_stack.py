@@ -1,17 +1,20 @@
 from __future__ import annotations
 
-from copy import deepcopy
 import hashlib
 from pathlib import Path
+import tempfile
 import unittest
 
 import numpy as np
+import src.polyphonic.harmonic_censoring_h26_engine as h26_engine_module
+import src.polyphonic.harmonic_censoring_h26_materializer as h26_materializer_module
 
 from src.polyphonic.harmonic_censoring_h26_contract import (
     FIXTURE_SPECIFICATIONS_SHA256,
     SCIENTIFIC_CONTRACT_SHA256,
     TEST_MANIFEST_SHA256,
     _validate_recipe,
+    deep_thaw_json,
     load_h26_dormant_plan,
 )
 from src.polyphonic.harmonic_censoring_h26_engine import (
@@ -23,13 +26,19 @@ from src.polyphonic.harmonic_censoring_h26_engine import (
     extract_causal_view,
     fixed_nnls_v1,
     measurements_from_raw_operands,
+    nonzero_observations_are_byte_equivalent,
+    begin_h26_causal_proposal,
+    finish_h26_causal_proposal,
     p2_cells,
+    partial_center_hz,
+    pitch_dilution_pitch_order,
     required_support_is_valid,
     require_h26_scientific_execution_authorized,
     resolve_h26,
 )
 from src.polyphonic.harmonic_censoring_h26_materializer import (
     H26MaterializationCapability,
+    bind_h26_population_observation,
     build_h26_p2_transform,
     materialize_h26_population,
 )
@@ -63,11 +72,11 @@ class H26DormantStackTests(unittest.TestCase):
 
     def test_recipe_validation_fails_before_allocation_on_missing_or_divergent_fields(self) -> None:
         fixture = dict(self.plan.fixture("H26-F-P01"))
-        recipe = deepcopy(dict(self.plan.recipes["H26-F-P01"]))
+        recipe = deep_thaw_json(self.plan.recipes["H26-F-P01"])
         del recipe["sources"][0]["phase_radians"]
         with self.assertRaisesRegex(ValueError, "source schema"):
             _validate_recipe(fixture, recipe)
-        recipe = deepcopy(dict(self.plan.recipes["H26-F-P01"]))
+        recipe = deep_thaw_json(self.plan.recipes["H26-F-P01"])
         recipe["sources"][0]["gain"] = 0.75
         with self.assertRaisesRegex(ValueError, "candidate candidate_gain divergence"):
             _validate_recipe(fixture, recipe)
@@ -76,7 +85,7 @@ class H26DormantStackTests(unittest.TestCase):
         for fixture_id in ("H26-F-P07", "H26-F-P08"):
             recipe = self.plan.recipes[fixture_id]
             candidate = next(item for item in recipe["sources"] if item["source_id"] == "candidate")
-            self.assertEqual(candidate["partial_ranks"], list(range(1, 9)))
+            self.assertEqual(candidate["partial_ranks"], tuple(range(1, 9)))
             self.assertIn("old-source H2", recipe["fundamental_masked_physical_definition"])
         expected = {
             "H26-F-N05": "489426142522370829",
@@ -88,6 +97,14 @@ class H26DormantStackTests(unittest.TestCase):
             self.assertIn("|BASELINE_DECAY_NOISE_V1|", noise["seed_preimage"])
             self.assertEqual(noise["seed_uint64_decimal"], seed)
 
+    def test_loaded_plan_is_recursively_immutable(self) -> None:
+        with self.assertRaises(TypeError):
+            self.plan.contract["causal_contract"]["hop_samples"] = 1
+        with self.assertRaises(TypeError):
+            self.plan.recipes["H26-F-P01"]["sources"][0]["gain"] = 99.0
+        with self.assertRaises(TypeError):
+            self.plan.fixtures[0]["parameters"]["candidate_gain"] = 99.0
+
     def test_capabilities_and_execution_are_unissuable(self) -> None:
         with self.assertRaises(PermissionError):
             H26MaterializationCapability(self.plan, "0" * 40)
@@ -98,6 +115,36 @@ class H26DormantStackTests(unittest.TestCase):
         with self.assertRaises(PermissionError):
             require_h26_scientific_execution_authorized()
         self.assertFalse((self.root / "must-not-exist").exists())
+        self.assertFalse(hasattr(h26_materializer_module, "_CAPABILITY_TOKEN"))
+        self.assertFalse(hasattr(h26_engine_module, "_SCIENTIFIC_TOKEN"))
+
+    def test_p2_cents_and_inharmonicity_move_every_candidate_band_center(self) -> None:
+        baseline = partial_center_hz(52, 3, cents=0.0, inharmonicity=0.0)
+        perturbed = partial_center_hz(52, 3, cents=25.0, inharmonicity=0.004)
+        self.assertNotEqual(baseline, perturbed)
+        self.assertGreater(perturbed, baseline)
+        self.assertEqual(pitch_dilution_pitch_order("ascending")[:2], (24, 25))
+        self.assertEqual(pitch_dilution_pitch_order("descending")[:2], (96, 95))
+
+    def test_equivalence_is_derived_from_nonzero_bytes_not_fixture_identity(self) -> None:
+        left = np.array([0.0, 0.25, -0.5], dtype=np.float64)
+        self.assertTrue(nonzero_observations_are_byte_equivalent(np, left, left.copy()))
+        self.assertFalse(nonzero_observations_are_byte_equivalent(
+            np, left, np.array([0.0, 0.25, -0.4], dtype=np.float64),
+        ))
+        zeros = np.zeros(3, dtype=np.float64)
+        self.assertFalse(nonzero_observations_are_byte_equivalent(np, zeros, zeros.copy()))
+
+    def test_population_binding_rejects_unsealed_index_before_waveform_access(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            (root / "population_index.json").write_bytes(b"{}\n")
+            with self.assertRaisesRegex(ValueError, "index SHA mismatch"):
+                bind_h26_population_observation(
+                    np, self.plan, root,
+                    expected_population_index_sha256="0" * 64,
+                    fixture_id="H26-F-P01",
+                )
 
     def test_p2_cells_are_read_from_contract_with_exact_cardinalities(self) -> None:
         expected = {
@@ -206,7 +253,13 @@ class H26DormantStackTests(unittest.TestCase):
             "active_plus_candidate_residual": 0.8,
             "current_long_total_power": 100.0,
             "previous_long_total_power": 95.0,
+            "pitch_dilution_residual_triplets": tuple(
+                (pitch, 1.0, 0.8 if pitch == 52 else 1.0)
+                for pitch in range(24, 97)
+            ),
             "maximum_sample_read": 100,
+            "proposal_hop_end": 99, "resolution_hop_end": 355,
+            "state_before": "PENDING_NEW", "state_after": "BIRTH_SUPPORTED",
             "active_pitches": (40,), "candidate_pitch": 52,
             "perturbation": None,
         }
@@ -225,6 +278,10 @@ class H26DormantStackTests(unittest.TestCase):
         raw = H26RawOperands(
             False, True, False, (2, 3), (3.0, 3.0), 20.0,
             100.0, 90.0, 1.0, 0.8, 100.0, 95.0, 100,
+            tuple(
+                (pitch, 1.0, 0.8 if pitch == 52 else 1.0)
+                for pitch in range(24, 97)
+            ),
         )
         produced = measurements_from_raw_operands(self.policy, raw)
         self.assertEqual(produced.exclusive_energy_ratios, (0.03, 0.03))
@@ -234,11 +291,30 @@ class H26DormantStackTests(unittest.TestCase):
             self.plan, fixture_id="H26-F-A10", operands={
                 "candidate_active": False, "support_valid": False,
                 "observation_equivalent": False,
-                "maximum_sample_read": 100, "active_pitches": (),
+                "maximum_sample_read": 100,
+                "proposal_hop_end": 99, "resolution_hop_end": 355,
+                "state_before": "PENDING_NEW", "state_after": "AMBIGUOUS",
+                "active_pitches": (),
                 "candidate_pitch": 40, "perturbation": None,
             },
         )
         self.assertEqual(masked.resolution.outcome, "AMBIGUOUS")
+
+    def test_causal_state_resolves_exactly_one_hop_later_on_artificial_coordinates(self) -> None:
+        proposal = begin_h26_causal_proposal(
+            self.policy, candidate_pitch=52,
+            proposal_hop_end=1000, resolution_hop_end=1256,
+        )
+        resolution = resolve_h26(self.plan.contract, self._measurements())
+        self.assertEqual(
+            finish_h26_causal_proposal(proposal, resolution, maximum_sample_read=1256),
+            "BIRTH_SUPPORTED",
+        )
+        with self.assertRaisesRegex(ValueError, "exactly one hop"):
+            begin_h26_causal_proposal(
+                self.policy, candidate_pitch=52,
+                proposal_hop_end=1000, resolution_hop_end=1257,
+            )
 
     def test_small_non_h26_numeric_kernels_have_fixed_shapes(self) -> None:
         samples = np.arange(9000, dtype=np.float64)

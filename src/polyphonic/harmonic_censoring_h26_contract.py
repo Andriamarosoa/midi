@@ -9,6 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import hashlib
 import json
+import math
 from pathlib import Path
 from types import MappingProxyType
 from typing import Mapping, Sequence
@@ -43,12 +44,45 @@ def sha256_bytes(raw: bytes) -> str:
     return hashlib.sha256(raw).hexdigest()
 
 
+def h26_f0_hz(pitch: int) -> float:
+    return 440.0 * 2.0 ** ((float(pitch) - 69.0) / 12.0)
+
+
+def h26_partial_center_hz(
+    pitch: int, rank: int, *, cents: float, inharmonicity: float,
+) -> float:
+    return (
+        float(rank) * h26_f0_hz(pitch) * 2.0 ** (float(cents) / 1200.0)
+        * math.sqrt(1.0 + float(inharmonicity) * float(rank * rank))
+    )
+
+
 def canonical_json_bytes(value: object, *, line: bool = False) -> bytes:
     raw = json.dumps(
         value, ensure_ascii=False, allow_nan=False, sort_keys=True,
         separators=(",", ":"),
     ).encode("utf-8")
     return raw + (b"\n" if line else b"")
+
+
+def deep_freeze_json(value: object) -> object:
+    if type(value) is dict:
+        return MappingProxyType({key: deep_freeze_json(item) for key, item in value.items()})
+    if type(value) is list:
+        return tuple(deep_freeze_json(item) for item in value)
+    if type(value) in (str, int, float, bool) or value is None:
+        return value
+    raise TypeError(f"H26 cannot freeze non-JSON value {type(value).__name__}.")
+
+
+def deep_thaw_json(value: object) -> object:
+    if isinstance(value, Mapping):
+        return {key: deep_thaw_json(item) for key, item in value.items()}
+    if type(value) is tuple:
+        return [deep_thaw_json(item) for item in value]
+    if type(value) in (str, int, float, bool) or value is None:
+        return value
+    raise TypeError(f"H26 cannot thaw non-JSON value {type(value).__name__}.")
 
 
 def _pairs(pairs: Sequence[tuple[str, object]]) -> dict[str, object]:
@@ -191,7 +225,7 @@ def _validate_recipe(fixture: Mapping[str, object], recipe: object) -> Mapping[s
         if str(seed) != noise["seed_uint64_decimal"]:
             raise ValueError(f"H26 {fixture_id} noise seed mismatch.")
     _crosscheck_recipe(fixture, recipe)
-    return MappingProxyType(dict(recipe))
+    return deep_freeze_json(recipe)
 
 
 def _source(recipe: Mapping[str, object], source_id: str) -> Mapping[str, object] | None:
@@ -204,7 +238,7 @@ def _source(recipe: Mapping[str, object], source_id: str) -> Mapping[str, object
 def _crosscheck_recipe(fixture: Mapping[str, object], recipe: Mapping[str, object]) -> None:
     fixture_id = str(fixture["id"])
     params = fixture.get("parameters")
-    if type(params) is not dict:
+    if not isinstance(params, Mapping):
         raise ValueError(f"H26 {fixture_id} parameters missing.")
     candidate = _source(recipe, "candidate")
     old = _source(recipe, "old")
@@ -225,7 +259,7 @@ def _crosscheck_recipe(fixture: Mapping[str, object], recipe: Mapping[str, objec
         if "old_decay_samples" in params and old["envelope_parameters"].get("decay_samples") != params["old_decay_samples"]:
             raise ValueError(f"H26 {fixture_id} old decay divergence.")
     if "active_pitches" in params:
-        if [item["pitch"] for item in recipe["sources"]] != params["active_pitches"]:
+        if tuple(item["pitch"] for item in recipe["sources"]) != tuple(params["active_pitches"]):
             raise ValueError(f"H26 {fixture_id} active-pitch recipe divergence.")
     if params.get("fundamental_masked") is True:
         if candidate is None or candidate["partial_ranks"] != list(range(1, 9)):
@@ -269,7 +303,7 @@ def load_h26_dormant_plan(repository_root: Path) -> H26DormantPlan:
             raise ValueError("H26 fixture schema/order mismatch.")
         if raw.get("expected") not in OUTCOMES:
             raise ValueError("H26 fixture expected outcome invalid.")
-        fixtures.append(MappingProxyType(dict(raw)))
+        fixtures.append(deep_freeze_json(raw))
     ids = tuple(str(item["id"]) for item in fixtures)
     if len(set(ids)) != 40 or ids != tuple(f"H26-F-{prefix}{index:02d}" for prefix, count in (("P",10),("N",10),("H",8),("A",12)) for index in range(1,count+1)):
         raise ValueError("H26 fixture identity/order mismatch.")
@@ -341,9 +375,9 @@ def load_h26_dormant_plan(repository_root: Path) -> H26DormantPlan:
         ))
     return H26DormantPlan(
         repository_root=repository,
-        contract=MappingProxyType(contract),
-        specifications=MappingProxyType(specifications),
-        test_manifest=MappingProxyType(test_manifest),
+        contract=deep_freeze_json(contract),
+        specifications=deep_freeze_json(specifications),
+        test_manifest=deep_freeze_json(test_manifest),
         fixtures=tuple(fixtures), recipes=MappingProxyType(recipes),
         collision_fixture_ids=collision_ids, tests=tuple(tests),
     )
@@ -354,5 +388,7 @@ __all__ = [
     "H26DormantPlan", "H26TestSpecification", "OUTCOMES",
     "SCIENTIFIC_CONTRACT_PATH", "SCIENTIFIC_CONTRACT_SHA256",
     "TEST_MANIFEST_PATH", "TEST_MANIFEST_SHA256", "canonical_json_bytes",
-    "load_h26_dormant_plan", "parse_strict_json", "sha256_bytes",
+    "deep_freeze_json", "deep_thaw_json", "h26_f0_hz",
+    "h26_partial_center_hz", "load_h26_dormant_plan",
+    "parse_strict_json", "sha256_bytes",
 ]

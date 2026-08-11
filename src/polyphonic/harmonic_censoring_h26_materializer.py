@@ -7,35 +7,28 @@ available for structural review and small non-H26 unit inputs.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from copy import deepcopy
 import hashlib
 import math
 import os
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
-from .harmonic_censoring_h26_contract import H26DormantPlan, canonical_json_bytes
+from .harmonic_censoring_h26_contract import (
+    H26DormantPlan, canonical_json_bytes, deep_freeze_json, deep_thaw_json,
+    h26_f0_hz, h26_partial_center_hz, parse_strict_json,
+)
 
 
 SAMPLE_COUNT = 16640
 SAMPLE_RATE_HZ = 44100
-_CAPABILITY_TOKEN = object()
-
-
 class H26MaterializationCapability:
-    """Factory-only future authority; this commit deliberately has no issuer."""
+    """Placeholder type; no instance can exist in the dormant stack."""
 
-    __slots__ = ("plan", "implementation_commit", "_token")
+    __slots__ = ()
 
-    def __init__(
-        self, plan: H26DormantPlan, implementation_commit: str,
-        *, _token: object = None,
-    ) -> None:
-        if _token is not _CAPABILITY_TOKEN:
-            raise PermissionError("H26 materialization capability has no issuer.")
-        self.plan = plan
-        self.implementation_commit = implementation_commit
-        self._token = _token
+    def __new__(cls, *args: object, **kwargs: object) -> "H26MaterializationCapability":
+        del cls, args, kwargs
+        raise PermissionError("H26 materialization capability has no issuer.")
 
 
 @dataclass(frozen=True)
@@ -57,8 +50,17 @@ class H26P2Transform:
     validity_start_shift: int
 
 
-def _f0(pitch: int) -> float:
-    return 440.0 * 2.0 ** ((float(pitch) - 69.0) / 12.0)
+@dataclass(frozen=True)
+class H26BoundObservation:
+    fixture_id: str
+    population_index_sha256: str
+    waveform_sha256: str
+    waveform: Any
+    sample_valid_sha256: str
+    sample_valid: Any
+    invalid_candidate_partial_ranks: tuple[int, ...]
+    alternate_waveform_sha256: str | None
+    alternate_waveform: Any | None
 
 
 def _envelope_value(source: Mapping[str, object], sample: int) -> float:
@@ -89,9 +91,8 @@ def _accumulate_sources(
         inharmonicity = float(source["B"])
         for rank_raw in source["partial_ranks"]:
             rank = int(rank_raw)
-            frequency = (
-                rank * _f0(pitch) * 2.0 ** (cents / 1200.0)
-                * math.sqrt(1.0 + inharmonicity * rank * rank)
+            frequency = h26_partial_center_hz(
+                pitch, rank, cents=cents, inharmonicity=inharmonicity,
             )
             amplitude = gain / float(rank)
             for sample in range(sample_count):
@@ -182,7 +183,7 @@ def _render_collision_pair(
     }]
     old = _accumulate_sources(np, background_sources, sample_count=SAMPLE_COUNT)
     candidate = _accumulate_sources(np, background_sources, sample_count=SAMPLE_COUNT)
-    frequency = float(rank) * _f0(old_pitch)
+    frequency = float(rank) * h26_f0_hz(old_pitch)
     onset = int(collision["collision_onset_sample"])
     for sample in range(SAMPLE_COUNT):
         envelope = _collision_envelope(sample, onset)
@@ -205,7 +206,7 @@ def _render_collision_pair(
 
 def _validity_masks(np: Any, fixture: Mapping[str, object]) -> H26ValidityMasks:
     params = fixture.get("parameters")
-    if type(params) is not dict:
+    if not isinstance(params, Mapping):
         raise ValueError("H26 fixture parameters missing for validity masks.")
     sample_valid = np.ones(SAMPLE_COUNT, dtype=np.bool_)
     valid_start = params.get("valid_time_support_start_sample", 0)
@@ -213,7 +214,7 @@ def _validity_masks(np: Any, fixture: Mapping[str, object]) -> H26ValidityMasks:
         raise ValueError("H26 validity support start invalid.")
     sample_valid[:valid_start] = False
     raw_ranks = params.get("masked_candidate_partial_ranks", [])
-    if type(raw_ranks) is not list or any(type(rank) is not int or not 1 <= rank <= 8 for rank in raw_ranks):
+    if type(raw_ranks) not in (list, tuple) or any(type(rank) is not int or not 1 <= rank <= 8 for rank in raw_ranks):
         raise ValueError("H26 masked candidate partial ranks invalid.")
     invalid_ranks = tuple(sorted(set(raw_ranks)))
     return H26ValidityMasks(sample_valid, invalid_ranks)
@@ -239,7 +240,7 @@ def build_h26_p2_transform(
     target = int(timeline["target_hop_end"])
     resolution = int(timeline["resolution_hop_end"])
     shift = 0
-    recipe = None if fixture_id in plan.collision_fixture_ids else deepcopy(dict(plan.recipes[fixture_id]))
+    recipe = None if fixture_id in plan.collision_fixture_ids else deep_thaw_json(plan.recipes[fixture_id])
     collision_overrides: dict[str, object] = {}
     if grid_id == "P2_GAIN_V1":
         scale = float(cell["scale"])
@@ -294,24 +295,24 @@ def build_h26_p2_transform(
             reverse_partials = cell["candidate_partial_order"] == "descending"
             for source in candidate:
                 source["partial_ranks"] = sorted(source["partial_ranks"], reverse=reverse_partials)
-        collision_overrides["permutation"] = dict(cell)
+        collision_overrides["permutation"] = deep_thaw_json(cell)
     elif grid_id == "P2_RUNTIME_V1":
-        collision_overrides["runtime_identity"] = deepcopy(dict(cell["identity"]))
+        collision_overrides["runtime_identity"] = deep_thaw_json(cell["identity"])
     else:
         raise ValueError("H26 unsupported P2 transform grid.")
     return H26P2Transform(
         fixture_id=fixture_id, test_id=test_id, grid_id=grid_id,
-        cell=deepcopy(dict(cell)), recipe=recipe,
-        collision_overrides=collision_overrides,
+        cell=deep_freeze_json(deep_thaw_json(cell)),
+        recipe=None if recipe is None else deep_freeze_json(recipe),
+        collision_overrides=deep_freeze_json(collision_overrides),
         target_hop_end=target, resolution_hop_end=resolution,
         validity_start_shift=shift,
     )
 
 
 def _require_capability(capability: H26MaterializationCapability) -> H26DormantPlan:
-    if type(capability) is not H26MaterializationCapability or capability._token is not _CAPABILITY_TOKEN:
-        raise PermissionError("H26 exact materialization capability required.")
-    return capability.plan
+    del capability
+    raise PermissionError("H26 materialization remains dormant; no capability can exist.")
 
 
 def synthesize_h26_fixture(
@@ -342,8 +343,8 @@ def synthesize_h26_p2_fixture(
     )
     if rebuilt != transform:
         raise ValueError("H26 P2 transform is not the canonical sealed transform.")
-    fixture = deepcopy(dict(plan.fixture(transform.fixture_id)))
-    params = deepcopy(dict(fixture["parameters"]))
+    fixture = deep_thaw_json(plan.fixture(transform.fixture_id))
+    params = fixture["parameters"]
     fixture["parameters"] = params
     masks = _validity_masks(np, fixture)
     if transform.validity_start_shift:
@@ -356,7 +357,7 @@ def synthesize_h26_p2_fixture(
         masks = H26ValidityMasks(shifted, masks.invalid_candidate_partial_ranks)
     if transform.recipe is not None:
         return _synthesize_recipe(np, transform.recipe), masks, None
-    collision = deepcopy(dict(plan.specifications["exact_nonzero_collision_contract"]))
+    collision = deep_thaw_json(plan.specifications["exact_nonzero_collision_contract"])
     if "gain_scale" in transform.collision_overrides:
         scale = float(transform.collision_overrides["gain_scale"])
         params["old_source_gain"] = float(params["old_source_gain"]) * scale
@@ -378,6 +379,85 @@ def encode_waveform(np: Any, waveform: Any) -> bytes:
     if array.shape != (SAMPLE_COUNT,) or array.dtype != np.float64 or not np.all(np.isfinite(array)):
         raise ValueError("H26 waveform shape/dtype/finiteness mismatch.")
     return array.astype("<f8", copy=False).tobytes(order="C")
+
+
+def _read_bound_file(root: Path, relative: object, expected_sha256: object) -> bytes:
+    if type(relative) is not str or not relative or type(expected_sha256) is not str:
+        raise ValueError("H26 population record path/SHA invalid.")
+    path = (root / relative).resolve(strict=True)
+    try:
+        path.relative_to(root)
+    except ValueError as exc:
+        raise ValueError("H26 population file escapes its root.") from exc
+    raw = path.read_bytes()
+    if hashlib.sha256(raw).hexdigest() != expected_sha256:
+        raise ValueError("H26 population file SHA mismatch.")
+    return raw
+
+
+def bind_h26_population_observation(
+    np: Any, plan: H26DormantPlan, population_root: Path,
+    *, expected_population_index_sha256: str, fixture_id: str,
+) -> H26BoundObservation:
+    """Future verifier for sealed bytes; it performs no synthesis or inference."""
+
+    plan.fixture(fixture_id)
+    root = Path(population_root).resolve(strict=True)
+    index_path = (root / "population_index.json").resolve(strict=True)
+    index_path.relative_to(root)
+    index_raw = index_path.read_bytes()
+    index_sha = hashlib.sha256(index_raw).hexdigest()
+    if index_sha != expected_population_index_sha256:
+        raise ValueError("H26 population index SHA mismatch.")
+    index = parse_strict_json(index_raw, "population index")
+    if index.get("schema_version") != 1 or index.get("population_namespace") != "H26_SYNTHETIC_V1":
+        raise ValueError("H26 population index schema/namespace mismatch.")
+    records = index.get("records")
+    if type(records) is not list or len(records) != len(plan.fixture_ids):
+        raise ValueError("H26 population index cardinality mismatch.")
+    if any(type(item) is not dict for item in records):
+        raise ValueError("H26 population record schema invalid.")
+    if [record.get("fixture_id") for record in records] != list(plan.fixture_ids):
+        raise ValueError("H26 population index order/identity mismatch.")
+    record = next(item for item in records if item["fixture_id"] == fixture_id)
+    waveform_raw = _read_bound_file(root, record.get("waveform"), record.get("waveform_sha256"))
+    if len(waveform_raw) != SAMPLE_COUNT * 8:
+        raise ValueError("H26 bound waveform byte length mismatch.")
+    waveform = np.frombuffer(waveform_raw, dtype="<f8")
+    if waveform.shape != (SAMPLE_COUNT,) or not np.all(np.isfinite(waveform)):
+        raise ValueError("H26 bound waveform invalid.")
+    mask_raw = _read_bound_file(root, record.get("sample_valid"), record.get("sample_valid_sha256"))
+    if len(mask_raw) != SAMPLE_COUNT or any(value not in (0, 1) for value in mask_raw):
+        raise ValueError("H26 bound sample-valid mask invalid.")
+    sample_valid = np.frombuffer(mask_raw, dtype=np.uint8).astype(np.bool_)
+    sample_valid.setflags(write=False)
+    expected_masks = _validity_masks(np, plan.fixture(fixture_id))
+    if mask_raw != expected_masks.sample_valid.astype(np.uint8).tobytes(order="C"):
+        raise ValueError("H26 bound mask differs from sealed fixture parameters.")
+    ranks = record.get("invalid_candidate_partial_ranks")
+    if type(ranks) is not list or tuple(ranks) != expected_masks.invalid_candidate_partial_ranks:
+        raise ValueError("H26 bound invalid-rank mask mismatch.")
+    alternate = None
+    alternate_sha = record.get("alternate_waveform_sha256")
+    alternate_name = record.get("alternate_waveform")
+    if (alternate_name is None) != (alternate_sha is None):
+        raise ValueError("H26 alternate waveform path/SHA presence mismatch.")
+    if alternate_name is not None:
+        alternate_raw = _read_bound_file(root, alternate_name, alternate_sha)
+        if len(alternate_raw) != SAMPLE_COUNT * 8:
+            raise ValueError("H26 alternate waveform byte length mismatch.")
+        alternate = np.frombuffer(alternate_raw, dtype="<f8")
+        if not np.all(np.isfinite(alternate)):
+            raise ValueError("H26 alternate waveform invalid.")
+    return H26BoundObservation(
+        fixture_id=fixture_id, population_index_sha256=index_sha,
+        waveform_sha256=str(record["waveform_sha256"]), waveform=waveform,
+        sample_valid_sha256=str(record["sample_valid_sha256"]),
+        sample_valid=sample_valid,
+        invalid_candidate_partial_ranks=tuple(int(rank) for rank in ranks),
+        alternate_waveform_sha256=None if alternate_sha is None else str(alternate_sha),
+        alternate_waveform=alternate,
+    )
 
 
 def _write_new(path: Path, raw: bytes) -> None:
@@ -413,15 +493,23 @@ def materialize_h26_population(
             raw = encode_waveform(np, waveform)
             name = f"{ordinal:03d}_{fixture_id}.f8le"
             _write_new(staging / name, raw)
+            mask_name = f"{ordinal:03d}_{fixture_id}.sample-valid.u8"
+            mask_raw = masks.sample_valid.astype(np.uint8).tobytes(order="C")
+            _write_new(staging / mask_name, mask_raw)
             alternate_name = None
+            alternate_sha256 = None
             if alternate is not None:
                 alternate_raw = encode_waveform(np, alternate)
                 alternate_name = f"{ordinal:03d}_{fixture_id}.alternate.f8le"
                 _write_new(staging / alternate_name, alternate_raw)
+                alternate_sha256 = hashlib.sha256(alternate_raw).hexdigest()
             records.append({
                 "fixture_id": fixture_id, "ordinal": ordinal, "waveform": name,
                 "waveform_sha256": hashlib.sha256(raw).hexdigest(),
                 "alternate_waveform": alternate_name,
+                "alternate_waveform_sha256": alternate_sha256,
+                "sample_valid": mask_name,
+                "sample_valid_sha256": hashlib.sha256(mask_raw).hexdigest(),
                 "sample_valid_count": int(np.count_nonzero(masks.sample_valid)),
                 "invalid_candidate_partial_ranks": list(masks.invalid_candidate_partial_ranks),
             })
@@ -437,7 +525,9 @@ def materialize_h26_population(
 
 
 __all__ = [
-    "H26MaterializationCapability", "H26P2Transform", "H26ValidityMasks", "SAMPLE_COUNT",
+    "H26BoundObservation", "H26MaterializationCapability", "H26P2Transform",
+    "H26ValidityMasks", "SAMPLE_COUNT",
     "SAMPLE_RATE_HZ", "encode_waveform", "materialize_h26_population",
-    "build_h26_p2_transform", "synthesize_h26_fixture", "synthesize_h26_p2_fixture",
+    "bind_h26_population_observation", "build_h26_p2_transform",
+    "synthesize_h26_fixture", "synthesize_h26_p2_fixture",
 ]
