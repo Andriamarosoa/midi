@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
+import hashlib
 import inspect
 import json
 from pathlib import Path
@@ -58,6 +59,40 @@ class H26DormantRuntimeQualificationTests(unittest.TestCase):
             altered = Path(directory) / source.name
             altered.write_bytes(raw + b"\n")
             with self.assertRaisesRegex(ValueError, "Git blob mismatch"):
+                runtime.load_runtime_qualification_contract(altered)
+
+    def test_lf_and_crlf_share_canonical_blob_and_contract_sha256(self) -> None:
+        source = Path(runtime.__file__).resolve().parents[2] / "configs" / (
+            "harmonic_censoring_h26_materialization_runtime_qualification_contract.json"
+        )
+        canonical_lf = runtime._canonical_git_text_bytes(source.read_bytes())
+        crlf = canonical_lf.replace(b"\n", b"\r\n")
+        expected_sha256 = hashlib.sha256(canonical_lf).hexdigest()
+        self.assertEqual(
+            runtime._git_blob_sha(canonical_lf),
+            "c3a021872dfd3a99b6977fdef1302d5edc755fea",
+        )
+        self.assertEqual(runtime._git_blob_sha(canonical_lf), runtime._git_blob_sha(crlf))
+        with tempfile.TemporaryDirectory() as directory:
+            lf_path = Path(directory) / "contract-lf.json"
+            crlf_path = Path(directory) / "contract-crlf.json"
+            lf_path.write_bytes(canonical_lf)
+            crlf_path.write_bytes(crlf)
+            lf_contract = runtime.load_runtime_qualification_contract(lf_path)
+            crlf_contract = runtime.load_runtime_qualification_contract(crlf_path)
+        self.assertEqual(lf_contract.raw_sha256, expected_sha256)
+        self.assertEqual(crlf_contract.raw_sha256, expected_sha256)
+
+    def test_isolated_carriage_return_is_rejected(self) -> None:
+        source = Path(runtime.__file__).resolve().parents[2] / "configs" / (
+            "harmonic_censoring_h26_materialization_runtime_qualification_contract.json"
+        )
+        canonical_lf = runtime._canonical_git_text_bytes(source.read_bytes())
+        isolated_cr = canonical_lf.replace(b"\n", b"\r", 1)
+        with tempfile.TemporaryDirectory() as directory:
+            altered = Path(directory) / "isolated-cr.json"
+            altered.write_bytes(isolated_cr)
+            with self.assertRaisesRegex(ValueError, "non-CRLF carriage return"):
                 runtime.load_runtime_qualification_contract(altered)
 
     def test_rejected_old_blob_and_commit_blob_cross_bindings_fail_closed(self) -> None:
@@ -266,6 +301,50 @@ class H26DormantRuntimeQualificationTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(ValueError, "own SHA256"):
             runtime.serialize_runtime_qualification_record(forged)
+
+    def forged_record(self, payload: dict) -> runtime.H26RuntimeQualificationRecord:
+        forged = object.__new__(runtime.H26RuntimeQualificationRecord)
+        object.__setattr__(forged, "_payload", MappingProxyType(payload))
+        return forged
+
+    def test_serializer_rederives_and_rejects_incoherent_qualified_status(self) -> None:
+        base = self.exact_observation()
+        mismatched = replace(
+            base,
+            runtime=replace(base.runtime, version="3.11.8"),
+        )
+        payload = runtime.build_runtime_qualification_record(
+            self.contract, mismatched
+        ).as_dict()
+        self.assertEqual(payload["terminal_status"], runtime.STATUS_DISQUALIFIED)
+        payload["terminal_status"] = runtime.STATUS_QUALIFIED
+        with self.assertRaisesRegex(ValueError, "not the derived status"):
+            runtime.serialize_runtime_qualification_record(
+                self.forged_record(payload)
+            )
+
+    def test_serializer_rejects_forged_authority_and_materializer_bindings(self) -> None:
+        original = runtime.build_runtime_qualification_record(
+            self.contract, self.exact_observation()
+        ).as_dict()
+        for field in ("authority_contract_commit", "materializer_git_blob_sha"):
+            with self.subTest(field=field):
+                payload = dict(original)
+                payload[field] = "0" * 40
+                with self.assertRaisesRegex(ValueError, "binding mismatch"):
+                    runtime.serialize_runtime_qualification_record(
+                        self.forged_record(payload)
+                    )
+
+    def test_serializer_rejects_noncanonical_forged_observed_runtime(self) -> None:
+        payload = runtime.build_runtime_qualification_record(
+            self.contract, self.exact_observation()
+        ).as_dict()
+        payload["observed_runtime"]["numpy_multiarray_sha256"] = "0" * 64
+        with self.assertRaisesRegex(ValueError, "observation is malformed"):
+            runtime.serialize_runtime_qualification_record(
+                self.forged_record(payload)
+            )
 
     def test_atomic_writer_is_unreachable_before_any_file_creation(self) -> None:
         record = runtime.build_runtime_qualification_record(

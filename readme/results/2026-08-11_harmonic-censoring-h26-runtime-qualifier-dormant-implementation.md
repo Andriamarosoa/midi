@@ -36,6 +36,12 @@ finies et le JSON tronqué. Il calcule le blob Git depuis les mêmes octets lus;
 seule la normalisation texte Git CRLF vers LF est admise pour un checkout
 Windows, et un caractère CR isolé est refusé.
 
+Après la première revue du qualificateur, la même représentation LF canonique
+sert désormais aux deux empreintes : SHA-1 du blob Git et SHA-256 contractuel.
+Un checkout LF et son équivalent CRLF produisent donc exactement le même
+`qualification_contract_raw_sha256`; les octets CRLF locaux ne peuvent plus
+faire dériver la provenance du futur record.
+
 ## Architecture dormante
 
 Le module sépare strictement deux plans :
@@ -82,6 +88,13 @@ variables observées et maintient les preuves binaires à plat. Le JSON est
 déterministe, fini et sans auto-SHA. Le writer atomique futur exige la
 capability inaccessible avant toute création de fichier.
 
+Le serializer ne fait confiance ni au type exact ni au `_payload` privé. Il
+recharge le contrat scellé, vérifie l'ensemble exact des champs et tous les
+bindings, impose les sept champs de `observed_runtime`, reconstruit une
+`RuntimeObservation` depuis les preuves plates, redérive le statut et refuse
+toute divergence. Un objet forgé par `object.__new__` ne peut donc plus publier
+un faux verdict `QUALIFIED`.
+
 Aucun vrai record n'est produit par cette étape.
 
 ## Validation artificielle autorisée
@@ -97,7 +110,7 @@ python -m unittest \
   tests.test_harmonic_censoring_h26_runtime_qualification_dormant
 ```
 
-Résultat final : `17 tests` réussis en `0,011 s`.
+Résultat final : `22 tests` réussis en `0,031 s`.
 
 Les cas couvrent notamment le blob corrigé accepté, l'ancien blob refusé, les
 croisements commit/blob, capability directe et forgée, absence d'import NumPy,
@@ -105,6 +118,10 @@ observation artificielle exacte, mismatches Python/Darwin/NumPy/BLAS, clés
 d'environnement absentes ou fausses, preuves manquantes/inaccessibles,
 représentation runtime canonique, statut dérivé, sérialisation déterministe,
 auto-SHA refusé et writer inaccessible avant création.
+
+Les cinq cas ajoutés après revue prouvent en plus l'identité des blobs et SHA
+contractuels LF/CRLF, le refus d'un CR isolé, la redérivation du statut et le
+refus des bindings ou de l'identité runtime forgés.
 
 Le premier échec sur `c1e503ab…` était un échec correct de garde et non une
 qualification. Aucun observer réel, NumPy, BLAS, runtime secondaire ou actif

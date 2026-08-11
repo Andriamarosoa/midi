@@ -41,6 +41,12 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   observations artificielles. Aucun vrai runtime/record n'a été qualifié ou
   créé. Rapport :
   `readme/results/2026-08-11_harmonic-censoring-h26-runtime-qualifier-dormant-implementation.md`.
+- Correctif de revue du qualificateur : le SHA-256 contractuel est maintenant
+  calculé sur les mêmes octets LF canoniques que le blob Git, donc indépendant
+  d'un checkout CRLF. Avant sérialisation, tout record est revalidé contre le
+  contrat, reconstruit en observation et son statut redérivé; un `_payload`
+  forgé ne peut pas imposer `QUALIFIED`. Les 22 tests artificiels passent;
+  aucune observation réelle n'a été effectuée.
 - Contrat dormant d'autorité de matérialisation H26 défini, sans issuer ni
   objet opérationnel : les trois SHA scientifiques et les cinq blobs Git revus
   sont liés, la sémantique one-shot/fail-closed future est spécifiée et les

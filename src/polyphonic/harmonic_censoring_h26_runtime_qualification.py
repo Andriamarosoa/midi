@@ -223,7 +223,7 @@ def _strict_json_loads(raw: bytes) -> Any:
         raise ValueError("invalid JSON contract") from exc
 
 
-def _git_blob_sha(raw: bytes) -> str:
+def _canonical_git_text_bytes(raw: bytes) -> bytes:
     # The reviewed identity is the Git text blob.  A Windows checkout may
     # expose that same text through core.autocrlf as CRLF, so reproduce Git's
     # text normalization while refusing any non-CRLF carriage return.
@@ -231,6 +231,11 @@ def _git_blob_sha(raw: bytes) -> str:
         if raw.replace(b"\r\n", b"").find(b"\r") != -1:
             raise ValueError("contract contains a non-CRLF carriage return")
         raw = raw.replace(b"\r\n", b"\n")
+    return raw
+
+
+def _git_blob_sha(raw: bytes) -> str:
+    raw = _canonical_git_text_bytes(raw)
     header = f"blob {len(raw)}\0".encode("ascii")
     return hashlib.sha1(header + raw).hexdigest()
 
@@ -289,10 +294,11 @@ def load_runtime_qualification_contract(
         raise ValueError("runtime qualification contract blob binding mismatch")
     resolved = (path or _contract_path()).resolve(strict=True)
     raw = resolved.read_bytes()
-    blob_sha = _git_blob_sha(raw)
+    canonical_raw = _canonical_git_text_bytes(raw)
+    blob_sha = _git_blob_sha(canonical_raw)
     if blob_sha != RUNTIME_QUALIFICATION_CONTRACT_GIT_BLOB_SHA:
         raise ValueError("runtime qualification contract Git blob mismatch")
-    payload = _require_dict(_strict_json_loads(raw), "contract")
+    payload = _require_dict(_strict_json_loads(canonical_raw), "contract")
 
     required_top_level = {
         "schema_version": 1,
@@ -366,7 +372,7 @@ def load_runtime_qualification_contract(
         blas_library_sha256=expected_runtime_dict["blas_library_sha256"],
     )
     return RuntimeQualificationContract(
-        raw_sha256=hashlib.sha256(raw).hexdigest(),
+        raw_sha256=hashlib.sha256(canonical_raw).hexdigest(),
         expected_runtime=expected_runtime,
         process_environment_exact=_EXPECTED_ENVIRONMENT_ITEMS,
         qualification_contract_commit=RUNTIME_QUALIFICATION_CONTRACT_COMMIT,
@@ -565,14 +571,135 @@ def _find_forbidden_self_sha(value: Any) -> bool:
     return False
 
 
+_RUNTIME_IDENTITY_FIELDS = (
+    "implementation",
+    "version",
+    "platform_system",
+    "platform_release",
+    "platform_machine",
+    "numpy_version",
+    "blas_provider",
+)
+
+_RUNTIME_RECORD_FIELDS = frozenset(
+    {
+        "record_schema_identity",
+        "record_schema_version",
+        "qualification_contract_commit",
+        "qualification_contract_raw_sha256",
+        "authority_contract_commit",
+        "authority_contract_git_blob_sha",
+        "reviewed_implementation_commit",
+        "materializer_git_blob_sha",
+        "target_runtime_role",
+        "expected_runtime",
+        "observed_runtime",
+        "process_environment_exact",
+        "observed_process_environment",
+        "resolved_executable",
+        "executable_size_bytes",
+        "executable_sha256",
+        "numpy_multiarray_resolved_path",
+        "numpy_multiarray_size_bytes",
+        "numpy_multiarray_sha256",
+        "blas_library_resolved_path",
+        "blas_library_size_bytes",
+        "blas_library_sha256",
+        "terminal_status",
+    }
+)
+
+
+def _proof_from_payload(payload: Mapping[str, Any], prefix: str) -> Optional[BinaryProof]:
+    if prefix == "executable":
+        path_key = "resolved_executable"
+    else:
+        path_key = f"{prefix}_resolved_path"
+    path = payload[path_key]
+    size = payload[f"{prefix}_size_bytes"]
+    sha256 = payload[f"{prefix}_sha256"]
+    if path is None and size is None and sha256 is None:
+        return None
+    return BinaryProof(resolved_path=path, size_bytes=size, sha256=sha256)
+
+
+def _observation_from_record_payload(payload: Mapping[str, Any]) -> RuntimeObservation:
+    observed_runtime = payload["observed_runtime"]
+    runtime_identity: Optional[RuntimeIdentity]
+    if observed_runtime is None:
+        runtime_identity = None
+    else:
+        if not isinstance(observed_runtime, dict):
+            raise ValueError("observed_runtime must be a canonical object or null")
+        if tuple(observed_runtime) != _RUNTIME_IDENTITY_FIELDS:
+            raise ValueError("observed_runtime fields are not canonical")
+        runtime_identity = RuntimeIdentity(
+            **{field: observed_runtime[field] for field in _RUNTIME_IDENTITY_FIELDS}
+        )
+
+    observed_environment = payload["observed_process_environment"]
+    environment: Optional[EnvironmentItems]
+    if observed_environment is None:
+        environment = None
+    else:
+        if not isinstance(observed_environment, dict):
+            raise ValueError("observed_process_environment must be an object or null")
+        if not set(observed_environment).issubset(CONTROL_ENVIRONMENT_KEYS):
+            raise ValueError("observed_process_environment contains an unlisted key")
+        try:
+            environment = environment_items(observed_environment)
+        except (TypeError, ValueError) as exc:
+            raise ValueError("observed_process_environment is malformed") from exc
+
+    return RuntimeObservation(
+        runtime=runtime_identity,
+        process_environment=environment,
+        executable=_proof_from_payload(payload, "executable"),
+        numpy_multiarray=_proof_from_payload(payload, "numpy_multiarray"),
+        blas_library=_proof_from_payload(payload, "blas_library"),
+    )
+
+
+def _validate_runtime_record_payload(payload: Mapping[str, Any]) -> None:
+    if _find_forbidden_self_sha(payload):
+        raise ValueError("runtime record must not contain its own SHA256")
+    if set(payload) != _RUNTIME_RECORD_FIELDS:
+        raise ValueError("runtime record fields are not the exact canonical schema")
+
+    contract = load_runtime_qualification_contract()
+    exact_bindings = {
+        "record_schema_identity": RECORD_SCHEMA_IDENTITY,
+        "record_schema_version": RECORD_SCHEMA_VERSION,
+        "qualification_contract_commit": contract.qualification_contract_commit,
+        "qualification_contract_raw_sha256": contract.raw_sha256,
+        "authority_contract_commit": contract.authority_contract_commit,
+        "authority_contract_git_blob_sha": contract.authority_contract_git_blob_sha,
+        "reviewed_implementation_commit": contract.reviewed_implementation_commit,
+        "materializer_git_blob_sha": contract.materializer_git_blob_sha,
+        "target_runtime_role": contract.target_runtime_role,
+        "expected_runtime": contract.expected_runtime.as_dict(),
+        "process_environment_exact": dict(contract.process_environment_exact),
+    }
+    for key, expected in exact_bindings.items():
+        if type(payload[key]) is not type(expected) or payload[key] != expected:
+            raise ValueError(f"runtime record binding mismatch: {key}")
+
+    try:
+        observation = _observation_from_record_payload(payload)
+        derived_status = derive_runtime_terminal_status(contract, observation)
+    except (KeyError, TypeError, ValueError) as exc:
+        raise ValueError("runtime record observation is malformed") from exc
+    if payload["terminal_status"] != derived_status:
+        raise ValueError("runtime record terminal_status is not the derived status")
+
+
 def serialize_runtime_qualification_record(
     record: H26RuntimeQualificationRecord,
 ) -> bytes:
     if type(record) is not H26RuntimeQualificationRecord:
         raise TypeError("record must be built by build_runtime_qualification_record")
     payload = record.as_dict()
-    if _find_forbidden_self_sha(payload):
-        raise ValueError("runtime record must not contain its own SHA256")
+    _validate_runtime_record_payload(payload)
     try:
         text = json.dumps(
             payload,
