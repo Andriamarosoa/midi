@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+from dataclasses import replace
 import hashlib
 from pathlib import Path
 import tempfile
 import unittest
 
 from src.polyphonic import harmonic_censoring_h26_runtime_execution_primitives as runtime
+from src.polyphonic import harmonic_censoring_h26_runtime_qualification as qualifier
 
 
 class CanonicalJsonTests(unittest.TestCase):
@@ -408,6 +410,91 @@ class ArtificialArtifactValidatorTests(unittest.TestCase):
             "observer_entry_ordinal": 1,
         }
 
+    def runtime_record(
+        self, status: str = qualifier.STATUS_QUALIFIED
+    ) -> qualifier.H26RuntimeQualificationRecord:
+        contract = qualifier.load_runtime_qualification_contract()
+        expected = contract.expected_runtime
+        observation = qualifier.RuntimeObservation(
+            runtime=expected.identity,
+            process_environment=contract.process_environment_exact,
+            executable=qualifier.BinaryProof(
+                resolved_path="/artificial/python3.11",
+                size_bytes=123456,
+                sha256="1" * 64,
+            ),
+            numpy_multiarray=qualifier.BinaryProof(
+                resolved_path="/artificial/_multiarray_umath.so",
+                size_bytes=expected.numpy_multiarray_size_bytes,
+                sha256=expected.numpy_multiarray_sha256,
+            ),
+            blas_library=qualifier.BinaryProof(
+                resolved_path="/artificial/libopenblas64_.dylib",
+                size_bytes=expected.blas_library_size_bytes,
+                sha256=expected.blas_library_sha256,
+            ),
+        )
+        if status == qualifier.STATUS_DISQUALIFIED:
+            observation = replace(
+                observation,
+                runtime=replace(expected.identity, version="3.11.8"),
+            )
+        elif status == qualifier.STATUS_INCONCLUSIVE:
+            observation = replace(observation, executable=None)
+        elif status != qualifier.STATUS_QUALIFIED:
+            raise ValueError("unsupported artificial status")
+        return qualifier.build_runtime_qualification_record(contract, observation)
+
+    def receipt(
+        self,
+        authority: dict[str, object],
+        authority_sha: str,
+        claim: dict[str, object],
+        claim_sha: str,
+        evidence: dict[str, object],
+        evidence_sha: str,
+        record: qualifier.H26RuntimeQualificationRecord | None,
+    ) -> dict[str, object]:
+        if record is None:
+            record_sha = None
+            terminal_status = qualifier.STATUS_INCONCLUSIVE
+        else:
+            record_bytes = qualifier.serialize_runtime_qualification_record(record)
+            record_sha = hashlib.sha256(record_bytes).hexdigest()
+            terminal_status = record.as_dict()["terminal_status"]
+        return {
+            "schema_identity": "H26_RUNTIME_QUALIFICATION_EXECUTION_RECEIPT_V1",
+            "schema_version": 1,
+            "claim_id": claim["claim_id"],
+            "claim_raw_sha256": claim_sha,
+            "authority_id": authority["authority_id"],
+            "authority_raw_sha256": authority_sha,
+            "qualifier_commit": runtime.APPROVED_DORMANT_QUALIFIER_COMMIT,
+            "qualifier_git_blob_sha": runtime.APPROVED_DORMANT_QUALIFIER_GIT_BLOB_SHA,
+            "runtime_qualification_contract_commit": runtime.RUNTIME_QUALIFICATION_CONTRACT_COMMIT,
+            "runtime_qualification_contract_raw_sha256": runtime.RUNTIME_QUALIFICATION_CONTRACT_RAW_SHA256,
+            "observer_entered": True,
+            "observer_entry_evidence_id": evidence["observer_entry_evidence_id"],
+            "observer_entry_evidence_raw_sha256": evidence_sha,
+            "runtime_record_exists": record is not None,
+            "runtime_record_raw_sha256": record_sha,
+            "terminal_status": terminal_status,
+            "observer_invocation_count": 1,
+            "claim_consumed": True,
+            "retry_allowed": False,
+        }
+
+    def artifact_chain(self) -> tuple[
+        dict[str, object], str, dict[str, object], str, dict[str, object], str
+    ]:
+        authority = self.authority()
+        authority_sha = runtime.canonical_artifact_raw_sha256(authority)
+        claim = self.claim(authority, authority_sha)
+        claim_sha = runtime.canonical_artifact_raw_sha256(claim)
+        evidence = self.evidence(authority, authority_sha, claim, claim_sha)
+        evidence_sha = runtime.canonical_artifact_raw_sha256(evidence)
+        return authority, authority_sha, claim, claim_sha, evidence, evidence_sha
+
     def test_exact_artificial_authority_is_accepted(self) -> None:
         runtime.validate_artificial_authority(self.authority())
 
@@ -516,6 +603,146 @@ class ArtificialArtifactValidatorTests(unittest.TestCase):
             runtime.validate_artificial_authority(authority)
             after = tuple(Path(directory).iterdir())
             self.assertEqual(before, after)
+
+    def test_terminal_receipt_accepts_all_three_rederived_record_statuses(self) -> None:
+        chain = self.artifact_chain()
+        authority, authority_sha, claim, claim_sha, evidence, evidence_sha = chain
+        for status in (
+            qualifier.STATUS_QUALIFIED,
+            qualifier.STATUS_DISQUALIFIED,
+            qualifier.STATUS_INCONCLUSIVE,
+        ):
+            with self.subTest(status=status):
+                record = self.runtime_record(status)
+                receipt = self.receipt(
+                    authority, authority_sha, claim, claim_sha,
+                    evidence, evidence_sha, record,
+                )
+                runtime.validate_artificial_terminal_execution_receipt(
+                    authority, claim, evidence, receipt,
+                    authority_sha, claim_sha, evidence_sha, record,
+                )
+
+    def test_terminal_receipt_rejects_forged_record_sha_and_terminal(self) -> None:
+        chain = self.artifact_chain()
+        authority, authority_sha, claim, claim_sha, evidence, evidence_sha = chain
+        record = self.runtime_record()
+        receipt = self.receipt(
+            authority, authority_sha, claim, claim_sha,
+            evidence, evidence_sha, record,
+        )
+        for key, value in (
+            ("runtime_record_raw_sha256", "0" * 64),
+            ("terminal_status", qualifier.STATUS_DISQUALIFIED),
+        ):
+            with self.subTest(key=key):
+                altered = dict(receipt)
+                altered[key] = value
+                with self.assertRaisesRegex(ValueError, key):
+                    runtime.validate_artificial_terminal_execution_receipt(
+                        authority, claim, evidence, altered,
+                        authority_sha, claim_sha, evidence_sha, record,
+                    )
+
+    def test_terminal_receipt_rejects_forged_evidence_and_sha(self) -> None:
+        chain = self.artifact_chain()
+        authority, authority_sha, claim, claim_sha, evidence, evidence_sha = chain
+        record = self.runtime_record()
+        receipt = self.receipt(
+            authority, authority_sha, claim, claim_sha,
+            evidence, evidence_sha, record,
+        )
+        altered_evidence = dict(evidence)
+        altered_evidence["observer_entry_ordinal"] = 2
+        with self.assertRaises(ValueError):
+            runtime.validate_artificial_terminal_execution_receipt(
+                authority, claim, altered_evidence, receipt,
+                authority_sha, claim_sha, evidence_sha, record,
+            )
+        with self.assertRaisesRegex(ValueError, "canonical evidence bytes"):
+            runtime.validate_artificial_terminal_execution_receipt(
+                authority, claim, evidence, receipt,
+                authority_sha, claim_sha, "0" * 64, record,
+            )
+
+    def test_terminal_receipt_accepts_consumed_no_record_branch_only(self) -> None:
+        chain = self.artifact_chain()
+        authority, authority_sha, claim, claim_sha, evidence, evidence_sha = chain
+        receipt = self.receipt(
+            authority, authority_sha, claim, claim_sha,
+            evidence, evidence_sha, None,
+        )
+        runtime.validate_artificial_terminal_execution_receipt(
+            authority, claim, evidence, receipt,
+            authority_sha, claim_sha, evidence_sha, None,
+        )
+        for key, value in (
+            ("runtime_record_raw_sha256", "0" * 64),
+            ("terminal_status", qualifier.STATUS_QUALIFIED),
+        ):
+            with self.subTest(key=key):
+                altered = dict(receipt)
+                altered[key] = value
+                with self.assertRaises(ValueError):
+                    runtime.validate_artificial_terminal_execution_receipt(
+                        authority, claim, evidence, altered,
+                        authority_sha, claim_sha, evidence_sha, None,
+                    )
+
+        record = self.runtime_record()
+        with self.assertRaisesRegex(ValueError, "must not receive"):
+            runtime.validate_artificial_terminal_execution_receipt(
+                authority, claim, evidence, receipt,
+                authority_sha, claim_sha, evidence_sha, record,
+            )
+
+    def test_terminal_receipt_requires_record_when_declared(self) -> None:
+        chain = self.artifact_chain()
+        authority, authority_sha, claim, claim_sha, evidence, evidence_sha = chain
+        record = self.runtime_record()
+        receipt = self.receipt(
+            authority, authority_sha, claim, claim_sha,
+            evidence, evidence_sha, record,
+        )
+        with self.assertRaisesRegex(ValueError, "requires"):
+            runtime.validate_artificial_terminal_execution_receipt(
+                authority, claim, evidence, receipt,
+                authority_sha, claim_sha, evidence_sha, None,
+            )
+
+    def test_terminal_receipt_rejects_redirected_qualifier_status(self) -> None:
+        chain = self.artifact_chain()
+        authority, authority_sha, claim, claim_sha, evidence, evidence_sha = chain
+        receipt = self.receipt(
+            authority, authority_sha, claim, claim_sha,
+            evidence, evidence_sha, None,
+        )
+        original = qualifier.STATUS_INCONCLUSIVE
+        try:
+            qualifier.STATUS_INCONCLUSIVE = "redirected"
+            with self.assertRaisesRegex(ValueError, "binding mismatch"):
+                runtime.validate_artificial_terminal_execution_receipt(
+                    authority, claim, evidence, receipt,
+                    authority_sha, claim_sha, evidence_sha, None,
+                )
+        finally:
+            qualifier.STATUS_INCONCLUSIVE = original
+
+    def test_terminal_receipt_validator_has_no_filesystem_effect(self) -> None:
+        chain = self.artifact_chain()
+        authority, authority_sha, claim, claim_sha, evidence, evidence_sha = chain
+        record = self.runtime_record()
+        receipt = self.receipt(
+            authority, authority_sha, claim, claim_sha,
+            evidence, evidence_sha, record,
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            before = tuple(Path(directory).iterdir())
+            runtime.validate_artificial_terminal_execution_receipt(
+                authority, claim, evidence, receipt,
+                authority_sha, claim_sha, evidence_sha, record,
+            )
+            self.assertEqual(before, tuple(Path(directory).iterdir()))
 
 
 if __name__ == "__main__":

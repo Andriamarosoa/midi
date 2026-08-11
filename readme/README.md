@@ -61,7 +61,11 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   Git LF qui produisent `5ab6ff43…`. Des validateurs purement mémoire
   revalident désormais authority, claim et preuve d'entrée artificiels,
   recalculent leurs SHA canoniques et redérivent intégralement leurs IDs sans
-  créer d'objet. Les 41 tests n'utilisent que des objets
+  créer d'objet. Le validateur terminal revalide maintenant aussi un receipt
+  artificiel : il sérialise tout record artificiel avec le serializer dormant
+  approuvé, rehache ses octets et exige le statut redérivé; la branche sans
+  record impose SHA `null` et inconclusive-consumed. Les 48 tests n'utilisent
+  que des objets
   artificiels; aucune
   authority, claim, preuve d'entrée, receipt, invocation ou science n'existe.
   Rapport :

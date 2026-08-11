@@ -15,6 +15,8 @@ import re
 from types import MappingProxyType
 from typing import Any, Iterable, Mapping, Optional, Tuple
 
+from src.polyphonic import harmonic_censoring_h26_runtime_qualification as _qualifier
+
 
 EXECUTION_AUTHORITY_CONTRACT_COMMIT = (
     "e0e070b8b75e85fb8ef78c7d6950a13f2c69ceae"
@@ -90,6 +92,11 @@ _APPROVED_MATERIALIZATION_AUTHORITY_CONTRACT_GIT_BLOB_SHA = (
     "dd5bcbff325e74f74e7bde4d425a11ac84aa264d"
 )
 _APPROVED_TARGET_RUNTIME_ROLE = "H26_PRIMARY_MATERIALIZATION_RUNTIME"
+_APPROVED_STATUS_QUALIFIED = "H26_MATERIALIZATION_RUNTIME_QUALIFIED"
+_APPROVED_STATUS_DISQUALIFIED = "H26_MATERIALIZATION_RUNTIME_DISQUALIFIED"
+_APPROVED_STATUS_INCONCLUSIVE = (
+    "H26_MATERIALIZATION_RUNTIME_QUALIFICATION_INCONCLUSIVE_CONSUMED"
+)
 
 _CLAIM_DOMAIN = b"H26_RUNTIME_QUALIFICATION_CLAIM_ID_V1"
 _CLAIM_PREFIX = "h26-runtime-claim-v1-"
@@ -626,6 +633,34 @@ def _require_artifact_validator_bindings() -> None:
             raise ValueError(f"{label} binding mismatch")
 
 
+def _require_terminal_receipt_qualifier_bindings() -> None:
+    bindings = {
+        "qualifier runtime contract commit": (
+            _qualifier.RUNTIME_QUALIFICATION_CONTRACT_COMMIT,
+            _APPROVED_RUNTIME_QUALIFICATION_CONTRACT_COMMIT,
+        ),
+        "qualifier runtime contract blob": (
+            _qualifier.RUNTIME_QUALIFICATION_CONTRACT_GIT_BLOB_SHA,
+            _APPROVED_RUNTIME_QUALIFICATION_CONTRACT_GIT_BLOB_SHA,
+        ),
+        "qualified terminal status": (
+            _qualifier.STATUS_QUALIFIED,
+            _APPROVED_STATUS_QUALIFIED,
+        ),
+        "disqualified terminal status": (
+            _qualifier.STATUS_DISQUALIFIED,
+            _APPROVED_STATUS_DISQUALIFIED,
+        ),
+        "inconclusive terminal status": (
+            _qualifier.STATUS_INCONCLUSIVE,
+            _APPROVED_STATUS_INCONCLUSIVE,
+        ),
+    }
+    for label, (actual, expected) in bindings.items():
+        if actual != expected:
+            raise ValueError(f"{label} binding mismatch")
+
+
 def validate_artificial_authority(authority: Mapping[str, Any]) -> None:
     """Validate an in-memory authority-shaped mapping without issuing it."""
     _require_artifact_validator_bindings()
@@ -731,6 +766,95 @@ def validate_artificial_observer_entry_evidence(
     _require_exact_fields(evidence, expected, label="observer entry evidence")
 
 
+def validate_artificial_terminal_execution_receipt(
+    authority: Mapping[str, Any],
+    claim: Mapping[str, Any],
+    evidence: Mapping[str, Any],
+    receipt: Mapping[str, Any],
+    authority_raw_sha256: str,
+    claim_raw_sha256: str,
+    observer_entry_evidence_raw_sha256: str,
+    runtime_record: Optional[_qualifier.H26RuntimeQualificationRecord],
+) -> None:
+    """Validate an artificial terminal receipt without creating any artifact."""
+    _require_terminal_receipt_qualifier_bindings()
+    validate_artificial_observer_entry_evidence(
+        authority,
+        claim,
+        evidence,
+        authority_raw_sha256,
+        claim_raw_sha256,
+    )
+    supplied_evidence_sha = _validate_sha256(
+        observer_entry_evidence_raw_sha256,
+        "observer_entry_evidence_raw_sha256",
+    )
+    actual_evidence_sha = canonical_artifact_raw_sha256(evidence)
+    if supplied_evidence_sha != actual_evidence_sha:
+        raise ValueError(
+            "observer_entry_evidence_raw_sha256 does not match canonical evidence bytes"
+        )
+
+    validate_receipt_keyset(receipt)
+    expected = {
+        "schema_identity": "H26_RUNTIME_QUALIFICATION_EXECUTION_RECEIPT_V1",
+        "schema_version": 1,
+        "claim_id": claim["claim_id"],
+        "claim_raw_sha256": claim_raw_sha256,
+        "authority_id": authority["authority_id"],
+        "authority_raw_sha256": authority_raw_sha256,
+        "qualifier_commit": APPROVED_DORMANT_QUALIFIER_COMMIT,
+        "qualifier_git_blob_sha": APPROVED_DORMANT_QUALIFIER_GIT_BLOB_SHA,
+        "runtime_qualification_contract_commit": (
+            RUNTIME_QUALIFICATION_CONTRACT_COMMIT
+        ),
+        "runtime_qualification_contract_raw_sha256": (
+            RUNTIME_QUALIFICATION_CONTRACT_RAW_SHA256
+        ),
+        "observer_entered": True,
+        "observer_entry_evidence_id": evidence["observer_entry_evidence_id"],
+        "observer_entry_evidence_raw_sha256": supplied_evidence_sha,
+        "observer_invocation_count": 1,
+        "claim_consumed": True,
+        "retry_allowed": False,
+    }
+    _require_exact_fields(receipt, expected, label="receipt")
+
+    runtime_record_exists = receipt.get("runtime_record_exists")
+    if type(runtime_record_exists) is not bool:
+        raise ValueError("receipt runtime_record_exists mismatch")
+    if runtime_record_exists:
+        if runtime_record is None:
+            raise ValueError("receipt requires the artificial runtime record")
+        record_bytes = _qualifier.serialize_runtime_qualification_record(
+            runtime_record
+        )
+        record_sha = external_raw_sha256(record_bytes)
+        _require_exact_fields(
+            receipt,
+            {
+                "runtime_record_exists": True,
+                "runtime_record_raw_sha256": record_sha,
+                "terminal_status": json.loads(record_bytes.decode("utf-8"))[
+                    "terminal_status"
+                ],
+            },
+            label="receipt",
+        )
+    else:
+        if runtime_record is not None:
+            raise ValueError("receipt without a record must not receive one")
+        _require_exact_fields(
+            receipt,
+            {
+                "runtime_record_exists": False,
+                "runtime_record_raw_sha256": None,
+                "terminal_status": _APPROVED_STATUS_INCONCLUSIVE,
+            },
+            label="receipt",
+        )
+
+
 __all__ = [
     "APPROVED_DORMANT_QUALIFIER_COMMIT",
     "APPROVED_DORMANT_QUALIFIER_GIT_BLOB_SHA",
@@ -766,6 +890,7 @@ __all__ = [
     "validate_artificial_authority",
     "validate_artificial_claim",
     "validate_artificial_observer_entry_evidence",
+    "validate_artificial_terminal_execution_receipt",
     "validate_authority_keyset",
     "validate_claim_keyset",
     "validate_exact_keyset",

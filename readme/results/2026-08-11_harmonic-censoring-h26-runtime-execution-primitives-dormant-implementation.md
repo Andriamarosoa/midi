@@ -53,6 +53,15 @@ ef24d9ebdc4ae834b3b872175fb7e098330a68bf
   exacte et redérivation de `claim_id`;
 - validation de la preuve observer-entry artificielle après recalcul du SHA
   claim et redérivation complète de son ID.
+- validation pure du receipt terminal artificiel après revalidation de toute la
+  chaîne authority → claim → observer-entry evidence;
+- recalcul des SHA canoniques authority, claim et evidence au lieu de faire
+  confiance aux valeurs du receipt;
+- lorsque `runtime_record_exists=true`, sérialisation obligatoire du record
+  artificiel par le serializer dormant approuvé, SHA sur ces octets revalidés
+  et égalité du statut terminal avec celui redérivé par le record;
+- lorsque `runtime_record_exists=false`, absence obligatoire de record, SHA
+  `null` et seul statut terminal inconclusive-consumed autorisé.
 
 ## Validation dormante
 
@@ -62,7 +71,10 @@ Commande exécutée avec le virtualenv déjà présent dans le dépôt principal
 C:\Users\user\Desktop\midi\.venv\Scripts\python.exe -B -m unittest tests.test_harmonic_censoring_h26_runtime_execution_primitives_dormant
 ```
 
-Résultat final : `41 tests réussis`.
+Résultat final : `48 tests réussis`.
+
+La suite combinée primitives + qualificateur dormant réussit également ses
+`77 tests`, sans observation runtime réelle.
 
 La suite couvre notamment tous les échappements prescrits, le rejet des formes
 non canoniques, deux vecteurs SHA-256 calculés indépendamment, l'égalité
@@ -74,6 +86,10 @@ ancienne/mauvaise identité de blob et parité LF/CRLF des octets Git canoniques
 Elle couvre aussi toutes les liaisons authority fixes, les SHA authority/claim,
 l'inheritance du claim, les identités claim/evidence, l'ordinal d'entrée et
 l'absence d'effet filesystem des validateurs.
+Elle couvre enfin les receipts artificiels QUALIFIED, DISQUALIFIED et
+INCONCLUSIVE, les faux SHA/statuts de record, l'evidence falsifiée, la branche
+consommée sans record, les incohérences présence/absence du record et les
+bindings publics du qualificateur. Aucun receipt n'est créé ou écrit.
 
 ## État terminal de cette étape
 
@@ -90,6 +106,6 @@ scientific_execution_authorized = false
 locked_test_used = false
 ```
 
-La prochaine action est une revue externe de ce commit dormant. Toute émission,
-persistance, consommation, invocation runtime ou exécution scientifique exige
-une autorisation séparée.
+La prochaine action est une revue externe du validateur dormant du receipt.
+Toute émission, persistance, consommation, invocation runtime ou exécution
+scientifique exige une autorisation séparée.
