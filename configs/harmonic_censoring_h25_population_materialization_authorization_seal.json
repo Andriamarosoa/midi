@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "purpose": "harmonic_censoring_h25_population_materialization_authorization_seal",
+  "status": "reviewed_H25_population_materialization_authorized_once",
+  "authorized_action": "AUTHORIZED_TO_MATERIALIZE_H25_SYNTHETIC_V1_ONCE",
+  "reviewed_authority_commit": "52337716cb80ed3e3937da7ca17575b357e77298",
+  "authority_source_blob": "d58351b6fd363f1d843c7c43501eb0ecf49e57df",
+  "authority_contract_sha256": "e84dab6501c74f366a91e53066d78bd9646838a76bf9990a6a5f7a48e1fbc9c1",
+  "reviewed_materializer_commit": "0036853ff6c9c49dda6ed3767146b16db310589f",
+  "materializer_source_blob": "77bebf42e343771acca390c848962fbd05fde3c3",
+  "sealed_input_raw_sha256": {
+    "runtime_materialization_contract": "a00255964eb8f10c348c4364d2b6aed641a983be52b395d7befe0f4c70472273",
+    "scientific_contract": "ae837a647792c56c02a7d96a4328f62c1ecac03d0c0a839d59488c420cfff911",
+    "fixture_specifications": "97295c09a0dc362a9337200ede62489e254fd5e548f36e2e170f21abb3b5ef6b",
+    "population_manifest": "33e21457240497322351275c3a82868d0eb06beb6676d6370ea85fae6933ba5f",
+    "test_manifest": "58ce653325c785598fccd3cccffa7a77ab4944286df3baeb497bd20548544d29"
+  }
+}

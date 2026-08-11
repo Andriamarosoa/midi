@@ -59,6 +59,9 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   d'activation est externe (`AUTHORIZATION_COMMIT == HEAD`) et évite toute
   auto-référence Git. Le blob de l'issuer au `HEAD` doit rester exactement le
   blob d'autorité revu et scellé.
+- Le seal d'autorisation H25 à dix champs est maintenant versionné pour revue,
+  sans activer l'issuer ni positionner ses deux bindings OS. Rapport :
+  `readme/results/2026-08-11_harmonic-censoring-h25-materialization-authorization-seal.md`.
 - Les manifests H25 définissent exactement `36` fixtures neuves, équilibrées
   `12 positive / 12 negative / 12 ambiguous`, et `27` tests ordonnés
   `9 P0 / 9 P1 / 9 P2`. P1 consomme chaque fixture exactement une fois ;
