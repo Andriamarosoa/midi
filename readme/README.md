@@ -14,12 +14,18 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: runtime execution proof binding corrected contract-only; no authority or scientific execution created. -->
+<!-- H26_CORRECTION_STATUS: dormant materialization runtime execution proof validator implemented with artificial tests only; no real authority or execution. -->
 ## État courant
 
 - Mise à jour : `2026-08-11`.
 - État courant :
-  `H26_POPULATION_MATERIALIZATION_AUTHORITY_RUNTIME_EXECUTION_PROOF_BINDING_CORRECTED_PENDING_REVIEW`.
+  `H26_MATERIALIZATION_RUNTIME_EXECUTION_PROOF_VALIDATOR_DORMANT_IMPLEMENTED_PENDING_REVIEW`.
+- Le validateur dormant de la preuve complète est maintenant implémenté. Il
+  réutilise le validateur terminal approuvé, accepte uniquement une chaîne
+  artificielle QUALIFIED exacte et retourne une projection immutable de neuf
+  champs. Les 9 tests artificiels passent; aucun fichier opérationnel, runtime
+  réel ou calcul scientifique n'est créé. Rapport :
+  `readme/results/2026-08-11_harmonic-censoring-h26-materialization-runtime-execution-proof-validator-dormant-implementation.md`.
 - Le contrat dormant d'autorité de matérialisation exige maintenant la chaîne
   complète authority runtime → claim consommé → preuve d'entrée observer →
   receipt terminal → record runtime exact. Le record doit être
@@ -1814,7 +1820,7 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 ## Prochaine action réelle
 
-1. Faire relire uniquement la correction contractuelle qui lie toute future autorité de matérialisation à la preuve d'exécution runtime complète et validée.
+1. Faire relire uniquement le validateur dormant de preuve runtime artificielle et ses neuf tests synthétiques.
 2. Ne créer aucun moteur, recomputer, materializer, runner, authority,
    capability, claim, waveform ou calcul H26 avant une autorisation séparée.
 3. Ne jamais rejouer H25. Garder les données réelles, les modèles, le fit, la
@@ -2297,6 +2303,8 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-11 — implémentation dormante du qualificateur runtime H26](results/2026-08-11_harmonic-censoring-h26-runtime-qualifier-dormant-implementation.md)
 - [2026-08-11 — primitives dormantes du codec et des identités d'exécution H26](results/2026-08-11_harmonic-censoring-h26-runtime-execution-primitives-dormant-implementation.md)
 - [2026-08-11 — seal externe du contrat d'exécution runtime H26](results/2026-08-11_harmonic-censoring-h26-runtime-execution-contract-external-seal.md)
+- [2026-08-11 — correction de liaison de preuve du contrat d'autorité de matérialisation H26](results/2026-08-11_harmonic-censoring-h26-population-materialization-authority-contract.md)
+- [2026-08-11 — validateur dormant de preuve runtime pour la matérialisation H26](results/2026-08-11_harmonic-censoring-h26-materialization-runtime-execution-proof-validator-dormant-implementation.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)
