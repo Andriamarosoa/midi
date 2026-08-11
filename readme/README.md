@@ -18,18 +18,19 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 - Mise à jour : `2026-08-11`.
 - Étape : `harmonic_censoring_h25_preclaim_administrative_lifecycle_harness`.
-- Statut : `harness administratif jetable implémenté et testé synthétiquement; aucune qualification enregistrée exécutée; revue externe obligatoire avant toute utilisation`.
+- Statut : `harness administratif jetable corrigé avec probes OS réels; aucune qualification enregistrée exécutée; revue externe obligatoire avant toute utilisation`.
 - Le harness H25 standard-library-only implémente un namespace `h25-admin-*`,
   un claim substitutif `O_EXCL`, un transcript chaîné, trois preuves de
   frontière, les fermetures success/failure/inconclusive et un reçu forensique
   pour les échecs de publication. Il ne peut émettre aucune capability ou
-  claim scientifique, importer NumPy, ouvrir une population ou créer un
-  processus enfant.
-- Les `19` scénarios préenregistrés couvrent le nominal, la failure logique,
-  l'erreur opérationnelle, EOF, déconnexion SSH, `SIGINT`, les timeouts de
-  chaque phase et les échecs evidence/transcript/terminal/rename. `14` tests
-  synthétiques réussissent en `1,003 s`; aucune qualification réelle n'a été
-  lancée. Rapport :
+  claim scientifique, importer NumPy ou ouvrir une population.
+- Après le refus de `3d755c9c…`, les inverses de transport ne sont plus de
+  simples exceptions injectées. `13` probes lancent réellement le worker comme
+  module, avec config séparée du stdin de contrôle : EOF avant/après claim,
+  rupture du processus parent, `SIGINT` OS sur Mac, délais monotoniques et
+  terminaison vérifiée du PID. `16` tests réussissent sur Windows en `6,394 s`;
+  le probe OS complet, `SIGINT` inclus, réussit sur Mac arm64 en `1,764 s`.
+  Aucune qualification enregistrée n'a été lancée. Rapport :
   `readme/results/2026-08-11_harmonic-censoring-h25-preclaim-administrative-lifecycle-harness.md`.
 - Après approbation de la clôture H24, H25 réserve une première étape purement
   administrative : qualifier de bout en bout le cycle capability, claim,

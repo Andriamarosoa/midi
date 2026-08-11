@@ -15,17 +15,16 @@ enregistrée et ne crée aucune autorité scientifique.
 
 ```text
 src/polyphonic/harmonic_censoring_h25_lifecycle_qualification.py
-32935 octets
-SHA-256 40d90373ac0249cd0b257f284f6738e7fd5ac732ba9800ba3b334072bc3de055
+64327 octets
+SHA-256 e2581ec3f4c50e3229fc1f0d87768597941c3db7d7005e48bf6dbe31e0f703e0
 
 tests/test_harmonic_censoring_h25_lifecycle_qualification.py
-12362 octets
-SHA-256 e29813486a1da469b313a16adf265e55e77fb6527c6306f97123fb9ae4a92aa7
+17491 octets
+SHA-256 081a4e2ee291ae6c3c4f68a4067e456b51dd9727b3e717d569a2f1ac0bca8dcf
 ```
 
 Le module utilise uniquement la bibliothèque standard. Un test AST vérifie
-l'absence de NumPy, `subprocess`, `threading`, `multiprocessing` et d'import
-H24.
+l'absence de NumPy, `threading`, `multiprocessing` et d'import H24.
 
 ## Cycle implémenté
 
@@ -89,6 +88,27 @@ Les scénarios pré-claim ne consomment aucun claim substitutif. Tous les
 scénarios post-claim aboutissent à un terminal ou reçu forensique
 préenregistré, sans retry ni suppression du claim.
 
+## Correction de la couverture OS
+
+La revue de `3d755c9c…` a refusé de compter les exceptions déterministes comme
+preuve d'EOF, déconnexion, signal ou timeout réels. Le correctif ajoute donc
+`13` probes OS jetables :
+
+- le worker est lancé par `python -m`, depuis un fichier de configuration ;
+- stdin est exclusivement un canal de contrôle, jamais le transport du script ;
+- le parent ferme réellement le pipe avant ou après claim pour produire EOF ;
+- un parent de transport intermédiaire quitte réellement avec `os._exit(0)`
+  après claim, et le worker orphelin ferme l'exécution sur EOF ;
+- le contrôleur envoie un vrai `SIGINT`/`SIGBREAK` au groupe du worker ;
+- chaque timeout attend une durée monotonic réelle avant d'envoyer sa
+  notification au point exact de la phase ;
+- le contrôleur attend l'exit code, vérifie que le PID est mort, puis lie config,
+  log, marqueur d'exit et résultat recomputé dans un reçu canonique ;
+- la recomputation refuse toute altération du reçu, de la config ou du log.
+
+Les probes déterministes antérieurs restent des tests unitaires, mais ne sont
+plus présentés comme preuve OS.
+
 ## Validation locale
 
 ```text
@@ -96,14 +116,23 @@ python -m py_compile \
   src/polyphonic/harmonic_censoring_h25_lifecycle_qualification.py \
   tests/test_harmonic_censoring_h25_lifecycle_qualification.py
 
-python -m unittest \
-  tests.test_harmonic_censoring_h25_lifecycle_qualification -v
+python -m unittest tests.test_harmonic_censoring_h25_lifecycle_qualification -v
 
-14 tests réussis en 1,003 s
+Windows : 16 tests réussis en 6,394 s
 git diff --check réussi
 ```
 
-Les tests créent uniquement des répertoires temporaires jetables et ne
+Sous le PTY Windows, le probe `SIGINT` est omis car la livraison console au
+nouveau groupe n'est pas fiable. Le même test OS complet a donc été exécuté sur
+le Mac arm64 cible depuis `/tmp/h25-lifecycle-harness-test` :
+
+```text
+test_real_OS_transport_signal_and_timeout_probes_terminate ... ok
+Ran 1 test in 1,764 s
+```
+
+Ce test Mac parcourt les `13` probes, y compris le vrai `SIGINT`. Les tests
+Windows et Mac créent uniquement des répertoires temporaires jetables et ne
 constituent pas la qualification administrative enregistrée.
 
 ## Interdictions maintenues

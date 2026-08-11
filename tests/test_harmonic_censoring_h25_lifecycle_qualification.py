@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ast
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -13,9 +14,13 @@ from src.polyphonic.harmonic_censoring_h25_lifecycle_qualification import (
     H25_ADMIN_INCONCLUSIVE,
     H25_ADMIN_PRECLAIM_ABORTED,
     H25_ADMIN_SUCCESS,
+    H25_REAL_OS_PROBES,
     H25AdministrativeQualificationScenario,
+    H25RealOSQualificationProbe,
     recompute_h25_administrative_lifecycle_result,
+    recompute_h25_real_os_lifecycle_probe_result,
     run_h25_preclaim_administrative_lifecycle_qualification,
+    run_h25_real_os_lifecycle_qualification_probe,
 )
 
 
@@ -38,7 +43,7 @@ class H25AdministrativeLifecycleQualificationTests(unittest.TestCase):
         )
         return root, result
 
-    def test_source_is_standard_library_only_and_has_no_process_spawning(self) -> None:
+    def test_source_is_standard_library_only_and_has_no_scientific_imports(self) -> None:
         tree = ast.parse(SOURCE.read_text(encoding="utf-8"))
         imports: set[str] = set()
         for node in ast.walk(tree):
@@ -47,7 +52,6 @@ class H25AdministrativeLifecycleQualificationTests(unittest.TestCase):
             elif isinstance(node, ast.ImportFrom) and node.module:
                 imports.add(node.module.split(".")[0])
         self.assertNotIn("numpy", imports)
-        self.assertNotIn("subprocess", imports)
         self.assertNotIn("threading", imports)
         self.assertNotIn("multiprocessing", imports)
         self.assertFalse(
@@ -277,6 +281,107 @@ class H25AdministrativeLifecycleQualificationTests(unittest.TestCase):
                 root,
                 H25AdministrativeQualificationScenario("one-shot"),
             )
+
+    def test_real_OS_transport_signal_and_timeout_probes_terminate(self) -> None:
+        expected = {
+            "REAL_NOMINAL": H25_ADMIN_SUCCESS,
+            "REAL_EOF_BEFORE_SURROGATE_CLAIM": H25_ADMIN_PRECLAIM_ABORTED,
+            "REAL_EOF_AFTER_SURROGATE_CLAIM": H25_ADMIN_INCONCLUSIVE,
+            "REAL_PARENT_TRANSPORT_DISCONNECT_AFTER_SURROGATE_CLAIM": H25_ADMIN_INCONCLUSIVE,
+            "REAL_SIGINT_AFTER_SURROGATE_CLAIM": H25_ADMIN_INCONCLUSIVE,
+            "REAL_TIMEOUT_PREFLIGHT": H25_ADMIN_PRECLAIM_ABORTED,
+            "REAL_TIMEOUT_SURROGATE_CLAIM": H25_ADMIN_PRECLAIM_ABORTED,
+            "REAL_TIMEOUT_P0": H25_ADMIN_INCONCLUSIVE,
+            "REAL_TIMEOUT_P1": H25_ADMIN_INCONCLUSIVE,
+            "REAL_TIMEOUT_P2": H25_ADMIN_INCONCLUSIVE,
+            "REAL_TIMEOUT_SUCCESS_CLOSURE": H25_ADMIN_INCONCLUSIVE,
+            "REAL_TIMEOUT_FAILURE_CLOSURE": H25_ADMIN_FORENSIC_INCONCLUSIVE,
+            "REAL_TIMEOUT_INCONCLUSIVE_CLOSURE": H25_ADMIN_FORENSIC_INCONCLUSIVE,
+        }
+        self.assertEqual(set(expected), set(H25_REAL_OS_PROBES))
+        with tempfile.TemporaryDirectory() as temporary:
+            parent = Path(temporary)
+            for index, probe_name in enumerate(H25_REAL_OS_PROBES):
+                with self.subTest(probe=probe_name):
+                    if (
+                        os.name == "nt"
+                        and probe_name == "REAL_SIGINT_AFTER_SURROGATE_CLAIM"
+                    ):
+                        # Windows console-control delivery is not reliable under
+                        # the test runner PTY.  This exact probe is exercised on
+                        # the reviewed macOS arm64 target.
+                        continue
+                    result = run_h25_real_os_lifecycle_qualification_probe(
+                        parent,
+                        H25RealOSQualificationProbe(
+                            probe_id=f"real-{index:02d}",
+                            probe=probe_name,
+                            timeout_seconds=0.08,
+                            process_deadline_seconds=10.0,
+                        ),
+                    )
+                    self.assertEqual(result.status, expected[probe_name])
+                    self.assertEqual(result.child_exit_code, 0)
+                    self.assertFalse(result.child_process_alive)
+                    receipt = recompute_h25_real_os_lifecycle_probe_result(
+                        result.controller_receipt_path
+                    )
+                    self.assertEqual(receipt["result_status"], expected[probe_name])
+                    self.assertFalse(receipt["child_process_alive"])
+                    if probe_name.startswith("REAL_TIMEOUT_"):
+                        self.assertGreaterEqual(result.elapsed_seconds, 0.08)
+
+    def test_real_OS_controller_receipt_rejects_config_and_log_tampering(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            parent = Path(temporary)
+            result = run_h25_real_os_lifecycle_qualification_probe(
+                parent,
+                H25RealOSQualificationProbe(
+                    probe_id="real-tamper-config",
+                    probe="REAL_NOMINAL",
+                    timeout_seconds=0.05,
+                ),
+            )
+            config = parent / "h25-admin-real-tamper-config.worker-config.json"
+            config.write_bytes(config.read_bytes() + b" ")
+            with self.assertRaises(ValueError):
+                recompute_h25_real_os_lifecycle_probe_result(
+                    result.controller_receipt_path
+                )
+
+        with tempfile.TemporaryDirectory() as temporary:
+            parent = Path(temporary)
+            result = run_h25_real_os_lifecycle_qualification_probe(
+                parent,
+                H25RealOSQualificationProbe(
+                    probe_id="real-tamper-exit",
+                    probe="REAL_NOMINAL",
+                    timeout_seconds=0.05,
+                ),
+            )
+            marker = parent / "h25-admin-real-tamper-exit.worker-exited.json"
+            marker.write_bytes(marker.read_bytes() + b"tamper")
+            with self.assertRaises(ValueError):
+                recompute_h25_real_os_lifecycle_probe_result(
+                    result.controller_receipt_path
+                )
+
+        with tempfile.TemporaryDirectory() as temporary:
+            parent = Path(temporary)
+            result = run_h25_real_os_lifecycle_qualification_probe(
+                parent,
+                H25RealOSQualificationProbe(
+                    probe_id="real-tamper-log",
+                    probe="REAL_NOMINAL",
+                    timeout_seconds=0.05,
+                ),
+            )
+            log = parent / "h25-admin-real-tamper-log.worker-log.json"
+            log.write_bytes(log.read_bytes() + b"tamper")
+            with self.assertRaises(ValueError):
+                recompute_h25_real_os_lifecycle_probe_result(
+                    result.controller_receipt_path
+                )
 
 
 if __name__ == "__main__":
