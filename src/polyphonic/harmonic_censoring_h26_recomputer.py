@@ -315,8 +315,16 @@ def recompute_h26_evidence_from_raw_operands(
         if not math.isfinite(first) or not math.isfinite(second) or min(first, second) < 0.0:
             raise ValueError("H26 pitch-dilution residual value invalid.")
         triplets.append((raw[0], first, second))
-    if {row[0] for row in triplets} != set(range(24, 97)):
-        raise ValueError("H26 pitch-dilution pitch grid mismatch.")
+    expected_pitch_order = tuple(range(24, 97))
+    perturbation = operands["perturbation"]
+    if isinstance(perturbation, Mapping) and perturbation["grid_id"] == "P2_PERMUTATION_V1":
+        transform_order = perturbation["cell"]["transform_order"]
+        if transform_order == "descending":
+            expected_pitch_order = tuple(range(96, 23, -1))
+        elif transform_order != "ascending":
+            raise ValueError("H26 recomputer transform order invalid.")
+    if tuple(row[0] for row in triplets) != expected_pitch_order:
+        raise ValueError("H26 pitch-dilution transform order mismatch.")
     candidate_pitch = operands["candidate_pitch"]
     if type(candidate_pitch) is not int:
         raise ValueError("H26 candidate pitch operand invalid.")

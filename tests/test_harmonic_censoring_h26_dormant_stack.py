@@ -152,6 +152,7 @@ class H26DormantStackTests(unittest.TestCase):
 
     def _write_artificial_population(
         self, root: Path, fixture_id: str, waveform: np.ndarray,
+        *, p2_transform: object | None = None,
     ) -> tuple[str, H26BoundObservation]:
         waveform_raw = waveform.astype("<f8", copy=False).tobytes(order="C")
         mask = h26_materializer_module._validity_masks(
@@ -163,6 +164,7 @@ class H26DormantStackTests(unittest.TestCase):
         (root / "waveforms" / f"{fixture_id}.f64le").write_bytes(waveform_raw)
         (root / "masks" / f"{fixture_id}.u8").write_bytes(mask_raw)
         records = []
+        p2_records = []
         for current_id in self.plan.fixture_ids:
             record = {"fixture_id": current_id}
             if current_id == fixture_id:
@@ -176,11 +178,32 @@ class H26DormantStackTests(unittest.TestCase):
                     "alternate_waveform_sha256": None,
                 })
             records.append(record)
+        if p2_transform is not None:
+            p2_mask = h26_materializer_module._validity_masks_for_transform(
+                np, self.plan, p2_transform,
+            )
+            p2_mask_raw = p2_mask.sample_valid.astype(np.uint8).tobytes(order="C")
+            (root / "waveforms" / f"{fixture_id}.p2.f64le").write_bytes(waveform_raw)
+            (root / "masks" / f"{fixture_id}.p2.u8").write_bytes(p2_mask_raw)
+            p2_records.append({
+                "fixture_id": fixture_id,
+                "test_id": p2_transform.test_id,
+                "grid_id": p2_transform.grid_id,
+                "cell": deep_thaw_json(p2_transform.cell),
+                "waveform": f"waveforms/{fixture_id}.p2.f64le",
+                "waveform_sha256": hashlib.sha256(waveform_raw).hexdigest(),
+                "sample_valid": f"masks/{fixture_id}.p2.u8",
+                "sample_valid_sha256": hashlib.sha256(p2_mask_raw).hexdigest(),
+                "invalid_candidate_partial_ranks": list(p2_mask.invalid_candidate_partial_ranks),
+                "alternate_waveform": None,
+                "alternate_waveform_sha256": None,
+            })
         raw = (
             json.dumps({
-                "schema_version": 1,
+                "schema_version": 2,
                 "population_namespace": "H26_SYNTHETIC_V1",
                 "records": records,
+                "p2_records": p2_records,
             }, sort_keys=True, separators=(",", ":")) + "\n"
         ).encode("utf-8")
         (root / "population_index.json").write_bytes(raw)
@@ -189,6 +212,7 @@ class H26DormantStackTests(unittest.TestCase):
             np, self.plan, root,
             expected_population_index_sha256=index_sha,
             fixture_id=fixture_id,
+            p2_transform=p2_transform,
         )
         return index_sha, bound
 
@@ -202,6 +226,9 @@ class H26DormantStackTests(unittest.TestCase):
                 fixture_id=bound.fixture_id,
                 population_root=bound.population_root,
                 population_index_sha256=bound.population_index_sha256,
+                p2_test_id=None,
+                p2_grid_id=None,
+                p2_cell=None,
                 waveform_sha256=hashlib.sha256(
                     forged_waveform.astype("<f8").tobytes(order="C")
                 ).hexdigest(),
@@ -220,6 +247,106 @@ class H26DormantStackTests(unittest.TestCase):
                     produce_h26_fixture_evidence(
                         np, object(), fixture_id="H26-F-P01", observation=forged,
                     )
+
+    def test_producer_rejects_baseline_observation_for_audio_p2_transform(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            waveform = np.zeros(h26_materializer_module.SAMPLE_COUNT, dtype=np.float64)
+            index_sha, baseline = self._write_artificial_population(
+                root, "H26-F-P04", waveform,
+            )
+            transform = build_h26_p2_transform(
+                self.plan, fixture_id="H26-F-P04", test_id="H26-T-P2-001",
+                grid_id="P2_GAIN_V1", cell=p2_cells(self.plan.contract, "P2_GAIN_V1")[0],
+            )
+            with mock.patch.object(
+                h26_engine_module, "_require_scientific",
+                return_value=(self.plan, index_sha),
+            ):
+                with self.assertRaisesRegex(ValueError, "P2 binding differs"):
+                    produce_h26_fixture_evidence(
+                        np, object(), fixture_id="H26-F-P04",
+                        observation=baseline, p2_transform=transform,
+                    )
+
+    def test_producer_rejects_p2_cell_different_from_bound_waveform_record(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            waveform = np.zeros(h26_materializer_module.SAMPLE_COUNT, dtype=np.float64)
+            cells = p2_cells(self.plan.contract, "P2_GAIN_V1")
+            first = build_h26_p2_transform(
+                self.plan, fixture_id="H26-F-P04", test_id="H26-T-P2-001",
+                grid_id="P2_GAIN_V1", cell=cells[0],
+            )
+            second = build_h26_p2_transform(
+                self.plan, fixture_id="H26-F-P04", test_id="H26-T-P2-001",
+                grid_id="P2_GAIN_V1", cell=cells[1],
+            )
+            index_sha, bound_first = self._write_artificial_population(
+                root, "H26-F-P04", waveform, p2_transform=first,
+            )
+            with mock.patch.object(
+                h26_engine_module, "_require_scientific",
+                return_value=(self.plan, index_sha),
+            ):
+                with self.assertRaisesRegex(ValueError, "P2 binding differs"):
+                    produce_h26_fixture_evidence(
+                        np, object(), fixture_id="H26-F-P04",
+                        observation=bound_first, p2_transform=second,
+                    )
+
+    def test_producer_accepts_only_the_exact_bound_p2_observation(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            waveform = np.linspace(
+                -0.25, 0.25, h26_materializer_module.SAMPLE_COUNT,
+                dtype=np.float64,
+            )
+            transform = build_h26_p2_transform(
+                self.plan, fixture_id="H26-F-P04", test_id="H26-T-P2-001",
+                grid_id="P2_GAIN_V1", cell=p2_cells(self.plan.contract, "P2_GAIN_V1")[0],
+            )
+            index_sha, bound = self._write_artificial_population(
+                root, "H26-F-P04", waveform, p2_transform=transform,
+            )
+            candidate_pitch = int(self.plan.fixture("H26-F-P04")["candidate_pitch"])
+            raw_operands = H26RawOperands(
+                False, True, False, (2, 3), (3.0, 3.0), 20.0,
+                100.0, 90.0, 1.0, 0.8, 100.0, 95.0, 16383,
+                tuple(
+                    (pitch, 1.0, 0.8 if pitch == candidate_pitch else 1.0)
+                    for pitch in range(24, 97)
+                ),
+            )
+            with (
+                mock.patch.object(
+                    h26_engine_module, "_require_scientific",
+                    return_value=(self.plan, index_sha),
+                ),
+                mock.patch.object(
+                    h26_engine_module, "causal_spectrum", return_value=object(),
+                ),
+                mock.patch.object(
+                    h26_engine_module, "exclusive_partial_ranks",
+                    autospec=True, return_value=(2, 3),
+                ),
+                mock.patch.object(
+                    h26_engine_module, "extract_raw_operands",
+                    autospec=True, return_value=raw_operands,
+                ) as extract,
+            ):
+                evidence = produce_h26_fixture_evidence(
+                    np, object(), fixture_id="H26-F-P04",
+                    observation=bound, p2_transform=transform,
+                )
+            self.assertEqual(evidence.operands["perturbation"], {
+                "test_id": "H26-T-P2-001",
+                "grid_id": "P2_GAIN_V1",
+                "cell": dict(transform.cell),
+            })
+            self.assertEqual(extract.call_args.kwargs["target_hop_end"], 16383)
+            self.assertEqual(extract.call_args.kwargs["transform_order"], "ascending")
+            np.testing.assert_array_equal(extract.call_args.args[1], bound.waveform)
 
     def test_producer_measures_at_target_then_resolves_one_hop_later(self) -> None:
         with tempfile.TemporaryDirectory() as raw:
@@ -458,6 +585,49 @@ class H26DormantStackTests(unittest.TestCase):
                 self.plan, fixture_id="H26-F-P09",
                 operands={**operands, "perturbation": {**operands["perturbation"], "cell": wrong_cell}},
             )
+
+    def test_recomputer_requires_raw_triplet_order_from_permutation_cell(self) -> None:
+        cell = next(
+            dict(value) for value in p2_cells(self.plan.contract, "P2_PERMUTATION_V1")
+            if value["transform_order"] == "descending"
+        )
+        candidate_pitch = int(self.plan.fixture("H26-F-P06")["candidate_pitch"])
+        operands = {
+            "candidate_active": False, "support_valid": True,
+            "observation_equivalent": False,
+            "exclusive_partial_ranks": (2, 3),
+            "exclusive_band_energies": (3.0, 3.0),
+            "shared_band_energy": 20.0,
+            "current_short_total_power": 100.0,
+            "previous_short_total_power": 90.0,
+            "active_only_residual": 1.0,
+            "active_plus_candidate_residual": 0.8,
+            "current_long_total_power": 100.0,
+            "previous_long_total_power": 95.0,
+            "pitch_dilution_residual_triplets": tuple(
+                (pitch, 1.0, 0.8 if pitch == candidate_pitch else 1.0)
+                for pitch in range(24, 97)
+            ),
+            "maximum_sample_read": 16383,
+            "proposal_hop_end": 16383, "resolution_hop_end": 16639,
+            "state_before": "PENDING_NEW", "state_after": "BIRTH_SUPPORTED",
+            "active_pitches": (40,), "candidate_pitch": candidate_pitch,
+            "perturbation": {
+                "test_id": "H26-T-P2-006", "grid_id": "P2_PERMUTATION_V1",
+                "cell": cell,
+            },
+        }
+        with self.assertRaisesRegex(ValueError, "transform order mismatch"):
+            recompute_h26_evidence_from_raw_operands(
+                self.plan, fixture_id="H26-F-P06", operands=operands,
+            )
+        operands["pitch_dilution_residual_triplets"] = tuple(
+            reversed(operands["pitch_dilution_residual_triplets"])
+        )
+        result = recompute_h26_evidence_from_raw_operands(
+            self.plan, fixture_id="H26-F-P06", operands=operands,
+        )
+        self.assertEqual(result.resolution.outcome, "BIRTH_SUPPORTED")
 
     def test_causal_state_resolves_exactly_one_hop_later_on_artificial_coordinates(self) -> None:
         proposal = begin_h26_causal_proposal(

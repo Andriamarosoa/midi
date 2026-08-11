@@ -55,6 +55,9 @@ class H26BoundObservation:
     fixture_id: str
     population_root: Path
     population_index_sha256: str
+    p2_test_id: str | None
+    p2_grid_id: str | None
+    p2_cell: Mapping[str, object] | None
     waveform_sha256: str
     waveform: Any
     sample_valid_sha256: str
@@ -347,15 +350,7 @@ def synthesize_h26_p2_fixture(
     fixture = deep_thaw_json(plan.fixture(transform.fixture_id))
     params = fixture["parameters"]
     fixture["parameters"] = params
-    masks = _validity_masks(np, fixture)
-    if transform.validity_start_shift:
-        shifted = np.ones(SAMPLE_COUNT, dtype=np.bool_)
-        base_start = int(params.get("valid_time_support_start_sample", 0))
-        shifted_start = base_start + transform.validity_start_shift
-        if not 0 <= shifted_start <= SAMPLE_COUNT:
-            raise ValueError("H26 shifted validity boundary requires clipping.")
-        shifted[:shifted_start] = False
-        masks = H26ValidityMasks(shifted, masks.invalid_candidate_partial_ranks)
+    masks = _validity_masks_for_transform(np, plan, transform)
     if transform.recipe is not None:
         return _synthesize_recipe(np, transform.recipe), masks, None
     collision = deep_thaw_json(plan.specifications["exact_nonzero_collision_contract"])
@@ -373,6 +368,23 @@ def synthesize_h26_p2_fixture(
         old = _add_baseline_noise(np, old, noise)
         candidate = _add_baseline_noise(np, candidate, noise)
     return old, masks, candidate
+
+
+def _validity_masks_for_transform(
+    np: Any, plan: H26DormantPlan, transform: H26P2Transform,
+) -> H26ValidityMasks:
+    fixture = plan.fixture(transform.fixture_id)
+    masks = _validity_masks(np, fixture)
+    if not transform.validity_start_shift:
+        return masks
+    shifted = np.ones(SAMPLE_COUNT, dtype=np.bool_)
+    params = fixture["parameters"]
+    base_start = int(params.get("valid_time_support_start_sample", 0))
+    shifted_start = base_start + transform.validity_start_shift
+    if not 0 <= shifted_start <= SAMPLE_COUNT:
+        raise ValueError("H26 shifted validity boundary requires clipping.")
+    shifted[:shifted_start] = False
+    return H26ValidityMasks(shifted, masks.invalid_candidate_partial_ranks)
 
 
 def encode_waveform(np: Any, waveform: Any) -> bytes:
@@ -399,6 +411,7 @@ def _read_bound_file(root: Path, relative: object, expected_sha256: object) -> b
 def bind_h26_population_observation(
     np: Any, plan: H26DormantPlan, population_root: Path,
     *, expected_population_index_sha256: str, fixture_id: str,
+    p2_transform: H26P2Transform | None = None,
 ) -> H26BoundObservation:
     """Future verifier for sealed bytes; it performs no synthesis or inference."""
 
@@ -411,7 +424,7 @@ def bind_h26_population_observation(
     if index_sha != expected_population_index_sha256:
         raise ValueError("H26 population index SHA mismatch.")
     index = parse_strict_json(index_raw, "population index")
-    if index.get("schema_version") != 1 or index.get("population_namespace") != "H26_SYNTHETIC_V1":
+    if index.get("schema_version") != 2 or index.get("population_namespace") != "H26_SYNTHETIC_V1":
         raise ValueError("H26 population index schema/namespace mismatch.")
     records = index.get("records")
     if type(records) is not list or len(records) != len(plan.fixture_ids):
@@ -420,7 +433,36 @@ def bind_h26_population_observation(
         raise ValueError("H26 population record schema invalid.")
     if [record.get("fixture_id") for record in records] != list(plan.fixture_ids):
         raise ValueError("H26 population index order/identity mismatch.")
-    record = next(item for item in records if item["fixture_id"] == fixture_id)
+    p2_records = index.get("p2_records")
+    if type(p2_records) is not list or any(type(item) is not dict for item in p2_records):
+        raise ValueError("H26 P2 population records schema invalid.")
+    p2_test_id = None
+    p2_grid_id = None
+    p2_cell = None
+    expected_masks = _validity_masks(np, plan.fixture(fixture_id))
+    if p2_transform is None:
+        record = next(item for item in records if item["fixture_id"] == fixture_id)
+    else:
+        rebuilt = build_h26_p2_transform(
+            plan, fixture_id=fixture_id, test_id=p2_transform.test_id,
+            grid_id=p2_transform.grid_id, cell=p2_transform.cell,
+        )
+        if rebuilt != p2_transform:
+            raise ValueError("H26 bound P2 transform is not canonical.")
+        matches = [
+            item for item in p2_records
+            if item.get("fixture_id") == fixture_id
+            and item.get("test_id") == rebuilt.test_id
+            and item.get("grid_id") == rebuilt.grid_id
+            and item.get("cell") == deep_thaw_json(rebuilt.cell)
+        ]
+        if len(matches) != 1:
+            raise ValueError("H26 sealed P2 population record missing or duplicated.")
+        record = matches[0]
+        p2_test_id = rebuilt.test_id
+        p2_grid_id = rebuilt.grid_id
+        p2_cell = rebuilt.cell
+        expected_masks = _validity_masks_for_transform(np, plan, rebuilt)
     waveform_raw = _read_bound_file(root, record.get("waveform"), record.get("waveform_sha256"))
     if len(waveform_raw) != SAMPLE_COUNT * 8:
         raise ValueError("H26 bound waveform byte length mismatch.")
@@ -432,7 +474,6 @@ def bind_h26_population_observation(
         raise ValueError("H26 bound sample-valid mask invalid.")
     sample_valid = np.frombuffer(mask_raw, dtype=np.uint8).astype(np.bool_)
     sample_valid.setflags(write=False)
-    expected_masks = _validity_masks(np, plan.fixture(fixture_id))
     if mask_raw != expected_masks.sample_valid.astype(np.uint8).tobytes(order="C"):
         raise ValueError("H26 bound mask differs from sealed fixture parameters.")
     ranks = record.get("invalid_candidate_partial_ranks")
@@ -453,6 +494,7 @@ def bind_h26_population_observation(
     return H26BoundObservation(
         fixture_id=fixture_id, population_root=root,
         population_index_sha256=index_sha,
+        p2_test_id=p2_test_id, p2_grid_id=p2_grid_id, p2_cell=p2_cell,
         waveform_sha256=str(record["waveform_sha256"]), waveform=waveform,
         sample_valid_sha256=str(record["sample_valid_sha256"]),
         sample_valid=sample_valid,
@@ -489,6 +531,7 @@ def materialize_h26_population(
         raise FileExistsError(staging)
     staging.mkdir(parents=True)
     records: list[dict[str, object]] = []
+    p2_records: list[dict[str, object]] = []
     try:
         for ordinal, fixture_id in enumerate(plan.fixture_ids, start=1):
             waveform, masks, alternate = synthesize_h26_fixture(np, capability, fixture_id)
@@ -515,10 +558,53 @@ def materialize_h26_population(
                 "sample_valid_count": int(np.count_nonzero(masks.sample_valid)),
                 "invalid_candidate_partial_ranks": list(masks.invalid_candidate_partial_ranks),
             })
+        for test in plan.tests:
+            if test.phase != "P2" or test.perturbation_grid_id is None:
+                continue
+            from .harmonic_censoring_h26_engine import p2_cells
+            for fixture_id in test.fixture_ids:
+                for cell_ordinal, cell in enumerate(
+                    p2_cells(plan.contract, test.perturbation_grid_id), start=1,
+                ):
+                    transform = build_h26_p2_transform(
+                        plan, fixture_id=fixture_id, test_id=test.test_id,
+                        grid_id=test.perturbation_grid_id, cell=cell,
+                    )
+                    waveform, masks, alternate = synthesize_h26_p2_fixture(
+                        np, capability, transform,
+                    )
+                    prefix = f"p2/{test.test_id}/{fixture_id}/{cell_ordinal:03d}"
+                    waveform_name = prefix + ".f8le"
+                    waveform_raw = encode_waveform(np, waveform)
+                    _write_new(staging / waveform_name, waveform_raw)
+                    mask_name = prefix + ".sample-valid.u8"
+                    mask_raw = masks.sample_valid.astype(np.uint8).tobytes(order="C")
+                    _write_new(staging / mask_name, mask_raw)
+                    alternate_name = None
+                    alternate_sha256 = None
+                    if alternate is not None:
+                        alternate_raw = encode_waveform(np, alternate)
+                        alternate_name = prefix + ".alternate.f8le"
+                        _write_new(staging / alternate_name, alternate_raw)
+                        alternate_sha256 = hashlib.sha256(alternate_raw).hexdigest()
+                    p2_records.append({
+                        "fixture_id": fixture_id,
+                        "test_id": test.test_id,
+                        "grid_id": test.perturbation_grid_id,
+                        "cell": deep_thaw_json(transform.cell),
+                        "waveform": waveform_name,
+                        "waveform_sha256": hashlib.sha256(waveform_raw).hexdigest(),
+                        "alternate_waveform": alternate_name,
+                        "alternate_waveform_sha256": alternate_sha256,
+                        "sample_valid": mask_name,
+                        "sample_valid_sha256": hashlib.sha256(mask_raw).hexdigest(),
+                        "sample_valid_count": int(np.count_nonzero(masks.sample_valid)),
+                        "invalid_candidate_partial_ranks": list(masks.invalid_candidate_partial_ranks),
+                    })
         _write_new(staging / "population_index.json", canonical_json_bytes({
-            "schema_version": 1, "population_namespace": "H26_SYNTHETIC_V1",
+            "schema_version": 2, "population_namespace": "H26_SYNTHETIC_V1",
             "materialized_by_commit": capability.implementation_commit,
-            "records": records,
+            "records": records, "p2_records": p2_records,
         }, line=True))
         os.replace(staging, destination)
     except BaseException:

@@ -35,6 +35,15 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   perturbation à son test, sa grille et sa cellule scellés, y compris les
   coordonnées décalées P2. Le câblage complet artificiel du producer est
   maintenant exercé; aucune science ni matérialisation H26 n'a été exécutée.
+- Après le refus externe de `082a0db8…`, l'index futur sépare explicitement
+  chaque observation baseline de chaque observation P2 par le tuple exact
+  `fixture_id/test_id/grid_id/cell` et par les SHA waveform, masque et
+  alternate éventuel. Le producer refuse donc une observation baseline avec
+  une transformation P2, revalide la cellule canonique avant toute mesure et
+  relit uniquement les octets P2 correspondants. Le recomputer exige aussi
+  l'ordre brut `24..96` ou `96..24` prescrit par la cellule de permutation.
+  Ces gardes sont couverts uniquement sur des tableaux artificiels; aucune
+  waveform H26 réelle ni phase P0/P1/P2 n'a été matérialisée ou exécutée.
 - La préinscription H26 sépare désormais un certificat positif de naissance et
   un certificat négatif falsifiant une proposition candidate d'amplitude
   minimale préenregistrée. L'absence d'évidence indépendante seule produit

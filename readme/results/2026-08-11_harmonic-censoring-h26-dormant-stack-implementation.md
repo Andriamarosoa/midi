@@ -46,7 +46,7 @@ et de petits opérandes artificiels qui ne correspondent à aucune fixture H26.
 ```text
 python -B -m py_compile ...                                  PASS
 python -B -m unittest tests.test_harmonic_censoring_h26_dormant_stack
-22 tests en 0,140 s                                          PASS
+26 tests en 0,243 s                                          PASS
 git diff --check                                             PASS
 ```
 
@@ -108,3 +108,31 @@ la dormance rendait inaccessibles aux tests initiaux. Le correctif courant :
 La portée reste strictement dormante : aucun index H26 réel, waveform H26,
 P0/P1/P2, runtime secondaire, authority, capability, claim, donnée réelle,
 modèle, entraînement ou locked-test n'a été créé ou exécuté.
+
+## Correctif après rejet externe de `082a0db8`
+
+La troisième revue a confirmé les corrections précédentes, mais a refusé la
+liaison incomplète entre les cellules P2 qui modifient le signal ou le masque
+et les octets effectivement consommés. Le correctif courant :
+
+- porte l'index futur à un schéma v2 comprenant des records P2 distincts pour
+  chaque `fixture_id/test_id/grid_id/cell`, chacun avec ses propres SHA de
+  waveform, masque et alternate éventuel ;
+- lie `H26BoundObservation` à ces trois coordonnées P2 et refuse une observation
+  baseline lorsque le producer demande une transformation P2 ;
+- reconstruit la transformation depuis le plan scellé, exige l'identité exacte
+  avec la cellule demandée, puis relit et rehache le seul record P2 correspondant
+  avant de mesurer les octets reconstruits ;
+- matérialiserait, uniquement après une future autorisation séparée, les
+  waveforms et masques propres à chaque cellule ; le décalage de hop reste lié
+  aux onsets, cible, résolution et frontière de validité de sa recette ;
+- impose au recomputer l'ordre brut exact de la grille de dilution : `24..96`
+  en baseline/ascending et `96..24` en descending, au lieu d'accepter un simple
+  ensemble de pitches ;
+- ajoute les inverses artificiels demandés (baseline + P2, cellule différente,
+  ordre opposé) et un chemin positif complet prouvant que le tableau transmis
+  à `extract_raw_operands()` provient du record P2 exact.
+
+La portée reste inchangée et strictement dormante : aucun index ou signal H26
+réel, aucune phase P0/P1/P2, aucun runtime, issuer, capability, claim, donnée,
+modèle, entraînement ou locked-test n'a été créé, chargé ou exécuté.

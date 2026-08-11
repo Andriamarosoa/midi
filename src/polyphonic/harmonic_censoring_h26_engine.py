@@ -616,21 +616,44 @@ def produce_h26_fixture_evidence(
 ) -> H26EvidenceRecord:
     plan, expected_population_index_sha256 = _require_scientific(capability)
     from .harmonic_censoring_h26_materializer import (
-        H26BoundObservation, _validity_masks, bind_h26_population_observation,
-        encode_waveform,
+        H26BoundObservation, H26P2Transform, _validity_masks,
+        bind_h26_population_observation, build_h26_p2_transform, encode_waveform,
     )
     if type(observation) is not H26BoundObservation or observation.fixture_id != fixture_id:
         raise ValueError("H26 evidence requires the exact bound observation.")
     if observation.population_index_sha256 != expected_population_index_sha256:
         raise ValueError("H26 evidence population binding mismatch.")
+    canonical_p2_transform = None
+    if p2_transform is not None:
+        if type(p2_transform) is not H26P2Transform or p2_transform.fixture_id != fixture_id:
+            raise ValueError("H26 evidence P2 transform type/fixture mismatch.")
+        canonical_p2_transform = build_h26_p2_transform(
+            plan, fixture_id=fixture_id, test_id=p2_transform.test_id,
+            grid_id=p2_transform.grid_id, cell=p2_transform.cell,
+        )
+        if canonical_p2_transform != p2_transform:
+            raise ValueError("H26 evidence P2 transform is not canonical.")
+    requested_p2_binding = (
+        None if canonical_p2_transform is None else canonical_p2_transform.test_id,
+        None if canonical_p2_transform is None else canonical_p2_transform.grid_id,
+        None if canonical_p2_transform is None else canonical_p2_transform.cell,
+    )
+    if (
+        observation.p2_test_id, observation.p2_grid_id, observation.p2_cell,
+    ) != requested_p2_binding:
+        raise ValueError("H26 observation P2 binding differs from requested transform.")
     rebound = bind_h26_population_observation(
         np, plan, observation.population_root,
         expected_population_index_sha256=expected_population_index_sha256,
         fixture_id=fixture_id,
+        p2_transform=canonical_p2_transform,
     )
     declared_binding = (
         observation.population_root,
         observation.population_index_sha256,
+        observation.p2_test_id,
+        observation.p2_grid_id,
+        observation.p2_cell,
         observation.waveform_sha256,
         observation.sample_valid_sha256,
         observation.invalid_candidate_partial_ranks,
@@ -639,6 +662,9 @@ def produce_h26_fixture_evidence(
     sealed_binding = (
         rebound.population_root,
         rebound.population_index_sha256,
+        rebound.p2_test_id,
+        rebound.p2_grid_id,
+        rebound.p2_cell,
         rebound.waveform_sha256,
         rebound.sample_valid_sha256,
         rebound.invalid_candidate_partial_ranks,
@@ -682,18 +708,8 @@ def produce_h26_fixture_evidence(
     candidate_ranks = policy.harmonic_ranks
     transform_order = "ascending"
     perturbation: Mapping[str, object] | None = None
-    if p2_transform is not None:
-        from .harmonic_censoring_h26_materializer import (
-            H26P2Transform, build_h26_p2_transform,
-        )
-        if type(p2_transform) is not H26P2Transform or p2_transform.fixture_id != fixture_id:
-            raise ValueError("H26 evidence P2 transform type/fixture mismatch.")
-        rebuilt = build_h26_p2_transform(
-            plan, fixture_id=fixture_id, test_id=p2_transform.test_id,
-            grid_id=p2_transform.grid_id, cell=p2_transform.cell,
-        )
-        if rebuilt != p2_transform:
-            raise ValueError("H26 evidence P2 transform is not canonical.")
+    if canonical_p2_transform is not None:
+        p2_transform = canonical_p2_transform
         proposal_hop_end = p2_transform.target_hop_end
         resolution_hop_end = p2_transform.resolution_hop_end
         cents = float(p2_transform.collision_overrides.get("cents", 0.0))
