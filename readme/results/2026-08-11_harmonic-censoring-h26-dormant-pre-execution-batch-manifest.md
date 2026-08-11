@@ -60,7 +60,9 @@ Les deux groupes prescrits ci-dessus passent indépendamment.
 - entraînement/calibration : non ;
 - locked-test : non.
 
-Le prochain acte est exclusivement la revue externe progressive de C1 à C19.
+La revue externe progressive de C1 à C19 est maintenant terminée sous les
+overlays approuvés. La clôture externe définitive du manifeste reste en attente
+de la revue de l'overlay documentaire terminal ci-dessous.
 
 ## Overlay correctif additif après rejet de C1
 
@@ -125,3 +127,25 @@ son test. R14 conserve C18 et R1-C18 comme historiques et designe le blob R13
 
 Aucun contrat C16, seal C17, regle scientifique, P0/P1/P2 ou locked-test n'a
 ete modifie ou execute.
+
+## Overlay fake-only apres rejet de C19
+
+C19 historique `11956c7ca6132473ba8e2c4561c33160e7ca04be`, blob runner
+`4382deb847473bd8e408b1cd6c33a1bb6d0845b5`, a ete rejete parce qu'il
+acceptait trois callbacks arbitraires tout en declarant la science reelle et le
+locked-test absents.
+
+- R15 `2062affefa6096e2969e8ba8b76b3683c41e0064` supprime les callbacks et
+  impose une entree structurelle inerte `H26FakeOnlySequence`. Le runner
+  effectif a le blob `222b8acc69c738f39343cce349ead8d753e003f5`.
+- R16 `93edb9701a1d48cb3fe8552c6f9cca88adfae7b8` lie C19 historique a R15
+  effectif avec la raison
+  `ARBITRARY_CALLABLE_EXECUTION_BOUNDARY_REMOVED`.
+- C16, C17, R13 et R14 restent inchanges.
+- P0/P1/P2 reels : non.
+- science reelle executee : non.
+- locked-test utilise : non.
+
+C1-C19 sont ainsi approuves directement ou sous overlay. Ce texte est
+l'overlay documentaire terminal effectif; Cfinal historique reste la provenance
+du manifeste initial et n'est ni amende, ni rebase, ni reecrit.
