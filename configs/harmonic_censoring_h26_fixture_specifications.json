@@ -29,6 +29,9 @@
     "target_category_as_model_input_forbidden": true
   },
   "synthesis_rules_for_future_implementation": {
+    "numeric_type": "IEEE-754 float64 throughout; no intermediate float32 conversion",
+    "midi_frequency_hz": "F0(p)=440.0*2.0^((float64(p)-69.0)/12.0)",
+    "sample_formula": "For sample index g, component(frequency_hz,amplitude,phase,envelope)=amplitude*envelope(g)*sin(2*pi*frequency_hz*g/44100+phase), evaluated in float64.",
     "harmonic_amplitude": "source_gain/h for harmonic rank h",
     "exact_collision_frequency_rule": "F0(candidate_pitch) equals collision_harmonic_rank times F0(old_pitch)",
     "exact_collision_canonical_float_rule": "For power-of-two collision ranks, compute one canonical float64 collision_frequency_hz as collision_harmonic_rank*F0(old_pitch) and use that exact float in both independently rendered latent records; a separately rounded F0(candidate_pitch) may be checked but not substituted.",
@@ -37,6 +40,29 @@
     "exact_collision_independent_rendering": "render each complete latent decomposition independently and require byte-identical allowed observation bytes before publication",
     "exclusive_support_rule": "a complete candidate partial tolerance band must not intersect ranks 1..8 of any active source",
     "bounded_claim_origin": "derive the candidate lower bound from observed shared-band amplitude and the global synthetic timbre lower envelope; fixture expected/category fields and caller-supplied per-fixture bounds are forbidden inputs"
+  },
+  "exact_nonzero_collision_contract": {
+    "applies_to_fixture_ids": ["H26-F-A01","H26-F-A02","H26-F-A03","H26-F-A04","H26-F-A05","H26-F-A06"],
+    "allowed_sample_indices": [0,16639],
+    "old_note_on_sample": 8192,
+    "collision_onset_sample": 16128,
+    "old_background_partial_ranks": [1,2,3,4,5,6,7,8],
+    "old_background_collision_rank_excluded": true,
+    "old_background_phase_radians": 0.0,
+    "old_background_envelope": "e_old(g)=0.0 for g<8192; e_old(g)=exp(-(g-8192)/8192.0) for g>=8192",
+    "collision_envelope": "e_collision(g)=0.0 for g<16128; e_collision(g)=min(1.0,(g-16128+1)/64.0)*exp(-(g-16128)/2048.0) for g>=16128",
+    "common_background": "Sum old-pitch partials h in {1,...,8} except the fixture collision_harmonic_rank, each at canonical frequency h*F0(old_pitch), amplitude old_source_gain/h, phase 0.0 and e_old. This exact background is present in both latent decompositions.",
+    "old_latent_decomposition": "common_background plus exactly one old-pitch component at the fixture collision_harmonic_rank, canonical frequency collision_harmonic_rank*F0(old_pitch), amplitude old_source_gain/collision_harmonic_rank, fixture phase_radians and e_collision",
+    "candidate_latent_decomposition": "common_background plus exactly one candidate H1 component at the same canonical collision frequency, amplitude candidate_source_gain, fixture phase_radians and e_collision",
+    "candidate_partial_ranks_present": [1],
+    "candidate_partial_ranks_absent": [2,3,4,5,6,7,8],
+    "old_collision_component_present_before_collision_onset": false,
+    "candidate_component_present_before_collision_onset": false,
+    "causal_history": "old_pitch is active from sample 8192; candidate_pitch is inactive through target proposal",
+    "nonzero_requirement": "old_source_gain>0, candidate_source_gain>0, and candidate_source_gain=old_source_gain/collision_harmonic_rank",
+    "independent_render_requirement": "Materialize the complete old and candidate latent decompositions in separate zero-initialized float64 arrays using separate loops and no shared collision-component buffer.",
+    "byte_equality_requirement": "The two complete arrays must have identical little-endian <f8 bytes over samples 0..16639 before any fixture is publishable.",
+    "observation_equivalence_consequence": "No allowed observation, metric, certificate or deterministic implementation may distinguish the two causes; outcome must be AMBIGUOUS."
   },
   "category_counts": {
     "positive": 10,

@@ -145,6 +145,185 @@
     "invalid_support_is_masked_not_zero_filled": true,
     "threshold_change_after_observation_forbidden": true
   },
+  "measurement_definitions": {
+    "analysis_dtype": "float64 for every sample, window, FFT operand, power, kernel, sum, dot product and certificate component",
+    "pitch_frequency": "F0(p)=440.0*2.0^((float64(p)-69.0)/12.0)",
+    "window_extraction": {
+      "short_current": "inclusive samples [hop_end-4095, hop_end]",
+      "short_previous": "inclusive samples [hop_end-4095-256, hop_end-256]",
+      "long_current": "inclusive samples [hop_end-8191, hop_end]",
+      "long_previous": "inclusive samples [hop_end-8191-256, hop_end-256]",
+      "padding": "forbidden; any missing required sample marks that view invalid"
+    },
+    "spectrum": {
+      "view_length_symbols": "L=4096 for short views; L=8192 for long views",
+      "window": "symmetric Hann w_L[m]=0.5-0.5*cos(2*pi*m/(L-1)) for m=0..L-1",
+      "zero_padding": "n_fft=8*L; append exactly 7*L positive float64 zeros after the causal view. This changes frequency sampling only and never reads audio beyond the view.",
+      "transform": "numpy.fft.rfft(float64(view*w_L), n=8*L)",
+      "power": "P_L[k]=(real(X[k])^2+imag(X[k])^2)/sum_m(w_L[m]^2), evaluated float64 in ascending m then ascending k order",
+      "frequency_hz": "f_L[k]=k*44100/(8*L)",
+      "included_total_power_bins": "k=1..4*L inclusive; DC k=0 excluded",
+      "total_power": "T_L=sum_{k=1..4*L} P_L[k] in ascending-k float64 order",
+      "valid_total_power": "finite T_L>max(1e-24,1e-12*sum_{k=1..4*L} abs(P_L[k]))"
+    },
+    "partial_band_kernel": {
+      "half_width_cents": 35.0,
+      "formula": "K(f,target)=max(0,1-abs(1200*log2(f/target))/35) for f>0; K=0 at DC",
+      "band_membership": "K>0",
+      "minimum_valid_bins": 3,
+      "band_energy": "E_N(target)=sum_k P_N[k]*K(f_N[k],target) in ascending-k float64 order",
+      "exclusive_definition": "a candidate band is exclusive only if its K>0 bin set has empty intersection with every K>0 bin set for harmonics 1..8 of every causally active pitch"
+    },
+    "exclusive_energy_ratio": {
+      "per_partial_formula": "Q_h=E_4096(h*F0(candidate_pitch))/T_4096",
+      "denominator": "current short-view total power T_4096, DC excluded",
+      "positive_test": "at least two exclusive h have Q_h>=0.02",
+      "negative_observation_test": "the same at-least-two preregistered exclusive h each have Q_h<=0.002",
+      "overlap_between_candidate_bands": "allowed, but each physical FFT bin contributes separately to each preregistered Q_h and never to T_4096 more than once"
+    },
+    "short_window_onset_rise": {
+      "formula": "O=max(0,T_current_4096-T_previous_4096)/max(T_current_4096,1e-24)",
+      "positive_threshold": "O>=0.05",
+      "negative_threshold": "O<=0.005",
+      "intermediate_region": "0.005<O<0.05 cannot satisfy either certificate"
+    },
+    "harmonic_basis": {
+      "column_formula": "b_p[k]=sum_{h=1..8}(1/h^2)*K(f_4096[k],h*F0(p)) for k=1..16384 on the short-view n_fft=32768 grid",
+      "normalization": "divide each nonzero column by sqrt(sum_k b_p[k]^2) in ascending-k float64 order",
+      "pitch_order": "strict ascending MIDI pitch",
+      "invalid_column": "a zero or nonfinite column invalidates the residual measurement"
+    },
+    "nnls_fixed_v1": {
+      "observation": "y[k]=P_4096[k]/max(T_4096,1e-24) for k=1..16384",
+      "initial_coefficients": "all positive float64 0.0",
+      "algorithm": "exactly 512 cyclic coordinate-descent sweeps; in each sweep visit columns in ascending MIDI pitch; for column j set a_j=max(0,a_j+dot(b_j,y-Ba)/dot(b_j,b_j)); recompute residual y-Ba in ascending-k order after every coordinate update",
+      "no_early_stop": true,
+      "residual": "R(S)=sum_k (y[k]-(B_S*a)[k])^2 / max(sum_k y[k]^2,1e-24), ascending-k float64",
+      "empty_source_set": "R(empty)=1 when y is valid"
+    },
+    "active_only_residual_improvement": {
+      "formula": "I=max(0,R(active_pitches)-R(sorted(active_pitches union {candidate_pitch})))/max(R(active_pitches),1e-24)",
+      "positive_threshold": "I>=0.10",
+      "negative_threshold": "I<=0.001",
+      "intermediate_region": "0.001<I<0.10 cannot satisfy either certificate"
+    },
+    "support_normalized_pitch_dilution_residual_curve": {
+      "pitch_grid": "integer MIDI pitches 24..96 inclusive in ascending order",
+      "formula": "C[p]=max(0,R(active_pitches)-R(sorted(active_pitches union {p})))/max(R(active_pitches),1e-24), using NNLS_FIXED_V1 independently for every p",
+      "candidate_value": "I=C[candidate_pitch]",
+      "support_normalization": "Both R terms use the same current valid short-view y and its normalized squared-residual denominator; invalid views mask the complete curve.",
+      "role": "C is an allowed diagnostic operand; no raw transform-disappearance index, fixture identity or expected category may enter it."
+    },
+    "global_synthetic_timbre_v1": {
+      "profile_id": "GLOBAL_SYNTHETIC_TIMBRE_V1",
+      "candidate_partials": [1,2,3,4,5,6,7,8],
+      "amplitude_envelope": "a_h=1/h",
+      "power_envelope": "a_h^2=1/h^2",
+      "lower_envelope_factor": 0.8,
+      "shared_band": "candidate H1 partial band under the same 35-cent triangular kernel",
+      "shared_band_energy": "S=E_4096(F0(candidate_pitch))",
+      "lower_bound_per_exclusive_partial": "L_h=0.8*S/h^2/T_4096",
+      "bounded_claim_valid": "at least two exclusive h have finite L_h>=0.02 and at least three valid bins",
+      "negative_margin": "for the same h, require finite Q_h<=0.002 and L_h/Q_h>=10; define L_h/Q_h=+infinity only when Q_h is exact positive float64 0.0",
+      "source_of_bound": "S and the single global profile only; fixture category, expected outcome, labels and caller-provided per-fixture constants forbidden"
+    },
+    "long_window_persistence": {
+      "formula": "D=(T_current_8192-T_previous_8192)/max(T_current_8192,1e-24)",
+      "role": "diagnostic and validity context only; D is not by itself a positive or negative certificate"
+    }
+  },
+  "p2_perturbation_grids": {
+    "P2_GAIN_V1": {
+      "common_linear_amplitude_scales": [0.5,1.0,2.0],
+      "application": "multiply every non-noise source amplitude in a fixture by the same scale before mixing"
+    },
+    "P2_PHASE_V1": {
+      "global_phase_radians": [0.0,1.5707963267948966,3.141592653589793,4.71238898038469],
+      "application": "replace the declared common source phase; exact-collision paired components always receive the same phase"
+    },
+    "P2_NOISE_V1": {
+      "colours": ["white","pink"],
+      "snr_db": [30,20,10],
+      "decimal_snr_db_strings": ["30","20","10"],
+      "seed": "unsigned little-endian uint64 from the first 8 digest bytes of SHA256(UTF8('H26|' + fixture_id + '|P2-003|' + colour + '|' + decimal_snr_db_string))",
+      "support_samples_inclusive": [8192,16639],
+      "white": "PCG64(seed) standard_normal(16640) float64",
+      "pink": "from the same ungated white vector z: Z=rfft(z); Z[0]=0; Z[k]=Z[k]/sqrt(k) for k>=1; irfft(Z,n=16640)",
+      "normalization": "subtract mean on support only, normalize to unit RMS on support only, assign exact positive 0.0 outside support, then scale to clean-support RMS*10^(-snr_db/20)"
+    },
+    "P2_CENTS_INHARMONICITY_V1": {
+      "cents": [-25,0,25],
+      "B": [0.0,0.0004,0.004],
+      "partial_frequency": "f(p,h,cents,B)=h*F0(p)*2^(cents/1200)*sqrt(1+B*h^2)",
+      "application": "Apply the same cell's cents and B to every synthesized source partial and to every candidate/active partial-band center and harmonic-basis center used to analyze that cell.",
+      "cartesian_product": true
+    },
+    "P2_HOP_SHIFT_V1": {
+      "hop_shifts": [-2,-1,0],
+      "sample_shift": "256*hop_shift",
+      "application": "shift every source onset, causal transition, target hop, resolution hop and validity-mask boundary by the same sample shift; no clipping or padding",
+      "baseline_target_end": 16383,
+      "baseline_resolution_end": 16639
+    },
+    "P2_PERMUTATION_V1": {
+      "active_pitch_orders": ["ascending","descending"],
+      "candidate_partial_orders": ["ascending","descending"],
+      "transform_orders": ["ascending","descending"],
+      "cartesian_product": true,
+      "semantic_state_order_never_permuted": true
+    },
+    "P2_RUNTIME_V1": {
+      "primary": {
+        "implementation": "CPython",
+        "version": "3.11.9",
+        "platform_system": "Darwin",
+        "platform_release": "24.5.0",
+        "platform_machine": "arm64",
+        "numpy_version": "1.26.4",
+        "numpy_multiarray_size_bytes": 3164400,
+        "numpy_multiarray_sha256": "6a88945aed63a76e3c57076d657d704eef5d0d1e8d6cb1576724b1deb2872e44",
+        "blas_provider": "OpenBLAS ILP64",
+        "blas_library_size_bytes": 23198400,
+        "blas_library_sha256": "dde2b735d01caa531885115ea853b5a4172b935167b95a1acb2a10243e0d97e7"
+      },
+      "secondary": {
+        "implementation": "CPython",
+        "version": "3.9.6",
+        "platform_system": "Darwin",
+        "platform_release": "24.5.0",
+        "platform_machine": "arm64",
+        "resolved_executable": "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/bin/python3.9",
+        "executable_size_bytes": 102352,
+        "executable_sha256": "5c5950c62eee5fd227a67e4bdfcde81c9add59799bba0949635f3d5ba9661c26",
+        "numpy_version": "1.26.4",
+        "numpy_multiarray_size_bytes": 3164512,
+        "numpy_multiarray_sha256": "e870618cf0f8a4b73a928649aba064eee859f8e25a7912344c979f1d03679194",
+        "blas_provider": "OpenBLAS ILP64",
+        "blas_library_size_bytes": 23198400,
+        "blas_library_sha256": "dde2b735d01caa531885115ea853b5a4172b935167b95a1acb2a10243e0d97e7"
+      },
+      "process_environment_exact": {
+        "MIDI_FORCE_CPU": "1",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1",
+        "VECLIB_MAXIMUM_THREADS": "1",
+        "PYTHONHASHSEED": "0",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC"
+      },
+      "comparison": {
+        "boolean_masks_integer_counts_outcomes_and_certificate_membership": "exact equality",
+        "finite_float_operands": "abs(primary-secondary)<=1e-12+1e-10*abs(primary)",
+        "exact_collision_within_each_runtime": "paired latent arrays byte-identical <f8 within that runtime",
+        "exact_collision_across_runtimes": "numeric tolerance applies; cross-runtime waveform-byte identity is not required",
+        "nan_or_infinity": "forbidden except the explicitly defined negative-margin ratio when Q_h is exact positive 0.0"
+      },
+      "authority_boundary": "These identities and tolerances are declarative test operands only. They do not reuse H25 authority, executable observer, transport, claim or consumption state, and do not authorize either runtime."
+    }
+  },
   "preregistered_metrics": [
     "outcome exact-match by fixture",
     "positive-certificate component exact-match",

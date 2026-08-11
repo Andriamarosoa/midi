@@ -6,6 +6,12 @@ Ce commit définit uniquement un paquet déclaratif dormant pour un éventuel
 successeur de H25. Il ne modifie aucun moteur, recomputer, runner ou test
 exécutable. Il ne matérialise aucun signal et n'autorise aucune exécution.
 
+La première revue externe a refusé le paquet déclaratif initial parce que ses
+catégories étaient définies, mais pas tous les opérandes nécessaires à une
+reproduction indépendante. La révision autorisée ferme uniquement ce défaut :
+elle ne change ni hypothèse, ni population, ni catégorie, ni seuil, ni plan
+P0/P1/P2.
+
 H25 reste définitivement `H25_SYNTHETIC_HYPOTHESIS_KILLED`, son claim reste
 consommé et ne confère aucune autorité à H26.
 
@@ -97,6 +103,15 @@ Les six collisions exactes H26 diffèrent du cas limite H25 : chaque explication
 latente contient une contribution non nulle et les deux décompositions complètes
 devront synthétiser indépendamment les mêmes octets observables. Une source
 latente de gain zéro ne peut plus servir de preuve de collision exacte.
+La spécification fixe désormais complètement ces six paires : fond commun,
+partiels présents et absents, enveloppe décroissante ancienne, enveloppe
+d'attaque commune à l'alternative, phase, fréquence flottante canonique,
+amplitudes, histoire causale et rendu indépendant en tableaux `<f8`. La
+collision du rang ancien est retirée du fond commun puis ajoutée une seule fois
+soit comme partiel ancien, soit comme fondamentale candidate. Les deux tableaux
+complets doivent être byte-identical avant publication; sinon la fixture est
+invalide.
+
 Le gain de la fondamentale candidate est fixé à `old_source_gain / rang` afin
 de compenser exactement la loi d'amplitude harmonique `1/rang`. Les supports
 qualifiés d'exclusifs doivent en outre être disjoints, bande de tolérance
@@ -108,6 +123,22 @@ la relation avec le pitch candidat est contrôlée séparément.
 Trois fixtures contiennent une contribution non nulle sous le plancher de
 détection ; elles sont explicitement `AMBIGUOUS`, jamais `NO_BIRTH`. Trois
 autres couvrent des supports invalides et restent elles aussi ambiguës.
+
+## Mesures et perturbations fermées
+
+Les quatre vues causales, la Hann symétrique, le `rfft`, la normalisation de
+puissance, les bandes triangulaires de `35` cents, leurs trois bins valides, les
+dénominateurs, l'onset court, la base harmonique et le NNLS déterministe à `512`
+sweeps sont maintenant définis algorithmiquement. Le profil global
+`GLOBAL_SYNTHETIC_TIMBRE_V1` donne aussi une formule unique du minorant et de la
+marge négative; aucune constante propre à une fixture ne peut être injectée.
+
+Les grilles P2 ne sont plus des catégories ouvertes : gain `[0.5,1,2]`, phases
+`[0,pi/2,pi,3pi/2]`, bruit blanc/rose × SNR `[30,20,10]` avec seed SHA-256,
+cents `[-25,0,25]` × inharmonicité `[0,0.0004,0.004]`, shifts de hops
+`[-2,-1,0]`, huit permutations exactes et deux identités runtime binaires. Les
+masks, comptes, appartenances et résultats sont exacts; les opérandes flottants
+cross-runtime utilisent uniquement la tolérance préenregistrée.
 
 ## Tests préenregistrés
 
@@ -140,6 +171,9 @@ Toute future matérialisation ou exécution nécessiterait des contrats de runti
 SHA, autorité, capability, claim, transcript et fermeture entièrement nouveaux.
 Les namespaces sont `H26_SYNTHETIC_V1` et `H26_TEST_V1`. Aucun blob, population,
 claim ou autorité H25 ne peut être réutilisé comme autorité H26.
+
+La prochaine étape est une nouvelle revue externe de ce paquet déclaratif
+corrigé. Toute implémentation, matérialisation ou exécution reste interdite.
 
 ## Frontière d'autorisation
 
