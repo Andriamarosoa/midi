@@ -14,12 +14,21 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: dormant corrected materialization authority contract seal loader reviewed and closed; no real authority or execution. -->
+<!-- H26_CORRECTION_STATUS: dormant materialization authority artifact canonicalization and validation contract defined; external review required; no real authority or execution. -->
 ## État courant
 
 - Mise à jour : `2026-08-11`.
 - État courant :
-  `H26_CORRECTED_MATERIALIZATION_AUTHORITY_CONTRACT_EXTERNAL_SEAL_LOADER_DORMANT_REVIEWED_AND_CLOSED`.
+  `H26_MATERIALIZATION_AUTHORITY_ARTIFACT_CANONICALIZATION_AND_VALIDATION_CONTRACT_DORMANT_PENDING_EXTERNAL_REVIEW`.
+- Le futur artefact d'autorité de matérialisation possède maintenant un contrat
+  déclaratif fermé : keyset exact de 36 champs, types exacts, octets JSON
+  canoniques, `authority_id` dérivé par une préimage SHA-256 domain-separated,
+  preuve runtime complète uniquement `QUALIFIED`, destination future unique et
+  seal externe séparé. Les bindings du contrat corrigé `84d1a196…`, de son
+  seal `eb058ed…`, du loader approuvé `88593f7f…` et de sa clôture
+  `f51eac20…` sont exacts. Aucun issuer, validator, authority, claim,
+  destination, runtime, materializer ou calcul n'est créé. Rapport :
+  `readme/results/2026-08-11_harmonic-censoring-h26-materialization-authority-artifact-contract.md`.
 - Le loader dormant du seal externe corrigé, implémenté au commit
   `88593f7f065e7492af566e2ca90577c09916923e`, est désormais relu et clos. Il vérifie le blob exact du seal avant
   interprétation, impose son schéma, ses bindings et tous ses états
@@ -1836,8 +1845,8 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 ## Prochaine action réelle
 
-1. Faire relire uniquement le validateur dormant de preuve runtime artificielle et ses neuf tests synthétiques.
-2. Ne créer aucun moteur, recomputer, materializer, runner, authority,
+1. Faire relire uniquement le contrat dormant de canonicalisation et validation du futur artefact d'autorité de matérialisation H26.
+2. Ne créer aucun validator, issuer, moteur, recomputer, materializer, runner, authority,
    capability, claim, waveform ou calcul H26 avant une autorisation séparée.
 3. Ne jamais rejouer H25. Garder les données réelles, les modèles, le fit, la
    calibration et le test verrouillé fermés.
@@ -2321,6 +2330,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-11 — seal externe du contrat d'exécution runtime H26](results/2026-08-11_harmonic-censoring-h26-runtime-execution-contract-external-seal.md)
 - [2026-08-11 — correction de liaison de preuve du contrat d'autorité de matérialisation H26](results/2026-08-11_harmonic-censoring-h26-population-materialization-authority-contract.md)
 - [2026-08-11 — validateur dormant de preuve runtime pour la matérialisation H26](results/2026-08-11_harmonic-censoring-h26-materialization-runtime-execution-proof-validator-dormant-implementation.md)
+- [2026-08-11 — contrat canonique du futur artefact d'autorité de matérialisation H26](results/2026-08-11_harmonic-censoring-h26-materialization-authority-artifact-contract.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)
