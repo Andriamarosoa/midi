@@ -65,6 +65,15 @@ l'obtenir. Même un objet forgé via `object.__new__` est refusé avant le premi
 appel lazy à `importlib.import_module("numpy")`. Le module n'importe jamais
 NumPy au chargement.
 
+Après la seconde revue, le provider BLAS n'est plus une valeur d'observation
+codée en dur et aucun fichier simplement présent sur disque n'est accepté. Le
+futur observer devra analyser les dépendances de `_multiarray_umath`, résoudre
+exactement une dépendance BLAS liée, puis dériver de celle-ci provider, chemin
+absolu, taille et SHA-256. Zéro dépendance, plusieurs candidates ou un chemin
+non résoluble rendent la preuve indisponible et donc la future observation
+inconclusive. La commande `otool -L` n'est définie que derrière la capability
+inaccessible; elle n'a pas été exécutée pendant cette étape.
+
 ## Classification et record
 
 La classification pure produit exactement :
@@ -95,6 +104,13 @@ bindings, impose les sept champs de `observed_runtime`, reconstruit une
 toute divergence. Un objet forgé par `object.__new__` ne peut donc plus publier
 un faux verdict `QUALIFIED`.
 
+Chaque preuve binaire sérialisée possède exactement une des deux formes
+canoniques : triplet entièrement `null`, ou chemin absolu non vide, taille
+positive de type `int` exact et SHA-256 lowercase de 64 caractères
+hexadécimaux. Toute combinaison partielle, chemin relatif, `bool`, mauvaise
+taille ou SHA non canonique est un record mal formé et est refusée avant la
+redérivation.
+
 Aucun vrai record n'est produit par cette étape.
 
 ## Validation artificielle autorisée
@@ -110,7 +126,7 @@ python -m unittest \
   tests.test_harmonic_censoring_h26_runtime_qualification_dormant
 ```
 
-Résultat final : `22 tests` réussis en `0,031 s`.
+Résultat final : `29 tests` réussis en `0,058 s`.
 
 Les cas couvrent notamment le blob corrigé accepté, l'ancien blob refusé, les
 croisements commit/blob, capability directe et forgée, absence d'import NumPy,
@@ -122,6 +138,12 @@ auto-SHA refusé et writer inaccessible avant création.
 Les cinq cas ajoutés après revue prouvent en plus l'identité des blobs et SHA
 contractuels LF/CRLF, le refus d'un CR isolé, la redérivation du statut et le
 refus des bindings ou de l'identité runtime forgés.
+
+Les sept cas BLAS/canonicalité ajoutés ensuite prouvent le parsing artificiel
+des dépendances, la dérivation depuis une
+dépendance liée artificielle, le refus d'un OpenBLAS présent mais non lié, les
+cas zéro/plusieurs dépendances, l'absence de fallback provider, le triplet
+entièrement null inconclusive et le refus systématique des triplets mal formés.
 
 Le premier échec sur `c1e503ab…` était un échec correct de garde et non une
 qualification. Aucun observer réel, NumPy, BLAS, runtime secondaire ou actif

@@ -47,6 +47,12 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   contrat, reconstruit en observation et son statut redérivé; un `_payload`
   forgé ne peut pas imposer `QUALIFIED`. Les 22 tests artificiels passent;
   aucune observation réelle n'a été effectuée.
+- Durcissement BLAS et preuves : le provider futur est dérivé uniquement d'une
+  dépendance BLAS unique effectivement liée à `_multiarray_umath`, jamais d'une
+  constante ou d'un fichier seulement présent. Le serializer n'accepte qu'un
+  triplet binaire complet et canonique ou trois `null`; toute forme partielle
+  ou mal typée est refusée. Les 29 tests artificiels passent sans exécuter
+  `otool`, NumPy ou une inspection runtime réelle.
 - Contrat dormant d'autorité de matérialisation H26 défini, sans issuer ni
   objet opérationnel : les trois SHA scientifiques et les cinq blobs Git revus
   sont liés, la sémantique one-shot/fail-closed future est spécifiée et les

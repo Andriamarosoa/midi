@@ -136,6 +136,75 @@ class H26DormantRuntimeQualificationTests(unittest.TestCase):
         self.assertNotIn("\nfrom numpy", source)
         self.assertEqual(source.count('import_module("numpy")'), 1)
 
+    def test_blas_provider_and_proof_derive_from_linked_dependency(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            multiarray = root / "_multiarray_umath.cpython-311-darwin.so"
+            blas = root / "libopenblas64_.0.dylib"
+            multiarray.write_bytes(b"synthetic multiarray")
+            blas_bytes = b"synthetic linked openblas"
+            blas.write_bytes(blas_bytes)
+            evidence = runtime.derive_blas_dependency_evidence(
+                multiarray,
+                ("@loader_path/libopenblas64_.0.dylib", "/usr/lib/libSystem.B.dylib"),
+            )
+        self.assertEqual(evidence.provider, "OpenBLAS ILP64")
+        self.assertEqual(evidence.dependency_path, "@loader_path/libopenblas64_.0.dylib")
+        self.assertEqual(evidence.binary_proof.resolved_path, str(blas.resolve()))
+        self.assertEqual(evidence.binary_proof.size_bytes, len(blas_bytes))
+        self.assertEqual(
+            evidence.binary_proof.sha256,
+            hashlib.sha256(blas_bytes).hexdigest(),
+        )
+
+    def test_otool_dependency_parser_uses_only_dependency_lines(self) -> None:
+        output = """/tmp/_multiarray_umath.so:
+\t@loader_path/libopenblas64_.0.dylib (compatibility version 0.0.0, current version 0.0.0)
+\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1.0.0)
+"""
+        self.assertEqual(
+            runtime.parse_otool_dependency_paths(output),
+            (
+                "@loader_path/libopenblas64_.0.dylib",
+                "/usr/lib/libSystem.B.dylib",
+            ),
+        )
+
+    def test_present_but_unlinked_openblas_never_becomes_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            multiarray = root / "_multiarray_umath.so"
+            multiarray.write_bytes(b"synthetic multiarray")
+            (root / "libopenblas64_.dylib").write_bytes(b"present but unlinked")
+            with self.assertRaisesRegex(RuntimeError, "exactly one linked"):
+                runtime.derive_blas_dependency_evidence(
+                    multiarray,
+                    ("/usr/lib/libSystem.B.dylib",),
+                )
+
+    def test_zero_or_ambiguous_blas_dependencies_are_unavailable(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            multiarray = Path(directory) / "_multiarray_umath.so"
+            multiarray.write_bytes(b"synthetic multiarray")
+            cases = (
+                (),
+                (
+                    "@loader_path/libopenblas64_.dylib",
+                    "/System/Library/Frameworks/Accelerate.framework/Accelerate",
+                ),
+            )
+            for dependencies in cases:
+                with self.subTest(dependencies=dependencies):
+                    with self.assertRaisesRegex(RuntimeError, "exactly one linked"):
+                        runtime.derive_blas_dependency_evidence(
+                            multiarray, dependencies
+                        )
+
+    def test_real_observer_does_not_hardcode_blas_provider(self) -> None:
+        observer_source = inspect.getsource(runtime.observe_primary_runtime)
+        self.assertNotIn('blas_provider="OpenBLAS ILP64"', observer_source)
+        self.assertIn("blas_provider=blas_evidence.provider", observer_source)
+
     def test_exact_artificial_observation_is_qualified_and_ignores_os_extras(self) -> None:
         observation = self.exact_observation()
         self.assertEqual(
@@ -345,6 +414,46 @@ class H26DormantRuntimeQualificationTests(unittest.TestCase):
             runtime.serialize_runtime_qualification_record(
                 self.forged_record(payload)
             )
+
+    def test_fully_null_binary_triplet_is_serializable_inconclusive(self) -> None:
+        observation = replace(self.exact_observation(), executable=None)
+        record = runtime.build_runtime_qualification_record(
+            self.contract, observation
+        )
+        payload = json.loads(
+            runtime.serialize_runtime_qualification_record(record).decode("utf-8")
+        )
+        self.assertIsNone(payload["resolved_executable"])
+        self.assertIsNone(payload["executable_size_bytes"])
+        self.assertIsNone(payload["executable_sha256"])
+        self.assertEqual(payload["terminal_status"], runtime.STATUS_INCONCLUSIVE)
+
+    def test_serializer_rejects_noncanonical_binary_proof_triplets(self) -> None:
+        original = runtime.build_runtime_qualification_record(
+            self.contract, self.exact_observation()
+        ).as_dict()
+        cases = (
+            {"resolved_executable": None},
+            {"executable_size_bytes": None},
+            {"executable_sha256": None},
+            {"resolved_executable": "relative/python"},
+            {"resolved_executable": 123},
+            {"executable_size_bytes": True},
+            {"executable_size_bytes": 0},
+            {"executable_size_bytes": -1},
+            {"executable_size_bytes": "123"},
+            {"executable_sha256": "A" * 64},
+            {"executable_sha256": "a" * 63},
+            {"executable_sha256": "g" * 64},
+        )
+        for changes in cases:
+            with self.subTest(changes=changes):
+                payload = dict(original)
+                payload.update(changes)
+                with self.assertRaisesRegex(ValueError, "observation is malformed"):
+                    runtime.serialize_runtime_qualification_record(
+                        self.forged_record(payload)
+                    )
 
     def test_atomic_writer_is_unreachable_before_any_file_creation(self) -> None:
         record = runtime.build_runtime_qualification_record(

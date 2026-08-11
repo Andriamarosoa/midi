@@ -16,6 +16,7 @@ import os
 from pathlib import Path
 import platform
 import re
+import subprocess
 import sys
 from types import MappingProxyType
 from typing import Any, Iterable, Mapping, Optional, Sequence, Tuple
@@ -129,6 +130,13 @@ class BinaryProof:
     size_bytes: Optional[int]
     sha256: Optional[str]
     acquisition_error: Optional[str] = None
+
+
+@dataclass(frozen=True)
+class BlasDependencyEvidence:
+    provider: str
+    dependency_path: str
+    binary_proof: BinaryProof
 
 
 EnvironmentItems = Tuple[Tuple[str, str], ...]
@@ -620,7 +628,10 @@ def _proof_from_payload(payload: Mapping[str, Any], prefix: str) -> Optional[Bin
     sha256 = payload[f"{prefix}_sha256"]
     if path is None and size is None and sha256 is None:
         return None
-    return BinaryProof(resolved_path=path, size_bytes=size, sha256=sha256)
+    proof = BinaryProof(resolved_path=path, size_bytes=size, sha256=sha256)
+    if not _valid_binary_proof(proof):
+        raise ValueError(f"{prefix} proof is not canonical available evidence")
+    return proof
 
 
 def _observation_from_record_payload(payload: Mapping[str, Any]) -> RuntimeObservation:
@@ -751,24 +762,90 @@ def _binary_proof(path: Path) -> BinaryProof:
     )
 
 
-def _find_openblas_library(numpy_file: Path) -> Path:
-    package_dir = numpy_file.resolve(strict=True).parent
-    roots = (
-        package_dir / ".dylibs",
-        package_dir.parent / "numpy.libs",
-        Path(sys.prefix) / "lib",
-    )
-    candidates: dict[str, Path] = {}
-    for root in roots:
-        if not root.is_dir():
+def parse_otool_dependency_paths(output: str) -> Tuple[str, ...]:
+    """Parse dependency identifiers from artificial or future ``otool -L`` text."""
+
+    if not isinstance(output, str):
+        raise TypeError("otool output must be text")
+    lines = output.splitlines()
+    if not lines or not lines[0].strip().endswith(":"):
+        raise ValueError("otool output has no binary header")
+    dependencies: list[str] = []
+    for line in lines[1:]:
+        stripped = line.strip()
+        if not stripped:
             continue
-        for candidate in root.glob("*openblas*"):
-            if candidate.is_file():
-                resolved = candidate.resolve(strict=True)
-                candidates[str(resolved)] = resolved
+        dependency = stripped.split(" (", 1)[0].strip()
+        if not dependency:
+            raise ValueError("otool output contains an empty dependency")
+        dependencies.append(dependency)
+    return tuple(dependencies)
+
+
+def _provider_from_linked_dependency(dependency: str) -> Optional[str]:
+    lower = dependency.lower()
+    if "openblas" in lower:
+        if "ilp64" in lower or "openblas64" in lower or "openblas_64" in lower:
+            return "OpenBLAS ILP64"
+        return "OpenBLAS LP64"
+    if "accelerate.framework" in lower:
+        return "Apple Accelerate"
+    if "mkl" in lower and ("blas" in lower or "mkl_rt" in lower):
+        return "Intel MKL"
+    name = lower.rsplit("/", 1)[-1]
+    if name.startswith("libblas") or name.startswith("blas"):
+        return "Generic BLAS"
+    return None
+
+
+def _resolve_linked_dependency(multiarray_path: Path, dependency: str) -> Path:
+    if dependency.startswith("@loader_path/"):
+        suffix = dependency[len("@loader_path/") :]
+        return (multiarray_path.resolve(strict=True).parent / suffix).resolve(strict=True)
+    path = Path(dependency)
+    if path.is_absolute():
+        return path.resolve(strict=True)
+    raise RuntimeError("BLAS dependency path is not unambiguously resolvable")
+
+
+def derive_blas_dependency_evidence(
+    multiarray_path: Path,
+    dependency_paths: Sequence[str],
+) -> BlasDependencyEvidence:
+    """Derive provider and binary proof only from one linked BLAS dependency."""
+
+    candidates: list[Tuple[str, str]] = []
+    for dependency in dependency_paths:
+        if not isinstance(dependency, str) or not dependency:
+            raise ValueError("dependency identifiers must be non-empty strings")
+        provider = _provider_from_linked_dependency(dependency)
+        if provider is not None:
+            candidates.append((dependency, provider))
     if len(candidates) != 1:
-        raise RuntimeError("exactly one OpenBLAS library must be observable")
-    return next(iter(candidates.values()))
+        raise RuntimeError("exactly one linked BLAS dependency must be observable")
+    dependency, provider = candidates[0]
+    resolved = _resolve_linked_dependency(Path(multiarray_path), dependency)
+    proof = _binary_proof(resolved)
+    return BlasDependencyEvidence(
+        provider=provider,
+        dependency_path=dependency,
+        binary_proof=proof,
+    )
+
+
+def _observe_linked_blas_dependency(
+    multiarray_path: Path,
+) -> BlasDependencyEvidence:
+    command = ("/usr/bin/otool", "-L", str(multiarray_path.resolve(strict=True)))
+    completed = subprocess.run(
+        command,
+        check=True,
+        capture_output=True,
+        text=True,
+        env={"LC_ALL": "C", "LANG": "C", "PATH": "/usr/bin:/bin"},
+    )
+    dependencies = parse_otool_dependency_paths(completed.stdout)
+    return derive_blas_dependency_evidence(multiarray_path, dependencies)
 
 
 def observe_primary_runtime(
@@ -779,10 +856,25 @@ def observe_primary_runtime(
     _require_capability(capability)
     numpy_module = importlib.import_module("numpy")
     multiarray_module = importlib.import_module("numpy.core._multiarray_umath")
-    numpy_file = Path(str(numpy_module.__file__))
     multiarray_file = Path(str(multiarray_module.__file__))
-    blas_file = _find_openblas_library(numpy_file)
     environment = environment_items(dict(os.environ))
+    executable_proof = _binary_proof(Path(sys.executable))
+    multiarray_proof = _binary_proof(multiarray_file)
+    try:
+        blas_evidence = _observe_linked_blas_dependency(multiarray_file)
+    except Exception as exc:
+        return RuntimeObservation(
+            runtime=None,
+            process_environment=environment,
+            executable=executable_proof,
+            numpy_multiarray=multiarray_proof,
+            blas_library=BinaryProof(
+                resolved_path=None,
+                size_bytes=None,
+                sha256=None,
+                acquisition_error=f"BLAS dependency evidence unavailable: {exc}",
+            ),
+        )
     identity = RuntimeIdentity(
         implementation=platform.python_implementation(),
         version=platform.python_version(),
@@ -790,14 +882,14 @@ def observe_primary_runtime(
         platform_release=platform.release(),
         platform_machine=platform.machine(),
         numpy_version=str(numpy_module.__version__),
-        blas_provider="OpenBLAS ILP64",
+        blas_provider=blas_evidence.provider,
     )
     return RuntimeObservation(
         runtime=identity,
         process_environment=environment,
-        executable=_binary_proof(Path(sys.executable)),
-        numpy_multiarray=_binary_proof(multiarray_file),
-        blas_library=_binary_proof(blas_file),
+        executable=executable_proof,
+        numpy_multiarray=multiarray_proof,
+        blas_library=blas_evidence.binary_proof,
     )
 
 
@@ -805,6 +897,7 @@ __all__ = [
     "AUTHORITY_CONTRACT_COMMIT",
     "AUTHORITY_CONTRACT_GIT_BLOB_SHA",
     "BinaryProof",
+    "BlasDependencyEvidence",
     "CONTROL_ENVIRONMENT_KEYS",
     "H26RuntimeQualificationCapability",
     "H26RuntimeQualificationRecord",
@@ -820,9 +913,11 @@ __all__ = [
     "STATUS_QUALIFIED",
     "build_runtime_qualification_record",
     "derive_runtime_terminal_status",
+    "derive_blas_dependency_evidence",
     "environment_items",
     "load_runtime_qualification_contract",
     "observe_primary_runtime",
+    "parse_otool_dependency_paths",
     "serialize_runtime_qualification_record",
     "write_runtime_qualification_record_atomic",
 ]
