@@ -17,8 +17,24 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-11`.
-- Étape : `harmonic_censoring_h24_population_terminal_SHA_binding_correction`.
-- Statut : `préflight zéro-science encore échoué fail-closed avant capability; SHA terminal corrigé et autorité dormante rebasée; seal/activation/OS précédents obsolètes; aucune relance scientifique autorisée`.
+- Étape : `harmonic_censoring_h24_final_forensic_inconclusive_closure`.
+- Statut : `H24_EXECUTION_INCONCLUSIVE_CONSUMED; claim durable préservé; P0/P1/P2=0/0/0; aucun verdict scientifique; one-shot définitivement consommé sans retry`.
+- Le claim H24 a été acquis sur le Mac après validation du commit d'activation
+  exact `4d31fa333683f83f2a35117ab5597faf1a7784a6`, du runtime arm64 CPU
+  mono-thread et des bindings de la population publiée. Le fichier
+  `tmp/local/harmonic_censoring_h24_scientific_v1.consumed.json` est préservé :
+  `1922` octets, mode `0600`, SHA-256
+  `5e7bf0326e4bffeca12b2917d09f7814023877f54f876d0f8e295800e5b661d2`.
+- Le processus claimed avait été maintenu vivant dans un sas passif qui ne
+  disposait d'aucun chemin scellé pour poursuivre vers P0. Il a donc été arrêté
+  sous autorisation forensique sans exécuter de test : `P0/P1/P2=0/0/0`.
+  Staging, success, transcript et terminal scientifique sont absents. Aucun
+  terminal synthétique n'a été fabriqué.
+- Cette exécution est classée `H24_EXECUTION_INCONCLUSIVE_CONSUMED` : elle ne
+  produit aucun verdict scientifique, n'a utilisé aucun waveform scientifique,
+  aucune donnée réelle, H17, locked-test, modèle, checkpoint, calibration ou
+  training, et ne peut jamais être relancée. Rapport :
+  `readme/results/2026-08-11_harmonic-censoring-h24-final-forensic-inconclusive-closure.md`.
 - Après le remplacement du seal/activation et leur binding OS au commit
   `06ce7075…`, l'invocation zéro-science autorisée a échoué avant capability
   avec `H24 population terminal SHA mismatch`. Le terminal publié de `591`
@@ -1901,6 +1917,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-10 — résultat terminal de l’unique passe synthétique H23](results/2026-08-10_harmonic-censoring-h23-synthetic-one-shot-result.md)
 - [2026-08-10 — contrat successeur H24 après clôture H23](results/2026-08-10_harmonic-censoring-h24-successor-contract.md)
 - [2026-08-10 — manifests et plan de test complet H24 sans synthèse](results/2026-08-10_harmonic-censoring-h24-manifests-full-test-plan.md)
+- [2026-08-11 — clôture forensique H24 inconclusive, one-shot consommé sans P0](results/2026-08-11_harmonic-censoring-h24-final-forensic-inconclusive-closure.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)
