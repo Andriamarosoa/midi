@@ -17,8 +17,23 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-11`.
-- Étape : `harmonic_censoring_h25_population_materialization_runtime_provenance_encoding_contract`.
-- Statut : `runtime Mac/OpenBLAS, encodage canonique des 36 fixtures, index/receipts, préflight et recomputation définis contractuellement; aucune matérialisation autorisée`.
+- Étape : `harmonic_censoring_h25_dormant_scientific_engine_runner_recomputer`.
+- Statut : `population H25 matérialisée et vérifiée byte-for-byte sur Mac; moteur, registre 27 tests, runner dormant et recomputer indépendant implémentés avec TEST-ONLY; P0/P1/P2 restent à 0/0/0`.
+- La matérialisation one-shot approuvée a publié exactement `36` fixtures,
+  `108` artefacts et `111` fichiers, puis une vérification indépendante hors
+  TTY a recomputé les `36×3` artefacts avec des PCG64 frais et confirmé
+  l'identité byte-for-byte. Les SHA exacts sont : index `814d8c36…`, provenance
+  `cadc154a…`, receipt `dbab8591…`. Aucun P0/P1/P2 n'a été exécuté.
+- Le moteur H25 dormant implémente maintenant le graphe H1/H2..H20, la grille
+  vectorisée `s=0..88`, les masques et le null géométrique, les vues causales
+  4096/8192 au même hop, le résidu d'explication par état actif et la résolution
+  `INACTIVE→PENDING_NEW→ACTIVE/INACTIVE` à exactement un hop. Le registre lie
+  les `27` producteurs dans l'ordre P0/P1/P2 et le recomputer séparé refuse les
+  verdicts auto-déclarés. Le runner reste fail-closed avant NumPy/population :
+  aucune authority, capability, claim, seal ou activation scientifique
+  n'existe. `54` tests H25 ciblés réussissent, dont `9` nouveaux tests
+  `TEST-ONLY`; rapport :
+  `readme/results/2026-08-11_harmonic-censoring-h25-dormant-scientific-engine.md`.
 - Le contrat de future matérialisation H25 lie exactement CPython `3.11.9`,
   NumPy `1.26.4`, macOS `15.5` / Darwin `24.5.0`, arm64 CPU, un processus,
   les variables de threads, locale, timezone et hash seed. L’extension NumPy
