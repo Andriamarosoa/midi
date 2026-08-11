@@ -27,6 +27,12 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `false` ou `null`; aucun Python, NumPy, BLAS, record runtime, destination ou
   calcul H26 n'a été lancé. Rapport :
   `readme/results/2026-08-11_harmonic-censoring-h26-materialization-runtime-qualification-contract.md`.
+- Correctif de revue : le futur record lie maintenant structurellement ses
+  commits, blobs, runtime attendu et dix variables de contrôle exactes. Son
+  `observed_runtime` exclut les preuves binaires dupliquées, et son statut est
+  dérivé dans l'ordre preuve manquante → inconclusive, mismatch comparable →
+  disqualified, toutes preuves et égalités exactes → qualified. Cette fermeture
+  reste purement déclarative et ne qualifie aucun runtime.
 - Contrat dormant d'autorité de matérialisation H26 défini, sans issuer ni
   objet opérationnel : les trois SHA scientifiques et les cinq blobs Git revus
   sont liés, la sémantique one-shot/fail-closed future est spécifiée et les

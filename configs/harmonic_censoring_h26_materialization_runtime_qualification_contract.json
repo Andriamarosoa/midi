@@ -55,7 +55,11 @@
     "must_be_established_before_future_qualification_process_start": true,
     "post_import_injection_forbidden": true,
     "automatic_mutation_forbidden": true,
-    "missing_or_extra_required_value_is_mismatch": true
+    "all_preregistered_environment_keys_required": true,
+    "exact_value_equality_for_every_preregistered_key": true,
+    "missing_preregistered_key_result": "H26_MATERIALIZATION_RUNTIME_DISQUALIFIED",
+    "unexpected_value_for_preregistered_key_result": "H26_MATERIALIZATION_RUNTIME_DISQUALIFIED",
+    "unlisted_os_environment_keys_are_outside_this_contract": true
   },
   "runtime_match_policy": {
     "all_expected_values_require_exact_equality": true,
@@ -104,6 +108,59 @@
       "blas_library_sha256",
       "terminal_status"
     ],
+    "required_constraints": {
+      "record_schema_identity": "H26_MATERIALIZATION_RUNTIME_QUALIFICATION_RECORD_V1",
+      "record_schema_version": 1,
+      "qualification_contract_commit": "exact separately reviewed commit containing this contract",
+      "qualification_contract_raw_sha256": "exact raw SHA256 of the approved contract bytes at qualification_contract_commit",
+      "authority_contract_commit": "236a84b4eb928b102bc1548fb2b32d1bffda2e63",
+      "authority_contract_git_blob_sha": "dd5bcbff325e74f74e7bde4d425a11ac84aa264d",
+      "reviewed_implementation_commit": "60b8d90bcbb5fb6e3a82d839bae706a359ab310e",
+      "materializer_git_blob_sha": "2991c69db8a8816d0261c1fb6bb4e339e9408c11",
+      "target_runtime_role": "H26_PRIMARY_MATERIALIZATION_RUNTIME",
+      "expected_runtime": {
+        "implementation": "CPython",
+        "version": "3.11.9",
+        "platform_system": "Darwin",
+        "platform_release": "24.5.0",
+        "platform_machine": "arm64",
+        "numpy_version": "1.26.4",
+        "numpy_multiarray_size_bytes": 3164400,
+        "numpy_multiarray_sha256": "6a88945aed63a76e3c57076d657d704eef5d0d1e8d6cb1576724b1deb2872e44",
+        "blas_provider": "OpenBLAS ILP64",
+        "blas_library_size_bytes": 23198400,
+        "blas_library_sha256": "dde2b735d01caa531885115ea853b5a4172b935167b95a1acb2a10243e0d97e7"
+      },
+      "expected_runtime_object_equality": "exact object equality with top-level expected_primary_runtime",
+      "process_environment_exact": {
+        "MIDI_FORCE_CPU": "1",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1",
+        "VECLIB_MAXIMUM_THREADS": "1",
+        "PYTHONHASHSEED": "0",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC"
+      },
+      "process_environment_object_equality": "exact object equality with top-level process_environment_exact over exactly the ten preregistered control keys"
+    },
+    "observed_runtime_canonical_representation": {
+      "fields": [
+        "implementation",
+        "version",
+        "platform_system",
+        "platform_release",
+        "platform_machine",
+        "numpy_version",
+        "blas_provider"
+      ],
+      "additional_fields_forbidden": true,
+      "binary_paths_sizes_and_sha256_are_recorded_only_in_the_separate_flat_proof_fields": true,
+      "duplicate_binary_evidence_inside_observed_runtime_forbidden": true,
+      "contradictory_duplicate_representation_is_terminal": true
+    },
     "expected_executable_sha256_preregistered_now": false,
     "expected_executable_size_bytes_preregistered_now": false,
     "future_executable_identity_is_observed_evidence": true,
@@ -117,9 +174,16 @@
     "qualified": "H26_MATERIALIZATION_RUNTIME_QUALIFIED",
     "disqualified": "H26_MATERIALIZATION_RUNTIME_DISQUALIFIED",
     "inconclusive_consumed": "H26_MATERIALIZATION_RUNTIME_QUALIFICATION_INCONCLUSIVE_CONSUMED",
-    "qualified_condition": "all preregistered runtime identity, binary size, binary SHA256 and process environment equalities are exact and every required proof is present",
-    "disqualified_condition": "one or more expected runtime identity, binary size, binary SHA256 or process environment values differ",
-    "inconclusive_consumed_condition": "the observer cannot establish one or more required proofs",
+    "derivation_order": [
+      "if any required proof cannot be established then H26_MATERIALIZATION_RUNTIME_QUALIFICATION_INCONCLUSIVE_CONSUMED",
+      "else if any required exact equality fails then H26_MATERIALIZATION_RUNTIME_DISQUALIFIED",
+      "else H26_MATERIALIZATION_RUNTIME_QUALIFIED"
+    ],
+    "terminal_status_is_derived_not_observer_selected": true,
+    "qualified_condition": "all required proofs exist and every preregistered runtime identity, binary size, binary SHA256 and process environment equality is exact",
+    "disqualified_condition": "all proofs necessary for comparison exist and at least one expected exact equality fails",
+    "inconclusive_consumed_condition": "at least one proof necessary for comparison cannot be established",
+    "missing_proof_is_not_a_mismatch_but_forbids_qualified": true,
     "only_qualified_separately_reviewed_record_may_support_future_authority": true
   },
   "future_qualification_lifecycle": {

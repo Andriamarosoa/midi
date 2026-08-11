@@ -43,6 +43,12 @@ compteurs de threads à `1`, `PYTHONHASHSEED=0`, `LC_ALL=C`, `LANG=C` et
 `TZ=UTC`. Ces valeurs devront être établies avant son démarrage, jamais
 injectées après import.
 
+L'égalité d'environnement porte exactement sur ces dix clés de contrôle
+préenregistrées. Chaque clé doit exister avec la valeur prescrite; une clé
+manquante ou une mauvaise valeur disqualifie. Les autres variables ordinaires
+du système, comme `PATH` ou `HOME`, sont hors contrat et ne provoquent pas une
+disqualification arbitraire.
+
 Le runtime secondaire CPython `3.9.6` reste hors portée. Il n'est requis que
 pour un éventuel test P2 cross-runtime ultérieur, séparément autorisé.
 
@@ -53,6 +59,18 @@ les contrats et blobs liés, le rôle runtime, les valeurs attendues et
 observées, l'environnement exact, ainsi que les chemins, tailles et SHA-256 de
 l'exécutable, de `_multiarray` et de la bibliothèque BLAS.
 
+Après la première revue externe, une table `required_constraints` lie
+structurellement chaque champ d'identité du record à sa valeur exacte : commit
+et SHA brut du présent contrat approuvé, commit/blob du contrat d'autorité,
+commit/blob du materializer, rôle primaire, objet runtime attendu et carte des
+dix variables de contrôle. Une simple présence du champ ne suffit donc jamais.
+
+`observed_runtime` possède une seule représentation canonique limitée à
+Python, plateforme, architecture, version NumPy et fournisseur BLAS. Les
+chemins, tailles et SHA-256 des trois binaires restent uniquement dans les
+champs de preuve plats. Toute duplication additionnelle ou contradictoire est
+interdite et terminale.
+
 Le contrat scientifique n'avait pas préenregistré le SHA de l'exécutable
 primaire : aucune valeur attendue n'est inventée ici. Le chemin, la taille et
 le SHA seront des observations futures. Le record ne contiendra jamais son
@@ -60,10 +78,12 @@ propre SHA ; son SHA brut sera calculé extérieurement après publication. Seul
 un record `H26_MATERIALIZATION_RUNTIME_QUALIFIED`, puis revu séparément, pourra
 être référencé par une future authority.
 
-Les deux autres statuts définis sans être produits sont
-`H26_MATERIALIZATION_RUNTIME_DISQUALIFIED` en cas de mismatch et
-`H26_MATERIALIZATION_RUNTIME_QUALIFICATION_INCONCLUSIVE_CONSUMED` lorsqu'une
-preuve requise ne peut être établie.
+Le statut terminal est dérivé, jamais choisi librement par l'observer. Une
+preuve manquante produit d'abord
+`H26_MATERIALIZATION_RUNTIME_QUALIFICATION_INCONCLUSIVE_CONSUMED`; si toutes
+les preuves comparables existent mais qu'une égalité échoue, le résultat est
+`H26_MATERIALIZATION_RUNTIME_DISQUALIFIED`; `QUALIFIED` n'est possible que si
+toutes les preuves existent et que toutes les égalités sont exactes.
 
 ## Cycle futur fail-closed
 
