@@ -17,21 +17,24 @@
     "locked_test_used": false
   },
   "bindings": {
-    "implementation_commit": "22bf87831838fa0c0467ae1f54be788c91d47951",
-    "capability_source_blob": "781adb578174b5d2f4c4ef01f196b0401a88fecd",
+    "implementation_commit": "f7c7d547cc2c33619ad5d0407b03219f3ec9c26d",
+    "capability_source_blob": "edd3d85f872acff39236487e1d5cc661baa9bcc2",
     "runner_source_blob": "c8055f73b9170ada0614d6a090f084ed9fcf731b",
     "producer_source_blob": "db48f66c23cd51f83560c0dc20eec9dc8449da74",
     "predecessor_runner_source_blob": "c4f435a20f363adb75b831dc8b5526eaee42f46b",
     "predecessor_harness_source_blob": "548e6cc1500e682170cc7043fe694474e3bbd647",
     "predecessor_contract_sha256": "719eba0aa440fc1e77ae7d204adee9e5b51517f455fad3bfed7e761d3c00a74a",
-    "contract_sha256": "a0726827400617e87de4cc0a57d2ded4998d7c9a54bf0c81fa3c39cdfc69d6e9",
+    "contract_sha256": "8049f8d613cb45eba80e5d10b0fcc440b25ac317ec4cdac1c02ffbba735ad1af",
     "exact_changed_files": [
+      ".gitattributes",
       "configs/harmonic_censoring_h24_scientific_execution_authorization_contract.json",
       "readme/README.md",
       "readme/results/2026-08-10_harmonic-censoring-h24-scientific-execution-authorization-contract.md",
       "src/polyphonic/harmonic_censoring_h24_scientific_capability.py",
+      "tests/test_harmonic_censoring_h24_scientific_execution_activation.py",
       "tests/test_harmonic_censoring_h24_scientific_execution_dormant.py",
-      "tests/test_harmonic_censoring_h24_scientific_execution_authorization_contract.py"
+      "tests/test_harmonic_censoring_h24_scientific_execution_authorization_contract.py",
+      "tests/test_harmonic_censoring_h24_scientific_execution_authorization_seal.py"
     ]
   },
   "runtime_identity": {
