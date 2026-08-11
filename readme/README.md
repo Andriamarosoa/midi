@@ -2434,6 +2434,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-11 — correction du SHA documentaire R5 dans l'overlay H26](results/2026-08-11_harmonic-censoring-h26-runtime-observer-entry-order-overlay-sha-correction.md)
 - [2026-08-11 — rejet des constantes non-JSON dans le loader runtime H26](results/2026-08-11_harmonic-censoring-h26-runtime-loader-non-json-constants-correction.md)
 - [2026-08-11 — correction strict JSON du loader de materialisation H26](results/2026-08-11_harmonic-censoring-h26-materialization-loader-strict-json-correction.md)
+- [2026-08-11 — correction strict JSON du loader scientifique H26](results/2026-08-11_harmonic-censoring-h26-scientific-loader-strict-json-correction.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)

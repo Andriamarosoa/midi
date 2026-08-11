@@ -1,0 +1,42 @@
+{
+  "schema_identity": "H26_SCIENTIFIC_LOADER_STRICT_JSON_CORRECTION_OVERLAY_V1",
+  "schema_version": 1,
+  "status": "ADDITIVE_DORMANT_CORRECTION_PENDING_EXTERNAL_REVIEW",
+  "reason": "SCIENTIFIC_SEAL_LOADER_STRICT_JSON_PARSING_ONLY",
+  "historical_bindings": {
+    "C18": {
+      "commit": "2ba4ef816f009da8603c3d7306cfd138ea8a4f98",
+      "loader_git_blob_sha": "0728b24a096c621274fb1b451bb8604550732c32"
+    },
+    "R1_C18": {
+      "commit": "35f269e0b0abb75d23fb22750a95a724ff794d61",
+      "deep_freeze_loader_git_blob_sha": "81fc7819ca4fda8b8f66fa600e43c30496afd99f"
+    }
+  },
+  "effective_binding": {
+    "R13": {
+      "commit": "41995848f68d5e31ea38d78181b0c51d452f666c",
+      "loader_git_blob_sha": "d2dae5004e30343172040c08ab76bb7bb88ba2f9"
+    }
+  },
+  "strict_json_requirements": {
+    "duplicate_keys_rejected": true,
+    "floats_rejected": true,
+    "nan_rejected": true,
+    "positive_infinity_rejected": true,
+    "negative_infinity_rejected": true,
+    "top_level_object_required": true
+  },
+  "scientific_contract_and_seal_bindings_changed": false,
+  "deep_freeze_changed": false,
+  "scientific_rules_changed": false,
+  "lifecycle_rules_changed": false,
+  "failure_rules_changed": false,
+  "p0_executed": false,
+  "p1_executed": false,
+  "p2_executed": false,
+  "scientific_action_executed": false,
+  "locked_test_used": false,
+  "creation_authorized_now": false,
+  "next_action": "External review of R13 and R14 before resuming at C19"
+}

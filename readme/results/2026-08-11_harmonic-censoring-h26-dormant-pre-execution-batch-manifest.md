@@ -115,3 +115,13 @@ son test. R12 conserve C13 et R1-C13 comme historiques et designe le blob R11
 
 Aucun binding C12, deep-freeze, materializer reel, science ou locked-test n'a
 ete modifie ou execute.
+
+## Overlay strict JSON apres rejet de C18
+
+C18 a ete rejete pour le meme parser non strict. R13
+`41995848f68d5e31ea38d78181b0c51d452f666c` corrige uniquement son loader et
+son test. R14 conserve C18 et R1-C18 comme historiques et designe le blob R13
+`d2dae5004e30343172040c08ab76bb7bb88ba2f9` comme effectif.
+
+Aucun contrat C16, seal C17, regle scientifique, P0/P1/P2 ou locked-test n'a
+ete modifie ou execute.
