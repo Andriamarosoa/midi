@@ -116,6 +116,7 @@ class H26RuntimeOperationalEntrypointTests(unittest.TestCase):
             original_publish = runner._publish
             original_enter = runner._enter_observer_boundary
             original_evidence = runner._evidence
+            original_mapping = runner._evidence_mapping_from_seed
 
             def publish(*arguments):
                 order.append(arguments[1].parent.name)
@@ -133,6 +134,10 @@ class H26RuntimeOperationalEntrypointTests(unittest.TestCase):
             def create_evidence(*arguments):
                 order.append("evidence-create")
                 return original_evidence(*arguments)
+
+            def create_mapping(*arguments):
+                order.append("evidence-mapping")
+                return original_mapping(*arguments)
 
             with contexts[0], contexts[1], contexts[2], contexts[3], contexts[4], contexts[5], contexts[6], mock.patch.object(
                 runner,
@@ -152,6 +157,8 @@ class H26RuntimeOperationalEntrypointTests(unittest.TestCase):
                 runner, "_enter_observer_boundary", side_effect=enter
             ), mock.patch.object(
                 runner, "_evidence", side_effect=create_evidence
+            ), mock.patch.object(
+                runner, "_evidence_mapping_from_seed", side_effect=create_mapping
             ), mock.patch.object(runner, "_publish", side_effect=publish):
                 result = runner.execute_h26_runtime_qualification_once()
 
@@ -159,7 +166,7 @@ class H26RuntimeOperationalEntrypointTests(unittest.TestCase):
                 order,
                 [
                     "authority", "claim", "observer-boundary", "evidence-create",
-                    "observer-entry", "runtime-record", "receipt",
+                    "evidence-mapping", "observer-entry", "runtime-record", "receipt",
                 ],
             )
             observer.assert_called_once()
@@ -169,6 +176,17 @@ class H26RuntimeOperationalEntrypointTests(unittest.TestCase):
                 files = tuple((root / name).iterdir())
                 self.assertEqual(len(files), 1)
                 self.assertFalse(files[0].name.startswith("."))
+
+    def test_pre_boundary_terminal_seed_contains_only_three_scalars(self):
+        claim = {"claim_id": "h26-runtime-claim-v1-" + "a" * 64}
+        seed = runner._evidence_seed(
+            authority_sha="b" * 64,
+            claim=claim,
+            claim_sha="c" * 64,
+        )
+        self.assertEqual(seed, ("b" * 64, claim["claim_id"], "c" * 64))
+        self.assertIs(type(seed), tuple)
+        self.assertTrue(all(type(value) is str for value in seed))
 
     def test_observer_failure_writes_inconclusive_receipt_last_without_record(self):
         with tempfile.TemporaryDirectory() as directory:

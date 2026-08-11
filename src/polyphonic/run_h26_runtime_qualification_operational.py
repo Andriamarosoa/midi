@@ -181,7 +181,7 @@ def _enter_observer_boundary(
     capability: _H26RuntimeBoundaryCapability,
     claim_id: str,
     claim_path: Path,
-    terminal_seed: tuple[tuple[str, Any], ...],
+    terminal_seed: tuple[str, str, str],
 ) -> _H26ObserverEntryCapability:
     _require_capability(capability)
     if claim_path.is_symlink() or not claim_path.is_file():
@@ -303,22 +303,28 @@ def _claim(authority: Mapping[str, Any], authority_sha: str) -> dict[str, Any]:
 
 def _evidence_seed(
     *, authority_sha: str, claim: Mapping[str, Any], claim_sha: str
-) -> tuple[tuple[str, Any], ...]:
-    payload = {
+) -> tuple[str, str, str]:
+    return authority_sha, str(claim["claim_id"]), claim_sha
+
+
+def _evidence_mapping_from_seed(
+    terminal_seed: tuple[str, str, str],
+) -> dict[str, Any]:
+    authority_sha, claim_id, claim_sha = terminal_seed
+    return {
         "schema_identity": "H26_RUNTIME_QUALIFICATION_OBSERVER_ENTRY_EVIDENCE_V1",
         "schema_version": 1,
         "observer_entry_evidence_id": primitives.derive_observer_entry_evidence_id(
-            AUTHORITY_ID, authority_sha, str(claim["claim_id"]), claim_sha
+            AUTHORITY_ID, authority_sha, claim_id, claim_sha
         ),
         "authority_id": AUTHORITY_ID,
         "authority_raw_sha256": authority_sha,
-        "claim_id": claim["claim_id"],
+        "claim_id": claim_id,
         "claim_raw_sha256": claim_sha,
         "qualifier_commit": primitives.APPROVED_DORMANT_QUALIFIER_COMMIT,
         "qualifier_git_blob_sha": primitives.APPROVED_DORMANT_QUALIFIER_GIT_BLOB_SHA,
         "observer_entry_ordinal": 1,
     }
-    return tuple(payload.items())
 
 
 def _evidence(
@@ -331,7 +337,7 @@ def _evidence(
     observer = _require_observer_capability(observer_capability)
     if observer.claim_id != claim["claim_id"]:
         raise PermissionError("H26 observer boundary claim mismatch")
-    evidence = dict(observer.terminal_seed)
+    evidence = _evidence_mapping_from_seed(observer.terminal_seed)
     if (
         evidence.get("authority_raw_sha256") != authority_sha
         or evidence.get("claim_id") != claim["claim_id"]
@@ -569,7 +575,7 @@ def execute_h26_runtime_qualification_once() -> dict[str, Any]:
         record_raw = qualifier.serialize_runtime_qualification_record(record)
         _publish(capability, *paths["record"], record_raw)
     except Exception:
-        evidence = dict(observer_capability.terminal_seed)
+        evidence = _evidence_mapping_from_seed(observer_capability.terminal_seed)
         primitives.validate_artificial_observer_entry_evidence(
             authority, claim, evidence, authority_sha, claim_sha
         )

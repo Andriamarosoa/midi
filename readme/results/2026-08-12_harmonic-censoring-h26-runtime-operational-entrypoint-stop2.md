@@ -28,9 +28,10 @@ entry, an inconclusive terminal receipt is written and the original error is
 re-raised; no cleanup or retry exists.
 Only the deterministic evidence ID/path is derived during preflight. The
 evidence object itself cannot be constructed until the durable claim exists and
-the private observer-boundary operation has committed. Before that commit, a
-tuple of scalar key/value inputs is prepared solely as a terminalization recipe;
-it is not an evidence mapping, has no canonical bytes and has no evidence SHA.
+the private observer-boundary operation has committed. Before that commit, only
+the three strings `(authority_sha, claim_id, claim_sha)` are prepared as a
+terminalization recipe; no evidence field-name mapping exists, and the recipe
+has no canonical evidence bytes or evidence SHA.
 The commit point only identity-attests a capability carrying this immutable
 recipe. Reconstruction, serialization, validation, publication, observation,
 and record production are all inside the terminal protection; any failure can
