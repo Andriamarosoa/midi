@@ -14,12 +14,22 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: dormant runtime qualification operational activation issuance contract externally sealed; external review required; no issuer activation or execution. -->
+<!-- H26_CORRECTION_STATUS: operational activation entrypoint implemented at STOP 1; external review required; no root activation or runtime execution. -->
 ## État courant
 
-- Mise à jour : `2026-08-11`.
+- Mise à jour : `2026-08-12`.
 - État courant :
-  `H26_RUNTIME_QUALIFICATION_OPERATIONAL_ACTIVATION_ISSUANCE_CONTRACT_EXTERNAL_SEAL_DORMANT_PENDING_EXTERNAL_REVIEW`.
+  `H26_RUNTIME_ACTIVATION_OPERATIONAL_ENTRYPOINT_IMPLEMENTED_STOP_1_PENDING_EXTERNAL_REVIEW`.
+- L'ancien processus passif H24 `49567` a été arrêté proprement ; aucun processus
+  H24/H26 ni `active.lock` ne subsiste. Les checkouts Mac `~/midi` et
+  `~/midi-worker/repository` sont propres et synchronisés à `fcb6992c...`.
+- La frontière opérationnelle one-shot de publication d'activation est
+  implémentée avec racine `/Users/amcarene/h26-admin`, issuer
+  `h26-execution-codex-mac-primary`, requête canonique sur stdin, acknowledgement
+  littéral, `HEAD` propre lié et publication Darwin create-exclusive/fsync/
+  `renameatx_np(RENAME_EXCL)`/directory-fsync. L'étape s'arrête avant toute
+  création de racine ou activation pour revue externe. Rapport :
+  `readme/results/2026-08-12_harmonic-censoring-h26-runtime-activation-operational-entrypoint.md`.
 - Le seal externe dormant lie le contrat d'émission `2f933536...`, son blob
   `05ec1c26...`, ses 5 624 octets exacts et le SHA-256 `e15dcb79...`.
   Les self-SHA sont absents et toute création reste interdite. Rapport :
