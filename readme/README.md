@@ -14,12 +14,16 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: STOP 3 runtime qualified; terminal artifacts archived; external review required before materialization. -->
+<!-- H26_CORRECTION_STATUS: STOP 3 runtime qualified; real materialization boundary implemented; external review required before authority or materializer. -->
 ## État courant
 
 - Mise à jour : `2026-08-12`.
 - État courant :
-  `H26_MATERIALIZATION_RUNTIME_QUALIFIED_STOP_3_PENDING_EXTERNAL_REVIEW`.
+  `H26_MATERIALIZATION_OPERATIONAL_ENTRYPOINT_IMPLEMENTED_STOP_3_PENDING_EXTERNAL_REVIEW`.
+- La frontière réelle de matérialisation one-shot est implémentée sans
+  l'exécuter : cinq preuves STOP 3 scellées, autorité canonique, destination
+  fixe, capability privée et materializer réel au maximum une fois. Rapport :
+  `readme/results/2026-08-12_harmonic-censoring-h26-materialization-operational-entrypoint-stop3.md`.
 - L'unique qualification runtime réémise après l'échec préflight pré-claim a
   produit un record qualifié et un receipt terminal : observer appelé une fois,
   aucun retry, runtime Darwin arm64/CPython 3.11.9/NumPy 1.26.4/OpenBLAS ILP64

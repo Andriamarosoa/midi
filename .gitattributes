@@ -110,3 +110,7 @@ configs/harmonic_censoring_h26_runtime_operational_entrypoint_contract.json text
 src/polyphonic/run_h26_runtime_qualification_operational.py text eol=lf
 tests/test_harmonic_censoring_h26_runtime_operational_entrypoint.py text eol=lf
 readme/results/2026-08-12_harmonic-censoring-h26-runtime-operational-entrypoint-stop2.md text eol=lf
+configs/harmonic_censoring_h26_materialization_operational_entrypoint_contract.json text eol=lf
+src/polyphonic/run_h26_materialization_operational.py text eol=lf
+tests/test_harmonic_censoring_h26_materialization_operational.py text eol=lf
+readme/results/2026-08-12_harmonic-censoring-h26-materialization-operational-entrypoint-stop3.md text eol=lf
