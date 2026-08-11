@@ -135,6 +135,12 @@ def _read_runtime_artifacts() -> tuple[dict[str, Any], dict[str, Any], dict[str,
     for kind in ("authority", "claim", "observer-entry", "receipt"):
         values[kind] = runtime.parse_canonical_json_bytes(raws[kind])
     payload = runtime.parse_canonical_json_bytes(raws["runtime-record"])
+    observed_runtime = payload.get("observed_runtime")
+    if isinstance(observed_runtime, dict):
+        payload["observed_runtime"] = {
+            field: observed_runtime[field]
+            for field in qualifier._RUNTIME_IDENTITY_FIELDS
+        }
     qualifier._validate_runtime_record_payload(payload)
     record = object.__new__(qualifier.H26RuntimeQualificationRecord)
     object.__setattr__(record, "_payload", qualifier._freeze(payload))
