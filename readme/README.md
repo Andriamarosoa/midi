@@ -18,6 +18,15 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-11`.
+- Étape : `harmonic_censoring_h26_runtime_qualification_execution_authority_contract`.
+- Contrat dormant de la future chaîne authority → claim consommé → unique
+  invocation → runtime record + receipt défini. Les objets restent distincts,
+  single-use, sans retry et sans auto-SHA. Un runtime record isolé ne pourra
+  jamais prouver une invocation autorisée; la matérialisation exigera aussi la
+  preuve claim/receipt approuvée. Tous les états présents restent `false` ou
+  `null`; aucune authority, claim, exécution, record ou science n'a été créé.
+  Rapport :
+  `readme/results/2026-08-11_harmonic-censoring-h26-runtime-qualification-execution-authority-contract.md`.
 - Étape : `harmonic_censoring_h26_materialization_runtime_qualification_contract`.
 - Contrat dormant de qualification du runtime primaire H26 défini sans
   qualificateur ni exécution : identité exacte CPython 3.11.9 / Darwin 24.5.0
