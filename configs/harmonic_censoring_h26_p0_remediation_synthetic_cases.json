@@ -1,0 +1,173 @@
+{
+  "schema_identity": "H26_P0_REMEDIATION_SYNTHETIC_CASES_V1",
+  "schema_version": 1,
+  "status": "DATA_ONLY_EXPECTATIONS_NO_IMPLEMENTATION_NO_EXECUTION",
+  "design_contract": "configs/harmonic_censoring_h26_p0_remediation_design_contract.json",
+  "selected_semantic_option": "H26_REMEDIATION_A_ROLE_AWARE_ZERO_POWER_CONTEXT",
+  "engine_results_present": false,
+  "cases": [
+    {
+      "id": "R-ZERO-001",
+      "description": "Previous-short is exactly zero while current-short is valid and positive.",
+      "inputs": {
+        "current_short_support_valid": true,
+        "current_short_total_power_relation": "STRICTLY_POSITIVE_AND_ABOVE_EXISTING_VALIDITY_FLOOR",
+        "previous_short_support_valid": true,
+        "previous_short_samples": "ALL_EXACT_POSITIVE_ZERO",
+        "previous_short_total_power": 0
+      },
+      "expected": {
+        "previous_context_valid": true,
+        "previous_total_power": 0,
+        "current_analysis_valid": true,
+        "onset_rise": 1,
+        "epsilon_injected": false
+      }
+    },
+    {
+      "id": "R-ZERO-002",
+      "description": "Previous-long is exactly zero while current-long is valid and positive.",
+      "inputs": {
+        "current_long_support_valid": true,
+        "current_long_total_power_relation": "STRICTLY_POSITIVE_AND_ABOVE_EXISTING_VALIDITY_FLOOR",
+        "previous_long_support_valid": true,
+        "previous_long_samples": "ALL_EXACT_POSITIVE_ZERO",
+        "previous_long_total_power": 0
+      },
+      "expected": {
+        "previous_context_valid": true,
+        "previous_total_power": 0,
+        "current_analysis_valid": true,
+        "persistence": 1,
+        "epsilon_injected": false
+      }
+    },
+    {
+      "id": "R-ZERO-003",
+      "description": "Current-short is exactly zero.",
+      "inputs": {
+        "current_short_support_valid": true,
+        "current_short_samples": "ALL_EXACT_POSITIVE_ZERO",
+        "current_short_total_power": 0
+      },
+      "expected": {
+        "current_analysis_valid": false,
+        "resolution_outcome": "AMBIGUOUS",
+        "resolution_reason": "INVALID_CURRENT_ANALYSIS",
+        "ratio_normalization_allowed": false,
+        "nnls_allowed": false,
+        "positive_certificate_allowed": false,
+        "negative_certificate_allowed": false,
+        "no_birth_from_absence_allowed": false
+      }
+    },
+    {
+      "id": "R-ZERO-004",
+      "description": "Current-short is positive but does not exceed the existing numerical validity floor.",
+      "inputs": {
+        "current_short_support_valid": true,
+        "current_short_total_power_relation": "POSITIVE_BUT_NOT_STRICTLY_ABOVE_EXISTING_VALIDITY_FLOOR"
+      },
+      "expected": {
+        "current_analysis_valid": false,
+        "epsilon_injected": false,
+        "promote_to_valid": false,
+        "ratio_normalization_allowed": false,
+        "nnls_allowed": false
+      }
+    },
+    {
+      "id": "R-ZERO-005",
+      "description": "Samples are zero but at least one validity-mask sample is false.",
+      "inputs": {
+        "samples": "ALL_EXACT_POSITIVE_ZERO",
+        "complete_support_valid": false
+      },
+      "expected": {
+        "classification": "INVALID_SUPPORT",
+        "valid_silence": false,
+        "zero_fill_allowed": false,
+        "resolution_outcome": "AMBIGUOUS"
+      }
+    },
+    {
+      "id": "R-ZERO-006",
+      "description": "Previous-short is a normal nonzero valid context.",
+      "inputs": {
+        "current_short_support_valid": true,
+        "previous_short_support_valid": true,
+        "current_short_total_power_relation": "STRICTLY_POSITIVE_AND_ABOVE_EXISTING_VALIDITY_FLOOR",
+        "previous_short_total_power_relation": "STRICTLY_POSITIVE_AND_ABOVE_EXISTING_VALIDITY_FLOOR"
+      },
+      "expected": {
+        "spectrum_semantics": "IDENTICAL_TO_H26",
+        "onset_formula": "IDENTICAL_TO_H26",
+        "nnls_semantics": "IDENTICAL_TO_H26",
+        "certificate_semantics": "IDENTICAL_TO_H26"
+      }
+    },
+    {
+      "id": "R-ZERO-007",
+      "description": "N01-like active-source context has nonzero current and previous views.",
+      "inputs": {
+        "context": "N01_LIKE_NONZERO",
+        "all_required_support_valid": true
+      },
+      "expected": {
+        "negative_certificate_calculation": "IDENTICAL_TO_H26",
+        "bounded_claim_calculation": "IDENTICAL_TO_H26",
+        "thresholds_changed": false,
+        "zero_context_rule_used": false
+      }
+    },
+    {
+      "id": "R-ZERO-008",
+      "description": "Candidate is already active while the waveform is silent.",
+      "inputs": {
+        "candidate_active": true,
+        "waveform": "ALL_EXACT_POSITIVE_ZERO"
+      },
+      "expected": {
+        "resolution_outcome": "ALREADY_ACTIVE_HISTORY",
+        "spectral_analysis_called": false,
+        "zero_context_rule_used": false
+      }
+    },
+    {
+      "id": "R-ZERO-009",
+      "description": "Two nonzero latent causes produce byte-identical observations.",
+      "inputs": {
+        "observation_equivalent": true,
+        "latent_contributions_nonzero": true
+      },
+      "expected": {
+        "resolution_outcome": "AMBIGUOUS",
+        "scalar_analysis_called": false,
+        "equivalence_priority_preserved": true
+      }
+    },
+    {
+      "id": "R-ZERO-010",
+      "description": "Static leakage guard for role-aware zero handling.",
+      "inputs": {
+        "forbidden_fields": [
+          "fixture_id",
+          "expected",
+          "family",
+          "category",
+          "ground_truth_onset",
+          "latent_label"
+        ]
+      },
+      "expected": {
+        "zero_handling_depends_only_on": [
+          "view_role",
+          "complete_validity_mask",
+          "exact_sample_zero_status",
+          "existing_numerical_validity_policy"
+        ],
+        "forbidden_field_dependency_count": 0
+      }
+    }
+  ]
+}

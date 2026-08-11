@@ -14,12 +14,20 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: P0 forensic root cause confirmed; no retry; remediation design review only. -->
+<!-- H26_CORRECTION_STATUS: P0 remediation design contracted; no implementation; external review only. -->
 ## État courant
 
 - Mise à jour : `2026-08-12`.
 - État courant :
-  `H26_P0_FORENSIC_ROOT_CAUSE_CONFIRMED_NO_RETRY_PENDING_REMEDIATION_DESIGN_REVIEW`.
+  `H26_P0_REMEDIATION_DESIGN_CONTRACTED_PENDING_EXTERNAL_REVIEW_NO_IMPLEMENTATION`.
+- Le design contractuel de remédiation examine trois options et préfère une
+  sémantique explicite de silence valide limitée aux vues précédentes. La vue
+  courante reste soumise au plancher positif actuel ; aucun epsilon, bruit,
+  oracle ou changement de seuil n'est admis. H26 demeure clos et consommé :
+  cette sémantique devra être préenregistrée sous un successeur H27 avec de
+  nouvelles identités, population et autorités avant toute implémentation.
+  Dix cas synthétiques purement déclaratifs ferment les invariants. Rapport :
+  `readme/results/2026-08-12_harmonic-censoring-h26-p0-remediation-design.md`.
 - L'analyse forensique strictement read-only confirme que `H26-F-P01` possède
   une fenêtre `current_short` non nulle, mais une fenêtre `previous_short`
   exactement silencieuse. `extract_raw_operands()` appelle ces spectres dans
@@ -1978,13 +1986,12 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 ## Prochaine action réelle
 
-1. Faire relire uniquement l'archive forensique de la cause
-   `ZERO_POWER_PREVIOUS_SHORT_P01`.
-2. Définir séparément, après revue, une éventuelle stratégie de remédiation :
-   sémantique du kernel pour une vue silencieuse, fixture, ou abandon de H26.
-3. Ne modifier aucun code, contrat, lifecycle, population ou artefact P0 et ne
-   lancer aucun P0/P1/P2, retry, rematérialisation, locked-test, entraînement ou
-   calibration sans nouvelle autorisation explicite.
+1. Faire relire uniquement le package contractuel de remédiation : les deux
+   nouveaux JSON, ce README et le rapport associé.
+2. Ne préenregistrer aucun successeur et ne modifier aucun code avant le verdict
+   externe sur l'option A et les identités H27 proposées.
+3. Ne lancer aucun P0/P1/P2, retry, rematérialisation, locked-test, entraînement
+   ou calibration et ne toucher à aucun artefact H26 consommé.
 
 ## État archivé — dual-stream du 30 juillet (remplacé)
 

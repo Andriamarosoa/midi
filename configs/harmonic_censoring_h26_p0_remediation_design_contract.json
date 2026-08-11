@@ -1,0 +1,179 @@
+{
+  "schema_identity": "H26_P0_REMEDIATION_DESIGN_V1",
+  "schema_version": 1,
+  "status": "DESIGN_ONLY_PENDING_EXTERNAL_REVIEW_NO_IMPLEMENTATION",
+  "base_commit": "e2a8a4549c7fd4c91329f73b31d0b384b1fd8c8e",
+  "historical_p0_terminal_status": "H26_P0_INCONCLUSIVE_CONSUMED",
+  "historical_retry_allowed": false,
+  "forensic_verdict": "H26_P0_FORENSIC_ROOT_CAUSE_CONFIRMED_ZERO_POWER_PREVIOUS_SHORT_P01",
+  "root_cause_class": "SCIENTIFIC_CONTRACT_AND_KERNEL_SEMANTIC_INCOMPATIBILITY",
+  "implementation_authorized": false,
+  "scientific_execution_authorized": false,
+  "population_mutation_authorized": false,
+  "rematerialization_authorized": false,
+  "retry_authorized": false,
+  "admissible_options": [
+    "H26_REMEDIATION_A_ROLE_AWARE_ZERO_POWER_CONTEXT",
+    "H26_REMEDIATION_B_NONZERO_PRECONTEXT_FIXTURE_REDESIGN",
+    "H26_REMEDIATION_C_CLOSE_H26_AND_PREREGISTER_SUCCESSOR"
+  ],
+  "preferred_option": "H26_REMEDIATION_A_ROLE_AWARE_ZERO_POWER_CONTEXT",
+  "preferred_option_delivery_boundary": "PREREGISTER_AS_NEW_SUCCESSOR_HYPOTHESIS_BEFORE_ANY_IMPLEMENTATION",
+  "preferred_option_rationale": [
+    "The current onset and persistence formulas are already mathematically defined when a valid previous context has exact total power zero.",
+    "A role-aware zero context preserves the current analysis denominator, NNLS input, certificate thresholds, decision order and oracle independence.",
+    "No epsilon, synthetic noise, fixture-specific branch or population mutation is required.",
+    "Because valid_total_power currently forbids zero for every role, the semantic change is scientific and must be preregistered under a successor identity rather than editing historical H26."
+  ],
+  "option_analysis": {
+    "H26_REMEDIATION_A_ROLE_AWARE_ZERO_POWER_CONTEXT": {
+      "disposition": "PREFERRED_FOR_SUCCESSOR_PREREGISTRATION",
+      "semantic_rule": "A fully observed previous_short or previous_long view whose samples and spectrum are exactly zero is a valid contextual zero; current_short remains invalid unless its total power satisfies the existing strictly-positive validity rule.",
+      "advantages": [
+        "Directly resolves the confirmed P01 incompatibility.",
+        "Preserves causal coordinates and uses no future samples.",
+        "Preserves all current positive and negative certificate thresholds.",
+        "Keeps valid silence distinct from invalid support."
+      ],
+      "risks": [
+        "Changes the scientific definition of valid_total_power for previous-view roles.",
+        "Requires exhaustive proof that no current-analysis or NNLS denominator can receive zero.",
+        "Requires a new hypothesis, population and test namespace before science."
+      ]
+    },
+    "H26_REMEDIATION_B_NONZERO_PRECONTEXT_FIXTURE_REDESIGN": {
+      "disposition": "REJECTED_AS_PRIMARY_REMEDIATION",
+      "reason": "It changes fixture bytes and the causal scenario instead of defining the scientifically meaningful semantics of a valid silent pre-onset context.",
+      "minimum_if_reconsidered": "A scientifically justified nonzero precontext, new population namespace, full rematerialization, new SHA bindings and new authority are mandatory; post-hoc noise is forbidden."
+    },
+    "H26_REMEDIATION_C_CLOSE_H26_AND_PREREGISTER_SUCCESSOR": {
+      "disposition": "MANDATORY_GOVERNANCE_BOUNDARY_NOT_SELECTED_AS_THE_SEMANTIC_REMEDIATION",
+      "reason": "Historical H26 is closed and consumed. The preferred Option A semantics must therefore be delivered only through a successor preregistration, but Option C alone does not define the missing zero-context semantics."
+    }
+  },
+  "affected_historical_preregistration_paths": [
+    "numerical_policy.spectrum.valid_total_power",
+    "numerical_policy.short_window_onset_rise.formula",
+    "numerical_policy.long_window_persistence.formula",
+    "causal_contract.previous_views_end_one_hop_earlier",
+    "ambiguity_region.includes",
+    "decision_order"
+  ],
+  "semantic_delta": [
+    {
+      "topic": "current_short_analysis",
+      "before": "Every spectrum role requires finite strictly-positive total power.",
+      "after": "Current-short analysis still requires the identical finite strictly-positive total-power rule; exact zero remains invalid and cannot enter ratios, NNLS or certificates."
+    },
+    {
+      "topic": "previous_short_context",
+      "before": "Exact-zero previous-short is rejected as an invalid spectrum.",
+      "after": "Exact-zero previous-short is valid only when its complete validity mask is true; its spectrum and total power remain exact zero and onset_rise evaluates to 1 when current-short is valid and positive."
+    },
+    {
+      "topic": "previous_long_context",
+      "before": "Exact-zero previous-long is rejected as an invalid spectrum.",
+      "after": "Exact-zero previous-long is valid only when its complete validity mask is true; its spectrum and total power remain exact zero and persistence evaluates to 1 when current-long is valid and positive."
+    },
+    {
+      "topic": "invalid_support",
+      "before": "Invalid support is masked and never zero-filled.",
+      "after": "Unchanged: any invalid mask remains invalid support and can never be reclassified as valid silence."
+    },
+    {
+      "topic": "nonzero_views",
+      "before": "Current and previous nonzero views use the existing spectrum, ratios, NNLS and certificates.",
+      "after": "Byte-for-byte and formula-for-formula unchanged."
+    },
+    {
+      "topic": "decision_outcomes_and_order",
+      "before": "history, invalid support, equivalence, positive certificate, negative certificate, ambiguous.",
+      "after": "Unchanged; valid previous silence is contextual evidence and never a negative certificate by itself."
+    }
+  ],
+  "certificate_thresholds_unchanged": {
+    "minimum_exclusive_energy_ratio_each": 0.02,
+    "minimum_short_window_onset_rise": 0.05,
+    "minimum_active_only_residual_improvement": 0.1,
+    "maximum_exclusive_energy_ratio_each": 0.002,
+    "maximum_short_window_onset_rise": 0.005,
+    "maximum_active_only_residual_improvement": 0.001,
+    "minimum_margin_below_candidate_claim": 10.0
+  },
+  "scientific_invariants": {
+    "historical_h26_state_immutable": true,
+    "historical_claim_retry_forbidden": true,
+    "hop_samples": 256,
+    "previous_view_offset_hops": 1,
+    "future_samples_read": 0,
+    "outcomes_exact": [
+      "BIRTH_SUPPORTED",
+      "NO_BIRTH",
+      "AMBIGUOUS",
+      "ALREADY_ACTIVE_HISTORY"
+    ],
+    "decision_order_exact": [
+      "ALREADY_ACTIVE_HISTORY",
+      "INVALID_SUPPORT_TO_AMBIGUOUS",
+      "OBSERVATION_EQUIVALENCE_TO_AMBIGUOUS",
+      "COMPLETE_POSITIVE_CERTIFICATE_TO_BIRTH_SUPPORTED",
+      "COMPLETE_NEGATIVE_CERTIFICATE_TO_NO_BIRTH",
+      "OTHERWISE_AMBIGUOUS"
+    ],
+    "valid_silence_distinct_from_invalid_support": true,
+    "silent_view_alone_is_never_negative_certificate": true,
+    "zero_current_short_never_enters_ratio_or_nnls": true,
+    "oracle_fields_forbidden": [
+      "fixture_id",
+      "expected",
+      "family",
+      "category",
+      "ground_truth_onset",
+      "latent_label"
+    ],
+    "exact_collision_priority_preserved": true,
+    "active_history_bypass_preserved": true,
+    "nonzero_case_semantics_preserved": true
+  },
+  "explicitly_forbidden_remediations": [
+    "fixture-specific branch for H26-F-P01",
+    "branch on expected family category target oracle or ground truth",
+    "replace zero with 1e-24 or any hidden epsilon",
+    "add post-hoc noise to P01",
+    "ignore previous_short",
+    "reuse or delete the consumed claim evidence or receipt",
+    "change the historical P0 result",
+    "silently edit the historical H26 preregistration",
+    "overwrite the H26_SYNTHETIC_V1 population namespace",
+    "change certificate thresholds to make P01 pass"
+  ],
+  "historical_population_decision": {
+    "status": "REUSABLE_READ_ONLY_FOR_FORENSIC_AND_REGRESSION_REFERENCE_ONLY",
+    "successor_science_eligible": false,
+    "mutation_in_place_forbidden": true,
+    "same_namespace_rematerialization_forbidden": true,
+    "reason": "Its bytes remain valid historical evidence, but they were bound to the consumed H26 scientific contract and cannot authorize successor science."
+  },
+  "future_identity_decision": {
+    "hypothesis_id": "H27_ROLE_AWARE_ZERO_CONTEXT_V1",
+    "population_namespace": "H27_SYNTHETIC_V1",
+    "test_namespace": "H27_TEST_V1",
+    "new_preregistration_required": true,
+    "new_population_materialization_required": true,
+    "new_runtime_authority_required": true,
+    "new_scientific_authority_and_claim_required": true,
+    "historical_h26_artifacts_reusable_as_authority": false
+  },
+  "required_preimplementation_proofs": [
+    "External approval of the selected semantic option and successor delivery boundary.",
+    "Successor preregistration replacing the affected valid_total_power paragraphs before implementation.",
+    "Synthetic proof that valid previous zero remains exact zero with no epsilon or noise.",
+    "Synthetic proof that invalid support cannot become valid silence.",
+    "Synthetic proof that current_short zero cannot enter ratios NNLS or either certificate.",
+    "Synthetic parity proof for N01-like nonzero contexts.",
+    "Synthetic priority proofs for active-history and observation-equivalence bypasses.",
+    "Static leakage proof excluding every oracle field.",
+    "New namespace authority and claim design before any scientific execution."
+  ],
+  "next_action": "External review of remediation design before selecting or preregistering any remediation"
+}
