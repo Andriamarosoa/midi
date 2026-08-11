@@ -1,0 +1,26 @@
+{
+  "seal_schema_identity": "H26_RUNTIME_QUALIFICATION_OPERATIONAL_ACTIVATION_ISSUER_DORMANT_IMPLEMENTATION_CONTRACT_EXTERNAL_SEAL_V1",
+  "seal_schema_version": 1,
+  "status": "DECLARATIVE_DORMANT_IMPLEMENTATION_CONTRACT_SEAL_NO_INVOCATION_NO_OPERATIONAL_FILESYSTEM",
+  "implementation_contract_commit": "e56776f65339b55c2fd4bd6900d4e5de38c422d4",
+  "implementation_contract_git_blob_sha": "25f9427d9bbd456924438baf14467fb856f7ec72",
+  "implementation_contract_git_blob_byte_length": 2720,
+  "implementation_contract_raw_sha256": "44ecdda5be6309443d7446f7a0a0bb5f5ea4cc37090a2ae4d0fba2d79e7eab4d",
+  "seal_contains_own_raw_sha256": false,
+  "implementation_contract_contains_own_raw_sha256": false,
+  "current_state": {
+    "implementation_contract_exists": true,
+    "planner_exists": false,
+    "issuer_exists": false,
+    "issuer_invoked": false,
+    "activation_exists": false,
+    "administrative_root": null,
+    "operational_filesystem_touched": false,
+    "runtime_execution_authorized": false,
+    "materialization_authorized": false,
+    "scientific_execution_authorized": false,
+    "locked_test_used": false
+  },
+  "creation_authorized_now": false,
+  "next_action": "Implement a dormant loader for this external seal"
+}

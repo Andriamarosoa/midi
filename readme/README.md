@@ -2409,6 +2409,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-11 — seal externe du contrat dormant d'émission de l'activation runtime H26](results/2026-08-11_harmonic-censoring-h26-runtime-qualification-operational-activation-issuance-contract-external-seal.md)
 - [2026-08-11 — loader dormant du seal du contrat d'émission H26, en attente de revue du lot](results/2026-08-11_harmonic-censoring-h26-runtime-qualification-operational-activation-issuance-contract-external-seal-loader-dormant-implementation.md)
 - [2026-08-11 — contrat additif d'implémentation dormante de l'issuer H26](results/2026-08-11_harmonic-censoring-h26-activation-issuer-dormant-implementation-contract.md)
+- [2026-08-11 — seal du contrat d'implémentation dormante de l'issuer H26](results/2026-08-11_harmonic-censoring-h26-activation-issuer-dormant-implementation-contract-external-seal.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)
