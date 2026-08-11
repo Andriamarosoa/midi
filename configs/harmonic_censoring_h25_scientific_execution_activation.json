@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "purpose": "harmonic_censoring_h25_scientific_execution_activation",
+  "status": "externally_reviewed_H25_scientific_activation",
+  "seal_path": "configs/harmonic_censoring_h25_scientific_execution_authorization_seal.json",
+  "seal_raw_sha256": "957dffa744dfa9ecbef56b82ff6c4b6517f0cd79df029d58d8fe48ffe6dda60e",
+  "external_review": {
+    "verdict": "APPROVED",
+    "activation_commit_review_required": true
+  }
+}
