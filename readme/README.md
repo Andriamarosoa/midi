@@ -14,16 +14,21 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: STOP 3 runtime qualified; real materialization boundary implemented; external review required before authority or materializer. -->
+<!-- H26_CORRECTION_STATUS: STOP 4 population materialized exactly once; external review required before P0. -->
 ## État courant
 
 - Mise à jour : `2026-08-12`.
 - État courant :
-  `H26_MATERIALIZATION_OPERATIONAL_ENTRYPOINT_IMPLEMENTED_STOP_3_PENDING_EXTERNAL_REVIEW`.
-- La frontière réelle de matérialisation one-shot est implémentée sans
-  l'exécuter : cinq preuves STOP 3 scellées, autorité canonique, destination
-  fixe, liaison exacte du processus live au runtime qualifié, capability privée
-  et materializer réel au maximum une fois. Rapport :
+  `H26_POPULATION_MATERIALIZED_STOP4_PENDING_EXTERNAL_REVIEW_BEFORE_P0`.
+- L'unique matérialisation H26 autorisée a terminé avec `exit=0`, exactement un
+  appel du materializer et aucun retry. La population finale contient 40
+  records baseline et 153 records P2 ; son index a le SHA-256
+  `b0045797b08ef2ebbfaf7e1dda0c10f213eec3d8b3a3daaa31c8153dd842b4a7`.
+  Aucun P0/P1/P2 scientifique n'a été exécuté. Rapport STOP 4 :
+  `readme/results/2026-08-12_harmonic-censoring-h26-materialization-stop4.md`.
+- La frontière réelle de matérialisation one-shot a lié cinq preuves STOP 3,
+  le processus live exact, une autorité canonique et la destination fixe avant
+  l'unique appel réel. Rapport d'implémentation :
   `readme/results/2026-08-12_harmonic-censoring-h26-materialization-operational-entrypoint-stop3.md`.
 - L'unique qualification runtime réémise après l'échec préflight pré-claim a
   produit un record qualifié et un receipt terminal : observer appelé une fois,
