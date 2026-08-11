@@ -14,12 +14,20 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: dormant materialization authority artifact canonicalization and validation contract defined; external review required; no real authority or execution. -->
+<!-- H26_CORRECTION_STATUS: dormant materialization authority artifact validator implemented; external review required; no real authority or execution. -->
 ## État courant
 
 - Mise à jour : `2026-08-11`.
 - État courant :
-  `H26_MATERIALIZATION_AUTHORITY_ARTIFACT_CANONICALIZATION_AND_VALIDATION_CONTRACT_DORMANT_PENDING_EXTERNAL_REVIEW`.
+  `H26_MATERIALIZATION_AUTHORITY_ARTIFACT_VALIDATOR_DORMANT_PENDING_EXTERNAL_REVIEW`.
+- Le validateur dormant du futur artefact d'autorite H26 est implemente en
+  memoire pure. Il charge le contrat exact `dd24346e...` / `b6b98b4c...`, lie
+  le loader du seal et le validateur de preuve approuves, impose le keyset de
+  36 champs, les types, les 24 valeurs fixes, une unique projection runtime
+  `QUALIFIED`, la syntaxe POSIX/UTC/issuer, puis rederive `authority_id` et les
+  octets canoniques. Il ne construit, n'emet et n'ecrit aucun artefact et ne
+  consulte pas la destination. Les 18 tests dormants reussissent. Rapport :
+  `readme/results/2026-08-11_harmonic-censoring-h26-materialization-authority-artifact-validator-dormant-implementation.md`.
 - Le futur artefact d'autorité de matérialisation possède maintenant un contrat
   déclaratif fermé : keyset exact de 36 champs, types exacts, octets JSON
   canoniques, `authority_id` dérivé par une préimage SHA-256 domain-separated,
@@ -2331,6 +2339,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-11 — correction de liaison de preuve du contrat d'autorité de matérialisation H26](results/2026-08-11_harmonic-censoring-h26-population-materialization-authority-contract.md)
 - [2026-08-11 — validateur dormant de preuve runtime pour la matérialisation H26](results/2026-08-11_harmonic-censoring-h26-materialization-runtime-execution-proof-validator-dormant-implementation.md)
 - [2026-08-11 — contrat canonique du futur artefact d'autorité de matérialisation H26](results/2026-08-11_harmonic-censoring-h26-materialization-authority-artifact-contract.md)
+- [2026-08-11 — implémentation dormante du validateur d'artefact d'autorité H26](results/2026-08-11_harmonic-censoring-h26-materialization-authority-artifact-validator-dormant-implementation.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)
