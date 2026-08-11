@@ -240,3 +240,36 @@ H17, locked-test, modèle ou training.
 Uniquement la revue externe de ce correctif d'autorité exact. Toute création
 de seal/activation ou exécution scientifique exige encore une autorisation
 séparée.
+
+## Seal scientifique H24 dormant
+
+La revue externe a approuvé
+`22bf87831838fa0c0467ae1f54be788c91d47951` et autorisé exactement
+`AUTHORIZED_TO_DEFINE_AND_COMMIT_H24_SCIENTIFIC_AUTHORIZATION_SEAL_ONLY`.
+Le seal créé à
+`configs/harmonic_censoring_h24_scientific_execution_authorization_seal.json`
+a le SHA-256
+`818e53cd510bdd5b055372ad213e1a76d83af2d74adee7d158626b3f85346c61`.
+
+Il lie exactement :
+
+- le commit d'implémentation approuvé `22bf8783…` et sa topologie de six
+  fichiers ;
+- les blobs capability H24, runner H24, producteurs H24, runner H23 et
+  harness H23 ;
+- le contrat H24 schéma `7` (`a0726827…`) et le contrat H23 (`719eba0a…`) ;
+- CPython `3.11.9`, NumPy `1.26.4`, arm64, CPU et les cinq variables de threads
+  fixées à `1` ;
+- les sept chemins one-shot hors du namespace immuable de population.
+
+Le seal exige encore la revue de son commit exact. Aucun fichier d'activation
+H24 n'existe, aucune variable OS-bound n'est injectée et l'issuer reste dormant
+avant population et NumPy. Aucun claim, waveform, P0/P1/P2, H17, locked-test,
+modèle ou training n'a été utilisé.
+La suite administrative H24/H23/H20 complète réussit avec `216` tests en
+`3,172 s`; `git diff --check` réussit également.
+
+## Étape suivante
+
+Uniquement la revue externe du commit exact du seal. La création d'une
+activation resterait un cycle séparé et n'est pas autorisée ici.

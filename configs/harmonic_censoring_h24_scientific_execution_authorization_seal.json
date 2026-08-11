@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "purpose": "harmonic_censoring_h24_scientific_execution_authorization_seal",
+  "status": "externally_approved_one_shot_scientific_execution",
+  "authorization": {
+    "capability_issuance_authorized": true,
+    "scientific_claim_authorized": true,
+    "scientific_execution_authorized": true,
+    "P0_execution_authorized": true,
+    "P1_execution_authorized": true,
+    "P2_execution_authorized": true,
+    "population_modification_authorized": false,
+    "real_data_access_authorized": false,
+    "H17_population_use_authorized": false,
+    "model_or_checkpoint_access_authorized": false,
+    "training_authorized": false,
+    "locked_test_used": false
+  },
+  "bindings": {
+    "implementation_commit": "22bf87831838fa0c0467ae1f54be788c91d47951",
+    "capability_source_blob": "781adb578174b5d2f4c4ef01f196b0401a88fecd",
+    "runner_source_blob": "c8055f73b9170ada0614d6a090f084ed9fcf731b",
+    "producer_source_blob": "db48f66c23cd51f83560c0dc20eec9dc8449da74",
+    "predecessor_runner_source_blob": "c4f435a20f363adb75b831dc8b5526eaee42f46b",
+    "predecessor_harness_source_blob": "548e6cc1500e682170cc7043fe694474e3bbd647",
+    "predecessor_contract_sha256": "719eba0aa440fc1e77ae7d204adee9e5b51517f455fad3bfed7e761d3c00a74a",
+    "contract_sha256": "a0726827400617e87de4cc0a57d2ded4998d7c9a54bf0c81fa3c39cdfc69d6e9",
+    "exact_changed_files": [
+      "configs/harmonic_censoring_h24_scientific_execution_authorization_contract.json",
+      "readme/README.md",
+      "readme/results/2026-08-10_harmonic-censoring-h24-scientific-execution-authorization-contract.md",
+      "src/polyphonic/harmonic_censoring_h24_scientific_capability.py",
+      "tests/test_harmonic_censoring_h24_scientific_execution_dormant.py",
+      "tests/test_harmonic_censoring_h24_scientific_execution_authorization_contract.py"
+    ]
+  },
+  "runtime_identity": {
+    "machine": "arm64",
+    "python_implementation": "CPython",
+    "python_version": "3.11.9",
+    "numpy_version": "1.26.4",
+    "device": "1",
+    "OMP_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "NUMEXPR_NUM_THREADS": "1",
+    "VECLIB_MAXIMUM_THREADS": "1"
+  },
+  "one_shot_paths": {
+    "claim_path": "tmp/local/harmonic_censoring_h24_scientific_v1.consumed.json",
+    "staging_directory": "tmp/local/harmonic_censoring_h24_scientific_v1.staging",
+    "success_directory": "tmp/local/harmonic_censoring_h24_scientific_v1",
+    "transcript_path": "tmp/local/harmonic_censoring_h24_scientific_v1/scientific_transcript.jsonl",
+    "transcript_staging_path": "tmp/local/harmonic_censoring_h24_scientific_v1.staging/scientific_transcript.jsonl.part",
+    "evidence_directory": "tmp/local/harmonic_censoring_h24_scientific_v1/evidence",
+    "terminal_path": "tmp/local/harmonic_censoring_h24_scientific_v1.terminal.json"
+  },
+  "external_review": {
+    "verdict": "APPROVED",
+    "implementation_reviewed": true,
+    "seal_commit_review_required": true
+  }
+}

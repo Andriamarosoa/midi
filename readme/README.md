@@ -79,7 +79,14 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `a0726827…`.
   La suite administrative complète réussit avec `211` tests; `py_compile` et
   `git diff --check` réussissent également.
-  Le seal et l'activation restent absents, donc l'issuer public échoue toujours
+  Après approbation de `22bf8783…`, le seal scientifique H24 dormant est
+  maintenant défini. Il lie le commit d'implémentation, les cinq blobs, les
+  contrats H24/H23, la topologie, le runtime Mac arm64 CPU mono-thread et les
+  sept chemins one-shot. Son SHA-256 est `818e53cd…`. L'activation reste
+  absente : le seal seul ne permet toujours aucune issuance, claim ou mesure.
+  La suite administrative complète réussit avec `216` tests et
+  `git diff --check` réussit.
+  L'activation reste absente, donc l'issuer public échoue toujours
   avant registre, population, NumPy ou claim.
   Aucun evaluator/oracle, P0/P1/P2, donnée réelle, H17, locked-test ou training
   n'est autorisé. Rapport :
