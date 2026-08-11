@@ -29,6 +29,12 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   aucune donnée audio : `materialized=false`, `waveform_count=0`,
   `executed=false`. Rapport :
   `readme/results/2026-08-11_harmonic-censoring-h25-population-test-manifests.md`.
+- La première revue de `d8184f57…` a refusé l'ambiguïté de normalisation du
+  bruit. Le correctif définit désormais le support exact `A=8192..16639`
+  (`8448` indices), utilise ce même `A` pour la moyenne/RMS bruit et le RMS
+  clean, impose l'ordre des huit opérations et assigne directement `+0.0`
+  hors support après normalisation. Les SHA dépendants sont rebondés ; aucune
+  synthèse n'a été effectuée.
 - H25 préenregistre une hypothèse limitée : une courbe de dilution vectorisée,
   normalisée par le support et combinée à deux fenêtres causales finissant au
   même hop (`4096` primaire, `8192` confirmation), peut aider à distinguer une

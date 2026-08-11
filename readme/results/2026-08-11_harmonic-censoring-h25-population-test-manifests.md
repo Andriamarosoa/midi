@@ -20,20 +20,20 @@ Aucune fixture scientifique, waveform ou matrice NumPy n'a été créée.
 
 ```text
 configs/harmonic_censoring_h25_fixture_specifications.json
-15988 octets
-SHA-256 6e688fdadd128e78522c5efe7f40a3babf7b17d28464d81a71eeda8f5a84a880
+17653 octets
+SHA-256 97295c09a0dc362a9337200ede62489e254fd5e548f36e2e170f21abb3b5ef6b
 
 configs/harmonic_censoring_h25_population_manifest.json
 1658 octets
-SHA-256 c1337e92b30bb6326e739bc8d3df618cc04342ba9034e58af49d8fca6c51a7ad
+SHA-256 33e21457240497322351275c3a82868d0eb06beb6676d6370ea85fae6933ba5f
 
 configs/harmonic_censoring_h25_test_manifest.json
 17206 octets
-SHA-256 60a15cc65d632f27824b2c15e123a667caf0585004e2d7e1a086d5b38c731313
+SHA-256 58ce653325c785598fccd3cccffa7a77ab4944286df3baeb497bd20548544d29
 
 tests/test_harmonic_censoring_h25_manifests.py
-7230 octets
-SHA-256 729796c4f747058c21e1b07c51b5394775c3022def9aed8db86f1071a7657dad
+8232 octets
+SHA-256 d080814c4d1e0cdcbf3567d7eb666ef732f65d601d1e9e4f99f0d413414829a5
 ```
 
 Les trois artefacts lient le contrat scientifique exact :
@@ -119,6 +119,24 @@ par RFFT, DC nul et pondération `1/sqrt(k)`, puis IRFFT, centrage RMS et mise �
 l'échelle SNR. Le bruit est nul avant `g=8192`, de sorte que le premier long
 window reste un silence exact. Chirp, impulse et cloche OOD possèdent aussi des
 formules fermées.
+
+La revue initiale de `d8184f57…` a refusé l'expression ambiguë « gated-sample
+mean / clean non-silent RMS ». La correction fixe exactement :
+
+```text
+A                    {8192,8193,...,16639}
+|A|                  8448
+mean bruit            seulement A, ordre g croissant
+RMS bruit             seulement A, ordre g croissant
+RMS clean             exactement le même A, jamais dérivé des valeurs
+hors A                +0.0 float64 assigné directement après normalisation
+ordre                 generate -> mean A -> center A -> RMS A -> normalize A
+                      -> assign +0.0 hors A -> clean RMS A -> SNR -> addition
+```
+
+Ainsi aucune soustraction de moyenne ne peut rendre `g<8192` non nul. Pour
+chaque fixture bruitée, `x_clean`, `n_unit` et `x_final` sont `+0.0` bit-exact
+sur `0..8191`.
 
 Le futur WAV/file encoding reste volontairement non défini : cette étape
 spécifie les tableaux scientifiques float64 mais n'autorise pas leur création.

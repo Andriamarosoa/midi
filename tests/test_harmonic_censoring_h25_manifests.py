@@ -77,7 +77,27 @@ class H25PopulationTestManifestTests(unittest.TestCase):
         self.assertTrue(timeline["padding_forbidden"])
         self.assertEqual(formulas["float_dtype"], "float64")
         self.assertIn("SHA256", formulas["noise_seed"])
-        self.assertIn("Z[0]=0", formulas["pink_noise"])
+        self.assertIn("Z[0]=complex128(0.0,0.0)", formulas["pink_noise"])
+        noise = self.spec["noise_normalization_contract"]
+        self.assertEqual(noise["active_support_start_inclusive"], 8192)
+        self.assertEqual(noise["active_support_end_inclusive"], 16639)
+        self.assertEqual(noise["active_support_count"], 8448)
+        self.assertIn("same A={8192..16639}", noise["clean_reference_indices"])
+        self.assertIn("direct assignment", noise["operation_4_unit_noise_and_exact_silence"])
+        self.assertIn("bit-exact", noise["postcondition_pre_support"])
+        self.assertEqual(
+            noise["required_operation_order"],
+            [
+                "generate_ungated_u",
+                "compute_mean_on_A_only",
+                "subtract_mean_on_A_only",
+                "compute_RMS_on_A_only",
+                "normalize_on_A_and_directly_assign_positive_zero_outside_A",
+                "compute_clean_RMS_on_exactly_A",
+                "scale_to_SNR",
+                "add_to_clean_mixture",
+            ],
+        )
         self.assertFalse(self.spec["generation_authorized"])
         self.assertEqual(
             formulas["WAV_cast_or_file_format"],

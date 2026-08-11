@@ -6,7 +6,7 @@
   "contract_path": "configs/harmonic_censoring_h25_scientific_hypothesis_execution_contract.json",
   "contract_sha256": "ae837a647792c56c02a7d96a4328f62c1ecac03d0c0a839d59488c420cfff911",
   "fixture_specifications_path": "configs/harmonic_censoring_h25_fixture_specifications.json",
-  "fixture_specifications_sha256": "6e688fdadd128e78522c5efe7f40a3babf7b17d28464d81a71eeda8f5a84a880",
+  "fixture_specifications_sha256": "97295c09a0dc362a9337200ede62489e254fd5e548f36e2e170f21abb3b5ef6b",
   "materialized": false,
   "waveform_count": 0,
   "ordered_fixture_ids": [
