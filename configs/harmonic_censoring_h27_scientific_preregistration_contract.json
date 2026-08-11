@@ -123,6 +123,20 @@
     "absence_alone_is_insufficient_for_no_birth": true,
     "invalid_support_zero_fill_forbidden": true,
     "forbidden_inputs": [
+      "future audio",
+      "future labels",
+      "fixture identity",
+      "fixture family or target category",
+      "reference note identity",
+      "ground-truth onset coordinate",
+      "string or fret",
+      "post-decision decoder state",
+      "post-emission rank or selection",
+      "H25 outcome or membership",
+      "raw transform disappearance index",
+      "latent explanation label"
+    ],
+    "static_leakage_field_aliases": [
       "fixture_id",
       "expected",
       "family",
@@ -130,7 +144,16 @@
       "ground_truth_onset",
       "latent_label",
       "post_decision_state",
-      "future_audio"
+      "post_emission_rank",
+      "post_emission_selection",
+      "future_audio",
+      "future_labels",
+      "reference_note_id",
+      "string_id",
+      "fret",
+      "h25_outcome",
+      "h25_membership",
+      "raw_transform_disappearance_index"
     ]
   },
   "certificate_thresholds_inherited_unchanged": {

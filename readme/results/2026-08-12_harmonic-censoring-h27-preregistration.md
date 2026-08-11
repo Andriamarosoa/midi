@@ -62,14 +62,24 @@ minimum valid bins = 3
 ```
 
 Silence seul ne suffit jamais à `NO_BIRTH`. Support invalide n'est jamais
-zero-filled. Aucun champ `fixture_id`, `expected`, `family`, `category`,
-`ground_truth_onset` ou `latent_label` ne participe à la classification.
+zero-filled. H27 reprend sans réduction les douze catégories H26 interdites :
+audio et labels futurs, identité/famille/catégorie de fixture, identité de note
+de référence, onset ground-truth, corde/frette, état post-décision,
+rang/sélection post-émission, outcome/membership H25, index brut de disparition
+par transformation et label d'explication latente. Les aliases statiques tels
+que `fixture_id`, `expected`, `family` et `latent_label` sont listés séparément
+et ne remplacent pas ces catégories scientifiques.
 
 ## Obligations data-only
 
 `configs/harmonic_censoring_h27_zero_context_synthetic_cases.json` reprend les
 onze cas `R-ZERO-001..011` approuvés. Ce sont des attentes déclaratives, sans
 Python, moteur ou résultat exécuté.
+
+`R-ZERO-004` fixe explicitement un support current-short valide, des samples
+non nuls et une puissance finie : son rejet doit donc provenir uniquement du
+fait que la puissance n'est pas strictement au-dessus du plancher H26, jamais
+d'une branche `INVALID_SUPPORT`.
 
 ## Population et autorités futures
 
