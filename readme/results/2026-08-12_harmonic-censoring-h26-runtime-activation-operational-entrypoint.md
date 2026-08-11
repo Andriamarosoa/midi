@@ -13,6 +13,11 @@ external authorization commit equal to clean `HEAD`, and no caller-selected
 paths. Publication uses an already-existing non-symlink root, an exclusive
 0600 staging write, fsync, Darwin `renameatx_np(RENAME_EXCL)`, and directory
 fsync. Collision or partial failure is terminal; cleanup and retry are absent.
+The real adapter is private to the entrypoint and refuses construction unless
+it receives the exact process-local identity capability minted only after the
+acknowledgement, authorization-commit, clean-HEAD and Darwin checks pass. The
+generic publisher therefore retains only its fake-adapter test seam and no
+longer exports an operational filesystem route.
 
 This step stopped before root creation and before invocation. No activation,
 runtime authority, claim, observer evidence, runtime record, materialization,

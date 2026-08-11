@@ -11,6 +11,7 @@
   "request_transport": "exact canonical activation bytes on stdin",
   "required_platform": "Darwin",
   "requires_clean_head_equal_authorization_commit": true,
+  "operational_adapter_boundary": "private adapter requires identity-attested capability minted only after execution boundary",
   "publication": "create-exclusive staging fsync renameatx_np(RENAME_EXCL) directory-fsync",
   "retry_allowed": false,
   "activation_created": false,

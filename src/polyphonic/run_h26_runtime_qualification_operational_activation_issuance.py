@@ -7,20 +7,22 @@ This module is implemented but must not be invoked before separate review.
 """
 from __future__ import annotations
 
+import ctypes
 import json
 import os
 from pathlib import Path
 import re
+import stat
 import subprocess
 import sys
 from typing import Any, Iterable, Tuple
+import weakref
 
 from .harmonic_censoring_h26_runtime_execution_primitives import canonical_json_bytes
 from .harmonic_censoring_h26_runtime_qualification_operational_activation_issuance_planner import (
     plan_runtime_qualification_operational_activation_issuance,
 )
 from .harmonic_censoring_h26_runtime_qualification_operational_activation_issuer import (
-    H26PosixIssuanceFilesystemAdapter,
     publish_prevalidated_activation_with_adapter,
 )
 
@@ -34,6 +36,146 @@ ENTRYPOINT_CONTRACT_PATH = (
     "configs/harmonic_censoring_h26_runtime_activation_operational_entrypoint_contract.json"
 )
 _COMMIT = re.compile(r"^[0-9a-f]{40}$")
+_AT_FDCWD = -2
+_RENAME_EXCL = 0x00000004
+_BOUNDARY_CAPABILITIES: dict[int, weakref.ReferenceType["_H26ExecutionBoundaryCapability"]] = {}
+
+
+class _H26ExecutionBoundaryCapability:
+    __slots__ = ("head", "__weakref__")
+
+    def __new__(cls):
+        raise TypeError("H26 execution boundary capability has no public constructor")
+
+
+def _require_boundary_capability(value: object) -> _H26ExecutionBoundaryCapability:
+    reference = _BOUNDARY_CAPABILITIES.get(id(value))
+    if (
+        type(value) is not _H26ExecutionBoundaryCapability
+        or reference is None
+        or reference() is not value
+    ):
+        raise PermissionError("H26 operational filesystem requires an attested execution boundary")
+    return value
+
+
+def _darwin_rename_no_replace(source: str, destination: str) -> None:
+    if os.name != "posix" or not hasattr(os, "uname") or os.uname().sysname != "Darwin":
+        raise OSError("H26 operational activation publication requires Darwin renameatx_np")
+    libc = ctypes.CDLL(None, use_errno=True)
+    renameatx_np = libc.renameatx_np
+    renameatx_np.argtypes = [ctypes.c_int, ctypes.c_char_p, ctypes.c_int, ctypes.c_char_p, ctypes.c_uint]
+    renameatx_np.restype = ctypes.c_int
+    result = renameatx_np(
+        _AT_FDCWD,
+        os.fsencode(source),
+        _AT_FDCWD,
+        os.fsencode(destination),
+        _RENAME_EXCL,
+    )
+    if result != 0:
+        error = ctypes.get_errno()
+        raise OSError(error, os.strerror(error), destination)
+
+
+class _H26BoundaryGatedPosixIssuanceFilesystemAdapter:
+    """Private macOS adapter constructible only with an attested boundary."""
+
+    def __init__(
+        self,
+        capability: _H26ExecutionBoundaryCapability,
+        administrative_root: str,
+    ) -> None:
+        _require_boundary_capability(capability)
+        if capability.head != _git_output("rev-parse", "HEAD"):
+            raise PermissionError("H26 boundary capability HEAD is stale")
+        if type(administrative_root) is not str:
+            raise TypeError("administrative_root must be a string")
+        root = Path(administrative_root)
+        if not root.is_absolute() or root == Path("/"):
+            raise ValueError("administrative_root must be absolute and non-root")
+        activation_dir = root / "activation"
+        resolved_root = root.resolve(strict=True)
+        resolved_activation_dir = activation_dir.resolve(strict=True)
+        if resolved_root != root or resolved_activation_dir != activation_dir:
+            raise ValueError("H26 administrative root and activation directory must not use symlinks")
+        if not root.is_dir() or not activation_dir.is_dir():
+            raise NotADirectoryError("H26 administrative root directories must already exist")
+        self._capability = capability
+        self._activation_dir = str(activation_dir)
+        self._final = str(activation_dir / "activation.json")
+        self._staging = str(activation_dir / ".activation.json.staging")
+
+    def _require_live_boundary(self) -> None:
+        capability = _require_boundary_capability(self._capability)
+        if capability.head != _git_output("rev-parse", "HEAD"):
+            raise PermissionError("H26 boundary capability HEAD changed")
+        if _git_output("status", "--porcelain=v1"):
+            raise PermissionError("H26 operational filesystem requires a clean worktree")
+
+    def _require_file_path(self, path: str) -> None:
+        self._require_live_boundary()
+        if path not in (self._final, self._staging):
+            raise ValueError("path is outside the fixed H26 activation slot")
+
+    def exists(self, path: str) -> bool:
+        self._require_file_path(path)
+        return os.path.lexists(path)
+
+    def create_exclusive(self, path: str, data: bytes) -> None:
+        self._require_file_path(path)
+        if path != self._staging:
+            raise ValueError("only the fixed staging path may be created")
+        if type(data) is not bytes:
+            raise TypeError("activation data must be exact bytes")
+        flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
+        if hasattr(os, "O_NOFOLLOW"):
+            flags |= os.O_NOFOLLOW
+        descriptor = os.open(path, flags, 0o600)
+        try:
+            os.fchmod(descriptor, 0o600)
+            view = memoryview(data)
+            while view:
+                written = os.write(descriptor, view)
+                if written <= 0:
+                    raise OSError("short activation write")
+                view = view[written:]
+            os.fsync(descriptor)
+        finally:
+            os.close(descriptor)
+
+    def sync_file(self, path: str) -> None:
+        self._require_file_path(path)
+        if not stat.S_ISREG(os.lstat(path).st_mode):
+            raise ValueError("activation staging evidence must be a regular file")
+        flags = os.O_RDONLY
+        if hasattr(os, "O_NOFOLLOW"):
+            flags |= os.O_NOFOLLOW
+        descriptor = os.open(path, flags)
+        try:
+            os.fsync(descriptor)
+        finally:
+            os.close(descriptor)
+
+    def rename_no_replace(self, source: str, destination: str) -> None:
+        self._require_file_path(source)
+        self._require_file_path(destination)
+        if source != self._staging or destination != self._final:
+            raise ValueError("H26 activation rename paths mismatch")
+        _darwin_rename_no_replace(source, destination)
+
+    def sync_directory(self, path: str) -> None:
+        self._require_live_boundary()
+        if path != self._activation_dir:
+            raise ValueError("directory sync path mismatch")
+        flags = os.O_RDONLY
+        if hasattr(os, "O_DIRECTORY"):
+            flags |= os.O_DIRECTORY
+        descriptor = os.open(path, flags)
+        try:
+            os.fsync(descriptor)
+        finally:
+            os.close(descriptor)
 
 
 def _repo_root() -> Path:
@@ -93,6 +235,7 @@ def _load_entrypoint_contract() -> dict[str, Any]:
         "request_transport": "exact canonical activation bytes on stdin",
         "required_platform": "Darwin",
         "requires_clean_head_equal_authorization_commit": True,
+        "operational_adapter_boundary": "private adapter requires identity-attested capability minted only after execution boundary",
         "publication": "create-exclusive staging fsync renameatx_np(RENAME_EXCL) directory-fsync",
         "retry_allowed": False,
         "activation_created": False,
@@ -109,7 +252,7 @@ def _load_entrypoint_contract() -> dict[str, Any]:
     return value
 
 
-def _require_execution_boundary() -> str:
+def _require_execution_boundary() -> _H26ExecutionBoundaryCapability:
     _load_entrypoint_contract()
     if os.name != "posix" or not hasattr(os, "uname") or os.uname().sysname != "Darwin":
         raise RuntimeError("H26 activation issuance requires the reviewed macOS boundary")
@@ -123,12 +266,21 @@ def _require_execution_boundary() -> str:
         raise PermissionError("H26 activation authorization commit must equal HEAD")
     if _git_output("status", "--porcelain=v1"):
         raise PermissionError("H26 activation issuance requires a clean worktree")
-    return head
+    capability = object.__new__(_H26ExecutionBoundaryCapability)
+    capability.head = head
+    identity = id(capability)
+
+    def cleanup(reference):
+        if _BOUNDARY_CAPABILITIES.get(identity) is reference:
+            _BOUNDARY_CAPABILITIES.pop(identity, None)
+
+    _BOUNDARY_CAPABILITIES[identity] = weakref.ref(capability, cleanup)
+    return capability
 
 
 def issue_h26_runtime_activation_once(raw_request: bytes):
     """Publish the exact caller-supplied activation after reversible checks."""
-    _require_execution_boundary()
+    capability = _require_execution_boundary()
     activation = _strict_json_object(raw_request)
     if activation.get("administrative_root") != ADMINISTRATIVE_ROOT:
         raise ValueError("pre-registered administrative_root mismatch")
@@ -139,7 +291,9 @@ def issue_h26_runtime_activation_once(raw_request: bytes):
     plan = plan_runtime_qualification_operational_activation_issuance(activation)
     if raw_request != plan.canonical_bytes or raw_request != canonical_json_bytes(activation):
         raise ValueError("activation request bytes are not canonical validator bytes")
-    adapter = H26PosixIssuanceFilesystemAdapter(ADMINISTRATIVE_ROOT)
+    adapter = _H26BoundaryGatedPosixIssuanceFilesystemAdapter(
+        capability, ADMINISTRATIVE_ROOT
+    )
     return publish_prevalidated_activation_with_adapter(plan, adapter)
 
 

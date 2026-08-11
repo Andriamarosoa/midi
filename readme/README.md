@@ -30,6 +30,8 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `renameatx_np(RENAME_EXCL)`/directory-fsync. L'étape s'arrête avant toute
   création de racine ou activation pour revue externe. Rapport :
   `readme/results/2026-08-12_harmonic-censoring-h26-runtime-activation-operational-entrypoint.md`.
+  L'adapter réel est privé et exige une capability attestée par identité,
+  créée seulement après la frontière acknowledgement/commit/clean-HEAD/Darwin.
   Les `21/21` tests de frontière passent sur macOS, y compris la publication
   Darwin réelle dans un répertoire temporaire, et les `20/20` modules H26
   passent isolément sur Windows et macOS.
