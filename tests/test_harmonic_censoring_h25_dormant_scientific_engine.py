@@ -120,7 +120,12 @@ class H25DormantScientificEngineTests(unittest.TestCase):
             plan=plan,
             waveforms=MappingProxyType({fixture_id: waveform}),
             fixture_records=MappingProxyType({fixture_id: {"source_fixture_record": source}}),
-            causal_replay_traces=MappingProxyType({fixture_id: H25CausalReplayTrace(fixture_id, 16383, (48,), ())}),
+            causal_replay_traces=MappingProxyType({fixture_id: H25CausalReplayTrace(
+                fixture_id,
+                16383,
+                (),
+                (MappingProxyType({"sample_index": 8192, "kind": "note_on", "pitch": 48}),),
+            )}),
             started_ns=time.perf_counter_ns(),
             peak_rss_bytes=1,
             operational_counters=MappingProxyType({
@@ -131,6 +136,10 @@ class H25DormantScientificEngineTests(unittest.TestCase):
             }),
             observed_fixture_ids=plan.fixture_ids,
             observed_test_ids=plan.test_ids,
+            observed_test_records=MappingProxyType({
+                item.test_id: MappingProxyType({"test_id": item.test_id, "status": "PASS"})
+                for item in plan.tests
+            }),
         )
         return plan, test, context
 
@@ -269,8 +278,8 @@ class H25DormantScientificEngineTests(unittest.TestCase):
                 fixture_id: H25CausalReplayTrace(
                     fixture_id=fixture_id,
                     observed_through_sample=16383,
-                    initial_active_pitches=(48,),
-                    transitions=(),
+                    initial_active_pitches=(),
+                    transitions=(MappingProxyType({"sample_index": 8192, "kind": "note_on", "pitch": 48}),),
                 )
             }),
             started_ns=time.perf_counter_ns(),
@@ -283,6 +292,9 @@ class H25DormantScientificEngineTests(unittest.TestCase):
             }),
             observed_fixture_ids=(fixture_id,),
             observed_test_ids=(test.test_id,),
+            observed_test_records=MappingProxyType({
+                test.test_id: MappingProxyType({"test_id": test.test_id, "status": "PASS"})
+            }),
         )
         evidence = produce_h25_test_evidence(context, test)
         canonical_json_bytes(evidence)
@@ -326,6 +338,43 @@ class H25DormantScientificEngineTests(unittest.TestCase):
         }])
         self.assertTrue(recompute_h25_persisted_evidence(plan, test.test_id, evidence).final_pass)
 
+    def test_p0_004_compares_two_latent_explanations_within_each_fixture(self) -> None:
+        fixture_ids = tuple(f"TEST-ONLY-H25-A{index:02d}" for index in range(1, 7))
+        fixtures = tuple(MappingProxyType({
+            "id": fixture_id,
+            "order": index,
+            "category": "ambiguous",
+            "family": "EXACT_COLLISION_IDENTICAL",
+            "pitch_band": "mid",
+            "candidate_pitch": 60,
+            "parameters": {},
+        }) for index, fixture_id in enumerate(fixture_ids, start=1))
+        test = replace(self.plan.tests[3], fixture_ids=fixture_ids)
+        plan = replace(self.plan, fixtures=fixtures, tests=(test,))
+        waveform = np.zeros(16640, dtype=np.float64)
+        context = H25EvidenceProducerContext(
+            np=np,
+            plan=plan,
+            waveforms=MappingProxyType({fixture_id: waveform.copy() for fixture_id in fixture_ids}),
+            fixture_records=MappingProxyType({fixture["id"]: {"source_fixture_record": fixture} for fixture in fixtures}),
+            causal_replay_traces=MappingProxyType({fixture_id: H25CausalReplayTrace(fixture_id, 16383, (), ()) for fixture_id in fixture_ids}),
+            started_ns=time.perf_counter_ns(),
+            peak_rss_bytes=1,
+            observed_fixture_ids=fixture_ids,
+            observed_test_ids=(test.test_id,),
+        )
+        evidence = produce_h25_test_evidence(context, test)
+        self.assertEqual([item["fixture_id"] for item in evidence["collision_explanations"]], list(fixture_ids))
+        self.assertTrue(recompute_h25_persisted_evidence(plan, test.test_id, evidence).final_pass)
+
+        forged = dict(evidence)
+        records = [dict(item) for item in evidence["collision_explanations"]]
+        explanations = [dict(item) for item in records[0]["latent_explanations"]]
+        explanations[1]["waveform_sha256"] = "0" * 64
+        records[0]["latent_explanations"] = explanations
+        forged["collision_explanations"] = records
+        self.assertFalse(recompute_h25_persisted_evidence(plan, test.test_id, forged).primary_pass)
+
     def test_p2_002_covers_exact_hop_translations(self) -> None:
         plan, test, context = self._test_only_context(self.plan.tests[19])
         evidence = produce_h25_test_evidence(context, test)
@@ -340,9 +389,9 @@ class H25DormantScientificEngineTests(unittest.TestCase):
         self.assertFalse(recompute_h25_persisted_evidence(plan, test.test_id, evidence).primary_pass)
         completed = dict(evidence)
         completed["cross_runtime_observation"] = {
-            "fixture_ids": list(test.fixture_ids),
-            "categories_and_masks_exact": True,
-            "maximum_float_error": 0.0,
+            "runtime_id": "TEST-ONLY-SECOND-RUNTIME",
+            "fixture_measurements": evidence["current_runtime_observation"]["fixture_measurements"],
+            "test_records": evidence["current_runtime_observation"]["test_records"],
         }
         self.assertTrue(recompute_h25_persisted_evidence(plan, test.test_id, completed).final_pass)
 
@@ -357,6 +406,60 @@ class H25DormantScientificEngineTests(unittest.TestCase):
         forged["fixture_measurements"] = rows
         with self.assertRaisesRegex(ValueError, "differs from independent replay"):
             recompute_h25_persisted_evidence(plan, test.test_id, forged)
+
+    def test_replay_rejects_nonempty_initial_state_and_wrong_fixture_id(self) -> None:
+        plan, test, context = self._test_only_context(self.plan.tests[9])
+        evidence = produce_h25_test_evidence(context, test)
+        for key, value, message in (
+            ("initial_active_pitches", [48], "every pitch INACTIVE"),
+            ("fixture_id", "TEST-ONLY-WRONG", "fixture identity"),
+        ):
+            forged = dict(evidence)
+            rows = [dict(item) for item in evidence["fixture_measurements"]]
+            trace = dict(rows[0]["causal_replay_trace"])
+            trace[key] = value
+            rows[0]["causal_replay_trace"] = trace
+            forged["fixture_measurements"] = rows
+            with self.assertRaisesRegex(ValueError, message):
+                recompute_h25_persisted_evidence(plan, test.test_id, forged)
+
+    def test_p0_002_rejects_any_omitted_analytic_tuple(self) -> None:
+        plan, test, context = self._test_only_context(self.plan.tests[1])
+        evidence = produce_h25_test_evidence(context, test)
+        incomplete = dict(evidence)
+        incomplete["analytic_scaling_operands"] = evidence["analytic_scaling_operands"][:-1]
+        self.assertFalse(recompute_h25_persisted_evidence(plan, test.test_id, incomplete).primary_pass)
+
+    def test_cross_runtime_summary_cannot_replace_detailed_observation(self) -> None:
+        plan, test, context = self._test_only_context(self.plan.tests[24])
+        evidence = produce_h25_test_evidence(context, test)
+        summarized = dict(evidence)
+        summarized["cross_runtime_observation"] = {
+            "runtime_id": "OTHER",
+            "categories_and_masks_exact": True,
+            "maximum_float_error": 0.0,
+        }
+        with self.assertRaisesRegex(ValueError, "schema"):
+            recompute_h25_persisted_evidence(plan, test.test_id, summarized)
+
+    def test_schema_inverse_persists_raw_mutation_not_rejection_verdict(self) -> None:
+        plan, test, context = self._test_only_context(self.plan.tests[21])
+        evidence = produce_h25_test_evidence(context, test)
+        inverse = evidence["inverse_measurement"]["input_perturbations"][0]
+        self.assertEqual(inverse["perturbation_kind"], "undeclared_100_cent_shift")
+        self.assertEqual(inverse["raw_mutation"], {"pitch_shift_cents": 100.0})
+        self.assertNotIn("accepted_by_input_schema", str(evidence))
+        self.assertTrue(recompute_h25_persisted_evidence(plan, test.test_id, evidence).inverse_pass)
+
+    def test_candidate_transform_graph_and_fixture_permutations_are_recomputed(self) -> None:
+        for index in (8, 23):
+            plan, test, context = self._test_only_context(self.plan.tests[index])
+            evidence = produce_h25_test_evidence(context, test)
+            row = evidence["permutation_evidence"]["candidate_transform_rows"][0]
+            self.assertEqual(len(row["candidate_orders"]), 2)
+            self.assertEqual([item["shift"] for item in row["transform_records_reversed"]], list(reversed(range(89))))
+            self.assertEqual(len(evidence["permutation_evidence"]["graph_orders"]), 2)
+            self.assertTrue(recompute_h25_persisted_evidence(plan, test.test_id, evidence).final_pass)
 
     def test_runner_is_dormant_before_numpy_import_or_population_access(self) -> None:
         self.assertTrue(H25_DORMANT_SCIENTIFIC_RUNNER_IMPLEMENTED)

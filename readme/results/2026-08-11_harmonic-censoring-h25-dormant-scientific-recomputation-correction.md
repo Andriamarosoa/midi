@@ -94,3 +94,34 @@ Le runner scientifique reste volontairement dormant et échoue avant import
 NumPy ou accès population. La prochaine action est une nouvelle revue externe
 de ce correctif. L'exécution de la population, P0, P1, P2 et toute transition
 d'autorité restent interdites.
+
+## Durcissement de complétude après seconde revue
+
+Une seconde revue externe a accepté la séparation du recomputer, mais a refusé
+la complétude des preuves du premier correctif. Les changements suivants
+ferment ces derniers points sans exécution scientifique :
+
+- P0-004 compare désormais deux explications latentes du même fixture pour
+  chacun de A01…A06 ; aucun pairing artificiel A01↔A04 n'existe ;
+- P0-002 exige l'égalité exacte de l'ensemble
+  `fixture × candidate × H1..H20 × s=0..88`, sans omission ni doublon ;
+- P0-009 et P2-006 persistent et recomputent toutes les permutations de
+  fixtures, candidats, transforms et graphe ;
+- les inverses précédemment représentés par `accepted_by_input_schema=false`
+  persistent maintenant uniquement la mutation brute ; le recomputer applique
+  sa propre politique fermée pour démontrer le rejet ;
+- tout replay commence avec `initial_active_pitches=[]`, vérifie l'ID fixture et
+  dérive l'état actif uniquement des transitions causales ;
+- P2-007 exige deux observations détaillées, chacune avec 36 mesures fixture et
+  27 records test ordonnés. Le recomputer compare lui-même catégories, masques,
+  structures et floats ; aucun booléen résumé n'est accepté.
+
+Validation après ce durcissement :
+
+```text
+21 tests du moteur dormant TEST-ONLY                         réussis
+66 tests H25 autorisés hors probes lifecycle real-OS        réussis en 1,157 s
+py_compile                                                   réussi
+git diff --check                                             réussi
+P0 / P1 / P2                                                 0 / 0 / 0
+```

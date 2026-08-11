@@ -18,7 +18,7 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 - Mise à jour : `2026-08-11`.
 - Étape : `harmonic_censoring_h25_dormant_scientific_recomputation_correction`.
-- Statut : `rejet externe c47b9ba corrigé sans science; recomputer désormais sans import producteur, preuves brutes et bornes causales corrigées; P0/P1/P2 restent à 0/0/0`.
+- Statut : `rejets externes c47b9ba/e5f9ce2 corrigés sans science; recomputer indépendant et preuves complètes en attente de nouvelle revue; P0/P1/P2 restent à 0/0/0`.
 - La matérialisation one-shot approuvée a publié exactement `36` fixtures,
   `108` artefacts et `111` fichiers, puis une vérification indépendante hors
   TTY a recomputé les `36×3` artefacts avec des PCG64 frais et confirmé
@@ -29,10 +29,14 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   catégories depuis les opérandes bruts. Les spectres/fréquences nécessaires
   sont persistés côté producteur, l'état actif est une trace causale rejouable
   bornée à `16383`, P0-007 vérifie bien `16383/16127`, P2-002 couvre exactement
-  `0/1/2/4` hops et P2-007 exige une observation d'un second runtime au lieu
-  d'un self-compare. Les inverses P1/P2 perturbent maintenant les inputs ou
-  sont refusés par le schéma avant évaluation. `60` tests H25 autorisés passent,
-  dont `15` tests du moteur dormant. Rapport de correction :
+  `0/1/2/4` hops et P2-007 exige les observations détaillées d'un second runtime
+  au lieu d'un self-compare. Les inverses P1/P2 perturbent maintenant les inputs
+  bruts. Le second durcissement impose aussi un état initial entièrement
+  inactif, compare les explications latentes à l'intérieur de chaque fixture
+  A01…A06, exige l'ensemble analytique complet, couvre réellement les
+  permutations fixture/candidate/transform/graphe et redérive tout rejet de
+  mutation brute. `66` tests H25 autorisés passent, dont `21` tests du moteur
+  dormant. Rapport de correction :
   `readme/results/2026-08-11_harmonic-censoring-h25-dormant-scientific-recomputation-correction.md`.
 - Le moteur H25 dormant implémente maintenant le graphe H1/H2..H20, la grille
   vectorisée `s=0..88`, les masques et le null géométrique, les vues causales
@@ -43,7 +47,7 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   aucune authority, capability, claim, seal ou activation scientifique
   n'existe. Le rapport historique du premier bloc est conservé, mais son
   affirmation initiale d'indépendance a été rejetée puis corrigée par l'étape
-  ci-dessus. `60` tests H25 ciblés réussissent, dont `15` tests du moteur
+  ci-dessus. `66` tests H25 ciblés réussissent, dont `21` tests du moteur
   `TEST-ONLY`; rapport :
   `readme/results/2026-08-11_harmonic-censoring-h25-dormant-scientific-engine.md`.
 - Le contrat de future matérialisation H25 lie exactement CPython `3.11.9`,

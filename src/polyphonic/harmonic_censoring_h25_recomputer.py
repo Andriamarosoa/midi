@@ -7,6 +7,8 @@ operator, causal state and outcomes from JSON-native raw operands.
 from __future__ import annotations
 
 import math
+import hashlib
+import struct
 from dataclasses import dataclass
 from typing import Any, Mapping, Sequence
 
@@ -91,14 +93,18 @@ def _independent_graph() -> list[dict[str, object]]:
     return graph
 
 
-def _replay_active(trace_raw: object) -> tuple[int, ...]:
+def _replay_active(trace_raw: object, *, expected_fixture_id: str) -> tuple[int, ...]:
     trace = _object(trace_raw, "causal replay trace")
     if set(trace) != {"fixture_id", "observed_through_sample", "initial_active_pitches", "transitions", "derived_active_pitches"}:
         raise ValueError("H25 causal replay trace schema is invalid.")
+    if trace["fixture_id"] != expected_fixture_id:
+        raise ValueError("H25 causal replay trace fixture identity mismatch.")
     through = trace["observed_through_sample"]
     if type(through) is not int or through != 16383:
         raise ValueError("H25 causal replay trace is not target-hop bounded.")
     initial = _array(trace["initial_active_pitches"], "initial active pitches")
+    if initial:
+        raise ValueError("H25 causal replay must start with every pitch INACTIVE.")
     active = set()
     for pitch in initial:
         if type(pitch) is not int or not 24 <= pitch <= 76:
@@ -130,7 +136,10 @@ def _derive_outcome(item: Mapping[str, object]) -> str:
         return "AMBIGUOUS"
     if type(pitch) is not int:
         raise ValueError("H25 candidate pitch is invalid.")
-    active = _replay_active(item.get("causal_replay_trace"))
+    fixture_id = item.get("fixture_id")
+    if type(fixture_id) is not str:
+        raise ValueError("H25 fixture measurement identity is invalid.")
+    active = _replay_active(item.get("causal_replay_trace"), expected_fixture_id=fixture_id)
     if pitch in active:
         return "ALREADY_ACTIVE_HISTORY"
     features = _object(item.get("features"), "candidate features")
@@ -263,17 +272,18 @@ def _all_expected(plan: object, test: object, measured: Mapping[str, Mapping[str
     return all(_derive_outcome(measured[fixture_id]) == _expected_outcome(fixture_by_id[fixture_id]) for fixture_id in expected_ids)
 
 
-def _analytic_equivalence(evidence: Mapping[str, object]) -> bool:
+def _analytic_equivalence(plan: object, test: object, evidence: Mapping[str, object]) -> bool:
     records = evidence.get("analytic_scaling_operands")
     if type(records) is not list or not records:
         return False
-    seen: set[tuple[int, int, int]] = set()
+    seen: set[tuple[str, int, int, int]] = set()
     for raw in records:
         item = _object(raw, "analytic scaling operand")
+        fixture_id = item.get("fixture_id")
         pitch, harmonic, shift = item.get("candidate_pitch"), item.get("harmonic_rank"), item.get("shift_semitones")
-        if type(pitch) is not int or type(harmonic) is not int or type(shift) is not int:
+        if type(fixture_id) is not str or type(pitch) is not int or type(harmonic) is not int or type(shift) is not int:
             return False
-        key = (pitch, harmonic, shift)
+        key = (fixture_id, pitch, harmonic, shift)
         if key in seen or not 1 <= harmonic <= 20 or not 0 <= shift <= 88:
             return False
         seen.add(key)
@@ -282,25 +292,117 @@ def _analytic_equivalence(evidence: Mapping[str, object]) -> bool:
         remap_coordinate = pitch + shift + 12.0 * math.log2(float(harmonic))
         if not _close(float(item.get("whole_spectrum_scaled_hz")), scaled_hz) or not _close(float(item.get("relative_remap_coordinate")), remap_coordinate) or not _close(recovered_coordinate, remap_coordinate):
             return False
-    return True
+    fixtures = {str(item["id"]): item for item in getattr(plan, "fixtures")}
+    expected = {
+        (fixture_id, int(fixtures[fixture_id]["candidate_pitch"]), harmonic, shift)
+        for fixture_id in getattr(test, "fixture_ids")
+        if fixtures[fixture_id].get("candidate_pitch") is not None
+        for harmonic in range(1, 21)
+        for shift in range(89)
+    }
+    return seen == expected
 
 
 def _collision_exact(evidence: Mapping[str, object], measured: Mapping[str, Mapping[str, object]]) -> bool:
-    pairs = evidence.get("collision_pairs")
-    if type(pairs) is not list or len(pairs) != 3:
+    records = evidence.get("collision_explanations")
+    if type(records) is not list or len(records) != 6:
         return False
-    for raw in pairs:
-        item = _object(raw, "collision pair")
-        left_id, right_id = item.get("left_fixture_id"), item.get("right_fixture_id")
-        if left_id not in measured or right_id not in measured:
+    seen: set[str] = set()
+    for raw in records:
+        item = _object(raw, "collision explanation record")
+        fixture_id = item.get("fixture_id")
+        if type(fixture_id) is not str or fixture_id in seen or fixture_id not in measured:
             return False
-        if item.get("left_waveform_sha256") != item.get("right_waveform_sha256"):
+        seen.add(fixture_id)
+        explanations = item.get("latent_explanations")
+        samples = item.get("waveform_samples_float64")
+        if type(samples) is not list or not samples or any(type(value) not in {int, float} for value in samples):
             return False
-        if item.get("left_features") != item.get("right_features") or item.get("left_causal_state") != item.get("right_causal_state"):
+        sample_sha256 = hashlib.sha256(b"".join(struct.pack("<d", float(value)) for value in samples)).hexdigest()
+        if type(explanations) is not list or len(explanations) != 2:
             return False
-        if _derive_outcome(measured[left_id]) != "AMBIGUOUS" or _derive_outcome(measured[right_id]) != "AMBIGUOUS":
+        left = _object(explanations[0], "left latent explanation")
+        right = _object(explanations[1], "right latent explanation")
+        if {left.get("explanation_id"), right.get("explanation_id")} != {"OLD_HARMONIC_ONLY", "PUTATIVE_NEW_FUNDAMENTAL"}:
+            return False
+        for key in ("waveform_sha256", "features", "causal_state"):
+            if left.get(key) != right.get(key):
+                return False
+        if left.get("waveform_sha256") != sample_sha256:
+            return False
+        if _derive_outcome(measured[fixture_id]) != "AMBIGUOUS":
+            return False
+    return seen == set(measured)
+
+
+def _permutation_exact(plan: object, test: object, evidence: Mapping[str, object]) -> bool:
+    bundle = _object(evidence.get("permutation_evidence"), "permutation evidence")
+    rows = bundle.get("candidate_transform_rows")
+    graph_orders = bundle.get("graph_orders")
+    if type(rows) is not list or type(graph_orders) is not list or len(graph_orders) != 2:
+        return False
+    graph = _independent_graph()
+    if graph_orders[0] != graph or graph_orders[1] != list(reversed(graph)):
+        return False
+    expected_ids = tuple(getattr(test, "fixture_ids"))
+    if [row.get("fixture_id") for row in rows if type(row) is dict] != list(expected_ids):
+        return False
+    for raw in rows:
+        row = _object(raw, "candidate transform permutation row")
+        pitch = row.get("candidate_pitch")
+        orders = row.get("candidate_orders")
+        transforms = row.get("transform_records_reversed")
+        if pitch is None:
+            if orders != [] or transforms != []:
+                return False
+            continue
+        if type(pitch) is not int or type(orders) is not list or len(orders) != 2 or type(transforms) is not list or len(transforms) != 89:
+            return False
+        canonical_by_order = []
+        for order_raw in orders:
+            order = _object(order_raw, "candidate order")
+            pitches = order.get("pitches")
+            support = order.get("pair_support")
+            raw_values = order.get("raw")
+            if type(pitches) is not list or type(support) is not list or type(raw_values) is not list or len(pitches) != 2 or len(support) != 2 or len(raw_values) != 2:
+                return False
+            canonical_by_order.append({candidate: (support[index], raw_values[index]) for index, candidate in enumerate(pitches)})
+        if canonical_by_order[0] != canonical_by_order[1] or pitch not in canonical_by_order[0]:
+            return False
+        if [item.get("shift") for item in transforms if type(item) is dict] != list(reversed(range(89))):
+            return False
+        canonical_transforms = sorted(transforms, key=lambda item: item["shift"])
+        expected_support, expected_raw = canonical_by_order[0][pitch]
+        if [item.get("support") for item in canonical_transforms] != expected_support or not _masked_close([item.get("raw") for item in canonical_transforms], expected_raw):
             return False
     return True
+
+
+def _cross_runtime_tree_close(left: object, right: object) -> bool:
+    if type(left) in {int, float} and type(right) in {int, float} and type(left) is not bool and type(right) is not bool:
+        return _close(float(left), float(right))
+    if type(left) is not type(right):
+        return False
+    if type(left) is dict:
+        return set(left) == set(right) and all(_cross_runtime_tree_close(left[key], right[key]) for key in left)
+    if type(left) is list:
+        return len(left) == len(right) and all(_cross_runtime_tree_close(a, b) for a, b in zip(left, right))
+    return left == right
+
+
+def _runtime_observation_map(raw: object, *, fixture_ids: Sequence[str], test_ids: Sequence[str]) -> tuple[str, dict[str, object], dict[str, object]]:
+    observation = _object(raw, "runtime observation")
+    if set(observation) != {"runtime_id", "fixture_measurements", "test_records"} or type(observation["runtime_id"]) is not str:
+        raise ValueError("H25 runtime observation schema is invalid.")
+    fixture_rows = _array(observation["fixture_measurements"], "runtime fixture measurements")
+    test_rows = _array(observation["test_records"], "runtime test records")
+    fixture_map = {row.get("fixture_id"): row for row in fixture_rows if type(row) is dict and type(row.get("fixture_id")) is str}
+    test_map = {row.get("test_id"): row for row in test_rows if type(row) is dict and type(row.get("test_id")) is str}
+    if len(fixture_map) != len(fixture_rows) or tuple(fixture_map) != tuple(fixture_ids):
+        raise ValueError("H25 runtime fixture observation is incomplete or reordered.")
+    if len(test_map) != len(test_rows) or tuple(test_map) != tuple(test_ids):
+        raise ValueError("H25 runtime test observation is incomplete or reordered.")
+    return str(observation["runtime_id"]), fixture_map, test_map
 
 
 def _phase_primary(plan: object, test: object, evidence: Mapping[str, object], measured: Mapping[str, Mapping[str, object]]) -> bool:
@@ -310,7 +412,7 @@ def _phase_primary(plan: object, test: object, evidence: Mapping[str, object], m
     if test_id in {"H25-T-P0-002", "H25-T-P0-005", "H25-T-P0-006", "H25-T-P0-008"}:
         operator_ok = _operator_exact(evidence)
         if test_id == "H25-T-P0-002":
-            return operator_ok and _analytic_equivalence(evidence)
+            return operator_ok and _analytic_equivalence(plan, test, evidence)
         if test_id == "H25-T-P0-006":
             pairs = evidence.get("gain_invariance_pairs")
             if type(pairs) is not list or not pairs:
@@ -344,19 +446,7 @@ def _phase_primary(plan: object, test: object, evidence: Mapping[str, object], m
             for item in boundaries if type(item) is dict
         )
     if test_id == "H25-T-P0-009":
-        order = _object(evidence.get("candidate_order_results"), "candidate order results")
-        forward_pitches = order.get("forward_pitches")
-        reverse_pitches = order.get("reverse_pitches")
-        return (
-            type(forward_pitches) is list
-            and type(reverse_pitches) is list
-            and forward_pitches == list(reversed(reverse_pitches))
-            and order.get("forward_support") == list(reversed(order.get("reverse_support", [])))
-            and all(
-                _masked_close(left, right)
-                for left, right in zip(order.get("forward_raw", []), reversed(order.get("reverse_raw", [])))
-            )
-        )
+        return _permutation_exact(plan, test, evidence)
     if getattr(test, "phase") == "P1":
         return _all_expected(plan, test, measured)
     if test_id == "H25-T-P2-001":
@@ -395,7 +485,7 @@ def _phase_primary(plan: object, test: object, evidence: Mapping[str, object], m
             canonical = serialized if canonical is None else canonical
             if serialized != canonical:
                 return False
-        return True
+        return _permutation_exact(plan, test, evidence)
     if test_id == "H25-T-P2-007":
         same = _object(evidence.get("same_runtime_replay"), "same-runtime replay")
         if same.get("first") != same.get("second"):
@@ -403,7 +493,21 @@ def _phase_primary(plan: object, test: object, evidence: Mapping[str, object], m
         cross = evidence.get("cross_runtime_observation")
         if type(cross) is not dict:
             return False
-        return cross.get("fixture_ids") == list(getattr(test, "fixture_ids")) and cross.get("categories_and_masks_exact") is True and type(cross.get("maximum_float_error")) is float and float(cross["maximum_float_error"]) <= _RTOL
+        current_id, current_fixtures, current_tests = _runtime_observation_map(
+            evidence.get("current_runtime_observation"),
+            fixture_ids=getattr(test, "fixture_ids"),
+            test_ids=getattr(plan, "test_ids"),
+        )
+        cross_id, cross_fixtures, cross_tests = _runtime_observation_map(
+            cross,
+            fixture_ids=getattr(test, "fixture_ids"),
+            test_ids=getattr(plan, "test_ids"),
+        )
+        return (
+            cross_id != current_id
+            and all(_cross_runtime_tree_close(current_fixtures[key], cross_fixtures[key]) for key in current_fixtures)
+            and all(_cross_runtime_tree_close(current_tests[key], cross_tests[key]) for key in current_tests)
+        )
     if test_id == "H25-T-P2-008":
         counters = _object(evidence.get("operational_counters"), "operational counters")
         required = {"elapsed_ns_since_context_start", "peak_rss_bytes", "GPU_device_count", "scientific_process_count", "model_inference_call_count", "hidden_repeated_pitch_shift_inference_count"}
@@ -473,7 +577,25 @@ def _inverse_exact(plan: object, test: object, evidence: Mapping[str, object]) -
         return False
     kind = perturbations[0].get("perturbation_kind") if type(perturbations[0]) is dict else None
     if kind in {"exclusive_partial_owner_claim", "resolve_at_target_hop", "force_old_harmonic_as_new_state", "force_binary_attribution", "force_nearest_midi_source", "phase_label_only", "undeclared_100_cent_shift", "coordinate_128_emit_capable"}:
-        return all(type(item) is dict and item.get("accepted_by_input_schema") is False for item in perturbations)
+        expected_mutations = {
+            "exclusive_partial_owner_claim": lambda value: set(value) == {"exclusive_partial_owner_pitch"} and type(value["exclusive_partial_owner_pitch"]) is int,
+            "resolve_at_target_hop": lambda value: value == {"resolution_sample": 16383},
+            "force_old_harmonic_as_new_state": lambda value: value == {"state_override": "PENDING_NEW", "state_source": "fixture_label"},
+            "force_binary_attribution": lambda value: value == {"forced_outcome": "BIRTH_SUPPORTED"},
+            "force_nearest_midi_source": lambda value: set(value) == {"forced_source_pitch"} and type(value["forced_source_pitch"]) is int,
+            "phase_label_only": lambda value: set(value) == {"phase_label_radians"} and type(value["phase_label_radians"]) in {int, float},
+            "undeclared_100_cent_shift": lambda value: value == {"pitch_shift_cents": 100.0},
+            "coordinate_128_emit_capable": lambda value: value == {"emit_coordinate": 128.0},
+        }
+        for item in perturbations:
+            if type(item) is not dict or item.get("perturbation_kind") != kind:
+                return False
+            mutation = item.get("raw_mutation")
+            if type(mutation) is not dict or not expected_mutations[kind](mutation):
+                return False
+            if set(mutation).intersection({"features", "outcome", "target", "family", "accepted_by_input_schema"}):
+                return False
+        return True
     outcomes = [_derive_outcome(item) for item in perturbations]
     if kind in {"remove_new_source_waveform", "remove_newest_hop_attack"}:
         return all(value != "BIRTH_SUPPORTED" for value in outcomes)

@@ -304,8 +304,17 @@ def support_normalized_dilution(np: Any, power: Any, frequencies: Any, *, candid
     normalized = np.full(raw_finite.shape, np.nan, dtype=np.float64)
     geometric_null = np.full(raw_finite.shape, np.nan, dtype=np.float64)
     raw[pair_support] = raw_finite[pair_support]
-    normalized[valid] = (raw_finite / baseline[:, None])[valid]
-    geometric_null[valid] = (null_finite / null_finite[:, 0, None])[valid]
+    normalized_finite = np.zeros(raw_finite.shape, dtype=np.float64)
+    geometric_null_finite = np.zeros(null_finite.shape, dtype=np.float64)
+    np.divide(raw_finite, baseline[:, None], out=normalized_finite, where=baseline[:, None] != 0.0)
+    np.divide(
+        null_finite,
+        null_finite[:, 0, None],
+        out=geometric_null_finite,
+        where=null_finite[:, 0, None] != 0.0,
+    )
+    normalized[valid] = normalized_finite[valid]
+    geometric_null[valid] = geometric_null_finite[valid]
     residual = normalized - geometric_null
     if bool(np.any(~np.isfinite(residual[valid]))) or bool(np.any(np.isfinite(residual[~valid]))):
         raise ValueError("H25 residual mask/nonfinite invariant failed.")
@@ -601,7 +610,9 @@ class H25CausalReplayTrace:
     transitions: tuple[Mapping[str, object], ...]
 
     def active_pitches(self) -> tuple[int, ...]:
-        active = set(int(value) for value in self.initial_active_pitches)
+        if self.initial_active_pitches:
+            raise ValueError("H25 causal replay must start with every pitch INACTIVE.")
+        active: set[int] = set()
         for raw in self.transitions:
             if set(raw) != {"sample_index", "kind", "pitch"}:
                 raise ValueError("H25 causal replay transition schema is invalid.")
@@ -631,6 +642,7 @@ class H25EvidenceProducerContext:
     operational_counters: Mapping[str, int] | None = None
     observed_fixture_ids: tuple[str, ...] = ()
     observed_test_ids: tuple[str, ...] = ()
+    observed_test_records: Mapping[str, Mapping[str, object]] | None = None
 
 
 def _json_features(features: H25CandidateFeatures) -> dict[str, object]:
@@ -729,6 +741,17 @@ def _measurement_from_inputs(
     }
 
 
+def _source_pitch(context: H25EvidenceProducerContext, fixture_id: str) -> int:
+    source = context.fixture_records[fixture_id]["source_fixture_record"]
+    parameters = source.get("parameters")
+    if type(parameters) is dict and type(parameters.get("old_pitch")) is int:
+        return int(parameters["old_pitch"])
+    candidate = source.get("candidate_pitch")
+    if type(candidate) is int:
+        return candidate
+    return 24
+
+
 def _input_perturbation_measurements(
     context: H25EvidenceProducerContext,
     test: H25TestSpecification,
@@ -763,10 +786,20 @@ def _input_perturbation_measurements(
         elif kind == "erase_old_source_state":
             replay = H25CausalReplayTrace(fixture_id, 16383, (), ())
         if kind in {"exclusive_partial_owner_claim", "force_binary_attribution", "force_nearest_midi_source", "phase_label_only", "undeclared_100_cent_shift", "coordinate_128_emit_capable", "resolve_at_target_hop", "force_old_harmonic_as_new_state"}:
+            raw_mutations = {
+                "exclusive_partial_owner_claim": {"exclusive_partial_owner_pitch": _source_pitch(context, fixture_id)},
+                "force_binary_attribution": {"forced_outcome": "BIRTH_SUPPORTED"},
+                "force_nearest_midi_source": {"forced_source_pitch": _source_pitch(context, fixture_id)},
+                "phase_label_only": {"phase_label_radians": 1.5707963267948966},
+                "undeclared_100_cent_shift": {"pitch_shift_cents": 100.0},
+                "coordinate_128_emit_capable": {"emit_coordinate": 128.0},
+                "resolve_at_target_hop": {"resolution_sample": 16383},
+                "force_old_harmonic_as_new_state": {"state_override": "PENDING_NEW", "state_source": "fixture_label"},
+            }
             measurements.append({
                 "fixture_id": fixture_id,
                 "perturbation_kind": kind,
-                "accepted_by_input_schema": False,
+                "raw_mutation": raw_mutations[kind],
             })
         else:
             item = _measurement_from_inputs(context, fixture_id, waveform, replay)
@@ -774,6 +807,70 @@ def _input_perturbation_measurements(
             item["waveform_changed"] = bool(not context.np.array_equal(waveform, context.waveforms[fixture_id]))
             measurements.append(item)
     return {"input_perturbations": measurements}
+
+
+def _permutation_evidence(
+    context: H25EvidenceProducerContext,
+    fixture_ids: Sequence[str],
+) -> dict[str, object]:
+    candidate_transform_rows: list[dict[str, object]] = []
+    for fixture_id in fixture_ids:
+        source = context.fixture_records[fixture_id]["source_fixture_record"]
+        candidate = source.get("candidate_pitch")
+        if candidate is None:
+            candidate_transform_rows.append({
+                "fixture_id": fixture_id,
+                "candidate_pitch": None,
+                "candidate_orders": [],
+                "transform_records_reversed": [],
+            })
+            continue
+        pitch = int(candidate)
+        alternate = 40 if pitch != 40 else 41
+        power, hz = causal_power_spectrum(
+            context.np,
+            context.waveforms[fixture_id],
+            end_sample=16639,
+            window_samples=SHORT_WINDOW_SAMPLES,
+        )
+        forward_pitches = (pitch, alternate)
+        reverse_pitches = tuple(reversed(forward_pitches))
+        forward = support_normalized_dilution(
+            context.np, power, hz, candidate_pitches=forward_pitches
+        )
+        reverse = support_normalized_dilution(
+            context.np, power, hz, candidate_pitches=reverse_pitches
+        )
+        pitch_row = forward_pitches.index(pitch)
+        candidate_transform_rows.append({
+            "fixture_id": fixture_id,
+            "candidate_pitch": pitch,
+            "candidate_orders": [
+                {
+                    "pitches": list(forward_pitches),
+                    "pair_support": forward.pair_support.tolist(),
+                    "raw": [_masked_float_list(context.np, row) for row in forward.raw],
+                },
+                {
+                    "pitches": list(reverse_pitches),
+                    "pair_support": reverse.pair_support.tolist(),
+                    "raw": [_masked_float_list(context.np, row) for row in reverse.raw],
+                },
+            ],
+            "transform_records_reversed": [
+                {
+                    "shift": shift,
+                    "support": bool(forward.pair_support[pitch_row, shift]),
+                    "raw": _masked_float_list(context.np, forward.raw[pitch_row])[shift],
+                }
+                for shift in reversed(TRANSFORM_GRID)
+            ],
+        })
+    graph = list(build_typed_harmonic_graph())
+    return {
+        "candidate_transform_rows": candidate_transform_rows,
+        "graph_orders": [graph, list(reversed(graph))],
+    }
 
 
 def produce_h25_test_evidence(context: H25EvidenceProducerContext, test: H25TestSpecification) -> dict[str, object]:
@@ -822,6 +919,7 @@ def produce_h25_test_evidence(context: H25EvidenceProducerContext, test: H25Test
                         base_hz = 440.0 * math.pow(2.0, (pitch - 69.0) / 12.0)
                         scaled_hz = base_hz * math.pow(2.0, shift / 12.0) * harmonic
                         analytic_coordinates.append({
+                            "fixture_id": item["fixture_id"],
                             "candidate_pitch": pitch,
                             "harmonic_rank": harmonic,
                             "shift_semitones": shift,
@@ -882,27 +980,24 @@ def produce_h25_test_evidence(context: H25EvidenceProducerContext, test: H25Test
     elif test.test_id == "H25-T-P0-003":
         evidence["inverse_measurement"] = {"injected_feature_name": "raw_disappearance_index"}
     elif test.test_id == "H25-T-P0-004":
-        collision_pairs = []
-        for left_id, right_id in zip(test.fixture_ids[:3], test.fixture_ids[3:]):
-            left_wave = context.np.asarray(context.waveforms[left_id], dtype=context.np.float64)
-            right_wave = context.np.asarray(context.waveforms[right_id], dtype=context.np.float64)
-            left = _fixture_measurement(context, left_id)
-            right = _fixture_measurement(context, right_id)
-            left_state = dict(left.get("causal_replay_trace") or {})
-            right_state = dict(right.get("causal_replay_trace") or {})
-            left_state.pop("fixture_id", None)
-            right_state.pop("fixture_id", None)
-            collision_pairs.append({
-                "left_fixture_id": left_id,
-                "right_fixture_id": right_id,
-                "left_waveform_sha256": _sha256(left_wave.tobytes()),
-                "right_waveform_sha256": _sha256(right_wave.tobytes()),
-                "left_features": left.get("features"),
-                "right_features": right.get("features"),
-                "left_causal_state": left_state,
-                "right_causal_state": right_state,
+        collision_explanations = []
+        for fixture_id in test.fixture_ids:
+            waveform = context.np.asarray(context.waveforms[fixture_id], dtype=context.np.float64)
+            measurement = _fixture_measurement(context, fixture_id)
+            shared = {
+                "waveform_sha256": _sha256(waveform.tobytes()),
+                "features": measurement.get("features"),
+                "causal_state": measurement.get("causal_replay_trace"),
+            }
+            collision_explanations.append({
+                "fixture_id": fixture_id,
+                "waveform_samples_float64": [float(value) for value in waveform.tolist()],
+                "latent_explanations": [
+                    {"explanation_id": "OLD_HARMONIC_ONLY", **shared},
+                    {"explanation_id": "PUTATIVE_NEW_FUNDAMENTAL", **shared},
+                ],
             })
-        evidence["collision_pairs"] = collision_pairs
+        evidence["collision_explanations"] = collision_explanations
         evidence["inverse_measurement"] = {"forced_attribution": "BIRTH_SUPPORTED"}
     elif test.test_id == "H25-T-P0-007":
         causal_boundaries = []
@@ -929,21 +1024,7 @@ def produce_h25_test_evidence(context: H25EvidenceProducerContext, test: H25Test
         evidence["causal_boundaries"] = causal_boundaries
         evidence["inverse_measurement"] = {"causal_boundaries": [{**item, "short_current_end": 16384, "maximum_sample_read": 16384} for item in causal_boundaries]}
     elif test.test_id == "H25-T-P0-009":
-        fixture_id = test.fixture_ids[0]
-        record = context.fixture_records[fixture_id]["source_fixture_record"]
-        pitch = int(record["candidate_pitch"])
-        candidates = (pitch, 40 if pitch != 40 else 41)
-        power, hz = causal_power_spectrum(context.np, context.waveforms[fixture_id], end_sample=16639, window_samples=SHORT_WINDOW_SAMPLES)
-        forward = support_normalized_dilution(context.np, power, hz, candidate_pitches=candidates)
-        reverse = support_normalized_dilution(context.np, power, hz, candidate_pitches=tuple(reversed(candidates)))
-        evidence["candidate_order_results"] = {
-            "forward_pitches": list(candidates),
-            "forward_support": forward.pair_support.tolist(),
-            "forward_raw": [_masked_float_list(context.np, row) for row in forward.raw],
-            "reverse_pitches": list(reversed(candidates)),
-            "reverse_support": reverse.pair_support.tolist(),
-            "reverse_raw": [_masked_float_list(context.np, row) for row in reverse.raw],
-        }
+        evidence["permutation_evidence"] = _permutation_evidence(context, test.fixture_ids)
         evidence["inverse_measurement"] = {"forced_order_invariance": "DIFFERENT"}
     elif test.test_id == "H25-T-P2-005":
         boundary_measurements = []
@@ -985,6 +1066,7 @@ def produce_h25_test_evidence(context: H25EvidenceProducerContext, test: H25Test
             name: [_fixture_measurement(context, fixture_id) for fixture_id in order]
             for name, order in orders.items()
         }
+        evidence["permutation_evidence"] = _permutation_evidence(context, test.fixture_ids)
         evidence["inverse_measurement"] = {"filesystem_order_ids": sorted(test.fixture_ids, key=str.lower)}
     elif test.test_id in {"H25-T-P2-001", "H25-T-P2-002", "H25-T-P2-007"}:
         exact = True
@@ -1050,9 +1132,19 @@ def produce_h25_test_evidence(context: H25EvidenceProducerContext, test: H25Test
             right_json["maximum_sample_read"] = 0
             exact = exact and canonical_json_bytes(left_json) == canonical_json_bytes(right_json)
         if test.test_id == "H25-T-P2-007":
+            if context.observed_test_records is None:
+                raise ValueError("H25 current-runtime detailed test records are required for P2-007.")
             evidence["same_runtime_replay"] = {
                 "first": evidence["fixture_measurements"],
                 "second": [_fixture_measurement(context, fixture_id) for fixture_id in test.fixture_ids],
+            }
+            evidence["current_runtime_observation"] = {
+                "runtime_id": "CURRENT_RUNTIME",
+                "fixture_measurements": evidence["fixture_measurements"],
+                "test_records": [
+                    dict(context.observed_test_records[test_id])
+                    for test_id in context.plan.test_ids
+                ],
             }
             evidence["cross_runtime_observation"] = None
             evidence["inverse_measurement"] = {"runtime_binding_changed": True}
