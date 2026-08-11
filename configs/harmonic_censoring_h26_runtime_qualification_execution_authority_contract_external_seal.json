@@ -1,0 +1,42 @@
+{
+  "schema_identity": "H26_RUNTIME_QUALIFICATION_EXECUTION_AUTHORITY_CONTRACT_EXTERNAL_SEAL_V1",
+  "schema_version": 1,
+  "purpose": "Bind the approved declarative H26 runtime execution contract to the SHA256 of its exact reviewed Git blob bytes",
+  "status": "DECLARATIVE_EXTERNAL_SEAL_ONLY_NO_EXECUTION_AUTHORITY",
+  "execution_contract_commit": "e0e070b8b75e85fb8ef78c7d6950a13f2c69ceae",
+  "execution_contract_git_blob_sha": "5ab6ff43980c0dc0f32308d3f8cee14a90351ec7",
+  "execution_contract_raw_sha256": "c7f6da697d74f710b957ab7ad32bef0fc184bb4f16ffaef16d2e2e1abafc63f9",
+  "approved_primitives_commit": "48d3e6015a2adaded0b27769271ebb8d70ddb98a",
+  "approved_primitives_git_blob_sha": "9c347a6c9fe081e0d2ac963311ea766eb5fc62f9",
+  "raw_sha256_source": "SHA256 of the exact bytes returned by git cat-file blob 5ab6ff43980c0dc0f32308d3f8cee14a90351ec7",
+  "seal_contains_own_raw_sha256": false,
+  "authorization_state": {
+    "issuer_exists": false,
+    "authority_exists": false,
+    "claim_exists": false,
+    "claim_consumed": false,
+    "observer_entry_evidence_exists": false,
+    "observer_invoked": false,
+    "runtime_record_exists": false,
+    "receipt_exists": false,
+    "runtime_execution_authorized": false,
+    "materialization_authorized": false,
+    "scientific_execution_authorized": false,
+    "current_authority_id": null,
+    "current_claim_id": null,
+    "current_runtime_record_raw_sha256": null,
+    "current_receipt_raw_sha256": null
+  },
+  "forbidden_by_this_seal": [
+    "issue an authority",
+    "create or consume a claim",
+    "create a filesystem slot or marker",
+    "create observer-entry evidence",
+    "invoke observe_primary_runtime",
+    "create a runtime record or receipt",
+    "inspect NumPy or BLAS",
+    "materialize H26 data or execute P0 P1 P2",
+    "use real data models training calibration or locked-test"
+  ],
+  "next_action": "External review of this declarative external seal only. Separate authorization is required before any operational execution artifact or runtime observation."
+}

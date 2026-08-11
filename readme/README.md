@@ -60,6 +60,13 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   authority, claim, preuve d'entrée, receipt, invocation ou science n'existe.
   Rapport :
   `readme/results/2026-08-11_harmonic-censoring-h26-runtime-execution-primitives-dormant-implementation.md`.
+- Le seal externe déclaratif lie maintenant le contrat d'exécution approuvé
+  `e0e070b8…` / blob `5ab6ff43…` au SHA-256 brut `c7f6da69…`, calculé sur les
+  `24080` octets exacts du blob Git, ainsi qu'aux primitives approuvées
+  `48d3e601…` / blob `9c347a6c…`. Il n'est pas auto-haché et tous les états
+  opérationnels restent `false` ou `null`; aucune exécution n'est autorisée.
+  Rapport :
+  `readme/results/2026-08-11_harmonic-censoring-h26-runtime-execution-contract-external-seal.md`.
 - Étape : `harmonic_censoring_h26_materialization_runtime_qualification_contract`.
 - Contrat dormant de qualification du runtime primaire H26 défini sans
   qualificateur ni exécution : identité exacte CPython 3.11.9 / Darwin 24.5.0
@@ -2265,6 +2272,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-11 — contrat dormant de qualification du runtime de matérialisation H26](results/2026-08-11_harmonic-censoring-h26-materialization-runtime-qualification-contract.md)
 - [2026-08-11 — implémentation dormante du qualificateur runtime H26](results/2026-08-11_harmonic-censoring-h26-runtime-qualifier-dormant-implementation.md)
 - [2026-08-11 — primitives dormantes du codec et des identités d'exécution H26](results/2026-08-11_harmonic-censoring-h26-runtime-execution-primitives-dormant-implementation.md)
+- [2026-08-11 — seal externe du contrat d'exécution runtime H26](results/2026-08-11_harmonic-censoring-h26-runtime-execution-contract-external-seal.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)
