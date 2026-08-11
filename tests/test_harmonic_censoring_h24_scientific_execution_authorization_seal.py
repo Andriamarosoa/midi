@@ -134,9 +134,9 @@ class H24ScientificExecutionAuthorizationSealTests(unittest.TestCase):
             ROOT, paths, contract["published_population_binding"]
         )
 
-    def test_activation_remains_absent_and_public_issuer_remains_dormant(self) -> None:
-        self.assertFalse(
-            (ROOT / capability.H24_SCIENTIFIC_ACTIVATION_RELATIVE_PATH).exists()
+    def test_activation_file_does_not_grant_OS_bound_authority(self) -> None:
+        self.assertTrue(
+            (ROOT / capability.H24_SCIENTIFIC_ACTIVATION_RELATIVE_PATH).is_file()
         )
         with mock.patch.dict(os.environ, {}, clear=False):
             os.environ.pop(capability.H24_SCIENTIFIC_ACTIVATION_COMMIT_ENV, None)

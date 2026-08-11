@@ -86,7 +86,14 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   absente : le seal seul ne permet toujours aucune issuance, claim ou mesure.
   La suite administrative complète réussit avec `216` tests et
   `git diff --check` réussit.
-  L'activation reste absente, donc l'issuer public échoue toujours
+  Après approbation de `db738d35…`, le fichier d'activation H24 dormant lie
+  exactement ce seal et les mêmes huit bindings. Son SHA-256 est
+  `4082cf4e…`. Le commit d'activation doit encore être relu et aucun
+  `H24_SCIENTIFIC_EXECUTION_AUTHORIZATION_COMMIT` n'est défini : sa simple
+  présence dans Git ne donne aucune autorité runtime.
+  La suite administrative complète réussit avec `220` tests et
+  `git diff --check` réussit.
+  Le binding OS-bound reste absent, donc l'issuer public échoue toujours
   avant registre, population, NumPy ou claim.
   Aucun evaluator/oracle, P0/P1/P2, donnée réelle, H17, locked-test ou training
   n'est autorisé. Rapport :

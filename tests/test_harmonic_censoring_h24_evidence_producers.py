@@ -146,9 +146,9 @@ class H24EvidenceProducerImplementationTests(unittest.TestCase):
                 runner.main([])
         registry.assert_not_called()
 
-    def test_dormant_seal_exists_but_activation_remains_absent(self) -> None:
+    def test_dormant_seal_and_activation_files_are_present(self) -> None:
         self.assertTrue((ROOT / capability.H24_SCIENTIFIC_SEAL_RELATIVE_PATH).is_file())
-        self.assertFalse((ROOT / capability.H24_SCIENTIFIC_ACTIVATION_RELATIVE_PATH).exists())
+        self.assertTrue((ROOT / capability.H24_SCIENTIFIC_ACTIVATION_RELATIVE_PATH).is_file())
 
 
 if __name__ == "__main__":

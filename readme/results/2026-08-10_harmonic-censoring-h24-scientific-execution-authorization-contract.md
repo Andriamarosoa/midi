@@ -273,3 +273,31 @@ La suite administrative H24/H23/H20 complète réussit avec `216` tests en
 
 Uniquement la revue externe du commit exact du seal. La création d'une
 activation resterait un cycle séparé et n'est pas autorisée ici.
+
+## Activation H24 dormante
+
+La revue externe a approuvé
+`db738d35c907b9954b4765a0af023fa4b59f871b` et autorisé exactement
+`AUTHORIZED_TO_DEFINE_AND_COMMIT_H24_SCIENTIFIC_ACTIVATION_ONLY`.
+L'activation versionnée à
+`configs/harmonic_censoring_h24_scientific_execution_activation.json` a le
+SHA-256
+`4082cf4edc4612c8934133f6882c1e3769cd4af58f6a64efd29310a5807d75a1`.
+
+Elle lie le seal approuvé `818e53cd…`, le commit d'implémentation
+`22bf8783…`, les cinq blobs exécutables et les contrats H24/H23 déjà scellés.
+Son objet `external_review` exige encore la revue du commit exact
+d'activation. La variable OS
+`H24_SCIENTIFIC_EXECUTION_AUTHORIZATION_COMMIT` n'est ni définie ni injectée;
+la présence du fichier ne permet donc aucune capability issuance.
+
+Aucun claim, waveform, population decode, P0/P1/P2, H17, locked-test, modèle,
+calibration ou training n'a été utilisé.
+La suite administrative H24/H23/H20 complète réussit avec `220` tests en
+`3,359 s`; `git diff --check` réussit également.
+
+## Étape suivante
+
+Uniquement la revue externe du commit exact d'activation. L'injection du
+binding OS et toute exécution scientifique restent interdites sans nouvelle
+autorisation explicite.
