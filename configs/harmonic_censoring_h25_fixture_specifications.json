@@ -1,0 +1,178 @@
+{
+  "schema_version": 1,
+  "purpose": "harmonic_censoring_h25_fixture_specifications",
+  "status": "specifications_only_no_waveforms_materialized",
+  "contract_sha256": "ae837a647792c56c02a7d96a4328f62c1ecac03d0c0a839d59488c420cfff911",
+  "population_namespace": "H25_SYNTHETIC_V1",
+  "test_namespace": "H25_TEST_V1",
+  "generation_authorized": false,
+  "global_timeline": {
+    "sample_rate_hz": 44100,
+    "hop_samples": 256,
+    "stream_samples": 16640,
+    "global_sample_indices": [0, 16639],
+    "first_valid_long_window_end": 8191,
+    "hop_end_formula": "8191+256*j for integer j=0..33",
+    "target_hop_index": 32,
+    "target_hop_end": 16383,
+    "resolution_hop_index": 33,
+    "resolution_hop_end": 16639,
+    "target_short_window": [12288, 16383],
+    "target_long_window": [8192, 16383],
+    "previous_short_window": [12032, 16127],
+    "previous_long_window": [7936, 16127],
+    "initial_state_before_first_valid_hop": "all latent pitches INACTIVE",
+    "padding_forbidden": true,
+    "phase_is_global_and_never_reset_at_window_boundary": true
+  },
+  "synthesis_formulas": {
+    "midi_frequency": "F0(p)=440*2^((p-69)/12)",
+    "partial_frequency": "f(p,h,cents,B)=h*F0(p)*2^(cents/1200)*sqrt(1+B*h^2)",
+    "harmonic_amplitude": "a_h=1/h for h=1..8 unless an explicit base family overrides the present partial set",
+    "sinusoid": "gain*envelope(g)*a_h*sin(2*pi*f*g/44100+phase_radians)",
+    "mixture": "float64 sum of every declared source and deterministic noise term; no clipping or normalization",
+    "old_envelope": "0 for g<8192; exp(-(g-8192)/8192) for g>=8192",
+    "new_envelope": "0 for g<g0; min(1,(g-g0+1)/64)*exp(-(g-g0)/2048) for g>=g0",
+    "sustained_envelope": "0 before declared onset; 1 thereafter",
+    "noise_seed": "unsigned little-endian uint64 from first 8 bytes of SHA256(UTF8('H25|' + fixture_id + '|noise'))",
+    "noise_support": "the deterministic noise sequence is multiplied by 0 for g<8192 and by 1 for g>=8192 so the first valid long window remains exact silence",
+    "white_noise": "z=numpy.random.Generator(PCG64(seed)).standard_normal(16640); gate by noise_support; remove gated-sample mean; divide by gated-sample RMS; scale so gated noise RMS / clean non-silent RMS = 10^(-snr_db/20)",
+    "pink_noise": "start from the same ungated z; Z=rfft(z); set Z[0]=0; for every k=1..len(Z)-1 set Z[k]=Z[k]/sqrt(k); y=irfft(Z,n=16640); gate by noise_support; remove gated-sample mean; divide by gated-sample RMS; scale so gated noise RMS / clean non-silent RMS = 10^(-snr_db/20)",
+    "impulse": "one unit sample at g=16128 and zero elsewhere",
+    "linear_chirp": "for m=g-16128 in 0..511 use Hann w[m]=0.5-0.5*cos(2*pi*m/511) and x[g]=w[m]*sin(2*pi*(110*m/44100+0.5*(7040-110)*m^2/(44100*511))); zero elsewhere",
+    "inharmonic_bell": "partials h=1..8 with B=0.004 and exp(-(g-16128)/512) envelope",
+    "float_dtype": "float64",
+    "WAV_cast_or_file_format": "not_defined_and_not_authorized_in_this_specification_step"
+  },
+  "base_families": {
+    "IDENTIFIABLE_OVERLAP": {
+      "old_source": "MIDI40 onset8192 old_envelope harmonics1..8",
+      "new_source": "declared candidate onset at 16128 unless offset override, new_envelope harmonics1..8",
+      "oracle": "BIRTH_SUPPORTED after exactly one hop"
+    },
+    "ISOLATED_NEW": {
+      "old_source": null,
+      "new_source": "declared candidate onset16128 new_envelope harmonics1..8",
+      "oracle": "BIRTH_SUPPORTED after exactly one hop"
+    },
+    "SHARED_PARTIAL_TWO_SOURCE": {
+      "old_source": "declared old pitch onset8192 old_envelope harmonics1..8",
+      "new_source": "declared candidate onset16128 new_envelope harmonics1..8",
+      "oracle": "BIRTH_SUPPORTED after exactly one hop with additive shared partial"
+    },
+    "HARMONIC_ONLY": {
+      "old_source": "MIDI40 onset8192 old_envelope harmonics1..8",
+      "new_source": null,
+      "oracle": "NO_BIRTH for the candidate at an old-source harmonic"
+    },
+    "ACTIVE_ONLY": {
+      "old_source": "candidate pitch onset8192 old_envelope harmonics1..8 and ACTIVE before target",
+      "new_source": null,
+      "oracle": "ALREADY_ACTIVE_HISTORY"
+    },
+    "NATURAL_HARMONIC": {
+      "old_source": "MIDI40 onset8192 old_envelope with declared partial subset and no independent target attack",
+      "new_source": null,
+      "oracle": "NO_BIRTH"
+    },
+    "DECAY_NO_ATTACK": {
+      "old_source": "candidate pitch or its explaining source with monotone old_envelope and no newest-hop attack",
+      "new_source": null,
+      "oracle": "NO_BIRTH or ALREADY_ACTIVE_HISTORY as explicitly declared"
+    },
+    "EXACT_COLLISION_IDENTICAL": {
+      "waveform": "one declared sinusoidal component is assigned two latent source explanations but rendered once; allowed causal samples are byte-identical",
+      "oracle": "AMBIGUOUS"
+    },
+    "OVERLAP_WITHOUT_INDEPENDENT_EVIDENCE": {
+      "old_source": "MIDI40 onset8192 old_envelope with target-frequency harmonic",
+      "putative_new_source": "metadata hypothesis only; contributes no additional waveform sample",
+      "oracle": "AMBIGUOUS"
+    },
+    "MISSING_FUNDAMENTAL": {
+      "source": "candidate pitch onset8192 old_envelope with H1 absent and only declared upper partials",
+      "oracle": "AMBIGUOUS"
+    },
+    "SYNTHETIC_OOD": {
+      "source": "explicit deterministic non-guitar signal from synthesis_formulas",
+      "oracle": "AMBIGUOUS"
+    }
+  },
+  "fixtures": [
+    {"id":"H25-F-P01","order":1,"category":"positive","family":"IDENTIFIABLE_OVERLAP","pitch_band":"mid","candidate_pitch":52,"parameters":{"old_pitch":40,"collision_harmonic_rank":2,"new_onset":16128,"gain":1.0,"phase_radians":0.0,"cents":0,"B":0.0,"noise":null}},
+    {"id":"H25-F-P02","order":2,"category":"positive","family":"IDENTIFIABLE_OVERLAP","pitch_band":"high","candidate_pitch":64,"parameters":{"old_pitch":40,"collision_harmonic_rank":4,"new_onset":16128,"gain":1.0,"phase_radians":0.0,"cents":0,"B":0.0,"noise":null}},
+    {"id":"H25-F-P03","order":3,"category":"positive","family":"IDENTIFIABLE_OVERLAP","pitch_band":"high","candidate_pitch":76,"parameters":{"old_pitch":40,"collision_harmonic_rank":8,"new_onset":16128,"gain":1.0,"phase_radians":0.0,"cents":0,"B":0.0,"noise":null}},
+    {"id":"H25-F-P04","order":4,"category":"positive","family":"ISOLATED_NEW","pitch_band":"low","candidate_pitch":40,"parameters":{"new_onset":16128,"gain":0.5,"phase_radians":0.0,"cents":0,"B":0.0,"noise":null}},
+    {"id":"H25-F-P05","order":5,"category":"positive","family":"ISOLATED_NEW","pitch_band":"mid","candidate_pitch":58,"parameters":{"new_onset":16128,"gain":1.0,"phase_radians":1.5707963267948966,"cents":0,"B":0.0,"noise":null}},
+    {"id":"H25-F-P06","order":6,"category":"positive","family":"ISOLATED_NEW","pitch_band":"high","candidate_pitch":76,"parameters":{"new_onset":16128,"gain":2.0,"phase_radians":3.141592653589793,"cents":0,"B":0.0,"noise":null}},
+    {"id":"H25-F-P07","order":7,"category":"positive","family":"SHARED_PARTIAL_TWO_SOURCE","pitch_band":"mid","candidate_pitch":59,"parameters":{"old_pitch":40,"old_harmonic_rank":3,"new_onset":16128,"gain":1.0,"phase_radians":0.0,"cents":0,"B":0.0,"noise":null}},
+    {"id":"H25-F-P08","order":8,"category":"positive","family":"SHARED_PARTIAL_TWO_SOURCE","pitch_band":"high","candidate_pitch":64,"parameters":{"old_pitch":45,"old_harmonic_rank":3,"new_onset":16128,"gain":1.0,"phase_radians":1.5707963267948966,"cents":0,"B":0.0001,"noise":null}},
+    {"id":"H25-F-P09","order":9,"category":"positive","family":"SHARED_PARTIAL_TWO_SOURCE","pitch_band":"high","candidate_pitch":69,"parameters":{"old_pitch":57,"old_harmonic_rank":2,"new_onset":16128,"gain":1.0,"phase_radians":3.141592653589793,"cents":15,"B":0.0,"noise":null}},
+    {"id":"H25-F-P10","order":10,"category":"positive","family":"IDENTIFIABLE_OVERLAP","pitch_band":"high","candidate_pitch":64,"parameters":{"old_pitch":40,"collision_harmonic_rank":4,"new_onset":16128,"gain":0.5,"phase_radians":0.0,"cents":-15,"B":0.0,"noise":null}},
+    {"id":"H25-F-P11","order":11,"category":"positive","family":"IDENTIFIABLE_OVERLAP","pitch_band":"high","candidate_pitch":64,"parameters":{"old_pitch":40,"collision_harmonic_rank":4,"new_onset":16256,"gain":1.0,"phase_radians":1.5707963267948966,"cents":0,"B":0.0001,"noise":{"colour":"white","snr_db":20}}},
+    {"id":"H25-F-P12","order":12,"category":"positive","family":"IDENTIFIABLE_OVERLAP","pitch_band":"high","candidate_pitch":64,"parameters":{"old_pitch":40,"collision_harmonic_rank":4,"new_onset":16383,"gain":2.0,"phase_radians":3.141592653589793,"cents":15,"B":0.0004,"noise":{"colour":"pink","snr_db":20}}},
+
+    {"id":"H25-F-N01","order":13,"category":"negative","family":"HARMONIC_ONLY","pitch_band":"mid","candidate_pitch":52,"parameters":{"old_pitch":40,"collision_harmonic_rank":2,"gain":1.0,"phase_radians":0.0,"cents":0,"B":0.0,"noise":null}},
+    {"id":"H25-F-N02","order":14,"category":"negative","family":"HARMONIC_ONLY","pitch_band":"high","candidate_pitch":64,"parameters":{"old_pitch":40,"collision_harmonic_rank":4,"gain":1.0,"phase_radians":1.5707963267948966,"cents":0,"B":0.0,"noise":null}},
+    {"id":"H25-F-N03","order":15,"category":"negative","family":"HARMONIC_ONLY","pitch_band":"high","candidate_pitch":76,"parameters":{"old_pitch":40,"collision_harmonic_rank":8,"gain":1.0,"phase_radians":3.141592653589793,"cents":0,"B":0.0,"noise":null}},
+    {"id":"H25-F-N04","order":16,"category":"negative","family":"ACTIVE_ONLY","pitch_band":"low","candidate_pitch":40,"parameters":{"old_pitch":40,"gain":0.5,"phase_radians":0.0,"cents":0,"B":0.0,"noise":null}},
+    {"id":"H25-F-N05","order":17,"category":"negative","family":"ACTIVE_ONLY","pitch_band":"mid","candidate_pitch":58,"parameters":{"old_pitch":58,"gain":1.0,"phase_radians":1.5707963267948966,"cents":0,"B":0.0,"noise":null}},
+    {"id":"H25-F-N06","order":18,"category":"negative","family":"ACTIVE_ONLY","pitch_band":"high","candidate_pitch":76,"parameters":{"old_pitch":76,"gain":2.0,"phase_radians":3.141592653589793,"cents":0,"B":0.0,"noise":null}},
+    {"id":"H25-F-N07","order":19,"category":"negative","family":"NATURAL_HARMONIC","pitch_band":"mid","candidate_pitch":52,"parameters":{"old_pitch":40,"partial_subset":[2,4,6,8],"gain":1.0,"phase_radians":0.0,"cents":0,"B":0.0,"noise":null}},
+    {"id":"H25-F-N08","order":20,"category":"negative","family":"NATURAL_HARMONIC","pitch_band":"high","candidate_pitch":64,"parameters":{"old_pitch":40,"partial_subset":[4,8],"gain":1.0,"phase_radians":1.5707963267948966,"cents":15,"B":0.0001,"noise":null}},
+    {"id":"H25-F-N09","order":21,"category":"negative","family":"NATURAL_HARMONIC","pitch_band":"high","candidate_pitch":76,"parameters":{"old_pitch":40,"partial_subset":[8],"gain":1.0,"phase_radians":3.141592653589793,"cents":-15,"B":0.0004,"noise":null}},
+    {"id":"H25-F-N10","order":22,"category":"negative","family":"DECAY_NO_ATTACK","pitch_band":"low","candidate_pitch":40,"parameters":{"old_pitch":40,"gain":0.25,"phase_radians":0.0,"cents":0,"B":0.0,"noise":{"colour":"white","snr_db":40},"expected":"ALREADY_ACTIVE_HISTORY"}},
+    {"id":"H25-F-N11","order":23,"category":"negative","family":"DECAY_NO_ATTACK","pitch_band":"mid","candidate_pitch":58,"parameters":{"old_pitch":58,"gain":1.0,"phase_radians":1.5707963267948966,"cents":15,"B":0.0001,"noise":{"colour":"pink","snr_db":20},"expected":"ALREADY_ACTIVE_HISTORY"}},
+    {"id":"H25-F-N12","order":24,"category":"negative","family":"DECAY_NO_ATTACK","pitch_band":"high","candidate_pitch":76,"parameters":{"old_pitch":40,"collision_harmonic_rank":8,"gain":2.0,"phase_radians":3.141592653589793,"cents":-15,"B":0.0004,"noise":{"colour":"white","snr_db":10},"expected":"NO_BIRTH"}},
+
+    {"id":"H25-F-A01","order":25,"category":"ambiguous","family":"EXACT_COLLISION_IDENTICAL","pitch_band":"mid","candidate_pitch":52,"parameters":{"old_pitch":40,"collision_harmonic_rank":2,"rendered_frequency_source":"old_harmonic_only","duplicate_latent_explanation":true,"gain":1.0,"phase_radians":0.0}},
+    {"id":"H25-F-A02","order":26,"category":"ambiguous","family":"EXACT_COLLISION_IDENTICAL","pitch_band":"high","candidate_pitch":64,"parameters":{"old_pitch":40,"collision_harmonic_rank":4,"rendered_frequency_source":"old_harmonic_only","duplicate_latent_explanation":true,"gain":1.0,"phase_radians":1.5707963267948966}},
+    {"id":"H25-F-A03","order":27,"category":"ambiguous","family":"EXACT_COLLISION_IDENTICAL","pitch_band":"high","candidate_pitch":76,"parameters":{"old_pitch":40,"collision_harmonic_rank":8,"rendered_frequency_source":"old_harmonic_only","duplicate_latent_explanation":true,"gain":1.0,"phase_radians":3.141592653589793}},
+    {"id":"H25-F-A04","order":28,"category":"ambiguous","family":"OVERLAP_WITHOUT_INDEPENDENT_EVIDENCE","pitch_band":"mid","candidate_pitch":52,"parameters":{"old_pitch":40,"collision_harmonic_rank":2,"putative_new_pitch":52,"putative_new_waveform_gain":0.0}},
+    {"id":"H25-F-A05","order":29,"category":"ambiguous","family":"OVERLAP_WITHOUT_INDEPENDENT_EVIDENCE","pitch_band":"high","candidate_pitch":64,"parameters":{"old_pitch":40,"collision_harmonic_rank":4,"putative_new_pitch":64,"putative_new_waveform_gain":0.0}},
+    {"id":"H25-F-A06","order":30,"category":"ambiguous","family":"OVERLAP_WITHOUT_INDEPENDENT_EVIDENCE","pitch_band":"high","candidate_pitch":76,"parameters":{"old_pitch":40,"collision_harmonic_rank":8,"putative_new_pitch":76,"putative_new_waveform_gain":0.0}},
+    {"id":"H25-F-A07","order":31,"category":"ambiguous","family":"MISSING_FUNDAMENTAL","pitch_band":"low","candidate_pitch":40,"parameters":{"source_pitch":40,"partial_subset":[2,3,4,5,6,7,8],"gain":1.0,"phase_radians":0.0}},
+    {"id":"H25-F-A08","order":32,"category":"ambiguous","family":"MISSING_FUNDAMENTAL","pitch_band":"mid","candidate_pitch":58,"parameters":{"source_pitch":58,"partial_subset":[2,3,4,5,6],"gain":1.0,"phase_radians":1.5707963267948966}},
+    {"id":"H25-F-A09","order":33,"category":"ambiguous","family":"MISSING_FUNDAMENTAL","pitch_band":"high","candidate_pitch":76,"parameters":{"source_pitch":76,"partial_subset":[2,3],"gain":1.0,"phase_radians":3.141592653589793}},
+    {"id":"H25-F-A10","order":34,"category":"ambiguous","family":"SYNTHETIC_OOD","pitch_band":"none","candidate_pitch":null,"parameters":{"kind":"impulse","onset":16128}},
+    {"id":"H25-F-A11","order":35,"category":"ambiguous","family":"SYNTHETIC_OOD","pitch_band":"none","candidate_pitch":null,"parameters":{"kind":"linear_chirp","onset":16128,"start_hz":110.0,"end_hz":7040.0}},
+    {"id":"H25-F-A12","order":36,"category":"ambiguous","family":"SYNTHETIC_OOD","pitch_band":"none","candidate_pitch":null,"parameters":{"kind":"inharmonic_bell","onset":16128,"nominal_pitch":52,"B":0.004}}
+  ],
+  "expected_counts": {
+    "fixtures": 36,
+    "category": {"positive": 12, "negative": 12, "ambiguous": 12},
+    "pitch_band": {"low": 4, "mid": 10, "high": 19, "none": 3},
+    "family": {
+      "IDENTIFIABLE_OVERLAP": 6,
+      "ISOLATED_NEW": 3,
+      "SHARED_PARTIAL_TWO_SOURCE": 3,
+      "HARMONIC_ONLY": 3,
+      "ACTIVE_ONLY": 3,
+      "NATURAL_HARMONIC": 3,
+      "DECAY_NO_ATTACK": 3,
+      "EXACT_COLLISION_IDENTICAL": 3,
+      "OVERLAP_WITHOUT_INDEPENDENT_EVIDENCE": 3,
+      "MISSING_FUNDAMENTAL": 3,
+      "SYNTHETIC_OOD": 3
+    }
+  },
+  "future_execution_operational_bounds": {
+    "wall_seconds_max": 600,
+    "peak_RSS_bytes_max": 4294967296,
+    "GPU_device_count": 0,
+    "scientific_process_count": 1,
+    "model_inference_call_count": 0,
+    "hidden_repeated_pitch_shift_inference_count": 0,
+    "all_bounds_are_pass_fail_not_tuning_targets": true
+  },
+  "forbidden_now": [
+    "materialize_float_arrays_or_waveforms",
+    "write_WAV_NPY_NPZ_or_scientific_fixture_files",
+    "import_NumPy_for_scientific_generation",
+    "implement_operator_producer_runner_recomputer_or_evaluator",
+    "execute_P0_P1_or_P2",
+    "open_real_data_H17_or_locked_test",
+    "issue_capability_claim_seal_activation_or_OS_binding",
+    "train_fit_calibrate_or_load_model"
+  ]
+}

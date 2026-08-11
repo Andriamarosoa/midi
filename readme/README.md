@@ -18,7 +18,17 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 - Mise à jour : `2026-08-11`.
 - Étape : `harmonic_censoring_h25_scientific_hypothesis_execution_contract`.
-- Statut : `contrat scientifique H25 pitch-dilution + causal 4096/8192 défini sans implémentation ni calcul; revue externe obligatoire avant manifest, population ou runner`.
+- Statut : `manifests H25_SYNTHETIC_V1/H25_TEST_V1 et 36 spécifications déterministes définis sans waveform; 27 tests P0/P1/P2 figés; revue externe obligatoire avant matérialisation`.
+- Les manifests H25 définissent exactement `36` fixtures neuves, équilibrées
+  `12 positive / 12 negative / 12 ambiguous`, et `27` tests ordonnés
+  `9 P0 / 9 P1 / 9 P2`. P1 consomme chaque fixture exactement une fois ;
+  chaque phase couvre les `36` IDs. Les paramètres déterministes incluent la
+  timeline `16640` samples, les formules de sources/enveloppes, RNG PCG64,
+  bruit blanc/pink, chirp/OOD, gains/phases/cents/inharmonicité, fenêtres
+  `4096/8192`, catégories et bornes CPU/mémoire. Les manifests ne contiennent
+  aucune donnée audio : `materialized=false`, `waveform_count=0`,
+  `executed=false`. Rapport :
+  `readme/results/2026-08-11_harmonic-censoring-h25-population-test-manifests.md`.
 - H25 préenregistre une hypothèse limitée : une courbe de dilution vectorisée,
   normalisée par le support et combinée à deux fenêtres causales finissant au
   même hop (`4096` primaire, `8192` confirmation), peut aider à distinguer une
@@ -1977,6 +1987,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-11 — correction de l'entrypoint de qualification administrative H25](results/2026-08-11_harmonic-censoring-h25-administrative-qualification-entrypoint.md)
 - [2026-08-11 — résultat de la qualification administrative pré-claim H25](results/2026-08-11_harmonic-censoring-h25-administrative-lifecycle-qualification-result.md)
 - [2026-08-11 — contrat scientifique H25 pitch-dilution et causal 4096/8192](results/2026-08-11_harmonic-censoring-h25-scientific-hypothesis-execution-contract.md)
+- [2026-08-11 — manifests population/tests et spécifications de fixtures H25](results/2026-08-11_harmonic-censoring-h25-population-test-manifests.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)

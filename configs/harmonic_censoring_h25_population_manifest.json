@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "purpose": "harmonic_censoring_h25_population_manifest",
+  "status": "manifest_only_population_not_materialized",
+  "population_namespace": "H25_SYNTHETIC_V1",
+  "contract_path": "configs/harmonic_censoring_h25_scientific_hypothesis_execution_contract.json",
+  "contract_sha256": "ae837a647792c56c02a7d96a4328f62c1ecac03d0c0a839d59488c420cfff911",
+  "fixture_specifications_path": "configs/harmonic_censoring_h25_fixture_specifications.json",
+  "fixture_specifications_sha256": "6e688fdadd128e78522c5efe7f40a3babf7b17d28464d81a71eeda8f5a84a880",
+  "materialized": false,
+  "waveform_count": 0,
+  "ordered_fixture_ids": [
+    "H25-F-P01", "H25-F-P02", "H25-F-P03", "H25-F-P04", "H25-F-P05", "H25-F-P06",
+    "H25-F-P07", "H25-F-P08", "H25-F-P09", "H25-F-P10", "H25-F-P11", "H25-F-P12",
+    "H25-F-N01", "H25-F-N02", "H25-F-N03", "H25-F-N04", "H25-F-N05", "H25-F-N06",
+    "H25-F-N07", "H25-F-N08", "H25-F-N09", "H25-F-N10", "H25-F-N11", "H25-F-N12",
+    "H25-F-A01", "H25-F-A02", "H25-F-A03", "H25-F-A04", "H25-F-A05", "H25-F-A06",
+    "H25-F-A07", "H25-F-A08", "H25-F-A09", "H25-F-A10", "H25-F-A11", "H25-F-A12"
+  ],
+  "exact_counts": {
+    "fixtures": 36,
+    "category": {"positive": 12, "negative": 12, "ambiguous": 12},
+    "pitch_band": {"low": 4, "mid": 10, "high": 19, "none": 3},
+    "phase_usage": {"P0": 36, "P1": 36, "P2": 36}
+  },
+  "ordering_rule": "exact ordered_fixture_ids order; no sorting by filesystem locale",
+  "omission_addition_or_reordering_forbidden": true,
+  "H17_H23_H24_ID_or_byte_reuse_forbidden": true,
+  "next_action": "external_review_of_population_test_manifests_and_fixture_specifications_only"
+}
