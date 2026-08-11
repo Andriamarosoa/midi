@@ -77,3 +77,21 @@ n'a été amendé, rebasé ou réécrit.
 
 Aucun byte JSON déjà scellé, aucune règle scientifique/lifecycle/failure et
 aucun état opérationnel n'ont été modifiés ou exécutés.
+
+## Overlay correctif additif apres rejet de C7
+
+C7 a ensuite ete rejete parce que son ordre futur validait une evidence
+observer-entry avant l'entree dans la boundary qui doit la creer. Les commits
+historiques C7/C8/C9/R1-C9/C10 restent intacts.
+
+- R3 `01c3220f22974ebe8aa0cd3d49116a1d919dc26c` corrige seulement le contrat
+  d'ordre ;
+- R4 `201fcbffadd8a4c3c3bfceaa9d821229cddb3ac6` scelle R3 ;
+- R5 `23889bc381a689328b4d7104ace45cf19313aafe` charge strictement R4/R3 et
+  preserve la provenance C7 ;
+- R6 `4552f38fcc9e91f7fd880649d4e595e5030f8452` cree et valide l'evidence dans
+  la boundary avant l'unique tentative observer ;
+- R7 enregistre les blobs historiques et effectifs dans l'overlay additif.
+
+Motif unique : `OBSERVER_ENTRY_EVIDENCE_ORDER_CORRECTION_ONLY`. Aucun runtime
+reel, calcul scientifique ou locked-test n'a ete execute.
