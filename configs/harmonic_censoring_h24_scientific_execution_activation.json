@@ -4,17 +4,17 @@
   "status": "externally_reviewed_scientific_activation",
   "seal": {
     "path": "configs/harmonic_censoring_h24_scientific_execution_authorization_seal.json",
-    "raw_sha256": "b522b073522ebc57d25953d599a1c2575441c3b23d0d9029a11e6a5045968ce6"
+    "raw_sha256": "d8d2f5b2c72457d11ad3e4774f519f40d01ea5ab04c22940b9ae241587cb8965"
   },
   "bindings": {
-    "implementation_commit": "f7c7d547cc2c33619ad5d0407b03219f3ec9c26d",
-    "capability_source_blob": "edd3d85f872acff39236487e1d5cc661baa9bcc2",
+    "implementation_commit": "2ef717a88933a361b24fdee4f319d257ecff01b3",
+    "capability_source_blob": "7b5baf4aefe9cf56d06010c0291619726b38475c",
     "runner_source_blob": "c8055f73b9170ada0614d6a090f084ed9fcf731b",
     "producer_source_blob": "db48f66c23cd51f83560c0dc20eec9dc8449da74",
     "predecessor_runner_source_blob": "c4f435a20f363adb75b831dc8b5526eaee42f46b",
     "predecessor_harness_source_blob": "548e6cc1500e682170cc7043fe694474e3bbd647",
     "predecessor_contract_sha256": "719eba0aa440fc1e77ae7d204adee9e5b51517f455fad3bfed7e761d3c00a74a",
-    "contract_sha256": "8049f8d613cb45eba80e5d10b0fcc440b25ac317ec4cdac1c02ffbba735ad1af"
+    "contract_sha256": "89311ecd7afdc9b26ce4e6b0c09b52da22f4cf77e57694973e27f3a0056dd95a"
   },
   "external_review": {
     "verdict": "APPROVED",
