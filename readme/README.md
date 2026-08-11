@@ -14,12 +14,20 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: P0 operational entrypoint corrected after external rejection; re-review required; no P0. -->
+<!-- H26_CORRECTION_STATUS: P0 execution inconclusive and consumed; no retry; forensic review only. -->
 ## État courant
 
 - Mise à jour : `2026-08-12`.
 - État courant :
-  `H26_P0_OPERATIONAL_ENTRYPOINT_IMPLEMENTED_STOP4_PENDING_EXTERNAL_REVIEW_NO_P0`.
+  `H26_P0_EXECUTION_INCONCLUSIVE_CONSUMED_NO_RETRY_PENDING_FORENSIC_REVIEW`.
+- L'unique invocation P0 réelle au commit `eaed599a5a051685288f1f71b3cb057db64392c2`
+  a consommé sa claim, puis s'est arrêtée pendant P0-002 sur
+  `ValueError: H26 spectrum total power invalid`. P0-001 est la seule preuve
+  publiée et a passé ; aucun transcript n'a été produit. Le receipt terminal
+  est `H26_P0_INCONCLUSIVE_CONSUMED`, avec une invocation, aucun retry, aucun
+  P1/P2 et aucun locked-test. Aucune conclusion P0 globale ou scientifique H26
+  n'est autorisée. Rapport :
+  `readme/results/2026-08-12_harmonic-censoring-h26-p0-inconclusive-consumed.md`.
 - La frontière P0 réelle one-shot est implémentée dans un runner distinct du
   runner scientifique dormant fake-only. Elle lie le runtime STOP 3, les
   authority/seal/index STOP 4, les trois contrats scientifiques et les blobs
