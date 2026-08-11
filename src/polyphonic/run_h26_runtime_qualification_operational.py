@@ -61,8 +61,7 @@ class _H26RuntimeBoundaryCapability:
 
 class _H26ObserverEntryCapability:
     __slots__ = (
-        "execution", "claim_id", "terminal_evidence", "terminal_evidence_raw",
-        "terminal_evidence_sha256", "__weakref__",
+        "execution", "claim_id", "terminal_seed", "__weakref__",
     )
 
     def __new__(cls):
@@ -182,10 +181,7 @@ def _enter_observer_boundary(
     capability: _H26RuntimeBoundaryCapability,
     claim_id: str,
     claim_path: Path,
-    authority: Mapping[str, Any],
-    authority_sha: str,
-    claim: Mapping[str, Any],
-    claim_sha: str,
+    terminal_seed: tuple[tuple[str, Any], ...],
 ) -> _H26ObserverEntryCapability:
     _require_capability(capability)
     if claim_path.is_symlink() or not claim_path.is_file():
@@ -193,20 +189,7 @@ def _enter_observer_boundary(
     observer = object.__new__(_H26ObserverEntryCapability)
     observer.execution = capability
     observer.claim_id = claim_id
-    observer.terminal_evidence = _evidence_payload(
-        authority_sha=authority_sha,
-        claim=claim,
-        claim_sha=claim_sha,
-    )
-    primitives.validate_artificial_observer_entry_evidence(
-        authority, claim, observer.terminal_evidence, authority_sha, claim_sha
-    )
-    observer.terminal_evidence_raw = primitives.canonical_json_bytes(
-        observer.terminal_evidence
-    )
-    observer.terminal_evidence_sha256 = hashlib.sha256(
-        observer.terminal_evidence_raw
-    ).hexdigest()
+    observer.terminal_seed = terminal_seed
     identity = id(observer)
 
     def cleanup(reference):
@@ -318,10 +301,10 @@ def _claim(authority: Mapping[str, Any], authority_sha: str) -> dict[str, Any]:
     }
 
 
-def _evidence_payload(
+def _evidence_seed(
     *, authority_sha: str, claim: Mapping[str, Any], claim_sha: str
-) -> dict[str, Any]:
-    return {
+) -> tuple[tuple[str, Any], ...]:
+    payload = {
         "schema_identity": "H26_RUNTIME_QUALIFICATION_OBSERVER_ENTRY_EVIDENCE_V1",
         "schema_version": 1,
         "observer_entry_evidence_id": primitives.derive_observer_entry_evidence_id(
@@ -335,6 +318,7 @@ def _evidence_payload(
         "qualifier_git_blob_sha": primitives.APPROVED_DORMANT_QUALIFIER_GIT_BLOB_SHA,
         "observer_entry_ordinal": 1,
     }
+    return tuple(payload.items())
 
 
 def _evidence(
@@ -347,12 +331,14 @@ def _evidence(
     observer = _require_observer_capability(observer_capability)
     if observer.claim_id != claim["claim_id"]:
         raise PermissionError("H26 observer boundary claim mismatch")
-    expected = _evidence_payload(
-        authority_sha=authority_sha, claim=claim, claim_sha=claim_sha
-    )
-    if expected != observer.terminal_evidence:
+    evidence = dict(observer.terminal_seed)
+    if (
+        evidence.get("authority_raw_sha256") != authority_sha
+        or evidence.get("claim_id") != claim["claim_id"]
+        or evidence.get("claim_raw_sha256") != claim_sha
+    ):
         raise PermissionError("H26 observer boundary evidence mismatch")
-    return dict(observer.terminal_evidence)
+    return evidence
 
 
 def _receipt(
@@ -558,9 +544,12 @@ def execute_h26_runtime_qualification_once() -> dict[str, Any]:
 
     _publish(capability, *paths["authority"], authority_raw)
     _publish(capability, *paths["claim"], claim_raw)
+    terminal_seed = _evidence_seed(
+        authority_sha=authority_sha, claim=claim, claim_sha=claim_sha
+    )
     observer_capability = _enter_observer_boundary(
         capability, str(claim["claim_id"]), paths["claim"][0],
-        authority, authority_sha, claim, claim_sha,
+        terminal_seed,
     )
 
     try:
@@ -580,9 +569,12 @@ def execute_h26_runtime_qualification_once() -> dict[str, Any]:
         record_raw = qualifier.serialize_runtime_qualification_record(record)
         _publish(capability, *paths["record"], record_raw)
     except Exception:
-        evidence = observer_capability.terminal_evidence
-        evidence_raw = observer_capability.terminal_evidence_raw
-        evidence_sha = observer_capability.terminal_evidence_sha256
+        evidence = dict(observer_capability.terminal_seed)
+        primitives.validate_artificial_observer_entry_evidence(
+            authority, claim, evidence, authority_sha, claim_sha
+        )
+        evidence_raw = primitives.canonical_json_bytes(evidence)
+        evidence_sha = hashlib.sha256(evidence_raw).hexdigest()
         receipt = _receipt(
             authority, authority_sha, claim, claim_sha, evidence, evidence_sha, None
         )

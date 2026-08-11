@@ -286,7 +286,7 @@ class H26RuntimeOperationalEntrypointTests(unittest.TestCase):
             def validate(*arguments):
                 nonlocal validation_calls
                 validation_calls += 1
-                if validation_calls == 2:
+                if validation_calls == 1:
                     raise ValueError("evidence validation failed")
                 return original_validate(*arguments)
 
@@ -379,7 +379,7 @@ class H26RuntimeOperationalEntrypointTests(unittest.TestCase):
                 nonlocal evidence_serializations
                 if value.get("schema_identity") == "H26_RUNTIME_QUALIFICATION_OBSERVER_ENTRY_EVIDENCE_V1":
                     evidence_serializations += 1
-                    if evidence_serializations == 2:
+                    if evidence_serializations == 1:
                         raise ValueError("evidence serialization failed")
                 return original_canonical(value)
 
@@ -416,6 +416,48 @@ class H26RuntimeOperationalEntrypointTests(unittest.TestCase):
             receipt = primitives.parse_canonical_json_bytes(receipt_path.read_bytes())
             self.assertEqual(receipt["terminal_status"], qualifier.STATUS_INCONCLUSIVE)
             self.assertFalse(receipt["runtime_record_exists"])
+
+    def test_terminal_seed_failure_occurs_before_observer_boundary_commit(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root, value, raw = self._prepare(directory)
+            contexts = self._contexts(
+                root, value["activation_id"], hashlib.sha256(raw).hexdigest()
+            )
+
+            def rename(source, destination):
+                if destination.exists():
+                    raise FileExistsError(str(destination))
+                os.rename(source, destination)
+
+            with contexts[0], contexts[1], contexts[2], contexts[3], contexts[4], contexts[5], contexts[6], mock.patch.object(
+                runner,
+                "validate_artificial_runtime_qualification_operational_activation",
+                return_value=SimpleNamespace(
+                    activation_id=value["activation_id"], canonical_bytes=raw
+                ),
+            ), mock.patch.object(
+                runner, "_observe_primary_runtime"
+            ) as observer, mock.patch.object(
+                runner, "_enter_observer_boundary"
+            ) as enter, mock.patch.object(
+                runner, "_rename_no_replace", side_effect=rename
+            ), mock.patch.object(
+                runner.os, "fchmod", create=True
+            ), mock.patch.object(
+                runner, "_sync_directory"
+            ), mock.patch.object(
+                runner, "_evidence_seed", side_effect=RuntimeError("seed preparation failed")
+            ):
+                with self.assertRaisesRegex(RuntimeError, "seed preparation failed"):
+                    runner.execute_h26_runtime_qualification_once()
+
+            enter.assert_not_called()
+            observer.assert_not_called()
+            self.assertEqual(len(tuple((root / "authority").iterdir())), 1)
+            self.assertEqual(len(tuple((root / "claim").iterdir())), 1)
+            self.assertFalse(any((root / "observer-entry").iterdir()))
+            self.assertFalse(any((root / "runtime-record").iterdir()))
+            self.assertFalse(any((root / "receipt").iterdir()))
 
     @unittest.skipUnless(
         os.name == "posix" and hasattr(os, "uname") and os.uname().sysname == "Darwin",
