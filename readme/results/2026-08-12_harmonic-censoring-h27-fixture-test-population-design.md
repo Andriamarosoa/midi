@@ -29,6 +29,13 @@ Les paramètres hérités nécessaires sont recopiés dans les recettes H27. Les
 IDs H26 ne sont que des métadonnées historiques, explicitement interdites comme
 entrées de synthèse, scientifiques ou dépendances runtime.
 
+Le correctif de revue ferme cette autonomie sans fallback : formules float64,
+ordre d'accumulation, enveloppes, bruit, recettes baseline complètes et contrat
+des deux collisions exactes sont intégralement déclarés dans H27. Les 15 cas
+hors collision possèdent chacun une recette autoritaire ; `A01/A02` utilisent
+exclusivement leur contrat de double rendu indépendant. Aucun champ
+`IDENTICAL_TO_H26` ni défaut implicite ne subsiste.
+
 La timeline reste `44100 Hz`, hop `256`, flux `16640` échantillons, avec les
 quatre fenêtres `4096/8192` se terminant aux coordonnées H26 exactes.
 
@@ -55,6 +62,15 @@ Le manifeste contient exactement 27 tests : 9 P0, 9 P1 et 9 P2.
 - P2 préenregistre huit grilles totalisant exactement 107 futurs records :
   gain 9, phase 12, bruit 12, frontière exact-zero 4, cents/inharmonicité 18,
   permutations 32, runtimes 8 et hop-shift 12. P2-009 ne crée aucun waveform.
+
+Chaque cellule possède désormais une identité canonique : ordre fixe des
+grilles, ordre fixe des fixtures, axes nommés avec tokens ASCII fermés, produit
+cartésien où l'axe gauche varie le plus lentement, puis `cell_id` construit par
+concaténation ordonnée. Les deux runtimes Darwin/CPython sont recopiés avec
+leurs empreintes et leur environnement exact. Les applications gain, phase,
+bruit-remplacement, frontière zero, cents/inharmonicité, permutation et
+hop-shift sont explicitement définies ; les 107 identités sont donc uniques et
+déterminées avant matérialisation.
 
 Les inverses zero/positive/negative/collision/causal/leakage/recompute sont
 déclarés mais non exécutés. Les cellules stochastiques dériveront leur seed de
