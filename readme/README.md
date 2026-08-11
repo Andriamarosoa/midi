@@ -18,6 +18,13 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-11`.
+- État terminal :
+  `H26_RUNTIME_EXECUTION_DORMANT_VALIDATION_STACK_REVIEWED_AND_CLOSED`.
+- La pile dormante codec canonique → identités déterministes → validateurs
+  artificiels authority/claim/observer-entry evidence/receipt terminal est
+  désormais relue et close. Cette clôture ne crée et n'autorise aucun objet ou
+  chemin opérationnel. Rapport :
+  `readme/results/2026-08-11_harmonic-censoring-h26-runtime-execution-validation-stack-review-closure.md`.
 - Étape : `harmonic_censoring_h26_runtime_qualification_execution_authority_contract`.
 - Contrat dormant de la future chaîne authority → claim consommé → unique
   invocation → runtime record + receipt défini. Les objets restent distincts,
