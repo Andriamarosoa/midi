@@ -1,0 +1,43 @@
+{
+  "schema_identity": "H26_SCIENTIFIC_EXECUTION_DORMANT_CONTRACT_V1",
+  "schema_version": 1,
+  "status": "DECLARATIVE_DORMANT_NO_P0_NO_P1_NO_P2_NO_LOCKED_TEST",
+  "authorization_token": "AUTHORIZED_TO_IMPLEMENT_H26_DORMANT_SCIENTIFIC_RUNNER_WITH_FAKE_ENGINE_AND_POPULATION_ONLY",
+  "expected_parent_commit": "1ec1ad8ac510e0e6a0ce23c4e3e852dade14af71",
+  "approved_bindings": {
+    "scientific_preregistration_commit": "70345d8fd5796688ca03aadbcf15d416053d45f5",
+    "scientific_preregistration_git_blob_sha": "70d87829e5b32b8fba2ad4453d9308644d1a47e4",
+    "fixture_specifications_commit": "475fe8afc46737a2309af96f9dfcb146ce425702",
+    "fixture_specifications_git_blob_sha": "c006d91f4cf61a86b169ec824b8adb95686749c9",
+    "test_manifest_commit": "70345d8fd5796688ca03aadbcf15d416053d45f5",
+    "test_manifest_git_blob_sha": "a1e41dd6d7deb8599e65feef220a425e463e3b99",
+    "engine_commit": "60b8d90bcbb5fb6e3a82d839bae706a359ab310e",
+    "engine_git_blob_sha": "729a989766fc05c9e5149877b3c3b9a68e141fcd",
+    "recomputer_commit": "f6bb6f1013cbe965905850f0dec508896385c648",
+    "recomputer_git_blob_sha": "2e7fc04c6e12234f39d7722ad156019511c5d63e"
+  },
+  "future_sequence": ["P0", "P1", "P2"],
+  "implementation_boundary": {
+    "runner_dormant_implementation_authorized": true,
+    "fake_engine_and_fake_population_tests_only": true,
+    "real_engine_import_or_invocation_authorized": false,
+    "real_population_access_authorized": false,
+    "p0_authorized": false,
+    "p1_authorized": false,
+    "p2_authorized": false,
+    "locked_test_access_authorized": false,
+    "additional_training_calibration_or_model_access_authorized": false
+  },
+  "current_state": {
+    "scientific_contract_exists": true,
+    "runner_exists": false,
+    "population_exists": false,
+    "p0_executed": false,
+    "p1_executed": false,
+    "p2_executed": false,
+    "locked_test_used": false,
+    "scientific_execution_authorized": false
+  },
+  "creation_authorized_now": false,
+  "next_action": "Create an external seal for this dormant scientific contract"
+}
