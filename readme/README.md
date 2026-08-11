@@ -14,12 +14,19 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: dormant runtime qualification operational activation contract seal loader implemented; external review required; no activation or execution. -->
+<!-- H26_CORRECTION_STATUS: dormant runtime qualification operational activation contract seal loader reviewed and closed; no activation or execution. -->
 ## État courant
 
 - Mise à jour : `2026-08-11`.
 - État courant :
-  `H26_RUNTIME_QUALIFICATION_OPERATIONAL_ACTIVATION_CONTRACT_EXTERNAL_SEAL_LOADER_DORMANT_PENDING_EXTERNAL_REVIEW`.
+  `H26_RUNTIME_QUALIFICATION_OPERATIONAL_ACTIVATION_CONTRACT_EXTERNAL_SEAL_LOADER_DORMANT_REVIEWED_AND_CLOSED`.
+- La revue externe du loader dormant `37f5f2d5...` est close sans bloqueur.
+  Elle confirme le module `feacb3c1...`, le test `053c107b...`, la
+  vérification fail-closed du seal avant parsing, puis les bindings exacts du
+  contrat corrigé. Activation, issuer, capability, root, authority, claim,
+  runtime, matérialisation, science et locked-test restent absents ou à
+  `false`, `null` ou `0`. Rapport :
+  `readme/results/2026-08-11_harmonic-censoring-h26-runtime-qualification-operational-activation-contract-external-seal-loader-review-closure.md`.
 - Le loader dormant du seal externe d'activation runtime H26 vérifie le blob
   du seal `685915e6...` avant parsing, impose son contenu exact et relit le
   contrat corrigé `d8d71bad...` en octets Git LF. Il impose le blob
@@ -2372,6 +2379,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-11 — contrat dormant d'activation opérationnelle du runtime H26](results/2026-08-11_harmonic-censoring-h26-runtime-qualification-operational-activation-contract.md)
 - [2026-08-11 — seal externe du contrat dormant d'activation runtime H26](results/2026-08-11_harmonic-censoring-h26-runtime-qualification-operational-activation-contract-external-seal.md)
 - [2026-08-11 — implémentation dormante du loader du seal externe d'activation runtime H26](results/2026-08-11_harmonic-censoring-h26-runtime-qualification-operational-activation-contract-external-seal-loader-dormant-implementation.md)
+- [2026-08-11 — clôture de revue du loader dormant du seal externe d'activation runtime H26](results/2026-08-11_harmonic-censoring-h26-runtime-qualification-operational-activation-contract-external-seal-loader-review-closure.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)
