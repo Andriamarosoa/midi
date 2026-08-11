@@ -25,6 +25,12 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   onze booléens d'autorisation restent `false`. Aucun waveform, index, record
   P2, population, runtime ou calcul n'a été créé. Rapport :
   `readme/results/2026-08-11_harmonic-censoring-h26-population-materialization-authority-contract.md`.
+- Le SHA d'une future authority est défini sans récursion : un seal externe
+  séparé devra lier ses octets, le SHA brut du contrat et le commit approuvé,
+  sans que l'authority ou le seal contienne son propre SHA. Les trois SHA
+  scientifiques, le blob materializer et `authority_schema_version=1` sont
+  des égalités structurelles ; runtime et destination restent sans valeur
+  présente et aucune authority effective n'existe.
 - Clôture de revue : `H26_DORMANT_STACK_REVIEWED_AND_CLOSED`. La
   préinscription et la pile logicielle dormante sont revues jusqu'au commit
   `60b8d90bcbb5fb6e3a82d839bae706a359ab310e`. Cette clôture ne constitue

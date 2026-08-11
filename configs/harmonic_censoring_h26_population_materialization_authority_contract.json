@@ -76,7 +76,6 @@
       "authority_schema_version",
       "authority_contract_commit",
       "authority_contract_raw_sha256",
-      "authority_artifact_raw_sha256",
       "reviewed_implementation_commit",
       "review_closure_commit",
       "scientific_contract_sha256",
@@ -94,20 +93,64 @@
       "execution_authorized"
     ],
     "required_constraints": {
+      "authority_schema_version": 1,
       "authority_contract_commit": "exact future reviewed commit containing this contract",
       "authority_contract_raw_sha256": "exact future raw SHA256 of this contract",
       "reviewed_implementation_commit": "60b8d90bcbb5fb6e3a82d839bae706a359ab310e",
       "review_closure_commit": "0044675695f25a6127c648e99bcd4126c50b9727",
+      "scientific_contract_sha256": "8ecbb1da33e67e78bb76a2b0364d0d5c1697414a711418a030aafb000943b583",
+      "fixture_specifications_sha256": "c8e66f7f9d200451559bf538af5b6dd0b0e7131e042588b6f13ec8655804fc28",
+      "test_manifest_sha256": "f64b55a4b5dc21da0e2dc4bf9deb712073af59f3d67fd6e3d7d019ce8037e073",
+      "materializer_git_blob_sha": "2991c69db8a8816d0261c1fb6bb4e339e9408c11",
+      "qualified_runtime_record_sha256": {
+        "value_now": null,
+        "future_requirement": "exact raw SHA256 of one separately authorized, executed and approved runtime qualification record",
+        "authority_emission_if_missing_or_unapproved": false,
+        "placeholder_wildcard_or_fallback_forbidden": true
+      },
+      "absolute_destination": {
+        "value_now": null,
+        "future_requirement": "non-empty unique absolute path bound in the authority before claim creation or consumption",
+        "immutable_after_claim": true,
+        "destination_absent_before_invocation": true,
+        "corresponding_staging_absent_before_invocation": true,
+        "automatic_change_or_suffix_fallback_forbidden": true
+      },
       "single_use": true,
       "retry_allowed": false,
       "expected_population_namespace": "H26_SYNTHETIC_V1",
-      "expected_population_index_schema_version": 2
+      "expected_population_index_schema_version": 2,
+      "execution_authorized": true
     },
     "current_authority_id": null,
     "current_absolute_destination": null,
     "current_issued_at": null,
     "current_issuer_identity": null,
     "current_execution_authorized": false
+  },
+  "future_external_authority_seal": {
+    "object_creation_authorized": false,
+    "seal_schema_identity": "H26_EXTERNAL_AUTHORITY_SEAL_V1",
+    "seal_schema_version": 1,
+    "separate_artifact_required": true,
+    "required_fields": [
+      "seal_schema_identity",
+      "seal_schema_version",
+      "authority_raw_sha256",
+      "authority_contract_raw_sha256",
+      "approved_authority_contract_commit"
+    ],
+    "authority_raw_sha256_definition": "SHA256 of the complete raw authority artifact bytes; the authority artifact never contains this digest",
+    "authority_contract_raw_sha256_definition": "SHA256 of the complete raw authority contract bytes",
+    "approved_authority_contract_commit_definition": "exact separately reviewed commit containing the authority contract",
+    "authority_contains_own_sha256": false,
+    "seal_contains_own_sha256": false,
+    "seal_sha256_may_be_computed_externally_after_creation": true,
+    "fixed_point_or_hash_recursion_forbidden": true,
+    "current_external_seal_exists": false,
+    "current_authority_raw_sha256": null,
+    "current_authority_contract_raw_sha256": null,
+    "current_approved_authority_contract_commit": null
   },
   "future_runtime_qualification_requirements": {
     "separately_authorized_and_reviewed_before_authority_emission": true,
@@ -158,7 +201,7 @@
     "exact hypothesis, population and test namespaces",
     "exact three scientific raw SHA256 values",
     "exact reviewed implementation commit and five Git blobs",
-    "exact future authority-contract SHA, authority artifact SHA and qualified runtime record SHA",
+    "exact future authority-contract SHA and qualified runtime record SHA, plus a separate non-recursive external seal over the authority raw SHA",
     "exact destination bound by future authority; destination and staging absent before execution",
     "single invocation, destination and authority; no retry after claim consumption",
     "exactly 40 ordered baseline identities",

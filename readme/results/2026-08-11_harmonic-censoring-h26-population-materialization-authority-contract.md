@@ -42,6 +42,13 @@ dormant tests     1bf43c4cea572d37ca0dc1a54513661710b95b04
 Ces valeurs ont été recalculées localement sans importer ou exécuter le
 materializer.
 
+Après la première revue externe, les contraintes de l'authority future fixent
+structurellement `authority_schema_version=1`, les trois SHA scientifiques,
+le blob exact du materializer, `single_use=true`, `retry_allowed=false`, le
+namespace et schéma de population ainsi que `execution_authorized=true` pour
+une authority effective future. Ce dernier champ n'active rien aujourd'hui :
+`current_execution_authorized` et les onze frontières restent `false`.
+
 ## Contrat futur, sans objet présent
 
 Le JSON spécifie de façon fail-closed :
@@ -62,6 +69,20 @@ Le JSON spécifie de façon fail-closed :
 Aucun objet conforme au schéma futur n'est créé : pas d'`authority_id`, de
 destination, de date d'émission, d'issuer, de signature, de seal, de secret ou
 de variable d'environnement.
+
+Le SHA de l'authority n'est pas auto-référentiel. L'authority future ne doit
+jamais contenir son propre SHA. Un artefact externe séparé
+`H26_EXTERNAL_AUTHORITY_SEAL_V1` devra lier le SHA brut de l'authority, le SHA
+brut de ce contrat et le commit approuvé qui contient ce contrat. Le seal ne
+contient pas non plus son propre SHA ; celui-ci pourra seulement être calculé
+extérieurement après sa création. Aucun fixed-point ou convention implicite
+n'est admis, et aucun seal n'est créé ici.
+
+Le SHA runtime futur n'a aucune valeur présente : il devra être exactement
+celui d'un record séparément autorisé, exécuté puis approuvé, sans placeholder,
+wildcard ou fallback. La destination future devra être absolue, non vide,
+unique, liée avant le claim et immuable après celui-ci ; destination et staging
+devront être absents avant invocation, sans suffixe de repli automatique.
 
 ## Frontière actuelle
 
