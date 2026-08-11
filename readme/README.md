@@ -20,6 +20,13 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 - Mise à jour : `2026-08-11`.
 - Étape : `harmonic_censoring_h26_scientific_preregistration`.
 - Statut : `paquet H26 déclaratif dormant corrigé après deux refus externes de sous-spécification; mesures, collisions, grilles P2 et 34 recettes baseline désormais fermées; 40 fixtures et 27 tests inchangés, 0 waveform, aucune implémentation/exécution/authority/capability/claim`.
+- Implémentation dormante H26 en cours de revue externe : loader strict lié aux
+  trois SHA, synthèse future inaccessible, masques dérivés des recettes,
+  mesures causales 4096/8192, NNLS fixe, resolver quatre issues, transforms P2,
+  opérandes bruts et recomputer indépendant. Les deux capabilities restent
+  sans issuer; aucune waveform H26, aucun P0/P1/P2 et aucun runtime scientifique
+  n'ont été exécutés. Rapport :
+  `readme/results/2026-08-11_harmonic-censoring-h26-dormant-stack-implementation.md`.
 - La préinscription H26 sépare désormais un certificat positif de naissance et
   un certificat négatif falsifiant une proposition candidate d'amplitude
   minimale préenregistrée. L'absence d'évidence indépendante seule produit

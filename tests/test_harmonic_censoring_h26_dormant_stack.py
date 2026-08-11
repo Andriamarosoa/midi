@@ -1,0 +1,269 @@
+from __future__ import annotations
+
+from copy import deepcopy
+import hashlib
+from pathlib import Path
+import unittest
+
+import numpy as np
+
+from src.polyphonic.harmonic_censoring_h26_contract import (
+    FIXTURE_SPECIFICATIONS_SHA256,
+    SCIENTIFIC_CONTRACT_SHA256,
+    TEST_MANIFEST_SHA256,
+    _validate_recipe,
+    load_h26_dormant_plan,
+)
+from src.polyphonic.harmonic_censoring_h26_engine import (
+    H26Measurements,
+    H26NumericalPolicy,
+    H26RawOperands,
+    H26ScientificCapability,
+    causal_spectrum,
+    extract_causal_view,
+    fixed_nnls_v1,
+    measurements_from_raw_operands,
+    p2_cells,
+    required_support_is_valid,
+    require_h26_scientific_execution_authorized,
+    resolve_h26,
+)
+from src.polyphonic.harmonic_censoring_h26_materializer import (
+    H26MaterializationCapability,
+    build_h26_p2_transform,
+    materialize_h26_population,
+)
+from src.polyphonic.harmonic_censoring_h26_recomputer import (
+    H26TranscriptRecord,
+    recompute_h26_evidence_from_raw_operands,
+    recompute_h26_resolution,
+    validate_transcript_prefix,
+)
+
+
+class H26DormantStackTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.root = Path(__file__).resolve().parents[1]
+        cls.plan = load_h26_dormant_plan(cls.root)
+        cls.policy = H26NumericalPolicy.from_plan(cls.plan)
+
+    def test_plan_binds_three_blobs_and_exact_34_plus_6_population(self) -> None:
+        self.assertEqual(len(SCIENTIFIC_CONTRACT_SHA256), 64)
+        self.assertEqual(len(FIXTURE_SPECIFICATIONS_SHA256), 64)
+        self.assertEqual(len(TEST_MANIFEST_SHA256), 64)
+        self.assertEqual(len(self.plan.fixture_ids), 40)
+        self.assertEqual(len(self.plan.recipes), 34)
+        self.assertEqual(len(self.plan.collision_fixture_ids), 6)
+        self.assertEqual(set(self.plan.recipes) | set(self.plan.collision_fixture_ids), set(self.plan.fixture_ids))
+        self.assertFalse(set(self.plan.recipes) & set(self.plan.collision_fixture_ids))
+        self.assertEqual(len(self.plan.test_ids), 27)
+        self.assertEqual([test.phase for test in self.plan.tests], ["P0"] * 9 + ["P1"] * 9 + ["P2"] * 9)
+        self.assertTrue(all(value is False for value in self.plan.contract["authorization_boundary"].values()))
+
+    def test_recipe_validation_fails_before_allocation_on_missing_or_divergent_fields(self) -> None:
+        fixture = dict(self.plan.fixture("H26-F-P01"))
+        recipe = deepcopy(dict(self.plan.recipes["H26-F-P01"]))
+        del recipe["sources"][0]["phase_radians"]
+        with self.assertRaisesRegex(ValueError, "source schema"):
+            _validate_recipe(fixture, recipe)
+        recipe = deepcopy(dict(self.plan.recipes["H26-F-P01"]))
+        recipe["sources"][0]["gain"] = 0.75
+        with self.assertRaisesRegex(ValueError, "candidate candidate_gain divergence"):
+            _validate_recipe(fixture, recipe)
+
+    def test_masked_fundamental_and_noise_namespace_are_exact(self) -> None:
+        for fixture_id in ("H26-F-P07", "H26-F-P08"):
+            recipe = self.plan.recipes[fixture_id]
+            candidate = next(item for item in recipe["sources"] if item["source_id"] == "candidate")
+            self.assertEqual(candidate["partial_ranks"], list(range(1, 9)))
+            self.assertIn("old-source H2", recipe["fundamental_masked_physical_definition"])
+        expected = {
+            "H26-F-N05": "489426142522370829",
+            "H26-F-N06": "10432360115859685675",
+            "H26-F-N07": "13039863101835106650",
+        }
+        for fixture_id, seed in expected.items():
+            noise = self.plan.recipes[fixture_id]["noise"]
+            self.assertIn("|BASELINE_DECAY_NOISE_V1|", noise["seed_preimage"])
+            self.assertEqual(noise["seed_uint64_decimal"], seed)
+
+    def test_capabilities_and_execution_are_unissuable(self) -> None:
+        with self.assertRaises(PermissionError):
+            H26MaterializationCapability(self.plan, "0" * 40)
+        with self.assertRaises(PermissionError):
+            H26ScientificCapability(self.plan, "0" * 64)
+        with self.assertRaises(PermissionError):
+            materialize_h26_population(np, object(), self.root / "must-not-exist")
+        with self.assertRaises(PermissionError):
+            require_h26_scientific_execution_authorized()
+        self.assertFalse((self.root / "must-not-exist").exists())
+
+    def test_p2_cells_are_read_from_contract_with_exact_cardinalities(self) -> None:
+        expected = {
+            "P2_GAIN_V1": 3,
+            "P2_PHASE_V1": 4,
+            "P2_NOISE_V1": 6,
+            "P2_CENTS_INHARMONICITY_V1": 9,
+            "P2_HOP_SHIFT_V1": 3,
+            "P2_PERMUTATION_V1": 8,
+            "P2_RUNTIME_V1": 2,
+        }
+        for grid_id, count in expected.items():
+            self.assertEqual(len(p2_cells(self.plan.contract, grid_id)), count)
+
+    def test_p2_transform_is_bound_to_manifest_and_derives_seed_without_audio(self) -> None:
+        cell = p2_cells(self.plan.contract, "P2_NOISE_V1")[4]
+        transform = build_h26_p2_transform(
+            self.plan, fixture_id="H26-F-N05", test_id="H26-T-P2-003",
+            grid_id="P2_NOISE_V1", cell=cell,
+        )
+        self.assertEqual(transform.recipe["noise"]["seed_preimage"], "H26|H26-F-N05|P2-003|pink|20")
+        self.assertEqual(
+            transform.recipe["noise"]["seed_uint64_decimal"],
+            str(int.from_bytes(hashlib.sha256(b"H26|H26-F-N05|P2-003|pink|20").digest()[:8], "little")),
+        )
+        with self.assertRaisesRegex(ValueError, "outside the preregistered test"):
+            build_h26_p2_transform(
+                self.plan, fixture_id="H26-F-P01", test_id="H26-T-P2-003",
+                grid_id="P2_NOISE_V1", cell=cell,
+            )
+
+    def test_support_validity_is_derived_from_masks_on_artificial_inputs(self) -> None:
+        valid = np.ones(9000, dtype=np.bool_)
+        self.assertTrue(required_support_is_valid(
+            np, sample_valid=valid, invalid_candidate_partial_ranks=(),
+            target_hop_end=8999, exclusive_partial_ranks_used=(2, 3), policy=self.policy,
+        ))
+        valid[1000] = False
+        self.assertFalse(required_support_is_valid(
+            np, sample_valid=valid, invalid_candidate_partial_ranks=(),
+            target_hop_end=8999, exclusive_partial_ranks_used=(2, 3), policy=self.policy,
+        ))
+        valid[:] = True
+        self.assertFalse(required_support_is_valid(
+            np, sample_valid=valid, invalid_candidate_partial_ranks=(3,),
+            target_hop_end=8999, exclusive_partial_ranks_used=(2, 3), policy=self.policy,
+        ))
+
+    def _measurements(self, **changes) -> H26Measurements:
+        values = dict(
+            candidate_active=False,
+            support_valid=True,
+            observation_equivalent=False,
+            exclusive_partial_ranks=(2, 3),
+            exclusive_energy_ratios=(0.03, 0.03),
+            onset_rise=0.06,
+            active_only_residual_improvement=0.11,
+            candidate_lower_bounds=(0.03, 0.03),
+            negative_margin_ratios=(1.0, 1.0),
+            long_window_persistence=0.0,
+            maximum_sample_read=100,
+        )
+        values.update(changes)
+        return H26Measurements(**values)
+
+    def test_resolver_order_and_certificate_regions_on_artificial_operands(self) -> None:
+        self.assertEqual(resolve_h26(self.plan.contract, self._measurements(candidate_active=True)).outcome, "ALREADY_ACTIVE_HISTORY")
+        self.assertEqual(resolve_h26(self.plan.contract, self._measurements(support_valid=False)).outcome, "AMBIGUOUS")
+        self.assertEqual(resolve_h26(self.plan.contract, self._measurements(observation_equivalent=True)).outcome, "AMBIGUOUS")
+        self.assertEqual(resolve_h26(self.plan.contract, self._measurements()).outcome, "BIRTH_SUPPORTED")
+        negative = self._measurements(
+            exclusive_energy_ratios=(0.001, 0.001), onset_rise=0.001,
+            active_only_residual_improvement=0.0001,
+            candidate_lower_bounds=(0.03, 0.03), negative_margin_ratios=(30.0, 30.0),
+        )
+        self.assertEqual(resolve_h26(self.plan.contract, negative).outcome, "NO_BIRTH")
+        self.assertEqual(resolve_h26(self.plan.contract, self._measurements(onset_rise=0.02)).outcome, "AMBIGUOUS")
+
+    def test_independent_recomputer_matches_artificial_certificate_cases(self) -> None:
+        measurement = self._measurements()
+        raw = {key: getattr(measurement, key) for key in measurement.__dataclass_fields__}
+        recomputed = recompute_h26_resolution(self.plan, fixture_id="H26-F-P01", measurement=raw)
+        self.assertEqual(recomputed.outcome, "BIRTH_SUPPORTED")
+        raw.update({
+            "exclusive_energy_ratios": [0.001, 0.001],
+            "onset_rise": 0.001,
+            "active_only_residual_improvement": 0.0001,
+            "candidate_lower_bounds": [0.03, 0.03],
+            "negative_margin_ratios": [30.0, 30.0],
+        })
+        self.assertEqual(
+            recompute_h26_resolution(self.plan, fixture_id="H26-F-P01", measurement=raw).outcome,
+            "NO_BIRTH",
+        )
+
+    def test_independent_recomputer_derives_features_from_artificial_raw_operands(self) -> None:
+        operands = {
+            "candidate_active": False, "support_valid": True,
+            "observation_equivalent": False,
+            "exclusive_partial_ranks": (2, 3),
+            "exclusive_band_energies": (3.0, 3.0),
+            "shared_band_energy": 20.0,
+            "current_short_total_power": 100.0,
+            "previous_short_total_power": 90.0,
+            "active_only_residual": 1.0,
+            "active_plus_candidate_residual": 0.8,
+            "current_long_total_power": 100.0,
+            "previous_long_total_power": 95.0,
+            "maximum_sample_read": 100,
+            "active_pitches": (40,), "candidate_pitch": 52,
+            "perturbation": None,
+        }
+        recomputed = recompute_h26_evidence_from_raw_operands(
+            self.plan, fixture_id="H26-F-P01", operands=operands,
+        )
+        self.assertEqual(recomputed.resolution.outcome, "BIRTH_SUPPORTED")
+        self.assertEqual(recomputed.measurement["exclusive_energy_ratios"], (0.03, 0.03))
+        corrupt = dict(operands, expected="BIRTH_SUPPORTED")
+        with self.assertRaisesRegex(ValueError, "forbidden oracle"):
+            recompute_h26_evidence_from_raw_operands(
+                self.plan, fixture_id="H26-F-P01", operands=corrupt,
+            )
+
+    def test_producer_side_raw_operand_projection_matches_independent_recomputer(self) -> None:
+        raw = H26RawOperands(
+            False, True, False, (2, 3), (3.0, 3.0), 20.0,
+            100.0, 90.0, 1.0, 0.8, 100.0, 95.0, 100,
+        )
+        produced = measurements_from_raw_operands(self.policy, raw)
+        self.assertEqual(produced.exclusive_energy_ratios, (0.03, 0.03))
+        self.assertEqual(produced.onset_rise, 0.1)
+        self.assertAlmostEqual(produced.active_only_residual_improvement, 0.2)
+        masked = recompute_h26_evidence_from_raw_operands(
+            self.plan, fixture_id="H26-F-A10", operands={
+                "candidate_active": False, "support_valid": False,
+                "observation_equivalent": False,
+                "maximum_sample_read": 100, "active_pitches": (),
+                "candidate_pitch": 40, "perturbation": None,
+            },
+        )
+        self.assertEqual(masked.resolution.outcome, "AMBIGUOUS")
+
+    def test_small_non_h26_numeric_kernels_have_fixed_shapes(self) -> None:
+        samples = np.arange(9000, dtype=np.float64)
+        toy = np.sin(2.0 * np.pi * 220.0 * samples / 44100.0).astype(np.float64)
+        view = extract_causal_view(np, toy, hop_end=8999, length=4096)
+        spectrum = causal_spectrum(np, view, policy=self.policy)
+        self.assertEqual(spectrum.n_fft, 32768)
+        self.assertEqual(spectrum.power.shape, (16385,))
+        matrix = np.eye(2, dtype=np.float64)
+        target = np.array([1.0, 2.0], dtype=np.float64)
+        result = fixed_nnls_v1(np, matrix, target, policy=self.policy)
+        self.assertLessEqual(result.residual, 1e-24)
+        self.assertEqual(result.coefficients, (1.0, 2.0))
+
+    def test_transcript_prefix_is_structural_and_fail_closed(self) -> None:
+        first, second = self.plan.tests[:2]
+        records = [
+            H26TranscriptRecord(first.test_id, first.order, first.phase, "FAILED", None, first.kill_status),
+            H26TranscriptRecord(second.test_id, second.order, second.phase, "NOT_RUN_BY_KILL_RULE", None, None),
+        ]
+        validate_transcript_prefix(self.plan, records)
+        records[1] = H26TranscriptRecord(second.test_id, second.order, second.phase, "PASSED", "a" * 64, None)
+        with self.assertRaisesRegex(ValueError, "after first failure"):
+            validate_transcript_prefix(self.plan, records)
+
+
+if __name__ == "__main__":
+    unittest.main()
