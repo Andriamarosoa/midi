@@ -7,6 +7,23 @@
   "test_namespace": "H26_TEST_V1",
   "reviewed_implementation_commit": "60b8d90bcbb5fb6e3a82d839bae706a359ab310e",
   "dormant_stack_review_closure_commit": "0044675695f25a6127c648e99bcd4126c50b9727",
+  "runtime_execution_validation_stack": {
+    "review_closure_commit": "b1b13048efeb73b468cb7fbb0f1ccff4c00ff0d0",
+    "execution_authority_contract_commit": "e0e070b8b75e85fb8ef78c7d6950a13f2c69ceae",
+    "execution_authority_contract_git_blob_sha": "5ab6ff43980c0dc0f32308d3f8cee14a90351ec7",
+    "execution_authority_contract_raw_sha256": "c7f6da697d74f710b957ab7ad32bef0fc184bb4f16ffaef16d2e2e1abafc63f9",
+    "runtime_qualification_contract_commit": "89cc0659de3afb5194afcf8e7ea9ac6c300e1f92",
+    "runtime_qualification_contract_git_blob_sha": "c3a021872dfd3a99b6977fdef1302d5edc755fea",
+    "runtime_qualification_contract_raw_sha256": "eec08691f12f673f86ed3839379865cbe6087e974a6745b1a4ef6cecea839736",
+    "runtime_qualifier_commit": "25a08630d6ad99d5e3432a277b99b9603990458a",
+    "runtime_qualifier_git_blob_sha": "ef24d9ebdc4ae834b3b872175fb7e098330a68bf",
+    "authority_claim_observer_evidence_validators_commit": "10d3ee0525790279bce299492d89cec4002ab931",
+    "authority_claim_observer_evidence_validators_git_blob_sha": "1c1777ad7c4493e66674d1daf63508778874df04",
+    "terminal_receipt_validator_commit": "09ef74cd537392d76eab1ed09082bf04e0214f16",
+    "terminal_receipt_validator_git_blob_sha": "9721a41eca9e3f2bfa1ef8150ff39bf34ccf5fce",
+    "review_closure_report_git_blob_sha": "f26262b28e9d00e5d5c270461dd72c04e16bbaf9",
+    "stack_status": "H26_RUNTIME_EXECUTION_DORMANT_VALIDATION_STACK_REVIEWED_AND_CLOSED"
+  },
   "sealed_scientific_artifacts": [
     {
       "path": "configs/harmonic_censoring_h26_scientific_preregistration_contract.json",
@@ -81,6 +98,23 @@
       "scientific_contract_sha256",
       "fixture_specifications_sha256",
       "test_manifest_sha256",
+      "runtime_execution_authority_contract_commit",
+      "runtime_execution_authority_contract_raw_sha256",
+      "runtime_qualification_contract_commit",
+      "runtime_qualification_contract_git_blob_sha",
+      "runtime_qualification_contract_raw_sha256",
+      "runtime_qualifier_commit",
+      "runtime_qualifier_git_blob_sha",
+      "runtime_execution_validation_stack_closure_commit",
+      "runtime_execution_validation_stack_closure_report_git_blob_sha",
+      "runtime_execution_authority_id",
+      "runtime_execution_authority_raw_sha256",
+      "runtime_execution_claim_id",
+      "runtime_execution_claim_raw_sha256",
+      "runtime_execution_observer_entry_evidence_id",
+      "runtime_execution_observer_entry_evidence_raw_sha256",
+      "runtime_execution_receipt_raw_sha256",
+      "runtime_execution_terminal_status",
       "qualified_runtime_record_sha256",
       "materializer_git_blob_sha",
       "absolute_destination",
@@ -102,10 +136,61 @@
       "fixture_specifications_sha256": "c8e66f7f9d200451559bf538af5b6dd0b0e7131e042588b6f13ec8655804fc28",
       "test_manifest_sha256": "f64b55a4b5dc21da0e2dc4bf9deb712073af59f3d67fd6e3d7d019ce8037e073",
       "materializer_git_blob_sha": "2991c69db8a8816d0261c1fb6bb4e339e9408c11",
+      "runtime_execution_authority_contract_commit": "e0e070b8b75e85fb8ef78c7d6950a13f2c69ceae",
+      "runtime_execution_authority_contract_raw_sha256": "c7f6da697d74f710b957ab7ad32bef0fc184bb4f16ffaef16d2e2e1abafc63f9",
+      "runtime_qualification_contract_commit": "89cc0659de3afb5194afcf8e7ea9ac6c300e1f92",
+      "runtime_qualification_contract_git_blob_sha": "c3a021872dfd3a99b6977fdef1302d5edc755fea",
+      "runtime_qualification_contract_raw_sha256": "eec08691f12f673f86ed3839379865cbe6087e974a6745b1a4ef6cecea839736",
+      "runtime_qualifier_commit": "25a08630d6ad99d5e3432a277b99b9603990458a",
+      "runtime_qualifier_git_blob_sha": "ef24d9ebdc4ae834b3b872175fb7e098330a68bf",
+      "runtime_execution_validation_stack_closure_commit": "b1b13048efeb73b468cb7fbb0f1ccff4c00ff0d0",
+      "runtime_execution_validation_stack_closure_report_git_blob_sha": "f26262b28e9d00e5d5c270461dd72c04e16bbaf9",
+      "runtime_execution_authority_id": {
+        "value_now": null,
+        "future_requirement": "exact authority_id from the canonical runtime execution authority validated by the reviewed dormant validation stack",
+        "placeholder_wildcard_or_fallback_forbidden": true
+      },
+      "runtime_execution_authority_raw_sha256": {
+        "value_now": null,
+        "future_requirement": "exact external raw SHA256 of the same canonical runtime execution authority",
+        "placeholder_wildcard_or_fallback_forbidden": true
+      },
+      "runtime_execution_claim_id": {
+        "value_now": null,
+        "future_requirement": "exact claim_id from the unique consumed claim derived from the bound runtime execution authority",
+        "placeholder_wildcard_or_fallback_forbidden": true
+      },
+      "runtime_execution_claim_raw_sha256": {
+        "value_now": null,
+        "future_requirement": "exact external raw SHA256 of the same canonical consumed runtime execution claim",
+        "placeholder_wildcard_or_fallback_forbidden": true
+      },
+      "runtime_execution_observer_entry_evidence_id": {
+        "value_now": null,
+        "future_requirement": "exact observer_entry_evidence_id derived from the bound authority and consumed claim and created inside the unique observer entry",
+        "placeholder_wildcard_or_fallback_forbidden": true
+      },
+      "runtime_execution_observer_entry_evidence_raw_sha256": {
+        "value_now": null,
+        "future_requirement": "exact external raw SHA256 of the same canonical observer-entry evidence",
+        "placeholder_wildcard_or_fallback_forbidden": true
+      },
+      "runtime_execution_receipt_raw_sha256": {
+        "value_now": null,
+        "future_requirement": "exact external raw SHA256 of the canonical terminal receipt validated with its authority, claim, observer-entry evidence and runtime record",
+        "placeholder_wildcard_or_fallback_forbidden": true
+      },
+      "runtime_execution_terminal_status": {
+        "value_now": null,
+        "future_requirement": "exactly H26_MATERIALIZATION_RUNTIME_QUALIFIED as rederived from the runtime record by the reviewed terminal receipt validator",
+        "required_value": "H26_MATERIALIZATION_RUNTIME_QUALIFIED",
+        "placeholder_wildcard_or_fallback_forbidden": true
+      },
       "qualified_runtime_record_sha256": {
         "value_now": null,
-        "future_requirement": "exact raw SHA256 of one separately authorized, executed and approved runtime qualification record",
+        "future_requirement": "exact raw SHA256 of the runtime record linked by the validated terminal receipt; a record digest alone is never sufficient",
         "authority_emission_if_missing_or_unapproved": false,
+        "must_exactly_equal_terminal_receipt_runtime_record_raw_sha256": true,
         "placeholder_wildcard_or_fallback_forbidden": true
       },
       "absolute_destination": {
@@ -127,6 +212,58 @@
     "current_issued_at": null,
     "current_issuer_identity": null,
     "current_execution_authorized": false
+  },
+  "runtime_execution_proof_requirements": {
+    "proof_is_required_before_any_future_materialization_authority_emission": true,
+    "qualified_runtime_record_sha256_alone_is_insufficient": true,
+    "record_without_matching_terminal_receipt_is_insufficient": true,
+    "terminal_receipt_without_runtime_record_is_insufficient": true,
+    "terminal_receipt_without_exact_authority_claim_and_observer_entry_evidence_is_insufficient": true,
+    "all_objects_must_be_validated_by_the_reviewed_dormant_validation_stack": true,
+    "required_chain_in_exact_order": [
+      "canonical runtime execution authority",
+      "unique consumed runtime execution claim",
+      "canonical observer-entry evidence created inside the unique observer invocation",
+      "canonical terminal receipt",
+      "exact runtime record linked by the receipt"
+    ],
+    "required_receipt_constraints": {
+      "terminal_status": "H26_MATERIALIZATION_RUNTIME_QUALIFIED",
+      "runtime_record_exists": true,
+      "observer_entered": true,
+      "observer_invocation_count": 1,
+      "claim_consumed": true,
+      "retry_allowed": false,
+      "runtime_record_raw_sha256_must_equal_qualified_runtime_record_sha256": true,
+      "authority_id_and_raw_sha256_must_match_bound_authority": true,
+      "claim_id_and_raw_sha256_must_match_bound_consumed_claim": true,
+      "observer_entry_evidence_id_and_raw_sha256_must_match_bound_evidence": true
+    },
+    "authority_emission_forbidden_terminal_statuses": [
+      "H26_MATERIALIZATION_RUNTIME_DISQUALIFIED",
+      "H26_MATERIALIZATION_RUNTIME_QUALIFICATION_INCONCLUSIVE_CONSUMED"
+    ],
+    "authority_emission_forbidden_when": [
+      "runtime record is absent",
+      "observer was not entered exactly once",
+      "claim was not consumed",
+      "retry is allowed",
+      "receipt is absent",
+      "receipt does not bind the exact authority",
+      "receipt does not bind the exact consumed claim",
+      "receipt does not bind the exact observer-entry evidence",
+      "receipt does not bind the exact qualified runtime record",
+      "only a runtime record SHA is supplied"
+    ],
+    "current_runtime_execution_authority_id": null,
+    "current_runtime_execution_authority_raw_sha256": null,
+    "current_runtime_execution_claim_id": null,
+    "current_runtime_execution_claim_raw_sha256": null,
+    "current_runtime_execution_observer_entry_evidence_id": null,
+    "current_runtime_execution_observer_entry_evidence_raw_sha256": null,
+    "current_runtime_execution_receipt_raw_sha256": null,
+    "current_runtime_execution_terminal_status": null,
+    "current_qualified_runtime_record_sha256": null
   },
   "future_external_authority_seal": {
     "object_creation_authorized": false,
@@ -155,6 +292,9 @@
   "future_runtime_qualification_requirements": {
     "separately_authorized_and_reviewed_before_authority_emission": true,
     "bind_to_preregistered_primary_runtime": true,
+    "full_execution_proof_chain_required": true,
+    "record_digest_without_validated_authority_claim_evidence_and_receipt_forbidden": true,
+    "required_terminal_status": "H26_MATERIALIZATION_RUNTIME_QUALIFIED",
     "current_qualification_exists": false,
     "current_runtime_record_sha256": null,
     "python_scientific_execution_now": false,
@@ -201,7 +341,8 @@
     "exact hypothesis, population and test namespaces",
     "exact three scientific raw SHA256 values",
     "exact reviewed implementation commit and five Git blobs",
-    "exact future authority-contract SHA and qualified runtime record SHA, plus a separate non-recursive external seal over the authority raw SHA",
+    "exact future authority-contract SHA and full validated runtime execution proof chain authority -> consumed claim -> observer-entry evidence -> terminal receipt -> exact QUALIFIED runtime record, plus a separate non-recursive external seal over the materialization authority raw SHA",
+    "a qualified runtime record SHA alone, a record without receipt, or a no-record receipt can never authorize materialization",
     "exact destination bound by future authority; destination and staging absent before execution",
     "single invocation, destination and authority; no retry after claim consumption",
     "exactly 40 ordered baseline identities",

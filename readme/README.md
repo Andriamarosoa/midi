@@ -14,12 +14,19 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: dormant preregistration and implementation reviewed and closed through 60b8d90b; population and authorization unchanged. -->
+<!-- H26_CORRECTION_STATUS: runtime execution proof binding corrected contract-only; no authority or scientific execution created. -->
 ## État courant
 
 - Mise à jour : `2026-08-11`.
-- État terminal :
-  `H26_RUNTIME_EXECUTION_DORMANT_VALIDATION_STACK_REVIEWED_AND_CLOSED`.
+- État courant :
+  `H26_POPULATION_MATERIALIZATION_AUTHORITY_RUNTIME_EXECUTION_PROOF_BINDING_CORRECTED_PENDING_REVIEW`.
+- Le contrat dormant d'autorité de matérialisation exige maintenant la chaîne
+  complète authority runtime → claim consommé → preuve d'entrée observer →
+  receipt terminal → record runtime exact. Le record doit être
+  `H26_MATERIALIZATION_RUNTIME_QUALIFIED`; son SHA seul, un receipt sans record
+  ou un record sans receipt sont insuffisants. Cette correction ne crée aucun
+  objet et n'autorise aucune exécution. Rapport :
+  `readme/results/2026-08-11_harmonic-censoring-h26-population-materialization-authority-contract.md`.
 - La pile dormante codec canonique → identités déterministes → validateurs
   artificiels authority/claim/observer-entry evidence/receipt terminal est
   désormais relue et close. Cette clôture ne crée et n'autorise aucun objet ou
@@ -1807,7 +1814,7 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 ## Prochaine action réelle
 
-1. Faire relire uniquement le paquet déclaratif dormant H26 corrigé : recettes baseline déterministes des 34 fixtures hors A01-A06, sans modification des décisions scientifiques.
+1. Faire relire uniquement la correction contractuelle qui lie toute future autorité de matérialisation à la preuve d'exécution runtime complète et validée.
 2. Ne créer aucun moteur, recomputer, materializer, runner, authority,
    capability, claim, waveform ou calcul H26 avant une autorisation séparée.
 3. Ne jamais rejouer H25. Garder les données réelles, les modèles, le fit, la
