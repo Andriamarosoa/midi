@@ -208,3 +208,35 @@ Uniquement la revue externe du commit exact des producteurs. Un autre cycle
 séparé restera obligatoire pour définir un seal/activation scientifique. Tant
 que ce cycle n'est pas approuvé, capability issuance, claim, population,
 waveforms et exécution P0/P1/P2 restent interdits.
+
+## Correction du binding au HEAD d'activation OS-bound
+
+La revue stricte du commit réel
+`ed087827e63f8186886026a93d56530a205816ec` a approuvé les `18` overrides
+sans resynthèse, mais a refusé la fermeture d'autorité : les blobs étaient
+vérifiés au commit d'implémentation revu sans être comparés au HEAD
+d'activation réellement exécuté.
+
+La portée appliquée est exactement
+`AUTHORIZED_TO_CORRECT_H24_OS_BOUND_ACTIVATION_HEAD_SOURCE_AND_PREDECESSOR_CONTRACT_BINDINGS_ONLY`.
+Avant toute capability issuance, chacun des cinq blobs — capability H24,
+runner H24, producteurs H24, runner H23 et harness H23 — doit maintenant être
+identique au blob scellé dans le commit d'implémentation **et** dans le commit
+d'activation OS-bound. Le contrat scientifique H23 doit simultanément égaler
+le SHA déjà scellé
+`719eba0aa440fc1e77ae7d204adee9e5b51517f455fad3bfed7e761d3c00a74a`
+dans le seal, les octets du checkout et les octets Git du commit d'activation.
+
+Le contrat passe au schéma `7`, SHA-256
+`a0726827400617e87de4cc0a57d2ded4998d7c9a54bf0c81fa3c39cdfc69d6e9`.
+La suite administrative H24/H23/H20 complète réussit avec `211` tests en
+`3,051 s`; `py_compile` et `git diff --check` réussissent également.
+Les `72` producteurs et leurs mesures sont inchangés. Toujours aucun seal,
+activation, capability, claim, accès population, décodage waveform, P0/P1/P2,
+H17, locked-test, modèle ou training.
+
+## Étape suivante
+
+Uniquement la revue externe de ce correctif d'autorité exact. Toute création
+de seal/activation ou exécution scientifique exige encore une autorisation
+séparée.

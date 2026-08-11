@@ -21,7 +21,7 @@ H24_SCIENTIFIC_CONTRACT_RELATIVE_PATH = Path(
     "configs/harmonic_censoring_h24_scientific_execution_authorization_contract.json"
 )
 H24_SCIENTIFIC_CONTRACT_RAW_SHA256 = (
-    "9a814216a460d1041edd577c21f3e898735946ad28d99c81cc996ac1e738e3fb"
+    "a0726827400617e87de4cc0a57d2ded4998d7c9a54bf0c81fa3c39cdfc69d6e9"
 )
 H24_SCIENTIFIC_SEAL_RELATIVE_PATH = Path(
     "configs/harmonic_censoring_h24_scientific_execution_authorization_seal.json"
@@ -50,13 +50,14 @@ H24_PREDECESSOR_HARNESS_SOURCE_RELATIVE_PATH = Path(
 H24_PREDECESSOR_CONTRACT_RELATIVE_PATH = Path(
     "configs/harmonic_censoring_pretrain_h23_contract.json"
 )
+H24_REVIEWED_PREDECESSOR_CONTRACT_RAW_SHA256 = (
+    "719eba0aa440fc1e77ae7d204adee9e5b51517f455fad3bfed7e761d3c00a74a"
+)
 H24_IMPLEMENTATION_EXACT_CHANGED_FILES = (
     "configs/harmonic_censoring_h24_scientific_execution_authorization_contract.json",
     "readme/README.md",
     "readme/results/2026-08-10_harmonic-censoring-h24-scientific-execution-authorization-contract.md",
     "src/polyphonic/harmonic_censoring_h24_scientific_capability.py",
-    "src/polyphonic/harmonic_censoring_h24_evidence_producers.py",
-    "tests/test_harmonic_censoring_h24_evidence_producers.py",
     "tests/test_harmonic_censoring_h24_scientific_execution_dormant.py",
     "tests/test_harmonic_censoring_h24_scientific_execution_authorization_contract.py",
 )
@@ -346,6 +347,22 @@ def _require_file_blob(repository: Path, commit: str, path: Path, blob: str) -> 
         raise ValueError(f"H24 source blob mismatch for {path.as_posix()}.")
 
 
+def _require_bound_source_blob_at_activation(
+    repository: Path,
+    implementation_commit: str,
+    activation_commit: str,
+    path: Path,
+    blob: str,
+) -> None:
+    """Bind both the reviewed implementation and the code actually executed."""
+
+    _require_file_blob(repository, implementation_commit, path, blob)
+    if _git(repository, "rev-parse", f"{activation_commit}:{path.as_posix()}") != blob:
+        raise ValueError(
+            f"H24 activation HEAD source blob mismatch for {path.as_posix()}."
+        )
+
+
 def _runtime_identity() -> tuple[tuple[str, str], ...]:
     import importlib.metadata
 
@@ -541,14 +558,35 @@ def issue_h24_scientific_execution_capability(repository_root: Path) -> Attested
         raise ValueError("H24 seal and activation bindings differ.")
     if seal.contract_sha256 != H24_SCIENTIFIC_CONTRACT_RAW_SHA256:
         raise ValueError("H24 seal does not bind the reviewed contract.")
-    _require_file_blob(repository, seal.implementation_commit, H24_CAPABILITY_SOURCE_RELATIVE_PATH, seal.capability_source_blob)
-    _require_file_blob(repository, seal.implementation_commit, H24_RUNNER_SOURCE_RELATIVE_PATH, seal.runner_source_blob)
-    _require_file_blob(repository, seal.implementation_commit, H24_PRODUCER_SOURCE_RELATIVE_PATH, seal.producer_source_blob)
-    _require_file_blob(repository, seal.implementation_commit, H24_PREDECESSOR_RUNNER_SOURCE_RELATIVE_PATH, seal.predecessor_runner_source_blob)
-    _require_file_blob(repository, seal.implementation_commit, H24_PREDECESSOR_HARNESS_SOURCE_RELATIVE_PATH, seal.predecessor_harness_source_blob)
+    for path, blob in (
+        (H24_CAPABILITY_SOURCE_RELATIVE_PATH, seal.capability_source_blob),
+        (H24_RUNNER_SOURCE_RELATIVE_PATH, seal.runner_source_blob),
+        (H24_PRODUCER_SOURCE_RELATIVE_PATH, seal.producer_source_blob),
+        (H24_PREDECESSOR_RUNNER_SOURCE_RELATIVE_PATH, seal.predecessor_runner_source_blob),
+        (H24_PREDECESSOR_HARNESS_SOURCE_RELATIVE_PATH, seal.predecessor_harness_source_blob),
+    ):
+        _require_bound_source_blob_at_activation(
+            repository,
+            seal.implementation_commit,
+            activation_commit,
+            path,
+            blob,
+        )
+    if seal.predecessor_contract_sha256 != H24_REVIEWED_PREDECESSOR_CONTRACT_RAW_SHA256:
+        raise ValueError("H24 predecessor contract is not anchored to reviewed H23.")
     predecessor_contract_raw = (repository / H24_PREDECESSOR_CONTRACT_RELATIVE_PATH).read_bytes()
     if _sha256(predecessor_contract_raw) != seal.predecessor_contract_sha256:
         raise ValueError("H24 predecessor scientific contract SHA mismatch.")
+    committed_predecessor_contract = subprocess.check_output(
+        [
+            "git",
+            "show",
+            f"{activation_commit}:{H24_PREDECESSOR_CONTRACT_RELATIVE_PATH.as_posix()}",
+        ],
+        cwd=repository,
+    )
+    if _sha256(committed_predecessor_contract) != H24_REVIEWED_PREDECESSOR_CONTRACT_RAW_SHA256:
+        raise ValueError("H24 activation HEAD predecessor contract SHA mismatch.")
     changed_files = tuple(
         sorted(
             item

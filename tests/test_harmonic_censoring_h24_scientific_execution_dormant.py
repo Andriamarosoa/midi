@@ -109,6 +109,39 @@ class H24ScientificExecutionDormantTests(unittest.TestCase):
                 capability.issue_h24_scientific_execution_capability(ROOT)
         self.assertNotIn("numpy", __import__("sys").modules)
 
+    def test_source_binding_checks_reviewed_implementation_and_activation_head(self) -> None:
+        path = capability.H24_PRODUCER_SOURCE_RELATIVE_PATH
+        with mock.patch.object(
+            capability, "_git", side_effect=["a" * 40, "a" * 40]
+        ) as git:
+            capability._require_bound_source_blob_at_activation(
+                ROOT, "1" * 40, "2" * 40, path, "a" * 40
+            )
+        self.assertEqual(
+            [call.args[1:] for call in git.call_args_list],
+            [
+                ("rev-parse", f"{'1' * 40}:{path.as_posix()}"),
+                ("rev-parse", f"{'2' * 40}:{path.as_posix()}"),
+            ],
+        )
+        with mock.patch.object(
+            capability, "_git", side_effect=["a" * 40, "b" * 40]
+        ), self.assertRaisesRegex(ValueError, "activation HEAD source blob mismatch"):
+            capability._require_bound_source_blob_at_activation(
+                ROOT, "1" * 40, "2" * 40, path, "a" * 40
+            )
+
+    def test_predecessor_contract_anchor_is_exact_h23_scientific_sha(self) -> None:
+        raw = (ROOT / capability.H24_PREDECESSOR_CONTRACT_RELATIVE_PATH).read_bytes()
+        self.assertEqual(
+            hashlib.sha256(raw).hexdigest(),
+            capability.H24_REVIEWED_PREDECESSOR_CONTRACT_RAW_SHA256,
+        )
+        self.assertEqual(
+            capability.H24_REVIEWED_PREDECESSOR_CONTRACT_RAW_SHA256,
+            "719eba0aa440fc1e77ae7d204adee9e5b51517f455fad3bfed7e761d3c00a74a",
+        )
+
     def test_path_topology_accepts_only_the_three_canonical_descendants(self) -> None:
         contract = json.loads(
             (ROOT / capability.H24_SCIENTIFIC_CONTRACT_RELATIVE_PATH).read_bytes()

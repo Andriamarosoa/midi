@@ -69,6 +69,16 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `9a814216…`.
   La suite administrative H24/H23/H20 complète réussit avec `209` tests;
   `py_compile` et `git diff --check` réussissent également.
+  La revue de `ed087827…` a validé la suppression de la resynthèse mais a
+  refusé l'autorité tant que les blobs étaient vérifiés seulement au commit
+  d'implémentation. Le nouveau garde exige désormais que les cinq blobs
+  exécutables soient identiques au commit d'implémentation revu **et** au HEAD
+  d'activation OS-bound réellement exécuté. Le contrat H23 est également
+  ancré au SHA scientifique H23 déjà scellé `719eba0a…` dans le seal, le
+  checkout et le commit d'activation. Le contrat schéma `7` a le SHA-256
+  `a0726827…`.
+  La suite administrative complète réussit avec `211` tests; `py_compile` et
+  `git diff --check` réussissent également.
   Le seal et l'activation restent absents, donc l'issuer public échoue toujours
   avant registre, population, NumPy ou claim.
   Aucun evaluator/oracle, P0/P1/P2, donnée réelle, H17, locked-test ou training

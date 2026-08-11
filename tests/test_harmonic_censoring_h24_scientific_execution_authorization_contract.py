@@ -22,7 +22,7 @@ class H24ScientificExecutionAuthorizationContractTests(unittest.TestCase):
 
     def test_contract_is_lf_contract_only_and_authorizes_no_science(self) -> None:
         self.assertNotIn(b"\r", self.raw)
-        self.assertEqual(self.contract["schema_version"], 6)
+        self.assertEqual(self.contract["schema_version"], 7)
         self.assertEqual(
             self.contract["purpose"],
             "harmonic_censoring_h24_scientific_execution_authorization_contract",
@@ -42,8 +42,12 @@ class H24ScientificExecutionAuthorizationContractTests(unittest.TestCase):
             "AUTHORIZED_TO_CORRECT_H24_EXACT_72_EVIDENCE_PRODUCER_BINDINGS_AND_NO_RESYNTHESIS_ONLY",
         )
         self.assertEqual(
+            self.contract["authorization_basis"]["activation_HEAD_binding_correction_authorized_action"],
+            "AUTHORIZED_TO_CORRECT_H24_OS_BOUND_ACTIVATION_HEAD_SOURCE_AND_PREDECESSOR_CONTRACT_BINDINGS_ONLY",
+        )
+        self.assertEqual(
             self.contract["status"],
-            "exact_72_evidence_producer_bindings_and_no_resynthesis_corrected_external_review_required",
+            "OS_bound_activation_HEAD_source_and_predecessor_contract_bindings_corrected_external_review_required",
         )
         scope = self.contract["scope"]
         self.assertFalse(scope["contract_only"])
@@ -238,6 +242,8 @@ class H24ScientificExecutionAuthorizationContractTests(unittest.TestCase):
             "H23_predecessor_runner_source_blob",
             "H23_predecessor_harness_source_blob",
             "H23_predecessor_scientific_contract_raw_sha256",
+            "OS_bound_activation_HEAD_exact_source_blobs_for_all_five_bound_modules",
+            "OS_bound_activation_HEAD_H23_contract_raw_sha256_equals_reviewed_H23_scientific_SHA",
         ):
             self.assertIn(binding, capability["must_bind"])
 
@@ -251,6 +257,8 @@ class H24ScientificExecutionAuthorizationContractTests(unittest.TestCase):
         self.assertTrue(seal["must_bind_H23_predecessor_runner_source_blob"])
         self.assertTrue(seal["must_bind_H23_predecessor_harness_source_blob"])
         self.assertTrue(seal["must_bind_H23_predecessor_scientific_contract_raw_sha256"])
+        self.assertTrue(seal["must_verify_all_five_bound_source_blobs_at_OS_bound_activation_HEAD"])
+        self.assertTrue(seal["must_anchor_H23_contract_to_reviewed_H23_scientific_SHA_at_OS_bound_activation_HEAD"])
         for name in (
             "capability_issuance_authorized",
             "scientific_claim_authorized",
@@ -453,8 +461,6 @@ class H24ScientificExecutionAuthorizationContractTests(unittest.TestCase):
             "readme/README.md",
             "readme/results/2026-08-10_harmonic-censoring-h24-scientific-execution-authorization-contract.md",
             "src/polyphonic/harmonic_censoring_h24_scientific_capability.py",
-            "src/polyphonic/harmonic_censoring_h24_evidence_producers.py",
-            "tests/test_harmonic_censoring_h24_evidence_producers.py",
             "tests/test_harmonic_censoring_h24_scientific_execution_dormant.py",
             "tests/test_harmonic_censoring_h24_scientific_execution_authorization_contract.py",
         ]
