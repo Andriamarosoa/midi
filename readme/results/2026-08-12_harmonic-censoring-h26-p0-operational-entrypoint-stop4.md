@@ -89,3 +89,25 @@ git diff --check
   fixture spec, manifeste ou population ;
 - aucune activation, claim, preuve ou receipt réel ;
 - aucun retry.
+
+## Correctif après la première revue externe
+
+La revue externe de `952e2cfbc75d713686013fef941f4556e9f3ecb5` a refusé
+toute activation lifecycle et a autorisé uniquement un correctif borné de la
+frontière. Le delta de correction :
+
+- complète P0-005 avec les deux contributions non nulles, la fréquence de
+  collision canonique, l'équation d'amplitude compensée, l'égalité byte-exacte
+  des deux observations, le masque commun et l'état causal ambigu ;
+- fixe P0-007 aux endpoints exacts `16383/16639`, aux vues précédentes finissant
+  à `16127`, au hop `256` et à zéro lecture future ;
+- étend P0-008 aux identités de fixture, labels latents, audio futur et état
+  post-décision, en plus des champs oracle déjà interdits ;
+- refuse les symlinks dans toute la chaîne de parents de sortie avant la claim ;
+- limite chaque preuve JSON aux seules fixtures déclarées pour son test ;
+- ajoute les cas négatifs STOP3/STOP4, runtime live, population, blobs source,
+  slots, capability, publications et primitive Darwin no-replace demandés.
+
+Le lifecycle et tous ses bindings immuables restent inchangés et dormants.
+Aucun P0 réel, claim, evidence, transcript ou receipt n'a été produit par ce
+correctif. Une nouvelle revue externe reste obligatoire avant toute activation.

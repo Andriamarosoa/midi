@@ -28,6 +28,7 @@ from .harmonic_censoring_h26_contract import (
     TEST_MANIFEST_SHA256,
     H26DormantPlan,
     canonical_json_bytes,
+    h26_f0_hz,
     load_h26_dormant_plan,
     parse_strict_json,
 )
@@ -272,8 +273,16 @@ def _require_scientific_bindings() -> None:
 
 
 def _require_output_slots_absent() -> None:
-    if OUTPUT_ROOT.is_symlink():
-        raise ValueError("H26 P0 output root symlink forbidden")
+    current = ADMIN_ROOT
+    if current.is_symlink() or not current.is_dir() or current.resolve(strict=True) != current:
+        raise ValueError("H26 P0 administrative root must be a real directory")
+    for current in (ADMIN_ROOT / "science", OUTPUT_ROOT):
+        if current.is_symlink():
+            raise ValueError("H26 P0 output ancestor symlink forbidden")
+        if not current.exists():
+            current.mkdir(mode=0o700)
+        if not current.is_dir() or current.resolve(strict=True) != current:
+            raise ValueError("H26 P0 output ancestor must be a real directory")
     if OUTPUT_ROOT.exists() and (
         not OUTPUT_ROOT.is_dir() or any(OUTPUT_ROOT.iterdir())
     ):
@@ -297,7 +306,12 @@ def _json_safe(value: Any) -> Any:
 
 def _publish(path: Path, value: Mapping[str, Any] | Sequence[Any]) -> tuple[bytes, str]:
     raw = canonical_json_bytes(_json_safe(value), line=True)
-    path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    if path.parent == EVIDENCE_DIRECTORY and not EVIDENCE_DIRECTORY.exists():
+        if OUTPUT_ROOT.is_symlink() or OUTPUT_ROOT.resolve(strict=True) != OUTPUT_ROOT:
+            raise ValueError("H26 P0 output root changed before evidence publication")
+        EVIDENCE_DIRECTORY.mkdir(mode=0o700)
+    if path.parent.is_symlink() or path.parent.resolve(strict=True) != path.parent:
+        raise ValueError("H26 P0 publication parent must be a real directory")
     stop4._publish(path, raw)
     return raw, hashlib.sha256(raw).hexdigest()
 
@@ -366,6 +380,7 @@ class _Evaluator:
         self.engine = engine_module
         self.materializer = materializer_module
         self._cache: dict[str, Any] = {}
+        self._observation_cache: dict[str, Any] = {}
         self._capability = object()
 
     def evidence(self, fixture_id: str) -> Any:
@@ -376,6 +391,7 @@ class _Evaluator:
                 expected_population_index_sha256=POPULATION_INDEX_SHA,
                 fixture_id=fixture_id,
             )
+            self._observation_cache[fixture_id] = observation
             self._cache[fixture_id] = self.engine.produce_h26_fixture_evidence(
                 self.np, self._capability, fixture_id=fixture_id, observation=observation
             )
@@ -386,8 +402,12 @@ class _Evaluator:
         return str(record.resolution["outcome"])
 
     def run(self, test_id: str) -> Mapping[str, Any]:
+        test = next(item for item in self.plan.tests if item.test_id == test_id)
         method = getattr(self, "_" + test_id.rsplit("-", 1)[1])
         assertions = dict(method())
+        fixture_ids = tuple(test.fixture_ids)
+        if any(fixture_id not in self._cache for fixture_id in fixture_ids):
+            raise ValueError("H26 P0 evaluator did not consume every declared fixture")
         return {
             "test_id": test_id,
             "assertions": assertions,
@@ -398,7 +418,8 @@ class _Evaluator:
                     "resolution": record.resolution,
                     "operands": record.operands,
                 }), line=True)).hexdigest()
-                for fixture_id, record in sorted(self._cache.items())
+                for fixture_id in fixture_ids
+                for record in (self._cache[fixture_id],)
             },
         }
 
@@ -467,31 +488,79 @@ class _Evaluator:
         return result
 
     def _005(self) -> Mapping[str, bool]:
-        return {
-            fixture_id: (
-                self._outcome(self.evidence(fixture_id)) == "AMBIGUOUS"
-                and self.evidence(fixture_id).measurement["observation_equivalent"] is True
-            ) for fixture_id in tuple(f"H26-F-A{i:02d}" for i in range(1, 7))
-        }
+        result: dict[str, bool] = {}
+        collision = self.plan.specifications["exact_nonzero_collision_contract"]
+        for fixture_id in tuple(f"H26-F-A{i:02d}" for i in range(1, 7)):
+            record = self.evidence(fixture_id)
+            observation = self._observation_cache[fixture_id]
+            fixture = self.plan.fixture(fixture_id)
+            params = fixture["parameters"]
+            rank = int(params["collision_harmonic_rank"])
+            old_gain = float(params["old_source_gain"])
+            candidate_gain = float(params["candidate_source_gain"])
+            canonical_frequency = float(rank) * h26_f0_hz(int(params["old_pitch"]))
+            expected_candidate_pitch = int(params["old_pitch"]) + 12 * {2: 1, 4: 2, 8: 3}[rank]
+            primary = self.np.asarray(observation.waveform).astype("<f8", copy=False)
+            alternate = self.np.asarray(observation.alternate_waveform).astype("<f8", copy=False)
+            sample_valid = self.np.asarray(observation.sample_valid)
+            result[fixture_id + "_nonzero_contributions"] = (
+                params["both_latent_contributions_nonzero"] is True
+                and old_gain > 0.0 and candidate_gain > 0.0
+            )
+            result[fixture_id + "_canonical_frequency"] = (
+                rank in {2, 4, 8}
+                and int(fixture["candidate_pitch"]) == expected_candidate_pitch
+                and canonical_frequency == float(rank) * h26_f0_hz(int(params["old_pitch"]))
+                and math.isclose(
+                    canonical_frequency, h26_f0_hz(int(fixture["candidate_pitch"])),
+                    rel_tol=0.0, abs_tol=2.0e-13,
+                )
+                and tuple(collision["candidate_partial_ranks_present"]) == (1,)
+            )
+            result[fixture_id + "_compensated_amplitude"] = candidate_gain == old_gain / float(rank)
+            result[fixture_id + "_observation_mask_state_equal"] = (
+                primary.shape == alternate.shape == (16640,)
+                and primary.tobytes(order="C") == alternate.tobytes(order="C")
+                and sample_valid.shape == primary.shape
+                and record.operands["state_before"] == "PENDING_NEW"
+                and record.operands["state_after"] == "AMBIGUOUS"
+            )
+            result[fixture_id + "_ambiguous"] = (
+                self._outcome(record) == "AMBIGUOUS"
+                and record.measurement["observation_equivalent"] is True
+            )
+        return result
 
     def _006(self) -> Mapping[str, bool]:
         return {fixture_id: self._outcome(self.evidence(fixture_id)) == "AMBIGUOUS" for fixture_id in tuple(f"H26-F-A{i:02d}" for i in range(7, 13))}
 
     def _007(self) -> Mapping[str, bool]:
         hop = int(self.plan.contract["causal_contract"]["hop_samples"])
+        timeline = self.plan.specifications["global_timeline"]
+        proposal_endpoint = int(timeline["target_hop_end"])
+        resolution_endpoint = int(timeline["resolution_hop_end"])
+        previous_short_endpoint = int(timeline["previous_short_window"][1])
+        previous_long_endpoint = int(timeline["previous_long_window"][1])
         result: dict[str, bool] = {}
         for fixture_id in ("H26-F-P02", "H26-F-N02", "H26-F-H02", "H26-F-A02"):
             operands = self.evidence(fixture_id).operands
             result[fixture_id] = (
-                operands["resolution_hop_end"] - operands["proposal_hop_end"] == hop
-                and operands["maximum_sample_read"] <= operands["proposal_hop_end"]
+                operands["proposal_hop_end"] == proposal_endpoint == 16383
+                and operands["resolution_hop_end"] == resolution_endpoint == 16639
+                and previous_short_endpoint == previous_long_endpoint == proposal_endpoint - hop == 16127
+                and operands["resolution_hop_end"] - operands["proposal_hop_end"] == hop == 256
+                and operands["maximum_sample_read"] == operands["proposal_hop_end"]
                 and operands["state_before"] == "PENDING_NEW"
                 and operands["state_after"] != "PENDING_NEW"
             )
         return result
 
     def _008(self) -> Mapping[str, bool]:
-        forbidden = {"expected", "category", "family", "target", "ground_truth_onset"}
+        forbidden = {
+            "fixture_id", "expected", "category", "family", "target",
+            "latent_label", "ground_truth_onset", "future_audio",
+            "post_decision_state",
+        }
         result: dict[str, bool] = {}
         for fixture_id in ("H26-F-P03", "H26-F-N03", "H26-F-H03", "H26-F-A03"):
             operands = dict(self.evidence(fixture_id).operands)

@@ -14,7 +14,7 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: P0 operational entrypoint implemented after STOP 4; external review required; no P0. -->
+<!-- H26_CORRECTION_STATUS: P0 operational entrypoint corrected after external rejection; re-review required; no P0. -->
 ## État courant
 
 - Mise à jour : `2026-08-12`.
