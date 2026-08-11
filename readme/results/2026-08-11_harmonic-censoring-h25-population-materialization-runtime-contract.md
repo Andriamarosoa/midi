@@ -62,9 +62,16 @@ population.
 
 Une future exécution autorisée devra produire dans un staging privé, fsync,
 reouvrir et rehacher chaque fichier, puis régénérer indépendamment les 36
-fixtures avec des générateurs PCG64 frais. Tous les octets waveform/spec/target
-doivent être identiques avant le rename atomique. Aucune identité byte-for-byte
-cross-runtime n’est revendiquée.
+fixtures avec, pour chacune, un générateur neuf construit exactement par
+`numpy.random.Generator(numpy.random.PCG64(seed))` depuis son seed scellé.
+Cloner, réutiliser, avancer, jumper ou spawner l’état d’un premier générateur
+est interdit. Tous les octets waveform/spec/target doivent être identiques
+avant le rename atomique. Aucune identité byte-for-byte cross-runtime n’est
+revendiquée.
+
+La première revue de ce contrat a refusé la faute de nom `PC64` dans cette
+exigence. Elle est corrigée en `PCG64` dans le contrat et dans le test
+structurel ; aucun autre aspect de la matérialisation n’a été modifié.
 
 ## Limite
 

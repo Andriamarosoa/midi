@@ -241,7 +241,9 @@
     "existing_success_or_staging_path_fails_closed": true
   },
   "deterministic_recomputation_contract": {
-    "same_process_second_generation_from_fresh_PC64_generators_required": true,
+    "same_process_second_generation_from_fresh_PCG64_generators_required": true,
+    "exact_second_generation_RNG_constructor": "numpy.random.Generator(numpy.random.PCG64(seed))",
+    "second_generation_seed_rule": "for each i=0..35 use exactly the seed derived for fixture_specifications.fixtures[i] by the sealed fixture specifications; no generator state cloning reuse advance jump spawn or caller seed",
     "recompute_order": "exact fixture order 0..35",
     "recomputer_must_read_only_sealed_contracts_not_first_pass_arrays_or_files": true,
     "waveform_fixture_target_bytes_must_be_byte_identical_for_every_fixture": true,

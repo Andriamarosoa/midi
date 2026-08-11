@@ -30,6 +30,11 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   doit précéder la publication atomique. Le contrat n’implémente et n’autorise
   aucune de ces opérations. Rapport :
   `readme/results/2026-08-11_harmonic-censoring-h25-population-materialization-runtime-contract.md`.
+- La première revue du contrat runtime a relevé une faute bloquante `PC64`.
+  La recomputation exige désormais explicitement un nouveau
+  `numpy.random.Generator(numpy.random.PCG64(seed))` pour chaque fixture, sans
+  clonage, réutilisation, advance, jump, spawn ou seed caller. Cette correction
+  est contractuelle uniquement et n’a généré aucun tableau ni waveform.
 - Les manifests H25 définissent exactement `36` fixtures neuves, équilibrées
   `12 positive / 12 negative / 12 ambiguous`, et `27` tests ordonnés
   `9 P0 / 9 P1 / 9 P2`. P1 consomme chaque fixture exactement une fois ;

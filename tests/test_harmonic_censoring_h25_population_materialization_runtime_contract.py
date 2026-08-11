@@ -124,7 +124,12 @@ class H25PopulationMaterializationRuntimeContractTests(unittest.TestCase):
 
     def test_recomputation_is_independent_and_byte_exact(self):
         recompute = _load()["deterministic_recomputation_contract"]
-        self.assertTrue(recompute["same_process_second_generation_from_fresh_PC64_generators_required"])
+        self.assertTrue(recompute["same_process_second_generation_from_fresh_PCG64_generators_required"])
+        self.assertEqual(
+            recompute["exact_second_generation_RNG_constructor"],
+            "numpy.random.Generator(numpy.random.PCG64(seed))",
+        )
+        self.assertIn("no generator state cloning", recompute["second_generation_seed_rule"])
         self.assertTrue(recompute["recomputer_must_read_only_sealed_contracts_not_first_pass_arrays_or_files"])
         self.assertTrue(recompute["waveform_fixture_target_bytes_must_be_byte_identical_for_every_fixture"])
         self.assertIn("cross-runtime materialized byte identity is not claimed", recompute["cross_runtime_claim"])
