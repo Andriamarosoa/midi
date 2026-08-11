@@ -10,6 +10,8 @@ from src.polyphonic.harmonic_censoring_h24_evidence_producers import (
     H24_EXACT_EVIDENCE_PRODUCERS_IMPLEMENTED,
     H24_EXACT_EVIDENCE_PRODUCER_REGISTRY,
     H24EvidenceProducerContext,
+    _FORBIDDEN_RESYNTHESIS_SYMBOLS,
+    _NO_RESYNTHESIS_OVERRIDES,
 )
 from src.polyphonic.harmonic_censoring_h24_operators import (
     recompute_h24_persisted_evidence,
@@ -75,6 +77,68 @@ class H24EvidenceProducerImplementationTests(unittest.TestCase):
             and node.func.value.id == "H24_EXACT_EVIDENCE_PRODUCER_REGISTRY"
         ]
         self.assertEqual(invoked_registry_subscripts, [])
+
+    def test_every_reused_predecessor_evaluator_is_statically_resynthesis_free(self) -> None:
+        predecessor_path = ROOT / "src/polyphonic/run_harmonic_censoring_h23_synthetic.py"
+        tree = ast.parse(predecessor_path.read_text(encoding="utf-8"))
+        functions = {
+            node.name: node for node in tree.body if isinstance(node, ast.FunctionDef)
+        }
+        calls = {
+            name: {
+                call.func.id
+                for call in ast.walk(node)
+                if isinstance(call, ast.Call) and isinstance(call.func, ast.Name)
+            }
+            for name, node in functions.items()
+        }
+
+        def reaches_forbidden(name: str, seen: set[str]) -> bool:
+            if name in seen:
+                return False
+            seen.add(name)
+            direct = calls.get(name, set())
+            return bool(direct.intersection(_FORBIDDEN_RESYNTHESIS_SYMBOLS)) or any(
+                reaches_forbidden(callee, seen)
+                for callee in direct
+                if callee in functions
+            )
+
+        required_overrides = {
+            name.removeprefix("_measure_")
+            for name in functions
+            if name.startswith("_measure_") and reaches_forbidden(name, set())
+        }
+        self.assertEqual(required_overrides, set(_NO_RESYNTHESIS_OVERRIDES))
+
+    def test_h24_override_source_never_calls_resynthesis_symbols(self) -> None:
+        tree = ast.parse(SOURCE.read_text(encoding="utf-8"))
+        called = {
+            node.func.attr
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and isinstance(node.func.value, ast.Name)
+            and node.func.value.id == "_h23"
+        }
+        self.assertFalse(called.intersection(_FORBIDDEN_RESYNTHESIS_SYMBOLS))
+
+    def test_future_authority_binds_all_executable_producer_sources(self) -> None:
+        source = (ROOT / "src/polyphonic/harmonic_censoring_h24_scientific_capability.py").read_text(encoding="utf-8")
+        for symbol in (
+            "H24_PRODUCER_SOURCE_RELATIVE_PATH",
+            "H24_PREDECESSOR_RUNNER_SOURCE_RELATIVE_PATH",
+            "H24_PREDECESSOR_HARNESS_SOURCE_RELATIVE_PATH",
+            "H24_PREDECESSOR_CONTRACT_RELATIVE_PATH",
+        ):
+            self.assertIn(symbol, source)
+        for field in (
+            "producer_source_blob",
+            "predecessor_runner_source_blob",
+            "predecessor_harness_source_blob",
+            "predecessor_contract_sha256",
+        ):
+            self.assertGreaterEqual(source.count(field), 8)
 
     def test_public_issuer_still_refuses_before_registry_or_population(self) -> None:
         with mock.patch.object(runner, "_require_complete_producer_registry") as registry:

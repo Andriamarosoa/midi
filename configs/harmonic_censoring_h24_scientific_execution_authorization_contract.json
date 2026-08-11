@@ -1,7 +1,7 @@
 {
-  "schema_version": 5,
+  "schema_version": 6,
   "purpose": "harmonic_censoring_h24_scientific_execution_authorization_contract",
-  "status": "exact_72_evidence_producers_implemented_dormant_external_review_required",
+  "status": "exact_72_evidence_producer_bindings_and_no_resynthesis_corrected_external_review_required",
   "authorization_basis": {
     "reviewed_activation_commit": "e7c2eecf49ede43b3334266c74b1fe438f9e793d",
     "external_verdict": "APPROVED_H24_MATERIALIZED_POPULATION_PUBLICATION_AUDIT",
@@ -10,7 +10,8 @@
     "contract_correction_authorized_action": "AUTHORIZED_TO_CORRECT_H24_SCIENTIFIC_EXECUTION_CONTRACT_TRANSCRIPT_AND_TERMINAL_CLOSURE_ONLY",
     "dormant_implementation_authorized_action": "AUTHORIZED_TO_IMPLEMENT_H24_DORMANT_SCIENTIFIC_CAPABILITY_AND_RUNNER_ONLY",
     "path_topology_correction_authorized_action": "AUTHORIZED_TO_CORRECT_H24_DORMANT_SCIENTIFIC_PATH_TOPOLOGY_GUARDS_ONLY",
-    "evidence_producer_authorized_action": "AUTHORIZED_TO_DEFINE_AND_IMPLEMENT_H24_EXACT_72_EVIDENCE_PRODUCERS_ONLY"
+    "evidence_producer_authorized_action": "AUTHORIZED_TO_DEFINE_AND_IMPLEMENT_H24_EXACT_72_EVIDENCE_PRODUCERS_ONLY",
+    "evidence_producer_correction_authorized_action": "AUTHORIZED_TO_CORRECT_H24_EXACT_72_EVIDENCE_PRODUCER_BINDINGS_AND_NO_RESYNTHESIS_ONLY"
   },
   "scope": {
     "contract_only": false,
@@ -146,6 +147,10 @@
       "future_reviewed_scientific_implementation_commit",
       "future_capability_source_blob",
       "future_runner_source_blob",
+      "future_evidence_producer_source_blob",
+      "H23_predecessor_runner_source_blob",
+      "H23_predecessor_harness_source_blob",
+      "H23_predecessor_scientific_contract_raw_sha256",
       "all_sealed_scientific_input_hashes",
       "published_population_marker_terminal_receipt_and_index_hashes",
       "all_525_fixture_file_hashes_from_the_index",
@@ -175,6 +180,10 @@
     "path": "configs/harmonic_censoring_h24_scientific_execution_authorization_seal.json",
     "raw_sha256": null,
     "reviewed_scientific_implementation_commit": null,
+    "must_bind_evidence_producer_source_blob": true,
+    "must_bind_H23_predecessor_runner_source_blob": true,
+    "must_bind_H23_predecessor_harness_source_blob": true,
+    "must_bind_H23_predecessor_scientific_contract_raw_sha256": true,
     "capability_issuance_authorized": false,
     "scientific_claim_authorized": false,
     "scientific_execution_authorized": false,
@@ -400,20 +409,17 @@
     "result_may_access_real_data_or_locked_test": false
   },
   "contract_definition_exact_changed_files": [
-    ".gitattributes",
     "configs/harmonic_censoring_h24_scientific_execution_authorization_contract.json",
     "readme/README.md",
     "readme/results/2026-08-10_harmonic-censoring-h24-scientific-execution-authorization-contract.md",
     "src/polyphonic/harmonic_censoring_h24_scientific_capability.py",
     "src/polyphonic/harmonic_censoring_h24_evidence_producers.py",
-    "src/polyphonic/run_harmonic_censoring_h24_scientific.py",
     "tests/test_harmonic_censoring_h24_evidence_producers.py",
     "tests/test_harmonic_censoring_h24_scientific_execution_dormant.py",
     "tests/test_harmonic_censoring_h24_scientific_execution_authorization_contract.py"
   ],
   "required_next_sequence": [
-    "external_review_implementation_commit",
-    "external_review_evidence_producer_implementation_commit",
+    "external_review_corrected_evidence_producer_implementation_commit",
     "separate_reviewed_scientific_authorization_seal_and_activation",
     "OS_bound_exact_activation_commit",
     "zero_science_population_preflight",

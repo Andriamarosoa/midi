@@ -56,7 +56,19 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   successeurs restants adaptent les noyaux de mesure H23 déjà versionnés aux
   waveforms/targets H24 vérifiés, sans resynthèse et sans verdict producteur.
   L'import construit seulement les callables : aucun producteur n'est appelé.
-  Le contrat schéma `5` a le SHA-256 `879cadea…`.
+  La revue de `4737e74c…` a refusé deux écarts : les blobs exécutables du
+  producteur et de son prédécesseur H23 n'étaient pas tous liés au futur seal,
+  et `18` évaluateurs H23 atteignaient encore une voie de resynthèse. Le
+  correctif autorisé lie désormais le module producteur, le runner et harness
+  H23 ainsi que le SHA du contrat scientifique H23. Les `18` producteurs
+  concernés utilisent des overrides H24 fondés uniquement sur les waveforms
+  H24 publiées, leurs specs scellées et des transformations numériques de ces
+  octets; un garde AST prouve qu'aucun évaluateur H23 réutilisé n'atteint
+  `_render_source`, `_synthesize_h23_fixture`, `_projected_harmonic_waveform`
+  ou `_waveform_from_sources`. Le contrat schéma `6` a le SHA-256
+  `9a814216…`.
+  La suite administrative H24/H23/H20 complète réussit avec `209` tests;
+  `py_compile` et `git diff --check` réussissent également.
   Le seal et l'activation restent absents, donc l'issuer public échoue toujours
   avant registre, population, NumPy ou claim.
   Aucun evaluator/oracle, P0/P1/P2, donnée réelle, H17, locked-test ou training

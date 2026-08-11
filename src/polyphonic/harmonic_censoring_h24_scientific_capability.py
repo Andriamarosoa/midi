@@ -21,7 +21,7 @@ H24_SCIENTIFIC_CONTRACT_RELATIVE_PATH = Path(
     "configs/harmonic_censoring_h24_scientific_execution_authorization_contract.json"
 )
 H24_SCIENTIFIC_CONTRACT_RAW_SHA256 = (
-    "879cadea244c5d209de36bbcb644ecdb35b656ede416e84d43c7dc17008d2a55"
+    "9a814216a460d1041edd577c21f3e898735946ad28d99c81cc996ac1e738e3fb"
 )
 H24_SCIENTIFIC_SEAL_RELATIVE_PATH = Path(
     "configs/harmonic_censoring_h24_scientific_execution_authorization_seal.json"
@@ -38,14 +38,24 @@ H24_CAPABILITY_SOURCE_RELATIVE_PATH = Path(
 H24_RUNNER_SOURCE_RELATIVE_PATH = Path(
     "src/polyphonic/run_harmonic_censoring_h24_scientific.py"
 )
+H24_PRODUCER_SOURCE_RELATIVE_PATH = Path(
+    "src/polyphonic/harmonic_censoring_h24_evidence_producers.py"
+)
+H24_PREDECESSOR_RUNNER_SOURCE_RELATIVE_PATH = Path(
+    "src/polyphonic/run_harmonic_censoring_h23_synthetic.py"
+)
+H24_PREDECESSOR_HARNESS_SOURCE_RELATIVE_PATH = Path(
+    "src/polyphonic/harmonic_censoring_h23.py"
+)
+H24_PREDECESSOR_CONTRACT_RELATIVE_PATH = Path(
+    "configs/harmonic_censoring_pretrain_h23_contract.json"
+)
 H24_IMPLEMENTATION_EXACT_CHANGED_FILES = (
-    ".gitattributes",
     "configs/harmonic_censoring_h24_scientific_execution_authorization_contract.json",
     "readme/README.md",
     "readme/results/2026-08-10_harmonic-censoring-h24-scientific-execution-authorization-contract.md",
     "src/polyphonic/harmonic_censoring_h24_scientific_capability.py",
     "src/polyphonic/harmonic_censoring_h24_evidence_producers.py",
-    "src/polyphonic/run_harmonic_censoring_h24_scientific.py",
     "tests/test_harmonic_censoring_h24_evidence_producers.py",
     "tests/test_harmonic_censoring_h24_scientific_execution_dormant.py",
     "tests/test_harmonic_censoring_h24_scientific_execution_authorization_contract.py",
@@ -136,6 +146,10 @@ class H24ScientificActivation:
     implementation_commit: str
     capability_source_blob: str
     runner_source_blob: str
+    producer_source_blob: str
+    predecessor_runner_source_blob: str
+    predecessor_harness_source_blob: str
+    predecessor_contract_sha256: str
     contract_sha256: str
 
 
@@ -145,6 +159,10 @@ class H24ScientificSeal:
     implementation_commit: str
     capability_source_blob: str
     runner_source_blob: str
+    producer_source_blob: str
+    predecessor_runner_source_blob: str
+    predecessor_harness_source_blob: str
+    predecessor_contract_sha256: str
     contract_sha256: str
     exact_changed_files: tuple[str, ...]
     runtime_identity: tuple[tuple[str, str], ...]
@@ -166,6 +184,10 @@ class AttestedH24ScientificExecutionCapability:
     implementation_commit: str
     capability_source_blob: str
     runner_source_blob: str
+    producer_source_blob: str
+    predecessor_runner_source_blob: str
+    predecessor_harness_source_blob: str
+    predecessor_contract_sha256: str
     contract_sha256: str
     runtime_identity: tuple[tuple[str, str], ...]
     population_marker_sha256: str
@@ -248,7 +270,7 @@ def _validate_activation(payload: Mapping[str, object], raw_sha256: str) -> H24S
     seal = _mapping(payload["seal"], "activation seal")
     _exact(seal, ("path", "raw_sha256"), "activation seal")
     bindings = _mapping(payload["bindings"], "activation bindings")
-    _exact(bindings, ("implementation_commit", "capability_source_blob", "runner_source_blob", "contract_sha256"), "activation bindings")
+    _exact(bindings, ("implementation_commit", "capability_source_blob", "runner_source_blob", "producer_source_blob", "predecessor_runner_source_blob", "predecessor_harness_source_blob", "predecessor_contract_sha256", "contract_sha256"), "activation bindings")
     review = _mapping(payload["external_review"], "activation review")
     if review != {"verdict": "APPROVED", "activation_commit_review_required": True}:
         raise PermissionError("H24 activation review mismatch.")
@@ -262,6 +284,10 @@ def _validate_activation(payload: Mapping[str, object], raw_sha256: str) -> H24S
         _hex(bindings["implementation_commit"], 40, "implementation commit"),
         _hex(bindings["capability_source_blob"], 40, "capability blob"),
         _hex(bindings["runner_source_blob"], 40, "runner blob"),
+        _hex(bindings["producer_source_blob"], 40, "producer blob"),
+        _hex(bindings["predecessor_runner_source_blob"], 40, "predecessor runner blob"),
+        _hex(bindings["predecessor_harness_source_blob"], 40, "predecessor harness blob"),
+        _hex(bindings["predecessor_contract_sha256"], 64, "predecessor contract SHA"),
         _hex(bindings["contract_sha256"], 64, "contract SHA"),
     )
 
@@ -281,7 +307,7 @@ def _validate_seal(payload: Mapping[str, object], raw_sha256: str) -> H24Scienti
     if any(rights[name] is not True for name in true_rights) or any(rights[name] is not False for name in false_rights):
         raise PermissionError("H24 scientific rights are not exact.")
     bindings = _mapping(payload["bindings"], "seal bindings")
-    _exact(bindings, ("implementation_commit", "capability_source_blob", "runner_source_blob", "contract_sha256", "exact_changed_files"), "seal bindings")
+    _exact(bindings, ("implementation_commit", "capability_source_blob", "runner_source_blob", "producer_source_blob", "predecessor_runner_source_blob", "predecessor_harness_source_blob", "predecessor_contract_sha256", "contract_sha256", "exact_changed_files"), "seal bindings")
     changed = bindings["exact_changed_files"]
     if type(changed) is not list or not changed or any(type(item) is not str for item in changed):
         raise ValueError("H24 seal changed files are invalid.")
@@ -300,6 +326,10 @@ def _validate_seal(payload: Mapping[str, object], raw_sha256: str) -> H24Scienti
         _hex(bindings["implementation_commit"], 40, "implementation commit"),
         _hex(bindings["capability_source_blob"], 40, "capability blob"),
         _hex(bindings["runner_source_blob"], 40, "runner blob"),
+        _hex(bindings["producer_source_blob"], 40, "producer blob"),
+        _hex(bindings["predecessor_runner_source_blob"], 40, "predecessor runner blob"),
+        _hex(bindings["predecessor_harness_source_blob"], 40, "predecessor harness blob"),
+        _hex(bindings["predecessor_contract_sha256"], 64, "predecessor contract SHA"),
         _hex(bindings["contract_sha256"], 64, "contract SHA"),
         tuple(changed),
         tuple(sorted((name, str(value)) for name, value in runtime.items())),
@@ -507,12 +537,18 @@ def issue_h24_scientific_execution_capability(repository_root: Path) -> Attested
     if _sha256(seal_raw) != activation.seal_sha256:
         raise ValueError("H24 seal SHA differs from activation.")
     seal = _validate_seal(_object(seal_raw, "seal"), _sha256(seal_raw))
-    if (seal.implementation_commit, seal.capability_source_blob, seal.runner_source_blob, seal.contract_sha256) != (activation.implementation_commit, activation.capability_source_blob, activation.runner_source_blob, activation.contract_sha256):
+    if (seal.implementation_commit, seal.capability_source_blob, seal.runner_source_blob, seal.producer_source_blob, seal.predecessor_runner_source_blob, seal.predecessor_harness_source_blob, seal.predecessor_contract_sha256, seal.contract_sha256) != (activation.implementation_commit, activation.capability_source_blob, activation.runner_source_blob, activation.producer_source_blob, activation.predecessor_runner_source_blob, activation.predecessor_harness_source_blob, activation.predecessor_contract_sha256, activation.contract_sha256):
         raise ValueError("H24 seal and activation bindings differ.")
     if seal.contract_sha256 != H24_SCIENTIFIC_CONTRACT_RAW_SHA256:
         raise ValueError("H24 seal does not bind the reviewed contract.")
     _require_file_blob(repository, seal.implementation_commit, H24_CAPABILITY_SOURCE_RELATIVE_PATH, seal.capability_source_blob)
     _require_file_blob(repository, seal.implementation_commit, H24_RUNNER_SOURCE_RELATIVE_PATH, seal.runner_source_blob)
+    _require_file_blob(repository, seal.implementation_commit, H24_PRODUCER_SOURCE_RELATIVE_PATH, seal.producer_source_blob)
+    _require_file_blob(repository, seal.implementation_commit, H24_PREDECESSOR_RUNNER_SOURCE_RELATIVE_PATH, seal.predecessor_runner_source_blob)
+    _require_file_blob(repository, seal.implementation_commit, H24_PREDECESSOR_HARNESS_SOURCE_RELATIVE_PATH, seal.predecessor_harness_source_blob)
+    predecessor_contract_raw = (repository / H24_PREDECESSOR_CONTRACT_RELATIVE_PATH).read_bytes()
+    if _sha256(predecessor_contract_raw) != seal.predecessor_contract_sha256:
+        raise ValueError("H24 predecessor scientific contract SHA mismatch.")
     changed_files = tuple(
         sorted(
             item
@@ -581,6 +617,10 @@ def issue_h24_scientific_execution_capability(repository_root: Path) -> Attested
         implementation_commit=seal.implementation_commit,
         capability_source_blob=seal.capability_source_blob,
         runner_source_blob=seal.runner_source_blob,
+        producer_source_blob=seal.producer_source_blob,
+        predecessor_runner_source_blob=seal.predecessor_runner_source_blob,
+        predecessor_harness_source_blob=seal.predecessor_harness_source_blob,
+        predecessor_contract_sha256=seal.predecessor_contract_sha256,
         contract_sha256=seal.contract_sha256,
         runtime_identity=seal.runtime_identity,
         population_marker_sha256=str(_mapping(population["claim_marker"], "marker")["raw_sha256"]),
@@ -614,6 +654,10 @@ def claim_h24_scientific_execution(value: object) -> AttestedH24ScientificExecut
         "implementation_commit": checked.implementation_commit,
         "capability_source_blob": checked.capability_source_blob,
         "runner_source_blob": checked.runner_source_blob,
+        "producer_source_blob": checked.producer_source_blob,
+        "predecessor_runner_source_blob": checked.predecessor_runner_source_blob,
+        "predecessor_harness_source_blob": checked.predecessor_harness_source_blob,
+        "predecessor_contract_sha256": checked.predecessor_contract_sha256,
         "contract_sha256": checked.contract_sha256,
         "population_index_sha256": checked.population_index_sha256,
         "ordered_test_ids": list(checked.ordered_test_ids),

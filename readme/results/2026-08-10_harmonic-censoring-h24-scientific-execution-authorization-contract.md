@@ -171,6 +171,37 @@ La suite administrative H24/H23/H20 complète réussit avec `206` tests : les
 `199` tests H24/H23 incluant les six nouveaux tests producteurs, plus les
 `7` gardes H20. `py_compile` et `git diff --check` réussissent également.
 
+## Correction des bindings producteurs et suppression de la resynthèse
+
+La revue stricte de `4737e74cc7623492eb714f977889ed7505809dbb` a
+refusé le passage au seal. D'une part, le futur seal ne liait pas le blob du
+nouveau module producteur ni les trois entrées H23 qu'il exécute. D'autre part,
+`18` évaluateurs prédécesseurs atteignaient transitivement une fonction de
+resynthèse de waveform.
+
+La portée corrective appliquée est exactement
+`AUTHORIZED_TO_CORRECT_H24_EXACT_72_EVIDENCE_PRODUCER_BINDINGS_AND_NO_RESYNTHESIS_ONLY`.
+Activation et seal futurs doivent maintenant lier : module producteur H24,
+runner H23, harness H23 et SHA brut du contrat scientifique H23, en plus de la
+capability, du runner et du contrat H24. L'issuer vérifiera tous ces blobs et
+octets avant capability issuance.
+
+Les `18` producteurs dont le call graph H23 atteignait
+`_projected_harmonic_waveform`, `_render_source`, `_synthesize_h23_fixture` ou
+`_waveform_from_sources` possèdent désormais des overrides H24. Ceux-ci ne
+lisent que les waveforms H24 publiées, leurs spécifications scellées et des
+transformations numériques des arrays décodés. Les autres producteurs restent
+adossés aux évaluateurs H23 dont le call graph est statiquement exempt de ces
+quatre symboles. Les tests reconstruisent le call graph et exigent l'égalité
+exacte entre l'ensemble des `18` voies dangereuses et l'ensemble des overrides.
+
+Le contrat passe au schéma `6`, SHA-256
+`9a814216a460d1041edd577c21f3e898735946ad28d99c81cc996ac1e738e3fb`.
+La suite administrative H24/H23/H20 complète réussit avec `209` tests en
+`3,065 s`; `py_compile` et `git diff --check` réussissent également.
+Toujours aucun seal, activation, capability issuance, claim, accès population,
+décodage waveform, P0/P1/P2, H17, locked-test, modèle ou training.
+
 ## Étape suivante
 
 Uniquement la revue externe du commit exact des producteurs. Un autre cycle
