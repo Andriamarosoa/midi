@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "purpose": "harmonic_censoring_h25_successor_decision_contract",
+  "status": "contract_only_not_executable_pending_external_review",
+  "scope": {
+    "contract_only": true,
+    "implementation_authorized": false,
+    "population_creation_authorized": false,
+    "capability_issuance_authorized": false,
+    "claim_authorized": false,
+    "scientific_execution_authorized": false,
+    "real_data_access_authorized": false,
+    "model_or_checkpoint_access_authorized": false,
+    "training_authorized": false,
+    "h17_population_used": false,
+    "locked_test_used": false
+  },
+  "predecessor_closure": {
+    "predecessor_name": "H24",
+    "terminal_classification": "H24_EXECUTION_INCONCLUSIVE_CONSUMED",
+    "scientific_verdict": null,
+    "scientific_test_counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0
+    },
+    "claim_path": "tmp/local/harmonic_censoring_h24_scientific_v1.consumed.json",
+    "claim_size_bytes": 1922,
+    "claim_mode": "0600",
+    "claim_sha256": "5e7bf0326e4bffeca12b2917d09f7814023877f54f876d0f8e295800e5b661d2",
+    "activation_commit": "4d31fa333683f83f2a35117ab5597faf1a7784a6",
+    "closure_documentation_commit": "5f05291dd37da66e9c63c61a2d1ad06d5f65c23d",
+    "staging_present": false,
+    "success_present": false,
+    "transcript_present": false,
+    "terminal_present": false,
+    "one_shot_consumed": true,
+    "retry_forbidden": true,
+    "claim_deletion_or_recreation_forbidden": true,
+    "manual_terminal_fabrication_forbidden": true,
+    "reinterpretation_as_scientific_pass_or_fail_forbidden": true
+  },
+  "operational_postmortem": {
+    "failure_stage": "after_durable_claim_before_first_P0",
+    "failure_class": "reviewed_process_continuation_dead_end",
+    "mechanism": "The claimed Python process was launched from a base64 stdin pipeline and then entered a passive loop whose only semantic command was AUTHORIZED_STOP. Python stdin was already EOF, so the process could neither consume the sentinel nor invoke a reviewed P0 or INCONCLUSIVE closure path.",
+    "scientific_code_reached": false,
+    "population_waveform_decoded": false,
+    "root_cause_is_scientific": false,
+    "root_cause_is_population_content": false,
+    "root_cause_is_executor_lifecycle": true,
+    "does_not_change_H24_closure": true
+  },
+  "successor_decision": {
+    "successor_name": "H25",
+    "first_question": "Can the complete one-shot lifecycle continue from reviewed preflight through claim, every authorized phase boundary, and every terminal closure without an unreviewed injection or a second process?",
+    "first_gate_type": "administrative_execution_lifecycle_qualification",
+    "scientific_hypothesis_deferred_until_gate_passes": true,
+    "future_population_namespace_reserved": "H25_SYNTHETIC_V1",
+    "future_test_namespace_reserved": "H25_TEST_V1",
+    "H24_population_reuse_forbidden": true,
+    "H24_test_id_reuse_forbidden": true,
+    "H24_claim_reuse_forbidden": true,
+    "new_scientific_population_required_after_gate": true,
+    "new_scientific_contract_required_after_gate": true
+  },
+  "required_execution_architecture": {
+    "single_reviewed_entrypoint_owns_entire_lifecycle": true,
+    "same_process_owns_capability_claim_execution_and_closure": true,
+    "no_human_pause_after_durable_claim": true,
+    "all_scientific_phase_authorizations_must_be_fixed_before_claim": true,
+    "script_transport_must_not_share_scientific_control_stdin": true,
+    "stdin_eof_must_not_prevent_execution_or_closure": true,
+    "ssh_or_parent_disconnect_must_have_a_predefined_closure": true,
+    "signal_and_timeout_handlers_must_have_predefined_closures": true,
+    "success_failure_and_inconclusive_paths_must_publish_atomically": true,
+    "claim_must_be_last_irreversible_action_before_automatic_execution": true,
+    "no_process_local_capability_may_be_expected_to_survive_process_exit": true,
+    "no_post_claim_code_injection_or_interactive_exec": true
+  },
+  "preclaim_qualification_contract": {
+    "uses_disposable_administrative_namespace_only": true,
+    "uses_H24_claim_or_population": false,
+    "creates_scientific_capability_or_claim": false,
+    "imports_scientific_numpy_or_decodes_waveform": false,
+    "must_exercise_exact_control_flow_shape": [
+      "preflight",
+      "surrogate_claim",
+      "P0_boundary",
+      "P1_boundary",
+      "P2_boundary",
+      "success_publish",
+      "failure_publish",
+      "inconclusive_publish"
+    ],
+    "required_inverse_failures": [
+      "stdin_is_EOF_before_surrogate_claim",
+      "stdin_becomes_EOF_after_surrogate_claim",
+      "parent_SSH_disconnects_after_surrogate_claim",
+      "SIGINT_after_surrogate_claim",
+      "timeout_during_each_phase",
+      "evidence_write_fails",
+      "transcript_publish_fails",
+      "terminal_publish_fails",
+      "success_rename_fails"
+    ],
+    "acceptance": {
+      "every_nominal_transition_observed_exactly_once": true,
+      "every_inverse_has_exact_predeclared_terminal_or_forensic_state": true,
+      "no_inverse_requires_retry_or_manual_file_fabrication": true,
+      "no_process_remains_alive_after_terminal_state": true,
+      "no_surrogate_claim_is_deleted_or_reused": true,
+      "event_order_and_artifact_hashes_are_recomputed_independently": true
+    }
+  },
+  "future_scientific_contract_requirements": {
+    "separate_external_review_after_lifecycle_qualification": true,
+    "new_population_manifest_and_test_manifest_required": true,
+    "new_population_bytes_must_be_reviewed_before_claim": true,
+    "new_one_shot_paths_and_claim_required": true,
+    "new_seal_activation_and_OS_binding_required": true,
+    "scientific_phase_authorization_must_cover_complete_run_before_claim": true,
+    "locked_test_remains_forbidden": true,
+    "real_data_remains_forbidden": true,
+    "training_remains_forbidden": true
+  },
+  "forbidden_now": [
+    "retrying_or_reinterpreting_H24",
+    "issuing_any_H24_or_H25_capability",
+    "creating_or_modifying_any_claim",
+    "implementing_the_H25_executor",
+    "creating_H25_population_or_test_manifests",
+    "creating_or_decoding_waveforms",
+    "running_P0_P1_or_P2",
+    "opening_real_audio_or_labels",
+    "using_H17",
+    "loading_models_or_checkpoints",
+    "training_or_calibrating",
+    "export_or_live",
+    "locked_test"
+  ],
+  "next_action": "external_review_of_H25_successor_decision_contract_only"
+}

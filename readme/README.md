@@ -17,8 +17,18 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-11`.
-- Étape : `harmonic_censoring_h24_final_forensic_inconclusive_closure`.
-- Statut : `H24_EXECUTION_INCONCLUSIVE_CONSUMED; claim durable préservé; P0/P1/P2=0/0/0; aucun verdict scientifique; one-shot définitivement consommé sans retry`.
+- Étape : `harmonic_censoring_h25_successor_decision_contract`.
+- Statut : `contrat H25 seulement; H24 reste inconclusive consommée sans retry; qualification du cycle one-shot obligatoire avant toute nouvelle hypothèse ou population scientifique`.
+- Après approbation de la clôture H24, H25 réserve une première étape purement
+  administrative : qualifier de bout en bout le cycle capability, claim,
+  phases et fermetures dans un seul processus revu. Le futur contrôle devra
+  fonctionner malgré EOF, déconnexion SSH, signal, timeout et erreurs de
+  publication, sans injection post-claim ni fabrication manuelle.
+- Les namespaces `H25_SYNTHETIC_V1` et `H25_TEST_V1` sont seulement réservés.
+  Aucun manifest, population, runner, capability, claim ou test H25 n'existe.
+  H24 ne peut fournir ni population, identifiant, claim ou verdict au
+  successeur. Rapport :
+  `readme/results/2026-08-11_harmonic-censoring-h25-successor-decision-contract.md`.
 - Le claim H24 a été acquis sur le Mac après validation du commit d'activation
   exact `4d31fa333683f83f2a35117ab5597faf1a7784a6`, du runtime arm64 CPU
   mono-thread et des bindings de la population publiée. Le fichier
@@ -1918,6 +1928,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-10 — contrat successeur H24 après clôture H23](results/2026-08-10_harmonic-censoring-h24-successor-contract.md)
 - [2026-08-10 — manifests et plan de test complet H24 sans synthèse](results/2026-08-10_harmonic-censoring-h24-manifests-full-test-plan.md)
 - [2026-08-11 — clôture forensique H24 inconclusive, one-shot consommé sans P0](results/2026-08-11_harmonic-censoring-h24-final-forensic-inconclusive-closure.md)
+- [2026-08-11 — contrat de décision successeur H25 après consommation H24](results/2026-08-11_harmonic-censoring-h25-successor-decision-contract.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)
