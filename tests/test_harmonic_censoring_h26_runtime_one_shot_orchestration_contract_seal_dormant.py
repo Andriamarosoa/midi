@@ -19,6 +19,11 @@ class RuntimeOrchestrationSealTests(unittest.TestCase):
     def test_duplicate_keys_are_rejected(self):
         with self.assertRaisesRegex(ValueError,"duplicate JSON key"):
             loader._parse(b'{"a":1,"a":2}')
+    def test_non_json_numeric_constants_are_rejected(self):
+        for constant in (b"NaN", b"Infinity", b"-Infinity"):
+            with self.subTest(constant=constant):
+                with self.assertRaisesRegex(ValueError,"non-JSON constant forbidden"):
+                    loader._parse(b'{"x":'+constant+b'}')
     def test_no_runtime_symbols(self):
         source=Path(loader.__file__).read_text()
         for forbidden in ("observe_primary_runtime","import numpy","otool","write_bytes","mkdir("): self.assertNotIn(forbidden,source)

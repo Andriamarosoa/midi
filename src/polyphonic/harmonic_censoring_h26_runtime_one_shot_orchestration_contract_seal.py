@@ -56,6 +56,9 @@ def _parse(raw: bytes) -> dict[str, Any]:
         parse_float=lambda value: (_ for _ in ()).throw(
             ValueError(f"float forbidden: {value}")
         ),
+        parse_constant=lambda value: (_ for _ in ()).throw(
+            ValueError(f"non-JSON constant forbidden: {value}")
+        ),
     )
     if type(value) is not dict:
         raise ValueError("top-level JSON object required")
