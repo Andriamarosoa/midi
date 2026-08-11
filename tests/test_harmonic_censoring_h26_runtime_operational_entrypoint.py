@@ -215,6 +215,117 @@ class H26RuntimeOperationalEntrypointTests(unittest.TestCase):
             self.assertEqual(receipt["terminal_status"], qualifier.STATUS_INCONCLUSIVE)
             self.assertFalse(receipt["runtime_record_exists"])
 
+    def test_evidence_publication_failure_after_boundary_writes_terminal_receipt(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root, value, raw = self._prepare(directory)
+            contexts = self._contexts(
+                root, value["activation_id"], hashlib.sha256(raw).hexdigest()
+            )
+            order = []
+            original_enter = runner._enter_observer_boundary
+            original_publish = runner._publish
+
+            def enter(*arguments):
+                order.append("observer-boundary")
+                return original_enter(*arguments)
+
+            def publish(*arguments):
+                artifact_kind = arguments[1].parent.name
+                if artifact_kind == "observer-entry":
+                    order.append("evidence-attempt")
+                    raise OSError("evidence publication failed")
+                order.append(artifact_kind)
+                return original_publish(*arguments)
+
+            def rename(source, destination):
+                if destination.exists():
+                    raise FileExistsError(str(destination))
+                os.rename(source, destination)
+
+            with contexts[0], contexts[1], contexts[2], contexts[3], contexts[4], contexts[5], contexts[6], mock.patch.object(
+                runner,
+                "validate_artificial_runtime_qualification_operational_activation",
+                return_value=SimpleNamespace(
+                    activation_id=value["activation_id"], canonical_bytes=raw
+                ),
+            ), mock.patch.object(
+                runner, "_observe_primary_runtime"
+            ) as observer, mock.patch.object(
+                runner, "_rename_no_replace", side_effect=rename
+            ), mock.patch.object(
+                runner.os, "fchmod", create=True
+            ), mock.patch.object(
+                runner, "_sync_directory"
+            ), mock.patch.object(
+                runner, "_enter_observer_boundary", side_effect=enter
+            ), mock.patch.object(runner, "_publish", side_effect=publish):
+                with self.assertRaisesRegex(OSError, "evidence publication failed"):
+                    runner.execute_h26_runtime_qualification_once()
+
+            self.assertEqual(
+                order,
+                ["authority", "claim", "observer-boundary", "evidence-attempt", "receipt"],
+            )
+            observer.assert_not_called()
+            self.assertFalse(any((root / "observer-entry").iterdir()))
+            self.assertFalse(any((root / "runtime-record").iterdir()))
+            receipt_path = next((root / "receipt").iterdir())
+            receipt = primitives.parse_canonical_json_bytes(receipt_path.read_bytes())
+            self.assertEqual(receipt["terminal_status"], qualifier.STATUS_INCONCLUSIVE)
+            self.assertFalse(receipt["runtime_record_exists"])
+
+    def test_evidence_validation_failure_after_boundary_writes_terminal_receipt(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root, value, raw = self._prepare(directory)
+            contexts = self._contexts(
+                root, value["activation_id"], hashlib.sha256(raw).hexdigest()
+            )
+            original_validate = primitives.validate_artificial_observer_entry_evidence
+            validation_calls = 0
+
+            def validate(*arguments):
+                nonlocal validation_calls
+                validation_calls += 1
+                if validation_calls == 1:
+                    raise ValueError("evidence validation failed")
+                return original_validate(*arguments)
+
+            def rename(source, destination):
+                if destination.exists():
+                    raise FileExistsError(str(destination))
+                os.rename(source, destination)
+
+            with contexts[0], contexts[1], contexts[2], contexts[3], contexts[4], contexts[5], contexts[6], mock.patch.object(
+                runner,
+                "validate_artificial_runtime_qualification_operational_activation",
+                return_value=SimpleNamespace(
+                    activation_id=value["activation_id"], canonical_bytes=raw
+                ),
+            ), mock.patch.object(
+                runner, "_observe_primary_runtime"
+            ) as observer, mock.patch.object(
+                runner, "_rename_no_replace", side_effect=rename
+            ), mock.patch.object(
+                runner.os, "fchmod", create=True
+            ), mock.patch.object(
+                runner, "_sync_directory"
+            ), mock.patch.object(
+                primitives,
+                "validate_artificial_observer_entry_evidence",
+                side_effect=validate,
+            ):
+                with self.assertRaisesRegex(ValueError, "evidence validation failed"):
+                    runner.execute_h26_runtime_qualification_once()
+
+            observer.assert_not_called()
+            self.assertEqual(validation_calls, 2)
+            self.assertFalse(any((root / "observer-entry").iterdir()))
+            self.assertFalse(any((root / "runtime-record").iterdir()))
+            receipt_path = next((root / "receipt").iterdir())
+            receipt = primitives.parse_canonical_json_bytes(receipt_path.read_bytes())
+            self.assertEqual(receipt["terminal_status"], qualifier.STATUS_INCONCLUSIVE)
+            self.assertFalse(receipt["runtime_record_exists"])
+
     @unittest.skipUnless(
         os.name == "posix" and hasattr(os, "uname") and os.uname().sysname == "Darwin",
         "Darwin-only real operational filesystem primitives",

@@ -532,14 +532,14 @@ def execute_h26_runtime_qualification_once() -> dict[str, Any]:
     evidence = _evidence(
         observer_capability, authority, authority_sha, claim, claim_sha
     )
-    primitives.validate_artificial_observer_entry_evidence(
-        authority, claim, evidence, authority_sha, claim_sha
-    )
     evidence_raw = primitives.canonical_json_bytes(evidence)
     evidence_sha = hashlib.sha256(evidence_raw).hexdigest()
-    _publish(capability, *paths["evidence"], evidence_raw)
 
     try:
+        primitives.validate_artificial_observer_entry_evidence(
+            authority, claim, evidence, authority_sha, claim_sha
+        )
+        _publish(capability, *paths["evidence"], evidence_raw)
         observation = _observe_primary_runtime(observer_capability)
         record = qualifier.build_runtime_qualification_record(
             qualifier.load_runtime_qualification_contract(), observation

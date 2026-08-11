@@ -22,17 +22,20 @@ authority/claim/evidence chain and absence of every final/staging path under
 the five pre-existing non-symlink directories. Publication is create-exclusive,
 mode 0600, fsynced and no-replace. The sole order is authority, claim,
 observer-entry evidence created inside the boundary, private capability-gated
-real observer, runtime record, and terminal receipt last. If observation or
-record publication fails after observer entry, an inconclusive terminal receipt
-is written and the original error is re-raised; no cleanup or retry exists.
+real observer, runtime record, and terminal receipt last. If evidence
+validation/publication, observation, or record publication fails after observer
+entry, an inconclusive terminal receipt is written and the original error is
+re-raised; no cleanup or retry exists.
 Only the deterministic evidence ID/path is derived during preflight. The
 evidence object itself cannot be constructed until the durable claim exists and
 a distinct identity-attested observer-entry capability has been minted.
 
 Tests cover missing boundary, forged capability, exact publication order,
-qualified record/receipt and the observer-failure terminal receipt using only
-temporary directories and a fake observation. A Darwin-only test exercises the
-real publication primitives while still replacing the actual observer.
+qualified record/receipt, observer failure, and evidence-publication failure
+after the boundary using only temporary directories and a fake observation.
+The evidence failure proves a terminal `INCONCLUSIVE` receipt with no observer
+call, runtime record, cleanup, or retry. A Darwin-only test exercises the real
+publication primitives while still replacing the actual observer.
 
 No real observer, runtime consumption, materialization, P0/P1/P2, locked-test,
 training or calibration was invoked by this implementation step.
