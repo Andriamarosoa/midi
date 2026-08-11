@@ -14,12 +14,20 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: P0 remediation design contracted; no implementation; external review only. -->
+<!-- H26_CORRECTION_STATUS: H27 role-aware zero context preregistered; no implementation; external review only. -->
 ## État courant
 
 - Mise à jour : `2026-08-12`.
 - État courant :
-  `H26_P0_REMEDIATION_DESIGN_CONTRACTED_PENDING_EXTERNAL_REVIEW_NO_IMPLEMENTATION`.
+  `H27_ROLE_AWARE_ZERO_CONTEXT_PREREGISTERED_PENDING_EXTERNAL_REVIEW_NO_IMPLEMENTATION`.
+- La préinscription successeur H27 fige séparément les quatre rôles de vue :
+  seules les vues `previous_*` exactement silencieuses et entièrement supportées
+  peuvent être des contextes valides avec `T=0`. Les vues `current_*` nulles ou
+  sous le plancher restent invalides et ne peuvent atteindre ni NNLS ni
+  certificats. Les seuils, outcomes, causalité et exclusions d'oracle de H26
+  sont inchangés. Onze cas data-only sont repris ; la population et les
+  autorités H27 n'existent pas encore. Rapport :
+  `readme/results/2026-08-12_harmonic-censoring-h27-preregistration.md`.
 - Le design contractuel de remédiation examine trois options et préfère une
   sémantique explicite de silence valide limitée aux vues précédentes. La vue
   courante reste soumise au plancher positif actuel ; aucun epsilon, bruit,
@@ -1987,12 +1995,12 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 ## Prochaine action réelle
 
-1. Faire relire uniquement le package contractuel de remédiation : les deux
-   nouveaux JSON, ce README et le rapport associé.
-2. Ne préenregistrer aucun successeur et ne modifier aucun code avant le verdict
-   externe sur l'option A et les identités H27 proposées.
-3. Ne lancer aucun P0/P1/P2, retry, rematérialisation, locked-test, entraînement
-   ou calibration et ne toucher à aucun artefact H26 consommé.
+1. Faire relire uniquement les deux JSON de préinscription H27, ce README et le
+   rapport associé.
+2. Ne définir aucune fixture ou test manifest H27 et ne modifier aucun code
+   avant le verdict externe sur cette préinscription.
+3. Ne créer aucune population, authority ou claim et ne lancer aucun calcul,
+   locked-test, entraînement ou calibration ; ne toucher à aucun artefact H26.
 
 ## État archivé — dual-stream du 30 juillet (remplacé)
 

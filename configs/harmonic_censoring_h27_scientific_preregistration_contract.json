@@ -1,0 +1,218 @@
+{
+  "schema_identity": "H27_SCIENTIFIC_PREREGISTRATION_V1",
+  "schema_version": 1,
+  "status": "PREREGISTERED_PENDING_EXTERNAL_REVIEW_NO_IMPLEMENTATION",
+  "hypothesis_id": "H27_ROLE_AWARE_ZERO_CONTEXT_V1",
+  "population_namespace": "H27_SYNTHETIC_V1",
+  "test_namespace": "H27_TEST_V1",
+  "parent_hypothesis": "H26_BOUNDED_EVIDENCE_V1",
+  "parent_terminal_status": "H26_P0_INCONCLUSIVE_CONSUMED",
+  "parent_retry_allowed": false,
+  "remediation_design_commit": "0c297b588d0c89d348b1c9a828eddceab169be86",
+  "implementation_authorized": false,
+  "materialization_authorized": false,
+  "scientific_execution_authorized": false,
+  "runtime_authority_creation_authorized": false,
+  "scientific_authority_creation_authorized": false,
+  "claim_creation_authorized": false,
+  "locked_test_authorized": false,
+  "training_calibration_model_authorized": false,
+  "single_scientific_change_from_h26": "Spectral validity becomes view-role-aware: a fully supported previous_short or previous_long view whose finite float64 samples are all exactly equal to 0.0 is a valid contextual spectrum with exact total power zero, while current_short and current_long retain the H26 strictly-positive total-power requirement.",
+  "historical_incompatibility": "H26 required strictly-positive power for every spectral role even though its onset and persistence formulas are algebraically defined when previous total power is zero.",
+  "exact_zero_view_definition": {
+    "complete_support_required": true,
+    "every_sample_float64_finite": true,
+    "every_sample_numeric_equality": "sample == 0.0",
+    "positive_zero_and_negative_zero_numeric_equality_equivalent": true,
+    "classification_precedes_spectral_interpretation": true,
+    "rms_threshold_forbidden": true,
+    "spectral_threshold_forbidden": true,
+    "absolute_tolerance_forbidden": true,
+    "epsilon_forbidden": true,
+    "noise_floor_forbidden": true,
+    "fixture_identity_forbidden": true,
+    "quasi_silence_is_exact_silence": false
+  },
+  "nonzero_total_power_rule_inherited_from_h26": "finite T_L > max(1e-24, 1e-12 * sum(abs(P_L[k])))",
+  "view_role_semantics": {
+    "current_short": {
+      "incomplete_support": "INVALID_SUPPORT",
+      "complete_support_exact_zero": "INVALID_CURRENT_SHORT_ANALYSIS",
+      "complete_support_nonzero_not_above_floor": "INVALID_CURRENT_SHORT_ANALYSIS",
+      "complete_support_nonzero_strictly_above_floor": "VALID_CURRENT_SHORT_ANALYSIS",
+      "invalid_consequences": {
+        "exclusive_energy_ratios_available": false,
+        "normalized_observation_y_available": false,
+        "nnls_available": false,
+        "residual_improvement_available": false,
+        "positive_certificate_available": false,
+        "negative_certificate_available": false,
+        "inactive_candidate_outcome_without_prior_bypass": "AMBIGUOUS"
+      },
+      "ratio_denominator": "only a valid strictly-positive current_short total power",
+      "h26_floor_unchanged": true
+    },
+    "previous_short": {
+      "incomplete_support": "INVALID_SUPPORT",
+      "complete_support_exact_zero": "VALID_EXACT_ZERO_PREVIOUS_SHORT",
+      "exact_zero_spectrum_bins": "ALL_EXACT_ZERO",
+      "exact_zero_total_power": 0,
+      "complete_support_nonzero": "APPLY_H26_STRICTLY_POSITIVE_TOTAL_POWER_RULE",
+      "nonzero_not_above_floor": "INVALID_PREVIOUS_SHORT_CONTEXT",
+      "promote_quasi_silence_to_exact_zero": false,
+      "onset_formula_when_current_valid": "O=max(0,T_current_short-T_previous_short)/max(T_current_short,1e-24)",
+      "onset_when_exact_zero_previous_and_valid_positive_current": 1,
+      "epsilon_injected": false
+    },
+    "current_long": {
+      "incomplete_support": "INVALID_SUPPORT",
+      "complete_support_exact_zero": "INVALID_CURRENT_LONG_ANALYSIS",
+      "complete_support_nonzero_not_above_floor": "INVALID_CURRENT_LONG_ANALYSIS",
+      "complete_support_nonzero_strictly_above_floor": "VALID_CURRENT_LONG_ANALYSIS",
+      "invalid_consequences": {
+        "persistence_available": false,
+        "required_long_context_valid": false,
+        "positive_certificate_available": false,
+        "negative_certificate_available": false,
+        "inactive_candidate_outcome_without_prior_bypass": "AMBIGUOUS"
+      },
+      "epsilon_or_zero_promotion_forbidden": true
+    },
+    "previous_long": {
+      "incomplete_support": "INVALID_SUPPORT",
+      "complete_support_exact_zero": "VALID_EXACT_ZERO_PREVIOUS_LONG",
+      "exact_zero_spectrum_bins": "ALL_EXACT_ZERO",
+      "exact_zero_total_power": 0,
+      "complete_support_nonzero": "APPLY_H26_STRICTLY_POSITIVE_TOTAL_POWER_RULE",
+      "nonzero_not_above_floor": "INVALID_PREVIOUS_LONG_CONTEXT",
+      "promote_quasi_silence_to_exact_zero": false,
+      "persistence_formula_when_current_valid": "D=(T_current_long-T_previous_long)/max(T_current_long,1e-24)",
+      "persistence_when_exact_zero_previous_and_valid_positive_current": 1,
+      "persistence_role": "diagnostic_and_validity_context_only_never_certificate_alone",
+      "epsilon_injected": false
+    }
+  },
+  "inherited_h26_invariants": {
+    "outcomes": [
+      "BIRTH_SUPPORTED",
+      "NO_BIRTH",
+      "AMBIGUOUS",
+      "ALREADY_ACTIVE_HISTORY"
+    ],
+    "decision_order": [
+      "ACTIVE_HISTORY_TO_ALREADY_ACTIVE_HISTORY",
+      "INVALID_REQUIRED_SUPPORT_OR_CONTEXT_TO_AMBIGUOUS",
+      "OBSERVATION_EQUIVALENCE_TO_AMBIGUOUS",
+      "COMPLETE_POSITIVE_CERTIFICATE_TO_BIRTH_SUPPORTED",
+      "COMPLETE_NEGATIVE_CERTIFICATE_TO_NO_BIRTH",
+      "OTHERWISE_AMBIGUOUS"
+    ],
+    "sample_rate_hz": 44100,
+    "hop_samples": 256,
+    "short_view_samples": 4096,
+    "long_view_samples": 8192,
+    "previous_view_offset_hops": 1,
+    "resolution_delay_hops": 1,
+    "maximum_future_samples_read": 0,
+    "nonzero_view_hann_padding_fft_power_bands_and_ordering_unchanged": true,
+    "partial_ranks": [1,2,3,4,5,6,7,8],
+    "nnls_unchanged": true,
+    "pitch_grid_unchanged": true,
+    "bounded_candidate_claim_unchanged": true,
+    "exact_collision_outcome": "AMBIGUOUS",
+    "absence_alone_is_insufficient_for_no_birth": true,
+    "invalid_support_zero_fill_forbidden": true,
+    "forbidden_inputs": [
+      "fixture_id",
+      "expected",
+      "family",
+      "category",
+      "ground_truth_onset",
+      "latent_label",
+      "post_decision_state",
+      "future_audio"
+    ]
+  },
+  "certificate_thresholds_inherited_unchanged": {
+    "positive_minimum_exclusive_energy_ratio": 0.02,
+    "positive_minimum_onset_rise": 0.05,
+    "positive_minimum_residual_improvement": 0.1,
+    "negative_maximum_exclusive_energy_ratio": 0.002,
+    "negative_maximum_onset_rise": 0.005,
+    "negative_maximum_residual_improvement": 0.001,
+    "negative_minimum_margin": 10.0,
+    "minimum_exclusive_partial_count": 2,
+    "minimum_valid_bin_count_per_partial": 3
+  },
+  "synthetic_case_obligations": {
+    "path": "configs/harmonic_censoring_h27_zero_context_synthetic_cases.json",
+    "case_ids": [
+      "R-ZERO-001",
+      "R-ZERO-002",
+      "R-ZERO-003",
+      "R-ZERO-004",
+      "R-ZERO-005",
+      "R-ZERO-006",
+      "R-ZERO-007",
+      "R-ZERO-008",
+      "R-ZERO-009",
+      "R-ZERO-010",
+      "R-ZERO-011"
+    ],
+    "case_count": 11,
+    "data_only": true,
+    "execution_authorized": false
+  },
+  "population_policy": {
+    "H26_SYNTHETIC_V1": {
+      "immutable": true,
+      "successor_science_eligible": false,
+      "forensic_reference_allowed": true,
+      "regression_reference_allowed": true
+    },
+    "H27_SYNTHETIC_V1": {
+      "does_not_exist_yet": true,
+      "materialization_authorized": false,
+      "reuse_H26_bytes_as_scientific_population": false,
+      "in_place_mutation": false,
+      "namespace_alias_to_H26": false,
+      "future_new_manifest_index_and_sha_required": true
+    }
+  },
+  "future_authority_and_claim_policy": {
+    "runtime_materialization_authority": "new H27-only authority bound to future H27 code and contracts plus a qualified runtime",
+    "scientific_execution_authority": "new H27-only authority bound to exact future preregistration fixture specification test manifest engine recomputer runtime and H27 population",
+    "scientific_claim": "new durable single-use H27 claim created only inside a separately authorized future boundary",
+    "H26_authority_reusable": false,
+    "H26_claim_reusable": false,
+    "H26_receipt_reusable_as_authority": false,
+    "H27_authority_maximum_per_authorized_execution": 1,
+    "H27_claim_maximum": 1,
+    "single_use": true,
+    "retry_allowed": false,
+    "objects_created_now": 0
+  },
+  "kill_rules": {
+    "P0_contract_or_identifiability_failure": "H27_PREREGISTRATION_OR_IDENTIFIABILITY_INVALID",
+    "P1_certificate_hypothesis_failure": "H27_CERTIFICATE_HYPOTHESIS_NOT_DEMONSTRATED",
+    "P2_robustness_failure": "H27_ROBUSTNESS_NOT_DEMONSTRATED",
+    "operational_failure_after_future_claim": "H27_EXECUTION_INCONCLUSIVE",
+    "stop_after_first_failed_test": true,
+    "later_tests_marked_not_run": true,
+    "retry_allowed": false,
+    "future_test_ids_defined_now": false
+  },
+  "phase_interdictions": [
+    "modify any configs/harmonic_censoring_h26_* file",
+    "modify src/** or tests/**",
+    "access or modify /Users/amcarene/h26-admin/**",
+    "create executable H27 fixtures or an operational test manifest",
+    "copy mutate or materialize a population",
+    "run FFT NNLS engine recomputer materializer or synthetic tests",
+    "create capability runtime authority scientific authority claim or receipt",
+    "implement the role-aware silence rule",
+    "change certificate thresholds",
+    "authorize locked-test training calibration or model work"
+  ],
+  "next_action": "External review of the H27 preregistration before any fixture or test-manifest design"
+}
