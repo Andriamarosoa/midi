@@ -10,3 +10,7 @@ copie, deepcopy, sérialisation, reset, retry et seconde exécution sont interdi
 
 Aucune authority/capability n’a été émise ou consommée et aucune population,
 waveform, phase scientifique, donnée réelle ou locked-test n’a été utilisée.
+
+Après revue, un second binding OS transporte obligatoirement le SHA-256 externe
+des bytes du futur seal ; il est vérifié avant parsing. Les cinq Git blobs et
+le blob materializer approuvé sont aussi recalculés depuis `HEAD:<path>`.

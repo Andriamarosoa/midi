@@ -52,6 +52,9 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   capability. Son wrapper consommerait l’autorité avant délégation et interdit
   copie/retry/réutilisation. Rapport :
   `readme/results/2026-08-11_harmonic-censoring-h25-materialization-authority-dormant.md`.
+- Le futur issuer exige en plus un SHA-256 du seal transporté extérieurement
+  par une seconde variable OS et le vérifie avant parsing. Il revalide aussi
+  les cinq Git blobs et le blob materializer depuis `HEAD:<path>`.
 - Les manifests H25 définissent exactement `36` fixtures neuves, équilibrées
   `12 positive / 12 negative / 12 ambiguous`, et `27` tests ordonnés
   `9 P0 / 9 P1 / 9 P2`. P1 consomme chaque fixture exactement une fois ;

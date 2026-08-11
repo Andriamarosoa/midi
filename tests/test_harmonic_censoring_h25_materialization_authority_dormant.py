@@ -1,6 +1,7 @@
 import copy
 import inspect
 import json
+import os
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -47,6 +48,18 @@ class H25MaterializationAuthorityDormantTests(unittest.TestCase):
         self.assertLess(source.index("_validate_future_seal"), source.index("load_dormant_plan"))
         self.assertLess(source.index("require_reference_environment_before_numpy"), source.index("H25MaterializationCapability"))
         self.assertLess(source.index("_ISSUED = True"), source.index("return wrapper"))
+        validator = inspect.getsource(authority._validate_future_seal)
+        self.assertLess(validator.index("hashlib.sha256(raw)"), validator.index("parse_sealed_json"))
+        self.assertIn("AUTHORIZATION_SEAL_SHA256_ENV", validator)
+        self.assertIn("HEAD:{binding['path']}", validator)
+        self.assertIn("HEAD:src/polyphonic/harmonic_censoring_h25_population_materializer.py", validator)
+
+    def test_external_seal_digest_fails_before_json_parsing(self):
+        with mock.patch.object(authority.materializer, "parse_sealed_json") as parse:
+            with mock.patch.dict(os.environ, {}, clear=True):
+                with self.assertRaisesRegex(PermissionError, "external SHA binding"):
+                    authority._validate_future_seal(ROOT, b"{}")
+            parse.assert_not_called()
 
 
 if __name__ == "__main__":

@@ -26,6 +26,7 @@
   },
   "future_OS_binding": {
     "environment_variable": "H25_POPULATION_MATERIALIZATION_AUTHORIZATION_COMMIT",
+    "external_seal_sha256_environment_variable": "H25_POPULATION_MATERIALIZATION_AUTHORIZATION_SEAL_SHA256",
     "present_or_set_by_this_commit": false,
     "must_equal_future_activation_commit": true
   },

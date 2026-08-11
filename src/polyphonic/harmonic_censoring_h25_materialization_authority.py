@@ -18,6 +18,7 @@ from . import harmonic_censoring_h25_population_materializer as materializer
 AUTHORITY_CONTRACT = Path("configs/harmonic_censoring_h25_population_materialization_one_shot_authority_contract.json")
 AUTHORIZATION_SEAL = Path("configs/harmonic_censoring_h25_population_materialization_authorization_seal.json")
 AUTHORIZATION_ENV = "H25_POPULATION_MATERIALIZATION_AUTHORIZATION_COMMIT"
+AUTHORIZATION_SEAL_SHA256_ENV = "H25_POPULATION_MATERIALIZATION_AUTHORIZATION_SEAL_SHA256"
 REVIEWED_MATERIALIZER_COMMIT = "0036853ff6c9c49dda6ed3767146b16db310589f"
 REVIEWED_MATERIALIZER_BLOB = "77bebf42e343771acca390c848962fbd05fde3c3"
 _ISSUE_LOCK = threading.Lock()
@@ -29,6 +30,9 @@ def _git(root: Path, *args: str) -> str:
 
 
 def _validate_future_seal(root: Path, raw: bytes) -> dict[str, object]:
+    external_digest = os.environ.get(AUTHORIZATION_SEAL_SHA256_ENV)
+    if external_digest is None or hashlib.sha256(raw).hexdigest() != external_digest:
+        raise PermissionError("H25 authorization seal external SHA binding mismatch before parsing.")
     seal = materializer.parse_sealed_json(raw, "materialization authorization seal")
     expected_fields = {
         "schema_version", "purpose", "status", "authorized_action", "activation_commit",
@@ -62,6 +66,11 @@ def _validate_future_seal(root: Path, raw: bytes) -> dict[str, object]:
     }
     if seal.get("sealed_input_raw_sha256") != actual_hashes:
         raise ValueError("H25 sealed input hash map mismatch.")
+    for name, binding in contract["sealed_git_blobs"].items():
+        if _git(root, "rev-parse", f"HEAD:{binding['path']}") != binding["git_blob"]:
+            raise ValueError(f"H25 sealed input Git blob mismatch for {name}.")
+    if _git(root, "rev-parse", "HEAD:src/polyphonic/harmonic_censoring_h25_population_materializer.py") != REVIEWED_MATERIALIZER_BLOB:
+        raise ValueError("H25 materializer HEAD blob mismatch.")
     return seal
 
 
