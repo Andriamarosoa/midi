@@ -14,12 +14,18 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: one operational activation issued at STOP 2; external review required before runtime authority claim or observer. -->
+<!-- H26_CORRECTION_STATUS: STOP 2 activation intact; operational runtime entrypoint implemented; external review required before authority claim or observer. -->
 ## État courant
 
 - Mise à jour : `2026-08-12`.
 - État courant :
-  `H26_RUNTIME_ACTIVATION_ISSUED_STOP_2_PENDING_EXTERNAL_REVIEW_BEFORE_RUNTIME_OBSERVER`.
+  `H26_RUNTIME_OPERATIONAL_ENTRYPOINT_IMPLEMENTED_STOP_2_PENDING_EXTERNAL_REVIEW_BEFORE_CONSUMPTION`.
+- La frontière opérationnelle runtime one-shot est implémentée additivement,
+  liée à l'activation STOP 2 et limitée à authority -> claim -> evidence dans la
+  boundary -> observer privé -> record -> receipt final. Les tests utilisent
+  uniquement une observation synthétique et des répertoires temporaires ;
+  l'activation réelle reste inutilisée. Rapport :
+  `readme/results/2026-08-12_harmonic-censoring-h26-runtime-operational-entrypoint-stop2.md`.
 - STOP 1 a été approuvé sur `dee520da...`. L'activation H26 unique a ensuite
   été publiée sur le Mac : 26 champs canoniques, 1 735 octets, mode `0600`,
   SHA-256 `f96a811b...`, staging absent. L'exécution s'est arrêtée avant toute
@@ -27,7 +33,8 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `readme/results/2026-08-12_harmonic-censoring-h26-runtime-activation-issued-stop2.md`.
 - L'ancien processus passif H24 `49567` a été arrêté proprement ; aucun processus
   H24/H26 ni `active.lock` ne subsiste. Les checkouts Mac `~/midi` et
-  `~/midi-worker/repository` sont propres et synchronisés à `fcb6992c...`.
+  `~/midi-worker/repository` ont été resynchronisés au dernier HEAD de chaque
+  point d'arrêt vérifié ; le SHA exact est archivé dans le rapport correspondant.
 - La frontière opérationnelle one-shot de publication d'activation est
   implémentée avec racine `/Users/amcarene/h26-admin`, issuer
   `h26-execution-codex-mac-primary`, requête canonique sur stdin, acknowledgement
