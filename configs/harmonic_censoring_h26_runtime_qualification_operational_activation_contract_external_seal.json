@@ -1,0 +1,31 @@
+{
+  "seal_schema_identity": "H26_RUNTIME_QUALIFICATION_OPERATIONAL_ACTIVATION_CONTRACT_EXTERNAL_SEAL_V1",
+  "seal_schema_version": 1,
+  "status": "DECLARATIVE_DORMANT_EXTERNAL_CONTRACT_SEAL_NO_ACTIVATION_NO_EXECUTION",
+  "activation_contract_commit": "d8d71bad9aee560d3406e672e7ebc6c2cf11dbff",
+  "activation_contract_git_blob_sha": "c6eac6ae2d05b99a1a5b88594dea473739904dd8",
+  "activation_contract_git_blob_byte_length": 16050,
+  "activation_contract_raw_sha256": "ad3fd1a381022a8f0e79af2a2656daf327d3ef857a86a0cb55a611cb41e83c01",
+  "raw_sha256_definition": "lowercase_hex(SHA256(exact bytes of the bound Git blob c6eac6ae2d05b99a1a5b88594dea473739904dd8))",
+  "seal_contains_own_raw_sha256": false,
+  "activation_contract_contains_own_raw_sha256": false,
+  "current_state": {
+    "activation_exists": false,
+    "issuer_exists": false,
+    "capability_exists": false,
+    "administrative_root": null,
+    "runtime_authority_exists": false,
+    "claim_exists": false,
+    "observer_entry_evidence_exists": false,
+    "observer_invoked": false,
+    "observer_invocation_count": 0,
+    "runtime_record_exists": false,
+    "receipt_exists": false,
+    "runtime_execution_authorized": false,
+    "materialization_authorized": false,
+    "scientific_execution_authorized": false,
+    "locked_test_used": false
+  },
+  "creation_authorized_now": false,
+  "next_action": "External review of this declarative external seal only; no activation validator issuer capability filesystem runtime or science is authorized"
+}

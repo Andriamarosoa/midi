@@ -14,12 +14,17 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: dormant runtime qualification operational activation contract defined; external review required; no activation or execution. -->
+<!-- H26_CORRECTION_STATUS: dormant runtime qualification operational activation contract externally sealed; external review required; no activation or execution. -->
 ## État courant
 
 - Mise à jour : `2026-08-11`.
 - État courant :
-  `H26_RUNTIME_QUALIFICATION_OPERATIONAL_ACTIVATION_CONTRACT_DORMANT_PENDING_EXTERNAL_REVIEW`.
+  `H26_RUNTIME_QUALIFICATION_OPERATIONAL_ACTIVATION_CONTRACT_EXTERNAL_SEAL_DORMANT_PENDING_EXTERNAL_REVIEW`.
+- Le seal externe dormant lie les 16 050 octets exacts du contrat d'activation
+  corrige `d8d71bad...` / blob `c6eac6ae...` au SHA-256
+  `ad3fd1a3...`. Le seal ne contient pas son propre SHA et tous les etats
+  activation/runtime/science restent `false`, `null` ou zero. Rapport :
+  `readme/results/2026-08-11_harmonic-censoring-h26-runtime-qualification-operational-activation-contract-external-seal.md`.
 - Le contrat dormant d'activation operationnelle du runtime H26 definit un
   objet futur ferme de 26 champs, une racine POSIX future, les chemins derives
   authority/claim/evidence/record/receipt, leur publication create-exclusive
@@ -2358,6 +2363,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-11 — implémentation dormante du validateur d'artefact d'autorité H26](results/2026-08-11_harmonic-censoring-h26-materialization-authority-artifact-validator-dormant-implementation.md)
 - [2026-08-11 — clôture de revue du validateur dormant d'artefact d'autorité H26](results/2026-08-11_harmonic-censoring-h26-materialization-authority-artifact-validator-review-closure.md)
 - [2026-08-11 — contrat dormant d'activation opérationnelle du runtime H26](results/2026-08-11_harmonic-censoring-h26-runtime-qualification-operational-activation-contract.md)
+- [2026-08-11 — seal externe du contrat dormant d'activation runtime H26](results/2026-08-11_harmonic-censoring-h26-runtime-qualification-operational-activation-contract-external-seal.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)
