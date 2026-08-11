@@ -2431,6 +2431,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-11 — contrat correctif additif de l'ordre observer-entry H26](results/2026-08-11_harmonic-censoring-h26-runtime-observer-entry-order-correction-contract.md)
 - [2026-08-11 — seal externe du correctif observer-entry H26](results/2026-08-11_harmonic-censoring-h26-runtime-observer-entry-order-correction-external-seal.md)
 - [2026-08-11 — overlay correctif de l'ordre observer-entry H26](results/2026-08-11_harmonic-censoring-h26-runtime-observer-entry-order-correction-overlay.md)
+- [2026-08-11 — correction du SHA documentaire R5 dans l'overlay H26](results/2026-08-11_harmonic-censoring-h26-runtime-observer-entry-order-overlay-sha-correction.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)

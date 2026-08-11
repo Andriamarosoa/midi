@@ -8,7 +8,7 @@ historiques. Il designe comme effectifs :
 
 - R3 `01c3220f22974ebe8aa0cd3d49116a1d919dc26c` : contrat d'ordre corrige ;
 - R4 `201fcbffadd8a4c3c3bfceaa9d821229cddb3ac6` : seal externe de R3 ;
-- R5 `23889bc381a689328b4d7104ace45cf19313aafe` : loader strict et deep-frozen ;
+- R5 `23889bc9480a6dd985d4fed56ab9b3d54528f98a` : loader strict et deep-frozen ;
 - R6 `4552f38fcc9e91f7fd880649d4e595e5030f8452` : orchestrateur injecte corrige.
 
 L'ordre futur effectif cree l'evidence a l'interieur de la boundary observer,
@@ -22,3 +22,8 @@ locked-test n'a ete utilise.
 
 Prochaine action : revue externe sequentielle R3 a R7, puis reprise a C8 si
 l'overlay est approuve.
+
+Correction additive R8 : le commit R7
+`5906b3ebe0a8c7ee2fb95382c8b0382d44ee906f` developpait incorrectement le
+prefixe R5. Le SHA complet ci-dessus est celui verifie par `git rev-parse`.
+Aucun code ni binding de blob n'a change.

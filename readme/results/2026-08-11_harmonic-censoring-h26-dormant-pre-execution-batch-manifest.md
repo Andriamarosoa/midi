@@ -87,7 +87,7 @@ historiques C7/C8/C9/R1-C9/C10 restent intacts.
 - R3 `01c3220f22974ebe8aa0cd3d49116a1d919dc26c` corrige seulement le contrat
   d'ordre ;
 - R4 `201fcbffadd8a4c3c3bfceaa9d821229cddb3ac6` scelle R3 ;
-- R5 `23889bc381a689328b4d7104ace45cf19313aafe` charge strictement R4/R3 et
+- R5 `23889bc9480a6dd985d4fed56ab9b3d54528f98a` charge strictement R4/R3 et
   preserve la provenance C7 ;
 - R6 `4552f38fcc9e91f7fd880649d4e595e5030f8452` cree et valide l'evidence dans
   la boundary avant l'unique tentative observer ;
@@ -95,3 +95,6 @@ historiques C7/C8/C9/R1-C9/C10 restent intacts.
 
 Motif unique : `OBSERVER_ENTRY_EVIDENCE_ORDER_CORRECTION_ONLY`. Aucun runtime
 reel, calcul scientifique ou locked-test n'a ete execute.
+
+R8 corrige additivement le developpement documentaire du SHA complet R5 dans
+R7; le prefixe, le commit reel et le blob loader etaient inchanges.
