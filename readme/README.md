@@ -17,8 +17,20 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-11`.
-- Étape : `harmonic_censoring_h25_successor_decision_contract`.
-- Statut : `contrat H25 seulement; H24 reste inconclusive consommée sans retry; qualification du cycle one-shot obligatoire avant toute nouvelle hypothèse ou population scientifique`.
+- Étape : `harmonic_censoring_h25_preclaim_administrative_lifecycle_harness`.
+- Statut : `harness administratif jetable implémenté et testé synthétiquement; aucune qualification enregistrée exécutée; revue externe obligatoire avant toute utilisation`.
+- Le harness H25 standard-library-only implémente un namespace `h25-admin-*`,
+  un claim substitutif `O_EXCL`, un transcript chaîné, trois preuves de
+  frontière, les fermetures success/failure/inconclusive et un reçu forensique
+  pour les échecs de publication. Il ne peut émettre aucune capability ou
+  claim scientifique, importer NumPy, ouvrir une population ou créer un
+  processus enfant.
+- Les `19` scénarios préenregistrés couvrent le nominal, la failure logique,
+  l'erreur opérationnelle, EOF, déconnexion SSH, `SIGINT`, les timeouts de
+  chaque phase et les échecs evidence/transcript/terminal/rename. `14` tests
+  synthétiques réussissent en `1,003 s`; aucune qualification réelle n'a été
+  lancée. Rapport :
+  `readme/results/2026-08-11_harmonic-censoring-h25-preclaim-administrative-lifecycle-harness.md`.
 - Après approbation de la clôture H24, H25 réserve une première étape purement
   administrative : qualifier de bout en bout le cycle capability, claim,
   phases et fermetures dans un seul processus revu. Le futur contrôle devra
@@ -1929,6 +1941,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-10 — manifests et plan de test complet H24 sans synthèse](results/2026-08-10_harmonic-censoring-h24-manifests-full-test-plan.md)
 - [2026-08-11 — clôture forensique H24 inconclusive, one-shot consommé sans P0](results/2026-08-11_harmonic-censoring-h24-final-forensic-inconclusive-closure.md)
 - [2026-08-11 — contrat de décision successeur H25 après consommation H24](results/2026-08-11_harmonic-censoring-h25-successor-decision-contract.md)
+- [2026-08-11 — implémentation du harness administratif pré-claim H25](results/2026-08-11_harmonic-censoring-h25-preclaim-administrative-lifecycle-harness.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)
