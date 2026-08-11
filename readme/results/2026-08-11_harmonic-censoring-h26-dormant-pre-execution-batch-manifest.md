@@ -61,3 +61,19 @@ Les deux groupes prescrits ci-dessus passent indépendamment.
 - locked-test : non.
 
 Le prochain acte est exclusivement la revue externe progressive de C1 à C19.
+
+## Overlay correctif additif après rejet de C1
+
+C1 a été rejeté pour immutabilité imbriquée incomplète. Aucun commit du lot
+n'a été amendé, rebasé ou réécrit.
+
+- R1 `35f269e0b0abb75d23fb22750a95a724ff794d61` corrige uniquement les cinq
+  loaders C1/C4/C9/C13/C18 et leurs tests par gel JSON récursif.
+- R2 enregistre les blobs historiques et les nouveaux blobs effectifs dans
+  `configs/harmonic_censoring_h26_dormant_batch_deep_immutability_correction.json`.
+- motif unique : `DEEP_IMMUTABILITY_CORRECTION_ONLY`.
+- état : `R1_R2_PENDING_EXTERNAL_REVIEW`; la revue de C2 ne reprend pas avant
+  approbation de ces deux corrections.
+
+Aucun byte JSON déjà scellé, aucune règle scientifique/lifecycle/failure et
+aucun état opérationnel n'ont été modifiés ou exécutés.

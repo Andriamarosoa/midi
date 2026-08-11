@@ -2427,6 +2427,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-11 — loader dormant du seal scientifique H26](results/2026-08-11_harmonic-censoring-h26-scientific-execution-contract-seal-loader.md)
 - [2026-08-11 — runner scientifique dormant H26 avec fonctions factices](results/2026-08-11_harmonic-censoring-h26-scientific-runner-dormant.md)
 - [2026-08-11 — manifeste terminal du lot H26 pré-exécution dormant](results/2026-08-11_harmonic-censoring-h26-dormant-pre-execution-batch-manifest.md)
+- [2026-08-11 — correction additive d'immutabilité profonde du lot dormant H26](results/2026-08-11_harmonic-censoring-h26-dormant-batch-deep-immutability-correction.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)
