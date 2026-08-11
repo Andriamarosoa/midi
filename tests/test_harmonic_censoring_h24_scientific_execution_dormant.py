@@ -148,7 +148,7 @@ class H24ScientificExecutionDormantTests(unittest.TestCase):
         )
         self.assertEqual(
             tuple(contract["contract_definition_exact_changed_files"]),
-            capability.H24_REPLACEMENT_SEAL_TOPOLOGY_CORRECTION_EXACT_CHANGED_FILES,
+            capability.H24_TERMINAL_BINDING_CORRECTION_EXACT_CHANGED_FILES,
         )
         capability._validate_scientific_path_topology(
             ROOT,

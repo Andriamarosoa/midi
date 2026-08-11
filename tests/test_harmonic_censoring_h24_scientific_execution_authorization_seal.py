@@ -23,7 +23,7 @@ class H24ScientificExecutionAuthorizationSealTests(unittest.TestCase):
         cls.payload = json.loads(cls.raw)
         normalized = copy.deepcopy(cls.payload)
         normalized["bindings"]["exact_changed_files"] = list(
-            capability.H24_REPLACEMENT_SEAL_TOPOLOGY_CORRECTION_EXACT_CHANGED_FILES
+            capability.H24_TERMINAL_BINDING_CORRECTION_EXACT_CHANGED_FILES
         )
         cls.seal = capability._validate_seal(
             normalized, hashlib.sha256(cls.raw).hexdigest()
@@ -50,7 +50,7 @@ class H24ScientificExecutionAuthorizationSealTests(unittest.TestCase):
         bindings = self.payload["bindings"]
         self.assertEqual(
             bindings["implementation_commit"],
-            "22bf87831838fa0c0467ae1f54be788c91d47951",
+            "f7c7d547cc2c33619ad5d0407b03219f3ec9c26d",
         )
         actual = tuple(
             item
@@ -74,7 +74,7 @@ class H24ScientificExecutionAuthorizationSealTests(unittest.TestCase):
         )
         self.assertEqual(
             tuple(bindings["exact_changed_files"]),
-            capability.H24_IMPLEMENTATION_EXACT_CHANGED_FILES,
+            capability.H24_REPLACEMENT_SEAL_TOPOLOGY_CORRECTION_EXACT_CHANGED_FILES,
         )
 
     def test_historical_seal_is_rejected_by_replacement_topology_validator(self) -> None:
@@ -84,7 +84,7 @@ class H24ScientificExecutionAuthorizationSealTests(unittest.TestCase):
             )
         self.assertNotEqual(
             tuple(self.payload["bindings"]["exact_changed_files"]),
-            capability.H24_REPLACEMENT_SEAL_TOPOLOGY_CORRECTION_EXACT_CHANGED_FILES,
+            capability.H24_TERMINAL_BINDING_CORRECTION_EXACT_CHANGED_FILES,
         )
 
     def test_all_five_executable_blobs_are_exact_but_contract_binding_is_stale(self) -> None:

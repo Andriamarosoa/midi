@@ -1,7 +1,7 @@
 {
-  "schema_version": 9,
+  "schema_version": 10,
   "purpose": "harmonic_censoring_h24_scientific_execution_authorization_contract",
-  "status": "replacement_seal_topology_validation_and_dormant_authority_bindings_corrected_external_review_required",
+  "status": "published_population_terminal_SHA_binding_and_dormant_authority_bindings_corrected_external_review_required",
   "authorization_basis": {
     "reviewed_activation_commit": "e7c2eecf49ede43b3334266c74b1fe438f9e793d",
     "external_verdict": "APPROVED_H24_MATERIALIZED_POPULATION_PUBLICATION_AUDIT",
@@ -14,7 +14,8 @@
     "evidence_producer_correction_authorized_action": "AUTHORIZED_TO_CORRECT_H24_EXACT_72_EVIDENCE_PRODUCER_BINDINGS_AND_NO_RESYNTHESIS_ONLY",
     "activation_HEAD_binding_correction_authorized_action": "AUTHORIZED_TO_CORRECT_H24_OS_BOUND_ACTIVATION_HEAD_SOURCE_AND_PREDECESSOR_CONTRACT_BINDINGS_ONLY",
     "population_marker_SHA_binding_correction_authorized_action": "AUTHORIZED_TO_CORRECT_H24_PUBLISHED_POPULATION_MARKER_SHA_BINDING_AND_DORMANT_IMPLEMENTATION_BINDINGS_ONLY",
-    "replacement_seal_topology_validation_correction_authorized_action": "AUTHORIZED_TO_CORRECT_H24_REPLACEMENT_SEAL_TOPOLOGY_VALIDATION_AND_REBASE_DORMANT_AUTHORITY_BINDINGS_ONLY"
+    "replacement_seal_topology_validation_correction_authorized_action": "AUTHORIZED_TO_CORRECT_H24_REPLACEMENT_SEAL_TOPOLOGY_VALIDATION_AND_REBASE_DORMANT_AUTHORITY_BINDINGS_ONLY",
+    "population_terminal_SHA_binding_correction_authorized_action": "AUTHORIZED_TO_CORRECT_H24_PUBLISHED_POPULATION_TERMINAL_SHA_BINDING_AND_REBASE_DORMANT_AUTHORITY_BINDINGS_ONLY"
   },
   "scope": {
     "contract_only": false,
@@ -56,7 +57,7 @@
     "staging_directory": "tmp/local/harmonic_censoring_h24_synthetic_v1/population.materializing",
     "terminal": {
       "path": "tmp/local/harmonic_censoring_h24_synthetic_v1/materialization_terminal.json",
-      "raw_sha256": "50ec58c81d1a0ae533599676536d141c7f98ac337686c1baf66517bc3e39c54eb",
+      "raw_sha256": "50ec58c81d1a0ae53359676536d141c7f98ac337686c1baf66517bc3e39c54eb",
       "byte_count": 591,
       "status": "H24_SYNTHETIC_V1_POPULATION_MATERIALIZED"
     },
@@ -418,7 +419,6 @@
     "result_may_access_real_data_or_locked_test": false
   },
   "contract_definition_exact_changed_files": [
-    ".gitattributes",
     "configs/harmonic_censoring_h24_scientific_execution_authorization_contract.json",
     "readme/README.md",
     "readme/results/2026-08-10_harmonic-censoring-h24-scientific-execution-authorization-contract.md",
@@ -429,7 +429,7 @@
     "tests/test_harmonic_censoring_h24_scientific_execution_authorization_seal.py"
   ],
   "required_next_sequence": [
-    "external_review_replacement_seal_topology_validation_correction_commit",
+    "external_review_population_terminal_SHA_binding_correction_commit",
     "separate_replacement_scientific_authorization_seal_and_activation",
     "OS_bound_exact_activation_commit",
     "zero_science_population_preflight",

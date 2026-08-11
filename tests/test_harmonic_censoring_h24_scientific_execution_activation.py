@@ -28,7 +28,7 @@ class H24ScientificExecutionActivationTests(unittest.TestCase):
         cls.seal_payload = json.loads(cls.seal_raw)
         normalized = copy.deepcopy(cls.seal_payload)
         normalized["bindings"]["exact_changed_files"] = list(
-            capability.H24_REPLACEMENT_SEAL_TOPOLOGY_CORRECTION_EXACT_CHANGED_FILES
+            capability.H24_TERMINAL_BINDING_CORRECTION_EXACT_CHANGED_FILES
         )
         cls.seal = capability._validate_seal(
             normalized, hashlib.sha256(cls.seal_raw).hexdigest()
@@ -49,7 +49,7 @@ class H24ScientificExecutionActivationTests(unittest.TestCase):
         )
         self.assertEqual(
             self.activation.seal_sha256,
-            "818e53cd510bdd5b055372ad213e1a76d83af2d74adee7d158626b3f85346c61",
+            "b522b073522ebc57d25953d599a1c2575441c3b23d0d9029a11e6a5045968ce6",
         )
         self.assertEqual(
             self.activation.seal_path, capability.H24_SCIENTIFIC_SEAL_RELATIVE_PATH

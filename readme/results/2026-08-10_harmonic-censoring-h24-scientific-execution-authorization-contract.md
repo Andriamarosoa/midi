@@ -373,3 +373,40 @@ H20, soit `222` tests réussis. `py_compile` et `git diff --check` réussissent.
 Uniquement la revue externe de ce commit dormant. Aucun remplacement de seal,
 activation, binding OS, issuer, capability, claim, population decode,
 P0/P1/P2, H17, locked-test, modèle, calibration ou training n'est autorisé.
+
+## Incident du SHA terminal publié et correction de l'autorité dormante
+
+Après remplacement et revue du seal/activation puis binding OS au commit
+`06ce707537baa6cdc380a8f24bf23780891d5bf6`, l'invocation zéro-science
+autorisée de l'issuer a échoué fail-closed avant capability avec
+`H24 population terminal SHA mismatch`.
+
+Le diagnostic brut, sans relance, a établi :
+
+- terminal publié : `591` octets ;
+- SHA-256 réel :
+  `50ec58c81d1a0ae53359676536d141c7f98ac337686c1baf66517bc3e39c54eb` ;
+- valeur du contrat schéma `9` : `65` caractères ;
+- claim, success et terminal scientifiques absents ;
+- aucun décodage waveform, P0/P1/P2 ou retry.
+
+La portée
+`AUTHORIZED_TO_CORRECT_H24_PUBLISHED_POPULATION_TERMINAL_SHA_BINDING_AND_REBASE_DORMANT_AUTHORITY_BINDINGS_ONLY`
+corrige ce digest sans modifier le terminal publié. Le contrat passe au schéma
+`10`, SHA-256
+`89311ecd7afdc9b26ce4e6b0c09b52da22f4cf77e57694973e27f3a0056dd95a`.
+Le validateur de seal exige dès ce commit la nouvelle topologie exacte, afin que
+le prochain seal puisse honnêtement lier son nouveau blob capability.
+
+Seal, activation et binding OS précédents restent physiquement inchangés mais
+obsolètes. Runner, producteurs, `72` mesures, `18` overrides, manifests,
+population et terminal publié restent inchangés.
+
+La vérification administrative comprend `215` tests H24/H23 et `7` gardes
+H20, soit `222` tests réussis. `py_compile` et `git diff --check` réussissent.
+
+## Étape suivante
+
+Uniquement la revue externe du commit correctif. Aucun nouveau seal/activation,
+binding OS, issuer, capability, claim, population decode, P0/P1/P2, H17,
+locked-test, modèle, calibration ou training n'est autorisé.

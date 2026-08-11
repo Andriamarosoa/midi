@@ -17,8 +17,22 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-11`.
-- Étape : `harmonic_censoring_h24_replacement_seal_topology_validation_correction`.
-- Statut : `SHA marker corrigé; validateur du futur seal rebasé sur la topologie corrective exacte; anciennes autorités obsolètes; nouveau seal pas encore créé; aucune relance scientifique autorisée`.
+- Étape : `harmonic_censoring_h24_population_terminal_SHA_binding_correction`.
+- Statut : `préflight zéro-science encore échoué fail-closed avant capability; SHA terminal corrigé et autorité dormante rebasée; seal/activation/OS précédents obsolètes; aucune relance scientifique autorisée`.
+- Après le remplacement du seal/activation et leur binding OS au commit
+  `06ce7075…`, l'invocation zéro-science autorisée a échoué avant capability
+  avec `H24 population terminal SHA mismatch`. Le terminal publié de `591`
+  octets a le SHA-256 réel
+  `50ec58c81d1a0ae53359676536d141c7f98ac337686c1baf66517bc3e39c54eb` ;
+  le contrat schéma `9` contenait encore une valeur impossible de `65`
+  caractères. Aucun claim, decode ou test scientifique n'a eu lieu.
+- La portée corrective remplace uniquement ce digest, passe le contrat au
+  schéma `10` SHA-256
+  `89311ecd7afdc9b26ce4e6b0c09b52da22f4cf77e57694973e27f3a0056dd95a`
+  et rebascule immédiatement le validateur de seal sur la nouvelle topologie
+  exacte de ce commit. Le futur seal devra lier ce nouveau commit et son blob
+  capability ; aucun seal n'est créé ici. La suite administrative H24/H23/H20
+  réussit avec `222` tests ; `py_compile` et `git diff --check` réussissent.
 - La revue du commit `696a94ea…` a approuvé le SHA marker corrigé, puis a
   confirmé qu'un nouveau seal honnête à 8 fichiers aurait encore été rejeté
   par `_validate_seal()`, qui exigeait l'ancienne topologie à 6 fichiers.
