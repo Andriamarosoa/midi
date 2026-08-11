@@ -16,9 +16,9 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 <!-- CURRENT_STATUS_START -->
 ## État courant
 
-- Mise à jour : `2026-08-10`.
-- Étape : `harmonic_censoring_h24_scientific_execution_authorization_contract`.
-- Statut : `capability, runner, transcript et finalizer H24 implémentés mais dormants; producteurs scientifiques absents; aucune autorité P0/P1/P2`.
+- Mise à jour : `2026-08-11`.
+- Étape : `harmonic_censoring_h24_exact_72_evidence_producers`.
+- Statut : `72 producteurs de preuves H24 implémentés mais dormants; aucun seal, activation, claim ou calcul P0/P1/P2`.
 - `H24_SYNTHETIC_V1` est publié sur le Mac avec `175` fixtures, `525`
   fichiers fixture, index `b45b63c4…`, receipt `8a8128dc…`, marker
   `3185adfd…` et terminal `50ec58c8…`; l'audit read-only confirme tous les
@@ -49,6 +49,16 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   que trois descendances canoniques : `success→transcript`,
   `success→evidence` et `staging→transcript.part`. Le contrat schéma `4` a
   le SHA-256 `4d33f80b…`; aucune voie scientifique n'a été activée.
+  La revue externe a ensuite autorisé uniquement
+  `AUTHORIZED_TO_DEFINE_AND_IMPLEMENT_H24_EXACT_72_EVIDENCE_PRODUCERS_ONLY`.
+  Le registre ordonné couvre maintenant exactement les `72` tests. A01 produit
+  indépendamment le graphe typé fermé et ses sept mutations inverses; les `71`
+  successeurs restants adaptent les noyaux de mesure H23 déjà versionnés aux
+  waveforms/targets H24 vérifiés, sans resynthèse et sans verdict producteur.
+  L'import construit seulement les callables : aucun producteur n'est appelé.
+  Le contrat schéma `5` a le SHA-256 `879cadea…`.
+  Le seal et l'activation restent absents, donc l'issuer public échoue toujours
+  avant registre, population, NumPy ou claim.
   Aucun evaluator/oracle, P0/P1/P2, donnée réelle, H17, locked-test ou training
   n'est autorisé. Rapport :
   `readme/results/2026-08-10_harmonic-censoring-h24-scientific-execution-authorization-contract.md`.

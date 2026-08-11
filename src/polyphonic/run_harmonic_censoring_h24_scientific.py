@@ -1,8 +1,7 @@
 """Dormant H24 scientific runner and persisted-proof finalizer.
 
-Evidence production is intentionally unavailable in this commit.  The public
-entry therefore fails before the durable scientific claim.  Transcript,
-evidence and finalizer primitives are implemented for static/mock review only.
+The exact 72 evidence producers are present, but the public issuer still fails
+before population access because no reviewed seal or activation exists.
 """
 from __future__ import annotations
 
@@ -17,6 +16,10 @@ from typing import Mapping, Sequence
 
 from .harmonic_censoring_h24 import H24DormantHarnessPlan, load_h24_dormant_harness_plan
 from .harmonic_censoring_h24_operators import recompute_h24_persisted_evidence
+from .harmonic_censoring_h24_evidence_producers import (
+    H24_EXACT_EVIDENCE_PRODUCER_REGISTRY,
+    build_h24_evidence_producer_context,
+)
 from .harmonic_censoring_h24_scientific_capability import (
     AttestedH24ScientificExecutionCapability,
     claim_h24_scientific_execution,
@@ -27,7 +30,7 @@ from .harmonic_censoring_h24_scientific_capability import (
 
 
 H24_DORMANT_SCIENTIFIC_RUNNER_IMPLEMENTED = True
-H24_EVIDENCE_PRODUCER_REGISTRY_IMPLEMENTED = False
+H24_EVIDENCE_PRODUCER_REGISTRY_IMPLEMENTED = True
 H24_SUCCESS_STATUS = "AUTHORIZED_TO_PREPARE_H24_TRAIN_PROTOCOL"
 H24_P0_KILL_STATUS = "H24_SYNTHETIC_HYPOTHESIS_KILLED"
 H24_READINESS_STATUS = "H24_PRETRAIN_READINESS_NOT_DEMONSTRATED"
@@ -78,13 +81,15 @@ class _H24ScientificContext:
     fixture_waveforms: Mapping[str, object]
 
 
-_H24_EVIDENCE_PRODUCER_REGISTRY: Mapping[str, object] = MappingProxyType({})
+_H24_EVIDENCE_PRODUCER_REGISTRY: Mapping[str, object] = (
+    H24_EXACT_EVIDENCE_PRODUCER_REGISTRY
+)
 
 
 def _require_complete_producer_registry(plan: H24DormantHarnessPlan) -> Mapping[str, object]:
     if tuple(_H24_EVIDENCE_PRODUCER_REGISTRY) != plan.test_ids:
         raise PermissionError(
-            "H24 evidence producers remain dormant; scientific claim is forbidden."
+            "H24 evidence producer registry differs from the exact sealed test plan."
         )
     if any(not callable(value) for value in _H24_EVIDENCE_PRODUCER_REGISTRY.values()):
         raise PermissionError("H24 evidence producer registry contains a non-callable.")
@@ -569,7 +574,7 @@ def _finalize_h24_ordinary_operational_failure(
 
 
 def run_authorized_h24_scientific_execution(repository_root: Path, capability: object) -> Path:
-    """Future one-shot entry; fail before claim while producers are dormant."""
+    """Future one-shot entry; issuer remains dormant without seal/activation."""
 
     checked = require_attested_h24_scientific_capability(capability)
     repository = Path(repository_root).resolve(strict=True)
@@ -583,7 +588,14 @@ def run_authorized_h24_scientific_execution(repository_root: Path, capability: o
         np = importlib.import_module("numpy")
         if getattr(np, "__version__", None) != "1.26.4":
             raise RuntimeError("H24 runner requires exact NumPy 1.26.4.")
-        context = _load_published_population_after_claim(np, claimed)
+        population = _load_published_population_after_claim(np, claimed)
+        context = build_h24_evidence_producer_context(
+            np=np,
+            repository_root=repository,
+            h24_plan=plan,
+            fixture_targets=population.fixture_targets,
+            fixture_waveforms=population.fixture_waveforms,
+        )
         for test in plan.tests:
             producer = producers[test.test_id]
             evidence = producer(context, test)

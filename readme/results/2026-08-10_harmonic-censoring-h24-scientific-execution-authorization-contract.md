@@ -146,7 +146,34 @@ réussissent également.
 
 ## Étape suivante
 
-Uniquement la revue externe du commit d'implémentation dormant exact. Une
-autorisation séparée sera nécessaire avant de définir les `72` producteurs
-scientifiques, puis un autre cycle sera requis pour seal/activation. P0/P1/P2
-restent interdits.
+## Implémentation exacte des 72 producteurs, toujours dormante
+
+La revue externe du correctif topologique a accordé exactement
+`AUTHORIZED_TO_DEFINE_AND_IMPLEMENT_H24_EXACT_72_EVIDENCE_PRODUCERS_ONLY`.
+Le registre suit l'ordre scellé des `72` tests (`27` P0, `35` P1, `10` P2).
+`H24-A01-GRAPH-DIRECTION` possède un producteur indépendant qui persiste le
+graphe typé complet, les diagnostics et les sept mutations inverses fermées.
+Les `71` autres producteurs réutilisent les noyaux de mesure H23 déjà
+versionnés par un adaptateur strict `H23 fixture -> H24-F-<fixture>` et
+consomment uniquement les waveforms et targets H24 dont les octets auront été
+vérifiés après un futur claim. Chaque résultat est projeté exactement vers les
+champs `primary`/`inverse` du schéma H24; `pass`, `verdict` et tout verdict de
+producteur restent interdits.
+
+Cette implémentation ne crée aucun seal ni activation. L'issuer public échoue
+avant résolution du registre, accès population, import NumPy et claim. Les
+tests de ce commit invoquent seulement A01 analytique et A06 contractuel; ils
+ne décodent aucune waveform publiée et n'exécutent aucun P0/P1/P2 réel.
+
+Le contrat passe au schéma `5`, SHA-256
+`879cadea244c5d209de36bbcb644ecdb35b656ede416e84d43c7dc17008d2a55`.
+La suite administrative H24/H23/H20 complète réussit avec `206` tests : les
+`199` tests H24/H23 incluant les six nouveaux tests producteurs, plus les
+`7` gardes H20. `py_compile` et `git diff --check` réussissent également.
+
+## Étape suivante
+
+Uniquement la revue externe du commit exact des producteurs. Un autre cycle
+séparé restera obligatoire pour définir un seal/activation scientifique. Tant
+que ce cycle n'est pas approuvé, capability issuance, claim, population,
+waveforms et exécution P0/P1/P2 restent interdits.

@@ -190,12 +190,16 @@ class H24ScientificExecutionDormantTests(unittest.TestCase):
         with self.assertRaises(FileExistsError):
             capability.claim_h24_scientific_execution(self.value)
 
-    def test_public_runner_refuses_before_claim_while_producers_are_dormant(self) -> None:
-        self.assertFalse(runner.H24_EVIDENCE_PRODUCER_REGISTRY_IMPLEMENTED)
-        with mock.patch.object(capability, "claim_h24_scientific_execution") as claim:
-            with self.assertRaisesRegex(PermissionError, "producers remain dormant"):
-                runner.run_authorized_h24_scientific_execution(ROOT, self.value)
-        claim.assert_not_called()
+    def test_exact_producers_exist_but_public_issuer_remains_dormant(self) -> None:
+        self.assertTrue(runner.H24_EVIDENCE_PRODUCER_REGISTRY_IMPLEMENTED)
+        self.assertEqual(tuple(runner._H24_EVIDENCE_PRODUCER_REGISTRY), self.plan.test_ids)
+        with mock.patch.object(
+            runner, "issue_h24_scientific_execution_capability", wraps=capability.issue_h24_scientific_execution_capability
+        ):
+            with mock.patch.dict(os.environ, {}, clear=False):
+                os.environ.pop(capability.H24_SCIENTIFIC_ACTIVATION_COMMIT_ENV, None)
+                with self.assertRaisesRegex(PermissionError, "no OS-bound activation"):
+                    runner.main([])
         self.assertFalse(self.value.claim_path.exists())
 
     def test_complete_mock_registry_claims_before_numpy_or_waveform_decode(self) -> None:

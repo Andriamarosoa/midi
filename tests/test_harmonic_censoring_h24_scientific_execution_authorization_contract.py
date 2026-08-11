@@ -22,7 +22,7 @@ class H24ScientificExecutionAuthorizationContractTests(unittest.TestCase):
 
     def test_contract_is_lf_contract_only_and_authorizes_no_science(self) -> None:
         self.assertNotIn(b"\r", self.raw)
-        self.assertEqual(self.contract["schema_version"], 4)
+        self.assertEqual(self.contract["schema_version"], 5)
         self.assertEqual(
             self.contract["purpose"],
             "harmonic_censoring_h24_scientific_execution_authorization_contract",
@@ -34,8 +34,12 @@ class H24ScientificExecutionAuthorizationContractTests(unittest.TestCase):
             "AUTHORIZED_TO_CORRECT_H24_DORMANT_SCIENTIFIC_PATH_TOPOLOGY_GUARDS_ONLY",
         )
         self.assertEqual(
+            self.contract["authorization_basis"]["evidence_producer_authorized_action"],
+            "AUTHORIZED_TO_DEFINE_AND_IMPLEMENT_H24_EXACT_72_EVIDENCE_PRODUCERS_ONLY",
+        )
+        self.assertEqual(
             self.contract["status"],
-            "dormant_scientific_capability_and_runner_implemented_external_review_required",
+            "exact_72_evidence_producers_implemented_dormant_external_review_required",
         )
         scope = self.contract["scope"]
         self.assertFalse(scope["contract_only"])
@@ -44,6 +48,7 @@ class H24ScientificExecutionAuthorizationContractTests(unittest.TestCase):
             "scientific_capability_implementation_authorized",
             "scientific_runner_implementation_authorized",
             "evidence_transcript_and_finalizer_implementation_authorized",
+            "exact_72_evidence_producer_implementation_authorized",
         ):
             self.assertTrue(scope[name], name)
         for name in (
@@ -221,10 +226,9 @@ class H24ScientificExecutionAuthorizationContractTests(unittest.TestCase):
             ]
         )
         self.assertTrue(
-            capability[
-                "runner_fails_before_scientific_claim_while_evidence_producer_registry_is_dormant"
-            ]
+            capability["evidence_producer_registry_exactly_matches_the_ordered_72_test_plan"]
         )
+        self.assertTrue(capability["public_issuer_remains_dormant_before_registry_population_claim_or_numpy"])
 
     def test_future_seal_activation_and_all_scientific_rights_are_absent(self) -> None:
         seal = self.contract["future_scientific_authorization_seal"]
@@ -430,17 +434,22 @@ class H24ScientificExecutionAuthorizationContractTests(unittest.TestCase):
 
     def test_contract_topology_and_current_dormancy_are_exact(self) -> None:
         expected = [
+            ".gitattributes",
             "configs/harmonic_censoring_h24_scientific_execution_authorization_contract.json",
             "readme/README.md",
             "readme/results/2026-08-10_harmonic-censoring-h24-scientific-execution-authorization-contract.md",
             "src/polyphonic/harmonic_censoring_h24_scientific_capability.py",
+            "src/polyphonic/harmonic_censoring_h24_evidence_producers.py",
+            "src/polyphonic/run_harmonic_censoring_h24_scientific.py",
+            "tests/test_harmonic_censoring_h24_evidence_producers.py",
+            "tests/test_harmonic_censoring_h24_scientific_execution_dormant.py",
             "tests/test_harmonic_censoring_h24_scientific_execution_authorization_contract.py",
         ]
         self.assertEqual(self.contract["contract_definition_exact_changed_files"], expected)
         dormancy = self.contract["current_dormancy"]
         self.assertFalse(dormancy["this_contract_grants_scientific_authority"])
         self.assertTrue(dormancy["scientific_capability_or_runner_implemented_now"])
-        self.assertFalse(dormancy["evidence_producer_registry_implemented_now"])
+        self.assertTrue(dormancy["evidence_producer_registry_implemented_now"])
         self.assertFalse(dormancy["scientific_seal_or_activation_exists_now"])
         self.assertFalse(dormancy["scientific_claim_or_terminal_created_now"])
         self.assertFalse(dormancy["waveforms_decoded_now"])

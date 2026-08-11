@@ -1,4 +1,4 @@
-"""Dormant, process-local authority for future H24 scientific execution.
+﻿"""Dormant, process-local authority for future H24 scientific execution.
 
 The reviewed activation and seal deliberately do not exist in this commit.
 Consequently the public issuer fails before it reads the published population,
@@ -21,7 +21,7 @@ H24_SCIENTIFIC_CONTRACT_RELATIVE_PATH = Path(
     "configs/harmonic_censoring_h24_scientific_execution_authorization_contract.json"
 )
 H24_SCIENTIFIC_CONTRACT_RAW_SHA256 = (
-    "4d33f80b27d8e5086548596fb377d00a8327cff53f12540969709f456ed21ea9"
+    "879cadea244c5d209de36bbcb644ecdb35b656ede416e84d43c7dc17008d2a55"
 )
 H24_SCIENTIFIC_SEAL_RELATIVE_PATH = Path(
     "configs/harmonic_censoring_h24_scientific_execution_authorization_seal.json"
@@ -39,10 +39,15 @@ H24_RUNNER_SOURCE_RELATIVE_PATH = Path(
     "src/polyphonic/run_harmonic_censoring_h24_scientific.py"
 )
 H24_IMPLEMENTATION_EXACT_CHANGED_FILES = (
+    ".gitattributes",
     "configs/harmonic_censoring_h24_scientific_execution_authorization_contract.json",
     "readme/README.md",
     "readme/results/2026-08-10_harmonic-censoring-h24-scientific-execution-authorization-contract.md",
     "src/polyphonic/harmonic_censoring_h24_scientific_capability.py",
+    "src/polyphonic/harmonic_censoring_h24_evidence_producers.py",
+    "src/polyphonic/run_harmonic_censoring_h24_scientific.py",
+    "tests/test_harmonic_censoring_h24_evidence_producers.py",
+    "tests/test_harmonic_censoring_h24_scientific_execution_dormant.py",
     "tests/test_harmonic_censoring_h24_scientific_execution_authorization_contract.py",
 )
 
