@@ -1,4 +1,19 @@
-# H25 — seal scientifique et observer secondaire dormants
+# H25 — seal scientifique rejeté et observer secondaire dormant
+
+## Verdict externe
+
+Le seal de `e82874c5b4d5b1c714dc746f8625987a4dc0e2a5` ne doit pas être
+activé. La revue externe a rendu :
+
+```text
+REJECTED_H25_SCIENTIFIC_EXECUTION_AUTHORIZATION_SEAL_AND_SECONDARY_OBSERVER
+P2_007_CROSS_RUNTIME_IDENTITY_AND_SELF_RECORD_BOOTSTRAP_DEFECTS
+```
+
+Les bindings et la dormance étaient corrects, mais l'identité de runtime
+était artificiellement différenciée par le transport et le record P2-007
+s'imbriquait lui-même via un bootstrap incomplet. Le seal décrit plus bas est
+donc historique et a été retiré du prochain commit correctif.
 
 ## Portée
 

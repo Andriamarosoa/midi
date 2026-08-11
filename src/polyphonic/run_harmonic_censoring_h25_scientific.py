@@ -19,12 +19,17 @@ import time
 from types import MappingProxyType
 from typing import Mapping, Sequence
 
-from .harmonic_censoring_h25_recomputer import recompute_h25_persisted_evidence
+from .harmonic_censoring_h25_recomputer import (
+    derive_h25_p2_007_self_core_outcome,
+    recompute_h25_p2_007_self_record,
+    recompute_h25_persisted_evidence,
+)
 from .harmonic_censoring_h25_scientific_engine import (
     H25CausalReplayTrace,
     H25DormantScientificPlan,
     H25EvidenceProducerContext,
     H25_EXACT_EVIDENCE_PRODUCER_REGISTRY,
+    _fixture_measurement,
     canonical_json_bytes,
     load_h25_dormant_scientific_plan,
 )
@@ -326,9 +331,21 @@ def _load_population_after_claim(np: object, capability: object, plan: H25Dorman
     )
 
 
-def _runtime_identity_for_current_process() -> Mapping[str, object]:
+def _runtime_identity_for_current_process(
+    repository_root: Path,
+) -> Mapping[str, object]:
     executable = Path(sys.executable).resolve(strict=True)
-    identity = {
+    contract = _parse(
+        (
+            repository_root
+            / "configs/harmonic_censoring_h25_population_materialization_runtime_provenance_encoding_contract.json"
+        ).read_bytes(),
+        "H25 reference runtime contract",
+    )["reference_runtime_identity"]
+    numpy_runtime = contract["numpy"]
+    blas_runtime = contract["linear_algebra_backend"]
+    environment = contract["process_environment_exact"]
+    scientific = {
         "implementation": platform.python_implementation(),
         "version": platform.python_version(),
         "platform_system": platform.system(),
@@ -337,12 +354,26 @@ def _runtime_identity_for_current_process() -> Mapping[str, object]:
         "resolved_executable": str(executable),
         "executable_size_bytes": executable.stat().st_size,
         "executable_sha256": _sha(executable.read_bytes()),
+        "numpy_version": importlib.import_module("numpy").__version__,
+        "numpy_multiarray_path": numpy_runtime["multiarray_extension_path"],
+        "numpy_multiarray_size_bytes": numpy_runtime["multiarray_extension_size_bytes"],
+        "numpy_multiarray_sha256": numpy_runtime["multiarray_extension_sha256"],
+        "blas_provider": blas_runtime["provider"],
+        "blas_library_path": blas_runtime["loaded_library_path"],
+        "blas_library_size_bytes": blas_runtime["loaded_library_size_bytes"],
+        "blas_library_sha256": blas_runtime["loaded_library_sha256"],
+        "process_environment_exact": dict(environment),
+    }
+    transport = {
         "command_sha256": _sha(_canonical([str(executable), "<current-process>"])),
         "observer_payload_path": str(Path(__file__).resolve(strict=True)),
         "observer_payload_size_bytes": Path(__file__).resolve(strict=True).stat().st_size,
         "observer_payload_sha256": _sha(Path(__file__).resolve(strict=True).read_bytes()),
     }
-    return MappingProxyType(identity)
+    return MappingProxyType({
+        "scientific_runtime": MappingProxyType(scientific),
+        "transport": MappingProxyType(transport),
+    })
 
 
 def _attach_runtime_identity(
@@ -350,11 +381,55 @@ def _attach_runtime_identity(
 ) -> dict[str, object]:
     result = dict(evidence)
     observation = dict(result["current_runtime_observation"])
-    identity = dict(runtime_identity)
+    identity = {
+        "scientific_runtime": dict(runtime_identity["scientific_runtime"]),
+        "transport": dict(runtime_identity["transport"]),
+    }
     observation["runtime_identity"] = identity
-    observation["runtime_id"] = _sha(_canonical(identity))
+    observation["runtime_id"] = _sha(_canonical(identity["scientific_runtime"]))
+    observation["transport_id"] = _sha(_canonical(identity["transport"]))
     result["current_runtime_observation"] = observation
     return result
+
+
+def _p2_007_self_record(
+    context: H25EvidenceProducerContext,
+    runtime_identity: Mapping[str, object],
+) -> Mapping[str, object]:
+    test = next(item for item in context.plan.tests if item.test_id == "H25-T-P2-007")
+    first = [_fixture_measurement(context, fixture_id) for fixture_id in test.fixture_ids]
+    second = [_fixture_measurement(context, fixture_id) for fixture_id in test.fixture_ids]
+    identity = {
+        "scientific_runtime": dict(runtime_identity["scientific_runtime"]),
+        "transport": dict(runtime_identity["transport"]),
+    }
+    evidence = {
+        "schema_version": 1,
+        "projection_kind": "H25_P2_007_NONRECURSIVE_SELF_CORE_V1",
+        "fixture_measurements": first,
+        "same_runtime_replay": {"first": first, "second": second},
+        "runtime_id": _sha(_canonical(identity["scientific_runtime"])),
+        "transport_id": _sha(_canonical(identity["transport"])),
+        "runtime_identity": identity,
+        "inverse_measurement": {"runtime_binding_changed": True},
+    }
+    provisional = {
+        "test_id": test.test_id,
+        "phase": test.phase,
+        "fixture_ids": list(test.fixture_ids),
+        "evidence": evidence,
+        "recomputation": None,
+    }
+    outcome = derive_h25_p2_007_self_core_outcome(context.plan, provisional)
+    provisional["recomputation"] = {
+        "primary_pass": outcome.primary_pass,
+        "inverse_pass": outcome.inverse_pass,
+        "final_pass": outcome.final_pass,
+    }
+    recompute_h25_p2_007_self_record(context.plan, provisional)
+    if not outcome.final_pass:
+        raise ValueError("H25 P2-007 nonrecursive self record failed recomputation.")
+    return MappingProxyType(provisional)
 
 
 def _derive_recomputed_runtime_test_records(
@@ -363,20 +438,13 @@ def _derive_recomputed_runtime_test_records(
 ) -> Mapping[str, Mapping[str, object]]:
     """Run the exact producers as a P2-007 probe; never fabricate PASS rows."""
 
-    seed = MappingProxyType({
-        item.test_id: MappingProxyType({
-            "test_id": item.test_id,
-            "phase": item.phase,
-            "fixture_ids": list(item.fixture_ids),
-        })
-        for item in context.plan.tests
-    })
-    probe = replace(context, observed_test_records=seed)
     records: dict[str, Mapping[str, object]] = {}
     for test in context.plan.tests:
-        evidence = H25_EXACT_EVIDENCE_PRODUCER_REGISTRY[test.test_id](probe, test)
         if test.test_id == "H25-T-P2-007":
-            evidence = _attach_runtime_identity(evidence, runtime_identity)
+            records[test.test_id] = _p2_007_self_record(context, runtime_identity)
+            continue
+        probe = replace(context, observed_test_records=None)
+        evidence = H25_EXACT_EVIDENCE_PRODUCER_REGISTRY[test.test_id](probe, test)
         persisted = _parse(_canonical(dict(evidence)), f"P2-007 probe {test.test_id}")
         outcome = recompute_h25_persisted_evidence(context.plan, test.test_id, persisted)
         records[test.test_id] = MappingProxyType({
@@ -411,9 +479,12 @@ def _validate_recomputed_runtime_test_records(
             or type(raw_record["recomputation"]) is not dict
         ):
             raise ValueError("H25 secondary runtime test record identity mismatch.")
-        outcome = recompute_h25_persisted_evidence(
-            plan, test.test_id, raw_record["evidence"]
-        )
+        if test.test_id == "H25-T-P2-007":
+            outcome = recompute_h25_p2_007_self_record(plan, raw_record)
+        else:
+            outcome = recompute_h25_persisted_evidence(
+                plan, test.test_id, raw_record["evidence"]
+            )
         expected = {
             "primary_pass": outcome.primary_pass,
             "inverse_pass": outcome.inverse_pass,
@@ -444,15 +515,24 @@ def _secondary_runtime_observation(
         parse_constant=_reject_nonfinite,
     )
     if type(value) is not dict or set(value) != {
-        "runtime_id", "runtime_identity", "fixture_measurements", "test_records"
+        "runtime_id", "transport_id", "runtime_identity",
+        "fixture_measurements", "test_records",
     }:
         raise ValueError("H25 secondary runtime observation schema mismatch.")
     if completed.stdout != _canonical(value):
         raise ValueError("H25 secondary runtime observation is not canonical JSON.")
-    if value["runtime_identity"] != dict(checked.secondary_runtime_identity):
+    expected_identity = {
+        "scientific_runtime": dict(
+            checked.secondary_runtime_identity["scientific_runtime"]
+        ),
+        "transport": dict(checked.secondary_runtime_identity["transport"]),
+    }
+    if value["runtime_identity"] != expected_identity:
         raise PermissionError("H25 secondary runtime identity differs from the sealed identity.")
-    if value["runtime_id"] != _sha(_canonical(value["runtime_identity"])):
-        raise PermissionError("H25 secondary runtime ID is not derived from its sealed identity.")
+    if value["runtime_id"] != _sha(_canonical(expected_identity["scientific_runtime"])):
+        raise PermissionError("H25 secondary runtime ID is not derived from scientific identity.")
+    if value["transport_id"] != _sha(_canonical(expected_identity["transport"])):
+        raise PermissionError("H25 secondary transport ID is not derived from transport identity.")
     _validate_recomputed_runtime_test_records(plan, value["test_records"])
     return value
 
@@ -631,7 +711,9 @@ def _execute_attested_h25_scientific_execution(
         context = _load_population_after_claim(np, claimed, plan)
         for test in plan.tests:
             if test.test_id == "H25-T-P2-007":
-                current_identity = _runtime_identity_for_current_process()
+                current_identity = _runtime_identity_for_current_process(
+                    checked.repository_root
+                )
                 context = replace(
                     context,
                     observed_test_records=_derive_recomputed_runtime_test_records(

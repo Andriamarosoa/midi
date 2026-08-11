@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "purpose": "harmonic_censoring_h25_p2_007_nonrecursive_record_projection_contract",
+  "status": "correction_defined_external_review_required",
+  "authority": {
+    "review_verdict": "REJECTED_H25_SCIENTIFIC_EXECUTION_AUTHORIZATION_SEAL_AND_SECONDARY_OBSERVER_P2_007_CROSS_RUNTIME_IDENTITY_AND_SELF_RECORD_BOOTSTRAP_DEFECTS",
+    "authorized_action": "AUTHORIZED_TO_CORRECT_AND_RESEAL_H25_P2_007_NONRECURSIVE_RECORD_PROJECTION_AND_TRUE_SECONDARY_RUNTIME_IDENTITY_ONLY",
+    "rejected_seal_commit": "e82874c5b4d5b1c714dc746f8625987a4dc0e2a5"
+  },
+  "runtime_observation": {
+    "exact_fields": ["runtime_id", "transport_id", "runtime_identity", "fixture_measurements", "test_records"],
+    "runtime_id": "SHA256(canonical_json(scientific_runtime_identity))",
+    "transport_id": "SHA256(canonical_json(transport_identity))",
+    "runtime_identity_exact_fields": ["scientific_runtime", "transport"],
+    "scientific_runtime_exact_fields": ["implementation", "version", "platform_system", "platform_release", "platform_machine", "resolved_executable", "executable_size_bytes", "executable_sha256", "numpy_version", "numpy_multiarray_path", "numpy_multiarray_size_bytes", "numpy_multiarray_sha256", "blas_provider", "blas_library_path", "blas_library_size_bytes", "blas_library_sha256", "process_environment_exact"],
+    "transport_exact_fields": ["command_sha256", "observer_payload_path", "observer_payload_size_bytes", "observer_payload_sha256"],
+    "current_and_secondary_scientific_runtime_ids_must_differ": true,
+    "transport_difference_alone_never_satisfies_cross_runtime": true
+  },
+  "ordered_test_records": {
+    "count": 27,
+    "order": "exact H25 test manifest order",
+    "ordinary_record_count": 26,
+    "ordinary_record_rule": "persist exact producer evidence then independently recompute primary inverse and final",
+    "P2_007_record_kind": "H25_P2_007_NONRECURSIVE_SELF_CORE_V1",
+    "P2_007_record_exact_fields": ["test_id", "phase", "fixture_ids", "evidence", "recomputation"],
+    "P2_007_evidence_exact_fields": ["schema_version", "projection_kind", "fixture_measurements", "same_runtime_replay", "runtime_id", "transport_id", "runtime_identity", "inverse_measurement"],
+    "P2_007_excluded_recursive_fields": ["current_runtime_observation", "cross_runtime_observation", "test_records"],
+    "P2_007_recomputation": "validate exact identity and fixture order, derive both IDs, require two same-runtime fixture lists equal the projected measurements, require inverse runtime_binding_changed=true, then derive primary inverse final",
+    "minimal_identity_only_seed_records_forbidden": true,
+    "nested_full_P2_007_record_forbidden": true
+  },
+  "secondary_runtime": {
+    "python": "CPython 3.9.6 arm64 from /usr/bin/python3 in an isolated venv",
+    "numpy": "1.26.4 binary wheel only",
+    "primary_runtime": "CPython 3.11.9 arm64 plus NumPy 1.26.4",
+    "difference_under_test": "Python interpreter and executable binary identity",
+    "observer_execution_during_preparation_forbidden": true,
+    "population_access_during_preparation_forbidden": true
+  },
+  "scope": {
+    "activation_created": false,
+    "OS_binding_created": false,
+    "capability_or_claim_created": false,
+    "observer_executed": false,
+    "population_opened": false,
+    "P0_P1_P2_executed_counts": [0, 0, 0],
+    "real_data_or_locked_test_used": false,
+    "model_training_or_calibration_used": false
+  },
+  "next_action": "external_review_of_correction_and_resealed_payload_before_activation"
+}

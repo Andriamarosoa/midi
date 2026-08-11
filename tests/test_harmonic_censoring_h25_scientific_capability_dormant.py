@@ -24,21 +24,53 @@ class H25ScientificCapabilityDormantTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.plan = load_h25_dormant_scientific_plan(ROOT)
 
-    def _capability(self, directory: Path, *, command=()) -> capability.AttestedH25ScientificCapability:
-        identity = {
-            "implementation": "TEST-ONLY",
-            "version": "0",
-            "platform_system": "TEST-ONLY",
-            "platform_release": "TEST-ONLY",
-            "platform_machine": "TEST-ONLY",
-            "resolved_executable": str(Path(sys.executable).resolve()),
-            "executable_size_bytes": Path(sys.executable).resolve().stat().st_size,
-            "executable_sha256": hashlib.sha256(Path(sys.executable).resolve().read_bytes()).hexdigest(),
-            "command_sha256": hashlib.sha256(runner._canonical(list(command))).hexdigest(),
-            "observer_payload_path": "TEST-ONLY",
-            "observer_payload_size_bytes": 1,
-            "observer_payload_sha256": "a" * 64,
+    def _identity(self, executable: Path, observer: Path, command) -> dict:
+        runtime_contract = json.loads(
+            (
+                ROOT
+                / "configs/harmonic_censoring_h25_population_materialization_runtime_provenance_encoding_contract.json"
+            ).read_text(encoding="utf-8")
+        )
+        environment = runtime_contract["reference_runtime_identity"][
+            "process_environment_exact"
+        ]
+        binary_sha = hashlib.sha256(executable.read_bytes()).hexdigest()
+        return {
+            "scientific_runtime": {
+                "implementation": platform.python_implementation(),
+                "version": platform.python_version(),
+                "platform_system": platform.system(),
+                "platform_release": platform.release(),
+                "platform_machine": platform.machine(),
+                "resolved_executable": str(executable),
+                "executable_size_bytes": executable.stat().st_size,
+                "executable_sha256": binary_sha,
+                "numpy_version": "TEST-ONLY",
+                "numpy_multiarray_path": str(executable),
+                "numpy_multiarray_size_bytes": executable.stat().st_size,
+                "numpy_multiarray_sha256": binary_sha,
+                "blas_provider": "TEST-ONLY",
+                "blas_library_path": str(executable),
+                "blas_library_size_bytes": executable.stat().st_size,
+                "blas_library_sha256": binary_sha,
+                "process_environment_exact": environment,
+            },
+            "transport": {
+                "command_sha256": hashlib.sha256(
+                    runner._canonical(list(command))
+                ).hexdigest(),
+                "observer_payload_path": str(observer),
+                "observer_payload_size_bytes": observer.stat().st_size,
+                "observer_payload_sha256": hashlib.sha256(
+                    observer.read_bytes()
+                ).hexdigest(),
+            },
         }
+
+    def _capability(self, directory: Path, *, command=()) -> capability.AttestedH25ScientificCapability:
+        executable = Path(sys.executable).resolve()
+        observer = executable
+        identity = self._identity(executable, observer, command)
         return capability._new_capability(
             repository_root=ROOT,
             authorization_commit="1" * 40,
@@ -171,26 +203,17 @@ class H25ScientificCapabilityDormantTests(unittest.TestCase):
                 "exe=Path(sys.executable).resolve()\n"
                 "observer=Path(__file__).resolve()\n"
                 "command=[str(exe),str(observer)]\n"
-                "identity={'implementation':platform.python_implementation(),'version':platform.python_version(),'platform_system':platform.system(),'platform_release':platform.release(),'platform_machine':platform.machine(),'resolved_executable':str(exe),'executable_size_bytes':exe.stat().st_size,'executable_sha256':hashlib.sha256(exe.read_bytes()).hexdigest(),'command_sha256':hashlib.sha256(canonical(command)).hexdigest(),'observer_payload_path':str(observer),'observer_payload_size_bytes':observer.stat().st_size,'observer_payload_sha256':hashlib.sha256(observer.read_bytes()).hexdigest()}\n"
-                "payload={'runtime_id':hashlib.sha256(canonical(identity)).hexdigest(),'runtime_identity':identity,'fixture_measurements':[],'test_records':[]}\n"
+                "binary_sha=hashlib.sha256(exe.read_bytes()).hexdigest()\n"
+                "env={'MIDI_FORCE_CPU':'1','OMP_NUM_THREADS':'1','OPENBLAS_NUM_THREADS':'1','MKL_NUM_THREADS':'1','NUMEXPR_NUM_THREADS':'1','VECLIB_MAXIMUM_THREADS':'1','PYTHONHASHSEED':'0','LC_ALL':'C','LANG':'C','TZ':'UTC'}\n"
+                "scientific={'implementation':platform.python_implementation(),'version':platform.python_version(),'platform_system':platform.system(),'platform_release':platform.release(),'platform_machine':platform.machine(),'resolved_executable':str(exe),'executable_size_bytes':exe.stat().st_size,'executable_sha256':binary_sha,'numpy_version':'TEST-ONLY','numpy_multiarray_path':str(exe),'numpy_multiarray_size_bytes':exe.stat().st_size,'numpy_multiarray_sha256':binary_sha,'blas_provider':'TEST-ONLY','blas_library_path':str(exe),'blas_library_size_bytes':exe.stat().st_size,'blas_library_sha256':binary_sha,'process_environment_exact':env}\n"
+                "transport={'command_sha256':hashlib.sha256(canonical(command)).hexdigest(),'observer_payload_path':str(observer),'observer_payload_size_bytes':observer.stat().st_size,'observer_payload_sha256':hashlib.sha256(observer.read_bytes()).hexdigest()}\n"
+                "identity={'scientific_runtime':scientific,'transport':transport}\n"
+                "payload={'runtime_id':hashlib.sha256(canonical(scientific)).hexdigest(),'transport_id':hashlib.sha256(canonical(transport)).hexdigest(),'runtime_identity':identity,'fixture_measurements':[],'test_records':[]}\n"
                 "sys.stdout.buffer.write(canonical(payload))\n",
                 encoding="utf-8",
             )
             executable = Path(sys.executable).resolve()
-            identity = {
-                "implementation": platform.python_implementation(),
-                "version": platform.python_version(),
-                "platform_system": platform.system(),
-                "platform_release": platform.release(),
-                "platform_machine": platform.machine(),
-                "resolved_executable": str(executable),
-                "executable_size_bytes": executable.stat().st_size,
-                "executable_sha256": hashlib.sha256(executable.read_bytes()).hexdigest(),
-                "command_sha256": hashlib.sha256(runner._canonical(list(command))).hexdigest(),
-                "observer_payload_path": str(script.resolve()),
-                "observer_payload_size_bytes": script.stat().st_size,
-                "observer_payload_sha256": hashlib.sha256(script.read_bytes()).hexdigest(),
-            }
+            identity = self._identity(executable, script.resolve(), command)
             value = self._capability(Path(temporary), command=command)
             object.__setattr__(value, "secondary_runtime_identity", identity)
             capability._claim_h25_scientific_execution(value)
@@ -238,23 +261,14 @@ class H25ScientificCapabilityDormantTests(unittest.TestCase):
             observer = Path(temporary) / "observer.py"
             observer.write_bytes(b"# TEST-ONLY observer\n")
             command = (str(executable), str(observer.resolve()))
-            identity = {
-                "implementation": platform.python_implementation(),
-                "version": platform.python_version(),
-                "platform_system": platform.system(),
-                "platform_release": platform.release(),
-                "platform_machine": platform.machine(),
-                "resolved_executable": str(executable),
-                "executable_size_bytes": executable.stat().st_size,
-                "executable_sha256": hashlib.sha256(executable.read_bytes()).hexdigest(),
-                "command_sha256": hashlib.sha256(runner._canonical(list(command))).hexdigest(),
-                "observer_payload_path": str(observer.resolve()),
-                "observer_payload_size_bytes": observer.stat().st_size,
-                "observer_payload_sha256": hashlib.sha256(observer.read_bytes()).hexdigest(),
-            }
+            identity = self._identity(executable, observer.resolve(), command)
             checked = capability._validate_secondary_runtime_identity(ROOT, command, identity)
-            self.assertEqual(dict(checked), identity)
-            forged = {**identity, "command_sha256": "0" * 64}
+            self.assertEqual(dict(checked["scientific_runtime"]), identity["scientific_runtime"])
+            self.assertEqual(dict(checked["transport"]), identity["transport"])
+            forged = {
+                **identity,
+                "transport": {**identity["transport"], "command_sha256": "0" * 64},
+            }
             with self.assertRaisesRegex(ValueError, "command identity mismatch"):
                 capability._validate_secondary_runtime_identity(ROOT, command, forged)
 

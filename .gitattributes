@@ -92,6 +92,7 @@ tests/test_harmonic_censoring_h24_population_materialization_activation_contract
 readme/results/2026-08-10_harmonic-censoring-h24-population-materialization-contract.md text eol=lf
 readme/results/2026-08-10_harmonic-censoring-h24-population-materialization-activation-contract.md text eol=lf
 configs/harmonic_censoring_h25_scientific_execution_capability_contract.json text eol=lf
+configs/harmonic_censoring_h25_p2_007_nonrecursive_projection_contract.json text eol=lf
 configs/harmonic_censoring_h25_scientific_execution_authorization_seal.json text eol=lf
 configs/harmonic_censoring_h25_scientific_execution_activation.json text eol=lf
 src/polyphonic/harmonic_censoring_h25_scientific_capability.py text eol=lf

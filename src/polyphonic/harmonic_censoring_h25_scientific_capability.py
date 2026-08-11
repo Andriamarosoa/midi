@@ -320,50 +320,89 @@ def _require_relative(value: object, label: str) -> Path:
 def _validate_secondary_runtime_identity(
     root: Path, command: Sequence[str], raw_identity: object
 ) -> Mapping[str, object]:
-    del root
     if type(raw_identity) is not dict:
         raise ValueError("H25 secondary runtime identity must be an object.")
-    fields = {
+    if set(raw_identity) != {"scientific_runtime", "transport"}:
+        raise ValueError("H25 secondary runtime identity field set mismatch.")
+    scientific = raw_identity["scientific_runtime"]
+    transport = raw_identity["transport"]
+    if type(scientific) is not dict or type(transport) is not dict:
+        raise ValueError("H25 secondary runtime identity components must be objects.")
+    scientific_fields = {
         "implementation", "version", "platform_system", "platform_release",
         "platform_machine", "resolved_executable", "executable_size_bytes",
-        "executable_sha256", "command_sha256", "observer_payload_path",
+        "executable_sha256", "numpy_version", "numpy_multiarray_path",
+        "numpy_multiarray_size_bytes", "numpy_multiarray_sha256", "blas_provider",
+        "blas_library_path", "blas_library_size_bytes", "blas_library_sha256",
+        "process_environment_exact",
+    }
+    transport_fields = {
+        "command_sha256", "observer_payload_path",
         "observer_payload_size_bytes", "observer_payload_sha256",
     }
-    if set(raw_identity) != fields:
-        raise ValueError("H25 secondary runtime identity field set mismatch.")
+    if set(scientific) != scientific_fields or set(transport) != transport_fields:
+        raise ValueError("H25 secondary scientific/transport identity field set mismatch.")
     for field in (
         "implementation", "version", "platform_system", "platform_release",
-        "platform_machine", "resolved_executable", "observer_payload_path",
+        "platform_machine", "resolved_executable", "numpy_version",
+        "numpy_multiarray_path", "blas_provider", "blas_library_path",
     ):
-        if type(raw_identity[field]) is not str or not raw_identity[field]:
+        if type(scientific[field]) is not str or not scientific[field]:
             raise ValueError(f"H25 secondary runtime identity {field} is invalid.")
-    size = raw_identity["executable_size_bytes"]
+    if type(transport["observer_payload_path"]) is not str or not transport["observer_payload_path"]:
+        raise ValueError("H25 secondary observer payload path is invalid.")
+    size = scientific["executable_size_bytes"]
     if type(size) is not int or type(size) is bool or size <= 0:
         raise ValueError("H25 secondary executable size is invalid.")
     executable_sha = _require_hex(
-        raw_identity["executable_sha256"], 64, "secondary executable SHA"
+        scientific["executable_sha256"], 64, "secondary executable SHA"
     )
     command_sha = _require_hex(
-        raw_identity["command_sha256"], 64, "secondary command SHA"
+        transport["command_sha256"], 64, "secondary command SHA"
     )
     executable_argument = Path(command[0])
     if not executable_argument.is_absolute():
         raise ValueError("H25 secondary runtime executable must be absolute.")
     executable = executable_argument.resolve(strict=True)
-    if str(executable) != raw_identity["resolved_executable"]:
+    if str(executable) != scientific["resolved_executable"]:
         raise ValueError("H25 secondary runtime executable path mismatch.")
     if executable.stat().st_size != size or _sha256(executable.read_bytes()) != executable_sha:
         raise ValueError("H25 secondary runtime executable byte identity mismatch.")
     if _sha256(_canonical(list(command))) != command_sha:
         raise ValueError("H25 secondary runtime command identity mismatch.")
-    payload_size = raw_identity["observer_payload_size_bytes"]
+    for prefix in ("numpy_multiarray", "blas_library"):
+        binary_size = scientific[f"{prefix}_size_bytes"]
+        if type(binary_size) is not int or type(binary_size) is bool or binary_size <= 0:
+            raise ValueError(f"H25 secondary {prefix} size is invalid.")
+        binary_sha = _require_hex(
+            scientific[f"{prefix}_sha256"], 64, f"secondary {prefix} SHA"
+        )
+        binary = Path(scientific[f"{prefix}_path"])
+        if not binary.is_absolute():
+            raise ValueError(f"H25 secondary {prefix} path must be absolute.")
+        binary = binary.resolve(strict=True)
+        if binary.stat().st_size != binary_size or _sha256(binary.read_bytes()) != binary_sha:
+            raise ValueError(f"H25 secondary {prefix} byte identity mismatch.")
+    capability_contract = _object(
+        (root / CAPABILITY_CONTRACT).read_bytes(), "scientific capability contract"
+    )
+    runtime_contract = _object(
+        (root / capability_contract["reference_runtime"]["contract_path"]).read_bytes(),
+        "reference runtime contract",
+    )
+    expected_environment = runtime_contract["reference_runtime_identity"][
+        "process_environment_exact"
+    ]
+    if scientific["process_environment_exact"] != expected_environment:
+        raise ValueError("H25 secondary process environment contract mismatch.")
+    payload_size = transport["observer_payload_size_bytes"]
     if type(payload_size) is not int or type(payload_size) is bool or payload_size <= 0:
         raise ValueError("H25 secondary observer payload size is invalid.")
     payload_sha = _require_hex(
-        raw_identity["observer_payload_sha256"], 64,
+        transport["observer_payload_sha256"], 64,
         "secondary observer payload SHA",
     )
-    payload = Path(raw_identity["observer_payload_path"])
+    payload = Path(transport["observer_payload_path"])
     if not payload.is_absolute():
         raise ValueError("H25 secondary observer payload path must be absolute.")
     payload = payload.resolve(strict=True)
@@ -371,7 +410,29 @@ def _validate_secondary_runtime_identity(
         raise ValueError("H25 secondary observer payload is not bound by the command.")
     if payload.stat().st_size != payload_size or _sha256(payload.read_bytes()) != payload_sha:
         raise ValueError("H25 secondary observer payload byte identity mismatch.")
-    return MappingProxyType(dict(raw_identity))
+    return MappingProxyType({
+        "scientific_runtime": MappingProxyType(dict(scientific)),
+        "transport": MappingProxyType(dict(transport)),
+    })
+
+
+def _require_secondary_runtime_before_numpy(
+    raw_identity: Mapping[str, object],
+) -> None:
+    scientific = raw_identity["scientific_runtime"]
+    if (
+        platform.python_implementation() != scientific["implementation"]
+        or platform.python_version() != scientific["version"]
+        or platform.system() != scientific["platform_system"]
+        or platform.release() != scientific["platform_release"]
+        or platform.machine() != scientific["platform_machine"]
+        or str(Path(sys.executable).resolve(strict=True))
+        != scientific["resolved_executable"]
+    ):
+        raise PermissionError("H25 secondary scientific runtime mismatch before NumPy.")
+    for name, expected in scientific["process_environment_exact"].items():
+        if os.environ.get(name) != expected:
+            raise PermissionError(f"H25 secondary environment mismatch for {name}.")
 
 
 def _require_runtime_before_numpy(root: Path, contract: Mapping[str, object]) -> None:

@@ -20,6 +20,19 @@ _BASELINE_ABSOLUTE_MIN = 1e-24
 _BASELINE_RELATIVE_MIN = 1e-12
 _SAMPLE_RATE = 44100.0
 _OUTCOMES = {"BIRTH_SUPPORTED", "NO_BIRTH", "ALREADY_ACTIVE_HISTORY", "AMBIGUOUS"}
+_P2_007_SELF_PROJECTION = "H25_P2_007_NONRECURSIVE_SELF_CORE_V1"
+_SCIENTIFIC_RUNTIME_FIELDS = {
+    "implementation", "version", "platform_system", "platform_release",
+    "platform_machine", "resolved_executable", "executable_size_bytes",
+    "executable_sha256", "numpy_version", "numpy_multiarray_path",
+    "numpy_multiarray_size_bytes", "numpy_multiarray_sha256", "blas_provider",
+    "blas_library_path", "blas_library_size_bytes", "blas_library_sha256",
+    "process_environment_exact",
+}
+_TRANSPORT_IDENTITY_FIELDS = {
+    "command_sha256", "observer_payload_path", "observer_payload_size_bytes",
+    "observer_payload_sha256",
+}
 
 
 @dataclass(frozen=True)
@@ -391,25 +404,89 @@ def _cross_runtime_tree_close(left: object, right: object) -> bool:
     return left == right
 
 
+def _runtime_identity(raw: object) -> tuple[dict[str, object], dict[str, object]]:
+    identity = _object(raw, "runtime identity")
+    if set(identity) != {"scientific_runtime", "transport"}:
+        raise ValueError("H25 runtime identity field set is invalid.")
+    scientific = dict(_object(identity["scientific_runtime"], "scientific runtime identity"))
+    transport = dict(_object(identity["transport"], "transport identity"))
+    if set(scientific) != _SCIENTIFIC_RUNTIME_FIELDS:
+        raise ValueError("H25 scientific runtime identity field set is invalid.")
+    if set(transport) != _TRANSPORT_IDENTITY_FIELDS:
+        raise ValueError("H25 transport identity field set is invalid.")
+    scientific_strings = _SCIENTIFIC_RUNTIME_FIELDS - {
+        "executable_size_bytes", "numpy_multiarray_size_bytes",
+        "blas_library_size_bytes", "process_environment_exact",
+    }
+    if any(
+        type(scientific[field]) is not str or not scientific[field]
+        for field in scientific_strings
+    ):
+        raise ValueError("H25 scientific runtime identity string field is invalid.")
+    if any(
+        type(scientific[field]) is not int
+        or type(scientific[field]) is bool
+        or scientific[field] <= 0
+        for field in (
+            "executable_size_bytes", "numpy_multiarray_size_bytes",
+            "blas_library_size_bytes",
+        )
+    ):
+        raise ValueError("H25 scientific runtime identity size is invalid.")
+    for field in (
+        "executable_sha256", "numpy_multiarray_sha256", "blas_library_sha256"
+    ):
+        value = scientific[field]
+        if len(value) != 64 or any(character not in "0123456789abcdef" for character in value):
+            raise ValueError("H25 scientific runtime identity SHA is invalid.")
+    environment = scientific["process_environment_exact"]
+    if type(environment) is not dict or not environment or any(
+        type(key) is not str or not key or type(value) is not str
+        for key, value in environment.items()
+    ):
+        raise ValueError("H25 scientific runtime environment is invalid.")
+    if any(
+        type(transport[field]) is not str or not transport[field]
+        for field in ("command_sha256", "observer_payload_path", "observer_payload_sha256")
+    ):
+        raise ValueError("H25 transport identity string field is invalid.")
+    if (
+        len(transport["command_sha256"]) != 64
+        or len(transport["observer_payload_sha256"]) != 64
+        or any(
+            character not in "0123456789abcdef"
+            for field in ("command_sha256", "observer_payload_sha256")
+            for character in transport[field]
+        )
+        or type(transport["observer_payload_size_bytes"]) is not int
+        or type(transport["observer_payload_size_bytes"]) is bool
+        or transport["observer_payload_size_bytes"] <= 0
+    ):
+        raise ValueError("H25 transport identity hash or size is invalid.")
+    return scientific, transport
+
+
+def _identity_sha(value: Mapping[str, object]) -> str:
+    return hashlib.sha256(
+        json.dumps(
+            dict(value), ensure_ascii=False, allow_nan=False, sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8") + b"\n"
+    ).hexdigest()
+
+
 def _runtime_observation_map(raw: object, *, fixture_ids: Sequence[str], test_ids: Sequence[str]) -> tuple[str, dict[str, object], dict[str, object], dict[str, object]]:
     observation = _object(raw, "runtime observation")
-    if set(observation) != {"runtime_id", "runtime_identity", "fixture_measurements", "test_records"} or type(observation["runtime_id"]) is not str:
+    if set(observation) != {
+        "runtime_id", "transport_id", "runtime_identity",
+        "fixture_measurements", "test_records",
+    } or type(observation["runtime_id"]) is not str or type(observation["transport_id"]) is not str:
         raise ValueError("H25 runtime observation schema is invalid.")
-    identity = _object(observation["runtime_identity"], "runtime identity")
-    identity_fields = {
-        "implementation", "version", "platform_system", "platform_release",
-        "platform_machine", "resolved_executable", "executable_size_bytes",
-        "executable_sha256", "command_sha256", "observer_payload_path",
-        "observer_payload_size_bytes", "observer_payload_sha256",
-    }
-    if set(identity) != identity_fields:
-        raise ValueError("H25 runtime identity field set is invalid.")
-    canonical_identity = json.dumps(
-        identity, ensure_ascii=False, allow_nan=False, sort_keys=True,
-        separators=(",", ":"),
-    ).encode("utf-8") + b"\n"
-    if hashlib.sha256(canonical_identity).hexdigest() != observation["runtime_id"]:
-        raise ValueError("H25 runtime ID is not derived from runtime identity.")
+    scientific, transport = _runtime_identity(observation["runtime_identity"])
+    if _identity_sha(scientific) != observation["runtime_id"]:
+        raise ValueError("H25 runtime ID is not derived from scientific runtime identity.")
+    if _identity_sha(transport) != observation["transport_id"]:
+        raise ValueError("H25 transport ID is not derived from transport identity.")
     fixture_rows = _array(observation["fixture_measurements"], "runtime fixture measurements")
     test_rows = _array(observation["test_records"], "runtime test records")
     fixture_map = {row.get("fixture_id"): row for row in fixture_rows if type(row) is dict and type(row.get("fixture_id")) is str}
@@ -418,7 +495,81 @@ def _runtime_observation_map(raw: object, *, fixture_ids: Sequence[str], test_id
         raise ValueError("H25 runtime fixture observation is incomplete or reordered.")
     if len(test_map) != len(test_rows) or tuple(test_map) != tuple(test_ids):
         raise ValueError("H25 runtime test observation is incomplete or reordered.")
-    return str(observation["runtime_id"]), identity, fixture_map, test_map
+    return str(observation["runtime_id"]), scientific, fixture_map, test_map
+
+
+def derive_h25_p2_007_self_core_outcome(
+    plan: object, raw: object
+) -> H25RecomputedEvidence:
+    """Derive the finite P2-007 self/core outcome without trusting booleans."""
+
+    record = _object(raw, "P2-007 nonrecursive self record")
+    test = _test(plan, "H25-T-P2-007")
+    if set(record) != {"test_id", "phase", "fixture_ids", "evidence", "recomputation"}:
+        raise ValueError("H25 P2-007 self record schema is invalid.")
+    if (
+        record["test_id"] != "H25-T-P2-007"
+        or record["phase"] != getattr(test, "phase")
+        or record["fixture_ids"] != list(getattr(test, "fixture_ids"))
+    ):
+        raise ValueError("H25 P2-007 self record identity is invalid.")
+    evidence = _object(record["evidence"], "P2-007 self evidence")
+    fields = {
+        "schema_version", "projection_kind", "fixture_measurements",
+        "same_runtime_replay", "runtime_id", "transport_id",
+        "runtime_identity", "inverse_measurement",
+    }
+    if (
+        set(evidence) != fields
+        or type(evidence.get("schema_version")) is not int
+        or evidence.get("schema_version") != 1
+    ):
+        raise ValueError("H25 P2-007 self evidence schema is invalid.")
+    if evidence.get("projection_kind") != _P2_007_SELF_PROJECTION:
+        raise ValueError("H25 P2-007 self projection kind is invalid.")
+    scientific, transport = _runtime_identity(evidence.get("runtime_identity"))
+    same = _object(evidence.get("same_runtime_replay"), "P2-007 self replay")
+    measurements = _array(evidence.get("fixture_measurements"), "P2-007 self measurements")
+    observed_ids = tuple(
+        row.get("fixture_id") for row in measurements if type(row) is dict
+    )
+    primary = (
+        type(evidence.get("runtime_id")) is str
+        and evidence["runtime_id"] == _identity_sha(scientific)
+        and type(evidence.get("transport_id")) is str
+        and evidence["transport_id"] == _identity_sha(transport)
+        and observed_ids == tuple(getattr(test, "fixture_ids"))
+        and len(measurements) == len(getattr(test, "fixture_ids"))
+        and same.get("first") == measurements
+        and same.get("second") == measurements
+    )
+    inverse = evidence.get("inverse_measurement") == {"runtime_binding_changed": True}
+    outcome = H25RecomputedEvidence(
+        test_id="H25-T-P2-007",
+        phase="P2",
+        primary_pass=primary,
+        inverse_pass=inverse,
+        final_pass=primary and inverse,
+        diagnostics={"projection_kind": _P2_007_SELF_PROJECTION},
+    )
+    return outcome
+
+
+def recompute_h25_p2_007_self_record(
+    plan: object, raw: object
+) -> H25RecomputedEvidence:
+    """Recompute and validate the persisted finite P2-007 self/core record."""
+
+    record = _object(raw, "P2-007 nonrecursive self record")
+    outcome = derive_h25_p2_007_self_core_outcome(plan, record)
+    expected = {
+        "primary_pass": outcome.primary_pass,
+        "inverse_pass": outcome.inverse_pass,
+        "final_pass": outcome.final_pass,
+    }
+    if record.get("recomputation") != expected:
+        raise ValueError("H25 P2-007 self recomputation is not reproducible.")
+    return outcome
 
 
 def _validated_runtime_test_record(
@@ -434,6 +585,8 @@ def _validated_runtime_test_record(
         or record["fixture_ids"] != list(getattr(test, "fixture_ids"))
     ):
         raise ValueError("H25 runtime recomputed test record identity is invalid.")
+    if test_id == "H25-T-P2-007":
+        return record, recompute_h25_p2_007_self_record(plan, record)
     evidence = _object(record["evidence"], "runtime test evidence")
     outcome = recompute_h25_persisted_evidence(plan, test_id, evidence)
     expected = {
@@ -469,13 +622,14 @@ def _runtime_test_records_compliant(
                 return False
             continue
         if test_id == "H25-T-P2-007":
+            if not left_outcome.final_pass or not right_outcome.final_pass:
+                return False
             left_evidence = dict(left["evidence"])
             right_evidence = dict(right["evidence"])
             for value in (left_evidence, right_evidence):
-                observation = dict(value["current_runtime_observation"])
-                observation.pop("runtime_id", None)
-                observation.pop("runtime_identity", None)
-                value["current_runtime_observation"] = observation
+                value.pop("runtime_id", None)
+                value.pop("transport_id", None)
+                value.pop("runtime_identity", None)
             if not _cross_runtime_tree_close(left_evidence, right_evidence):
                 return False
             continue
@@ -572,19 +726,19 @@ def _phase_primary(plan: object, test: object, evidence: Mapping[str, object], m
         cross = evidence.get("cross_runtime_observation")
         if type(cross) is not dict:
             return False
-        current_id, current_identity, current_fixtures, current_tests = _runtime_observation_map(
+        current_id, current_scientific, current_fixtures, current_tests = _runtime_observation_map(
             evidence.get("current_runtime_observation"),
             fixture_ids=getattr(test, "fixture_ids"),
             test_ids=getattr(plan, "test_ids"),
         )
-        cross_id, cross_identity, cross_fixtures, cross_tests = _runtime_observation_map(
+        cross_id, cross_scientific, cross_fixtures, cross_tests = _runtime_observation_map(
             cross,
             fixture_ids=getattr(test, "fixture_ids"),
             test_ids=getattr(plan, "test_ids"),
         )
         return (
             cross_id != current_id
-            and cross_identity != current_identity
+            and cross_scientific != current_scientific
             and all(_cross_runtime_tree_close(current_fixtures[key], cross_fixtures[key]) for key in current_fixtures)
             and _runtime_test_records_compliant(
                 plan, getattr(plan, "test_ids"), current_tests, cross_tests
@@ -712,4 +866,9 @@ def recompute_h25_persisted_evidence(plan: object, test_id: str, evidence: Mappi
     )
 
 
-__all__ = ["H25RecomputedEvidence", "recompute_h25_persisted_evidence"]
+__all__ = [
+    "H25RecomputedEvidence",
+    "derive_h25_p2_007_self_core_outcome",
+    "recompute_h25_p2_007_self_record",
+    "recompute_h25_persisted_evidence",
+]

@@ -28,7 +28,7 @@ from src.polyphonic.harmonic_censoring_h25_scientific_capability import (
     AUTHORIZATION_SEAL,
     _object,
     _parse,
-    _require_runtime_before_numpy,
+    _require_secondary_runtime_before_numpy,
     _sha256,
     _validate_dormant_contract,
     _validate_future_transition,
@@ -187,14 +187,16 @@ def run_h25_secondary_runtime_observer(repository_root: Path) -> bytes:
     root = Path(repository_root).resolve(strict=True)
     seal, _activation, head = _validate_future_transition(root)
     contract = _validate_dormant_contract(root)
-    _require_runtime_before_numpy(root, contract)
     command = seal["secondary_runtime_command"]
     identity = _validate_secondary_runtime_identity(
         root, command, seal["secondary_runtime_identity"]
     )
+    _require_secondary_runtime_before_numpy(identity)
     if (
-        Path(__file__).resolve(strict=True) != Path(identity["observer_payload_path"])
-        or Path(sys.executable).resolve(strict=True) != Path(identity["resolved_executable"])
+        Path(__file__).resolve(strict=True)
+        != Path(identity["transport"]["observer_payload_path"])
+        or Path(sys.executable).resolve(strict=True)
+        != Path(identity["scientific_runtime"]["resolved_executable"])
         or sys.argv != [str(Path(__file__).resolve(strict=True))]
     ):
         raise PermissionError("H25 secondary observer invocation differs from sealed command.")
@@ -206,8 +208,14 @@ def run_h25_secondary_runtime_observer(repository_root: Path) -> bytes:
     plan = load_h25_dormant_scientific_plan(root)
     _claim_marker(root, contract, seal, head, plan)
     np = importlib.import_module("numpy")
-    if getattr(np, "__version__", None) != "1.26.4":
-        raise RuntimeError("H25 secondary observer requires exact NumPy 1.26.4.")
+    if getattr(np, "__version__", None) != identity["scientific_runtime"]["numpy_version"]:
+        raise RuntimeError("H25 secondary observer NumPy version differs from its seal.")
+    multiarray = importlib.import_module("numpy.core._multiarray_umath")
+    if (
+        str(Path(multiarray.__file__).resolve(strict=True))
+        != identity["scientific_runtime"]["numpy_multiarray_path"]
+    ):
+        raise RuntimeError("H25 secondary observer imported an unsealed NumPy binary.")
     context = _load_context_after_claim(np, root, contract, seal, plan)
     from src.polyphonic import run_harmonic_censoring_h25_scientific as runner
 

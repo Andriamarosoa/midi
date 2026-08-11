@@ -155,14 +155,16 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `54bd361a99223dd24d6e4f0883ace47572965604c406efe69e5564f675d14ee1`.
   Aucun retry ni usage scientifique n'a eu lieu. Rapport :
   `readme/results/2026-08-11_harmonic-censoring-h25-administrative-lifecycle-qualification-result.md`.
-- Le seal scientifique H25 lie maintenant l'autorité revue `49633166…`, les
-  quatre blobs scientifiques, la population publiée, la qualification
-  administrative et un observer secondaire Mac dormant. Cet observer est
-  scellé par commande, exécutable, payload, taille et SHA ; il doit produire
-  les `36` mesures et les `27` records recomputables réels de P2-007. Il reste
-  impossible à exécuter : activation, bindings OS, capability, claim et sorties
-  scientifiques sont absents, avec `P0/P1/P2=0/0/0`. Rapport :
-  `readme/results/2026-08-11_harmonic-censoring-h25-scientific-seal-secondary-observer.md`.
+- Le premier seal H25 `e82874c5…` a été rejeté : son `runtime_id` pouvait
+  différer uniquement par le script de transport alors que les deux processus
+  utilisaient le même CPython, et son record P2-007 s'incluait récursivement via
+  des records bootstrap incomplets. La correction définit une projection
+  `H25_P2_007_NONRECURSIVE_SELF_CORE_V1` recomputable, sépare identité
+  scientifique et transport, et prépare un runtime secondaire isolé CPython
+  `3.9.6` + NumPy `1.26.4` face au primaire CPython `3.11.9`. Le seal rejeté
+  est retiré ; activation, bindings OS, capability, claim, observer et
+  `P0/P1/P2` restent absents/non exécutés. Rapport :
+  `readme/results/2026-08-11_harmonic-censoring-h25-p2-007-nonrecursive-runtime-correction.md`.
 - L'unique tentative de qualification autorisée sur `a2cbed8…` a échoué avant
   `main()` et avant tout namespace/claim : le driver placé sous `tmp/local`
   n'avait pas la racine du dépôt dans `sys.path`. Le pilote externe l'a classée

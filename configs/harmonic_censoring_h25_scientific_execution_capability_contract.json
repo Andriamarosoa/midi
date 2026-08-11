@@ -1,9 +1,10 @@
 {
   "schema_version": 1,
   "purpose": "harmonic_censoring_h25_scientific_execution_capability_contract",
-  "status": "authorization_seal_and_secondary_observer_payload_defined_external_review_required",
+  "status": "P2_007_nonrecursive_projection_and_true_secondary_runtime_correction_external_review_required",
   "authorized_basis": "AUTHORIZED_TO_DEFINE_AND_IMPLEMENT_H25_DORMANT_SCIENTIFIC_CAPABILITY_CONTRACT_AND_ONE_SHOT_AUTHORITY_ONLY",
   "correction_basis": "AUTHORIZED_TO_CORRECT_H25_DORMANT_SCIENTIFIC_ACTIVATION_TOPOLOGY_P2_007_EVIDENCE_AND_FORENSIC_CLOSURE_ONLY",
+  "P2_007_correction_basis": "AUTHORIZED_TO_CORRECT_AND_RESEAL_H25_P2_007_NONRECURSIVE_RECORD_PROJECTION_AND_TRUE_SECONDARY_RUNTIME_IDENTITY_ONLY",
   "reviewed_scientific_base": {
     "commit": "de73a8f99e206e0677e48ef38427287f24f7f5d5",
     "engine": {"path":"src/polyphonic/harmonic_censoring_h25_scientific_engine.py","git_blob":"171602b54a8023e2c85c128aca14ec053da176ad"},
@@ -15,7 +16,8 @@
     "runtime_contract": {"path":"configs/harmonic_censoring_h25_population_materialization_runtime_provenance_encoding_contract.json","git_blob":"012945e42785585196a07f1e2b021dfc60f1eaf4","raw_sha256":"a00255964eb8f10c348c4364d2b6aed641a983be52b395d7befe0f4c70472273"},
     "fixture_specifications": {"path":"configs/harmonic_censoring_h25_fixture_specifications.json","git_blob":"6c262c3256b535cc366b629559960d2747bdd6af","raw_sha256":"97295c09a0dc362a9337200ede62489e254fd5e548f36e2e170f21abb3b5ef6b"},
     "population_manifest": {"path":"configs/harmonic_censoring_h25_population_manifest.json","git_blob":"c28e4c8e9415217d7d3fde796143eaf4f9f93cf4","raw_sha256":"33e21457240497322351275c3a82868d0eb06beb6676d6370ea85fae6933ba5f"},
-    "test_manifest": {"path":"configs/harmonic_censoring_h25_test_manifest.json","git_blob":"f2b7526f03ac15fd692cff7cb4ddf172895daa69","raw_sha256":"58ce653325c785598fccd3cccffa7a77ab4944286df3baeb497bd20548544d29"}
+    "test_manifest": {"path":"configs/harmonic_censoring_h25_test_manifest.json","git_blob":"f2b7526f03ac15fd692cff7cb4ddf172895daa69","raw_sha256":"58ce653325c785598fccd3cccffa7a77ab4944286df3baeb497bd20548544d29"},
+    "P2_007_nonrecursive_projection": {"path":"configs/harmonic_censoring_h25_p2_007_nonrecursive_projection_contract.json","git_blob":"9fdb9300bee1b5e132233bee2ed0b31a77e42e01","raw_sha256":"265be693cf6573db480eaf31f23bcca888823373c45801b05f1c4d96ba7749ac"}
   },
   "published_population": {
     "directory": "tmp/local/harmonic_censoring_h25_synthetic_v1",
@@ -43,7 +45,7 @@
     "activation_path": "configs/harmonic_censoring_h25_scientific_execution_activation.json",
     "OS_commit_environment": "H25_SCIENTIFIC_EXECUTION_AUTHORIZATION_COMMIT",
     "OS_seal_sha256_environment": "H25_SCIENTIFIC_EXECUTION_AUTHORIZATION_SEAL_SHA256",
-    "seal_exists_now": true,
+    "seal_exists_now": false,
     "activation_exists_now": false,
     "OS_binding_set_now": false,
     "seal_exact_fields": ["schema_version", "purpose", "status", "authorized_action", "reviewed_authority_commit", "authority_source_blob", "runner_source_blob", "engine_source_blob", "recomputer_source_blob", "capability_contract_sha256", "population_index_sha256", "population_provenance_sha256", "population_receipt_sha256", "administrative_qualification_record_path", "administrative_qualification_sha256", "secondary_runtime_command", "secondary_runtime_timeout_seconds", "secondary_runtime_identity"],
@@ -84,12 +86,16 @@
     "manual_observation_injection_forbidden": true,
     "secondary_process_is_launched_automatically_after_claim": true,
     "secondary_command_and_runtime_identity_bound_in_reviewed_authorization_seal": true,
-    "secondary_runtime_identity_exact_fields": ["implementation", "version", "platform_system", "platform_release", "platform_machine", "resolved_executable", "executable_size_bytes", "executable_sha256", "command_sha256", "observer_payload_path", "observer_payload_size_bytes", "observer_payload_sha256"],
+    "secondary_runtime_identity_exact_fields": ["scientific_runtime", "transport"],
+    "secondary_scientific_runtime_exact_fields": ["implementation", "version", "platform_system", "platform_release", "platform_machine", "resolved_executable", "executable_size_bytes", "executable_sha256", "numpy_version", "numpy_multiarray_path", "numpy_multiarray_size_bytes", "numpy_multiarray_sha256", "blas_provider", "blas_library_path", "blas_library_size_bytes", "blas_library_sha256", "process_environment_exact"],
+    "secondary_transport_identity_exact_fields": ["command_sha256", "observer_payload_path", "observer_payload_size_bytes", "observer_payload_sha256"],
     "transport": "canonical JSON over dedicated child stdout and no control stdin",
     "child_receives_only_sealed_population_and_plan_bindings": true,
     "child_must_return_sealed_runtime_identity_36_ordered_fixture_measurements_and_27_ordered_recomputed_test_records": true,
     "prefabricated_PASS_test_records_forbidden": true,
-    "current_and_secondary_runtime_ids_must_differ": true,
+    "current_and_secondary_scientific_runtime_ids_must_differ": true,
+    "transport_identity_difference_alone_is_insufficient": true,
+    "P2_007_nonrecursive_self_core_projection_required": true,
     "missing_timeout_nonzero_malformed_or_partial_child_output_is_inconclusive_consumed": true,
     "no_retry_or_postclaim_substitution": true
   },
@@ -97,7 +103,7 @@
     "contract_and_dormant_authority_only": true,
     "scientific_capability_emitted_now": false,
     "scientific_claim_created_now": false,
-    "seal_created_now": true,
+    "seal_created_now": false,
     "activation_created_now": false,
     "OS_binding_created_now": false,
     "population_opened_now": false,
@@ -106,5 +112,5 @@
     "locked_test_used": false,
     "model_checkpoint_training_calibration_used": false
   },
-  "next_action": "external_review_before_any_activation_OS_binding_capability_claim_observer_execution_or_P0"
+  "next_action": "commit_correction_then_reseal_against_that_reviewable_implementation_before_external_review"
 }
