@@ -14,12 +14,20 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 role-aware zero context preregistered; no implementation; external review only. -->
+<!-- H26_CORRECTION_STATUS: H27 fixture/test/future-population design contracted; no implementation; external review only. -->
 ## État courant
 
 - Mise à jour : `2026-08-12`.
 - État courant :
-  `H27_ROLE_AWARE_ZERO_CONTEXT_PREREGISTERED_PENDING_EXTERNAL_REVIEW_NO_IMPLEMENTATION`.
+  `H27_FIXTURE_TEST_POPULATION_DESIGN_CONTRACTED_PENDING_EXTERNAL_REVIEW_NO_IMPLEMENTATION`.
+- Le package de conception H27 fixe exactement 17 fixtures (`4/4/2/7`), 27
+  tests (`9/9/9`) et 107 cellules P2 futures, soit 124 records de population
+  conçus mais non matérialisés. Il lie les deux blobs H27 approuvés, conserve
+  les 11 obligations `R-ZERO`, distingue exact-zero, quasi-zero et support
+  invalide, et interdit toute dépendance de synthèse vers H26. Toutes les
+  autorisations restent à `false`; aucun code, waveform, test exécutable,
+  authority ou claim n'existe. Rapport :
+  `readme/results/2026-08-12_harmonic-censoring-h27-fixture-test-population-design.md`.
 - La préinscription successeur H27 fige séparément les quatre rôles de vue :
   seules les vues `previous_*` exactement silencieuses et entièrement supportées
   peuvent être des contextes valides avec `T=0`. Les vues `current_*` nulles ou
@@ -1995,12 +2003,13 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 ## Prochaine action réelle
 
-1. Faire relire uniquement les deux JSON de préinscription H27, ce README et le
-   rapport associé.
-2. Ne définir aucune fixture ou test manifest H27 et ne modifier aucun code
-   avant le verdict externe sur cette préinscription.
-3. Ne créer aucune population, authority ou claim et ne lancer aucun calcul,
-   locked-test, entraînement ou calibration ; ne toucher à aucun artefact H26.
+1. Faire relire uniquement les trois nouveaux contrats H27 de fixtures, tests
+   et population future, ce README et le rapport associé.
+2. Ne pas implémenter de materializer, engine, recomputer ou test exécutable et
+   ne matérialiser aucun record avant un nouveau verdict externe.
+3. Ne créer aucune authority, claim ou capability et ne lancer aucun FFT,
+   NNLS, P0/P1/P2, locked-test, entraînement ou calibration ; ne toucher à
+   aucun artefact H26.
 
 ## État archivé — dual-stream du 30 juillet (remplacé)
 
@@ -2396,6 +2405,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 <!-- JOURNAL_END -->
 ## Rapports détaillés
 
+- [2026-08-12 — contrat H27 des fixtures, tests et population future](results/2026-08-12_harmonic-censoring-h27-fixture-test-population-design.md)
 - [2026-07-22 — entraînement polyphonique multi-source](results/2026-07-22_polyphonic-training.md)
 - [2026-07-27 — validation du décodeur desktop polyphonique](results/2026-07-27_polyphonic-desktop-validation.md)
 - [2026-07-28 — état du produit desktop monophonique](results/2026-07-28_mono-desktop-release.md)

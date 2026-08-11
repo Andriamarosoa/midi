@@ -1,0 +1,89 @@
+{
+  "schema_identity": "H27_FIXTURE_SPECIFICATIONS_V1",
+  "schema_version": 1,
+  "status": "DESIGN_ONLY_NO_IMPLEMENTATION_NO_MATERIALIZATION",
+  "design_base_commit": "59d9115d3fdcb8cc0eeec543a67c723723a95103",
+  "h27_preregistration_blob": "869c70f7c643d8387645377a8cf5166b8728914d",
+  "h27_zero_context_cases_blob": "1b57c27936cfb0befeceaf0c30ff73189f304672",
+  "hypothesis_id": "H27_ROLE_AWARE_ZERO_CONTEXT_V1",
+  "population_namespace": "H27_SYNTHETIC_V1",
+  "test_namespace": "H27_TEST_V1",
+  "fixture_count": 17,
+  "category_counts": {"positive":4,"negative":4,"active_history":2,"ambiguous":7},
+  "global_timeline": {
+    "sample_rate_hz": 44100,
+    "hop_samples": 256,
+    "stream_samples": 16640,
+    "target_hop_end": 16383,
+    "resolution_hop_end": 16639,
+    "views": {
+      "current_short": [12288,16383],
+      "previous_short": [12032,16127],
+      "current_long": [8192,16383],
+      "previous_long": [7936,16127]
+    }
+  },
+  "exact_zero_contract": {
+    "all_required_support_valid": true,
+    "all_samples_finite": true,
+    "every_required_sample_numeric_predicate": "sample == 0.0",
+    "positive_and_negative_zero_equivalent": true,
+    "classification_precedes_spectral_interpretation": true,
+    "atol_forbidden": true,
+    "rms_threshold_forbidden": true,
+    "spectral_threshold_forbidden": true,
+    "epsilon_forbidden": true,
+    "noise_floor_shortcut_forbidden": true
+  },
+  "quasi_zero_contract": {
+    "predicate": "at least one required sample != 0.0",
+    "exact_zero_classification_forbidden": true,
+    "inherited_h26_nonzero_floor_applies": true,
+    "fixed_binary_amplitude": "2^-80"
+  },
+  "invalid_support_contract": {
+    "predicate": "one or more required support bits invalid",
+    "classification": "INVALID_SUPPORT",
+    "valid_silence_forbidden": true,
+    "zero_fill_forbidden": true
+  },
+  "synthesis_contract": {
+    "dtype": "float64",
+    "byte_order": "little-endian",
+    "deterministic_loop_order": ["source","partial","sample"],
+    "midi_frequency_formula": "440.0 * 2.0 ** ((midi_pitch - 69.0) / 12.0)",
+    "envelopes": "IDENTICAL_TO_H26_NONZERO_SYNTHESIS",
+    "vectorized_reduction_substitution_forbidden": true,
+    "masks_applied_after_waveform_generation": true,
+    "hidden_audio_forbidden": true,
+    "h26_runtime_dependency_forbidden": true,
+    "h26_fixture_read_forbidden": true
+  },
+  "historical_reference_metadata_contract": {
+    "field": "historical_reference_fixture_id",
+    "not_a_synthesis_input": true,
+    "not_a_scientific_input": true,
+    "not_a_materializer_runtime_dependency": true
+  },
+  "fixtures": [
+    {"id":"H27-F-P01","order":1,"category":"positive","family":"EXACT_ZERO_PRECONTEXT_ISOLATED_BIRTH","candidate_pitch":40,"recipe":{"sources":[],"candidate":{"pitch":40,"gain":1.0,"phase_radians":0.0,"exclusive_partials":[2,3,4],"onset_sample":16128},"previous_short":"EXACT_ZERO_COMPLETE_SUPPORT","previous_long":"EXACT_ZERO_COMPLETE_SUPPORT","current_short":"NONZERO_VALID","current_long":"NONZERO_VALID"},"historical_reference_fixture_id":"H26-F-P01","expected":"BIRTH_SUPPORTED"},
+    {"id":"H27-F-P02","order":2,"category":"positive","family":"OVERLAP_EXCLUSIVE_PARTIAL_BIRTH","candidate_pitch":52,"recipe":{"sources":[{"pitch":40,"gain":1.0}],"candidate":{"pitch":52,"gain":0.7,"collision_harmonic_rank":2,"exclusive_partials":[5,6],"onset_sample":16128}},"historical_reference_fixture_id":"H26-F-P04","expected":"BIRTH_SUPPORTED"},
+    {"id":"H27-F-P03","order":3,"category":"positive","family":"MASKED_FUNDAMENTAL_EXCLUSIVE_BIRTH","candidate_pitch":43,"recipe":{"sources":[{"pitch":31,"gain":1.0}],"candidate":{"pitch":43,"gain":0.9,"fundamental_masked":true,"exclusive_partials":[5,6,7],"onset_sample":16128}},"historical_reference_fixture_id":"H26-F-P07","expected":"BIRTH_SUPPORTED"},
+    {"id":"H27-F-P04","order":4,"category":"positive","family":"TEMPORAL_EXCLUSIVE_SUPPORT_BIRTH","candidate_pitch":59,"recipe":{"sources":[{"pitch":47,"gain":1.0}],"candidate":{"pitch":59,"gain":0.6,"exclusive_partials":[5,6],"onset_sample":16256}},"historical_reference_fixture_id":"H26-F-P09","expected":"BIRTH_SUPPORTED"},
+    {"id":"H27-F-N01","order":5,"category":"negative","family":"OLD_HARMONIC_NEGATIVE_CERTIFICATE","candidate_pitch":52,"recipe":{"sources":[{"pitch":40,"gain":1.0}],"candidate":{"observed_gain":0.0,"collision_harmonic_rank":2,"exclusive_partials":[5,6]},"bounded_claim_profile":"GLOBAL_SYNTHETIC_TIMBRE_V1"},"historical_reference_fixture_id":"H26-F-N01","expected":"NO_BIRTH"},
+    {"id":"H27-F-N02","order":6,"category":"negative","family":"DECAY_NEGATIVE_CERTIFICATE","candidate_pitch":52,"recipe":{"sources":[{"pitch":40,"gain":1.0,"decay_samples":8192}],"candidate":{"observed_gain":0.0,"exclusive_partials":[5,6]},"bounded_claim_profile":"GLOBAL_SYNTHETIC_TIMBRE_V1","snr_db":30},"historical_reference_fixture_id":"H26-F-N05","expected":"NO_BIRTH"},
+    {"id":"H27-F-N03","order":7,"category":"negative","family":"EMPTY_EXCLUSIVE_BAND_NEGATIVE_CERTIFICATE","candidate_pitch":45,"recipe":{"active_pitches":[33],"candidate":{"observed_gain":0.0,"exclusive_partials":[5,6,7]},"bounded_claim_profile":"GLOBAL_SYNTHETIC_TIMBRE_V1"},"historical_reference_fixture_id":"H26-F-N08","expected":"NO_BIRTH"},
+    {"id":"H27-F-N04","order":8,"category":"negative","family":"HIGH_BAND_EMPTY_EXCLUSIVE_NEGATIVE_CERTIFICATE","candidate_pitch":69,"recipe":{"active_pitches":[45],"candidate":{"observed_gain":0.0,"exclusive_partials":[3,5]},"bounded_claim_profile":"GLOBAL_SYNTHETIC_TIMBRE_V1"},"historical_reference_fixture_id":"H26-F-N10","expected":"NO_BIRTH"},
+    {"id":"H27-F-H01","order":9,"category":"active_history","family":"ACTIVE_HISTORY_LOW","candidate_pitch":40,"recipe":{"waveform":"SILENT_STATE_ONLY","initial_active_pitches":[],"prior_transitions":[{"sample_index":8192,"kind":"note_on","pitch":40}],"required_bypass":"ALREADY_ACTIVE_HISTORY_BEFORE_SPECTRAL_ANALYSIS"},"historical_reference_fixture_id":"H26-F-H01","expected":"ALREADY_ACTIVE_HISTORY"},
+    {"id":"H27-F-H02","order":10,"category":"active_history","family":"ACTIVE_HISTORY_HIGH","candidate_pitch":81,"recipe":{"waveform":"SILENT_STATE_ONLY","initial_active_pitches":[],"prior_transitions":[{"sample_index":12032,"kind":"note_on","pitch":81}],"required_bypass":"ALREADY_ACTIVE_HISTORY_BEFORE_SPECTRAL_ANALYSIS"},"historical_reference_fixture_id":"H26-F-H08","expected":"ALREADY_ACTIVE_HISTORY"},
+    {"id":"H27-F-A01","order":11,"category":"ambiguous","family":"EXACT_NONZERO_COLLISION_RANK2","candidate_pitch":52,"recipe":{"old_pitch":40,"collision_harmonic_rank":2,"old_source_gain":1.0,"candidate_source_gain":0.5,"phase_radians":0.0,"both_latent_contributions_nonzero":true,"independent_renders_byte_identical":true},"historical_reference_fixture_id":"H26-F-A01","expected":"AMBIGUOUS"},
+    {"id":"H27-F-A02","order":12,"category":"ambiguous","family":"EXACT_NONZERO_COLLISION_RANK8","candidate_pitch":76,"recipe":{"old_pitch":40,"collision_harmonic_rank":8,"old_source_gain":0.5,"candidate_source_gain":0.0625,"phase_radians":4.71238898038469,"both_latent_contributions_nonzero":true,"independent_renders_byte_identical":true},"historical_reference_fixture_id":"H26-F-A06","expected":"AMBIGUOUS"},
+    {"id":"H27-F-A03","order":13,"category":"ambiguous","family":"BELOW_DETECTION_FLOOR","candidate_pitch":43,"recipe":{"sources":[{"pitch":31,"gain":1.0}],"candidate":{"gain":0.005,"exclusive_partials":[5,6]},"bounded_claim_profile":"GLOBAL_SYNTHETIC_TIMBRE_V1"},"historical_reference_fixture_id":"H26-F-A07","expected":"AMBIGUOUS"},
+    {"id":"H27-F-A04","order":14,"category":"ambiguous","family":"INVALID_PREVIOUS_SUPPORT","candidate_pitch":40,"recipe":{"waveform":"INTACT_NONZERO","required_support_mutation":{"previous_short":false,"previous_long":false},"current_short_support_valid":true,"current_long_support_valid":true,"invalid_reason":"required previous support bit invalid; padding and zero-fill forbidden"},"historical_reference_fixture_id":"H26-F-A10","expected":"AMBIGUOUS"},
+    {"id":"H27-F-A05","order":15,"category":"ambiguous","family":"QUASI_ZERO_PREVIOUS_CONTEXT","candidate_pitch":40,"recipe":{"previous_context":"NONZERO","previous_amplitude":"2^-80","previous_support_complete":true,"previous_total_expected":"BELOW_INHERITED_H26_FLOOR","candidate":{"pitch":40,"gain":1.0,"onset_sample":16128},"current_views":"STRONG_NONZERO_VALID"},"historical_reference_fixture_id":null,"expected":"AMBIGUOUS","reason":"quasi-zero is never exact-zero"},
+    {"id":"H27-F-A06","order":16,"category":"ambiguous","family":"QUASI_ZERO_CURRENT_ANALYSIS","candidate_pitch":40,"recipe":{"sources":[],"candidate":{"pitch":40,"gain":"2^-80","onset_sample":16128},"current_samples_nonzero":true,"current_support_complete":true,"current_total_expected":"BELOW_INHERITED_H26_FLOOR"},"historical_reference_fixture_id":null,"expected":"AMBIGUOUS","reason":"INVALID_CURRENT_ANALYSIS"},
+    {"id":"H27-F-A07","order":17,"category":"ambiguous","family":"EXACT_ZERO_CURRENT_ANALYSIS","candidate_pitch":40,"recipe":{"sources":[],"candidate":{"pitch":40,"active":false},"support_complete":true,"current_short":"EXACT_ZERO","current_long":"EXACT_ZERO"},"historical_reference_fixture_id":null,"expected":"AMBIGUOUS"}
+  ],
+  "scientific_forbidden_inputs": ["future audio","future labels","fixture identity","fixture family or target category","reference note identity","ground-truth onset coordinate","string or fret","post-decision decoder state","post-emission rank or selection","H25 outcome or membership","raw transform disappearance index","latent explanation label"],
+  "authorization_boundary": {"implementation_authorized":false,"materialization_authorized":false,"execution_authorized":false,"authority_creation_authorized":false,"claim_creation_authorized":false,"population_exists":false}
+}
