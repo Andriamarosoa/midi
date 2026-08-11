@@ -33,6 +33,14 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   dérivé dans l'ordre preuve manquante → inconclusive, mismatch comparable →
   disqualified, toutes preuves et égalités exactes → qualified. Cette fermeture
   reste purement déclarative et ne qualifie aucun runtime.
+- Qualificateur runtime primaire H26 implémenté en mode dormant : loader lié au
+  commit `89cc0659…` et à son blob corrigé `c3a02187…`, classification pure des
+  trois terminaux, record canonique sans statut fourni ni auto-SHA, serializer
+  déterministe et writer atomique derrière une capability sans issuer. Le
+  module n'importe pas NumPy au chargement et les 17 tests n'utilisent que des
+  observations artificielles. Aucun vrai runtime/record n'a été qualifié ou
+  créé. Rapport :
+  `readme/results/2026-08-11_harmonic-censoring-h26-runtime-qualifier-dormant-implementation.md`.
 - Contrat dormant d'autorité de matérialisation H26 défini, sans issuer ni
   objet opérationnel : les trois SHA scientifiques et les cinq blobs Git revus
   sont liés, la sémantique one-shot/fail-closed future est spécifiée et les
@@ -2201,6 +2209,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-11 — clôture terminale et analyse forensique H25 à P0-004](results/2026-08-11_harmonic-censoring-h25-terminal-forensic-closure.md)
 - [2026-08-11 — préinscription scientifique H26 à certificats bornés](results/2026-08-11_harmonic-censoring-h26-scientific-preregistration.md)
 - [2026-08-11 — contrat dormant de qualification du runtime de matérialisation H26](results/2026-08-11_harmonic-censoring-h26-materialization-runtime-qualification-contract.md)
+- [2026-08-11 — implémentation dormante du qualificateur runtime H26](results/2026-08-11_harmonic-censoring-h26-runtime-qualifier-dormant-implementation.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)
