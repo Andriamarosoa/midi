@@ -1,0 +1,64 @@
+{
+  "schema_identity": "H26_RUNTIME_ONE_SHOT_ORCHESTRATION_OBSERVER_ENTRY_ORDER_CORRECTION_V1",
+  "schema_version": 1,
+  "status": "DECLARATIVE_DORMANT_ORDER_CORRECTION_NO_RUNTIME_INVOCATION",
+  "authorization_token": "AUTHORIZED_TO_CORRECT_H26_C7_C8_C9_C10_OBSERVER_ENTRY_BOUNDARY_ORDER_ADDITIVELY_DORMANT_ONLY",
+  "reason": "OBSERVER_ENTRY_EVIDENCE_ORDER_CORRECTION_ONLY",
+  "historical_contract_binding": {
+    "commit": "697c77c8584816740039a9a5737617c647f0d32d",
+    "git_blob_sha": "a986570cea5b4dc31df40499f66f1cb6fbb8ab3c",
+    "git_blob_byte_length": 2093,
+    "raw_sha256": "e1bd0060d6567c57ffac6e2b3b41d34eeb6790fb6dd85065f4f191bf4459afb2"
+  },
+  "historical_future_sequence": [
+    "validate_activation",
+    "preflight",
+    "validate_authority",
+    "validate_claim",
+    "validate_observer_entry_evidence",
+    "invoke_observer_exactly_once",
+    "validate_optional_runtime_record",
+    "validate_terminal_receipt"
+  ],
+  "effective_future_sequence": [
+    "validate_activation",
+    "preflight",
+    "validate_authority",
+    "validate_claim",
+    "enter_observer_boundary",
+    "create_observer_entry_evidence_inside_boundary",
+    "validate_observer_entry_evidence",
+    "invoke_observer_exactly_once",
+    "capture_optional_runtime_record",
+    "validate_terminal_receipt"
+  ],
+  "unchanged_rules": {
+    "maximum_authorities": 1,
+    "maximum_claims": 1,
+    "maximum_observer_invocations": 1,
+    "authority_path_derived_from_authority_raw_sha256": true,
+    "retry_allowed": false,
+    "failure_is_terminal": true,
+    "adapter_injection_required": true,
+    "fake_adapter_and_fake_observer_tests_only": true,
+    "real_observer_invocation_authorized": false,
+    "real_runtime_artifact_creation_authorized": false,
+    "numpy_blas_otool_authorized": false
+  },
+  "current_state": {
+    "correction_contract_exists": true,
+    "observer_boundary_entered": false,
+    "observer_entry_evidence_exists": false,
+    "observer_invoked": false,
+    "runtime_record_exists": false,
+    "terminal_receipt_exists": false,
+    "runtime_execution_authorized": false,
+    "materialization_authorized": false,
+    "scientific_execution_authorized": false,
+    "locked_test_used": false
+  },
+  "historical_contract_remains_a_historical_artifact": true,
+  "this_correction_supersedes_historical_future_sequence_for_future_use": true,
+  "creation_authorized_now": false,
+  "next_action": "Create an external seal for this additive dormant order correction"
+}
