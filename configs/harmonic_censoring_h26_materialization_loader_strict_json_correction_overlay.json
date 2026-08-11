@@ -1,0 +1,42 @@
+{
+  "schema_identity": "H26_MATERIALIZATION_LOADER_STRICT_JSON_CORRECTION_OVERLAY_V1",
+  "schema_version": 1,
+  "status": "ADDITIVE_DORMANT_CORRECTION_PENDING_EXTERNAL_REVIEW",
+  "reason": "MATERIALIZATION_SEAL_LOADER_STRICT_JSON_PARSING_ONLY",
+  "historical_bindings": {
+    "C13": {
+      "commit": "920ce0840963ff6f0732b4683e44d42e0e8a4ab2",
+      "loader_git_blob_sha": "7b3f46cd0a29391ce0698d18cb9a6b31c1cf0bdd"
+    },
+    "R1_C13": {
+      "commit": "35f269e0b0abb75d23fb22750a95a724ff794d61",
+      "deep_freeze_loader_git_blob_sha": "7a22bb7b17d1cc6678121f7db512994768d97708"
+    }
+  },
+  "effective_binding": {
+    "R11": {
+      "commit": "cbede10ed3925df09d1f8622eaa325ee37699621",
+      "loader_git_blob_sha": "86a5283036bf8b65b85eec55eb968bdca8a57835"
+    }
+  },
+  "strict_json_requirements": {
+    "duplicate_keys_rejected": true,
+    "floats_rejected": true,
+    "nan_rejected": true,
+    "positive_infinity_rejected": true,
+    "negative_infinity_rejected": true,
+    "top_level_object_required": true
+  },
+  "materialization_contract_and_seal_bindings_changed": false,
+  "deep_freeze_changed": false,
+  "scientific_rules_changed": false,
+  "lifecycle_rules_changed": false,
+  "failure_rules_changed": false,
+  "real_materializer_invoked": false,
+  "runtime_artifact_created": false,
+  "operational_action_executed": false,
+  "scientific_action_executed": false,
+  "locked_test_used": false,
+  "creation_authorized_now": false,
+  "next_action": "External review of R11 and R12 before resuming at C14"
+}

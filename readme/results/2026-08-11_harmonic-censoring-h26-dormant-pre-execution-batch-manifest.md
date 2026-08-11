@@ -104,3 +104,14 @@ R5 a ensuite ete rejete parce que son parseur strict ne refusait pas encore
 `f208eba5fb054cff90ea3f1c5aca69f30d789cd4` ajoute exclusivement ce rejet et
 ses trois tests. R10 conserve R5 comme historique et designe R9 comme loader
 effectif. Aucun binding R3/R4, ordre R6 ou etat dormant n'a change.
+
+## Overlay strict JSON apres rejet de C13
+
+C13 a ete rejete parce que son loader acceptait les cles dupliquees, les
+floats et les constantes numeriques non-JSON. R11
+`cbede10ed3925df09d1f8622eaa325ee37699621` corrige uniquement le parseur et
+son test. R12 conserve C13 et R1-C13 comme historiques et designe le blob R11
+`86a5283036bf8b65b85eec55eb968bdca8a57835` comme effectif.
+
+Aucun binding C12, deep-freeze, materializer reel, science ou locked-test n'a
+ete modifie ou execute.
