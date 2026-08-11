@@ -18,7 +18,13 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-11`.
-- Étape : `harmonic_censoring_h26_scientific_preregistration`.
+- Étape : `harmonic_censoring_h26_population_materialization_authority_contract`.
+- Contrat dormant d'autorité de matérialisation H26 défini, sans issuer ni
+  objet opérationnel : les trois SHA scientifiques et les cinq blobs Git revus
+  sont liés, la sémantique one-shot/fail-closed future est spécifiée et les
+  onze booléens d'autorisation restent `false`. Aucun waveform, index, record
+  P2, population, runtime ou calcul n'a été créé. Rapport :
+  `readme/results/2026-08-11_harmonic-censoring-h26-population-materialization-authority-contract.md`.
 - Clôture de revue : `H26_DORMANT_STACK_REVIEWED_AND_CLOSED`. La
   préinscription et la pile logicielle dormante sont revues jusqu'au commit
   `60b8d90bcbb5fb6e3a82d839bae706a359ab310e`. Cette clôture ne constitue

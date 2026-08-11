@@ -1,0 +1,196 @@
+{
+  "schema_version": 1,
+  "purpose": "H26_POPULATION_MATERIALIZATION_AUTHORITY_CONTRACT",
+  "status": "DECLARATIVE_DORMANT_NO_ISSUER_NO_CAPABILITY_NO_EXECUTION",
+  "hypothesis_id": "H26_BOUNDED_EVIDENCE_V1",
+  "population_namespace": "H26_SYNTHETIC_V1",
+  "test_namespace": "H26_TEST_V1",
+  "reviewed_implementation_commit": "60b8d90bcbb5fb6e3a82d839bae706a359ab310e",
+  "dormant_stack_review_closure_commit": "0044675695f25a6127c648e99bcd4126c50b9727",
+  "sealed_scientific_artifacts": [
+    {
+      "path": "configs/harmonic_censoring_h26_scientific_preregistration_contract.json",
+      "raw_sha256": "8ecbb1da33e67e78bb76a2b0364d0d5c1697414a711418a030aafb000943b583"
+    },
+    {
+      "path": "configs/harmonic_censoring_h26_fixture_specifications.json",
+      "raw_sha256": "c8e66f7f9d200451559bf538af5b6dd0b0e7131e042588b6f13ec8655804fc28"
+    },
+    {
+      "path": "configs/harmonic_censoring_h26_test_manifest.json",
+      "raw_sha256": "f64b55a4b5dc21da0e2dc4bf9deb712073af59f3d67fd6e3d7d019ce8037e073"
+    }
+  ],
+  "reviewed_implementation_artifacts": [
+    {
+      "path": "src/polyphonic/harmonic_censoring_h26_contract.py",
+      "git_blob_sha": "bf454505ed6ccc7c9de059d8619fe0025fc07558"
+    },
+    {
+      "path": "src/polyphonic/harmonic_censoring_h26_materializer.py",
+      "git_blob_sha": "2991c69db8a8816d0261c1fb6bb4e339e9408c11"
+    },
+    {
+      "path": "src/polyphonic/harmonic_censoring_h26_engine.py",
+      "git_blob_sha": "729a989766fc05c9e5149877b3c3b9a68e141fcd"
+    },
+    {
+      "path": "src/polyphonic/harmonic_censoring_h26_recomputer.py",
+      "git_blob_sha": "2e7fc04c6e12234f39d7722ad156019511c5d63e"
+    },
+    {
+      "path": "tests/test_harmonic_censoring_h26_dormant_stack.py",
+      "git_blob_sha": "1bf43c4cea572d37ca0dc1a54513661710b95b04"
+    }
+  ],
+  "future_materialization_contract": {
+    "baseline_record_count": 40,
+    "baseline_identity_order": "exact sealed fixture order",
+    "p2_record_derivation": "exact Cartesian enumeration from sealed P2 tests, sealed perturbation grids and sealed fixture membership",
+    "p2_record_identity": [
+      "fixture_id",
+      "test_id",
+      "grid_id",
+      "cell"
+    ],
+    "population_index_schema_version": 2,
+    "waveform_dtype": "<f8",
+    "sample_valid_mask_dtype": "u8",
+    "baseline_duplicates_forbidden": true,
+    "p2_tuple_duplicates_forbidden": true,
+    "unlisted_baseline_records_forbidden": true,
+    "unlisted_p2_records_forbidden": true,
+    "waveform_sha256_required": true,
+    "sample_valid_mask_sha256_required": true,
+    "alternate_sha256_required_when_present": true,
+    "collision_fixture_alternate_rule": "A01-A06 require alternate waveforms; non-collision alternates are forbidden unless the sealed scientific contract explicitly requires one",
+    "partial_staging_consumable": false,
+    "publication": "final atomic rename only after complete verification",
+    "scientific_outcome_calculation_forbidden": true,
+    "p0_p1_p2_execution_forbidden": true
+  },
+  "future_authority_requirements": {
+    "object_creation_authorized": false,
+    "required_fields": [
+      "authority_id",
+      "authority_schema_version",
+      "authority_contract_commit",
+      "authority_contract_raw_sha256",
+      "authority_artifact_raw_sha256",
+      "reviewed_implementation_commit",
+      "review_closure_commit",
+      "scientific_contract_sha256",
+      "fixture_specifications_sha256",
+      "test_manifest_sha256",
+      "qualified_runtime_record_sha256",
+      "materializer_git_blob_sha",
+      "absolute_destination",
+      "single_use",
+      "retry_allowed",
+      "expected_population_namespace",
+      "expected_population_index_schema_version",
+      "issued_at",
+      "issuer_identity",
+      "execution_authorized"
+    ],
+    "required_constraints": {
+      "authority_contract_commit": "exact future reviewed commit containing this contract",
+      "authority_contract_raw_sha256": "exact future raw SHA256 of this contract",
+      "reviewed_implementation_commit": "60b8d90bcbb5fb6e3a82d839bae706a359ab310e",
+      "review_closure_commit": "0044675695f25a6127c648e99bcd4126c50b9727",
+      "single_use": true,
+      "retry_allowed": false,
+      "expected_population_namespace": "H26_SYNTHETIC_V1",
+      "expected_population_index_schema_version": 2
+    },
+    "current_authority_id": null,
+    "current_absolute_destination": null,
+    "current_issued_at": null,
+    "current_issuer_identity": null,
+    "current_execution_authorized": false
+  },
+  "future_runtime_qualification_requirements": {
+    "separately_authorized_and_reviewed_before_authority_emission": true,
+    "bind_to_preregistered_primary_runtime": true,
+    "current_qualification_exists": false,
+    "current_runtime_record_sha256": null,
+    "python_scientific_execution_now": false,
+    "numpy_scientific_execution_now": false,
+    "blas_verification_now": false,
+    "secondary_runtime_execution_now": false
+  },
+  "single_use_semantics": {
+    "declarative_state_sequence": [
+      "UNAUTHORIZED",
+      "FUTURE_REVIEWED_AUTHORITY",
+      "FUTURE_ONE_USE_MATERIALIZATION_CLAIM",
+      "CLAIM_CONSUMED",
+      "EXACTLY_ONE_MATERIALIZER_INVOCATION",
+      "MATERIALIZATION_COMPLETED_OR_FAILED_CONSUMED"
+    ],
+    "current_state": "UNAUTHORIZED",
+    "single_invocation": true,
+    "single_destination": true,
+    "single_authority": true,
+    "claim_consumed_before_invocation": true,
+    "retry_after_claim_consumption": false,
+    "automatic_mismatch_correction": false,
+    "mismatch_is_terminal_for_attempt": true,
+    "no_current_field_can_transition_from_unauthorized": true
+  },
+  "required_future_receipts": {
+    "artifacts": [
+      "materialization_claim_record",
+      "materialization_terminal_record",
+      "population_index.json",
+      "population_index_raw_sha256",
+      "population_provenance_record",
+      "materialization_receipt"
+    ],
+    "terminal_statuses": [
+      "H26_POPULATION_MATERIALIZATION_COMPLETED",
+      "H26_POPULATION_MATERIALIZATION_FAILED_CONSUMED"
+    ],
+    "artifacts_created_now": false,
+    "terminal_status_claimed_now": false
+  },
+  "fail_closed_invariants": [
+    "exact hypothesis, population and test namespaces",
+    "exact three scientific raw SHA256 values",
+    "exact reviewed implementation commit and five Git blobs",
+    "exact future authority-contract SHA, authority artifact SHA and qualified runtime record SHA",
+    "exact destination bound by future authority; destination and staging absent before execution",
+    "single invocation, destination and authority; no retry after claim consumption",
+    "exactly 40 ordered baseline identities",
+    "P2 records derived only from sealed tests, grids and fixture membership",
+    "population index schema version 2 with no unlisted or duplicate identities",
+    "all waveform, mask and applicable alternate SHA256 values persisted",
+    "failure before publication produces no valid population; partial staging is never consumable",
+    "publication only by final atomic rename",
+    "no scientific outcome calculation and no P0/P1/P2 during materialization",
+    "any mismatch is terminal for the consumed attempt"
+  ],
+  "authorization_boundary": {
+    "authority_issuer_exists": false,
+    "authority_exists": false,
+    "capability_issuer_exists": false,
+    "capability_exists": false,
+    "materialization_claim_exists": false,
+    "materialization_authorized": false,
+    "materialization_executed": false,
+    "population_exists": false,
+    "population_index_exists": false,
+    "p2_records_exist": false,
+    "scientific_execution_authorized": false
+  },
+  "forbidden_operations": [
+    "modify reviewed source, tests or sealed scientific configs in this contract commit",
+    "create or modify an issuer",
+    "create a capability, effective authority, claim, execution seal or real destination",
+    "call materialize_h26_population, synthesize_h26_fixture or synthesize_h26_p2_fixture",
+    "create H26 waveforms, population_index.json, P2 records or a population",
+    "execute P0, P1, P2 or a secondary scientific runtime",
+    "perform scientific runtime qualification",
+    "use real data, model, training, calibration or locked-test"
+  ]
+}
