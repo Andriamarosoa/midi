@@ -68,6 +68,16 @@ la frontière d'entrée de `observe_primary_runtime`, en liant la même authorit
 le même claim et le qualificateur exact. Elle ne pourra jamais être fournie par
 l'appelant ou précréée.
 
+Cette preuve possède un schéma canonique à dix champs exacts : identity/version,
+`observer_entry_evidence_id`, identity/SHA de l'authority, identity/SHA du
+claim, commit/blob du qualificateur et ordinal `1`. Les authority et claim
+doivent être exactement ceux déjà consommés. L'identifiant et le slot sont
+dérivés uniquement de leurs quatre valeurs identity/SHA, jamais choisis par
+l'appelant. Il existe au maximum une preuve par claim, créée en create-exclusive
+à l'intérieur de l'entrée observer. Une tentative partielle ou corrompue
+consomme le slot; aucun autre ID, chemin, processus, delete, replace ou retry ne
+peut produire une seconde preuve.
+
 ## Receipt terminal
 
 Le schéma futur `H26_RUNTIME_QUALIFICATION_EXECUTION_RECEIPT_V1` lie notamment :
@@ -89,6 +99,9 @@ post-claim empêche toute publication atomique du record, l'absence est liée
 explicitement par `runtime_record_exists=false` et SHA `null`, avec terminal
 `H26_MATERIALIZATION_RUNTIME_QUALIFICATION_INCONCLUSIVE_CONSUMED`. Ce receipt
 n'est possible que si la preuve d'entrée interne existe réellement.
+Son `observer_entry_evidence_id` et son SHA brut doivent correspondre exactement
+à cette unique preuve canonique et aux mêmes authority/claim; toute identité,
+empreinte ou liaison alternative est refusée.
 
 Si l'authority et le claim sont consommés mais qu'une panne survient avant
 l'entrée de l'observer, aucun runtime record et aucun execution receipt

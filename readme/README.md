@@ -33,6 +33,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   exige désormais une preuve créée depuis l'intérieur de l'entrée observer.
   Une panne après claim mais avant observer laisse authority/claim consommés,
   sans record ni receipt prétendant une invocation et sans retry.
+- La preuve d'entrée possède désormais dix champs exacts, une identité et un
+  slot uniques dérivés de l'authority et du claim consommés. Sa première
+  tentative create-exclusive consomme le slot; aucun ID/path/process alternatif
+  n'est possible. Le receipt doit lier exactement son ID et son SHA externe.
 - Étape : `harmonic_censoring_h26_materialization_runtime_qualification_contract`.
 - Contrat dormant de qualification du runtime primaire H26 défini sans
   qualificateur ni exécution : identité exacte CPython 3.11.9 / Darwin 24.5.0
