@@ -14,18 +14,19 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: dormant materialization runtime execution proof validator implemented with artificial tests only; no real authority or execution. -->
+<!-- H26_CORRECTION_STATUS: dormant materialization runtime execution proof validator reviewed and closed; no real authority or execution. -->
 ## État courant
 
 - Mise à jour : `2026-08-11`.
 - État courant :
-  `H26_MATERIALIZATION_RUNTIME_EXECUTION_PROOF_VALIDATOR_DORMANT_IMPLEMENTED_PENDING_REVIEW`.
-- Le validateur dormant de la preuve complète est maintenant implémenté. Il
+  `H26_MATERIALIZATION_RUNTIME_EXECUTION_PROOF_VALIDATOR_DORMANT_REVIEWED_AND_CLOSED`.
+- Le validateur dormant de la preuve complète, implémenté au commit
+  `18b8d5a73e61ab9143b897cb68479ae571c62bca`, est désormais relu et clos. Il
   réutilise le validateur terminal approuvé, accepte uniquement une chaîne
   artificielle QUALIFIED exacte et retourne une projection immutable de neuf
-  champs. Les 9 tests artificiels passent; aucun fichier opérationnel, runtime
-  réel ou calcul scientifique n'est créé. Rapport :
-  `readme/results/2026-08-11_harmonic-censoring-h26-materialization-runtime-execution-proof-validator-dormant-implementation.md`.
+  champs. Cette clôture ne crée ni authority, claim, receipt, runtime record,
+  destination, population ou autorisation scientifique. Rapport de clôture :
+  `readme/results/2026-08-11_harmonic-censoring-h26-materialization-runtime-execution-proof-validator-review-closure.md`.
 - Le contrat dormant d'autorité de matérialisation exige maintenant la chaîne
   complète authority runtime → claim consommé → preuve d'entrée observer →
   receipt terminal → record runtime exact. Le record doit être
