@@ -1,5 +1,10 @@
 # H25 — moteur scientifique, runner dormant et recomputer indépendant
 
+> Archive du premier bloc `c47b9ba`. La revue externe a rejeté son affirmation
+> d'indépendance du recomputer et plusieurs preuves d'oracle. Ces défauts sont
+> corrigés dans
+> `2026-08-11_harmonic-censoring-h25-dormant-scientific-recomputation-correction.md`.
+
 ## Verdict de phase
 
 Cette phase implémente uniquement le bloc dormant autorisé après la validation

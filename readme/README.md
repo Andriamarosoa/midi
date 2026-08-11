@@ -17,13 +17,23 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-11`.
-- Étape : `harmonic_censoring_h25_dormant_scientific_engine_runner_recomputer`.
-- Statut : `population H25 matérialisée et vérifiée byte-for-byte sur Mac; moteur, registre 27 tests, runner dormant et recomputer indépendant implémentés avec TEST-ONLY; P0/P1/P2 restent à 0/0/0`.
+- Étape : `harmonic_censoring_h25_dormant_scientific_recomputation_correction`.
+- Statut : `rejet externe c47b9ba corrigé sans science; recomputer désormais sans import producteur, preuves brutes et bornes causales corrigées; P0/P1/P2 restent à 0/0/0`.
 - La matérialisation one-shot approuvée a publié exactement `36` fixtures,
   `108` artefacts et `111` fichiers, puis une vérification indépendante hors
   TTY a recomputé les `36×3` artefacts avec des PCG64 frais et confirmé
   l'identité byte-for-byte. Les SHA exacts sont : index `814d8c36…`, provenance
   `cadc154a…`, receipt `dbab8591…`. Aucun P0/P1/P2 n'a été exécuté.
+- Après le rejet externe de `c47b9ba`, le recomputer H25 a été refondu sans
+  aucun import du moteur : il reconstruit indépendamment graphe, opérateur et
+  catégories depuis les opérandes bruts. Les spectres/fréquences nécessaires
+  sont persistés côté producteur, l'état actif est une trace causale rejouable
+  bornée à `16383`, P0-007 vérifie bien `16383/16127`, P2-002 couvre exactement
+  `0/1/2/4` hops et P2-007 exige une observation d'un second runtime au lieu
+  d'un self-compare. Les inverses P1/P2 perturbent maintenant les inputs ou
+  sont refusés par le schéma avant évaluation. `60` tests H25 autorisés passent,
+  dont `15` tests du moteur dormant. Rapport de correction :
+  `readme/results/2026-08-11_harmonic-censoring-h25-dormant-scientific-recomputation-correction.md`.
 - Le moteur H25 dormant implémente maintenant le graphe H1/H2..H20, la grille
   vectorisée `s=0..88`, les masques et le null géométrique, les vues causales
   4096/8192 au même hop, le résidu d'explication par état actif et la résolution
@@ -31,7 +41,9 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   les `27` producteurs dans l'ordre P0/P1/P2 et le recomputer séparé refuse les
   verdicts auto-déclarés. Le runner reste fail-closed avant NumPy/population :
   aucune authority, capability, claim, seal ou activation scientifique
-  n'existe. `54` tests H25 ciblés réussissent, dont `9` nouveaux tests
+  n'existe. Le rapport historique du premier bloc est conservé, mais son
+  affirmation initiale d'indépendance a été rejetée puis corrigée par l'étape
+  ci-dessus. `60` tests H25 ciblés réussissent, dont `15` tests du moteur
   `TEST-ONLY`; rapport :
   `readme/results/2026-08-11_harmonic-censoring-h25-dormant-scientific-engine.md`.
 - Le contrat de future matérialisation H25 lie exactement CPython `3.11.9`,
@@ -2054,6 +2066,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-11 — manifests population/tests et spécifications de fixtures H25](results/2026-08-11_harmonic-censoring-h25-population-test-manifests.md)
 - [2026-08-11 — contrat H25 de runtime, provenance et encodage de matérialisation](results/2026-08-11_harmonic-censoring-h25-population-materialization-runtime-contract.md)
 - [2026-08-11 — implémentation dormante du materializer/recomputer H25](results/2026-08-11_harmonic-censoring-h25-dormant-population-materializer.md)
+- [2026-08-11 — correction du moteur scientifique dormant et de la recomputation H25](results/2026-08-11_harmonic-censoring-h25-dormant-scientific-recomputation-correction.md)
 - [2026-08-11 — autorité one-shot dormante de matérialisation H25](results/2026-08-11_harmonic-censoring-h25-materialization-authority-dormant.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)

@@ -15,6 +15,7 @@ from src.polyphonic.harmonic_censoring_h25_recomputer import (
 from src.polyphonic.harmonic_censoring_h25_scientific_engine import (
     ATOL,
     H25CandidateFeatures,
+    H25CausalReplayTrace,
     H25EvidenceProducerContext,
     H25_EXACT_EVIDENCE_PRODUCER_REGISTRY,
     POPULATION_INDEX_SHA256,
@@ -95,6 +96,43 @@ class H25DormantScientificEngineTests(unittest.TestCase):
         power = np.abs(np.fft.rfft(waveform * hann)) ** 2
         frequencies = np.arange(power.size, dtype=np.float64) * 44100.0 / float(window_samples)
         return power, frequencies
+
+    def _test_only_context(self, test, fixture_id="TEST-ONLY-H25-F-PRODUCER"):
+        samples = np.arange(17664, dtype=np.float64)
+        waveform = np.sin(2.0 * np.pi * 130.8127825 * samples / 44100.0)
+        envelope = np.zeros(samples.shape, dtype=np.float64)
+        elapsed = samples[16128:] - 16128.0
+        envelope[16128:] = np.minimum(1.0, (elapsed + 1.0) / 64.0) * np.exp(-elapsed / 2048.0)
+        waveform += envelope * np.sin(2.0 * np.pi * 261.625565 * samples / 44100.0)
+        source = {
+            "id": fixture_id,
+            "order": 1,
+            "category": "positive",
+            "family": "IDENTIFIABLE_OVERLAP",
+            "pitch_band": "mid",
+            "candidate_pitch": 60,
+            "parameters": {"old_pitch": 48, "new_onset": 16128},
+        }
+        test = replace(test, fixture_ids=(fixture_id,))
+        plan = replace(self.plan, fixtures=(MappingProxyType(source),), tests=(test,))
+        context = H25EvidenceProducerContext(
+            np=np,
+            plan=plan,
+            waveforms=MappingProxyType({fixture_id: waveform}),
+            fixture_records=MappingProxyType({fixture_id: {"source_fixture_record": source}}),
+            causal_replay_traces=MappingProxyType({fixture_id: H25CausalReplayTrace(fixture_id, 16383, (48,), ())}),
+            started_ns=time.perf_counter_ns(),
+            peak_rss_bytes=1,
+            operational_counters=MappingProxyType({
+                "GPU_device_count": 0,
+                "scientific_process_count": 1,
+                "model_inference_call_count": 0,
+                "hidden_repeated_pitch_shift_inference_count": 0,
+            }),
+            observed_fixture_ids=plan.fixture_ids,
+            observed_test_ids=plan.test_ids,
+        )
+        return plan, test, context
 
     def test_vectorized_operator_matches_independent_scalar_reference(self) -> None:
         power, frequencies = self._test_only_spectrum()
@@ -227,10 +265,24 @@ class H25DormantScientificEngineTests(unittest.TestCase):
             plan=test_plan,
             waveforms=MappingProxyType({fixture_id: waveform}),
             fixture_records=MappingProxyType({fixture_id: fixture_record}),
-            targets=MappingProxyType({fixture_id: {"category": "positive"}}),
-            active_pitches_by_fixture=MappingProxyType({fixture_id: (48,)}),
+            causal_replay_traces=MappingProxyType({
+                fixture_id: H25CausalReplayTrace(
+                    fixture_id=fixture_id,
+                    observed_through_sample=16383,
+                    initial_active_pitches=(48,),
+                    transitions=(),
+                )
+            }),
             started_ns=time.perf_counter_ns(),
             peak_rss_bytes=1,
+            operational_counters=MappingProxyType({
+                "GPU_device_count": 0,
+                "scientific_process_count": 1,
+                "model_inference_call_count": 0,
+                "hidden_repeated_pitch_shift_inference_count": 0,
+            }),
+            observed_fixture_ids=(fixture_id,),
+            observed_test_ids=(test.test_id,),
         )
         evidence = produce_h25_test_evidence(context, test)
         canonical_json_bytes(evidence)
@@ -238,6 +290,73 @@ class H25DormantScientificEngineTests(unittest.TestCase):
         self.assertNotIn("verdict", evidence)
         outcome = recompute_h25_persisted_evidence(test_plan, test.test_id, evidence)
         self.assertTrue(outcome.final_pass)
+
+    def test_recomputer_has_no_engine_import_and_rederives_outcome(self) -> None:
+        source = (self.root / "src/polyphonic/harmonic_censoring_h25_recomputer.py").read_text(encoding="utf-8")
+        self.assertNotIn("harmonic_censoring_h25_scientific_engine", source)
+        self.assertNotIn("build_typed_harmonic_graph", source)
+        plan, test, context = self._test_only_context(self.plan.tests[9])
+        evidence = produce_h25_test_evidence(context, test)
+        forged = dict(evidence)
+        forged_measurements = [dict(item) for item in evidence["fixture_measurements"]]
+        forged_measurements[0]["outcome"] = "NO_BIRTH"
+        forged["fixture_measurements"] = forged_measurements
+        with self.assertRaisesRegex(ValueError, "independently derived"):
+            recompute_h25_persisted_evidence(plan, test.test_id, forged)
+
+    def test_p0_002_persists_raw_spectrum_and_recomputes_real_scaling_equivalence(self) -> None:
+        plan, test, context = self._test_only_context(self.plan.tests[1])
+        evidence = produce_h25_test_evidence(context, test)
+        operator = evidence["operator_measurements"][0]
+        self.assertEqual(set(operator["raw_operands"]), {"candidate_pitch", "power", "frequencies_hz"})
+        self.assertNotIn("scalar_residual", operator)
+        self.assertEqual(len(evidence["analytic_scaling_operands"]), 89 * 20)
+        self.assertTrue(recompute_h25_persisted_evidence(plan, test.test_id, evidence).final_pass)
+
+    def test_p0_007_uses_target_hop_not_resolution_hop(self) -> None:
+        plan, test, context = self._test_only_context(self.plan.tests[6])
+        evidence = produce_h25_test_evidence(context, test)
+        self.assertEqual(evidence["causal_boundaries"], [{
+            "fixture_id": context.plan.fixture_ids[0],
+            "short_current_end": 16383,
+            "long_current_end": 16383,
+            "short_previous_end": 16127,
+            "long_previous_end": 16127,
+            "maximum_sample_read": 16383,
+        }])
+        self.assertTrue(recompute_h25_persisted_evidence(plan, test.test_id, evidence).final_pass)
+
+    def test_p2_002_covers_exact_hop_translations(self) -> None:
+        plan, test, context = self._test_only_context(self.plan.tests[19])
+        evidence = produce_h25_test_evidence(context, test)
+        translations = evidence["hop_translation_results"][0]["translations"]
+        self.assertEqual([item["hop_translation"] for item in translations], [0, 1, 2, 4])
+        self.assertEqual({item["resolution_delay_hops"] for item in translations}, {1})
+        self.assertTrue(recompute_h25_persisted_evidence(plan, test.test_id, evidence).final_pass)
+
+    def test_p2_007_requires_external_cross_runtime_observation(self) -> None:
+        plan, test, context = self._test_only_context(self.plan.tests[24])
+        evidence = produce_h25_test_evidence(context, test)
+        self.assertFalse(recompute_h25_persisted_evidence(plan, test.test_id, evidence).primary_pass)
+        completed = dict(evidence)
+        completed["cross_runtime_observation"] = {
+            "fixture_ids": list(test.fixture_ids),
+            "categories_and_masks_exact": True,
+            "maximum_float_error": 0.0,
+        }
+        self.assertTrue(recompute_h25_persisted_evidence(plan, test.test_id, completed).final_pass)
+
+    def test_active_state_must_be_replayable_and_target_hop_bounded(self) -> None:
+        plan, test, context = self._test_only_context(self.plan.tests[9])
+        evidence = produce_h25_test_evidence(context, test)
+        forged = dict(evidence)
+        rows = [dict(item) for item in evidence["fixture_measurements"]]
+        trace = dict(rows[0]["causal_replay_trace"])
+        trace["derived_active_pitches"] = []
+        rows[0]["causal_replay_trace"] = trace
+        forged["fixture_measurements"] = rows
+        with self.assertRaisesRegex(ValueError, "differs from independent replay"):
+            recompute_h25_persisted_evidence(plan, test.test_id, forged)
 
     def test_runner_is_dormant_before_numpy_import_or_population_access(self) -> None:
         self.assertTrue(H25_DORMANT_SCIENTIFIC_RUNNER_IMPLEMENTED)
