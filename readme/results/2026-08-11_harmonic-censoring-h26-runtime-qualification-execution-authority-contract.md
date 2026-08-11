@@ -29,6 +29,48 @@ blob authority matérialisation         dd5bcbff325e74f74e7bde4d425a11ac84aa264d
 rôle runtime                            H26_PRIMARY_MATERIALIZATION_RUNTIME
 ```
 
+## Octets canoniques et identités dérivées
+
+Authority, claim, entry-evidence et receipt utilisent une représentation
+unique : UTF-8 sans BOM, clés JSON dupliquées interdites, aucun float/NaN/
+Infinity, clés triées lexicographiquement, aucun espace hors chaînes,
+séparateurs `,` et `:`, `ensure_ascii=true`, puis exactement un LF terminal.
+Tout CR/CRLF est interdit. Le SHA brut est toujours le SHA-256 lowercase de ces
+octets exacts. Un JSON sémantiquement équivalent mais non canonique est refusé,
+jamais normalisé silencieusement en objet opérationnel.
+
+L'`authority_id` futur reste produit par un issuer séparément autorisé, mais il
+devra être une chaîne ASCII non vide, sans whitespace initial/final et immuable.
+Seul le SHA de ses octets authority canoniques peut dériver le claim.
+
+Le `claim_id` est figé par :
+
+```text
+digest = SHA256(
+  ASCII("H26_RUNTIME_QUALIFICATION_CLAIM_ID_V1") || 0x00 ||
+  UTF8(authority_id) || 0x00 || ASCII(authority_raw_sha256)
+)
+claim_id = "h26-runtime-claim-v1-" + lowercase_hex(digest)
+claim_slot_identity = claim_id
+```
+
+L'`observer_entry_evidence_id` est figé par :
+
+```text
+digest = SHA256(
+  ASCII("H26_RUNTIME_QUALIFICATION_OBSERVER_ENTRY_ID_V1") || 0x00 ||
+  UTF8(authority_id) || 0x00 || ASCII(authority_raw_sha256) || 0x00 ||
+  UTF8(claim_id) || 0x00 || ASCII(claim_raw_sha256)
+)
+observer_entry_evidence_id = "h26-runtime-entry-v1-" + lowercase_hex(digest)
+entry_slot_identity = observer_entry_evidence_id
+```
+
+Aucun UUID, random, choix caller ou algorithme alternatif n'est permis. Les
+racines filesystem réelles des deux slots restent `null` et nécessiteront une
+autorisation future. Claim, evidence et receipt ont chacun pour SHA externe le
+SHA-256 de leurs propres octets canoniques et ne contiennent jamais ce SHA.
+
 ## Chaîne future distincte
 
 Le contrat définit quatre artefacts distincts et ordonnés :

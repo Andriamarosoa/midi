@@ -41,6 +41,12 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   fermés, sans champ additionnel. Le claim hérite obligatoirement du commit et
   du SHA du contrat d'exécution portés par l'authority consommée, sans valeur
   indépendante, wildcard ou fallback.
+- Les quatre artefacts administratifs futurs ont désormais des octets
+  canoniques uniques (UTF-8/ASCII-safe, clés triées, aucun whitespace ou float,
+  LF terminal) dont dérivent leurs SHA. `claim_id` et l'ID d'entrée observer
+  suivent des préimages SHA-256 domain-separated exactes; leurs slots logiques
+  sont ces IDs. UUID, random, autre algorithme et JSON byte-noncanonique sont
+  refusés; aucune racine filesystem réelle n'est encore définie.
 - Étape : `harmonic_censoring_h26_materialization_runtime_qualification_contract`.
 - Contrat dormant de qualification du runtime primaire H26 défini sans
   qualificateur ni exécution : identité exacte CPython 3.11.9 / Darwin 24.5.0

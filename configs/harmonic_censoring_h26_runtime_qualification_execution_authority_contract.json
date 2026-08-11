@@ -14,6 +14,32 @@
     "materialization_authority_contract_git_blob_sha": "dd5bcbff325e74f74e7bde4d425a11ac84aa264d",
     "target_runtime_role": "H26_PRIMARY_MATERIALIZATION_RUNTIME"
   },
+  "canonical_byte_serialization": {
+    "applies_exactly_to": [
+      "H26_RUNTIME_QUALIFICATION_EXECUTION_AUTHORITY_V1",
+      "H26_RUNTIME_QUALIFICATION_SINGLE_USE_CLAIM_V1",
+      "H26_RUNTIME_QUALIFICATION_OBSERVER_ENTRY_EVIDENCE_V1",
+      "H26_RUNTIME_QUALIFICATION_EXECUTION_RECEIPT_V1"
+    ],
+    "encoding": "UTF-8",
+    "bom_forbidden": true,
+    "json_duplicate_keys_forbidden": true,
+    "nan_infinity_and_all_float_values_forbidden": true,
+    "key_ordering": "lexicographic ascending by Unicode code point",
+    "whitespace_outside_strings": "none",
+    "separators": [
+      ",",
+      ":"
+    ],
+    "ensure_ascii": true,
+    "terminal_newline": "exactly one LF byte 0x0A",
+    "carriage_return_or_crlf_forbidden": true,
+    "canonical_bytes_definition": "ASCII-safe deterministic JSON with lexicographically sorted keys, no whitespace outside strings, separators comma and colon, followed by exactly one LF byte",
+    "raw_sha256_definition": "lowercase_hex(SHA256(exact canonical bytes))",
+    "semantic_equivalence_does_not_authorize_noncanonical_bytes": true,
+    "noncanonical_input_must_be_rejected_not_normalized_into_an_operational_object": true,
+    "normalization_after_creation_forbidden": true
+  },
   "future_object_separation": {
     "objects": [
       "H26_RUNTIME_QUALIFICATION_EXECUTION_AUTHORITY_V1",
@@ -77,7 +103,15 @@
     },
     "execution_authority_contract_commit_future_requirement": "exact separately reviewed commit containing this contract",
     "execution_authority_contract_raw_sha256_future_requirement": "exact SHA256 of the complete reviewed contract bytes",
+    "authority_id_constraints": {
+      "type": "non-empty ASCII string",
+      "leading_or_trailing_whitespace_forbidden": true,
+      "immutable_after_issuance": true,
+      "issuer_definition_or_creation_authorized_now": false
+    },
     "authority_contains_own_raw_sha256": false,
+    "authority_raw_sha256_definition": "lowercase_hex(SHA256(exact canonical authority bytes))",
+    "only_canonical_authority_raw_sha256_may_participate_in_claim_derivation": true,
     "authority_raw_sha256_is_computed_externally_after_creation": true,
     "current_authority_id": null,
     "current_authority_raw_sha256": null,
@@ -96,8 +130,24 @@
     "maximum_claims_per_authority": 1,
     "authority_consumed_by_first_claim_creation": true,
     "second_claim_for_same_authority_forbidden": true,
-    "claim_slot_identity_derivation": "exact authority_id plus exact external authority_raw_sha256; caller-supplied alternate claim path or claim_id cannot select another slot",
+    "claim_slot_identity_derivation": "exact claim_id_derivation below; caller-supplied alternate claim path or claim_id cannot select another slot",
     "claim_slot_path_must_be_deterministically_derived_from_authority_identity_and_raw_sha256": true,
+    "claim_id_derivation": {
+      "domain_separator_ascii": "H26_RUNTIME_QUALIFICATION_CLAIM_ID_V1",
+      "preimage_components_in_exact_order": [
+        "ASCII(domain_separator)",
+        "0x00",
+        "UTF8(authority_id)",
+        "0x00",
+        "ASCII(authority_raw_sha256)"
+      ],
+      "digest": "SHA256(exact concatenated preimage bytes)",
+      "claim_id": "ASCII('h26-runtime-claim-v1-') + lowercase_hex(digest)",
+      "uuid_random_or_caller_supplied_id_forbidden": true
+    },
+    "claim_slot_identity": "claim_id",
+    "claim_slot_filesystem_root": null,
+    "claim_slot_filesystem_root_requires_future_separate_authorization": true,
     "first_create_exclusive_attempt_consumes_authority": true,
     "partial_or_corrupt_claim_marker_keeps_authority_consumed": true,
     "alternate_claim_id_path_or_process_cannot_bypass_authority_consumption": true,
@@ -111,6 +161,7 @@
     "marker_existence_means_consumed_even_if_partial_or_corrupt": true,
     "claim_marker_deletion_or_replacement_forbidden": true,
     "claim_contains_own_raw_sha256": false,
+    "claim_raw_sha256_definition": "lowercase_hex(SHA256(exact canonical claim bytes))",
     "claim_raw_sha256_is_computed_externally_after_durable_creation": true,
     "required_fields": [
       "schema_identity",
@@ -189,7 +240,26 @@
     "authority_id_and_raw_sha256_must_exactly_equal_consumed_authority": true,
     "claim_id_and_raw_sha256_must_exactly_equal_unique_consumed_claim": true,
     "maximum_entry_evidence_per_claim": 1,
-    "observer_entry_evidence_id_derivation": "deterministic identity derived only from exact authority_id authority_raw_sha256 claim_id and claim_raw_sha256",
+    "observer_entry_evidence_id_derivation": {
+      "domain_separator_ascii": "H26_RUNTIME_QUALIFICATION_OBSERVER_ENTRY_ID_V1",
+      "preimage_components_in_exact_order": [
+        "ASCII(domain_separator)",
+        "0x00",
+        "UTF8(authority_id)",
+        "0x00",
+        "ASCII(authority_raw_sha256)",
+        "0x00",
+        "UTF8(claim_id)",
+        "0x00",
+        "ASCII(claim_raw_sha256)"
+      ],
+      "digest": "SHA256(exact concatenated preimage bytes)",
+      "observer_entry_evidence_id": "ASCII('h26-runtime-entry-v1-') + lowercase_hex(digest)",
+      "uuid_random_or_caller_supplied_id_forbidden": true
+    },
+    "observer_entry_evidence_slot_identity": "observer_entry_evidence_id",
+    "observer_entry_evidence_slot_filesystem_root": null,
+    "observer_entry_evidence_slot_filesystem_root_requires_future_separate_authorization": true,
     "entry_evidence_slot_path_must_be_deterministically_derived_from_authority_and_claim_identity_and_raw_sha256": true,
     "observer_entry_evidence_id_caller_choice_forbidden": true,
     "creation_method": "atomic create-exclusive from inside observe_primary_runtime entry boundary",
@@ -198,6 +268,7 @@
     "alternate_evidence_id_path_or_process_cannot_open_second_slot": true,
     "entry_evidence_deletion_replacement_or_retry_forbidden": true,
     "evidence_contains_own_raw_sha256": false,
+    "observer_entry_evidence_raw_sha256_definition": "lowercase_hex(SHA256(exact canonical observer-entry evidence bytes))",
     "evidence_raw_sha256_is_computed_externally_after_creation": true,
     "current_observer_entry_evidence_id": null,
     "current_observer_entry_evidence_raw_sha256": null
@@ -269,6 +340,7 @@
     "runtime_record_raw_sha256_rule": "required lowercase 64-hex when runtime_record_exists=true; exactly null when a consumed invocation terminates before atomic record publication",
     "terminal_status_rule": "must equal the status rederived from a published runtime record; if no record can be atomically published after a claimed exception, must be H26_MATERIALIZATION_RUNTIME_QUALIFICATION_INCONCLUSIVE_CONSUMED",
     "receipt_contains_own_raw_sha256": false,
+    "receipt_raw_sha256_definition": "lowercase_hex(SHA256(exact canonical execution receipt bytes))",
     "receipt_raw_sha256_may_be_computed_externally_after_creation": true,
     "receipt_without_matching_consumed_claim_forbidden": true,
     "receipt_without_exact_authority_binding_forbidden": true,
@@ -331,6 +403,10 @@
     "static verification that receipt binds exact canonical observer entry evidence identity and raw SHA256",
     "static verification that authority claim and receipt required_fields are exact closed key sets",
     "static verification that claim execution authority contract fields exactly inherit the consumed authority fields",
+    "static verification of the single canonical byte serialization for authority claim observer-entry evidence and receipt",
+    "static verification of exact claim ID domain separator preimage order prefix and claim slot identity",
+    "static verification of exact observer-entry ID domain separator preimage order prefix and evidence slot identity",
+    "static verification that all external raw SHA256 identities hash exact canonical bytes",
     "static verification that pre-observer failure leaves consumed authority and claim but no receipt",
     "static verification that authority claim and receipt contain no own SHA",
     "git diff --check",
