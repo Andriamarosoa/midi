@@ -1,3 +1,4 @@
+from dataclasses import replace
 import hashlib
 import os
 from pathlib import Path
@@ -7,9 +8,40 @@ import unittest
 from unittest import mock
 
 from src.polyphonic import run_h26_materialization_operational as runner
+from src.polyphonic import harmonic_censoring_h26_runtime_qualification as qualifier
 
 
 class H26MaterializationOperationalTests(unittest.TestCase):
+    def _qualified_record_and_mismatched_live_runtime(self):
+        contract = qualifier.load_runtime_qualification_contract()
+        expected = qualifier.RuntimeObservation(
+            runtime=contract.expected_runtime.identity,
+            process_environment=qualifier.environment_items(
+                dict(contract.process_environment_exact)
+            ),
+            executable=qualifier.BinaryProof(
+                resolved_path="/qualified/python",
+                size_bytes=1,
+                sha256="1" * 64,
+            ),
+            numpy_multiarray=qualifier.BinaryProof(
+                resolved_path="/qualified/multiarray",
+                size_bytes=contract.expected_runtime.numpy_multiarray_size_bytes,
+                sha256=contract.expected_runtime.numpy_multiarray_sha256,
+            ),
+            blas_library=qualifier.BinaryProof(
+                resolved_path="/qualified/openblas",
+                size_bytes=contract.expected_runtime.blas_library_size_bytes,
+                sha256=contract.expected_runtime.blas_library_sha256,
+            ),
+        )
+        record = qualifier.build_runtime_qualification_record(contract, expected)
+        mismatched = replace(
+            expected,
+            runtime=replace(expected.runtime, version="0.0.0"),
+        )
+        return record, expected, mismatched
+
     def test_entrypoint_contract_is_exact_canonical_json(self):
         value = runner._load_entrypoint_contract()
         raw = (runner._repo_root() / runner.ENTRYPOINT_CONTRACT).read_bytes()
@@ -37,7 +69,7 @@ class H26MaterializationOperationalTests(unittest.TestCase):
             raw = b'{"authority_id":"h26-materialization-authority-v1-' + b'a' * 64 + b'"}\n'
             sha = hashlib.sha256(raw).hexdigest()
             def rename(source, target): os.rename(source, target)
-            with mock.patch.object(runner, "AUTHORITY_DIRECTORY", authority_dir), mock.patch.object(runner, "SEAL_DIRECTORY", seal_dir), mock.patch.object(runner, "DESTINATION", destination), mock.patch.object(runner, "_require_execution_boundary", return_value="b" * 40), mock.patch.object(runner, "_read_runtime_artifacts", return_value=(object(),) * 5), mock.patch.object(runner, "_build_authority", return_value=({"authority_id": "h26-materialization-authority-v1-" + "a" * 64}, raw, sha)), mock.patch.object(runner, "_rename_no_replace", side_effect=rename), mock.patch.object(runner, "_sync_directory"), mock.patch.object(runner, "_invoke_real_materializer") as invoke:
+            with mock.patch.object(runner, "AUTHORITY_DIRECTORY", authority_dir), mock.patch.object(runner, "SEAL_DIRECTORY", seal_dir), mock.patch.object(runner, "DESTINATION", destination), mock.patch.object(runner, "_require_execution_boundary", return_value="b" * 40), mock.patch.object(runner, "_read_runtime_artifacts", return_value=(object(),) * 5), mock.patch.object(runner, "_require_live_runtime_matches_stop3"), mock.patch.object(runner, "_build_authority", return_value=({"authority_id": "h26-materialization-authority-v1-" + "a" * 64}, raw, sha)), mock.patch.object(runner, "_rename_no_replace", side_effect=rename), mock.patch.object(runner, "_sync_directory"), mock.patch.object(runner, "_invoke_real_materializer") as invoke:
                 result = runner.execute_h26_materialization_once()
             invoke.assert_called_once()
             boundary = invoke.call_args.args[0]
@@ -57,11 +89,27 @@ class H26MaterializationOperationalTests(unittest.TestCase):
             destination.mkdir()
             raw = b'{}\n'
             sha = hashlib.sha256(raw).hexdigest()
-            with mock.patch.object(runner, "AUTHORITY_DIRECTORY", authority_dir), mock.patch.object(runner, "SEAL_DIRECTORY", seal_dir), mock.patch.object(runner, "DESTINATION", destination), mock.patch.object(runner, "_require_execution_boundary", return_value="b" * 40), mock.patch.object(runner, "_read_runtime_artifacts", return_value=(object(),) * 5), mock.patch.object(runner, "_build_authority", return_value=({"authority_id": "h26-materialization-authority-v1-" + "a" * 64}, raw, sha)), mock.patch.object(runner, "_publish") as publish, mock.patch.object(runner, "_invoke_real_materializer") as invoke:
+            with mock.patch.object(runner, "AUTHORITY_DIRECTORY", authority_dir), mock.patch.object(runner, "SEAL_DIRECTORY", seal_dir), mock.patch.object(runner, "DESTINATION", destination), mock.patch.object(runner, "_require_execution_boundary", return_value="b" * 40), mock.patch.object(runner, "_read_runtime_artifacts", return_value=(object(),) * 5), mock.patch.object(runner, "_require_live_runtime_matches_stop3"), mock.patch.object(runner, "_build_authority", return_value=({"authority_id": "h26-materialization-authority-v1-" + "a" * 64}, raw, sha)), mock.patch.object(runner, "_publish") as publish, mock.patch.object(runner, "_invoke_real_materializer") as invoke:
                 with self.assertRaisesRegex(FileExistsError, "slot already exists"):
                     runner.execute_h26_materialization_once()
             publish.assert_not_called()
             invoke.assert_not_called()
+
+    def test_live_runtime_mismatch_blocks_publication_and_materializer(self):
+        record, _, mismatched = self._qualified_record_and_mismatched_live_runtime()
+        runtime_values = (object(), object(), object(), record, object())
+        with mock.patch.object(runner, "_require_execution_boundary", return_value="b" * 40), mock.patch.object(runner, "_read_runtime_artifacts", return_value=runtime_values), mock.patch.object(runner, "_observe_live_materialization_runtime", return_value=mismatched), mock.patch.object(runner, "_publish") as publish, mock.patch.object(runner, "_invoke_real_materializer") as invoke:
+            with self.assertRaisesRegex(PermissionError, "differs from STOP3"):
+                runner.execute_h26_materialization_once()
+        publish.assert_not_called()
+        invoke.assert_not_called()
+
+    def test_exact_live_runtime_match_is_accepted(self):
+        record, expected, _ = self._qualified_record_and_mismatched_live_runtime()
+        with mock.patch.object(
+            runner, "_observe_live_materialization_runtime", return_value=expected,
+        ):
+            self.assertIs(runner._require_live_runtime_matches_stop3(record), expected)
 
     def test_forged_boundary_is_rejected(self):
         forged = object.__new__(runner._H26MaterializationBoundary)

@@ -20,6 +20,12 @@ The future no-argument macOS entrypoint fixes the destination to
 to clean HEAD, the exact qualified runtime environment, no worker lock, and
 absent destination/staging/authority/seal slots.
 
+Before any authority or seal publication, the future process reacquires
+read-only evidence for its live CPython, executable, NumPy, multiarray binary,
+linked BLAS and controlled environment. That complete observation must equal
+the STOP 3 runtime record exactly and independently derive `QUALIFIED`. This
+does not call the one-shot runtime observer and creates no runtime artifact.
+
 The canonical 36-field materialization authority is derived exclusively from
 the sealed fixed values and the single validated STOP 3 proof. Authority and
 its distinct five-field seal are create-exclusive. Only after durable authority
@@ -29,12 +35,13 @@ one exact private capability, is process-locked, and is restored in `finally`.
 The final staging rename uses Darwin `renameatx_np(RENAME_EXCL)` rather than an
 overwriting rename.
 
-Nine focused tests use temporary directories and a patched internal
+Eleven focused tests use temporary directories and a patched internal
 materializer call. They cover canonical contract bytes, the pending-review
 STOP, missing acknowledgement after a future authorization, exact fixed
 publication, pre-existing-slot refusal before publication, forged boundary,
-adapter restoration after failure, post-mint authority tamper refusal, and
-runtime-artifact SHA mismatch. All 22 H26 test modules also pass when run in
-their intended isolated processes. No real authority, seal, destination,
-population, P0/P1/P2, locked test, training or calibration was created or
-invoked.
+adapter restoration after failure, post-mint authority tamper refusal,
+runtime-artifact SHA mismatch, exact live-runtime acceptance, and live-runtime
+mismatch refusal before publication/materializer. All 22 H26 test modules also
+pass when run in their intended isolated processes. No real authority, seal,
+destination, population, P0/P1/P2, locked test, training or calibration was
+created or invoked.

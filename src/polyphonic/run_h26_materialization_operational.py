@@ -4,6 +4,7 @@ from __future__ import annotations
 from dataclasses import asdict
 import ctypes
 import hashlib
+import importlib
 import json
 import os
 from pathlib import Path
@@ -153,6 +154,63 @@ def _read_runtime_artifacts() -> tuple[dict[str, Any], dict[str, Any], dict[str,
     )
     return values["authority"], values["claim"], values["observer-entry"], record, values["receipt"]
 
+def _observe_live_materialization_runtime() -> qualifier.RuntimeObservation:
+    """Acquire read-only evidence for this process without the one-shot observer."""
+
+    numpy_module = importlib.import_module("numpy")
+    multiarray_module = importlib.import_module("numpy.core._multiarray_umath")
+    multiarray_path = Path(str(multiarray_module.__file__))
+    environment = qualifier.environment_items({
+        key: os.environ[key]
+        for key in qualifier.CONTROL_ENVIRONMENT_KEYS
+        if key in os.environ
+    })
+    executable_proof = qualifier._binary_proof(Path(sys.executable))
+    multiarray_proof = qualifier._binary_proof(multiarray_path)
+    try:
+        blas = qualifier._observe_linked_blas_dependency(multiarray_path)
+    except Exception as exc:
+        return qualifier.RuntimeObservation(
+            runtime=None,
+            process_environment=environment,
+            executable=executable_proof,
+            numpy_multiarray=multiarray_proof,
+            blas_library=qualifier.BinaryProof(
+                resolved_path=None,
+                size_bytes=None,
+                sha256=None,
+                acquisition_error=f"BLAS dependency evidence unavailable: {exc}",
+            ),
+        )
+    return qualifier.RuntimeObservation(
+        runtime=qualifier.RuntimeIdentity(
+            implementation=platform.python_implementation(),
+            version=platform.python_version(),
+            platform_system=platform.system(),
+            platform_release=platform.release(),
+            platform_machine=platform.machine(),
+            numpy_version=str(numpy_module.__version__),
+            blas_provider=blas.provider,
+        ),
+        process_environment=environment,
+        executable=executable_proof,
+        numpy_multiarray=multiarray_proof,
+        blas_library=blas.binary_proof,
+    )
+
+def _require_live_runtime_matches_stop3(
+    record: qualifier.H26RuntimeQualificationRecord,
+) -> qualifier.RuntimeObservation:
+    payload = record.as_dict()
+    expected = qualifier._observation_from_record_payload(payload)
+    live = _observe_live_materialization_runtime()
+    if live != expected:
+        raise PermissionError("current materialization runtime differs from STOP3 evidence")
+    contract = qualifier.load_runtime_qualification_contract()
+    if qualifier.derive_runtime_terminal_status(contract, live) != qualifier.STATUS_QUALIFIED:
+        raise PermissionError("current materialization runtime is not qualified")
+    return live
+
 def _build_authority(runtime_values: tuple[Any, ...]) -> tuple[dict[str, Any], bytes, str]:
     ra, rc, re, record, rr = runtime_values
     proof = proof_validator.validate_artificial_materialization_runtime_execution_proof(
@@ -272,6 +330,7 @@ def _invoke_real_materializer(boundary: _H26MaterializationBoundary) -> None:
 def execute_h26_materialization_once() -> Mapping[str, Any]:
     head = _require_execution_boundary()
     runtime_values = _read_runtime_artifacts()
+    _require_live_runtime_matches_stop3(runtime_values[3])
     authority, authority_raw, authority_sha = _build_authority(runtime_values)
     seal_raw = _seal(authority_sha)
     authority_path = AUTHORITY_DIRECTORY / f"{authority_sha}.json"

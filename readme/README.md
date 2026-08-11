@@ -22,7 +22,8 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `H26_MATERIALIZATION_OPERATIONAL_ENTRYPOINT_IMPLEMENTED_STOP_3_PENDING_EXTERNAL_REVIEW`.
 - La frontière réelle de matérialisation one-shot est implémentée sans
   l'exécuter : cinq preuves STOP 3 scellées, autorité canonique, destination
-  fixe, capability privée et materializer réel au maximum une fois. Rapport :
+  fixe, liaison exacte du processus live au runtime qualifié, capability privée
+  et materializer réel au maximum une fois. Rapport :
   `readme/results/2026-08-12_harmonic-censoring-h26-materialization-operational-entrypoint-stop3.md`.
 - L'unique qualification runtime réémise après l'échec préflight pré-claim a
   produit un record qualifié et un receipt terminal : observer appelé une fois,
