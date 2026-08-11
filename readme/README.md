@@ -30,6 +30,9 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `renameatx_np(RENAME_EXCL)`/directory-fsync. L'étape s'arrête avant toute
   création de racine ou activation pour revue externe. Rapport :
   `readme/results/2026-08-12_harmonic-censoring-h26-runtime-activation-operational-entrypoint.md`.
+  Les `21/21` tests de frontière passent sur macOS, y compris la publication
+  Darwin réelle dans un répertoire temporaire, et les `20/20` modules H26
+  passent isolément sur Windows et macOS.
 - Le seal externe dormant lie le contrat d'émission `2f933536...`, son blob
   `05ec1c26...`, ses 5 624 octets exacts et le SHA-256 `e15dcb79...`.
   Les self-SHA sont absents et toute création reste interdite. Rapport :
