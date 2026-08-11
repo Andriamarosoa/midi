@@ -140,6 +140,30 @@ cents `[-25,0,25]` × inharmonicité `[0,0.0004,0.004]`, shifts de hops
 masks, comptes, appartenances et résultats sont exacts; les opérandes flottants
 cross-runtime utilisent uniquement la tolérance préenregistrée.
 
+## Synthèse baseline déterministe
+
+Une seconde revue a approuvé la fermeture des mesures, collisions et grilles,
+mais a refusé l'implémentation tant que les `34` fixtures hors A01–A06 ne
+déterminaient pas chacune un waveform unique. La correction déclarative
+autorisée ajoute une recette exhaustive par fixture sans changer aucun ID,
+ordre, outcome, seuil ou test.
+
+Le contrat fixe maintenant le tableau initial `<f8`, les ordres source/partiel/
+sample, l'addition float64, deux enveloppes algorithmiques, les sources et
+partiels réellement présents, gains, onsets, phases, cents et inharmonicité,
+ainsi que `NONE` ou la recette complète de bruit. Les négatifs déclarent la
+candidate physiquement absente; les faibles A07–A09 conservent une candidate
+physique non nulle; A10–A12 construisent d'abord le waveform puis appliquent
+uniquement les masks. H01–H08 adoptent explicitement la convention
+`SILENT_STATE_ONLY`. Les trois seeds baseline sont stockées comme chaînes
+uint64 décimales exactes afin d'éviter une perte de précision JSON.
+
+`baseline_waveform_recipes` est l'unique entrée de synthèse de ces `34`
+fixtures. Les anciens champs `parameters` deviennent des assertions de
+cohérence : toute divergence doit échouer avant allocation. A01–A06 restent
+inchangées et demeurent gouvernées exclusivement par leur contrat de collision
+déjà approuvé.
+
 ## Tests préenregistrés
 
 Le manifest définit `27` tests dormants et non exécutés :
