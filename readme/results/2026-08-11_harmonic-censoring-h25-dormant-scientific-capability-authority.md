@@ -15,6 +15,18 @@ La portée accordée est strictement :
 AUTHORIZED_TO_DEFINE_AND_IMPLEMENT_H25_DORMANT_SCIENTIFIC_CAPABILITY_CONTRACT_AND_ONE_SHOT_AUTHORITY_ONLY
 ```
 
+La revue de `7117d01cfb3bb46458ec539c8efc8230fa89148f` a ensuite rendu :
+
+```text
+REJECTED_H25_DORMANT_SCIENTIFIC_AUTHORITY — ACTIVATION_TOPOLOGY_P2_007_EVIDENCE_AND_FORENSIC_CLOSURE_DEFECTS
+AUTHORIZED_TO_CORRECT_H25_DORMANT_SCIENTIFIC_ACTIVATION_TOPOLOGY_P2_007_EVIDENCE_AND_FORENSIC_CLOSURE_ONLY
+```
+
+Le présent état applique uniquement ce correctif. L'architecture
+single-entrypoint/capability/claim et tout le moteur scientifique restent hors
+du diff, à l'exception du recomputer nécessaire pour vérifier directement les
+records P2-007 détaillés.
+
 ## Bindings fermés
 
 Le nouveau contrat lie exactement :
@@ -80,19 +92,32 @@ verdict scientifique fabriqué et classe l'exécution
 ## Observation P2-007
 
 Aucune observation cross-runtime ne peut être injectée par un appelant. Le
-futur seal/activation devra lier une commande secondaire exacte et son timeout.
+futur seal devra lier une commande secondaire exacte, son timeout et une
+identité secondaire fermée : implémentation/version, plateforme, chemin et
+octets de l'exécutable, plus le SHA canonique de la commande. L'activation ne
+contient aucun futur SHA Git auto-référent ; le commit revu est lié uniquement
+par la variable OS externe égale à `HEAD`.
 Après claim, le runner lance automatiquement ce processus avec stdin fermé,
 capture uniquement stdout/stderr, exige code retour zéro et un objet exact :
 
 ```text
-runtime_id
+runtime_id dérivé de runtime_identity
+runtime_identity exacte et scellée
 fixture_measurements  36, ordre manifest
-test_records          27, ordre manifest
+test_records          27 preuves producteur + recomputation, ordre manifest
 ```
 
-Le recomputer approuvé compare ensuite lui-même cette observation détaillée à
-l'observation primaire. Un timeout, stderr, code non nul, JSON partiel ou
-schéma différent devient inconclusif consommé, sans retry ou substitution.
+Chaque record contient l'évidence réellement produite et les trois booléens
+redérivés par le recomputer ; les anciens placeholders `status=PASS` sont
+refusés. Le recomputer compare ensuite lui-même cette observation détaillée à
+l'observation primaire. Un timeout, stderr, code non nul, identité différente,
+JSON partiel ou schéma différent devient inconclusif consommé, sans retry ou
+substitution.
+
+La fermeture forensique utilise un chemin pré-déclaré distinct du terminal
+primaire. Si `<terminal>.part` existe après un échec entre écriture et rename,
+il reste intact et ne bloque pas la publication atomique de
+`forensic-inconclusive.json`.
 
 ## Dormance effective
 
@@ -124,7 +149,7 @@ seal, activation, binding OS, capability, claim ou P0 n'est autorisé ici.
 
 ```text
 py_compile capability + runner + tests                 réussi
-tests H25 autorisés hors probes lifecycle real-OS      74/74 réussis
+tests H25 autorisés hors probes lifecycle real-OS      79/79 réussis
 git diff --check                                       réussi
 ```
 
@@ -132,5 +157,7 @@ Les tests de lifecycle ajoutés emploient uniquement des chemins temporaires
 `TEST-ONLY-H25`. Ils couvrent la dormance pré-contrat, l'attestation par
 identité, l'absence de delegate arbitraire, la consommation avant délégation,
 le claim `O_EXCL`, l'impossibilité de retry, la fermeture opérationnelle à 27
-records et le transport secondaire stdout fermé. Aucun test n'ouvre le
+records, le refus des placeholders PASS, la recomputation de records réels,
+l'identité runtime+exécutable+observer scellée, et la fermeture forensique sur
+chemin distinct lorsque le `.part` primaire existe. Aucun test n'ouvre le
 répertoire publié des 36 fixtures.

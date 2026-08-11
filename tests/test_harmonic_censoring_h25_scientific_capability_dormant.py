@@ -1,6 +1,8 @@
 import copy
 import inspect
+import hashlib
 import json
+import platform
 from pathlib import Path
 import sys
 import tempfile
@@ -23,9 +25,23 @@ class H25ScientificCapabilityDormantTests(unittest.TestCase):
         cls.plan = load_h25_dormant_scientific_plan(ROOT)
 
     def _capability(self, directory: Path, *, command=()) -> capability.AttestedH25ScientificCapability:
+        identity = {
+            "implementation": "TEST-ONLY",
+            "version": "0",
+            "platform_system": "TEST-ONLY",
+            "platform_release": "TEST-ONLY",
+            "platform_machine": "TEST-ONLY",
+            "resolved_executable": str(Path(sys.executable).resolve()),
+            "executable_size_bytes": Path(sys.executable).resolve().stat().st_size,
+            "executable_sha256": hashlib.sha256(Path(sys.executable).resolve().read_bytes()).hexdigest(),
+            "command_sha256": hashlib.sha256(runner._canonical(list(command))).hexdigest(),
+            "observer_payload_path": "TEST-ONLY",
+            "observer_payload_size_bytes": 1,
+            "observer_payload_sha256": "a" * 64,
+        }
         return capability._new_capability(
             repository_root=ROOT,
-            activation_commit="1" * 40,
+            authorization_commit="1" * 40,
             activation_sha256="2" * 64,
             seal_sha256="3" * 64,
             capability_contract_sha256="4" * 64,
@@ -45,8 +61,10 @@ class H25ScientificCapabilityDormantTests(unittest.TestCase):
             staging_directory=directory / "TEST-ONLY-H25.staging",
             success_directory=directory / "TEST-ONLY-H25.success",
             terminal_path=directory / "TEST-ONLY-H25.terminal.json",
+            forensic_terminal_path=directory / "TEST-ONLY-H25.forensic.json",
             secondary_runtime_command=tuple(command),
             secondary_runtime_timeout_seconds=5,
+            secondary_runtime_identity=identity,
         )
 
     def test_contract_binds_approved_base_population_and_dormant_scope(self) -> None:
@@ -141,22 +159,104 @@ class H25ScientificCapabilityDormantTests(unittest.TestCase):
             self.assertFalse((value.terminal_path.parent / (value.terminal_path.name + ".part")).exists())
 
     def test_secondary_runtime_is_automatic_stdout_only_and_schema_closed(self) -> None:
-        payload = {
-            "runtime_id": "TEST-ONLY-SECOND-RUNTIME",
-            "fixture_measurements": [],
-            "test_records": [],
-        }
-        command = (
-            sys.executable,
-            "-c",
-            "import json;print(json.dumps(" + repr(payload) + ",sort_keys=True,separators=(',',':')))",
-        )
         with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            script = directory / "secondary.py"
+            command = (str(Path(sys.executable).resolve()), str(script.resolve()))
+            script.write_text(
+                "import hashlib,json,platform,sys\n"
+                "from pathlib import Path\n"
+                "def canonical(value):\n"
+                " return json.dumps(value,ensure_ascii=False,allow_nan=False,sort_keys=True,separators=(',',':')).encode('utf-8')+b'\\n'\n"
+                "exe=Path(sys.executable).resolve()\n"
+                "observer=Path(__file__).resolve()\n"
+                "command=[str(exe),str(observer)]\n"
+                "identity={'implementation':platform.python_implementation(),'version':platform.python_version(),'platform_system':platform.system(),'platform_release':platform.release(),'platform_machine':platform.machine(),'resolved_executable':str(exe),'executable_size_bytes':exe.stat().st_size,'executable_sha256':hashlib.sha256(exe.read_bytes()).hexdigest(),'command_sha256':hashlib.sha256(canonical(command)).hexdigest(),'observer_payload_path':str(observer),'observer_payload_size_bytes':observer.stat().st_size,'observer_payload_sha256':hashlib.sha256(observer.read_bytes()).hexdigest()}\n"
+                "payload={'runtime_id':hashlib.sha256(canonical(identity)).hexdigest(),'runtime_identity':identity,'fixture_measurements':[],'test_records':[]}\n"
+                "sys.stdout.buffer.write(canonical(payload))\n",
+                encoding="utf-8",
+            )
+            executable = Path(sys.executable).resolve()
+            identity = {
+                "implementation": platform.python_implementation(),
+                "version": platform.python_version(),
+                "platform_system": platform.system(),
+                "platform_release": platform.release(),
+                "platform_machine": platform.machine(),
+                "resolved_executable": str(executable),
+                "executable_size_bytes": executable.stat().st_size,
+                "executable_sha256": hashlib.sha256(executable.read_bytes()).hexdigest(),
+                "command_sha256": hashlib.sha256(runner._canonical(list(command))).hexdigest(),
+                "observer_payload_path": str(script.resolve()),
+                "observer_payload_size_bytes": script.stat().st_size,
+                "observer_payload_sha256": hashlib.sha256(script.read_bytes()).hexdigest(),
+            }
             value = self._capability(Path(temporary), command=command)
+            object.__setattr__(value, "secondary_runtime_identity", identity)
             capability._claim_h25_scientific_execution(value)
-            observed = runner._secondary_runtime_observation(value)
-            self.assertEqual(observed["runtime_id"], "TEST-ONLY-SECOND-RUNTIME")
+            with mock.patch.object(runner, "_validate_recomputed_runtime_test_records") as validate:
+                observed = runner._secondary_runtime_observation(value, self.plan)
+            self.assertEqual(observed["runtime_identity"], identity)
+            validate.assert_called_once_with(self.plan, [])
         self.assertNotIn("input(", Path(runner.__file__).read_text(encoding="utf-8"))
+
+    def test_activation_has_no_self_referential_commit_field(self) -> None:
+        contract = json.loads((ROOT / capability.CAPABILITY_CONTRACT).read_text(encoding="utf-8"))
+        fields = contract["future_authority_transition"]["activation_exact_fields"]
+        self.assertNotIn("activation_commit", fields)
+        source = Path(capability.__file__).read_text(encoding="utf-8")
+        self.assertNotIn('activation.get("activation_commit")', source)
+
+    def test_forensic_terminal_survives_existing_primary_part(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            value = self._capability(Path(temporary))
+            capability._claim_h25_scientific_execution(value)
+            primary_part = value.terminal_path.with_name(value.terminal_path.name + ".part")
+            primary_part.write_bytes(b"TEST-ONLY failed primary publication")
+            terminal = runner._publish_forensic_inconclusive(
+                value, RuntimeError("TEST-ONLY primary terminal failure")
+            )
+            self.assertEqual(terminal, value.forensic_terminal_path)
+            self.assertEqual(primary_part.read_bytes(), b"TEST-ONLY failed primary publication")
+            payload = json.loads(terminal.read_text(encoding="utf-8"))
+            self.assertEqual(payload["scientific_status"], runner.H25_INCONCLUSIVE_STATUS)
+
+    def test_runner_contains_no_prefabricated_pass_test_records(self) -> None:
+        source = Path(runner.__file__).read_text(encoding="utf-8")
+        self.assertNotIn('{"test_id": item.test_id, "status": "PASS"}', source)
+        self.assertIn("_derive_recomputed_runtime_test_records", source)
+        fabricated = [
+            {"test_id": item.test_id, "status": "PASS"}
+            for item in self.plan.tests
+        ]
+        with self.assertRaisesRegex(ValueError, "schema mismatch"):
+            runner._validate_recomputed_runtime_test_records(self.plan, fabricated)
+
+    def test_secondary_runtime_identity_binds_executable_bytes_and_command(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            executable = Path(sys.executable).resolve()
+            observer = Path(temporary) / "observer.py"
+            observer.write_bytes(b"# TEST-ONLY observer\n")
+            command = (str(executable), str(observer.resolve()))
+            identity = {
+                "implementation": platform.python_implementation(),
+                "version": platform.python_version(),
+                "platform_system": platform.system(),
+                "platform_release": platform.release(),
+                "platform_machine": platform.machine(),
+                "resolved_executable": str(executable),
+                "executable_size_bytes": executable.stat().st_size,
+                "executable_sha256": hashlib.sha256(executable.read_bytes()).hexdigest(),
+                "command_sha256": hashlib.sha256(runner._canonical(list(command))).hexdigest(),
+                "observer_payload_path": str(observer.resolve()),
+                "observer_payload_size_bytes": observer.stat().st_size,
+                "observer_payload_sha256": hashlib.sha256(observer.read_bytes()).hexdigest(),
+            }
+            checked = capability._validate_secondary_runtime_identity(ROOT, command, identity)
+            self.assertEqual(dict(checked), identity)
+            forged = {**identity, "command_sha256": "0" * 64}
+            with self.assertRaisesRegex(ValueError, "command identity mismatch"):
+                capability._validate_secondary_runtime_identity(ROOT, command, forged)
 
     def test_public_runner_is_single_entrypoint_and_stops_at_dormant_issuer(self) -> None:
         with mock.patch.object(

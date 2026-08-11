@@ -16,6 +16,7 @@ import platform
 import subprocess
 import sys
 import threading
+from types import MappingProxyType
 from typing import Mapping, Sequence
 import weakref
 
@@ -137,7 +138,7 @@ def _write_new_durable(path: Path, raw: bytes) -> None:
 @dataclass(frozen=True, init=False)
 class AttestedH25ScientificCapability:
     repository_root: Path
-    activation_commit: str
+    authorization_commit: str
     activation_sha256: str
     seal_sha256: str
     capability_contract_sha256: str
@@ -157,8 +158,10 @@ class AttestedH25ScientificCapability:
     staging_directory: Path
     success_directory: Path
     terminal_path: Path
+    forensic_terminal_path: Path
     secondary_runtime_command: tuple[str, ...]
     secondary_runtime_timeout_seconds: int
+    secondary_runtime_identity: Mapping[str, object]
 
     def __new__(cls) -> "AttestedH25ScientificCapability":
         raise TypeError("AttestedH25ScientificCapability has no public constructor.")
@@ -269,10 +272,10 @@ def _validate_future_transition(root: Path) -> tuple[Mapping[str, object], Mappi
         "population_index_sha256", "population_provenance_sha256",
         "population_receipt_sha256", "administrative_qualification_record_path",
         "administrative_qualification_sha256", "secondary_runtime_command",
-        "secondary_runtime_timeout_seconds",
+        "secondary_runtime_timeout_seconds", "secondary_runtime_identity",
     }
     activation_fields = {
-        "schema_version", "purpose", "status", "activation_commit", "seal_path",
+        "schema_version", "purpose", "status", "seal_path",
         "seal_raw_sha256", "external_review",
     }
     if set(seal) != seal_fields or type(seal.get("schema_version")) is not int or seal["schema_version"] != 1:
@@ -296,8 +299,6 @@ def _validate_future_transition(root: Path) -> tuple[Mapping[str, object], Mappi
         raise PermissionError("H25 scientific activation review mismatch.")
     if activation.get("seal_raw_sha256") != _sha256(seal_raw):
         raise ValueError("H25 activation does not bind the exact seal bytes.")
-    if activation.get("activation_commit") != head:
-        raise ValueError("H25 activation does not bind exact HEAD.")
     return seal, activation, head
 
 
@@ -314,6 +315,63 @@ def _require_relative(value: object, label: str) -> Path:
     if path.is_absolute() or ".." in path.parts:
         raise ValueError(f"H25 {label} escapes repository.")
     return path
+
+
+def _validate_secondary_runtime_identity(
+    root: Path, command: Sequence[str], raw_identity: object
+) -> Mapping[str, object]:
+    del root
+    if type(raw_identity) is not dict:
+        raise ValueError("H25 secondary runtime identity must be an object.")
+    fields = {
+        "implementation", "version", "platform_system", "platform_release",
+        "platform_machine", "resolved_executable", "executable_size_bytes",
+        "executable_sha256", "command_sha256", "observer_payload_path",
+        "observer_payload_size_bytes", "observer_payload_sha256",
+    }
+    if set(raw_identity) != fields:
+        raise ValueError("H25 secondary runtime identity field set mismatch.")
+    for field in (
+        "implementation", "version", "platform_system", "platform_release",
+        "platform_machine", "resolved_executable", "observer_payload_path",
+    ):
+        if type(raw_identity[field]) is not str or not raw_identity[field]:
+            raise ValueError(f"H25 secondary runtime identity {field} is invalid.")
+    size = raw_identity["executable_size_bytes"]
+    if type(size) is not int or type(size) is bool or size <= 0:
+        raise ValueError("H25 secondary executable size is invalid.")
+    executable_sha = _require_hex(
+        raw_identity["executable_sha256"], 64, "secondary executable SHA"
+    )
+    command_sha = _require_hex(
+        raw_identity["command_sha256"], 64, "secondary command SHA"
+    )
+    executable_argument = Path(command[0])
+    if not executable_argument.is_absolute():
+        raise ValueError("H25 secondary runtime executable must be absolute.")
+    executable = executable_argument.resolve(strict=True)
+    if str(executable) != raw_identity["resolved_executable"]:
+        raise ValueError("H25 secondary runtime executable path mismatch.")
+    if executable.stat().st_size != size or _sha256(executable.read_bytes()) != executable_sha:
+        raise ValueError("H25 secondary runtime executable byte identity mismatch.")
+    if _sha256(_canonical(list(command))) != command_sha:
+        raise ValueError("H25 secondary runtime command identity mismatch.")
+    payload_size = raw_identity["observer_payload_size_bytes"]
+    if type(payload_size) is not int or type(payload_size) is bool or payload_size <= 0:
+        raise ValueError("H25 secondary observer payload size is invalid.")
+    payload_sha = _require_hex(
+        raw_identity["observer_payload_sha256"], 64,
+        "secondary observer payload SHA",
+    )
+    payload = Path(raw_identity["observer_payload_path"])
+    if not payload.is_absolute():
+        raise ValueError("H25 secondary observer payload path must be absolute.")
+    payload = payload.resolve(strict=True)
+    if str(payload) not in command:
+        raise ValueError("H25 secondary observer payload is not bound by the command.")
+    if payload.stat().st_size != payload_size or _sha256(payload.read_bytes()) != payload_sha:
+        raise ValueError("H25 secondary observer payload byte identity mismatch.")
+    return MappingProxyType(dict(raw_identity))
 
 
 def _require_runtime_before_numpy(root: Path, contract: Mapping[str, object]) -> None:
@@ -431,14 +489,16 @@ def _issue_h25_scientific_authority(repository_root: Path) -> IssuedH25Scientifi
         expected_blob = _require_hex(seal[field_name], 40, field_name)
         if _git(root, "rev-parse", f"HEAD:{source_path}") != expected_blob:
             raise ValueError(f"H25 current {field_name} mismatch.")
-        if field_name in {"authority_source_blob", "runner_source_blob"} and _git(
+        if field_name in {
+            "authority_source_blob", "runner_source_blob", "recomputer_source_blob"
+        } and _git(
             root,
             "rev-parse",
             f"{seal['reviewed_authority_commit']}:{source_path}",
         ) != expected_blob:
             raise ValueError(f"H25 reviewed {field_name} historical binding mismatch.")
-    if seal["engine_source_blob"] != REVIEWED_ENGINE_BLOB or seal["recomputer_source_blob"] != REVIEWED_RECOMPUTER_BLOB:
-        raise ValueError("H25 seal does not preserve the approved engine/recomputer blobs.")
+    if seal["engine_source_blob"] != REVIEWED_ENGINE_BLOB:
+        raise ValueError("H25 seal does not preserve the approved engine blob.")
     population = contract["published_population"]
     population_directory = (root / population["directory"]).resolve(strict=True)
     population_hashes = {
@@ -467,13 +527,22 @@ def _issue_h25_scientific_authority(repository_root: Path) -> IssuedH25Scientifi
     topology = contract["one_shot_execution"]
     one_shot_paths = {
         name: (root / topology[name]).resolve()
-        for name in ("claim_path", "staging_directory", "success_directory", "terminal_path")
+        for name in (
+            "claim_path", "staging_directory", "success_directory",
+            "terminal_path", "forensic_terminal_path",
+        )
     }
     population_root = population_directory.resolve(strict=True)
     for name, path in one_shot_paths.items():
         path.relative_to(root)
         if path.exists():
             raise FileExistsError(f"H25 scientific one-shot path already exists: {name}.")
+        if name in {"terminal_path", "forensic_terminal_path"} and path.with_name(
+            path.name + ".part"
+        ).exists():
+            raise FileExistsError(
+                f"H25 scientific one-shot staging file already exists: {name}.part."
+            )
         cursor = path.parent
         while cursor != root:
             if cursor.exists() and cursor.is_symlink():
@@ -489,12 +558,15 @@ def _issue_h25_scientific_authority(repository_root: Path) -> IssuedH25Scientifi
         raise ValueError("H25 secondary runtime command is invalid.")
     if type(timeout) is not int or type(timeout) is bool or timeout <= 0:
         raise ValueError("H25 secondary runtime timeout is invalid.")
+    secondary_runtime_identity = _validate_secondary_runtime_identity(
+        root, command, seal["secondary_runtime_identity"]
+    )
     with _ISSUE_LOCK:
         if _ISSUED:
             raise PermissionError("H25 scientific authority was already issued in this process.")
         capability = _new_capability(
             repository_root=root,
-            activation_commit=head,
+            authorization_commit=head,
             activation_sha256=_sha256((root / ACTIVATION_RECORD).read_bytes()),
             seal_sha256=_sha256((root / AUTHORIZATION_SEAL).read_bytes()),
             capability_contract_sha256=_sha256(contract_raw),
@@ -514,8 +586,10 @@ def _issue_h25_scientific_authority(repository_root: Path) -> IssuedH25Scientifi
             staging_directory=one_shot_paths["staging_directory"],
             success_directory=one_shot_paths["success_directory"],
             terminal_path=one_shot_paths["terminal_path"],
+            forensic_terminal_path=one_shot_paths["forensic_terminal_path"],
             secondary_runtime_command=tuple(command),
             secondary_runtime_timeout_seconds=timeout,
+            secondary_runtime_identity=secondary_runtime_identity,
         )
         wrapper = IssuedH25ScientificAuthority(capability, _token=_WRAPPER_TOKEN)
         _ISSUED = True
@@ -530,7 +604,7 @@ def _claim_h25_scientific_execution(
         "schema_version": 1,
         "purpose": "harmonic_censoring_h25_scientific_execution_claim",
         "claim_state": "CLAIMED_BEFORE_FIRST_POPULATION_WAVEFORM",
-        "activation_commit": checked.activation_commit,
+        "authorization_commit": checked.authorization_commit,
         "activation_sha256": checked.activation_sha256,
         "seal_sha256": checked.seal_sha256,
         "capability_contract_sha256": checked.capability_contract_sha256,

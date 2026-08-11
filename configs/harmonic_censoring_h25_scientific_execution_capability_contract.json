@@ -1,8 +1,9 @@
 {
   "schema_version": 1,
   "purpose": "harmonic_censoring_h25_scientific_execution_capability_contract",
-  "status": "dormant_capability_and_one_shot_authority_only_external_review_required",
+  "status": "dormant_capability_authority_correction_external_review_required",
   "authorized_basis": "AUTHORIZED_TO_DEFINE_AND_IMPLEMENT_H25_DORMANT_SCIENTIFIC_CAPABILITY_CONTRACT_AND_ONE_SHOT_AUTHORITY_ONLY",
+  "correction_basis": "AUTHORIZED_TO_CORRECT_H25_DORMANT_SCIENTIFIC_ACTIVATION_TOPOLOGY_P2_007_EVIDENCE_AND_FORENSIC_CLOSURE_ONLY",
   "reviewed_scientific_base": {
     "commit": "de73a8f99e206e0677e48ef38427287f24f7f5d5",
     "engine": {"path":"src/polyphonic/harmonic_censoring_h25_scientific_engine.py","git_blob":"171602b54a8023e2c85c128aca14ec053da176ad"},
@@ -45,8 +46,10 @@
     "seal_exists_now": false,
     "activation_exists_now": false,
     "OS_binding_set_now": false,
-    "seal_exact_fields": ["schema_version", "purpose", "status", "authorized_action", "reviewed_authority_commit", "authority_source_blob", "runner_source_blob", "engine_source_blob", "recomputer_source_blob", "capability_contract_sha256", "population_index_sha256", "population_provenance_sha256", "population_receipt_sha256", "administrative_qualification_record_path", "administrative_qualification_sha256", "secondary_runtime_command", "secondary_runtime_timeout_seconds"],
-    "activation_exact_fields": ["schema_version", "purpose", "status", "activation_commit", "seal_path", "seal_raw_sha256", "external_review"],
+    "seal_exact_fields": ["schema_version", "purpose", "status", "authorized_action", "reviewed_authority_commit", "authority_source_blob", "runner_source_blob", "engine_source_blob", "recomputer_source_blob", "capability_contract_sha256", "population_index_sha256", "population_provenance_sha256", "population_receipt_sha256", "administrative_qualification_record_path", "administrative_qualification_sha256", "secondary_runtime_command", "secondary_runtime_timeout_seconds", "secondary_runtime_identity"],
+    "activation_exact_fields": ["schema_version", "purpose", "status", "seal_path", "seal_raw_sha256", "external_review"],
+    "activation_bytes_must_not_contain_their_future_git_commit": true,
+    "activation_commit_is_bound_only_externally_by_OS_commit_environment_equal_to_HEAD": true,
     "each_transition_requires_separate_external_review": true,
     "missing_transition_fails_before_population_or_NumPy": true
   },
@@ -67,21 +70,25 @@
     "staging_directory": "tmp/local/harmonic_censoring_h25_scientific_v1.staging",
     "success_directory": "tmp/local/harmonic_censoring_h25_scientific_v1",
     "terminal_path": "tmp/local/harmonic_censoring_h25_scientific_v1.terminal.json",
+    "forensic_terminal_path": "tmp/local/harmonic_censoring_h25_scientific_v1.forensic-inconclusive.json",
     "claim_created_with": "O_CREAT|O_EXCL|O_WRONLY mode0600 then fsync(file) and fsync(parent)",
     "claim_never_deleted_recreated_or_reused": true,
     "claim_is_last_irreversible_action_before_automatic_P0": true,
     "no_pause_prompt_stdin_or_human_injection_after_claim": true,
     "first_failure_fills_manifest_ordered_NOT_RUN_BY_KILL_RULE_suffix": true,
     "ordinary_postclaim_error_fills_NOT_RUN_BY_OPERATIONAL_FAILURE_suffix": true,
-    "success_failure_inconclusive_terminal_publication_atomic": true
+    "success_failure_inconclusive_terminal_publication_atomic": true,
+    "forensic_terminal_uses_distinct_predeclared_path_and_never_overwrites_primary_part": true
   },
   "cross_runtime_P2_007": {
     "manual_observation_injection_forbidden": true,
     "secondary_process_is_launched_automatically_after_claim": true,
     "secondary_command_and_runtime_identity_bound_in_future_activation": true,
+    "secondary_runtime_identity_exact_fields": ["implementation", "version", "platform_system", "platform_release", "platform_machine", "resolved_executable", "executable_size_bytes", "executable_sha256", "command_sha256", "observer_payload_path", "observer_payload_size_bytes", "observer_payload_sha256"],
     "transport": "canonical JSON over dedicated child stdout and no control stdin",
     "child_receives_only_sealed_population_and_plan_bindings": true,
-    "child_must_return_36_ordered_fixture_measurements_and_27_ordered_test_records": true,
+    "child_must_return_sealed_runtime_identity_36_ordered_fixture_measurements_and_27_ordered_recomputed_test_records": true,
+    "prefabricated_PASS_test_records_forbidden": true,
     "current_and_secondary_runtime_ids_must_differ": true,
     "missing_timeout_nonzero_malformed_or_partial_child_output_is_inconclusive_consumed": true,
     "no_retry_or_postclaim_substitution": true

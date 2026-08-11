@@ -1,13 +1,18 @@
 from __future__ import annotations
 
 from dataclasses import replace
+import hashlib
+import json
 import math
 from pathlib import Path
 import time
 from types import MappingProxyType
 import unittest
+from unittest import mock
 
 import numpy as np
+
+from src.polyphonic import run_harmonic_censoring_h25_scientific as scientific_runner
 
 from src.polyphonic.harmonic_censoring_h25_recomputer import (
     recompute_h25_persisted_evidence,
@@ -316,6 +321,35 @@ class H25DormantScientificEngineTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "independently derived"):
             recompute_h25_persisted_evidence(plan, test.test_id, forged)
 
+    def test_runtime_record_is_real_producer_evidence_recomputed_not_pass_placeholder(self) -> None:
+        plan, test, context = self._test_only_context(self.plan.tests[4])
+        identity = {
+            "implementation": "TEST-ONLY", "version": "1",
+            "platform_system": "TEST", "platform_release": "1",
+            "platform_machine": "x", "resolved_executable": "/test/python",
+            "executable_size_bytes": 1, "executable_sha256": "1" * 64,
+            "command_sha256": "2" * 64,
+            "observer_payload_path": "/current/observer.py",
+            "observer_payload_size_bytes": 1,
+            "observer_payload_sha256": "3" * 64,
+        }
+        records = scientific_runner._derive_recomputed_runtime_test_records(
+            context, identity
+        )
+        record = dict(records[test.test_id])
+        self.assertEqual(set(record), {
+            "test_id", "phase", "fixture_ids", "evidence", "recomputation"
+        })
+        self.assertNotIn("status", record)
+        outcome = recompute_h25_persisted_evidence(
+            plan, test.test_id, record["evidence"]
+        )
+        self.assertEqual(record["recomputation"], {
+            "primary_pass": outcome.primary_pass,
+            "inverse_pass": outcome.inverse_pass,
+            "final_pass": outcome.final_pass,
+        })
+
     def test_p0_002_persists_raw_spectrum_and_recomputes_real_scaling_equivalence(self) -> None:
         plan, test, context = self._test_only_context(self.plan.tests[1])
         evidence = produce_h25_test_evidence(context, test)
@@ -388,12 +422,36 @@ class H25DormantScientificEngineTests(unittest.TestCase):
         evidence = produce_h25_test_evidence(context, test)
         self.assertFalse(recompute_h25_persisted_evidence(plan, test.test_id, evidence).primary_pass)
         completed = dict(evidence)
+        current_identity = {
+            "implementation": "TEST-ONLY-CURRENT", "version": "1",
+            "platform_system": "TEST", "platform_release": "1",
+            "platform_machine": "x", "resolved_executable": "/current/python",
+            "executable_size_bytes": 1, "executable_sha256": "1" * 64,
+            "command_sha256": "2" * 64,
+            "observer_payload_path": "/test/observer.py",
+            "observer_payload_size_bytes": 1,
+            "observer_payload_sha256": "3" * 64,
+        }
+        secondary_identity = {**current_identity, "resolved_executable": "/secondary/python"}
+        current = dict(evidence["current_runtime_observation"])
+        current["runtime_identity"] = current_identity
+        current["runtime_id"] = hashlib.sha256(
+            (json.dumps(current_identity, sort_keys=True, separators=(",", ":")) + "\n").encode()
+        ).hexdigest()
+        completed["current_runtime_observation"] = current
         completed["cross_runtime_observation"] = {
-            "runtime_id": "TEST-ONLY-SECOND-RUNTIME",
+            "runtime_id": hashlib.sha256(
+                (json.dumps(secondary_identity, sort_keys=True, separators=(",", ":")) + "\n").encode()
+            ).hexdigest(),
+            "runtime_identity": secondary_identity,
             "fixture_measurements": evidence["current_runtime_observation"]["fixture_measurements"],
             "test_records": evidence["current_runtime_observation"]["test_records"],
         }
-        self.assertTrue(recompute_h25_persisted_evidence(plan, test.test_id, completed).final_pass)
+        with mock.patch(
+            "src.polyphonic.harmonic_censoring_h25_recomputer._runtime_test_records_compliant",
+            return_value=True,
+        ):
+            self.assertTrue(recompute_h25_persisted_evidence(plan, test.test_id, completed).final_pass)
 
     def test_active_state_must_be_replayable_and_target_hop_bounded(self) -> None:
         plan, test, context = self._test_only_context(self.plan.tests[9])

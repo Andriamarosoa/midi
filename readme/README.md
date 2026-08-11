@@ -17,8 +17,17 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-11`.
-- Étape : `harmonic_censoring_h25_dormant_scientific_capability_authority`.
-- Statut : `moteur/recomputer de73a8f approuvés; capability contract et autorité one-shot scientifique implémentés mais dormants; aucun seal/activation/OS binding/capability/claim; P0/P1/P2 restent à 0/0/0`.
+- Étape : `harmonic_censoring_h25_dormant_scientific_authority_correction`.
+- Statut : `7117d01 rejeté sur trois frontières; correctif activation/P2-007/forensic closure implémenté mais dormant et en attente de revue; aucun seal/activation/OS binding/capability/claim; P0/P1/P2 restent à 0/0/0`.
+- La revue externe de `7117d01…` conserve l'architecture centrale mais exige
+  trois corrections. L'activation ne contient désormais aucun SHA de son
+  propre futur commit : seul le binding OS externe doit égaler `HEAD`. Les 27
+  records P2-007 sont produits par les vrais producteurs puis vérifiés par le
+  recomputer, et tout placeholder `{status: PASS}` est refusé. Le processus
+  secondaire doit présenter une identité scellée incluant exécutable, bytes,
+  version, plateforme et hash de commande. Enfin, une fermeture primaire
+  cassée publie sur un chemin forensique distinct sans effacer ni écraser le
+  `.part` primaire. Ce correctif reste TEST-ONLY et attend une nouvelle revue.
 - La revue externe de `de73a8f…` approuve la complétude des preuves H25 et
   autorise uniquement le contrat de capability et l'autorité one-shot
   dormants. Ce bloc lie exactement le commit approuvé, les blobs moteur,

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import math
 import hashlib
+import json
 import struct
 from dataclasses import dataclass
 from typing import Any, Mapping, Sequence
@@ -390,10 +391,25 @@ def _cross_runtime_tree_close(left: object, right: object) -> bool:
     return left == right
 
 
-def _runtime_observation_map(raw: object, *, fixture_ids: Sequence[str], test_ids: Sequence[str]) -> tuple[str, dict[str, object], dict[str, object]]:
+def _runtime_observation_map(raw: object, *, fixture_ids: Sequence[str], test_ids: Sequence[str]) -> tuple[str, dict[str, object], dict[str, object], dict[str, object]]:
     observation = _object(raw, "runtime observation")
-    if set(observation) != {"runtime_id", "fixture_measurements", "test_records"} or type(observation["runtime_id"]) is not str:
+    if set(observation) != {"runtime_id", "runtime_identity", "fixture_measurements", "test_records"} or type(observation["runtime_id"]) is not str:
         raise ValueError("H25 runtime observation schema is invalid.")
+    identity = _object(observation["runtime_identity"], "runtime identity")
+    identity_fields = {
+        "implementation", "version", "platform_system", "platform_release",
+        "platform_machine", "resolved_executable", "executable_size_bytes",
+        "executable_sha256", "command_sha256", "observer_payload_path",
+        "observer_payload_size_bytes", "observer_payload_sha256",
+    }
+    if set(identity) != identity_fields:
+        raise ValueError("H25 runtime identity field set is invalid.")
+    canonical_identity = json.dumps(
+        identity, ensure_ascii=False, allow_nan=False, sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8") + b"\n"
+    if hashlib.sha256(canonical_identity).hexdigest() != observation["runtime_id"]:
+        raise ValueError("H25 runtime ID is not derived from runtime identity.")
     fixture_rows = _array(observation["fixture_measurements"], "runtime fixture measurements")
     test_rows = _array(observation["test_records"], "runtime test records")
     fixture_map = {row.get("fixture_id"): row for row in fixture_rows if type(row) is dict and type(row.get("fixture_id")) is str}
@@ -402,7 +418,70 @@ def _runtime_observation_map(raw: object, *, fixture_ids: Sequence[str], test_id
         raise ValueError("H25 runtime fixture observation is incomplete or reordered.")
     if len(test_map) != len(test_rows) or tuple(test_map) != tuple(test_ids):
         raise ValueError("H25 runtime test observation is incomplete or reordered.")
-    return str(observation["runtime_id"]), fixture_map, test_map
+    return str(observation["runtime_id"]), identity, fixture_map, test_map
+
+
+def _validated_runtime_test_record(
+    plan: object, test_id: str, raw: object
+) -> tuple[dict[str, object], H25RecomputedEvidence]:
+    record = _object(raw, "runtime recomputed test record")
+    test = _test(plan, test_id)
+    if set(record) != {"test_id", "phase", "fixture_ids", "evidence", "recomputation"}:
+        raise ValueError("H25 runtime recomputed test record schema is invalid.")
+    if (
+        record["test_id"] != test_id
+        or record["phase"] != getattr(test, "phase")
+        or record["fixture_ids"] != list(getattr(test, "fixture_ids"))
+    ):
+        raise ValueError("H25 runtime recomputed test record identity is invalid.")
+    evidence = _object(record["evidence"], "runtime test evidence")
+    outcome = recompute_h25_persisted_evidence(plan, test_id, evidence)
+    expected = {
+        "primary_pass": outcome.primary_pass,
+        "inverse_pass": outcome.inverse_pass,
+        "final_pass": outcome.final_pass,
+    }
+    if record["recomputation"] != expected:
+        raise ValueError("H25 runtime test recomputation is not independently reproducible.")
+    return record, outcome
+
+
+def _runtime_test_records_compliant(
+    plan: object,
+    test_ids: Sequence[str],
+    current: Mapping[str, object],
+    secondary: Mapping[str, object],
+) -> bool:
+    for test_id in test_ids:
+        left, left_outcome = _validated_runtime_test_record(plan, test_id, current[test_id])
+        right, right_outcome = _validated_runtime_test_record(plan, test_id, secondary[test_id])
+        if test_id == "H25-T-P2-008":
+            if not left_outcome.final_pass or not right_outcome.final_pass:
+                return False
+            left_counters = _object(left["evidence"].get("operational_counters"), "current cost counters")
+            right_counters = _object(right["evidence"].get("operational_counters"), "secondary cost counters")
+            stable = {
+                "GPU_device_count", "scientific_process_count",
+                "model_inference_call_count",
+                "hidden_repeated_pitch_shift_inference_count",
+            }
+            if any(left_counters.get(key) != right_counters.get(key) for key in stable):
+                return False
+            continue
+        if test_id == "H25-T-P2-007":
+            left_evidence = dict(left["evidence"])
+            right_evidence = dict(right["evidence"])
+            for value in (left_evidence, right_evidence):
+                observation = dict(value["current_runtime_observation"])
+                observation.pop("runtime_id", None)
+                observation.pop("runtime_identity", None)
+                value["current_runtime_observation"] = observation
+            if not _cross_runtime_tree_close(left_evidence, right_evidence):
+                return False
+            continue
+        if not _cross_runtime_tree_close(left, right):
+            return False
+    return True
 
 
 def _phase_primary(plan: object, test: object, evidence: Mapping[str, object], measured: Mapping[str, Mapping[str, object]]) -> bool:
@@ -493,20 +572,23 @@ def _phase_primary(plan: object, test: object, evidence: Mapping[str, object], m
         cross = evidence.get("cross_runtime_observation")
         if type(cross) is not dict:
             return False
-        current_id, current_fixtures, current_tests = _runtime_observation_map(
+        current_id, current_identity, current_fixtures, current_tests = _runtime_observation_map(
             evidence.get("current_runtime_observation"),
             fixture_ids=getattr(test, "fixture_ids"),
             test_ids=getattr(plan, "test_ids"),
         )
-        cross_id, cross_fixtures, cross_tests = _runtime_observation_map(
+        cross_id, cross_identity, cross_fixtures, cross_tests = _runtime_observation_map(
             cross,
             fixture_ids=getattr(test, "fixture_ids"),
             test_ids=getattr(plan, "test_ids"),
         )
         return (
             cross_id != current_id
+            and cross_identity != current_identity
             and all(_cross_runtime_tree_close(current_fixtures[key], cross_fixtures[key]) for key in current_fixtures)
-            and all(_cross_runtime_tree_close(current_tests[key], cross_tests[key]) for key in current_tests)
+            and _runtime_test_records_compliant(
+                plan, getattr(plan, "test_ids"), current_tests, cross_tests
+            )
         )
     if test_id == "H25-T-P2-008":
         counters = _object(evidence.get("operational_counters"), "operational counters")

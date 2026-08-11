@@ -6,13 +6,15 @@ before the published population is opened.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import hashlib
 import importlib
 import json
 import os
 from pathlib import Path
+import platform
 import subprocess
+import sys
 import time
 from types import MappingProxyType
 from typing import Mapping, Sequence
@@ -302,10 +304,6 @@ def _load_population_after_claim(np: object, capability: object, plan: H25Dorman
         waveforms[fixture_id] = waveform
         fixture_records[fixture_id] = MappingProxyType(record)
         traces[fixture_id] = H25CausalReplayTrace(fixture_id, 16383, (), transitions)
-    test_records = MappingProxyType({
-        item.test_id: MappingProxyType({"test_id": item.test_id, "status": "PASS"})
-        for item in plan.tests
-    })
     resource = importlib.import_module("resource")
     peak_rss_bytes = int(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
     return H25EvidenceProducerContext(
@@ -324,11 +322,110 @@ def _load_population_after_claim(np: object, capability: object, plan: H25Dorman
         }),
         observed_fixture_ids=plan.fixture_ids,
         observed_test_ids=plan.test_ids,
-        observed_test_records=test_records,
+        observed_test_records=None,
     )
 
 
-def _secondary_runtime_observation(capability: object) -> Mapping[str, object]:
+def _runtime_identity_for_current_process() -> Mapping[str, object]:
+    executable = Path(sys.executable).resolve(strict=True)
+    identity = {
+        "implementation": platform.python_implementation(),
+        "version": platform.python_version(),
+        "platform_system": platform.system(),
+        "platform_release": platform.release(),
+        "platform_machine": platform.machine(),
+        "resolved_executable": str(executable),
+        "executable_size_bytes": executable.stat().st_size,
+        "executable_sha256": _sha(executable.read_bytes()),
+        "command_sha256": _sha(_canonical([str(executable), "<current-process>"])),
+        "observer_payload_path": str(Path(__file__).resolve(strict=True)),
+        "observer_payload_size_bytes": Path(__file__).resolve(strict=True).stat().st_size,
+        "observer_payload_sha256": _sha(Path(__file__).resolve(strict=True).read_bytes()),
+    }
+    return MappingProxyType(identity)
+
+
+def _attach_runtime_identity(
+    evidence: Mapping[str, object], runtime_identity: Mapping[str, object]
+) -> dict[str, object]:
+    result = dict(evidence)
+    observation = dict(result["current_runtime_observation"])
+    identity = dict(runtime_identity)
+    observation["runtime_identity"] = identity
+    observation["runtime_id"] = _sha(_canonical(identity))
+    result["current_runtime_observation"] = observation
+    return result
+
+
+def _derive_recomputed_runtime_test_records(
+    context: H25EvidenceProducerContext,
+    runtime_identity: Mapping[str, object],
+) -> Mapping[str, Mapping[str, object]]:
+    """Run the exact producers as a P2-007 probe; never fabricate PASS rows."""
+
+    seed = MappingProxyType({
+        item.test_id: MappingProxyType({
+            "test_id": item.test_id,
+            "phase": item.phase,
+            "fixture_ids": list(item.fixture_ids),
+        })
+        for item in context.plan.tests
+    })
+    probe = replace(context, observed_test_records=seed)
+    records: dict[str, Mapping[str, object]] = {}
+    for test in context.plan.tests:
+        evidence = H25_EXACT_EVIDENCE_PRODUCER_REGISTRY[test.test_id](probe, test)
+        if test.test_id == "H25-T-P2-007":
+            evidence = _attach_runtime_identity(evidence, runtime_identity)
+        persisted = _parse(_canonical(dict(evidence)), f"P2-007 probe {test.test_id}")
+        outcome = recompute_h25_persisted_evidence(context.plan, test.test_id, persisted)
+        records[test.test_id] = MappingProxyType({
+            "test_id": test.test_id,
+            "phase": test.phase,
+            "fixture_ids": list(test.fixture_ids),
+            "evidence": persisted,
+            "recomputation": {
+                "primary_pass": outcome.primary_pass,
+                "inverse_pass": outcome.inverse_pass,
+                "final_pass": outcome.final_pass,
+            },
+        })
+    return MappingProxyType(records)
+
+
+def _validate_recomputed_runtime_test_records(
+    plan: H25DormantScientificPlan, raw_records: object
+) -> None:
+    if type(raw_records) is not list or len(raw_records) != len(plan.tests):
+        raise ValueError("H25 secondary runtime test records are incomplete.")
+    for test, raw_record in zip(plan.tests, raw_records):
+        if type(raw_record) is not dict or set(raw_record) != {
+            "test_id", "phase", "fixture_ids", "evidence", "recomputation"
+        }:
+            raise ValueError("H25 secondary runtime test record schema mismatch.")
+        if (
+            raw_record["test_id"] != test.test_id
+            or raw_record["phase"] != test.phase
+            or raw_record["fixture_ids"] != list(test.fixture_ids)
+            or type(raw_record["evidence"]) is not dict
+            or type(raw_record["recomputation"]) is not dict
+        ):
+            raise ValueError("H25 secondary runtime test record identity mismatch.")
+        outcome = recompute_h25_persisted_evidence(
+            plan, test.test_id, raw_record["evidence"]
+        )
+        expected = {
+            "primary_pass": outcome.primary_pass,
+            "inverse_pass": outcome.inverse_pass,
+            "final_pass": outcome.final_pass,
+        }
+        if raw_record["recomputation"] != expected:
+            raise ValueError("H25 secondary runtime test record recomputation mismatch.")
+
+
+def _secondary_runtime_observation(
+    capability: object, plan: H25DormantScientificPlan
+) -> Mapping[str, object]:
     checked = require_claimed_h25_scientific_capability(capability)
     completed = subprocess.run(
         list(checked.secondary_runtime_command),
@@ -346,8 +443,17 @@ def _secondary_runtime_observation(capability: object) -> Mapping[str, object]:
         object_pairs_hook=_reject_pairs,
         parse_constant=_reject_nonfinite,
     )
-    if type(value) is not dict or set(value) != {"runtime_id", "fixture_measurements", "test_records"}:
+    if type(value) is not dict or set(value) != {
+        "runtime_id", "runtime_identity", "fixture_measurements", "test_records"
+    }:
         raise ValueError("H25 secondary runtime observation schema mismatch.")
+    if completed.stdout != _canonical(value):
+        raise ValueError("H25 secondary runtime observation is not canonical JSON.")
+    if value["runtime_identity"] != dict(checked.secondary_runtime_identity):
+        raise PermissionError("H25 secondary runtime identity differs from the sealed identity.")
+    if value["runtime_id"] != _sha(_canonical(value["runtime_identity"])):
+        raise PermissionError("H25 secondary runtime ID is not derived from its sealed identity.")
+    _validate_recomputed_runtime_test_records(plan, value["test_records"])
     return value
 
 
@@ -474,7 +580,7 @@ def _finalize(capability: object, plan: H25DormantScientificPlan) -> Path:
 def _publish_forensic_inconclusive(
     capability: object, error: BaseException
 ) -> Path:
-    """Last-resort atomic closure; never fabricates a scientific verdict."""
+    """Last-resort closure on a distinct path; preserves any primary .part."""
 
     checked = require_claimed_h25_scientific_capability(capability)
     candidates = (
@@ -506,7 +612,7 @@ def _publish_forensic_inconclusive(
         "forensic_error_class": f"{type(error).__module__}.{type(error).__qualname__}",
         "forensic_error_message_sha256": _sha(str(error).encode("utf-8")),
     }
-    return _atomic_json(checked.terminal_path, terminal)
+    return _atomic_json(checked.forensic_terminal_path, terminal)
 
 
 def _execute_attested_h25_scientific_execution(
@@ -524,10 +630,20 @@ def _execute_attested_h25_scientific_execution(
             raise RuntimeError("H25 scientific runner requires exact NumPy 1.26.4.")
         context = _load_population_after_claim(np, claimed, plan)
         for test in plan.tests:
+            if test.test_id == "H25-T-P2-007":
+                current_identity = _runtime_identity_for_current_process()
+                context = replace(
+                    context,
+                    observed_test_records=_derive_recomputed_runtime_test_records(
+                        context, current_identity
+                    ),
+                )
             evidence = H25_EXACT_EVIDENCE_PRODUCER_REGISTRY[test.test_id](context, test)
             if test.test_id == "H25-T-P2-007":
-                evidence = dict(evidence)
-                evidence["cross_runtime_observation"] = _secondary_runtime_observation(claimed)
+                evidence = _attach_runtime_identity(evidence, current_identity)
+                evidence["cross_runtime_observation"] = _secondary_runtime_observation(
+                    claimed, plan
+                )
             path = writer.append_evidence(evidence)
             persisted = _parse(path.read_bytes(), test.test_id)
             outcome = recompute_h25_persisted_evidence(plan, test.test_id, persisted)
