@@ -19,6 +19,14 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 - Mise à jour : `2026-08-11`.
 - Étape : `harmonic_censoring_h26_scientific_preregistration`.
+- Clôture de revue : `H26_DORMANT_STACK_REVIEWED_AND_CLOSED`. La
+  préinscription et la pile logicielle dormante sont revues jusqu'au commit
+  `60b8d90bcbb5fb6e3a82d839bae706a359ab310e`. Cette clôture ne constitue
+  aucune observation scientifique et n'autorise ni matérialisation, waveform,
+  population index, p2_record, capability, authority, claim, P0/P1/P2,
+  runtime scientifique, donnée réelle, modèle, entraînement, calibration ou
+  locked-test. Rapport :
+  `readme/results/2026-08-11_harmonic-censoring-h26-dormant-stack-review-closure.md`.
 - Statut : `paquet H26 déclaratif dormant corrigé après deux refus externes de sous-spécification; mesures, collisions, grilles P2 et 34 recettes baseline désormais fermées; 40 fixtures et 27 tests inchangés, 0 waveform, aucune implémentation/exécution/authority/capability/claim`.
 - Implémentation dormante H26 en cours de revue externe : loader strict lié aux
   trois SHA, synthèse future inaccessible, masques dérivés des recettes,
