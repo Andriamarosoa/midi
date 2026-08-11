@@ -18,7 +18,17 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 - Mise à jour : `2026-08-11`.
 - Étape : `harmonic_censoring_h25_preclaim_administrative_lifecycle_harness`.
-- Statut : `entrypoint python -m de qualification administrative H25 corrigé et testé sans exécution; tentative pré-entrypoint non consommante; revue externe obligatoire avant toute qualification enregistrée`.
+- Statut : `qualification administrative pré-claim H25 réussie et close; 19/19 résultats recomputés, 16 surrogate claims préservés, aucun worker ou usage scientifique; prochaine hypothèse H25 interdite sans nouveau contrat`.
+- L'unique qualification administrative H25 autorisée a été exécutée sur le
+  commit exact `b91374473e28b1bb4ad42a73f62af4171411588d` et a produit
+  `H25_ADMIN_LIFECYCLE_QUALIFICATION_PASSED`. Les `13` probes real-OS et les
+  `6` cas administratifs ont tous été enregistrés puis recomputés : `158`
+  fichiers, `157` bindings exacts, `16` surrogate claims consommés/préservés,
+  `3` arrêts pré-claim sans claim et `worker_alive_count=0`. Le record canonique
+  a le SHA-256
+  `54bd361a99223dd24d6e4f0883ace47572965604c406efe69e5564f675d14ee1`.
+  Aucun retry ni usage scientifique n'a eu lieu. Rapport :
+  `readme/results/2026-08-11_harmonic-censoring-h25-administrative-lifecycle-qualification-result.md`.
 - L'unique tentative de qualification autorisée sur `a2cbed8…` a échoué avant
   `main()` et avant tout namespace/claim : le driver placé sous `tmp/local`
   n'avait pas la racine du dépôt dans `sys.path`. Le pilote externe l'a classée
@@ -1953,6 +1963,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-11 — contrat de décision successeur H25 après consommation H24](results/2026-08-11_harmonic-censoring-h25-successor-decision-contract.md)
 - [2026-08-11 — implémentation du harness administratif pré-claim H25](results/2026-08-11_harmonic-censoring-h25-preclaim-administrative-lifecycle-harness.md)
 - [2026-08-11 — correction de l'entrypoint de qualification administrative H25](results/2026-08-11_harmonic-censoring-h25-administrative-qualification-entrypoint.md)
+- [2026-08-11 — résultat de la qualification administrative pré-claim H25](results/2026-08-11_harmonic-censoring-h25-administrative-lifecycle-qualification-result.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)
