@@ -111,3 +111,10 @@ frontière. Le delta de correction :
 Le lifecycle et tous ses bindings immuables restent inchangés et dormants.
 Aucun P0 réel, claim, evidence, transcript ou receipt n'a été produit par ce
 correctif. Une nouvelle revue externe reste obligatoire avant toute activation.
+
+Validation du correctif : `67` tests ciblés découverts sous Windows, `64`
+réussis et les `3` contrôles dépendants de Darwin/symlinks ignorés ; les mêmes
+`67/67` tests ont réussi sur le Mac. Les `23/23` modules H26 ont également
+réussi séparément sous Windows puis sous macOS. Les deux checkouts Mac sont
+propres et synchronisés au commit du correctif. Aucun de ces tests n'a ouvert
+la population réelle ni publié de claim scientifique.
