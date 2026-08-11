@@ -53,6 +53,7 @@ l'option A sous de nouvelles identités.
 | Sujet | H26 historique | Option A future |
 |---|---|---|
 | `current_short` nul | spectre invalide | inchangé : analyse invalide, aucun ratio/NNLS/certificat |
+| `current_long` nul | spectre invalide | inchangé : analyse invalide, persistence indisponible, contexte requis invalide, `AMBIGUOUS` avant les certificats |
 | `previous_short` nul et masque valide | spectre invalide | contexte valide, `T=0`, onset rise `=1` si current valide |
 | `previous_long` nul et masque valide | spectre invalide | contexte valide, `T=0`, persistence `=1` si current valide |
 | masque invalide avec samples nuls | support invalide | inchangé : jamais reclassé silence valide |
@@ -60,11 +61,13 @@ l'option A sous de nouvelles identités.
 | silence seul | ne suffit pas à `NO_BIRTH` | inchangé |
 | ordre de décision | history → support → équivalence → positif → négatif → ambigu | inchangé |
 
-Les paragraphes à remplacer dans une future préinscription successeur sont la
-validité spectrale générale et ses interactions explicites avec les formules
-`short_window_onset_rise` et `long_window_persistence`. Les coordonnées
-causales, l'ambiguïté sur support invalide et l'ordre de décision doivent être
-réaffirmés, pas modifiés.
+Les clauses exactes à remplacer dans une future préinscription successeur sont
+`measurement_definitions.spectrum.valid_total_power`,
+`measurement_definitions.short_window_onset_rise.formula` et
+`measurement_definitions.long_window_persistence.formula`. Les clauses
+`causal_contract.previous_views_end_one_hop_earlier`,
+`ambiguity_region.includes` et `decision_order` doivent être réaffirmées sans
+modification.
 
 ## Invariants et absence de fuite
 
@@ -73,6 +76,8 @@ réaffirmés, pas modifiés.
 - seuils positifs/négatifs inchangés ;
 - silence valide distinct du support invalide ;
 - `current_short=0` ne peut jamais atteindre ratio, NNLS ou certificat ;
+- `current_long=0` rend l'analyse longue invalide, masque la persistence et
+  conduit à `AMBIGUOUS` avant les certificats ;
 - silence précédent seul ne constitue jamais un certificat négatif ;
 - `H01` conserve le bypass history et `A01` le bypass equivalence ;
 - les cas N01-like non nuls conservent les mêmes calculs ;
@@ -86,13 +91,16 @@ Le contrat conserve exactement les seuils `0.02`, `0.05`, `0.10`, `0.002`,
 
 Le fichier
 `configs/harmonic_censoring_h26_p0_remediation_synthetic_cases.json` définit
-dix cas data-only : previous-short nul, previous-long nul, current-short nul,
+onze cas data-only : previous-short nul, previous-long nul, current-short nul,
 current sous le plancher, masque invalide, parité non nulle, N01-like, bypass
-history, priorité collision exacte et garde de fuite. Aucun résultat ne vient
-du moteur.
+history, priorité collision exacte, garde de fuite et current-long nul. Aucun
+résultat ne vient du moteur.
 
 Le choix pour `R-ZERO-003` est explicite : un current-short nul rend l'analyse
 courante invalide et conduit à `AMBIGUOUS`, jamais à `NO_BIRTH` par absence.
+`R-ZERO-011` impose symétriquement qu'un current-long nul rend la persistence
+indisponible et le contexte requis invalide, puis conduit à `AMBIGUOUS` avant
+tout certificat.
 
 ## Population et identités futures
 

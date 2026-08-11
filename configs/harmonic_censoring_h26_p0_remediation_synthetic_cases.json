@@ -168,6 +168,25 @@
         ],
         "forbidden_field_dependency_count": 0
       }
+    },
+    {
+      "id": "R-ZERO-011",
+      "description": "Current-long is exactly zero while its support mask is complete.",
+      "inputs": {
+        "current_long_support_valid": true,
+        "current_long_samples": "ALL_EXACT_POSITIVE_ZERO",
+        "current_long_total_power": 0
+      },
+      "expected": {
+        "current_long_analysis_valid": false,
+        "persistence_available": false,
+        "required_observation_context_valid": false,
+        "resolution_outcome": "AMBIGUOUS",
+        "positive_certificate_allowed": false,
+        "negative_certificate_allowed": false,
+        "epsilon_injected": false,
+        "promote_to_valid": false
+      }
     }
   ]
 }

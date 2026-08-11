@@ -26,7 +26,8 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   oracle ou changement de seuil n'est admis. H26 demeure clos et consommé :
   cette sémantique devra être préenregistrée sous un successeur H27 avec de
   nouvelles identités, population et autorités avant toute implémentation.
-  Dix cas synthétiques purement déclaratifs ferment les invariants. Rapport :
+  Onze cas synthétiques purement déclaratifs ferment les invariants, dont le
+  rejet explicite de `current_long=0`. Rapport :
   `readme/results/2026-08-12_harmonic-censoring-h26-p0-remediation-design.md`.
 - L'analyse forensique strictement read-only confirme que `H26-F-P01` possède
   une fenêtre `current_short` non nulle, mais une fenêtre `previous_short`

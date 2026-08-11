@@ -51,10 +51,12 @@
       "reason": "Historical H26 is closed and consumed. The preferred Option A semantics must therefore be delivered only through a successor preregistration, but Option C alone does not define the missing zero-context semantics."
     }
   },
-  "affected_historical_preregistration_paths": [
-    "numerical_policy.spectrum.valid_total_power",
-    "numerical_policy.short_window_onset_rise.formula",
-    "numerical_policy.long_window_persistence.formula",
+  "semantic_replacements": [
+    "measurement_definitions.spectrum.valid_total_power",
+    "measurement_definitions.short_window_onset_rise.formula",
+    "measurement_definitions.long_window_persistence.formula"
+  ],
+  "reaffirmed_unchanged_invariants": [
     "causal_contract.previous_views_end_one_hop_earlier",
     "ambiguity_region.includes",
     "decision_order"
@@ -74,6 +76,11 @@
       "topic": "previous_long_context",
       "before": "Exact-zero previous-long is rejected as an invalid spectrum.",
       "after": "Exact-zero previous-long is valid only when its complete validity mask is true; its spectrum and total power remain exact zero and persistence evaluates to 1 when current-long is valid and positive."
+    },
+    {
+      "topic": "current_long_analysis",
+      "before": "Every spectrum role requires finite strictly-positive total power.",
+      "after": "Current-long analysis still requires the identical finite strictly-positive total-power rule; exact zero is invalid, persistence is unavailable, required observation context is invalid and resolution is AMBIGUOUS before either certificate."
     },
     {
       "topic": "invalid_support",
@@ -123,6 +130,9 @@
     "valid_silence_distinct_from_invalid_support": true,
     "silent_view_alone_is_never_negative_certificate": true,
     "zero_current_short_never_enters_ratio_or_nnls": true,
+    "zero_current_long_is_invalid": true,
+    "zero_current_long_persistence_is_unavailable": true,
+    "zero_current_long_never_enters_positive_or_negative_certificate": true,
     "oracle_fields_forbidden": [
       "fixture_id",
       "expected",
