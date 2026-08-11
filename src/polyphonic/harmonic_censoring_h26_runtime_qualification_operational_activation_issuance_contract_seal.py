@@ -61,6 +61,15 @@ def _require_public_bindings() -> None:
     if actual != _APPROVED_BINDINGS:
         raise ValueError("public binding mismatch")
 
+def _deep_freeze_json(value: Any) -> Any:
+    if isinstance(value, dict):
+        return MappingProxyType(
+            {key: _deep_freeze_json(item) for key, item in value.items()}
+        )
+    if isinstance(value, list):
+        return tuple(_deep_freeze_json(item) for item in value)
+    return value
+
 def load_runtime_qualification_operational_activation_issuance_contract_external_seal(seal_path: Optional[Path] = None, contract_path: Optional[Path] = None) -> Mapping[str, Any]:
     """Verify exact reviewed bytes and return an immutable seal mapping."""
     _require_public_bindings()
@@ -101,6 +110,6 @@ def load_runtime_qualification_operational_activation_issuance_contract_external
         raise ValueError("issuance contract schema mismatch")
     if contract.get("creation_authorized_now") is not False:
         raise ValueError("issuance contract is not dormant")
-    return MappingProxyType(seal)
+    return _deep_freeze_json(seal)
 
 __all__ = ["EXTERNAL_SEAL_COMMIT", "EXTERNAL_SEAL_GIT_BLOB_SHA", "ISSUANCE_CONTRACT_COMMIT", "ISSUANCE_CONTRACT_GIT_BLOB_SHA", "ISSUANCE_CONTRACT_GIT_BLOB_BYTE_LENGTH", "ISSUANCE_CONTRACT_RAW_SHA256", "load_runtime_qualification_operational_activation_issuance_contract_external_seal"]

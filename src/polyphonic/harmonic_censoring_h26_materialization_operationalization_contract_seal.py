@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib,json
 from pathlib import Path
 from types import MappingProxyType
+from typing import Any
 
 SEAL_BLOB="aca5a562f7d581834ec04c1e98c57138e285cf32"
 CONTRACT_BLOB="2d32b58cf5c7e2b34fd4d23ad02a4985e92f54cf"
@@ -13,6 +14,14 @@ def _canonical(raw):
     return raw.replace(b"\r\n",b"\n")
 def _blob(raw):
     raw=_canonical(raw); return hashlib.sha1(f"blob {len(raw)}\0".encode()+raw).hexdigest()
+def _deep_freeze_json(value: Any) -> Any:
+    if isinstance(value, dict):
+        return MappingProxyType(
+            {key: _deep_freeze_json(item) for key, item in value.items()}
+        )
+    if isinstance(value, list):
+        return tuple(_deep_freeze_json(item) for item in value)
+    return value
 def load_materialization_operationalization_contract_external_seal():
     root=Path(__file__).resolve().parents[2]
     raw=(root/"configs"/"harmonic_censoring_h26_materialization_operationalization_dormant_contract_external_seal.json").read_bytes()
@@ -23,5 +32,5 @@ def load_materialization_operationalization_contract_external_seal():
     if _blob(contract_raw)!=CONTRACT_BLOB or len(canonical)!=CONTRACT_LENGTH or hashlib.sha256(canonical).hexdigest()!=CONTRACT_SHA256: raise ValueError("materialization contract binding mismatch")
     contract=json.loads(canonical)
     if contract.get("implementation_boundary",{}).get("real_materializer_invocation_authorized") is not False: raise ValueError("materialization contract not dormant")
-    return MappingProxyType(seal)
+    return _deep_freeze_json(seal)
 __all__=["load_materialization_operationalization_contract_external_seal"]

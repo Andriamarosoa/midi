@@ -18,6 +18,9 @@ class DormantIssuanceContractSealTests(unittest.TestCase):
         self.assertFalse(result["creation_authorized_now"])
         with self.assertRaises(TypeError):
             result["creation_authorized_now"] = True
+        with self.assertRaises(TypeError):
+            result["current_state"]["issuer_exists"] = True
+        self.assertEqual(loader._deep_freeze_json([{"value": False}]), (loader.MappingProxyType({"value": False}),))
 
     def test_seal_mutation_is_rejected_before_parsing(self) -> None:
         source = self.root() / "configs" / "harmonic_censoring_h26_runtime_qualification_operational_activation_issuance_contract_external_seal.json"

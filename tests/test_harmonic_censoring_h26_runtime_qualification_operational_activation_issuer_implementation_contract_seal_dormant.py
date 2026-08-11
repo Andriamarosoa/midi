@@ -10,6 +10,8 @@ class IssuerImplementationSealTests(unittest.TestCase):
         result = loader.load_issuer_implementation_contract_external_seal()
         self.assertFalse(result["creation_authorized_now"])
         with self.assertRaises(TypeError): result["creation_authorized_now"] = True
+        with self.assertRaises(TypeError): result["current_state"]["issuer_exists"] = True
+        self.assertEqual(loader._deep_freeze_json([{"value": False}]), (loader.MappingProxyType({"value": False}),))
 
     def test_modified_seal_fails_before_parse(self):
         root = Path(loader.__file__).resolve().parents[2]

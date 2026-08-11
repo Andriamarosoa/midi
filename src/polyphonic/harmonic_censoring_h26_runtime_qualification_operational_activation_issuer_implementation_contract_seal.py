@@ -33,6 +33,15 @@ def _json(raw: bytes) -> dict[str, Any]:
         return out
     return json.loads(_canonical(raw).decode("utf-8"), object_pairs_hook=hook, parse_float=lambda value: (_ for _ in ()).throw(ValueError("float forbidden")))
 
+def _deep_freeze_json(value: Any) -> Any:
+    if isinstance(value, dict):
+        return MappingProxyType(
+            {key: _deep_freeze_json(item) for key, item in value.items()}
+        )
+    if isinstance(value, list):
+        return tuple(_deep_freeze_json(item) for item in value)
+    return value
+
 def load_issuer_implementation_contract_external_seal(seal_path: Optional[Path] = None, contract_path: Optional[Path] = None) -> Mapping[str, Any]:
     root = Path(__file__).resolve().parents[2]
     seal_file = seal_path or root / "configs" / "harmonic_censoring_h26_runtime_qualification_operational_activation_issuer_dormant_implementation_contract_external_seal.json"
@@ -62,6 +71,6 @@ def load_issuer_implementation_contract_external_seal(seal_path: Optional[Path] 
     contract = _json(canonical)
     if contract.get("schema_identity") != "H26_RUNTIME_QUALIFICATION_OPERATIONAL_ACTIVATION_ISSUER_DORMANT_IMPLEMENTATION_CONTRACT_V1" or contract.get("implementation_boundary", {}).get("issuer_invocation_authorized") is not False:
         raise ValueError("issuer implementation contract is not dormant")
-    return MappingProxyType(seal)
+    return _deep_freeze_json(seal)
 
 __all__ = ["load_issuer_implementation_contract_external_seal"]

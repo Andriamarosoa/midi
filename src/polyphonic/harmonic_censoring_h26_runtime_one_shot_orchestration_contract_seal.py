@@ -20,6 +20,15 @@ def _blob(raw: bytes) -> str:
 def _parse(raw: bytes) -> dict[str,Any]:
     return json.loads(_canonical(raw).decode(),parse_float=lambda value:(_ for _ in ()).throw(ValueError("float forbidden")))
 
+def _deep_freeze_json(value: Any) -> Any:
+    if isinstance(value, dict):
+        return MappingProxyType(
+            {key: _deep_freeze_json(item) for key, item in value.items()}
+        )
+    if isinstance(value, list):
+        return tuple(_deep_freeze_json(item) for item in value)
+    return value
+
 def load_runtime_one_shot_orchestration_contract_external_seal() -> Mapping[str,Any]:
     root=Path(__file__).resolve().parents[2]
     seal_raw=(root/"configs"/"harmonic_censoring_h26_runtime_one_shot_orchestration_dormant_contract_external_seal.json").read_bytes()
@@ -31,6 +40,6 @@ def load_runtime_one_shot_orchestration_contract_external_seal() -> Mapping[str,
     if _blob(raw)!=CONTRACT_GIT_BLOB_SHA or len(canonical)!=CONTRACT_LENGTH or hashlib.sha256(canonical).hexdigest()!=CONTRACT_RAW_SHA256: raise ValueError("orchestration contract binding mismatch")
     contract=_parse(canonical)
     if contract.get("implementation_boundary",{}).get("real_observer_invocation_authorized") is not False or contract.get("creation_authorized_now") is not False: raise ValueError("orchestration contract not dormant")
-    return MappingProxyType(seal)
+    return _deep_freeze_json(seal)
 
 __all__=["load_runtime_one_shot_orchestration_contract_external_seal"]
