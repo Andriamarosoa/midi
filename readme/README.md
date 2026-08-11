@@ -17,8 +17,23 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-11`.
-- Étape : `harmonic_censoring_h25_dormant_scientific_recomputation_correction`.
-- Statut : `rejets externes c47b9ba/e5f9ce2 corrigés sans science; recomputer indépendant et preuves complètes en attente de nouvelle revue; P0/P1/P2 restent à 0/0/0`.
+- Étape : `harmonic_censoring_h25_dormant_scientific_capability_authority`.
+- Statut : `moteur/recomputer de73a8f approuvés; capability contract et autorité one-shot scientifique implémentés mais dormants; aucun seal/activation/OS binding/capability/claim; P0/P1/P2 restent à 0/0/0`.
+- La revue externe de `de73a8f…` approuve la complétude des preuves H25 et
+  autorise uniquement le contrat de capability et l'autorité one-shot
+  dormants. Ce bloc lie exactement le commit approuvé, les blobs moteur,
+  recomputer et runner, cinq contrats/manifests, les trois SHA de population,
+  le runtime Mac et la qualification administrative. La capability est
+  factory-only, process-local et non copiable ; le wrapper passe à
+  `CONSUMED_BEFORE_DELEGATION` avant le runner. Le claim futur utilise
+  `O_EXCL` et fsync, le transcript contient toujours 27 records en ordre
+  P0/P1/P2, et les fermetures success/failure/inconclusive sont atomiques.
+  P2-007 ne peut recevoir aucune observation manuelle : un sous-processus
+  secondaire pré-déclaré et lié par une future activation devra produire les
+  36 mesures et 27 records via stdout canonique. Le seal, l'activation et le
+  binding OS requis n'existent pas ; l'issuer s'arrête donc avant contrats,
+  population et NumPy. Rapport :
+  `readme/results/2026-08-11_harmonic-censoring-h25-dormant-scientific-capability-authority.md`.
 - La matérialisation one-shot approuvée a publié exactement `36` fixtures,
   `108` artefacts et `111` fichiers, puis une vérification indépendante hors
   TTY a recomputé les `36×3` artefacts avec des PCG64 frais et confirmé
@@ -2071,6 +2086,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-11 — contrat H25 de runtime, provenance et encodage de matérialisation](results/2026-08-11_harmonic-censoring-h25-population-materialization-runtime-contract.md)
 - [2026-08-11 — implémentation dormante du materializer/recomputer H25](results/2026-08-11_harmonic-censoring-h25-dormant-population-materializer.md)
 - [2026-08-11 — correction du moteur scientifique dormant et de la recomputation H25](results/2026-08-11_harmonic-censoring-h25-dormant-scientific-recomputation-correction.md)
+- [2026-08-11 — capability scientifique et autorité one-shot dormantes H25](results/2026-08-11_harmonic-censoring-h25-dormant-scientific-capability-authority.md)
 - [2026-08-11 — autorité one-shot dormante de matérialisation H25](results/2026-08-11_harmonic-censoring-h25-materialization-authority-dormant.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
