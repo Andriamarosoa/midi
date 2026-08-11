@@ -14,12 +14,17 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: STOP 2 activation intact; explicit observer-boundary commit point implemented; external review required before authority claim or observer. -->
+<!-- H26_CORRECTION_STATUS: STOP 3 runtime qualified; terminal artifacts archived; external review required before materialization. -->
 ## État courant
 
 - Mise à jour : `2026-08-12`.
 - État courant :
-  `H26_RUNTIME_OPERATIONAL_ENTRYPOINT_EXPLICIT_BOUNDARY_COMMIT_POINT_STOP_2_PENDING_EXTERNAL_REVIEW`.
+  `H26_MATERIALIZATION_RUNTIME_QUALIFIED_STOP_3_PENDING_EXTERNAL_REVIEW`.
+- L'unique qualification runtime réémise après l'échec préflight pré-claim a
+  produit un record qualifié et un receipt terminal : observer appelé une fois,
+  aucun retry, runtime Darwin arm64/CPython 3.11.9/NumPy 1.26.4/OpenBLAS ILP64
+  conforme. Aucun materializer ni test scientifique n'a été lancé. Rapport :
+  `readme/results/2026-08-12_harmonic-censoring-h26-runtime-qualification-stop3.md`.
 - La frontière opérationnelle runtime one-shot est implémentée additivement,
   liée à l'activation STOP 2 et limitée à authority -> claim -> evidence dans la
   boundary -> observer privé -> record -> receipt final. Les tests utilisent
