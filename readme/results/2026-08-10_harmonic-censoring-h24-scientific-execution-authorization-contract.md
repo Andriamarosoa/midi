@@ -341,3 +341,35 @@ soit `220` tests réussis. `py_compile` et `git diff --check` réussissent aussi
 Uniquement la revue externe du commit exact de correction. Aucune relance de
 l'issuer, capability, claim, population decode, P0/P1/P2, H17, locked-test,
 modèle, calibration ou training n'est autorisée.
+
+## Correction du validateur de topologie du seal de remplacement
+
+La revue externe du commit `696a94ea88e03c233f2c145aab2cf8e4f897ac59`
+a approuvé le binding marker, puis a confirmé un second défaut purement
+administratif : `_validate_seal()` exigeait toujours l'ancienne topologie
+d'implémentation à `6` fichiers. Un seal honnête liant la topologie corrective
+à `8` fichiers aurait donc été rejeté.
+
+La portée
+`AUTHORIZED_TO_CORRECT_H24_REPLACEMENT_SEAL_TOPOLOGY_VALIDATION_AND_REBASE_DORMANT_AUTHORITY_BINDINGS_ONLY`
+autorise ce micro-correctif sans création de seal. Le validateur exige désormais
+la topologie exacte du nouveau commit candidat ; le contrat passe au schéma `9`,
+SHA-256
+`8049f8d613cb45eba80e5d10b0fcc440b25ac317ec4cdac1c02ffbba735ad1af`.
+Comme le blob capability change, le futur seal devra lier le commit exact de ce
+correctif, son nouveau blob et son vrai `git diff-tree`.
+
+Le seal `818e53cd…`, l'activation `4082cf4e…` et le binding OS `8f23054e…`
+restent physiquement inchangés et obsolètes. Le seal historique est maintenant
+explicitement rejeté par le validateur de topologie avant toute capability.
+Runner, producteurs, `72` mesures, `18` overrides, manifests et population
+restent inchangés.
+
+La vérification administrative comprend `215` tests H24/H23 et `7` gardes
+H20, soit `222` tests réussis. `py_compile` et `git diff --check` réussissent.
+
+## Étape suivante
+
+Uniquement la revue externe de ce commit dormant. Aucun remplacement de seal,
+activation, binding OS, issuer, capability, claim, population decode,
+P0/P1/P2, H17, locked-test, modèle, calibration ou training n'est autorisé.

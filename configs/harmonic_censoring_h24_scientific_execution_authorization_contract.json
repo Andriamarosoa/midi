@@ -1,7 +1,7 @@
 {
-  "schema_version": 8,
+  "schema_version": 9,
   "purpose": "harmonic_censoring_h24_scientific_execution_authorization_contract",
-  "status": "published_population_marker_SHA_binding_corrected_external_review_required",
+  "status": "replacement_seal_topology_validation_and_dormant_authority_bindings_corrected_external_review_required",
   "authorization_basis": {
     "reviewed_activation_commit": "e7c2eecf49ede43b3334266c74b1fe438f9e793d",
     "external_verdict": "APPROVED_H24_MATERIALIZED_POPULATION_PUBLICATION_AUDIT",
@@ -13,7 +13,8 @@
     "evidence_producer_authorized_action": "AUTHORIZED_TO_DEFINE_AND_IMPLEMENT_H24_EXACT_72_EVIDENCE_PRODUCERS_ONLY",
     "evidence_producer_correction_authorized_action": "AUTHORIZED_TO_CORRECT_H24_EXACT_72_EVIDENCE_PRODUCER_BINDINGS_AND_NO_RESYNTHESIS_ONLY",
     "activation_HEAD_binding_correction_authorized_action": "AUTHORIZED_TO_CORRECT_H24_OS_BOUND_ACTIVATION_HEAD_SOURCE_AND_PREDECESSOR_CONTRACT_BINDINGS_ONLY",
-    "population_marker_SHA_binding_correction_authorized_action": "AUTHORIZED_TO_CORRECT_H24_PUBLISHED_POPULATION_MARKER_SHA_BINDING_AND_DORMANT_IMPLEMENTATION_BINDINGS_ONLY"
+    "population_marker_SHA_binding_correction_authorized_action": "AUTHORIZED_TO_CORRECT_H24_PUBLISHED_POPULATION_MARKER_SHA_BINDING_AND_DORMANT_IMPLEMENTATION_BINDINGS_ONLY",
+    "replacement_seal_topology_validation_correction_authorized_action": "AUTHORIZED_TO_CORRECT_H24_REPLACEMENT_SEAL_TOPOLOGY_VALIDATION_AND_REBASE_DORMANT_AUTHORITY_BINDINGS_ONLY"
   },
   "scope": {
     "contract_only": false,
@@ -422,12 +423,13 @@
     "readme/README.md",
     "readme/results/2026-08-10_harmonic-censoring-h24-scientific-execution-authorization-contract.md",
     "src/polyphonic/harmonic_censoring_h24_scientific_capability.py",
+    "tests/test_harmonic_censoring_h24_scientific_execution_activation.py",
     "tests/test_harmonic_censoring_h24_scientific_execution_dormant.py",
     "tests/test_harmonic_censoring_h24_scientific_execution_authorization_contract.py",
     "tests/test_harmonic_censoring_h24_scientific_execution_authorization_seal.py"
   ],
   "required_next_sequence": [
-    "external_review_population_marker_SHA_binding_correction_commit",
+    "external_review_replacement_seal_topology_validation_correction_commit",
     "separate_replacement_scientific_authorization_seal_and_activation",
     "OS_bound_exact_activation_commit",
     "zero_science_population_preflight",

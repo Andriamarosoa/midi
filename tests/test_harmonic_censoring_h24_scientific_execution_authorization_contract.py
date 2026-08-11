@@ -22,7 +22,7 @@ class H24ScientificExecutionAuthorizationContractTests(unittest.TestCase):
 
     def test_contract_is_lf_contract_only_and_authorizes_no_science(self) -> None:
         self.assertNotIn(b"\r", self.raw)
-        self.assertEqual(self.contract["schema_version"], 8)
+        self.assertEqual(self.contract["schema_version"], 9)
         self.assertEqual(
             self.contract["purpose"],
             "harmonic_censoring_h24_scientific_execution_authorization_contract",
@@ -50,8 +50,12 @@ class H24ScientificExecutionAuthorizationContractTests(unittest.TestCase):
             "AUTHORIZED_TO_CORRECT_H24_PUBLISHED_POPULATION_MARKER_SHA_BINDING_AND_DORMANT_IMPLEMENTATION_BINDINGS_ONLY",
         )
         self.assertEqual(
+            self.contract["authorization_basis"]["replacement_seal_topology_validation_correction_authorized_action"],
+            "AUTHORIZED_TO_CORRECT_H24_REPLACEMENT_SEAL_TOPOLOGY_VALIDATION_AND_REBASE_DORMANT_AUTHORITY_BINDINGS_ONLY",
+        )
+        self.assertEqual(
             self.contract["status"],
-            "published_population_marker_SHA_binding_corrected_external_review_required",
+            "replacement_seal_topology_validation_and_dormant_authority_bindings_corrected_external_review_required",
         )
         scope = self.contract["scope"]
         self.assertFalse(scope["contract_only"])
@@ -466,6 +470,7 @@ class H24ScientificExecutionAuthorizationContractTests(unittest.TestCase):
             "readme/README.md",
             "readme/results/2026-08-10_harmonic-censoring-h24-scientific-execution-authorization-contract.md",
             "src/polyphonic/harmonic_censoring_h24_scientific_capability.py",
+            "tests/test_harmonic_censoring_h24_scientific_execution_activation.py",
             "tests/test_harmonic_censoring_h24_scientific_execution_dormant.py",
             "tests/test_harmonic_censoring_h24_scientific_execution_authorization_contract.py",
             "tests/test_harmonic_censoring_h24_scientific_execution_authorization_seal.py",

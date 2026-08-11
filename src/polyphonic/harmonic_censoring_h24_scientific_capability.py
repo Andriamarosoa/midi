@@ -21,7 +21,7 @@ H24_SCIENTIFIC_CONTRACT_RELATIVE_PATH = Path(
     "configs/harmonic_censoring_h24_scientific_execution_authorization_contract.json"
 )
 H24_SCIENTIFIC_CONTRACT_RAW_SHA256 = (
-    "d587358ad1dfebf9e7d4ea3eaeb632b080e8bc68e14fe4caa331cd803048387b"
+    "8049f8d613cb45eba80e5d10b0fcc440b25ac317ec4cdac1c02ffbba735ad1af"
 )
 H24_SCIENTIFIC_SEAL_RELATIVE_PATH = Path(
     "configs/harmonic_censoring_h24_scientific_execution_authorization_seal.json"
@@ -67,6 +67,17 @@ H24_MARKER_BINDING_CORRECTION_EXACT_CHANGED_FILES = (
     "readme/README.md",
     "readme/results/2026-08-10_harmonic-censoring-h24-scientific-execution-authorization-contract.md",
     "src/polyphonic/harmonic_censoring_h24_scientific_capability.py",
+    "tests/test_harmonic_censoring_h24_scientific_execution_dormant.py",
+    "tests/test_harmonic_censoring_h24_scientific_execution_authorization_contract.py",
+    "tests/test_harmonic_censoring_h24_scientific_execution_authorization_seal.py",
+)
+H24_REPLACEMENT_SEAL_TOPOLOGY_CORRECTION_EXACT_CHANGED_FILES = (
+    ".gitattributes",
+    "configs/harmonic_censoring_h24_scientific_execution_authorization_contract.json",
+    "readme/README.md",
+    "readme/results/2026-08-10_harmonic-censoring-h24-scientific-execution-authorization-contract.md",
+    "src/polyphonic/harmonic_censoring_h24_scientific_capability.py",
+    "tests/test_harmonic_censoring_h24_scientific_execution_activation.py",
     "tests/test_harmonic_censoring_h24_scientific_execution_dormant.py",
     "tests/test_harmonic_censoring_h24_scientific_execution_authorization_contract.py",
     "tests/test_harmonic_censoring_h24_scientific_execution_authorization_seal.py",
@@ -322,7 +333,7 @@ def _validate_seal(payload: Mapping[str, object], raw_sha256: str) -> H24Scienti
     changed = bindings["exact_changed_files"]
     if type(changed) is not list or not changed or any(type(item) is not str for item in changed):
         raise ValueError("H24 seal changed files are invalid.")
-    if tuple(changed) != H24_IMPLEMENTATION_EXACT_CHANGED_FILES:
+    if tuple(changed) != H24_REPLACEMENT_SEAL_TOPOLOGY_CORRECTION_EXACT_CHANGED_FILES:
         raise ValueError("H24 seal changed files differ from reviewed implementation topology.")
     runtime = _mapping(payload["runtime_identity"], "runtime identity")
     _exact(runtime, ("machine", "python_implementation", "python_version", "numpy_version", "device", "OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS", "NUMEXPR_NUM_THREADS", "VECLIB_MAXIMUM_THREADS"), "runtime identity")

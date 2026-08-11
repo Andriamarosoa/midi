@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import copy
 import os
 from pathlib import Path
 import subprocess
@@ -20,8 +21,12 @@ class H24ScientificExecutionAuthorizationSealTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.raw = SEAL_PATH.read_bytes()
         cls.payload = json.loads(cls.raw)
+        normalized = copy.deepcopy(cls.payload)
+        normalized["bindings"]["exact_changed_files"] = list(
+            capability.H24_REPLACEMENT_SEAL_TOPOLOGY_CORRECTION_EXACT_CHANGED_FILES
+        )
         cls.seal = capability._validate_seal(
-            cls.payload, hashlib.sha256(cls.raw).hexdigest()
+            normalized, hashlib.sha256(cls.raw).hexdigest()
         )
 
     def test_seal_is_canonical_lf_and_schema_is_closed(self) -> None:
@@ -70,6 +75,16 @@ class H24ScientificExecutionAuthorizationSealTests(unittest.TestCase):
         self.assertEqual(
             tuple(bindings["exact_changed_files"]),
             capability.H24_IMPLEMENTATION_EXACT_CHANGED_FILES,
+        )
+
+    def test_historical_seal_is_rejected_by_replacement_topology_validator(self) -> None:
+        with self.assertRaisesRegex(ValueError, "changed files differ"):
+            capability._validate_seal(
+                self.payload, hashlib.sha256(self.raw).hexdigest()
+            )
+        self.assertNotEqual(
+            tuple(self.payload["bindings"]["exact_changed_files"]),
+            capability.H24_REPLACEMENT_SEAL_TOPOLOGY_CORRECTION_EXACT_CHANGED_FILES,
         )
 
     def test_all_five_executable_blobs_are_exact_but_contract_binding_is_stale(self) -> None:

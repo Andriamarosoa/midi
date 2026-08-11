@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import copy
 import os
 from pathlib import Path
 import unittest
@@ -25,8 +26,12 @@ class H24ScientificExecutionActivationTests(unittest.TestCase):
         )
         cls.seal_raw = SEAL_PATH.read_bytes()
         cls.seal_payload = json.loads(cls.seal_raw)
+        normalized = copy.deepcopy(cls.seal_payload)
+        normalized["bindings"]["exact_changed_files"] = list(
+            capability.H24_REPLACEMENT_SEAL_TOPOLOGY_CORRECTION_EXACT_CHANGED_FILES
+        )
         cls.seal = capability._validate_seal(
-            cls.seal_payload, hashlib.sha256(cls.seal_raw).hexdigest()
+            normalized, hashlib.sha256(cls.seal_raw).hexdigest()
         )
 
     def test_activation_is_canonical_lf_and_requires_commit_review(self) -> None:
@@ -64,6 +69,12 @@ class H24ScientificExecutionActivationTests(unittest.TestCase):
         for field in fields:
             self.assertEqual(
                 getattr(self.activation, field), getattr(self.seal, field), field
+            )
+
+    def test_historical_seal_is_rejected_before_replacement(self) -> None:
+        with self.assertRaisesRegex(ValueError, "changed files differ"):
+            capability._validate_seal(
+                self.seal_payload, hashlib.sha256(self.seal_raw).hexdigest()
             )
 
     def test_activation_file_alone_cannot_issue_capability(self) -> None:
