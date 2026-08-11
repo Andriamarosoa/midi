@@ -35,6 +35,13 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `numpy.random.Generator(numpy.random.PCG64(seed))` pour chaque fixture, sans
   clonage, réutilisation, advance, jump, spawn ou seed caller. Cette correction
   est contractuelle uniquement et n’a généré aucun tableau ni waveform.
+- Le materializer H25 est maintenant implémenté sous forme dormante : aucun
+  import NumPy au chargement, aucun CLI et aucun issuer de capability. Le
+  préflight, les 11 familles de synthèse, le bruit PCG64 white/pink, l’encodage
+  `<f8`, les JSON canoniques et le recomputer sont testables, mais l’entrée de
+  publication refuse toute invocation. Les tests ne génèrent que des fixtures
+  `TEST-ONLY-*` explicitement hors population H25. Rapport :
+  `readme/results/2026-08-11_harmonic-censoring-h25-dormant-population-materializer.md`.
 - Les manifests H25 définissent exactement `36` fixtures neuves, équilibrées
   `12 positive / 12 negative / 12 ambiguous`, et `27` tests ordonnés
   `9 P0 / 9 P1 / 9 P2`. P1 consomme chaque fixture exactement une fois ;
@@ -2011,6 +2018,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-11 — contrat scientifique H25 pitch-dilution et causal 4096/8192](results/2026-08-11_harmonic-censoring-h25-scientific-hypothesis-execution-contract.md)
 - [2026-08-11 — manifests population/tests et spécifications de fixtures H25](results/2026-08-11_harmonic-censoring-h25-population-test-manifests.md)
 - [2026-08-11 — contrat H25 de runtime, provenance et encodage de matérialisation](results/2026-08-11_harmonic-censoring-h25-population-materialization-runtime-contract.md)
+- [2026-08-11 — implémentation dormante du materializer/recomputer H25](results/2026-08-11_harmonic-censoring-h25-dormant-population-materializer.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)
