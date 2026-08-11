@@ -616,7 +616,7 @@ def produce_h26_fixture_evidence(
 ) -> H26EvidenceRecord:
     plan, expected_population_index_sha256 = _require_scientific(capability)
     from .harmonic_censoring_h26_materializer import (
-        H26BoundObservation, H26P2Transform, _validity_masks,
+        H26BoundObservation, H26P2Transform,
         bind_h26_population_observation, build_h26_p2_transform, encode_waveform,
     )
     if type(observation) is not H26BoundObservation or observation.fixture_id != fixture_id:
@@ -686,20 +686,22 @@ def produce_h26_fixture_evidence(
         raise ValueError("H26 alternate observation bytes diverge from sealed population record.")
     policy = H26NumericalPolicy.from_plan(plan)
     fixture = plan.fixture(fixture_id)
-    expected_masks = _validity_masks(np, fixture)
     sample_valid = np.asarray(observation.sample_valid)
     mask_raw = sample_valid.astype(np.uint8).tobytes(order="C")
     if (
-        hashlib.sha256(mask_raw).hexdigest() != observation.sample_valid_sha256
-        or mask_raw != expected_masks.sample_valid.astype(np.uint8).tobytes(order="C")
+        sample_valid.shape != rebound.sample_valid.shape
+        or sample_valid.dtype != np.bool_
+        or hashlib.sha256(mask_raw).hexdigest() != observation.sample_valid_sha256
+        or not np.array_equal(sample_valid, rebound.sample_valid)
         or observation.invalid_candidate_partial_ranks
-        != expected_masks.invalid_candidate_partial_ranks
+        != rebound.invalid_candidate_partial_ranks
     ):
         raise ValueError("H26 evidence validity masks are not bound.")
     # All scientific inputs below come from the record re-read from the sealed
     # index at consumption time, never from a caller-constructed dataclass.
     observation = rebound
     waveform = rebound.waveform
+    sample_valid = np.asarray(rebound.sample_valid)
     params = fixture["parameters"]
     proposal_hop_end = int(plan.specifications["global_timeline"]["target_hop_end"])
     resolution_hop_end = int(plan.specifications["global_timeline"]["resolution_hop_end"])

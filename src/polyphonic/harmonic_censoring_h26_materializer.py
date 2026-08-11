@@ -377,9 +377,11 @@ def _validity_masks_for_transform(
     masks = _validity_masks(np, fixture)
     if not transform.validity_start_shift:
         return masks
-    shifted = np.ones(SAMPLE_COUNT, dtype=np.bool_)
     params = fixture["parameters"]
-    base_start = int(params.get("valid_time_support_start_sample", 0))
+    if "valid_time_support_start_sample" not in params:
+        return masks
+    shifted = np.ones(SAMPLE_COUNT, dtype=np.bool_)
+    base_start = int(params["valid_time_support_start_sample"])
     shifted_start = base_start + transform.validity_start_shift
     if not 0 <= shifted_start <= SAMPLE_COUNT:
         raise ValueError("H26 shifted validity boundary requires clipping.")

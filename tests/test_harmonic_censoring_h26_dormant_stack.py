@@ -153,6 +153,7 @@ class H26DormantStackTests(unittest.TestCase):
     def _write_artificial_population(
         self, root: Path, fixture_id: str, waveform: np.ndarray,
         *, p2_transform: object | None = None,
+        p2_sample_valid_override: np.ndarray | None = None,
     ) -> tuple[str, H26BoundObservation]:
         waveform_raw = waveform.astype("<f8", copy=False).tobytes(order="C")
         mask = h26_materializer_module._validity_masks(
@@ -182,7 +183,12 @@ class H26DormantStackTests(unittest.TestCase):
             p2_mask = h26_materializer_module._validity_masks_for_transform(
                 np, self.plan, p2_transform,
             )
-            p2_mask_raw = p2_mask.sample_valid.astype(np.uint8).tobytes(order="C")
+            p2_sample_valid = (
+                p2_mask.sample_valid
+                if p2_sample_valid_override is None
+                else np.asarray(p2_sample_valid_override)
+            )
+            p2_mask_raw = p2_sample_valid.astype(np.uint8).tobytes(order="C")
             (root / "waveforms" / f"{fixture_id}.p2.f64le").write_bytes(waveform_raw)
             (root / "masks" / f"{fixture_id}.p2.u8").write_bytes(p2_mask_raw)
             p2_records.append({
@@ -347,6 +353,83 @@ class H26DormantStackTests(unittest.TestCase):
             self.assertEqual(extract.call_args.kwargs["target_hop_end"], 16383)
             self.assertEqual(extract.call_args.kwargs["transform_order"], "ascending")
             np.testing.assert_array_equal(extract.call_args.args[1], bound.waveform)
+
+    def test_p2_hop_shift_moves_only_declared_validity_boundaries(self) -> None:
+        cells = p2_cells(self.plan.contract, "P2_HOP_SHIFT_V1")
+        negative_cells = [cell for cell in cells if int(cell["sample_shift"]) < 0]
+        self.assertEqual(len(negative_cells), 2)
+        for fixture_id in ("H26-F-P09", "H26-F-P10"):
+            for cell in negative_cells:
+                transform = build_h26_p2_transform(
+                    self.plan, fixture_id=fixture_id, test_id="H26-T-P2-008",
+                    grid_id="P2_HOP_SHIFT_V1", cell=cell,
+                )
+                masks = h26_materializer_module._validity_masks_for_transform(
+                    np, self.plan, transform,
+                )
+                self.assertTrue(np.all(masks.sample_valid))
+        for fixture_id in ("H26-F-A10", "H26-F-A12"):
+            base_start = int(
+                self.plan.fixture(fixture_id)["parameters"]["valid_time_support_start_sample"]
+            )
+            for cell in cells:
+                transform = build_h26_p2_transform(
+                    self.plan, fixture_id=fixture_id, test_id="H26-T-P2-008",
+                    grid_id="P2_HOP_SHIFT_V1", cell=cell,
+                )
+                masks = h26_materializer_module._validity_masks_for_transform(
+                    np, self.plan, transform,
+                )
+                shifted_start = base_start + int(cell["sample_shift"])
+                self.assertFalse(np.any(masks.sample_valid[:shifted_start]))
+                self.assertTrue(np.all(masks.sample_valid[shifted_start:]))
+
+    def test_producer_accepts_bound_hop_shift_mask_and_coordinates(self) -> None:
+        cell = p2_cells(self.plan.contract, "P2_HOP_SHIFT_V1")[0]
+        shift = int(cell["sample_shift"])
+        for fixture_id in ("H26-F-A10", "H26-F-A12"):
+            with tempfile.TemporaryDirectory() as raw:
+                root = Path(raw)
+                waveform = np.zeros(
+                    h26_materializer_module.SAMPLE_COUNT, dtype=np.float64,
+                )
+                transform = build_h26_p2_transform(
+                    self.plan, fixture_id=fixture_id, test_id="H26-T-P2-008",
+                    grid_id="P2_HOP_SHIFT_V1", cell=cell,
+                )
+                index_sha, bound = self._write_artificial_population(
+                    root, fixture_id, waveform, p2_transform=transform,
+                )
+                with mock.patch.object(
+                    h26_engine_module, "_require_scientific",
+                    return_value=(self.plan, index_sha),
+                ):
+                    evidence = produce_h26_fixture_evidence(
+                        np, object(), fixture_id=fixture_id,
+                        observation=bound, p2_transform=transform,
+                    )
+                self.assertEqual(evidence.operands["maximum_sample_read"], 16383 + shift)
+                self.assertEqual(evidence.operands["proposal_hop_end"], 16383 + shift)
+                self.assertEqual(evidence.operands["resolution_hop_end"], 16639 + shift)
+
+    def test_bound_hop_shift_rejects_baseline_validity_mask(self) -> None:
+        fixture_id = "H26-F-A10"
+        cell = p2_cells(self.plan.contract, "P2_HOP_SHIFT_V1")[0]
+        transform = build_h26_p2_transform(
+            self.plan, fixture_id=fixture_id, test_id="H26-T-P2-008",
+            grid_id="P2_HOP_SHIFT_V1", cell=cell,
+        )
+        baseline_masks = h26_materializer_module._validity_masks(
+            np, self.plan.fixture(fixture_id),
+        )
+        with tempfile.TemporaryDirectory() as raw:
+            with self.assertRaisesRegex(ValueError, "mask differs"):
+                self._write_artificial_population(
+                    Path(raw), fixture_id,
+                    np.zeros(h26_materializer_module.SAMPLE_COUNT, dtype=np.float64),
+                    p2_transform=transform,
+                    p2_sample_valid_override=baseline_masks.sample_valid,
+                )
 
     def test_producer_measures_at_target_then_resolves_one_hop_later(self) -> None:
         with tempfile.TemporaryDirectory() as raw:

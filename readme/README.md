@@ -44,6 +44,12 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   l'ordre brut `24..96` ou `96..24` prescrit par la cellule de permutation.
   Ces gardes sont couverts uniquement sur des tableaux artificiels; aucune
   waveform H26 réelle ni phase P0/P1/P2 n'a été matérialisée ou exécutée.
+- Après le refus ciblé de `f6bb6f10…`, le masque consommé par le producer est
+  désormais celui du record rebindé et déjà vérifié, jamais un masque P2
+  recomparé à la baseline. Un hop-shift laisse all-valid les fixtures sans
+  frontière déclarée (P09/P10) et déplace strictement la frontière existante
+  pour A10/A12, sans clipping ni padding. Les coordonnées proposition,
+  résolution et lecture maximale suivent le même décalage.
 - La préinscription H26 sépare désormais un certificat positif de naissance et
   un certificat négatif falsifiant une proposition candidate d'amplitude
   minimale préenregistrée. L'absence d'évidence indépendante seule produit

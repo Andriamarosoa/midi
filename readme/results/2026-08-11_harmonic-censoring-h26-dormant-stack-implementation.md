@@ -46,7 +46,7 @@ et de petits opérandes artificiels qui ne correspondent à aucune fixture H26.
 ```text
 python -B -m py_compile ...                                  PASS
 python -B -m unittest tests.test_harmonic_censoring_h26_dormant_stack
-26 tests en 0,243 s                                          PASS
+29 tests en 0,370 s                                          PASS
 git diff --check                                             PASS
 ```
 
@@ -136,3 +136,23 @@ et les octets effectivement consommés. Le correctif courant :
 La portée reste inchangée et strictement dormante : aucun index ou signal H26
 réel, aucune phase P0/P1/P2, aucun runtime, issuer, capability, claim, donnée,
 modèle, entraînement ou locked-test n'a été créé, chargé ou exécuté.
+
+## Correctif après rejet externe de `f6bb6f10`
+
+La quatrième revue a validé le binding P2 général et limité le refus au seul
+câblage du masque `P2_HOP_SHIFT_V1`. Le correctif courant :
+
+- conserve le masque entièrement valide des fixtures P09/P10 lorsqu'aucune
+  `valid_time_support_start_sample` n'est déclarée, même pour `-2/-1` hops ;
+- décale strictement la frontière déclarée de A10/A12 par `sample_shift`, sans
+  clipping ni padding ;
+- vérifie les bytes du masque fourni par l'appelant contre le record P2 rebindé,
+  puis transmet uniquement `rebound.sample_valid` aux mesures scientifiques ;
+- ne compare donc plus un masque P2 correctement transformé au masque baseline ;
+- teste artificiellement les deux cellules négatives de P09/P10, les trois
+  cellules de A10/A12, l'acceptation producer avec coordonnées décalées et le
+  rejet inverse d'un masque baseline déclaré comme hop-shift P2.
+
+La pile reste dormante : aucune waveform ou population H26 réelle, aucun
+P0/P1/P2, runtime, issuer, capability, claim, donnée, modèle, entraînement ou
+locked-test n'a été créé, chargé ou exécuté.
