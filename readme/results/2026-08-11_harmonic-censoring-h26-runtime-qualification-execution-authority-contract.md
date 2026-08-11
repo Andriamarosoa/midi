@@ -47,6 +47,9 @@ L'authority future devra lier le contrat d'exécution approuvé, le contrat
 runtime, le qualificateur exact, le contrat d'authority de matérialisation et
 le rôle primaire. Elle sera single-use, limitée à une invocation et sans retry.
 Elle ne contient pas son propre SHA ; celui-ci sera calculé extérieurement.
+Sa liste `required_fields` est l'ensemble exact des clés autorisées; tout champ
+supplémentaire est interdit. La même fermeture canonique s'applique au claim et
+au receipt afin que leurs SHA externes identifient des objets non ambigus.
 
 `single-use` signifie structurellement un seul claim total par authority. Le
 slot du claim sera dérivé uniquement de `authority_id` et de son SHA brut
@@ -54,6 +57,12 @@ externe, puis créé en create-exclusive atomique. La première tentative de
 création consomme l'authority, même si le marker est partiel ou corrompu. Un
 autre `claim_id`, chemin ou processus ne peut ouvrir un second slot; aucun
 delete, replace ou retry n'est admis.
+
+Les champs `execution_authority_contract_commit` et
+`execution_authority_contract_raw_sha256` du claim doivent être strictement
+hérités des champs correspondants de l'authority consommée. Ils ne peuvent être
+ni choisis indépendamment par l'appelant, ni remplacés par un wildcard ou un
+fallback.
 
 Le claim futur devra lier l'identité et le SHA externe exacts de cette
 authority, ainsi que les commits, blobs et SHA du contrat runtime et du

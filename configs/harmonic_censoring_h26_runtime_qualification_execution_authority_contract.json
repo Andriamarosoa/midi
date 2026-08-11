@@ -55,6 +55,8 @@
       "issued_at",
       "issuer_identity"
     ],
+    "exact_key_set_required": true,
+    "additional_fields_forbidden": true,
     "fixed_constraints": {
       "schema_identity": "H26_RUNTIME_QUALIFICATION_EXECUTION_AUTHORITY_V1",
       "schema_version": 1,
@@ -131,6 +133,12 @@
       "claim_consumed",
       "retry_allowed"
     ],
+    "exact_key_set_required": true,
+    "additional_fields_forbidden": true,
+    "execution_authority_contract_commit_must_exactly_equal_consumed_authority_field": true,
+    "execution_authority_contract_raw_sha256_must_exactly_equal_consumed_authority_field": true,
+    "execution_authority_contract_fields_caller_supplied_independently_forbidden": true,
+    "execution_authority_contract_field_wildcard_or_fallback_forbidden": true,
     "fixed_constraints": {
       "schema_identity": "H26_RUNTIME_QUALIFICATION_SINGLE_USE_CLAIM_V1",
       "schema_version": 1,
@@ -236,6 +244,8 @@
       "claim_consumed",
       "retry_allowed"
     ],
+    "exact_key_set_required": true,
+    "additional_fields_forbidden": true,
     "fixed_constraints": {
       "schema_identity": "H26_RUNTIME_QUALIFICATION_EXECUTION_RECEIPT_V1",
       "schema_version": 1,
@@ -319,6 +329,8 @@
     "static verification that receipt invocation count one requires evidence created inside observer entry",
     "static verification of exact observer entry evidence key set identity bindings and unique claim-derived slot",
     "static verification that receipt binds exact canonical observer entry evidence identity and raw SHA256",
+    "static verification that authority claim and receipt required_fields are exact closed key sets",
+    "static verification that claim execution authority contract fields exactly inherit the consumed authority fields",
     "static verification that pre-observer failure leaves consumed authority and claim but no receipt",
     "static verification that authority claim and receipt contain no own SHA",
     "git diff --check",

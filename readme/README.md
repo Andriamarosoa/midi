@@ -37,6 +37,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   slot uniques dérivés de l'authority et du claim consommés. Sa première
   tentative create-exclusive consomme le slot; aucun ID/path/process alternatif
   n'est possible. Le receipt doit lier exactement son ID et son SHA externe.
+- Authority, claim et receipt possèdent maintenant des keysets canoniques
+  fermés, sans champ additionnel. Le claim hérite obligatoirement du commit et
+  du SHA du contrat d'exécution portés par l'authority consommée, sans valeur
+  indépendante, wildcard ou fallback.
 - Étape : `harmonic_censoring_h26_materialization_runtime_qualification_contract`.
 - Contrat dormant de qualification du runtime primaire H26 défini sans
   qualificateur ni exécution : identité exacte CPython 3.11.9 / Darwin 24.5.0
