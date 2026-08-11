@@ -286,7 +286,7 @@ class H26RuntimeOperationalEntrypointTests(unittest.TestCase):
             def validate(*arguments):
                 nonlocal validation_calls
                 validation_calls += 1
-                if validation_calls == 1:
+                if validation_calls == 2:
                     raise ValueError("evidence validation failed")
                 return original_validate(*arguments)
 
@@ -318,7 +318,98 @@ class H26RuntimeOperationalEntrypointTests(unittest.TestCase):
                     runner.execute_h26_runtime_qualification_once()
 
             observer.assert_not_called()
-            self.assertEqual(validation_calls, 2)
+            self.assertEqual(validation_calls, 3)
+            self.assertFalse(any((root / "observer-entry").iterdir()))
+            self.assertFalse(any((root / "runtime-record").iterdir()))
+            receipt_path = next((root / "receipt").iterdir())
+            receipt = primitives.parse_canonical_json_bytes(receipt_path.read_bytes())
+            self.assertEqual(receipt["terminal_status"], qualifier.STATUS_INCONCLUSIVE)
+            self.assertFalse(receipt["runtime_record_exists"])
+
+    def test_evidence_reconstruction_failure_after_boundary_uses_atomic_terminal_copy(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root, value, raw = self._prepare(directory)
+            contexts = self._contexts(
+                root, value["activation_id"], hashlib.sha256(raw).hexdigest()
+            )
+
+            def rename(source, destination):
+                if destination.exists():
+                    raise FileExistsError(str(destination))
+                os.rename(source, destination)
+
+            with contexts[0], contexts[1], contexts[2], contexts[3], contexts[4], contexts[5], contexts[6], mock.patch.object(
+                runner,
+                "validate_artificial_runtime_qualification_operational_activation",
+                return_value=SimpleNamespace(
+                    activation_id=value["activation_id"], canonical_bytes=raw
+                ),
+            ), mock.patch.object(
+                runner, "_observe_primary_runtime"
+            ) as observer, mock.patch.object(
+                runner, "_rename_no_replace", side_effect=rename
+            ), mock.patch.object(
+                runner.os, "fchmod", create=True
+            ), mock.patch.object(
+                runner, "_sync_directory"
+            ), mock.patch.object(
+                runner, "_evidence", side_effect=RuntimeError("evidence reconstruction failed")
+            ):
+                with self.assertRaisesRegex(RuntimeError, "evidence reconstruction failed"):
+                    runner.execute_h26_runtime_qualification_once()
+
+            observer.assert_not_called()
+            self.assertFalse(any((root / "observer-entry").iterdir()))
+            self.assertFalse(any((root / "runtime-record").iterdir()))
+            receipt_path = next((root / "receipt").iterdir())
+            receipt = primitives.parse_canonical_json_bytes(receipt_path.read_bytes())
+            self.assertEqual(receipt["terminal_status"], qualifier.STATUS_INCONCLUSIVE)
+            self.assertFalse(receipt["runtime_record_exists"])
+
+    def test_evidence_serialization_failure_after_boundary_uses_atomic_terminal_copy(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root, value, raw = self._prepare(directory)
+            contexts = self._contexts(
+                root, value["activation_id"], hashlib.sha256(raw).hexdigest()
+            )
+            original_canonical = primitives.canonical_json_bytes
+            evidence_serializations = 0
+
+            def canonical(value):
+                nonlocal evidence_serializations
+                if value.get("schema_identity") == "H26_RUNTIME_QUALIFICATION_OBSERVER_ENTRY_EVIDENCE_V1":
+                    evidence_serializations += 1
+                    if evidence_serializations == 2:
+                        raise ValueError("evidence serialization failed")
+                return original_canonical(value)
+
+            def rename(source, destination):
+                if destination.exists():
+                    raise FileExistsError(str(destination))
+                os.rename(source, destination)
+
+            with contexts[0], contexts[1], contexts[2], contexts[3], contexts[4], contexts[5], contexts[6], mock.patch.object(
+                runner,
+                "validate_artificial_runtime_qualification_operational_activation",
+                return_value=SimpleNamespace(
+                    activation_id=value["activation_id"], canonical_bytes=raw
+                ),
+            ), mock.patch.object(
+                runner, "_observe_primary_runtime"
+            ) as observer, mock.patch.object(
+                runner, "_rename_no_replace", side_effect=rename
+            ), mock.patch.object(
+                runner.os, "fchmod", create=True
+            ), mock.patch.object(
+                runner, "_sync_directory"
+            ), mock.patch.object(
+                primitives, "canonical_json_bytes", side_effect=canonical
+            ):
+                with self.assertRaisesRegex(ValueError, "evidence serialization failed"):
+                    runner.execute_h26_runtime_qualification_once()
+
+            observer.assert_not_called()
+            self.assertEqual(evidence_serializations, 3)
             self.assertFalse(any((root / "observer-entry").iterdir()))
             self.assertFalse(any((root / "runtime-record").iterdir()))
             receipt_path = next((root / "receipt").iterdir())

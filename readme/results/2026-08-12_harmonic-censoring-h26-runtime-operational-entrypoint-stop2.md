@@ -28,7 +28,12 @@ entry, an inconclusive terminal receipt is written and the original error is
 re-raised; no cleanup or retry exists.
 Only the deterministic evidence ID/path is derived during preflight. The
 evidence object itself cannot be constructed until the durable claim exists and
-a distinct identity-attested observer-entry capability has been minted.
+the private observer-boundary operation has started. A successful boundary
+entry returns a distinct identity-attested capability that atomically retains a
+validated canonical evidence copy and SHA needed only for terminalization.
+Reconstruction, serialization,
+validation, publication, observation, and record production are all inside the
+terminal protection; any failure can therefore publish the required receipt.
 
 Tests cover missing boundary, forged capability, exact publication order,
 qualified record/receipt, observer failure, and evidence-publication failure
@@ -36,6 +41,8 @@ after the boundary using only temporary directories and a fake observation.
 The evidence failure proves a terminal `INCONCLUSIVE` receipt with no observer
 call, runtime record, cleanup, or retry. A Darwin-only test exercises the real
 publication primitives while still replacing the actual observer.
+Dedicated tests also inject evidence reconstruction and serialization failures
+after boundary entry and prove that the atomic terminal copy closes both gaps.
 
 No real observer, runtime consumption, materialization, P0/P1/P2, locked-test,
 training or calibration was invoked by this implementation step.

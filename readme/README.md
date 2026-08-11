@@ -14,12 +14,12 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: STOP 2 activation intact; post-boundary terminal receipt gap corrected; external review required before authority claim or observer. -->
+<!-- H26_CORRECTION_STATUS: STOP 2 activation intact; atomic observer-boundary terminal evidence implemented; external review required before authority claim or observer. -->
 ## État courant
 
 - Mise à jour : `2026-08-12`.
 - État courant :
-  `H26_RUNTIME_OPERATIONAL_ENTRYPOINT_POST_BOUNDARY_TERMINALIZATION_CORRECTED_STOP_2_PENDING_EXTERNAL_REVIEW`.
+  `H26_RUNTIME_OPERATIONAL_ENTRYPOINT_ATOMIC_BOUNDARY_TERMINAL_EVIDENCE_STOP_2_PENDING_EXTERNAL_REVIEW`.
 - La frontière opérationnelle runtime one-shot est implémentée additivement,
   liée à l'activation STOP 2 et limitée à authority -> claim -> evidence dans la
   boundary -> observer privé -> record -> receipt final. Les tests utilisent
