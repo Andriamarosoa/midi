@@ -1,0 +1,53 @@
+{
+  "schema_identity": "H26_RUNTIME_QUALIFICATION_OPERATIONAL_ACTIVATION_ISSUER_DORMANT_IMPLEMENTATION_CONTRACT_V1",
+  "schema_version": 1,
+  "status": "DECLARATIVE_DORMANT_IMPLEMENTATION_ONLY_NO_INVOCATION_NO_OPERATIONAL_FILESYSTEM",
+  "authorization_token": "AUTHORIZED_TO_IMPLEMENT_H26_DORMANT_ACTIVATION_ISSUER_WITH_FAKE_ADAPTERS_ONLY",
+  "expected_parent_commit": "65a07854fef86ae3d2be9f65b090f78ff38834a4",
+  "approved_chain": {
+    "issuance_contract_commit": "2f933536fb40603e8a4f2b7c6e9810ec0e0d366a",
+    "issuance_contract_git_blob_sha": "05ec1c26edbd36cdf6d127f7e8361596f9a20958",
+    "issuance_contract_raw_sha256": "e15dcb79da60a5e22a9d0f76c30786b05b90fbefc7e0b71f32a3cbe74052dbe7",
+    "issuance_external_seal_commit": "f738ced5e79316c162bc2822b2881703858cd146",
+    "issuance_external_seal_git_blob_sha": "975036e8182c22232f8dd0a2aa1f9a61c6022669",
+    "issuance_external_seal_loader_commit": "65a07854fef86ae3d2be9f65b090f78ff38834a4",
+    "issuance_external_seal_loader_git_blob_sha": "0a07a38cd818131b031fed7e75a30660ce199f11",
+    "issuance_external_seal_loader_git_blob_byte_length": 6331,
+    "issuance_external_seal_loader_raw_sha256": "e840cbce406c858aa07bdd2756e742b5d71736c56d8fdfc99cfbfa725de88459"
+  },
+  "implementation_boundary": {
+    "planner_validator_dormant_implementation_authorized": true,
+    "publisher_issuer_dormant_implementation_authorized": true,
+    "issuer_invocation_authorized": false,
+    "activation_creation_authorized": false,
+    "administrative_root_selection_authorized": false,
+    "operational_filesystem_authorized": false,
+    "fake_or_in_memory_adapter_tests_only": true,
+    "caller_supplies_complete_activation_issuer_time_and_root": true,
+    "automatic_generation_normalization_repair_retry_or_backfill_forbidden": true
+  },
+  "required_invariants": {
+    "issuance_seal_loader_must_pass_first": true,
+    "activation_validator_must_pass_before_publication_plan": true,
+    "validator_canonical_bytes_are_only_publishable_bytes": true,
+    "create_once_no_replace": true,
+    "activation_is_single_use_capability": true,
+    "separate_capability_object_forbidden": true,
+    "retry_allowed": false
+  },
+  "current_state": {
+    "implementation_contract_exists": true,
+    "planner_exists": false,
+    "issuer_exists": false,
+    "issuer_invoked": false,
+    "activation_exists": false,
+    "administrative_root": null,
+    "operational_filesystem_touched": false,
+    "runtime_execution_authorized": false,
+    "materialization_authorized": false,
+    "scientific_execution_authorized": false,
+    "locked_test_used": false
+  },
+  "creation_authorized_now": false,
+  "next_action": "Create an external seal for this dormant implementation-only contract"
+}
