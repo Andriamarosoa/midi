@@ -1,0 +1,108 @@
+{
+  "schema_identity": "H26_RUNTIME_QUALIFICATION_OPERATIONAL_ACTIVATION_ISSUANCE_CONTRACT_V1",
+  "schema_version": 1,
+  "purpose": "Define the future deterministic single-use issuance boundary without creating an issuer activation capability root or file",
+  "status": "DECLARATIVE_DORMANT_NO_ISSUER_NO_ACTIVATION_NO_CAPABILITY_NO_FILESYSTEM_NO_EXECUTION",
+  "authorization_token": "AUTHORIZED_TO_DEFINE_H26_DORMANT_RUNTIME_QUALIFICATION_OPERATIONAL_ACTIVATION_ISSUANCE_CONTRACT_ONLY",
+  "expected_parent_commit": "fe36943c57a4d7e088f95004308d742c49e82008",
+  "approved_bindings": {
+    "activation_contract_commit": "d8d71bad9aee560d3406e672e7ebc6c2cf11dbff",
+    "activation_contract_git_blob_sha": "c6eac6ae2d05b99a1a5b88594dea473739904dd8",
+    "activation_contract_raw_sha256": "ad3fd1a381022a8f0e79af2a2656daf327d3ef857a86a0cb55a611cb41e83c01",
+    "external_seal_commit": "ce4aa59f75d3ff3836bce91c6be9739a16448199",
+    "external_seal_git_blob_sha": "685915e6e15a760fb439089752402ccb29c142f7",
+    "seal_loader_commit": "37f5f2d502b4eae9d878c5c0f47155a7b26c856b",
+    "seal_loader_git_blob_sha": "feacb3c10c269b5f574e8d7efab8211be145b5d8",
+    "activation_validator_commit": "686d86bc7bea67295f35bec953a3e983507346cc",
+    "activation_validator_git_blob_sha": "e74231e8752d90aa862e980ce8e23456303f1cba",
+    "activation_validator_test_git_blob_sha": "b240505dd506e64776a3e0aaead013560637ec03",
+    "activation_validator_review_closure_commit": "fe36943c57a4d7e088f95004308d742c49e82008"
+  },
+  "future_issuance_input": {
+    "object": "one complete caller-supplied 26-field activation already carrying its caller-supplied activation_id",
+    "maximum_activations": 1,
+    "activation_is_the_single_use_capability": true,
+    "separate_capability_object_forbidden": true,
+    "validator_must_run_before_any_write": true,
+    "validator_result_canonical_bytes_are_the_only_publishable_bytes": true,
+    "activation_raw_sha256": "lowercase_hex(SHA256(exact canonical bytes returned by the approved validator))",
+    "field_mutation_after_validation_forbidden": true,
+    "automatic_id_generation_regeneration_or_repair_forbidden": true,
+    "caller_supplied_incorrect_id_is_terminal_failure": true
+  },
+  "future_issuer_identity_rule": {
+    "concrete_value_now": null,
+    "encoding": "ASCII",
+    "minimum_length": 1,
+    "maximum_length": 128,
+    "exact_regex": "^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,127}$",
+    "whitespace_unicode_empty_fallback_or_normalization_forbidden": true,
+    "issuer_selection_authorized_now": false
+  },
+  "future_issued_at_rule": {
+    "concrete_value_now": null,
+    "format": "YYYY-MM-DDTHH:MM:SSZ",
+    "exact_regex": "^[0-9]{4}-(0[1-9]|1[0-2])-([0-2][0-9]|3[0-1])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]Z$",
+    "must_be_valid_proleptic_gregorian_utc": true,
+    "fractional_seconds_timezone_offset_leap_second_fallback_or_normalization_forbidden": true,
+    "clock_reading_authorized_now": false
+  },
+  "future_administrative_root_rule": {
+    "concrete_value_now": null,
+    "platform": "POSIX",
+    "must_be_absolute_non_root_canonical_path": true,
+    "must_start_with_single_solidus": true,
+    "empty_dot_dotdot_NUL_and_trailing_solidus_forbidden": true,
+    "caller_suffix_normalization_fallback_or_repair_forbidden": true,
+    "filesystem_lookup_symlink_check_or_creation_authorized_now": false
+  },
+  "future_publication": {
+    "activation_slot": "{administrative_root}/activation/activation.json",
+    "activation_staging": "{administrative_root}/activation/.activation.json.staging",
+    "paths_derived_only_after_validation": true,
+    "create_once": true,
+    "create_exclusive_staging_write": true,
+    "durable_file_sync_required": true,
+    "atomic_no_replace_rename_required": true,
+    "durable_directory_sync_required": true,
+    "existing_final_or_staging_path_is_terminal_collision": true,
+    "numeric_timestamp_random_suffix_alternate_path_replace_cleanup_or_retry_forbidden": true,
+    "retry_allowed": false,
+    "filesystem_operation_authorized_now": false
+  },
+  "future_failure_semantics": {
+    "validation_failure": "no bytes written and no automatic correction or retry",
+    "collision_before_write": "terminal failed issuance attempt requiring external review",
+    "failure_after_staging_create": "terminal consumed issuance attempt; partial staging evidence preserved; no cleanup or retry",
+    "failure_after_final_publication": "activation exists and is the sole single-use capability; no second activation",
+    "automatic_retry_allowed": false
+  },
+  "current_state": {
+    "issuance_contract_exists": true,
+    "issuer_exists": false,
+    "activation_exists": false,
+    "capability_exists": false,
+    "administrative_root": null,
+    "runtime_authority_exists": false,
+    "claim_exists": false,
+    "observer_invoked": false,
+    "runtime_execution_authorized": false,
+    "materialization_authorized": false,
+    "p0_executed": false,
+    "p1_executed": false,
+    "p2_executed": false,
+    "scientific_execution_authorized": false,
+    "locked_test_used": false
+  },
+  "forbidden_now": [
+    "implement or invoke an issuer",
+    "create an activation or separate capability",
+    "choose an administrative root issuer identity or issued-at value",
+    "inspect create modify rename delete or normalize an operational filesystem path",
+    "create runtime authority claim evidence record or receipt",
+    "invoke observe_primary_runtime NumPy BLAS otool or a materializer",
+    "execute P0 P1 P2 science or locked-test"
+  ],
+  "creation_authorized_now": false,
+  "next_action": "External review of this declarative issuance contract only"
+}
