@@ -14,7 +14,7 @@ puis auditée en lecture seule. L'audit administratif a confirmé :
 
 Les liaisons publiées sont :
 
-- marker : `3185adfdba7615900062378d7a230d9b990913d3197c2e9d1b006abbc0e62b85d` ;
+- marker : `3185adfdba761590062378d7a230d9b990913d3197c2e9d1b006abbc0e62b85d` ;
 - terminal : `50ec58c81d1a0ae533599676536d141c7f98ac337686c1baf66517bc3e39c54eb` ;
 - receipt : `8a8128dc97c61f4203a89e116787f9eae319e7c146fbcd06b4432c4108f92cd5` ;
 - index : `b45b63c477a3db13d161779bb28067c0b2b6fa5c4cc80c985199e9347e1eff15` ;
@@ -301,3 +301,43 @@ La suite administrative H24/H23/H20 complète réussit avec `220` tests en
 Uniquement la revue externe du commit exact d'activation. L'injection du
 binding OS et toute exécution scientifique restent interdites sans nouvelle
 autorisation explicite.
+
+## Incident du preflight zéro-science et correction du binding marker
+
+Après revue de l'activation et binding OS exact au commit
+`8f23054e8f58eed98ff4d1453d2a15d021aa36fd`, l'unique invocation autorisée de
+`issue_h24_scientific_execution_capability()` a échoué fail-closed avec
+`H24 population marker SHA mismatch`, avant émission de capability.
+
+Le diagnostic administratif, sans relance, a établi :
+
+- marqueur publié : `1805` octets ;
+- SHA-256 réel :
+  `3185adfdba761590062378d7a230d9b990913d3197c2e9d1b006abbc0e62b85d` ;
+- valeur du contrat schéma `7` : `65` caractères, avec un zéro supplémentaire
+  après `1590` ;
+- claim scientifique, success et terminal scientifiques absents ;
+- aucun décodage waveform, NumPy scientifique, P0/P1/P2 ou retry.
+
+La portée externe
+`AUTHORIZED_TO_CORRECT_H24_PUBLISHED_POPULATION_MARKER_SHA_BINDING_AND_DORMANT_IMPLEMENTATION_BINDINGS_ONLY`
+autorise uniquement la correction de ce digest et des bindings administratifs
+dormants correspondants. Le contrat passe au schéma `8`, SHA-256
+`d587358ad1dfebf9e7d4ea3eaeb632b080e8bc68e14fe4caa331cd803048387b`.
+Les producteurs, le runner, les `72` mesures, les `18` overrides et les octets
+de population restent strictement inchangés.
+
+Le seal `818e53cd…`, l'activation `4082cf4e…` et le binding OS historique vers
+`8f23054e…` ne sont pas rafraîchis dans cette portée. Ils lient l'ancien SHA du
+contrat et sont donc volontairement obsolètes : l'issuer doit refuser avant
+toute capability tant qu'un nouveau cycle seal/activation/binding OS n'a pas
+été séparément autorisé et revu.
+
+La vérification administrative comprend `213` tests H24/H23 et `7` gardes H20,
+soit `220` tests réussis. `py_compile` et `git diff --check` réussissent aussi.
+
+## Étape suivante
+
+Uniquement la revue externe du commit exact de correction. Aucune relance de
+l'issuer, capability, claim, population decode, P0/P1/P2, H17, locked-test,
+modèle, calibration ou training n'est autorisée.

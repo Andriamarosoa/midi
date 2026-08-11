@@ -17,8 +17,25 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-11`.
-- Étape : `harmonic_censoring_h24_exact_72_evidence_producers`.
-- Statut : `72 producteurs de preuves H24 implémentés mais dormants; aucun seal, activation, claim ou calcul P0/P1/P2`.
+- Étape : `harmonic_censoring_h24_population_marker_SHA_binding_correction`.
+- Statut : `préflight zéro-science échoué fail-closed avant capability; SHA marker corrigé dans le contrat dormant; seal, activation et binding OS historiques désormais obsolètes; aucune relance scientifique autorisée`.
+- Le premier appel autorisé à
+  `issue_h24_scientific_execution_capability()` s'est arrêté avant émission de
+  capability avec `H24 population marker SHA mismatch`. Le marqueur publié de
+  `1805` octets a le SHA-256 réel
+  `3185adfdba761590062378d7a230d9b990913d3197c2e9d1b006abbc0e62b85d` ;
+  le contrat schéma `7` contenait une valeur impossible de `65` caractères,
+  avec un zéro supplémentaire. Aucun claim scientifique, décodage waveform,
+  P0/P1/P2 ou autre calcul n'a eu lieu.
+- Le contrat schéma `8` corrige uniquement ce binding et possède le SHA-256
+  `d587358ad1dfebf9e7d4ea3eaeb632b080e8bc68e14fe4caa331cd803048387b`.
+  Les `72` producteurs, le runner, les `18` overrides, les manifests et la
+  population sont inchangés. Le seal `818e53cd…`, l'activation `4082cf4e…` et
+  le binding OS vers `8f23054e…` restent physiquement inchangés mais ne lient
+  plus le contrat courant : ils ne peuvent donc plus autoriser l'issuer.
+  La suite administrative H24/H23/H20 réussit avec `220` tests ;
+  `py_compile` et `git diff --check` réussissent également. Prochaine action :
+  revue externe du commit correctif seulement.
 - `H24_SYNTHETIC_V1` est publié sur le Mac avec `175` fixtures, `525`
   fichiers fixture, index `b45b63c4…`, receipt `8a8128dc…`, marker
   `3185adfd…` et terminal `50ec58c8…`; l'audit read-only confirme tous les

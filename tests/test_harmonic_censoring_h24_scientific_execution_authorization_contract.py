@@ -22,7 +22,7 @@ class H24ScientificExecutionAuthorizationContractTests(unittest.TestCase):
 
     def test_contract_is_lf_contract_only_and_authorizes_no_science(self) -> None:
         self.assertNotIn(b"\r", self.raw)
-        self.assertEqual(self.contract["schema_version"], 7)
+        self.assertEqual(self.contract["schema_version"], 8)
         self.assertEqual(
             self.contract["purpose"],
             "harmonic_censoring_h24_scientific_execution_authorization_contract",
@@ -46,8 +46,12 @@ class H24ScientificExecutionAuthorizationContractTests(unittest.TestCase):
             "AUTHORIZED_TO_CORRECT_H24_OS_BOUND_ACTIVATION_HEAD_SOURCE_AND_PREDECESSOR_CONTRACT_BINDINGS_ONLY",
         )
         self.assertEqual(
+            self.contract["authorization_basis"]["population_marker_SHA_binding_correction_authorized_action"],
+            "AUTHORIZED_TO_CORRECT_H24_PUBLISHED_POPULATION_MARKER_SHA_BINDING_AND_DORMANT_IMPLEMENTATION_BINDINGS_ONLY",
+        )
+        self.assertEqual(
             self.contract["status"],
-            "OS_bound_activation_HEAD_source_and_predecessor_contract_bindings_corrected_external_review_required",
+            "published_population_marker_SHA_binding_corrected_external_review_required",
         )
         scope = self.contract["scope"]
         self.assertFalse(scope["contract_only"])
@@ -94,7 +98,7 @@ class H24ScientificExecutionAuthorizationContractTests(unittest.TestCase):
         )
         self.assertEqual(
             population["claim_marker"]["raw_sha256"],
-            "3185adfdba7615900062378d7a230d9b990913d3197c2e9d1b006abbc0e62b85d",
+            "3185adfdba761590062378d7a230d9b990913d3197c2e9d1b006abbc0e62b85d",
         )
         self.assertEqual(
             population["terminal"]["raw_sha256"],
@@ -457,12 +461,14 @@ class H24ScientificExecutionAuthorizationContractTests(unittest.TestCase):
 
     def test_contract_topology_and_current_dormancy_are_exact(self) -> None:
         expected = [
+            ".gitattributes",
             "configs/harmonic_censoring_h24_scientific_execution_authorization_contract.json",
             "readme/README.md",
             "readme/results/2026-08-10_harmonic-censoring-h24-scientific-execution-authorization-contract.md",
             "src/polyphonic/harmonic_censoring_h24_scientific_capability.py",
             "tests/test_harmonic_censoring_h24_scientific_execution_dormant.py",
             "tests/test_harmonic_censoring_h24_scientific_execution_authorization_contract.py",
+            "tests/test_harmonic_censoring_h24_scientific_execution_authorization_seal.py",
         ]
         self.assertEqual(self.contract["contract_definition_exact_changed_files"], expected)
         dormancy = self.contract["current_dormancy"]

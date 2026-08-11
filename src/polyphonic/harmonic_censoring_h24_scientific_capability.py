@@ -21,7 +21,7 @@ H24_SCIENTIFIC_CONTRACT_RELATIVE_PATH = Path(
     "configs/harmonic_censoring_h24_scientific_execution_authorization_contract.json"
 )
 H24_SCIENTIFIC_CONTRACT_RAW_SHA256 = (
-    "a0726827400617e87de4cc0a57d2ded4998d7c9a54bf0c81fa3c39cdfc69d6e9"
+    "d587358ad1dfebf9e7d4ea3eaeb632b080e8bc68e14fe4caa331cd803048387b"
 )
 H24_SCIENTIFIC_SEAL_RELATIVE_PATH = Path(
     "configs/harmonic_censoring_h24_scientific_execution_authorization_seal.json"
@@ -60,6 +60,16 @@ H24_IMPLEMENTATION_EXACT_CHANGED_FILES = (
     "src/polyphonic/harmonic_censoring_h24_scientific_capability.py",
     "tests/test_harmonic_censoring_h24_scientific_execution_dormant.py",
     "tests/test_harmonic_censoring_h24_scientific_execution_authorization_contract.py",
+)
+H24_MARKER_BINDING_CORRECTION_EXACT_CHANGED_FILES = (
+    ".gitattributes",
+    "configs/harmonic_censoring_h24_scientific_execution_authorization_contract.json",
+    "readme/README.md",
+    "readme/results/2026-08-10_harmonic-censoring-h24-scientific-execution-authorization-contract.md",
+    "src/polyphonic/harmonic_censoring_h24_scientific_capability.py",
+    "tests/test_harmonic_censoring_h24_scientific_execution_dormant.py",
+    "tests/test_harmonic_censoring_h24_scientific_execution_authorization_contract.py",
+    "tests/test_harmonic_censoring_h24_scientific_execution_authorization_seal.py",
 )
 
 _ATTESTED: dict[int, weakref.ReferenceType["AttestedH24ScientificExecutionCapability"]] = {}

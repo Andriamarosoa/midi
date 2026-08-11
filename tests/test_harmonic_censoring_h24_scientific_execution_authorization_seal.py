@@ -72,7 +72,7 @@ class H24ScientificExecutionAuthorizationSealTests(unittest.TestCase):
             capability.H24_IMPLEMENTATION_EXACT_CHANGED_FILES,
         )
 
-    def test_all_five_executable_blobs_and_both_contracts_are_exact(self) -> None:
+    def test_all_five_executable_blobs_are_exact_but_contract_binding_is_stale(self) -> None:
         bindings = self.payload["bindings"]
         for path, field in (
             (capability.H24_CAPABILITY_SOURCE_RELATIVE_PATH, "capability_source_blob"),
@@ -98,16 +98,14 @@ class H24ScientificExecutionAuthorizationSealTests(unittest.TestCase):
                 encoding="utf-8",
             ).strip()
             self.assertEqual(bindings[field], actual, path.as_posix())
+        current_contract_sha256 = hashlib.sha256(
+            (ROOT / capability.H24_SCIENTIFIC_CONTRACT_RELATIVE_PATH).read_bytes()
+        ).hexdigest()
         self.assertEqual(
-            bindings["contract_sha256"],
+            current_contract_sha256,
             capability.H24_SCIENTIFIC_CONTRACT_RAW_SHA256,
         )
-        self.assertEqual(
-            bindings["contract_sha256"],
-            hashlib.sha256(
-                (ROOT / capability.H24_SCIENTIFIC_CONTRACT_RELATIVE_PATH).read_bytes()
-            ).hexdigest(),
-        )
+        self.assertNotEqual(bindings["contract_sha256"], current_contract_sha256)
         self.assertEqual(
             bindings["predecessor_contract_sha256"],
             capability.H24_REVIEWED_PREDECESSOR_CONTRACT_RAW_SHA256,

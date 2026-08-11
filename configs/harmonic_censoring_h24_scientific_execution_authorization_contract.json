@@ -1,7 +1,7 @@
 {
-  "schema_version": 7,
+  "schema_version": 8,
   "purpose": "harmonic_censoring_h24_scientific_execution_authorization_contract",
-  "status": "OS_bound_activation_HEAD_source_and_predecessor_contract_bindings_corrected_external_review_required",
+  "status": "published_population_marker_SHA_binding_corrected_external_review_required",
   "authorization_basis": {
     "reviewed_activation_commit": "e7c2eecf49ede43b3334266c74b1fe438f9e793d",
     "external_verdict": "APPROVED_H24_MATERIALIZED_POPULATION_PUBLICATION_AUDIT",
@@ -12,7 +12,8 @@
     "path_topology_correction_authorized_action": "AUTHORIZED_TO_CORRECT_H24_DORMANT_SCIENTIFIC_PATH_TOPOLOGY_GUARDS_ONLY",
     "evidence_producer_authorized_action": "AUTHORIZED_TO_DEFINE_AND_IMPLEMENT_H24_EXACT_72_EVIDENCE_PRODUCERS_ONLY",
     "evidence_producer_correction_authorized_action": "AUTHORIZED_TO_CORRECT_H24_EXACT_72_EVIDENCE_PRODUCER_BINDINGS_AND_NO_RESYNTHESIS_ONLY",
-    "activation_HEAD_binding_correction_authorized_action": "AUTHORIZED_TO_CORRECT_H24_OS_BOUND_ACTIVATION_HEAD_SOURCE_AND_PREDECESSOR_CONTRACT_BINDINGS_ONLY"
+    "activation_HEAD_binding_correction_authorized_action": "AUTHORIZED_TO_CORRECT_H24_OS_BOUND_ACTIVATION_HEAD_SOURCE_AND_PREDECESSOR_CONTRACT_BINDINGS_ONLY",
+    "population_marker_SHA_binding_correction_authorized_action": "AUTHORIZED_TO_CORRECT_H24_PUBLISHED_POPULATION_MARKER_SHA_BINDING_AND_DORMANT_IMPLEMENTATION_BINDINGS_ONLY"
   },
   "scope": {
     "contract_only": false,
@@ -46,7 +47,7 @@
     "materialization_contract_raw_sha256": "b48aa4f417a9857983c79809efe24137d6b82ad0984d20e906286477f05a14ca",
     "claim_marker": {
       "path": "tmp/local/harmonic_censoring_h24_synthetic_v1/H24_SYNTHETIC_V1.consumed.json",
-      "raw_sha256": "3185adfdba7615900062378d7a230d9b990913d3197c2e9d1b006abbc0e62b85d",
+      "raw_sha256": "3185adfdba761590062378d7a230d9b990913d3197c2e9d1b006abbc0e62b85d",
       "byte_count": 1805,
       "mode": "0600"
     },
@@ -416,16 +417,18 @@
     "result_may_access_real_data_or_locked_test": false
   },
   "contract_definition_exact_changed_files": [
+    ".gitattributes",
     "configs/harmonic_censoring_h24_scientific_execution_authorization_contract.json",
     "readme/README.md",
     "readme/results/2026-08-10_harmonic-censoring-h24-scientific-execution-authorization-contract.md",
     "src/polyphonic/harmonic_censoring_h24_scientific_capability.py",
     "tests/test_harmonic_censoring_h24_scientific_execution_dormant.py",
-    "tests/test_harmonic_censoring_h24_scientific_execution_authorization_contract.py"
+    "tests/test_harmonic_censoring_h24_scientific_execution_authorization_contract.py",
+    "tests/test_harmonic_censoring_h24_scientific_execution_authorization_seal.py"
   ],
   "required_next_sequence": [
-    "external_review_OS_bound_activation_HEAD_binding_correction_commit",
-    "separate_reviewed_scientific_authorization_seal_and_activation",
+    "external_review_population_marker_SHA_binding_correction_commit",
+    "separate_replacement_scientific_authorization_seal_and_activation",
     "OS_bound_exact_activation_commit",
     "zero_science_population_preflight",
     "process_local_scientific_capability_issuance",
