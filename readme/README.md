@@ -14,12 +14,20 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: STOP 4 population materialized exactly once; external review required before P0. -->
+<!-- H26_CORRECTION_STATUS: P0 operational entrypoint implemented after STOP 4; external review required; no P0. -->
 ## État courant
 
 - Mise à jour : `2026-08-12`.
 - État courant :
-  `H26_POPULATION_MATERIALIZED_STOP4_PENDING_EXTERNAL_REVIEW_BEFORE_P0`.
+  `H26_P0_OPERATIONAL_ENTRYPOINT_IMPLEMENTED_STOP4_PENDING_EXTERNAL_REVIEW_NO_P0`.
+- La frontière P0 réelle one-shot est implémentée dans un runner distinct du
+  runner scientifique dormant fake-only. Elle lie le runtime STOP 3, les
+  authority/seal/index STOP 4, les trois contrats scientifiques et les blobs
+  engine/recomputer/materializer avant une future claim durable. Le lifecycle
+  versionné reste `real_execution_authorized=false`; les tests utilisent
+  seulement des fakes et des répertoires temporaires. Aucun P0 n'a été lancé.
+  Rapport :
+  `readme/results/2026-08-12_harmonic-censoring-h26-p0-operational-entrypoint-stop4.md`.
 - L'unique matérialisation H26 autorisée a terminé avec `exit=0`, exactement un
   appel du materializer et aucun retry. La population finale contient 40
   records baseline et 153 records P2 ; son index a le SHA-256
