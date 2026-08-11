@@ -16,6 +16,7 @@ import os
 from pathlib import Path
 import platform
 import subprocess
+import sys
 from typing import Any, Callable, Mapping, Sequence
 
 
@@ -145,10 +146,17 @@ def require_reference_environment_before_numpy(plan: H25DormantMaterializationPl
     py = expected["python"]
     if (
         platform.system() != p["os_system"] or platform.release() != p["os_release"]
-        or platform.machine() != p["machine"] or platform.python_implementation() != py["implementation"]
-        or platform.python_version() != py["version"] or Path(os.path.realpath(os.sys.executable)) != Path(py["resolved_executable"])
+        or platform.mac_ver()[0] != p["macos_version"] or platform.machine() != p["machine"]
+        or p["execution_device"] != "CPU" or p["gpu_count"] != 0
+        or platform.python_implementation() != py["implementation"]
+        or platform.python_version() != py["version"]
+        or Path(sys.executable) != Path(py["executable"])
+        or Path(os.path.realpath(sys.executable)) != Path(py["resolved_executable"])
+        or Path(sys.prefix) != Path(py["venv_root"])
     ):
         raise RuntimeError("H25 reference platform/Python mismatch before NumPy.")
+    if any(name in sys.modules for name in ("tensorflow", "torch", "cupy", "jax")):
+        raise RuntimeError("H25 GPU-capable scientific runtime imported before preflight.")
     for key, value in expected["process_environment_exact"].items():
         if os.environ.get(key) != value:
             raise RuntimeError(f"H25 environment mismatch for {key} before NumPy.")
@@ -425,6 +433,66 @@ def verify_and_recompute_staging(
         raise ValueError("H25 population index bytes mismatch.")
 
 
+def _runtime_provenance_payload(
+    plan: H25DormantMaterializationPlan,
+    capability: H25MaterializationCapability,
+) -> dict[str, object]:
+    runtime = plan.contract["reference_runtime_identity"]
+    return {
+        "schema_version": 1,
+        "purpose": "harmonic_censoring_h25_materialization_runtime_provenance",
+        "runtime_identity": runtime,
+        "runtime_identity_sha256": _sha256(canonical_json(runtime)),
+        "materialization_contract_sha256": CONTRACT_RAW_SHA256,
+        "implementation_commit": capability.implementation_commit,
+        "materializer_source_git_blob": capability.source_blob,
+        "preflight_status": "PASSED_BEFORE_SCIENTIFIC_NUMPY_IMPORT",
+    }
+
+
+def _population_receipt_payload(
+    plan: H25DormantMaterializationPlan,
+    capability: H25MaterializationCapability,
+    index_raw: bytes,
+) -> dict[str, object]:
+    ids_raw = b"".join((fixture["id"] + "\n").encode("utf-8") for fixture in plan.fixtures)
+    receipt = dict(plan.contract["population_receipt_contract"]["fixed_values"])
+    receipt.update({
+        "ordered_fixture_ids_sha256": _sha256(ids_raw),
+        "population_index_sha256": _sha256(index_raw),
+        "scientific_contract_sha256": plan.contract["sealed_inputs"]["scientific_contract"]["raw_sha256"],
+        "fixture_specifications_sha256": plan.contract["sealed_inputs"]["fixture_specifications"]["raw_sha256"],
+        "population_manifest_sha256": plan.contract["sealed_inputs"]["population_manifest"]["raw_sha256"],
+        "test_manifest_sha256": plan.contract["sealed_inputs"]["test_manifest"]["raw_sha256"],
+        "materialization_contract_sha256": CONTRACT_RAW_SHA256,
+        "implementation_commit": capability.implementation_commit,
+        "materializer_source_git_blob": capability.source_blob,
+        "runtime_identity": plan.contract["reference_runtime_identity"],
+    })
+    return receipt
+
+
+def _verify_final_metadata(
+    staging: Path,
+    plan: H25DormantMaterializationPlan,
+    capability: H25MaterializationCapability,
+    rows: Sequence[Mapping[str, object]],
+) -> None:
+    expected_index = b"".join(canonical_json(dict(row)) for row in rows)
+    expected_provenance = canonical_json(_runtime_provenance_payload(plan, capability))
+    expected_receipt = canonical_json(
+        _population_receipt_payload(plan, capability, expected_index)
+    )
+    for name, expected in (
+        ("population_index.jsonl", expected_index),
+        ("runtime_provenance.json", expected_provenance),
+        ("population_receipt.json", expected_receipt),
+    ):
+        reopened = (staging / name).read_bytes()
+        if len(reopened) != len(expected) or _sha256(reopened) != _sha256(expected) or reopened != expected:
+            raise ValueError(f"H25 final metadata byte mismatch for {name}.")
+
+
 def _materialize_claimed(
     capability: H25MaterializationCapability, np: Any,
 ) -> Path:
@@ -454,37 +522,12 @@ def _materialize_claimed(
                 os.fsync(fd)
             finally:
                 os.close(fd)
-        runtime = plan.contract["reference_runtime_identity"]
-        provenance = {
-            "schema_version": 1,
-            "purpose": "harmonic_censoring_h25_materialization_runtime_provenance",
-            "runtime_identity": runtime,
-            "runtime_identity_sha256": _sha256(canonical_json(runtime)),
-            "materialization_contract_sha256": CONTRACT_RAW_SHA256,
-            "implementation_commit": capability.implementation_commit,
-            "materializer_source_git_blob": capability.source_blob,
-            "preflight_status": "PASSED_BEFORE_SCIENTIFIC_NUMPY_IMPORT",
-        }
+        provenance = _runtime_provenance_payload(plan, capability)
         _write_new(staging / "runtime_provenance.json", canonical_json(provenance))
-        ids_raw = b"".join((fixture["id"] + "\n").encode("utf-8") for fixture in plan.fixtures)
-        receipt = dict(plan.contract["population_receipt_contract"]["fixed_values"])
-        receipt.update({
-            "ordered_fixture_ids_sha256": _sha256(ids_raw),
-            "population_index_sha256": _sha256(index_path.read_bytes()),
-            "scientific_contract_sha256": plan.contract["sealed_inputs"]["scientific_contract"]["raw_sha256"],
-            "fixture_specifications_sha256": plan.contract["sealed_inputs"]["fixture_specifications"]["raw_sha256"],
-            "population_manifest_sha256": plan.contract["sealed_inputs"]["population_manifest"]["raw_sha256"],
-            "test_manifest_sha256": plan.contract["sealed_inputs"]["test_manifest"]["raw_sha256"],
-            "materialization_contract_sha256": CONTRACT_RAW_SHA256,
-            "implementation_commit": capability.implementation_commit,
-            "materializer_source_git_blob": capability.source_blob,
-            "runtime_identity": runtime,
-        })
+        receipt = _population_receipt_payload(plan, capability, index_path.read_bytes())
         _write_new(staging / "population_receipt.json", canonical_json(receipt))
         verify_and_recompute_staging(np, plan, staging, rows)
-        for path in (staging / "runtime_provenance.json", staging / "population_receipt.json"):
-            if not path.read_bytes():
-                raise ValueError("H25 empty receipt/provenance file.")
+        _verify_final_metadata(staging, plan, capability, rows)
         _fsync_directory(fixtures_dir)
         _fsync_directory(staging)
         os.replace(staging, success)

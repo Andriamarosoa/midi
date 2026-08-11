@@ -1,8 +1,11 @@
 import hashlib
 import inspect
 import json
+import os
+import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest import mock
 
 from src.polyphonic import harmonic_censoring_h25_population_materializer as materializer
@@ -89,6 +92,16 @@ class H25DormantPopulationMaterializerTests(unittest.TestCase):
         self.assertIn("path.read_bytes()", preflight)
         self.assertIn('["otool", "-L"', preflight)
         self.assertIn('"Accelerate.framework" in dependency', preflight)
+        for required in (
+            "platform.mac_ver()[0]", "Path(sys.executable)",
+            "Path(os.path.realpath(sys.executable))", "Path(sys.prefix)",
+            'p["execution_device"] != "CPU"', 'p["gpu_count"] != 0',
+        ):
+            self.assertIn(required, preflight)
+        final = inspect.getsource(materializer._verify_final_metadata)
+        self.assertIn("len(reopened) != len(expected)", final)
+        self.assertIn("_sha256(reopened) != _sha256(expected)", final)
+        self.assertIn("reopened != expected", final)
 
     def test_inharmonic_bell_uses_exact_512_sample_decay(self):
         source = inspect.getsource(materializer._envelope)
@@ -138,6 +151,49 @@ class H25DormantPopulationMaterializerTests(unittest.TestCase):
             first = materializer.synthesize_fixture(np, fixture)
             second = materializer.synthesize_fixture(np, fixture)
             self.assertEqual(first.tobytes(), second.tobytes())
+
+    def test_runtime_identity_inverses_fail_before_binary_or_numpy_access(self):
+        plan = materializer.load_dormant_plan(ROOT)
+        expected = plan.contract["reference_runtime_identity"]
+        environment = dict(expected["process_environment_exact"])
+        common = (
+            mock.patch.object(materializer.platform, "system", return_value="Darwin"),
+            mock.patch.object(materializer.platform, "release", return_value="24.5.0"),
+            mock.patch.object(materializer.platform, "machine", return_value="arm64"),
+            mock.patch.object(materializer.platform, "python_implementation", return_value="CPython"),
+            mock.patch.object(materializer.platform, "python_version", return_value="3.11.9"),
+            mock.patch.object(materializer.sys, "executable", expected["python"]["executable"]),
+            mock.patch.object(materializer.sys, "prefix", expected["python"]["venv_root"]),
+            mock.patch.dict(os.environ, environment, clear=True),
+        )
+        for patcher in common:
+            patcher.start()
+            self.addCleanup(patcher.stop)
+        with mock.patch.object(materializer.platform, "mac_ver", return_value=("15.4", ("", "", ""), "")):
+            with self.assertRaisesRegex(RuntimeError, "platform/Python"):
+                materializer.require_reference_environment_before_numpy(plan)
+        with mock.patch.object(materializer.platform, "mac_ver", return_value=("15.5", ("", "", ""), "")), mock.patch.object(
+            materializer.sys, "prefix", "/wrong/venv"
+        ):
+            with self.assertRaisesRegex(RuntimeError, "platform/Python"):
+                materializer.require_reference_environment_before_numpy(plan)
+
+    def test_final_metadata_is_recomputed_and_tampering_fails(self):
+        plan = materializer.load_dormant_plan(ROOT)
+        capability = SimpleNamespace(implementation_commit="1" * 40, source_blob="2" * 40)
+        rows = tuple({"ordinal": i} for i in range(36))
+        index = b"".join(materializer.canonical_json(row) for row in rows)
+        provenance = materializer.canonical_json(materializer._runtime_provenance_payload(plan, capability))
+        receipt = materializer.canonical_json(materializer._population_receipt_payload(plan, capability, index))
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "population_index.jsonl").write_bytes(index)
+            (root / "runtime_provenance.json").write_bytes(provenance)
+            (root / "population_receipt.json").write_bytes(receipt)
+            materializer._verify_final_metadata(root, plan, capability, rows)
+            (root / "population_receipt.json").write_bytes(receipt + b" ")
+            with self.assertRaisesRegex(ValueError, "population_receipt"):
+                materializer._verify_final_metadata(root, plan, capability, rows)
 
 
 if __name__ == "__main__":

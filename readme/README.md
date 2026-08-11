@@ -42,6 +42,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   publication refuse toute invocation. Les tests ne génèrent que des fixtures
   `TEST-ONLY-*` explicitement hors population H25. Rapport :
   `readme/results/2026-08-11_harmonic-censoring-h25-dormant-population-materializer.md`.
+- Après revue, le préflight dormant compare aussi macOS, les chemins executable
+  et venv, CPU/GPU=0 et l’absence de framework GPU importé. Avant rename, index,
+  provenance et receipt sont reconstruits puis comparés par taille, SHA et
+  octets canoniques ; un simple test « non vide » n’est plus accepté.
 - Les manifests H25 définissent exactement `36` fixtures neuves, équilibrées
   `12 positive / 12 negative / 12 ambiguous`, et `27` tests ordonnés
   `9 P0 / 9 P1 / 9 P2`. P1 consomme chaque fixture exactement une fois ;
