@@ -1,0 +1,46 @@
+{
+  "schema_identity": "H26_MATERIALIZATION_OPERATIONALIZATION_DORMANT_CONTRACT_V1",
+  "schema_version": 1,
+  "status": "DECLARATIVE_DORMANT_NO_PROOF_NO_AUTHORITY_NO_DESTINATION_NO_POPULATION",
+  "authorization_token": "AUTHORIZED_TO_IMPLEMENT_H26_DORMANT_MATERIALIZATION_GATE_AND_ORCHESTRATOR_ONLY",
+  "expected_parent_commit": "fdc738d71c1e115fbbb0cd66fae4cf51d0e6397e",
+  "existing_components_must_be_reused": [
+    "harmonic_censoring_h26_materialization_runtime_execution_proof",
+    "harmonic_censoring_h26_materialization_authority_artifact",
+    "harmonic_censoring_h26_materializer"
+  ],
+  "future_sequence": [
+    "validate_runtime_execution_proof_qualified",
+    "validate_materialization_authority",
+    "derive_immutable_materialization_plan",
+    "invoke_materializer_once"
+  ],
+  "implementation_boundary": {
+    "gate_implementation_authorized": true,
+    "orchestrator_implementation_authorized": true,
+    "fake_proof_authority_adapter_and_materializer_tests_only": true,
+    "real_proof_creation_authorized": false,
+    "real_authority_creation_authorized": false,
+    "real_destination_selection_authorized": false,
+    "real_population_creation_authorized": false,
+    "real_materializer_invocation_authorized": false,
+    "retry_allowed": false
+  },
+  "current_state": {
+    "operationalization_contract_exists": true,
+    "gate_exists": false,
+    "orchestrator_exists": false,
+    "runtime_proof_exists": false,
+    "materialization_authority_exists": false,
+    "destination": null,
+    "population_exists": false,
+    "materializer_invoked": false,
+    "p0_executed": false,
+    "p1_executed": false,
+    "p2_executed": false,
+    "scientific_execution_authorized": false,
+    "locked_test_used": false
+  },
+  "creation_authorized_now": false,
+  "next_action": "Create an external seal for this dormant materialization contract"
+}
