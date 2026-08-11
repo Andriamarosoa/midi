@@ -27,8 +27,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   invalide, et interdit toute dépendance de synthèse vers H26. Les recettes,
   formules, enveloppes, collisions et bruits sont autonomes ; chaque cellule
   P2 possède un ID, un ordre et des opérandes canoniques, y compris deux
-  runtimes exacts. Toutes les autorisations restent à `false`; aucun code,
-  waveform, test exécutable, authority ou claim n'existe. Rapport :
+  runtimes exacts. Le masque est un payload role-major canonique de 66 560
+  octets, ce qui permet d'invalider les vues précédentes sans contaminer les
+  vues courantes superposées. Toutes les autorisations restent à `false`;
+  aucun code, waveform, test exécutable, authority ou claim n'existe. Rapport :
   `readme/results/2026-08-12_harmonic-censoring-h27-fixture-test-population-design.md`.
 - La préinscription successeur H27 fige séparément les quatre rôles de vue :
   seules les vues `previous_*` exactement silencieuses et entièrement supportées

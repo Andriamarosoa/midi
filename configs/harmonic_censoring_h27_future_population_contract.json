@@ -25,6 +25,18 @@
     "baseline/<fixture-id>/alternate-waveform.f64le # exact collisions only",
     "p2/<grid-id>/<fixture-id>/<cell-id>/..."
   ],
+  "sample_valid_mask_payload": {
+    "source_contract": "configs/harmonic_censoring_h27_fixture_specifications.json#sample_valid_mask_contract",
+    "role_major": true,
+    "role_order": ["current_short","previous_short","current_long","previous_long"],
+    "samples_per_role": 16640,
+    "payload_length_bytes": 66560,
+    "dtype": "uint8",
+    "allowed_values": [0,1],
+    "one_payload_per_population_record": true,
+    "sha256_and_exact_size_required": true,
+    "global_shared_mask_interpretation_forbidden": true
+  },
   "future_materialization_rules": {
     "new_h27_root_required": true,
     "h26_root_forbidden": true,

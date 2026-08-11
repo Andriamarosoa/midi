@@ -47,6 +47,34 @@
     "valid_silence_forbidden": true,
     "zero_fill_forbidden": true
   },
+  "sample_valid_mask_contract": {
+    "payload_name": "sample-valid-mask.u8",
+    "model": "role-major matrix, never a shared global mask",
+    "role_order": ["current_short","previous_short","current_long","previous_long"],
+    "samples_per_role": 16640,
+    "payload_length_bytes": 66560,
+    "dtype": "uint8",
+    "allowed_byte_values": [0,1],
+    "serialization": "concatenate each role plane in role_order; within each plane serialize sample indices 0..16639 ascending, one byte per sample",
+    "byte_offset_formula": "role_index_in_role_order*16640 + sample_index",
+    "complete_support_plane_rule": "initialize all 16640 bytes to 0; set exactly the role's inclusive required interval to 1",
+    "required_intervals_inclusive": {
+      "current_short": [12288,16383],
+      "previous_short": [12032,16127],
+      "current_long": [8192,16383],
+      "previous_long": [7936,16127]
+    },
+    "baseline_exceptions": {
+      "H27-F-A04": [
+        {"role":"previous_short","sample_index":12032,"byte":0},
+        {"role":"previous_long","sample_index":7936,"byte":0}
+      ]
+    },
+    "all_other_baseline_fixtures": "complete support planes for all four roles with no exception",
+    "independence_rule": "changing one role plane never changes any other role plane even when required intervals overlap in sample coordinates",
+    "waveform_independence": "mask bytes never modify waveform bytes",
+    "implicit_or_additional_invalid_bits_forbidden": true
+  },
   "synthesis_contract": {
     "dtype": "float64",
     "byte_order": "little-endian",
@@ -110,7 +138,7 @@
     "H27-F-H01":{"sources":[],"history_waveform_convention":"SILENT_STATE_ONLY","noise":{"kind":"NONE"}},
     "H27-F-H02":{"sources":[],"history_waveform_convention":"SILENT_STATE_ONLY","noise":{"kind":"NONE"}},
     "H27-F-A03":{"sources":[{"source_id":"old","pitch":31,"gain":1.0,"onset_sample":8192,"envelope_id":"H27_ENV_EXP_DECAY_V1","envelope_parameters":{"decay_samples":8192},"partial_ranks":[1,2,3,4,5,6,7,8],"phase_radians":0.0,"cents":0.0,"B":0.0},{"source_id":"candidate","pitch":43,"gain":0.005,"onset_sample":16128,"envelope_id":"H27_ENV_ATTACK_DECAY_V1","envelope_parameters":{},"partial_ranks":[1,2,3,4,5,6,7,8],"phase_radians":0.0,"cents":0.0,"B":0.0}],"noise":{"kind":"NONE"}},
-    "H27-F-A04":{"sources":[{"source_id":"candidate","pitch":40,"gain":1.0,"onset_sample":16128,"envelope_id":"H27_ENV_ATTACK_DECAY_V1","envelope_parameters":{},"partial_ranks":[1,2,3,4,5,6,7,8],"phase_radians":0.0,"cents":0.0,"B":0.0}],"noise":{"kind":"NONE"},"validity_application":"after waveform construction; waveform unchanged; previous_short and previous_long each have at least one required support bit false"},
+    "H27-F-A04":{"sources":[{"source_id":"candidate","pitch":40,"gain":1.0,"onset_sample":16128,"envelope_id":"H27_ENV_ATTACK_DECAY_V1","envelope_parameters":{},"partial_ranks":[1,2,3,4,5,6,7,8],"phase_radians":0.0,"cents":0.0,"B":0.0}],"noise":{"kind":"NONE"},"validity_application":"after waveform construction; waveform unchanged; previous_short role byte at sample 12032 is 0 and previous_long role byte at sample 7936 is 0; all other required bytes and both current role planes remain complete"},
     "H27-F-A05":{"sources":[{"source_id":"quasi_previous","pitch":31,"gain":"2^-80","onset_sample":7936,"envelope_id":"H27_ENV_EXP_DECAY_V1","envelope_parameters":{"decay_samples":8192},"partial_ranks":[1,2,3,4,5,6,7,8],"phase_radians":0.0,"cents":0.0,"B":0.0},{"source_id":"candidate","pitch":40,"gain":1.0,"onset_sample":16128,"envelope_id":"H27_ENV_ATTACK_DECAY_V1","envelope_parameters":{},"partial_ranks":[1,2,3,4,5,6,7,8],"phase_radians":0.0,"cents":0.0,"B":0.0}],"noise":{"kind":"NONE"}},
     "H27-F-A06":{"sources":[{"source_id":"candidate","pitch":40,"gain":"2^-80","onset_sample":16128,"envelope_id":"H27_ENV_ATTACK_DECAY_V1","envelope_parameters":{},"partial_ranks":[1,2,3,4,5,6,7,8],"phase_radians":0.0,"cents":0.0,"B":0.0}],"noise":{"kind":"NONE"}},
     "H27-F-A07":{"sources":[],"candidate_physically_absent":true,"noise":{"kind":"NONE"}}
@@ -135,7 +163,7 @@
     {"id":"H27-F-A01","order":11,"category":"ambiguous","family":"EXACT_NONZERO_COLLISION_RANK2","candidate_pitch":52,"recipe":{"old_pitch":40,"collision_harmonic_rank":2,"old_source_gain":1.0,"candidate_source_gain":0.5,"phase_radians":0.0,"both_latent_contributions_nonzero":true,"independent_renders_byte_identical":true},"historical_reference_fixture_id":"H26-F-A01","expected":"AMBIGUOUS"},
     {"id":"H27-F-A02","order":12,"category":"ambiguous","family":"EXACT_NONZERO_COLLISION_RANK8","candidate_pitch":76,"recipe":{"old_pitch":40,"collision_harmonic_rank":8,"old_source_gain":0.5,"candidate_source_gain":0.0625,"phase_radians":4.71238898038469,"both_latent_contributions_nonzero":true,"independent_renders_byte_identical":true},"historical_reference_fixture_id":"H26-F-A06","expected":"AMBIGUOUS"},
     {"id":"H27-F-A03","order":13,"category":"ambiguous","family":"BELOW_DETECTION_FLOOR","candidate_pitch":43,"recipe":{"sources":[{"pitch":31,"gain":1.0}],"candidate":{"gain":0.005,"exclusive_partials":[5,6]},"bounded_claim_profile":"GLOBAL_SYNTHETIC_TIMBRE_V1"},"historical_reference_fixture_id":"H26-F-A07","expected":"AMBIGUOUS"},
-    {"id":"H27-F-A04","order":14,"category":"ambiguous","family":"INVALID_PREVIOUS_SUPPORT","candidate_pitch":40,"recipe":{"waveform":"INTACT_NONZERO","required_support_mutation":{"previous_short":false,"previous_long":false},"current_short_support_valid":true,"current_long_support_valid":true,"invalid_reason":"required previous support bit invalid; padding and zero-fill forbidden"},"historical_reference_fixture_id":"H26-F-A10","expected":"AMBIGUOUS"},
+    {"id":"H27-F-A04","order":14,"category":"ambiguous","family":"INVALID_PREVIOUS_SUPPORT","candidate_pitch":40,"recipe":{"waveform":"INTACT_NONZERO","required_support_mutations":[{"role":"previous_short","sample_index":12032,"replacement_uint8":0,"payload_byte_offset":28672},{"role":"previous_long","sample_index":7936,"replacement_uint8":0,"payload_byte_offset":57856}],"current_short_support_valid":true,"current_long_support_valid":true,"invalid_reason":"two role-specific required bytes invalid; padding and zero-fill forbidden"},"historical_reference_fixture_id":"H26-F-A10","expected":"AMBIGUOUS"},
     {"id":"H27-F-A05","order":15,"category":"ambiguous","family":"QUASI_ZERO_PREVIOUS_CONTEXT","candidate_pitch":40,"recipe":{"previous_context":"NONZERO","previous_amplitude":"2^-80","previous_support_complete":true,"previous_total_expected":"BELOW_INHERITED_H26_FLOOR","candidate":{"pitch":40,"gain":1.0,"onset_sample":16128},"current_views":"STRONG_NONZERO_VALID"},"historical_reference_fixture_id":null,"expected":"AMBIGUOUS","reason":"quasi-zero is never exact-zero"},
     {"id":"H27-F-A06","order":16,"category":"ambiguous","family":"QUASI_ZERO_CURRENT_ANALYSIS","candidate_pitch":40,"recipe":{"sources":[],"candidate":{"pitch":40,"gain":"2^-80","onset_sample":16128},"current_samples_nonzero":true,"current_support_complete":true,"current_total_expected":"BELOW_INHERITED_H26_FLOOR"},"historical_reference_fixture_id":null,"expected":"AMBIGUOUS","reason":"INVALID_CURRENT_ANALYSIS"},
     {"id":"H27-F-A07","order":17,"category":"ambiguous","family":"EXACT_ZERO_CURRENT_ANALYSIS","candidate_pitch":40,"recipe":{"sources":[],"candidate":{"pitch":40,"active":false},"support_complete":true,"current_short":"EXACT_ZERO","current_long":"EXACT_ZERO"},"historical_reference_fixture_id":null,"expected":"AMBIGUOUS"}

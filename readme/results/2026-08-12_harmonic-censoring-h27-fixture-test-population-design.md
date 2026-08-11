@@ -72,6 +72,15 @@ bruit-remplacement, frontière zero, cents/inharmonicité, permutation et
 hop-shift sont explicitement définies ; les 107 identités sont donc uniques et
 déterminées avant matérialisation.
 
+Le masque de validité est lui aussi fermé byte par byte : un payload uint8
+role-major de `4 × 16640 = 66560` octets, dans l'ordre
+`current_short, previous_short, current_long, previous_long`. Chaque plan vaut
+zéro hors de son intervalle requis et un dans l'intervalle. A04 invalide
+uniquement `previous_short[12032]` et `previous_long[7936]`, sans affecter les
+plans courants qui se recouvrent temporellement. Les quatre mutations de
+frontière ont des coordonnées exactes ; le hop-shift reconstruit les quatre
+plans avec endpoints et exceptions translatés, sans clipping ni padding.
+
 Les inverses zero/positive/negative/collision/causal/leakage/recompute sont
 déclarés mais non exécutés. Les cellules stochastiques dériveront leur seed de
 `SHA256(UTF8("H27|<fixture_id>|<grid_id>|<cell_id>"))`, avec les huit premiers
