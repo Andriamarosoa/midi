@@ -14,12 +14,18 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: dormant materialization authority artifact validator implemented; external review required; no real authority or execution. -->
+<!-- H26_CORRECTION_STATUS: dormant materialization authority artifact validator reviewed and closed; no operational authority or execution. -->
 ## État courant
 
 - Mise à jour : `2026-08-11`.
 - État courant :
-  `H26_MATERIALIZATION_AUTHORITY_ARTIFACT_VALIDATOR_DORMANT_PENDING_EXTERNAL_REVIEW`.
+  `H26_MATERIALIZATION_AUTHORITY_ARTIFACT_VALIDATOR_DORMANT_REVIEWED_AND_CLOSED`.
+- La revue externe du validateur dormant `fee9b981...` est close sans
+  bloqueur. Elle confirme le module `0e6fbe5f...`, le test `a4b1f52d...`, les
+  bindings exacts du contrat, du seal-loader et du proof-validator, ainsi que
+  l'absence de factory, issuer, writer, seal, destination ou execution. Cette
+  cloture n'ouvre aucune portee operationnelle. Rapport :
+  `readme/results/2026-08-11_harmonic-censoring-h26-materialization-authority-artifact-validator-review-closure.md`.
 - Le validateur dormant du futur artefact d'autorite H26 est implemente en
   memoire pure. Il charge le contrat exact `dd24346e...` / `b6b98b4c...`, lie
   le loader du seal et le validateur de preuve approuves, impose le keyset de
@@ -2340,6 +2346,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-11 — validateur dormant de preuve runtime pour la matérialisation H26](results/2026-08-11_harmonic-censoring-h26-materialization-runtime-execution-proof-validator-dormant-implementation.md)
 - [2026-08-11 — contrat canonique du futur artefact d'autorité de matérialisation H26](results/2026-08-11_harmonic-censoring-h26-materialization-authority-artifact-contract.md)
 - [2026-08-11 — implémentation dormante du validateur d'artefact d'autorité H26](results/2026-08-11_harmonic-censoring-h26-materialization-authority-artifact-validator-dormant-implementation.md)
+- [2026-08-11 — clôture de revue du validateur dormant d'artefact d'autorité H26](results/2026-08-11_harmonic-censoring-h26-materialization-authority-artifact-validator-review-closure.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)
