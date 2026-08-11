@@ -1,0 +1,31 @@
+{
+  "seal_schema_identity": "H26_RUNTIME_QUALIFICATION_OPERATIONAL_ACTIVATION_ISSUANCE_CONTRACT_EXTERNAL_SEAL_V1",
+  "seal_schema_version": 1,
+  "status": "DECLARATIVE_DORMANT_EXTERNAL_CONTRACT_SEAL_NO_ISSUER_NO_ACTIVATION_NO_EXECUTION",
+  "issuance_contract_commit": "2f933536fb40603e8a4f2b7c6e9810ec0e0d366a",
+  "issuance_contract_git_blob_sha": "05ec1c26edbd36cdf6d127f7e8361596f9a20958",
+  "issuance_contract_git_blob_byte_length": 5624,
+  "issuance_contract_raw_sha256": "e15dcb79da60a5e22a9d0f76c30786b05b90fbefc7e0b71f32a3cbe74052dbe7",
+  "raw_sha256_definition": "lowercase_hex(SHA256(exact bytes of the bound Git blob 05ec1c26edbd36cdf6d127f7e8361596f9a20958))",
+  "seal_contains_own_raw_sha256": false,
+  "issuance_contract_contains_own_raw_sha256": false,
+  "current_state": {
+    "issuance_contract_exists": true,
+    "issuer_exists": false,
+    "activation_exists": false,
+    "capability_exists": false,
+    "administrative_root": null,
+    "runtime_authority_exists": false,
+    "claim_exists": false,
+    "observer_invoked": false,
+    "runtime_execution_authorized": false,
+    "materialization_authorized": false,
+    "p0_executed": false,
+    "p1_executed": false,
+    "p2_executed": false,
+    "scientific_execution_authorized": false,
+    "locked_test_used": false
+  },
+  "creation_authorized_now": false,
+  "next_action": "External review of this declarative seal only"
+}
