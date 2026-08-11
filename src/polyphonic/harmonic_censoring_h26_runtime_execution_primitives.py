@@ -327,8 +327,6 @@ def validate_authority_id(authority_id: str) -> str:
         raise ValueError("authority_id must be ASCII") from exc
     if authority_id != authority_id.strip():
         raise ValueError("authority_id has leading or trailing whitespace")
-    if "\x00" in authority_id:
-        raise ValueError("authority_id cannot contain the NUL separator")
     return authority_id
 
 

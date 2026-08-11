@@ -163,7 +163,7 @@ class IdentityPrimitiveTests(unittest.TestCase):
             )
 
     def test_authority_id_and_sha_syntax_are_fail_closed(self) -> None:
-        for authority_id in ("", " auth", "auth ", "é", "auth\x00suffix"):
+        for authority_id in ("", " auth", "auth ", "é"):
             with self.subTest(authority_id=authority_id):
                 with self.assertRaises(ValueError):
                     runtime.validate_authority_id(authority_id)
@@ -171,6 +171,15 @@ class IdentityPrimitiveTests(unittest.TestCase):
             with self.subTest(sha=sha):
                 with self.assertRaisesRegex(ValueError, "lowercase"):
                     runtime.derive_claim_id(self.AUTHORITY_ID, sha)
+
+    def test_internal_nul_authority_id_follows_the_sealed_domain(self) -> None:
+        authority_id = "auth\x00suffix"
+        self.assertEqual(runtime.validate_authority_id(authority_id), authority_id)
+        self.assertEqual(
+            runtime.derive_claim_id(authority_id, self.AUTHORITY_SHA),
+            "h26-runtime-claim-v1-"
+            "a3bfd32f562c5106fbe508f663dce25aa4befc03bacbbbe5b862bcb96af7cc7f",
+        )
 
     def test_external_raw_sha256_hashes_exact_bytes(self) -> None:
         raw = b'{"a":1}\n'
