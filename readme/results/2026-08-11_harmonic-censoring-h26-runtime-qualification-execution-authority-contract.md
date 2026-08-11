@@ -39,6 +39,20 @@ Tout CR/CRLF est interdit. Le SHA brut est toujours le SHA-256 lowercase de ces
 octets exacts. Un JSON sémantiquement équivalent mais non canonique est refusé,
 jamais normalisé silencieusement en objet opérationnel.
 
+L'échappement des chaînes est également unique. Guillemets et backslashes
+emploient respectivement les deux octets `5c 22` et `5c 5c`. Backspace, tab,
+LF, form-feed et CR utilisent obligatoirement les short escapes `b/t/n/f/r`;
+les autres contrôles U+0000..U+001F utilisent `\u00xx` en hex lowercase. Le
+solidus `/` et tout ASCII imprimable hors guillemet/backslash restent littéraux :
+`\/` et `\u0041` sont donc refusés quand `/` et `A` sont les formes canoniques.
+
+U+0080..U+FFFF hors surrogates utilise exactement `\u` suivi de quatre hex
+lowercase. U+10000..U+10FFFF utilise l'unique paire UTF-16, high surrogate puis
+low surrogate, chacun sous cette forme. Un surrogate isolé est interdit. Le tri
+des clés porte toujours sur les chaînes logiques non échappées, par code point.
+Une orthographe d'échappement entrante non canonique est refusée, jamais
+réécrite.
+
 L'`authority_id` futur reste produit par un issuer séparément autorisé, mais il
 devra être une chaîne ASCII non vide, sans whitespace initial/final et immuable.
 Seul le SHA de ses octets authority canoniques peut dériver le claim.

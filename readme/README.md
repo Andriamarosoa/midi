@@ -47,6 +47,11 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   suivent des préimages SHA-256 domain-separated exactes; leurs slots logiques
   sont ces IDs. UUID, random, autre algorithme et JSON byte-noncanonique sont
   refusés; aucune racine filesystem réelle n'est encore définie.
+- L'échappement JSON est maintenant totalement déterministe : short escapes
+  fixes pour les contrôles usuels, hex lowercase, `/` et ASCII imprimable
+  littéraux, Unicode non-ASCII en `\u` canonique, paire surrogate ordonnée et
+  surrogate isolé interdit. Les spellings équivalents mais byte-différents
+  sont refusés au lieu d'être normalisés.
 - Étape : `harmonic_censoring_h26_materialization_runtime_qualification_contract`.
 - Contrat dormant de qualification du runtime primaire H26 défini sans
   qualificateur ni exécution : identité exacte CPython 3.11.9 / Darwin 24.5.0
