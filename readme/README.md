@@ -18,7 +18,7 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 - Mise à jour : `2026-08-11`.
 - Étape : `harmonic_censoring_h25_dormant_scientific_authority_correction`.
-- Statut : `7117d01 rejeté sur trois frontières; correctif activation/P2-007/forensic closure implémenté mais dormant et en attente de revue; aucun seal/activation/OS binding/capability/claim; P0/P1/P2 restent à 0/0/0`.
+- Statut : `correctif P2-007 non récursif et runtime scientifique secondaire réel scellé contre a638aa9, en attente de revue externe; aucune activation/OS binding/capability/claim/observer; P0/P1/P2 restent à 0/0/0`.
 - La revue externe de `7117d01…` conserve l'architecture centrale mais exige
   trois corrections. L'activation ne contient désormais aucun SHA de son
   propre futur commit : seul le binding OS externe doit égaler `HEAD`. Les 27
@@ -162,8 +162,9 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `H25_P2_007_NONRECURSIVE_SELF_CORE_V1` recomputable, sépare identité
   scientifique et transport, et prépare un runtime secondaire isolé CPython
   `3.9.6` + NumPy `1.26.4` face au primaire CPython `3.11.9`. Le seal rejeté
-  est retiré ; activation, bindings OS, capability, claim, observer et
-  `P0/P1/P2` restent absents/non exécutés. Rapport :
+  est remplacé par un seal lié au commit correctif `a638aa99…`; activation,
+  bindings OS, capability, claim, observer et `P0/P1/P2` restent
+  absents/non exécutés. Rapport :
   `readme/results/2026-08-11_harmonic-censoring-h25-p2-007-nonrecursive-runtime-correction.md`.
 - L'unique tentative de qualification autorisée sur `a2cbed8…` a échoué avant
   `main()` et avant tout namespace/claim : le driver placé sous `tmp/local`
@@ -1629,9 +1630,9 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 ## Prochaine action réelle
 
-1. Faire relire le contrat de future capability d'exécution synthétique.
-2. Ne pas implémenter ou émettre cette capability, ne synthétiser aucune des
-   `175` fixtures et ne lancer aucun test P0/P1/P2 avant une autorisation
+1. Faire relire le commit correctif `a638aa9…` et son nouveau seal H25.
+2. Ne créer aucune activation ni binding OS, ne pas émettre de capability ou
+   claim et ne pas exécuter l'observer ou P0/P1/P2 avant une autorisation
    séparée après revue.
 3. Conserver les données réelles, H17, les modèles, le fit, la calibration et
    le test verrouillé fermés.

@@ -1,6 +1,8 @@
+import hashlib
 import json
 import os
 from pathlib import Path
+import subprocess
 import sys
 import unittest
 from unittest import mock
@@ -15,6 +17,23 @@ OBSERVER = ROOT / "src/polyphonic/harmonic_censoring_h25_secondary_runtime_obser
 PROJECTION = (
     ROOT / "configs/harmonic_censoring_h25_p2_007_nonrecursive_projection_contract.json"
 )
+SEAL = ROOT / capability.AUTHORIZATION_SEAL
+
+
+def _canonical(value: object) -> bytes:
+    return (
+        json.dumps(
+            value, ensure_ascii=False, allow_nan=False, sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8") + b"\n"
+    )
+
+
+def _git(*arguments: str) -> str:
+    return subprocess.run(
+        ["git", *arguments], cwd=ROOT, check=True, text=True,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+    ).stdout.strip()
 
 
 class H25P2007CorrectionDormantTests(unittest.TestCase):
@@ -37,7 +56,7 @@ class H25P2007CorrectionDormantTests(unittest.TestCase):
         self.assertTrue(runtime["transport_difference_alone_never_satisfies_cross_runtime"])
 
     def test_observer_is_dormant_before_contract_runtime_claim_numpy_or_population(self) -> None:
-        self.assertFalse((ROOT / capability.AUTHORIZATION_SEAL).exists())
+        self.assertTrue(SEAL.exists())
         self.assertFalse((ROOT / capability.ACTIVATION_RECORD).exists())
         source = OBSERVER.read_text(encoding="utf-8")
         self.assertNotIn("import numpy", source)
@@ -73,9 +92,41 @@ class H25P2007CorrectionDormantTests(unittest.TestCase):
         self.assertIn('_canonical(identity["scientific_runtime"])', runner_source)
         self.assertIn('_canonical(identity["transport"])', runner_source)
 
-    def test_current_tree_remains_preseal_pre_activation_and_zero_science(self) -> None:
+    def test_resealed_authority_and_secondary_runtime_are_exactly_bound(self) -> None:
+        seal = json.loads(SEAL.read_text(encoding="utf-8"))
+        reviewed = seal["reviewed_authority_commit"]
+        self.assertEqual(reviewed, "a638aa990e29950ed693337b13a26ea7e18ee397")
+        paths = {
+            "authority_source_blob": "src/polyphonic/harmonic_censoring_h25_scientific_capability.py",
+            "runner_source_blob": "src/polyphonic/run_harmonic_censoring_h25_scientific.py",
+            "engine_source_blob": "src/polyphonic/harmonic_censoring_h25_scientific_engine.py",
+            "recomputer_source_blob": "src/polyphonic/harmonic_censoring_h25_recomputer.py",
+        }
+        for field, path in paths.items():
+            self.assertEqual(seal[field], _git("rev-parse", f"{reviewed}:{path}"))
+        contract_raw = (ROOT / capability.CAPABILITY_CONTRACT).read_bytes()
+        self.assertEqual(
+            seal["capability_contract_sha256"], hashlib.sha256(contract_raw).hexdigest()
+        )
+        identity = seal["secondary_runtime_identity"]
+        scientific = identity["scientific_runtime"]
+        transport = identity["transport"]
+        self.assertEqual((scientific["implementation"], scientific["version"]), ("CPython", "3.9.6"))
+        self.assertEqual(scientific["numpy_version"], "1.26.4")
+        self.assertNotEqual(scientific["version"], "3.11.9")
+        self.assertEqual(
+            transport["command_sha256"],
+            hashlib.sha256(_canonical(seal["secondary_runtime_command"])).hexdigest(),
+        )
+        self.assertEqual(transport["observer_payload_size_bytes"], OBSERVER.stat().st_size)
+        self.assertEqual(
+            transport["observer_payload_sha256"],
+            hashlib.sha256(OBSERVER.read_bytes()).hexdigest(),
+        )
+
+    def test_current_tree_remains_pre_activation_and_zero_science(self) -> None:
         contract = json.loads((ROOT / capability.CAPABILITY_CONTRACT).read_text(encoding="utf-8"))
-        self.assertFalse((ROOT / capability.AUTHORIZATION_SEAL).exists())
+        self.assertTrue(SEAL.exists())
         self.assertFalse((ROOT / capability.ACTIVATION_RECORD).exists())
         self.assertIsNone(os.environ.get(capability.AUTHORIZATION_COMMIT_ENV))
         self.assertIsNone(os.environ.get(capability.AUTHORIZATION_SEAL_SHA256_ENV))

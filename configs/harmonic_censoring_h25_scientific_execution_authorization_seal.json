@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "purpose": "harmonic_censoring_h25_scientific_execution_authorization_seal",
+  "status": "reviewed_H25_scientific_execution_authorized_once",
+  "authorized_action": "AUTHORIZED_TO_EXECUTE_H25_SYNTHETIC_V1_ONCE",
+  "reviewed_authority_commit": "a638aa990e29950ed693337b13a26ea7e18ee397",
+  "authority_source_blob": "f016d89b69efbfa27ef2b3f1f6c8a81a131012f5",
+  "runner_source_blob": "8ebce2f41afbf2f99fe0504533cdd3c7cede7799",
+  "engine_source_blob": "171602b54a8023e2c85c128aca14ec053da176ad",
+  "recomputer_source_blob": "662c520b11cdd36f8b1a6f2b10f8b69eb4668511",
+  "capability_contract_sha256": "20a04138eebe1ee786b73178fa074e105ad08d3a516d978a4d87494b8ddbf173",
+  "population_index_sha256": "814d8c368ac67ce65ed20c9e90e634ceffe706db1cc5e642cc3c61ff37ab5f53",
+  "population_provenance_sha256": "cadc154a84674f6e58cf412d71f73407d0c07388f3bf470fa2368a1b810825db",
+  "population_receipt_sha256": "dbab85910151ce25c186f478797c86604a94e6cf486dda7e0c4b7b8eeb4fddd9",
+  "administrative_qualification_record_path": "tmp/local/h25_preclaim_admin_lifecycle_qualification_b913744/qualification_record.json",
+  "administrative_qualification_sha256": "54bd361a99223dd24d6e4f0883ace47572965604c406efe69e5564f675d14ee1",
+  "secondary_runtime_command": [
+    "/Users/amcarene/midi-worker/h25-secondary-runtime-cpython39-numpy1264/bin/python",
+    "/Users/amcarene/midi-worker/repository/src/polyphonic/harmonic_censoring_h25_secondary_runtime_observer.py"
+  ],
+  "secondary_runtime_timeout_seconds": 120,
+  "secondary_runtime_identity": {
+    "scientific_runtime": {
+      "implementation": "CPython",
+      "version": "3.9.6",
+      "platform_system": "Darwin",
+      "platform_release": "24.5.0",
+      "platform_machine": "arm64",
+      "resolved_executable": "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/bin/python3.9",
+      "executable_size_bytes": 102352,
+      "executable_sha256": "5c5950c62eee5fd227a67e4bdfcde81c9add59799bba0949635f3d5ba9661c26",
+      "numpy_version": "1.26.4",
+      "numpy_multiarray_path": "/Users/amcarene/midi-worker/h25-secondary-runtime-cpython39-numpy1264/lib/python3.9/site-packages/numpy/core/_multiarray_umath.cpython-39-darwin.so",
+      "numpy_multiarray_size_bytes": 3164512,
+      "numpy_multiarray_sha256": "e870618cf0f8a4b73a928649aba064eee859f8e25a7912344c979f1d03679194",
+      "blas_provider": "OpenBLAS ILP64",
+      "blas_library_path": "/Users/amcarene/midi-worker/h25-secondary-runtime-cpython39-numpy1264/lib/python3.9/site-packages/numpy/.dylibs/libopenblas64_.0.dylib",
+      "blas_library_size_bytes": 23198400,
+      "blas_library_sha256": "dde2b735d01caa531885115ea853b5a4172b935167b95a1acb2a10243e0d97e7",
+      "process_environment_exact": {
+        "MIDI_FORCE_CPU": "1",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1",
+        "VECLIB_MAXIMUM_THREADS": "1",
+        "PYTHONHASHSEED": "0",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC"
+      }
+    },
+    "transport": {
+      "command_sha256": "ca645cca059b4926883652cbfa0879449a3c1f118c10d99e0e19cb542f098672",
+      "observer_payload_path": "/Users/amcarene/midi-worker/repository/src/polyphonic/harmonic_censoring_h25_secondary_runtime_observer.py",
+      "observer_payload_size_bytes": 10746,
+      "observer_payload_sha256": "5e94fe71426d7db3a4b95467d079a8e4069c9a050f3cac7379d1398e8534e3ef"
+    }
+  }
+}

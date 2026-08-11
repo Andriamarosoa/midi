@@ -82,6 +82,29 @@ real data / locked test                non / non
 modèle / training / calibration        non / non / non
 ```
 
-La prochaine opération interne est de commiter ce bloc d'implémentation, puis
-de produire un nouveau seal lié aux blobs de ce commit. Les deux commits seront
-soumis ensemble à la revue externe avant toute activation.
+## Nouveau seal
+
+Le correctif a été figé avant le seal au commit :
+
+```text
+a638aa990e29950ed693337b13a26ea7e18ee397
+authority blob   f016d89b69efbfa27ef2b3f1f6c8a81a131012f5
+runner blob      8ebce2f41afbf2f99fe0504533cdd3c7cede7799
+engine blob      171602b54a8023e2c85c128aca14ec053da176ad
+recomputer blob  662c520b11cdd36f8b1a6f2b10f8b69eb4668511
+```
+
+Le nouveau seal lie ce commit, le contrat de capability au SHA
+`20a04138eebe1ee786b73178fa074e105ad08d3a516d978a4d87494b8ddbf173`,
+la population et la qualification inchangées, ainsi que la commande du venv
+CPython 3.9 et le payload observer (`10746` octets, SHA
+`5e94fe71426d7db3a4b95467d079a8e4069c9a050f3cac7379d1398e8534e3ef`).
+
+Ce seal attend une revue externe. Il ne constitue ni l'activation Git, ni les
+bindings OS nécessaires à l'issuer. Aucune exécution n'est autorisée par le
+présent commit seul.
+
+La vérification finale du bloc scellé réussit : `py_compile`,
+`git diff --check` et `86` tests H25 autorisés en `1,976 s`. La qualification
+real-OS, l'observer secondaire, la population et P0/P1/P2 n'ont pas été
+exécutés par cette vérification.
