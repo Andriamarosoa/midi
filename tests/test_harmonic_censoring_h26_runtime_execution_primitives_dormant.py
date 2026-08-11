@@ -219,6 +219,82 @@ class ContractAndSchemaTests(unittest.TestCase):
         finally:
             runtime.EXECUTION_AUTHORITY_CONTRACT_GIT_BLOB_SHA = original
 
+    def test_exact_external_seal_loads_and_rebinds_contract_bytes(self) -> None:
+        payload = runtime.load_runtime_execution_external_seal()
+        self.assertEqual(
+            payload["execution_contract_raw_sha256"],
+            "c7f6da697d74f710b957ab7ad32bef0fc184bb4f16ffaef16d2e2e1abafc63f9",
+        )
+        self.assertFalse(any(
+            value for value in payload["authorization_state"].values()
+            if value is not None
+        ))
+
+    def test_modified_external_seal_is_rejected_before_semantic_use(self) -> None:
+        source = (
+            Path(runtime.__file__).resolve().parents[2]
+            / "configs"
+            / "harmonic_censoring_h26_runtime_qualification_execution_authority_contract_external_seal.json"
+        )
+        raw = source.read_bytes()
+        mutations = (
+            raw.replace(b'"schema_version": 1', b'"schema_version": 2', 1),
+            raw.replace(
+                b'DECLARATIVE_EXTERNAL_SEAL_ONLY_NO_EXECUTION_AUTHORITY',
+                b'DECLARATIVE_EXTERNAL_SEAL_ONLY_EXECUTION_AUTHORITY',
+                1,
+            ),
+            raw.replace(b'"authority_exists": false', b'"authority_exists": true', 1),
+            raw.replace(
+                runtime.EXECUTION_AUTHORITY_CONTRACT_RAW_SHA256.encode("ascii"),
+                b"0" * 64,
+                1,
+            ),
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            for index, mutation in enumerate(mutations):
+                with self.subTest(index=index):
+                    altered = Path(directory) / f"altered-{index}.json"
+                    altered.write_bytes(mutation)
+                    with self.assertRaisesRegex(ValueError, "Git blob mismatch"):
+                        runtime.load_runtime_execution_external_seal(altered)
+
+    def test_external_seal_public_binding_cannot_redirect_loader(self) -> None:
+        original = runtime.EXTERNAL_SEAL_GIT_BLOB_SHA
+        try:
+            runtime.EXTERNAL_SEAL_GIT_BLOB_SHA = "0" * 40
+            with self.assertRaisesRegex(ValueError, "seal blob binding mismatch"):
+                runtime.load_runtime_execution_external_seal()
+        finally:
+            runtime.EXTERNAL_SEAL_GIT_BLOB_SHA = original
+
+    def test_raw_sha_public_binding_cannot_be_replaced(self) -> None:
+        original = runtime.EXECUTION_AUTHORITY_CONTRACT_RAW_SHA256
+        try:
+            runtime.EXECUTION_AUTHORITY_CONTRACT_RAW_SHA256 = "0" * 64
+            with self.assertRaisesRegex(ValueError, "raw SHA256 binding mismatch"):
+                runtime.canonical_execution_contract_raw_sha256()
+        finally:
+            runtime.EXECUTION_AUTHORITY_CONTRACT_RAW_SHA256 = original
+
+    def test_lf_and_crlf_checkouts_bind_the_same_git_contract_bytes(self) -> None:
+        source = (
+            Path(runtime.__file__).resolve().parents[2]
+            / "configs"
+            / "harmonic_censoring_h26_runtime_qualification_execution_authority_contract.json"
+        )
+        lf = source.read_bytes().replace(b"\r\n", b"\n")
+        crlf = lf.replace(b"\n", b"\r\n")
+        with tempfile.TemporaryDirectory() as directory:
+            lf_path = Path(directory) / "contract-lf.json"
+            crlf_path = Path(directory) / "contract-crlf.json"
+            lf_path.write_bytes(lf)
+            crlf_path.write_bytes(crlf)
+            self.assertEqual(
+                runtime.canonical_execution_contract_raw_sha256(lf_path),
+                runtime.canonical_execution_contract_raw_sha256(crlf_path),
+            )
+
     def test_exact_keyset_accepts_only_exact_fields(self) -> None:
         value = {key: None for key in runtime.CLAIM_REQUIRED_FIELDS}
         runtime.validate_claim_keyset(value)

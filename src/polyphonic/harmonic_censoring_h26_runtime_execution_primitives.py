@@ -22,11 +22,29 @@ EXECUTION_AUTHORITY_CONTRACT_COMMIT = (
 EXECUTION_AUTHORITY_CONTRACT_GIT_BLOB_SHA = (
     "5ab6ff43980c0dc0f32308d3f8cee14a90351ec7"
 )
+EXECUTION_AUTHORITY_CONTRACT_RAW_SHA256 = (
+    "c7f6da697d74f710b957ab7ad32bef0fc184bb4f16ffaef16d2e2e1abafc63f9"
+)
+EXTERNAL_SEAL_COMMIT = "d60df11a461c545bd40b4754b99290258443bc06"
+EXTERNAL_SEAL_GIT_BLOB_SHA = "90819f501bf1679782b071a72f681d6b7d4db0c8"
+APPROVED_DORMANT_PRIMITIVES_COMMIT = (
+    "48d3e6015a2adaded0b27769271ebb8d70ddb98a"
+)
+APPROVED_DORMANT_PRIMITIVES_GIT_BLOB_SHA = (
+    "9c347a6c9fe081e0d2ac963311ea766eb5fc62f9"
+)
 _APPROVED_EXECUTION_AUTHORITY_CONTRACT_COMMIT = (
     "e0e070b8b75e85fb8ef78c7d6950a13f2c69ceae"
 )
 _APPROVED_EXECUTION_AUTHORITY_CONTRACT_GIT_BLOB_SHA = (
     "5ab6ff43980c0dc0f32308d3f8cee14a90351ec7"
+)
+_APPROVED_EXECUTION_AUTHORITY_CONTRACT_RAW_SHA256 = (
+    "c7f6da697d74f710b957ab7ad32bef0fc184bb4f16ffaef16d2e2e1abafc63f9"
+)
+_APPROVED_EXTERNAL_SEAL_COMMIT = "d60df11a461c545bd40b4754b99290258443bc06"
+_APPROVED_EXTERNAL_SEAL_GIT_BLOB_SHA = (
+    "90819f501bf1679782b071a72f681d6b7d4db0c8"
 )
 RUNTIME_QUALIFICATION_CONTRACT_COMMIT = (
     "89cc0659de3afb5194afcf8e7ea9ac6c300e1f92"
@@ -98,6 +116,14 @@ def _execution_contract_path() -> Path:
     )
 
 
+def _external_seal_path() -> Path:
+    return (
+        Path(__file__).resolve().parents[2]
+        / "configs"
+        / "harmonic_censoring_h26_runtime_qualification_execution_authority_contract_external_seal.json"
+    )
+
+
 def _canonical_git_text_bytes(raw: bytes) -> bytes:
     if b"\r" in raw:
         if b"\r" in raw.replace(b"\r\n", b""):
@@ -157,11 +183,8 @@ def load_runtime_execution_contract(path: Optional[Path] = None) -> Mapping[str,
         != _APPROVED_EXECUTION_AUTHORITY_CONTRACT_GIT_BLOB_SHA
     ):
         raise ValueError("runtime execution contract blob binding mismatch")
-    resolved = (path or _execution_contract_path()).resolve(strict=True)
-    raw = resolved.read_bytes()
-    if _git_blob_sha(raw) != EXECUTION_AUTHORITY_CONTRACT_GIT_BLOB_SHA:
-        raise ValueError("runtime execution contract Git blob mismatch")
-    payload = _strict_contract_json(_canonical_git_text_bytes(raw))
+    raw = _read_exact_execution_contract_bytes(path)
+    payload = _strict_contract_json(raw)
     expected_top = {
         "schema_version": 1,
         "purpose": (
@@ -189,6 +212,95 @@ def load_runtime_execution_contract(path: Optional[Path] = None) -> Mapping[str,
     for key, expected in expected_bindings.items():
         if bindings.get(key) != expected:
             raise ValueError(f"execution contract binding {key} mismatch")
+    return MappingProxyType(payload)
+
+
+def _read_exact_execution_contract_bytes(path: Optional[Path] = None) -> bytes:
+    resolved = (path or _execution_contract_path()).resolve(strict=True)
+    raw = resolved.read_bytes()
+    if _git_blob_sha(raw) != EXECUTION_AUTHORITY_CONTRACT_GIT_BLOB_SHA:
+        raise ValueError("runtime execution contract Git blob mismatch")
+    return _canonical_git_text_bytes(raw)
+
+
+def canonical_execution_contract_raw_sha256(path: Optional[Path] = None) -> str:
+    """Hash the exact canonical Git text bytes of the sealed contract."""
+    if (
+        EXECUTION_AUTHORITY_CONTRACT_COMMIT
+        != _APPROVED_EXECUTION_AUTHORITY_CONTRACT_COMMIT
+    ):
+        raise ValueError("runtime execution contract commit binding mismatch")
+    if (
+        EXECUTION_AUTHORITY_CONTRACT_GIT_BLOB_SHA
+        != _APPROVED_EXECUTION_AUTHORITY_CONTRACT_GIT_BLOB_SHA
+    ):
+        raise ValueError("runtime execution contract blob binding mismatch")
+    if (
+        EXECUTION_AUTHORITY_CONTRACT_RAW_SHA256
+        != _APPROVED_EXECUTION_AUTHORITY_CONTRACT_RAW_SHA256
+    ):
+        raise ValueError("runtime execution contract raw SHA256 binding mismatch")
+    raw = _read_exact_execution_contract_bytes(path)
+    digest = hashlib.sha256(raw).hexdigest()
+    if digest != EXECUTION_AUTHORITY_CONTRACT_RAW_SHA256:
+        raise ValueError("runtime execution contract raw SHA256 mismatch")
+    return digest
+
+
+def load_runtime_execution_external_seal(
+    path: Optional[Path] = None,
+    *,
+    execution_contract_path: Optional[Path] = None,
+) -> Mapping[str, Any]:
+    """Load the reviewed seal and rebind it to the exact contract bytes."""
+    if EXTERNAL_SEAL_COMMIT != _APPROVED_EXTERNAL_SEAL_COMMIT:
+        raise ValueError("runtime execution external seal commit binding mismatch")
+    if EXTERNAL_SEAL_GIT_BLOB_SHA != _APPROVED_EXTERNAL_SEAL_GIT_BLOB_SHA:
+        raise ValueError("runtime execution external seal blob binding mismatch")
+    resolved = (path or _external_seal_path()).resolve(strict=True)
+    raw = resolved.read_bytes()
+    if _git_blob_sha(raw) != EXTERNAL_SEAL_GIT_BLOB_SHA:
+        raise ValueError("runtime execution external seal Git blob mismatch")
+    payload = _strict_contract_json(_canonical_git_text_bytes(raw))
+    expected_scalars = {
+        "schema_identity": (
+            "H26_RUNTIME_QUALIFICATION_EXECUTION_AUTHORITY_CONTRACT_"
+            "EXTERNAL_SEAL_V1"
+        ),
+        "schema_version": 1,
+        "status": "DECLARATIVE_EXTERNAL_SEAL_ONLY_NO_EXECUTION_AUTHORITY",
+        "execution_contract_commit": EXECUTION_AUTHORITY_CONTRACT_COMMIT,
+        "execution_contract_git_blob_sha": EXECUTION_AUTHORITY_CONTRACT_GIT_BLOB_SHA,
+        "execution_contract_raw_sha256": EXECUTION_AUTHORITY_CONTRACT_RAW_SHA256,
+        "approved_primitives_commit": APPROVED_DORMANT_PRIMITIVES_COMMIT,
+        "approved_primitives_git_blob_sha": APPROVED_DORMANT_PRIMITIVES_GIT_BLOB_SHA,
+        "seal_contains_own_raw_sha256": False,
+    }
+    for key, expected in expected_scalars.items():
+        if type(payload.get(key)) is not type(expected) or payload.get(key) != expected:
+            raise ValueError(f"runtime execution external seal {key} mismatch")
+    expected_state = {
+        "issuer_exists": False,
+        "authority_exists": False,
+        "claim_exists": False,
+        "claim_consumed": False,
+        "observer_entry_evidence_exists": False,
+        "observer_invoked": False,
+        "runtime_record_exists": False,
+        "receipt_exists": False,
+        "runtime_execution_authorized": False,
+        "materialization_authorized": False,
+        "scientific_execution_authorized": False,
+        "current_authority_id": None,
+        "current_claim_id": None,
+        "current_runtime_record_raw_sha256": None,
+        "current_receipt_raw_sha256": None,
+    }
+    if payload.get("authorization_state") != expected_state:
+        raise ValueError("runtime execution external seal operational state mismatch")
+    digest = canonical_execution_contract_raw_sha256(execution_contract_path)
+    if digest != payload["execution_contract_raw_sha256"]:
+        raise ValueError("external seal does not bind the exact execution contract bytes")
     return MappingProxyType(payload)
 
 
@@ -424,22 +536,29 @@ def validate_receipt_keyset(value: Mapping[str, Any]) -> None:
 __all__ = [
     "APPROVED_DORMANT_QUALIFIER_COMMIT",
     "APPROVED_DORMANT_QUALIFIER_GIT_BLOB_SHA",
+    "APPROVED_DORMANT_PRIMITIVES_COMMIT",
+    "APPROVED_DORMANT_PRIMITIVES_GIT_BLOB_SHA",
     "AUTHORITY_REQUIRED_FIELDS",
     "CLAIM_REQUIRED_FIELDS",
     "EXECUTION_AUTHORITY_CONTRACT_COMMIT",
     "EXECUTION_AUTHORITY_CONTRACT_GIT_BLOB_SHA",
+    "EXECUTION_AUTHORITY_CONTRACT_RAW_SHA256",
+    "EXTERNAL_SEAL_COMMIT",
+    "EXTERNAL_SEAL_GIT_BLOB_SHA",
     "OBSERVER_ENTRY_EVIDENCE_REQUIRED_FIELDS",
     "RECEIPT_REQUIRED_FIELDS",
     "RUNTIME_QUALIFICATION_CONTRACT_COMMIT",
     "RUNTIME_QUALIFICATION_CONTRACT_GIT_BLOB_SHA",
     "RUNTIME_QUALIFICATION_CONTRACT_RAW_SHA256",
     "canonical_json_bytes",
+    "canonical_execution_contract_raw_sha256",
     "derive_claim_id",
     "derive_claim_slot_identity",
     "derive_observer_entry_evidence_id",
     "derive_observer_entry_slot_identity",
     "external_raw_sha256",
     "load_runtime_execution_contract",
+    "load_runtime_execution_external_seal",
     "parse_canonical_json_bytes",
     "validate_authority_id",
     "validate_authority_keyset",

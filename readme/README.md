@@ -56,7 +56,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   implémentées sans issuer ni effet : loader lié au contrat `e0e070b8…` / blob
   `5ab6ff43…`, codec JSON canonique manuel, validation byte-exacte, SHA externe,
   dérivation domain-separated des IDs/slots claim et observer-entry, et
-  keysets fermés. Les 27 tests n'utilisent que des objets artificiels; aucune
+  keysets fermés. Le loader du seal externe vérifie en plus son commit/blob,
+  tous ses états `false`/`null` et le SHA brut du contrat sur les mêmes octets
+  Git LF qui produisent `5ab6ff43…`. Les 33 tests n'utilisent que des objets
+  artificiels; aucune
   authority, claim, preuve d'entrée, receipt, invocation ou science n'existe.
   Rapport :
   `readme/results/2026-08-11_harmonic-censoring-h26-runtime-execution-primitives-dormant-implementation.md`.

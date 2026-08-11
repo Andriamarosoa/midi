@@ -43,6 +43,10 @@ ef24d9ebdc4ae834b3b872175fb7e098330a68bf
 - dérivation déterministe de l'ID et du slot observer-entry, avec contrôle que
   le claim appartient bien à l'authority fournie;
 - validateurs purs des quatre keysets fermés du contrat.
+- loader fail-closed du seal externe `d60df11a…` / blob `90819f50…`;
+- vérification du SHA-256 brut `c7f6da69…` sur les octets Git LF exacts du
+  contrat, avec équivalence contrôlée des checkouts LF et CRLF;
+- rejet de tout seal altéré, mauvais binding public ou état opérationnel actif.
 
 ## Validation dormante
 
@@ -52,12 +56,15 @@ Commande exécutée avec le virtualenv déjà présent dans le dépôt principal
 C:\Users\user\Desktop\midi\.venv\Scripts\python.exe -B -m unittest tests.test_harmonic_censoring_h26_runtime_execution_primitives_dormant
 ```
 
-Résultat : `27 tests réussis`.
+Résultat final : `33 tests réussis`.
 
 La suite couvre notamment tous les échappements prescrits, le rejet des formes
 non canoniques, deux vecteurs SHA-256 calculés indépendamment, l'égalité
 ID/slot, la liaison claim-authority, le loader du blob approuvé et les keysets
 fermés.
+
+La suite finale ajoute les cas seal exact, seal modifié, faux SHA brut,
+ancienne/mauvaise identité de blob et parité LF/CRLF des octets Git canoniques.
 
 ## État terminal de cette étape
 
