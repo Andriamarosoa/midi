@@ -48,12 +48,25 @@ runtime, le qualificateur exact, le contrat d'authority de matérialisation et
 le rôle primaire. Elle sera single-use, limitée à une invocation et sans retry.
 Elle ne contient pas son propre SHA ; celui-ci sera calculé extérieurement.
 
+`single-use` signifie structurellement un seul claim total par authority. Le
+slot du claim sera dérivé uniquement de `authority_id` et de son SHA brut
+externe, puis créé en create-exclusive atomique. La première tentative de
+création consomme l'authority, même si le marker est partiel ou corrompu. Un
+autre `claim_id`, chemin ou processus ne peut ouvrir un second slot; aucun
+delete, replace ou retry n'est admis.
+
 Le claim futur devra lier l'identité et le SHA externe exacts de cette
 authority, ainsi que les commits, blobs et SHA du contrat runtime et du
 qualificateur. Il sera créé durablement et consommé avant l'observer. Son
 existence signifie consommation, même après `QUALIFIED`, `DISQUALIFIED`,
 `INCONCLUSIVE`, exception ou fichier partiel. Il ne pourra être supprimé,
 remplacé ou réutilisé.
+
+La consommation du claim ne prouve pas à elle seule que l'observer a démarré.
+Une preuve d'entrée distincte ne pourra être créée que depuis l'intérieur de
+la frontière d'entrée de `observe_primary_runtime`, en liant la même authority,
+le même claim et le qualificateur exact. Elle ne pourra jamais être fournie par
+l'appelant ou précréée.
 
 ## Receipt terminal
 
@@ -63,6 +76,7 @@ Le schéma futur `H26_RUNTIME_QUALIFICATION_EXECUTION_RECEIPT_V1` lie notamment 
 - identité et SHA brut externe de l'authority ;
 - commit/blob du qualificateur ;
 - commit et SHA brut du contrat runtime ;
+- identité et SHA externe de la preuve réelle d'entrée observer ;
 - existence et SHA brut du runtime record ;
 - statut terminal ;
 - `observer_invocation_count=1` ;
@@ -73,8 +87,14 @@ Lorsqu'un record a été publié atomiquement, son SHA est obligatoire et le
 statut du receipt doit être celui redérivé depuis ce record. Si une exception
 post-claim empêche toute publication atomique du record, l'absence est liée
 explicitement par `runtime_record_exists=false` et SHA `null`, avec terminal
-`H26_MATERIALIZATION_RUNTIME_QUALIFICATION_INCONCLUSIVE_CONSUMED`. Dans les deux
-cas, le claim reste consommé et aucun retry n'est possible.
+`H26_MATERIALIZATION_RUNTIME_QUALIFICATION_INCONCLUSIVE_CONSUMED`. Ce receipt
+n'est possible que si la preuve d'entrée interne existe réellement.
+
+Si l'authority et le claim sont consommés mais qu'une panne survient avant
+l'entrée de l'observer, aucun runtime record et aucun execution receipt
+affirmant une invocation ne peuvent être produits. Le claim durable reste la
+preuve terminale de l'échec administratif, authority et claim restent
+consommés, et aucun retry n'est possible.
 
 Un record artificiel, isolé de l'authority, du claim consommé et du receipt de
 la même invocation, ne constitue donc jamais une preuve d'exécution autorisée.
@@ -97,8 +117,9 @@ n'est pas effectuée ici.
 
 ## Frontière actuelle
 
-Tous les états authority/claim/exécution/record/receipt/matérialisation/science
-restent `false`, et tous les identifiants ou SHA courants restent `null`. Aucun
+Tous les états authority/claim/entrée observer/exécution/record/receipt/
+matérialisation/science restent `false`, et tous les identifiants ou SHA
+courants restent `null`. Aucun
 issuer, capability, authority, claim, receipt, destination ou record réel
 n'existe. Aucun Python scientifique, NumPy, BLAS, `otool`, runtime secondaire,
 waveform, population, index, P2, P0/P1/P2, donnée réelle, modèle, entraînement,

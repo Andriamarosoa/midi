@@ -27,6 +27,12 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `null`; aucune authority, claim, exécution, record ou science n'a été créé.
   Rapport :
   `readme/results/2026-08-11_harmonic-censoring-h26-runtime-qualification-execution-authority-contract.md`.
+- Durcissement one-shot du contrat : chaque authority possède exactement un
+  slot de claim dérivé de son identité et SHA; la première tentative le
+  consomme même si elle échoue partiellement. Un receipt avec compteur `1`
+  exige désormais une preuve créée depuis l'intérieur de l'entrée observer.
+  Une panne après claim mais avant observer laisse authority/claim consommés,
+  sans record ni receipt prétendant une invocation et sans retry.
 - Étape : `harmonic_censoring_h26_materialization_runtime_qualification_contract`.
 - Contrat dormant de qualification du runtime primaire H26 défini sans
   qualificateur ni exécution : identité exacte CPython 3.11.9 / Darwin 24.5.0
