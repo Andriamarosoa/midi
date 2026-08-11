@@ -98,3 +98,9 @@ reel, calcul scientifique ou locked-test n'a ete execute.
 
 R8 corrige additivement le developpement documentaire du SHA complet R5 dans
 R7; le prefixe, le commit reel et le blob loader etaient inchanges.
+
+R5 a ensuite ete rejete parce que son parseur strict ne refusait pas encore
+`NaN`, `Infinity` et `-Infinity`. R9
+`f208eba5fb054cff90ea3f1c5aca69f30d789cd4` ajoute exclusivement ce rejet et
+ses trois tests. R10 conserve R5 comme historique et designe R9 comme loader
+effectif. Aucun binding R3/R4, ordre R6 ou etat dormant n'a change.

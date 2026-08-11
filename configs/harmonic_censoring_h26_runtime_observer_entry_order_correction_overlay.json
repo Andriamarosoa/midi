@@ -9,12 +9,13 @@
     "C8": {"commit": "1652fac8e2171955180458a325cfca75e033acc1", "seal_git_blob_sha": "d298ab842ff385a2717fc38fa509cd2d2e8326ee"},
     "C9": {"commit": "626c3f5bac2b7bf1fc2b44961ddcb0d20f26b648", "original_loader_git_blob_sha": "a26c07a9f303b14812581960c0bb2a63cdb97b4f"},
     "R1_C9": {"commit": "35f269e0b0abb75d23fb22750a95a724ff794d61", "deep_freeze_loader_git_blob_sha": "f38fe07d45ba5f0c7d802ac9c4ca19be3ce8c5bb"},
-    "C10": {"commit": "fdc738d71c1e115fbbb0cd66fae4cf51d0e6397e", "orchestrator_git_blob_sha": "c049aab966bc19570fa20c28ad070b79799baf6e"}
+    "C10": {"commit": "fdc738d71c1e115fbbb0cd66fae4cf51d0e6397e", "orchestrator_git_blob_sha": "c049aab966bc19570fa20c28ad070b79799baf6e"},
+    "R5": {"commit": "23889bc9480a6dd985d4fed56ab9b3d54528f98a", "loader_git_blob_sha": "28b32bc0981c8d0c92ed9d0c911982482eee8d76", "superseded_reason": "NON_STRICT_JSON_CONSTANTS"}
   },
   "effective_bindings": {
     "R3": {"commit": "01c3220f22974ebe8aa0cd3d49116a1d919dc26c", "contract_git_blob_sha": "23308c11823708b7617b8a3797d8fd9534bcb045"},
     "R4": {"commit": "201fcbffadd8a4c3c3bfceaa9d821229cddb3ac6", "seal_git_blob_sha": "b069f5913996c021f552eaf1d6a23ae426f4c38c"},
-    "R5": {"commit": "23889bc9480a6dd985d4fed56ab9b3d54528f98a", "loader_git_blob_sha": "28b32bc0981c8d0c92ed9d0c911982482eee8d76"},
+    "R9": {"commit": "f208eba5fb054cff90ea3f1c5aca69f30d789cd4", "loader_git_blob_sha": "8f8f603b2330b5684aa1c64cc50d41ccacf2eaba"},
     "R6": {"commit": "4552f38fcc9e91f7fd880649d4e595e5030f8452", "orchestrator_git_blob_sha": "9275c879eb0dc3ffa1d9eda3dd463ac71c1a0c1a"}
   },
   "effective_future_order": [
@@ -29,6 +30,8 @@
   "historical_blobs_remain_provenance_artifacts": true,
   "historical_r7_commit_with_mistyped_r5_full_sha": "5906b3ebe0a8c7ee2fb95382c8b0382d44ee906f",
   "r8_corrects_documentary_r5_full_sha_only": true,
+  "r9_rejects_nan_and_positive_and_negative_infinity": true,
+  "r10_updates_effective_loader_binding_only": true,
   "effective_blobs_supersede_historical_order_for_future_use": true,
   "historical_commits_rewritten": false,
   "sealed_historical_json_bytes_changed": false,
