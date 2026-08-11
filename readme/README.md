@@ -52,6 +52,14 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   littéraux, Unicode non-ASCII en `\u` canonique, paire surrogate ordonnée et
   surrogate isolé interdit. Les spellings équivalents mais byte-différents
   sont refusés au lieu d'être normalisés.
+- Les primitives dormantes d'exécution administrative sont maintenant
+  implémentées sans issuer ni effet : loader lié au contrat `e0e070b8…` / blob
+  `5ab6ff43…`, codec JSON canonique manuel, validation byte-exacte, SHA externe,
+  dérivation domain-separated des IDs/slots claim et observer-entry, et
+  keysets fermés. Les 27 tests n'utilisent que des objets artificiels; aucune
+  authority, claim, preuve d'entrée, receipt, invocation ou science n'existe.
+  Rapport :
+  `readme/results/2026-08-11_harmonic-censoring-h26-runtime-execution-primitives-dormant-implementation.md`.
 - Étape : `harmonic_censoring_h26_materialization_runtime_qualification_contract`.
 - Contrat dormant de qualification du runtime primaire H26 défini sans
   qualificateur ni exécution : identité exacte CPython 3.11.9 / Darwin 24.5.0
@@ -2256,6 +2264,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-11 — préinscription scientifique H26 à certificats bornés](results/2026-08-11_harmonic-censoring-h26-scientific-preregistration.md)
 - [2026-08-11 — contrat dormant de qualification du runtime de matérialisation H26](results/2026-08-11_harmonic-censoring-h26-materialization-runtime-qualification-contract.md)
 - [2026-08-11 — implémentation dormante du qualificateur runtime H26](results/2026-08-11_harmonic-censoring-h26-runtime-qualifier-dormant-implementation.md)
+- [2026-08-11 — primitives dormantes du codec et des identités d'exécution H26](results/2026-08-11_harmonic-censoring-h26-runtime-execution-primitives-dormant-implementation.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)
