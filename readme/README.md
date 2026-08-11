@@ -14,12 +14,21 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: P0 execution inconclusive and consumed; no retry; forensic review only. -->
+<!-- H26_CORRECTION_STATUS: P0 forensic root cause confirmed; no retry; remediation design review only. -->
 ## État courant
 
 - Mise à jour : `2026-08-12`.
 - État courant :
-  `H26_P0_EXECUTION_INCONCLUSIVE_CONSUMED_NO_RETRY_PENDING_FORENSIC_REVIEW`.
+  `H26_P0_FORENSIC_ROOT_CAUSE_CONFIRMED_NO_RETRY_PENDING_REMEDIATION_DESIGN_REVIEW`.
+- L'analyse forensique strictement read-only confirme que `H26-F-P01` possède
+  une fenêtre `current_short` non nulle, mais une fenêtre `previous_short`
+  exactement silencieuse. `extract_raw_operands()` appelle ces spectres dans
+  cet ordre et `causal_spectrum()` refuse la puissance totale nulle :
+  l'exception P0-002 provient donc d'une incompatibilité déterministe entre la
+  fixture préenregistrée et le kernel, pas d'une corruption de population.
+  L'état P0 reste inconclusif consommé, sans retry et sans conclusion
+  scientifique H26. Rapport :
+  `readme/results/2026-08-12_harmonic-censoring-h26-p0-forensic-zero-power-p01.md`.
 - L'unique invocation P0 réelle au commit `eaed599a5a051685288f1f71b3cb057db64392c2`
   a consommé sa claim, puis s'est arrêtée pendant P0-002 sur
   `ValueError: H26 spectrum total power invalid`. P0-001 est la seule preuve
@@ -1969,11 +1978,13 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 ## Prochaine action réelle
 
-1. Faire relire uniquement le contrat dormant de canonicalisation et validation du futur artefact d'autorité de matérialisation H26.
-2. Ne créer aucun validator, issuer, moteur, recomputer, materializer, runner, authority,
-   capability, claim, waveform ou calcul H26 avant une autorisation séparée.
-3. Ne jamais rejouer H25. Garder les données réelles, les modèles, le fit, la
-   calibration et le test verrouillé fermés.
+1. Faire relire uniquement l'archive forensique de la cause
+   `ZERO_POWER_PREVIOUS_SHORT_P01`.
+2. Définir séparément, après revue, une éventuelle stratégie de remédiation :
+   sémantique du kernel pour une vue silencieuse, fixture, ou abandon de H26.
+3. Ne modifier aucun code, contrat, lifecycle, population ou artefact P0 et ne
+   lancer aucun P0/P1/P2, retry, rematérialisation, locked-test, entraînement ou
+   calibration sans nouvelle autorisation explicite.
 
 ## État archivé — dual-stream du 30 juillet (remplacé)
 
