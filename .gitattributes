@@ -105,3 +105,4 @@ configs/harmonic_censoring_h26_runtime_activation_operational_entrypoint_contrac
 src/polyphonic/run_h26_runtime_qualification_operational_activation_issuance.py text eol=lf
 tests/test_harmonic_censoring_h26_runtime_activation_operational_entrypoint.py text eol=lf
 readme/results/2026-08-12_harmonic-censoring-h26-runtime-activation-operational-entrypoint.md text eol=lf
+readme/results/2026-08-12_harmonic-censoring-h26-runtime-activation-issued-stop2.md text eol=lf

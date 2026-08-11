@@ -14,12 +14,17 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: operational activation entrypoint implemented at STOP 1; external review required; no root activation or runtime execution. -->
+<!-- H26_CORRECTION_STATUS: one operational activation issued at STOP 2; external review required before runtime authority claim or observer. -->
 ## État courant
 
 - Mise à jour : `2026-08-12`.
 - État courant :
-  `H26_RUNTIME_ACTIVATION_OPERATIONAL_ENTRYPOINT_IMPLEMENTED_STOP_1_PENDING_EXTERNAL_REVIEW`.
+  `H26_RUNTIME_ACTIVATION_ISSUED_STOP_2_PENDING_EXTERNAL_REVIEW_BEFORE_RUNTIME_OBSERVER`.
+- STOP 1 a été approuvé sur `dee520da...`. L'activation H26 unique a ensuite
+  été publiée sur le Mac : 26 champs canoniques, 1 735 octets, mode `0600`,
+  SHA-256 `f96a811b...`, staging absent. L'exécution s'est arrêtée avant toute
+  authority, claim ou observation runtime. Rapport :
+  `readme/results/2026-08-12_harmonic-censoring-h26-runtime-activation-issued-stop2.md`.
 - L'ancien processus passif H24 `49567` a été arrêté proprement ; aucun processus
   H24/H26 ni `active.lock` ne subsiste. Les checkouts Mac `~/midi` et
   `~/midi-worker/repository` sont propres et synchronisés à `fcb6992c...`.
