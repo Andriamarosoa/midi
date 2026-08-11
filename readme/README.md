@@ -46,6 +46,12 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   et venv, CPU/GPU=0 et l’absence de framework GPU importé. Avant rename, index,
   provenance et receipt sont reconstruits puis comparés par taille, SHA et
   octets canoniques ; un simple test « non vide » n’est plus accepté.
+- L’autorité de matérialisation one-shot H25 est maintenant définie mais
+  dormante : elle lie le materializer approuvé `0036853f…` et les cinq inputs,
+  exige un futur seal et binding OS absents, et ne peut émettre aucune
+  capability. Son wrapper consommerait l’autorité avant délégation et interdit
+  copie/retry/réutilisation. Rapport :
+  `readme/results/2026-08-11_harmonic-censoring-h25-materialization-authority-dormant.md`.
 - Les manifests H25 définissent exactement `36` fixtures neuves, équilibrées
   `12 positive / 12 negative / 12 ambiguous`, et `27` tests ordonnés
   `9 P0 / 9 P1 / 9 P2`. P1 consomme chaque fixture exactement une fois ;
@@ -2023,6 +2029,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-11 — manifests population/tests et spécifications de fixtures H25](results/2026-08-11_harmonic-censoring-h25-population-test-manifests.md)
 - [2026-08-11 — contrat H25 de runtime, provenance et encodage de matérialisation](results/2026-08-11_harmonic-censoring-h25-population-materialization-runtime-contract.md)
 - [2026-08-11 — implémentation dormante du materializer/recomputer H25](results/2026-08-11_harmonic-censoring-h25-dormant-population-materializer.md)
+- [2026-08-11 — autorité one-shot dormante de matérialisation H25](results/2026-08-11_harmonic-censoring-h25-materialization-authority-dormant.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)

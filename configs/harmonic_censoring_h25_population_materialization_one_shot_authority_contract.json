@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "purpose": "harmonic_censoring_h25_population_materialization_one_shot_authority_contract",
+  "status": "authority_definition_and_dormant_issuer_only_no_capability_issued",
+  "authorized_basis": "AUTHORIZED_TO_DEFINE_AND_IMPLEMENT_H25_POPULATION_MATERIALIZATION_ONE_SHOT_AUTHORITY_AND_ISSUER_ONLY",
+  "reviewed_materializer": {
+    "commit": "0036853ff6c9c49dda6ed3767146b16db310589f",
+    "source_path": "src/polyphonic/harmonic_censoring_h25_population_materializer.py",
+    "source_git_blob": "77bebf42e343771acca390c848962fbd05fde3c3"
+  },
+  "sealed_git_blobs": {
+    "runtime_materialization_contract": {"path":"configs/harmonic_censoring_h25_population_materialization_runtime_provenance_encoding_contract.json","git_blob":"012945e42785585196a07f1e2b021dfc60f1eaf4","raw_sha256":"a00255964eb8f10c348c4364d2b6aed641a983be52b395d7befe0f4c70472273"},
+    "scientific_contract": {"path":"configs/harmonic_censoring_h25_scientific_hypothesis_execution_contract.json","git_blob":"8bd52cf778859fad825166bb8937a241e098fcc8","raw_sha256":"ae837a647792c56c02a7d96a4328f62c1ecac03d0c0a839d59488c420cfff911"},
+    "fixture_specifications": {"path":"configs/harmonic_censoring_h25_fixture_specifications.json","git_blob":"6c262c3256b535cc366b629559960d2747bdd6af","raw_sha256":"97295c09a0dc362a9337200ede62489e254fd5e548f36e2e170f21abb3b5ef6b"},
+    "population_manifest": {"path":"configs/harmonic_censoring_h25_population_manifest.json","git_blob":"c28e4c8e9415217d7d3fde796143eaf4f9f93cf4","raw_sha256":"33e21457240497322351275c3a82868d0eb06beb6676d6370ea85fae6933ba5f"},
+    "test_manifest": {"path":"configs/harmonic_censoring_h25_test_manifest.json","git_blob":"f2b7526f03ac15fd692cff7cb4ddf172895daa69","raw_sha256":"58ce653325c785598fccd3cccffa7a77ab4944286df3baeb497bd20548544d29"}
+  },
+  "future_authorization_seal": {
+    "path": "configs/harmonic_censoring_h25_population_materialization_authorization_seal.json",
+    "exists_in_this_commit": false,
+    "required_status": "reviewed_H25_population_materialization_authorized_once",
+    "required_action": "AUTHORIZED_TO_MATERIALIZE_H25_SYNTHETIC_V1_ONCE",
+    "must_bind_future_issuer_commit_and_blob": true,
+    "exact_fields": ["schema_version", "purpose", "status", "authorized_action", "activation_commit", "reviewed_authority_commit", "authority_source_blob", "authority_contract_sha256", "reviewed_materializer_commit", "materializer_source_blob", "sealed_input_raw_sha256"],
+    "missing_or_mismatched_seal_fails_before_runtime_preflight": true
+  },
+  "future_OS_binding": {
+    "environment_variable": "H25_POPULATION_MATERIALIZATION_AUTHORIZATION_COMMIT",
+    "present_or_set_by_this_commit": false,
+    "must_equal_future_activation_commit": true
+  },
+  "issuer_preconditions_exact_order": [
+    "require future authorization seal exists and raw hash is externally bound",
+    "require OS authorization commit binding",
+    "require repository HEAD equals future reviewed issuer commit",
+    "require worktree clean",
+    "require reviewed materializer commit is ancestor and its exact source blob is bound by seal",
+    "require current authority issuer blob and contract blob equal seal",
+    "require all five sealed inputs raw SHA and historical git blobs",
+    "load dormant plan and require exact 36 IDs order",
+    "require exact runtime and output paths before NumPy",
+    "issue process-local wrapper without exposing raw capability"
+  ],
+  "one_shot_semantics": {
+    "population_id": "H25_SYNTHETIC_V1",
+    "maximum_issue_count_per_process": 1,
+    "maximum_execute_count_per_issued_wrapper": 1,
+    "raw_H25MaterializationCapability_never_returned": true,
+    "wrapper_state_transition": ["ISSUED", "CONSUMED_BEFORE_DELEGATION"],
+    "consume_before_materializer_call": true,
+    "failure_after_consumption_keeps_consumed": true,
+    "copy_deepcopy_pickle_forbidden": true,
+    "thread_safe_lock_required": true,
+    "retry_reset_reissue_or_second_execution_forbidden": true
+  },
+  "scope": {
+    "contract_and_dormant_issuer_only": true,
+    "capability_issuance_authorized_now": false,
+    "one_shot_consumption_authorized_now": false,
+    "population_materialization_authorized_now": false,
+    "P0_P1_P2_authorized": false,
+    "locked_test_used": false
+  },
+  "next_action": "external_review_before_defining_any_authorization_seal_or_activation"
+}
