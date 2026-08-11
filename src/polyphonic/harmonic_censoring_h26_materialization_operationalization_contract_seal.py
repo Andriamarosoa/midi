@@ -14,6 +14,21 @@ def _canonical(raw):
     return raw.replace(b"\r\n",b"\n")
 def _blob(raw):
     raw=_canonical(raw); return hashlib.sha1(f"blob {len(raw)}\0".encode()+raw).hexdigest()
+def _reject_duplicate_pairs(pairs):
+    value={}
+    for key,item in pairs:
+        if key in value: raise ValueError(f"duplicate JSON key: {key}")
+        value[key]=item
+    return value
+def _parse(raw):
+    value=json.loads(
+        _canonical(raw).decode("utf-8"),
+        object_pairs_hook=_reject_duplicate_pairs,
+        parse_float=lambda item:(_ for _ in ()).throw(ValueError(f"float forbidden: {item}")),
+        parse_constant=lambda item:(_ for _ in ()).throw(ValueError(f"non-JSON constant forbidden: {item}")),
+    )
+    if type(value) is not dict: raise ValueError("top-level JSON object required")
+    return value
 def _deep_freeze_json(value: Any) -> Any:
     if isinstance(value, dict):
         return MappingProxyType(
@@ -26,11 +41,11 @@ def load_materialization_operationalization_contract_external_seal():
     root=Path(__file__).resolve().parents[2]
     raw=(root/"configs"/"harmonic_censoring_h26_materialization_operationalization_dormant_contract_external_seal.json").read_bytes()
     if _blob(raw)!=SEAL_BLOB: raise ValueError("materialization seal blob mismatch")
-    seal=json.loads(_canonical(raw))
+    seal=_parse(raw)
     if seal.get("seal_schema_identity")!="H26_MATERIALIZATION_OPERATIONALIZATION_DORMANT_CONTRACT_EXTERNAL_SEAL_V1" or seal.get("creation_authorized_now") is not False or seal.get("current_state",{}).get("materializer_invoked") is not False: raise ValueError("materialization seal content mismatch")
     contract_raw=(root/"configs"/"harmonic_censoring_h26_materialization_operationalization_dormant_contract.json").read_bytes(); canonical=_canonical(contract_raw)
     if _blob(contract_raw)!=CONTRACT_BLOB or len(canonical)!=CONTRACT_LENGTH or hashlib.sha256(canonical).hexdigest()!=CONTRACT_SHA256: raise ValueError("materialization contract binding mismatch")
-    contract=json.loads(canonical)
+    contract=_parse(canonical)
     if contract.get("implementation_boundary",{}).get("real_materializer_invocation_authorized") is not False: raise ValueError("materialization contract not dormant")
     return _deep_freeze_json(seal)
 __all__=["load_materialization_operationalization_contract_external_seal"]
