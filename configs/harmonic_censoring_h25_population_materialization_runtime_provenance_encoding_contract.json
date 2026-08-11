@@ -1,0 +1,276 @@
+{
+  "schema_version": 1,
+  "purpose": "harmonic_censoring_h25_population_materialization_runtime_provenance_and_encoding_contract",
+  "status": "contract_only_population_not_materialized_external_review_required",
+  "authority": {
+    "review_verdict": "APPROVED_H25_POPULATION_TEST_MANIFESTS_AND_FIXTURE_SPECIFICATIONS_NOISE_NORMALIZATION_CORRECTION",
+    "authorized_action": "AUTHORIZED_TO_DEFINE_AND_COMMIT_H25_POPULATION_MATERIALIZATION_RUNTIME_PROVENANCE_AND_ENCODING_CONTRACT_ONLY",
+    "reviewed_parent_commit": "556ad55ac1072aff50a6a35a0feb70b49d58f6fc"
+  },
+  "scope": {
+    "contract_only": true,
+    "materializer_implementation_authorized": false,
+    "population_materialization_authorized": false,
+    "numpy_scientific_generation_authorized": false,
+    "waveform_or_fixture_file_creation_authorized": false,
+    "runner_operator_producer_or_recomputer_authorized": false,
+    "capability_claim_seal_activation_or_OS_binding_authorized": false,
+    "P0_P1_P2_execution_authorized": false,
+    "real_data_access_authorized": false,
+    "H17_H23_H24_population_access_authorized": false,
+    "locked_test_used": false,
+    "model_checkpoint_training_or_calibration_authorized": false
+  },
+  "sealed_inputs": {
+    "scientific_contract": {
+      "path": "configs/harmonic_censoring_h25_scientific_hypothesis_execution_contract.json",
+      "raw_sha256": "ae837a647792c56c02a7d96a4328f62c1ecac03d0c0a839d59488c420cfff911"
+    },
+    "fixture_specifications": {
+      "path": "configs/harmonic_censoring_h25_fixture_specifications.json",
+      "raw_sha256": "97295c09a0dc362a9337200ede62489e254fd5e548f36e2e170f21abb3b5ef6b",
+      "size_bytes": 17653
+    },
+    "population_manifest": {
+      "path": "configs/harmonic_censoring_h25_population_manifest.json",
+      "raw_sha256": "33e21457240497322351275c3a82868d0eb06beb6676d6370ea85fae6933ba5f",
+      "size_bytes": 1658
+    },
+    "test_manifest": {
+      "path": "configs/harmonic_censoring_h25_test_manifest.json",
+      "raw_sha256": "58ce653325c785598fccd3cccffa7a77ab4944286df3baeb497bd20548544d29",
+      "size_bytes": 17206
+    }
+  },
+  "population_resolution": {
+    "population_namespace": "H25_SYNTHETIC_V1",
+    "fixture_count": 36,
+    "ordered_fixture_ids_source": "population_manifest.ordered_fixture_ids",
+    "fixture_records_source": "fixture_specifications.fixtures",
+    "exact_identity_join": "fixture_specifications.fixtures[i].id == population_manifest.ordered_fixture_ids[i] for every i=0..35",
+    "category_counts": {"positive": 12, "negative": 12, "ambiguous": 12},
+    "omission_addition_duplicate_reordering_or_caller_selection_forbidden": true,
+    "filesystem_locale_or_glob_order_forbidden": true,
+    "H17_H23_H24_ID_seed_waveform_target_or_result_reuse_forbidden": true
+  },
+  "reference_runtime_identity": {
+    "platform": {
+      "os_system": "Darwin",
+      "os_release": "24.5.0",
+      "macos_version": "15.5",
+      "machine": "arm64",
+      "execution_device": "CPU",
+      "gpu_count": 0
+    },
+    "python": {
+      "implementation": "CPython",
+      "version": "3.11.9",
+      "executable": "/Users/amcarene/midi-worker/.venv/bin/python",
+      "resolved_executable": "/Library/Frameworks/Python.framework/Versions/3.11/bin/python3.11",
+      "venv_root": "/Users/amcarene/midi-worker/.venv"
+    },
+    "numpy": {
+      "distribution_version": "1.26.4",
+      "multiarray_extension_path": "/Users/amcarene/midi-worker/.venv/lib/python3.11/site-packages/numpy/core/_multiarray_umath.cpython-311-darwin.so",
+      "multiarray_extension_size_bytes": 3164400,
+      "multiarray_extension_sha256": "6a88945aed63a76e3c57076d657d704eef5d0d1e8d6cb1576724b1deb2872e44"
+    },
+    "linear_algebra_backend": {
+      "provider": "OpenBLAS ILP64",
+      "loaded_library_path": "/Users/amcarene/midi-worker/.venv/lib/python3.11/site-packages/numpy/.dylibs/libopenblas64_.0.dylib",
+      "loaded_library_size_bytes": 23198400,
+      "loaded_library_sha256": "dde2b735d01caa531885115ea853b5a4172b935167b95a1acb2a10243e0d97e7",
+      "multiarray_otool_dependency": "@loader_path/../.dylibs/libopenblas64_.0.dylib",
+      "accelerate_framework_loaded": false,
+      "accelerate_or_other_BLAS_substitution_forbidden": true
+    },
+    "process_environment_exact": {
+      "MIDI_FORCE_CPU": "1",
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1",
+      "VECLIB_MAXIMUM_THREADS": "1",
+      "PYTHONHASHSEED": "0",
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC"
+    },
+    "thread_contract": {
+      "scientific_process_count": 1,
+      "worker_process_count": 0,
+      "parallel_fixture_materialization": false,
+      "all_declared_thread_environment_values_must_be_set_before_python_start": true
+    },
+    "identity_comparison": "exact key set and exact scalar equality; paths resolved strict; file sizes and SHA256 recomputed from exact bytes",
+    "extra_missing_or_mismatched_runtime_field_fails_before_numpy_scientific_import": true
+  },
+  "canonical_json_encoding": {
+    "algorithm": "json.dumps(value, sort_keys=True, ensure_ascii=False, allow_nan=False, separators=(',', ':')).encode('utf-8') + b'\\n'",
+    "text_encoding": "UTF-8 without BOM",
+    "line_ending": "LF",
+    "unicode_normalization": "no implicit normalization; all contract identifiers are ASCII",
+    "nonfinite_float_forbidden": true,
+    "additional_fields_forbidden_where_exact_fields_are_declared": true
+  },
+  "fixture_artifact_encoding": {
+    "population_root_relative_to_repository": "tmp/local/harmonic_censoring_h25_synthetic_v1",
+    "reference_mac_population_root": "/Users/amcarene/midi-worker/repository/tmp/local/harmonic_censoring_h25_synthetic_v1",
+    "private_staging_sibling": "/Users/amcarene/midi-worker/repository/tmp/local/.harmonic_censoring_h25_synthetic_v1.staging",
+    "fixture_directory": "fixtures",
+    "ordinal_rule": "six-digit zero-based ordinal 000000..000035",
+    "filename_stem_rule": "format(i,'06d') + '__' + exact_fixture_id",
+    "files_per_fixture": 3,
+    "waveform": {
+      "extension": ".f64le",
+      "sample_count": 16640,
+      "dtype_during_synthesis": "numpy.float64",
+      "serialized_dtype": "<f8",
+      "endianness": "little",
+      "layout": "one-dimensional C contiguous",
+      "header_bytes": 0,
+      "byte_count": 133120,
+      "serialization": "np.asarray(waveform,dtype='<f8',order='C').tobytes(order='C')",
+      "all_values_finite": true,
+      "pre_support_samples_0_through_8191_are_bit_exact_positive_zero": true,
+      "negative_zero_nan_inf_or_trailing_bytes_forbidden": true,
+      "sha256": "lowercase SHA256 of exactly 133120 bytes"
+    },
+    "fixture_record": {
+      "extension": ".fixture.json",
+      "exact_fields": ["schema_version", "fixture_id", "ordinal", "population_namespace", "source_fixture_record", "source_fixture_record_sha256"],
+      "fixed_values": {"schema_version": 1, "population_namespace": "H25_SYNTHETIC_V1"},
+      "source_fixture_record": "the exact parsed fixture_specifications.fixtures[i] object without merge, mutation or added defaults",
+      "source_fixture_record_sha256": "SHA256(canonical_json_encoding(source_fixture_record))",
+      "bytes": "canonical_json_encoding of the exact six-field object"
+    },
+    "target_record": {
+      "extension": ".target.json",
+      "exact_fields": ["schema_version", "fixture_id", "category", "family", "oracle"],
+      "fixed_values": {"schema_version": 1},
+      "category": "fixture_specifications.fixtures[i].category",
+      "family": "fixture_specifications.fixtures[i].family",
+      "oracle": "fixture_specifications.base_families[family].oracle",
+      "bytes": "canonical_json_encoding of the exact five-field object",
+      "target_is_fixture_oracle_only_not_a_scientific_result": true
+    },
+    "path_rule": "POSIX paths relative to population root; fixtures/<stem><extension>",
+    "path_traversal_absolute_path_symlink_hardlink_special_file_or_casefold_alias_forbidden": true,
+    "additional_per_fixture_files_forbidden": true
+  },
+  "population_index_contract": {
+    "path": "population_index.jsonl",
+    "format": "36 canonical compact JSON objects, one UTF-8 line each with exactly one trailing LF",
+    "line_count": 36,
+    "line_order": "population_manifest.ordered_fixture_ids order",
+    "exact_fields": ["ordinal", "fixture_id", "category", "family", "waveform_path", "waveform_size_bytes", "waveform_sha256", "fixture_record_path", "fixture_record_size_bytes", "fixture_record_sha256", "target_record_path", "target_record_size_bytes", "target_record_sha256"],
+    "ordinal_values": "integers 0..35",
+    "waveform_size_bytes": 133120,
+    "additional_fields_blank_lines_or_missing_final_LF_forbidden": true,
+    "index_sha256": "lowercase SHA256 over exact concatenated 36 canonical lines",
+    "all_108_referenced_files_reopened_rehashed_and_size_checked_before_publication": true
+  },
+  "population_receipt_contract": {
+    "path": "population_receipt.json",
+    "canonicalization": "canonical_json_encoding",
+    "exact_fields": ["schema_version", "purpose", "status", "population_namespace", "fixture_count", "ordered_fixture_ids_sha256", "population_index_sha256", "scientific_contract_sha256", "fixture_specifications_sha256", "population_manifest_sha256", "test_manifest_sha256", "materialization_contract_sha256", "implementation_commit", "materializer_source_git_blob", "runtime_identity", "total_fixture_files", "total_waveform_bytes", "real_data_used", "H17_H23_H24_population_used", "locked_test_used", "P0_P1_P2_executed_counts", "model_or_checkpoint_used", "training_or_calibration_used"],
+    "fixed_values": {
+      "schema_version": 1,
+      "purpose": "harmonic_censoring_h25_population_materialization_receipt",
+      "status": "H25_POPULATION_MATERIALIZED_NOT_SCIENTIFICALLY_EXECUTED",
+      "population_namespace": "H25_SYNTHETIC_V1",
+      "fixture_count": 36,
+      "total_fixture_files": 108,
+      "total_waveform_bytes": 4792320,
+      "real_data_used": false,
+      "H17_H23_H24_population_used": false,
+      "locked_test_used": false,
+      "P0_P1_P2_executed_counts": [0, 0, 0],
+      "model_or_checkpoint_used": false,
+      "training_or_calibration_used": false
+    },
+    "ordered_fixture_ids_sha256_input": "UTF8(fixture_id + '\\n') concatenated for the exact 36 manifest IDs",
+    "receipt_sha256": "lowercase SHA256 of exact receipt bytes"
+  },
+  "runtime_provenance_receipt_contract": {
+    "path": "runtime_provenance.json",
+    "canonicalization": "canonical_json_encoding",
+    "exact_fields": ["schema_version", "purpose", "runtime_identity", "runtime_identity_sha256", "materialization_contract_sha256", "implementation_commit", "materializer_source_git_blob", "preflight_status"],
+    "fixed_values": {"schema_version": 1, "purpose": "harmonic_censoring_h25_materialization_runtime_provenance", "preflight_status": "PASSED_BEFORE_SCIENTIFIC_NUMPY_IMPORT"},
+    "runtime_identity_sha256": "SHA256(canonical_json_encoding(reference_runtime_identity))",
+    "additional_host_pid_time_nonce_or_user_fields_forbidden": true
+  },
+  "zero_science_preflight": {
+    "must_complete_before_numpy_scientific_import_or_waveform_allocation": true,
+    "exact_order": [
+      "resolve repository root and require exact reviewed implementation commit once such a commit is separately authorized",
+      "require clean worktree and exact future materializer source git blob",
+      "read and SHA256 the four sealed input contracts before parsing",
+      "parse sealed JSON and require exact schemas bindings counts IDs and order",
+      "require reference runtime identity including Python NumPy multiarray OpenBLAS no-Accelerate environment locale timezone hash seed device and threads",
+      "require success staging and receipt paths absent with no symlink ancestor",
+      "require separately reviewed authorization artifact; this contract does not define or issue it",
+      "only then permit a future materializer to import NumPy scientifically"
+    ],
+    "any_mismatch_is_preclaim_non_consuming_and_creates_no_population_file": true,
+    "hash_after_parse_or_continue_after_mismatch_forbidden": true,
+    "caller_path_population_fixture_or_seed_override_forbidden": true,
+    "preflight_does_not_authorize_materialization": true
+  },
+  "future_materialization_and_publication_sequence": {
+    "defined_for_future_review_not_authorized_now": true,
+    "exact_order": [
+      "complete zero_science_preflight",
+      "acquire separately reviewed durable one-shot authority",
+      "create new private staging directory mode0700",
+      "for i=0..35 synthesize exactly one fixture from sealed specs",
+      "write each waveform fixture record and target record with O_EXCL mode0600 then fsync",
+      "append and fsync exactly one canonical index line after all three fixture files verify",
+      "write and fsync runtime provenance",
+      "write and fsync population receipt",
+      "close reopen size-check and SHA256 all 108 fixture files plus index provenance receipt",
+      "recompute all 36 fixtures independently in manifest order and compare waveform fixture and target bytes",
+      "fsync staging directory",
+      "atomically rename staging sibling to final population root",
+      "fsync parent directory",
+      "stop before P0 P1 P2"
+    ],
+    "parallelism_resume_repair_partial_publication_or_continue_after_failure_forbidden": true,
+    "success_root_absent_on_any_failure": true,
+    "staging_is_never_authoritative": true,
+    "existing_success_or_staging_path_fails_closed": true
+  },
+  "deterministic_recomputation_contract": {
+    "same_process_second_generation_from_fresh_PC64_generators_required": true,
+    "recompute_order": "exact fixture order 0..35",
+    "recomputer_must_read_only_sealed_contracts_not_first_pass_arrays_or_files": true,
+    "waveform_fixture_target_bytes_must_be_byte_identical_for_every_fixture": true,
+    "index_and_receipt_must_recompute_byte_identically_from verified file metadata": true,
+    "same_reference_runtime_reexecution_claim": "all 36 waveform byte strings and all metadata bytes are identical",
+    "cross_runtime_claim": "only later P2 category and tolerance claims from the scientific contract; cross-runtime materialized byte identity is not claimed",
+    "single_byte_size_order_runtime_or_hash_difference_fails_before_publication": true
+  },
+  "separation_from_scientific_execution": {
+    "materialization_receipt_is_not_P0_P1_P2_evidence": true,
+    "population_success_does_not_authorize_tests_or_training": true,
+    "P0_P1_P2_remain_forbidden_until_separate_implementation_capability_claim_seal_and_external_review": true,
+    "no_locked_test_real_data_model_checkpoint_training_or_calibration": true
+  },
+  "contract_definition_allowed_files": [
+    "configs/harmonic_censoring_h25_population_materialization_runtime_provenance_encoding_contract.json",
+    "tests/test_harmonic_censoring_h25_population_materialization_runtime_contract.py",
+    "readme/README.md",
+    "readme/results/2026-08-11_harmonic-censoring-h25-population-materialization-runtime-contract.md"
+  ],
+  "forbidden_now": [
+    "add_or_modify_any_src_file",
+    "implement_or_invoke_materializer_runner_operator_producer_recomputer",
+    "import_numpy_to_generate_or_transform_any_fixture",
+    "create_population_staging_receipt_index_or_fixture_file",
+    "issue_capability_claim_authorization_seal_activation_or_OS_binding",
+    "execute_P0_P1_P2",
+    "open_real_data_H17_H23_H24_locked_test_model_or_checkpoint",
+    "fit_calibrate_train_export_or_live"
+  ],
+  "next_action": "external_review_of_contract_only_before_any_materializer_implementation"
+}

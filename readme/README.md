@@ -17,8 +17,19 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-11`.
-- Étape : `harmonic_censoring_h25_scientific_hypothesis_execution_contract`.
-- Statut : `manifests H25_SYNTHETIC_V1/H25_TEST_V1 et 36 spécifications déterministes définis sans waveform; 27 tests P0/P1/P2 figés; revue externe obligatoire avant matérialisation`.
+- Étape : `harmonic_censoring_h25_population_materialization_runtime_provenance_encoding_contract`.
+- Statut : `runtime Mac/OpenBLAS, encodage canonique des 36 fixtures, index/receipts, préflight et recomputation définis contractuellement; aucune matérialisation autorisée`.
+- Le contrat de future matérialisation H25 lie exactement CPython `3.11.9`,
+  NumPy `1.26.4`, macOS `15.5` / Darwin `24.5.0`, arm64 CPU, un processus,
+  les variables de threads, locale, timezone et hash seed. L’extension NumPy
+  charge OpenBLAS ILP64 scellé par taille/SHA et doit refuser Accelerate. Chaque
+  waveform future serait un flux `<f8` little-endian de `16640` samples, soit
+  `133120` octets, accompagné de deux JSON canoniques ; l’index contient
+  exactement `36` lignes et `108` fichiers. Le préflight doit précéder tout
+  import NumPy scientifique et une recomputation indépendante byte-for-byte
+  doit précéder la publication atomique. Le contrat n’implémente et n’autorise
+  aucune de ces opérations. Rapport :
+  `readme/results/2026-08-11_harmonic-censoring-h25-population-materialization-runtime-contract.md`.
 - Les manifests H25 définissent exactement `36` fixtures neuves, équilibrées
   `12 positive / 12 negative / 12 ambiguous`, et `27` tests ordonnés
   `9 P0 / 9 P1 / 9 P2`. P1 consomme chaque fixture exactement une fois ;
@@ -1994,6 +2005,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-11 — résultat de la qualification administrative pré-claim H25](results/2026-08-11_harmonic-censoring-h25-administrative-lifecycle-qualification-result.md)
 - [2026-08-11 — contrat scientifique H25 pitch-dilution et causal 4096/8192](results/2026-08-11_harmonic-censoring-h25-scientific-hypothesis-execution-contract.md)
 - [2026-08-11 — manifests population/tests et spécifications de fixtures H25](results/2026-08-11_harmonic-censoring-h25-population-test-manifests.md)
+- [2026-08-11 — contrat H25 de runtime, provenance et encodage de matérialisation](results/2026-08-11_harmonic-censoring-h25-population-materialization-runtime-contract.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)
