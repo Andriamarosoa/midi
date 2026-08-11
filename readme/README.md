@@ -17,8 +17,24 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-11`.
-- Étape : `harmonic_censoring_h25_dormant_scientific_authority_correction`.
-- Statut : `correctif P2-007 non récursif et runtime scientifique secondaire réel scellé contre a638aa9, en attente de revue externe; aucune activation/OS binding/capability/claim/observer; P0/P1/P2 restent à 0/0/0`.
+- Étape : `harmonic_censoring_h25_terminal_forensic_closure`.
+- Statut : `H25_SYNTHETIC_HYPOTHESIS_KILLED à P0-004; claim one-shot consommé, 4 tests P0 exécutés (3 PASS, 1 FAIL), P1/P2 non exécutés; clôture terminale et cause forensique approuvées, aucun retry H25`.
+- L'unique exécution scientifique H25 autorisée a utilisé le point d'entrée
+  public sur le commit `0baccdf7…`, puis a publié un terminal contrôlé avec
+  `exit_code=0` et `scientific_status=H25_SYNTHETIC_HYPOTHESIS_KILLED`. Le claim
+  `4632c23c…`, le terminal `dc37219d…` et le transcript `900df302…` sont
+  préservés. P0-001 à P0-003 passent ; P0-004 échoue parce que A04/A05 donnent
+  `NO_BIRTH` au lieu des six `AMBIGUOUS` exigés. Les 23 tests restants sont
+  `NOT_RUN_BY_KILL_RULE`; aucune erreur opérationnelle, donnée réelle, modèle,
+  entraînement ou test verrouillé n'a été utilisé.
+- L'analyse forensique approuvée confirme un conflit de contrat, pas une
+  corruption : la règle générique transforme « aucune évidence nouvelle et
+  explication parfaite par l'ancienne source » en `NO_BIRTH`, tandis que
+  P0-004 impose de conserver `AMBIGUOUS` lorsque les deux causes latentes sont
+  observationnellement identiques. L'absence d'évidence indépendante n'est
+  donc pas une preuve négative d'absence. H25 est consommé, définitivement
+  clos et non rejouable. Rapport :
+  `readme/results/2026-08-11_harmonic-censoring-h25-terminal-forensic-closure.md`.
 - La revue externe de `7117d01…` conserve l'architecture centrale mais exige
   trois corrections. L'activation ne contient désormais aucun SHA de son
   propre futur commit : seul le binding OS externe doit égaler `HEAD`. Les 27
@@ -1630,12 +1646,12 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 ## Prochaine action réelle
 
-1. Faire relire le commit correctif `a638aa9…` et son nouveau seal H25.
-2. Ne créer aucune activation ni binding OS, ne pas émettre de capability ou
-   claim et ne pas exécuter l'observer ou P0/P1/P2 avant une autorisation
-   séparée après revue.
-3. Conserver les données réelles, H17, les modèles, le fit, la calibration et
-   le test verrouillé fermés.
+1. Faire relire uniquement ce commit documentaire de clôture H25.
+2. Ne définir aucun successeur, H26, nouvelle fixture ou modification de
+   `_derive_outcome` sans une autorisation scientifique séparée après revue.
+3. Ne jamais rejouer H25 : conserver le claim, le terminal, le transcript et
+   les quatre evidence intacts. Garder les données réelles, les modèles, le
+   fit, la calibration et le test verrouillé fermés.
 
 ## État archivé — dual-stream du 30 juillet (remplacé)
 
@@ -2108,6 +2124,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-11 — correction du moteur scientifique dormant et de la recomputation H25](results/2026-08-11_harmonic-censoring-h25-dormant-scientific-recomputation-correction.md)
 - [2026-08-11 — capability scientifique et autorité one-shot dormantes H25](results/2026-08-11_harmonic-censoring-h25-dormant-scientific-capability-authority.md)
 - [2026-08-11 — autorité one-shot dormante de matérialisation H25](results/2026-08-11_harmonic-censoring-h25-materialization-authority-dormant.md)
+- [2026-08-11 — clôture terminale et analyse forensique H25 à P0-004](results/2026-08-11_harmonic-censoring-h25-terminal-forensic-closure.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)
