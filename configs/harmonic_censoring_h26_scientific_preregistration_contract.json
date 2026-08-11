@@ -1,0 +1,198 @@
+{
+  "schema_version": 1,
+  "purpose": "harmonic_censoring_h26_scientific_preregistration",
+  "status": "declarative_dormant_no_implementation_no_execution",
+  "hypothesis_id": "H26_BOUNDED_EVIDENCE_V1",
+  "population_namespace": "H26_SYNTHETIC_V1",
+  "test_namespace": "H26_TEST_V1",
+  "historical_parent": {
+    "hypothesis": "H25_SYNTHETIC_V1",
+    "terminal_status": "H25_SYNTHETIC_HYPOTHESIS_KILLED",
+    "first_failed_test_id": "H25-T-P0-004",
+    "claim_reusable": false,
+    "population_reusable": false,
+    "authority_reusable": false,
+    "lesson": "absence of independent evidence is not negative evidence of absence"
+  },
+  "scientific_problem": "A causal harmonic suppressor must distinguish a newly played fundamental from an already active source harmonic without converting observational non-identifiability into a forced binary decision.",
+  "hypothesis": "A four-outcome causal resolver can support a new fundamental only from an identifiable positive certificate, reject a bounded candidate claim only from an identifiable negative certificate, preserve AMBIGUOUS whenever neither certificate exists or two causes are observationally equivalent, and reserve ALREADY_ACTIVE_HISTORY for pitches already active in causal decoder state.",
+  "single_change_from_h25": "replace the generic no-new-energy implies NO_BIRTH branch with explicit positive and negative certificates separated by an ambiguity region; do not claim that an arbitrarily weak physical source can be disproved",
+  "outcome_semantics": {
+    "BIRTH_SUPPORTED": "The candidate is inactive and a valid positive certificate contains causal observation components that cannot be explained by any allowed active-source-only hypothesis.",
+    "NO_BIRTH": "The candidate is inactive and a valid negative certificate falsifies the preregistered bounded candidate claim. This means the declared minimum detectable candidate contribution is absent under valid support; it does not assert that no arbitrarily weak physical vibration exists.",
+    "AMBIGUOUS": "The allowed observations do not identify either a positive certificate or a negative certificate, or at least two allowed latent causes are observation-equivalent. AMBIGUOUS is a terminal one-hop outcome, never a hidden binary decision.",
+    "ALREADY_ACTIVE_HISTORY": "The candidate pitch was already active before the proposal according to causal decoder history. It is not a new-source birth decision and bypasses the positive/negative certificate rules."
+  },
+  "decision_order": [
+    "if candidate_pitch is active in the preregistered causal history, return ALREADY_ACTIVE_HISTORY",
+    "if required observation support or validity masks are invalid, return AMBIGUOUS",
+    "if an observation-equivalence certificate exists, return AMBIGUOUS",
+    "if and only if the positive certificate is complete, return BIRTH_SUPPORTED",
+    "if and only if the negative certificate is complete, return NO_BIRTH",
+    "otherwise return AMBIGUOUS"
+  ],
+  "non_identifiability_rule": {
+    "statement": "Two allowed latent causes that produce byte-identical allowed observations, masks and causal state must receive AMBIGUOUS.",
+    "priority": "overrides positive and negative scalar heuristics",
+    "forced_binary_forbidden": true,
+    "zero_gain_latent_source_as_exact_collision_forbidden": true,
+    "required_collision_design": "Each exact-collision explanation must contain a nonzero source contribution and the two complete latent decompositions must independently synthesize the same allowed observation bytes."
+  },
+  "bounded_candidate_claim": {
+    "meaning": "A proposal eligible for a negative certificate asserts at least the preregistered minimum observable candidate contribution on support not explainable by active sources.",
+    "claim_origin": "The lower bound must be computed causally from the proposal's observed shared-band amplitude and a preregistered synthetic timbre lower envelope. It may not come from fixture family, expected outcome, labels or a caller-supplied per-fixture constant.",
+    "scope": "This is a synthetic bounded-timbre claim only and does not establish a universal lower bound for real guitars.",
+    "minimum_exclusive_partial_count": 2,
+    "minimum_exclusive_energy_ratio": 0.02,
+    "maximum_negative_observed_energy_ratio": 0.002,
+    "minimum_margin_ratio": 10.0,
+    "minimum_valid_bin_count_per_partial": 3,
+    "minimum_valid_short_window_count": 2,
+    "arbitrarily_weak_source_claim_allowed": false,
+    "caller_supplied_per_fixture_bound_forbidden": true,
+    "target_derived_bound_forbidden": true,
+    "posthoc_amplitude_floor_change_forbidden": true
+  },
+  "exclusive_support_rule": {
+    "definition": "A candidate partial is exclusive only when its complete tolerance band does not intersect any preregistered partial band of any causally active source.",
+    "active_source_harmonic_range": [1, 8],
+    "candidate_harmonic_range": [1, 8],
+    "minimum_exclusive_partial_count": 2,
+    "derived_from_pitch_graph_not_fixture_label": true,
+    "overlapping_band_may_not_be_counted_exclusive": true
+  },
+  "positive_certificate": {
+    "all_required": true,
+    "candidate_inactive": true,
+    "observation_equivalence_absent": true,
+    "short_and_long_support_valid": true,
+    "minimum_exclusive_partial_count": 2,
+    "minimum_exclusive_energy_ratio_each": 0.02,
+    "minimum_short_window_onset_rise": 0.05,
+    "minimum_active_only_residual_improvement": 0.10,
+    "causal_state_consistent": true,
+    "future_audio_forbidden": true
+  },
+  "negative_certificate": {
+    "all_required": true,
+    "candidate_inactive": true,
+    "observation_equivalence_absent": true,
+    "bounded_candidate_claim_valid": true,
+    "short_and_long_support_valid": true,
+    "maximum_exclusive_energy_ratio_each": 0.002,
+    "maximum_short_window_onset_rise": 0.005,
+    "maximum_active_only_residual_improvement": 0.001,
+    "minimum_margin_below_candidate_claim": 10.0,
+    "causal_state_consistent": true,
+    "absence_only_is_insufficient": true
+  },
+  "ambiguity_region": {
+    "includes": [
+      "observation-equivalent nonzero latent decompositions",
+      "candidate contribution below the preregistered detection floor",
+      "incomplete or invalid observation support",
+      "positive and negative certificate gaps",
+      "conflicting certificate components"
+    ],
+    "binary_tie_break_forbidden": true,
+    "family_average_compensation_forbidden": true
+  },
+  "causal_contract": {
+    "sample_rate_hz": 44100,
+    "hop_samples": 256,
+    "short_view_samples": 4096,
+    "long_view_samples": 8192,
+    "views_end_on_same_hop": true,
+    "previous_views_end_one_hop_earlier": true,
+    "first_observation_state": "PENDING_NEW",
+    "resolution_delay_hops": 1,
+    "pending_may_survive_resolution": false,
+    "maximum_future_samples_read": 0,
+    "long_view_role": "persistence decay and active-source context only",
+    "short_view_role": "current onset novelty exclusive support and candidate residual evidence"
+  },
+  "allowed_inputs": [
+    "causal active-pitch history",
+    "current and previous 4096-sample views ending on causal hops",
+    "current and previous 8192-sample views ending on the same causal hops",
+    "support-normalized pitch-dilution residual curve",
+    "exclusive candidate partial support masks",
+    "active-source-only reconstruction residual",
+    "candidate-plus-active-source reconstruction residual",
+    "observation validity masks"
+  ],
+  "forbidden_inputs": [
+    "future audio",
+    "future labels",
+    "fixture identity",
+    "fixture family or target category",
+    "reference note identity",
+    "ground-truth onset coordinate",
+    "string or fret",
+    "post-decision decoder state",
+    "post-emission rank or selection",
+    "H25 outcome or membership",
+    "raw transform disappearance index",
+    "latent explanation label"
+  ],
+  "numeric_contract": {
+    "dtype": "float64",
+    "exact_zero_atol": 1e-12,
+    "recompute_rtol": 1e-10,
+    "recompute_atol": 1e-12,
+    "integer_boolean_mask_tolerance": 0,
+    "unmasked_nan_or_infinity_is_failure": true,
+    "invalid_support_is_masked_not_zero_filled": true,
+    "threshold_change_after_observation_forbidden": true
+  },
+  "preregistered_metrics": [
+    "outcome exact-match by fixture",
+    "positive-certificate component exact-match",
+    "negative-certificate component exact-match",
+    "observation-equivalence preservation rate",
+    "false forced-binary count on ambiguous fixtures",
+    "causal maximum sample read",
+    "state transition and delay exact-match",
+    "per-family and per-pitch-band exact-match"
+  ],
+  "phase_plan": {
+    "P0": "validate schema, causal boundaries, certificate semantics, non-identifiability, leakage exclusions and independent recomputation before category claims",
+    "P1": "evaluate all preregistered positive, negative, active-history and ambiguous fixture families without family-average compensation",
+    "P2": "evaluate preregistered gain, phase, noise, cents, inharmonicity, pitch-band, permutation, runtime and causal-boundary robustness"
+  },
+  "kill_rules": {
+    "P0_failure": "H26_PREREGISTRATION_OR_IDENTIFIABILITY_INVALID",
+    "P1_failure": "H26_CERTIFICATE_HYPOTHESIS_NOT_DEMONSTRATED",
+    "P2_failure": "H26_ROBUSTNESS_NOT_DEMONSTRATED",
+    "operational_failure": "H26_EXECUTION_INCONCLUSIVE",
+    "stop_after_first_failed_test": true,
+    "later_tests_marked_not_run": true
+  },
+  "runtime_and_provenance_requirements": {
+    "future_execution_requires_new_authority": true,
+    "future_execution_requires_new_durable_claim": true,
+    "h25_claim_may_not_authorize_h26": true,
+    "fixture_and_test_namespaces_new": true,
+    "materialization_runtime_must_be_sealed_before_generation": true,
+    "scientific_runtime_must_be_sealed_before_execution": true,
+    "source_blobs_contracts_manifests_runtime_and_population_hashes_required": true,
+    "secondary_runtime_required_only_if_a_cross_runtime_test_is_later_implemented": true,
+    "atomic_population_publication_required": true,
+    "atomic_terminal_or_forensic_closure_required": true,
+    "transcript_must_contain_every_preregistered_test_in_order": true,
+    "locked_test_used": false
+  },
+  "linked_declarative_files": [
+    "configs/harmonic_censoring_h26_fixture_specifications.json",
+    "configs/harmonic_censoring_h26_test_manifest.json"
+  ],
+  "authorization_boundary": {
+    "implementation_authorized": false,
+    "materialization_authorized": false,
+    "synthetic_signal_generation_authorized": false,
+    "scientific_execution_authorized": false,
+    "real_data_authorized": false,
+    "model_or_training_authorized": false,
+    "locked_test_authorized": false
+  }
+}

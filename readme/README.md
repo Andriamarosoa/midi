@@ -17,8 +17,18 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 ## État courant
 
 - Mise à jour : `2026-08-11`.
-- Étape : `harmonic_censoring_h25_terminal_forensic_closure`.
-- Statut : `H25_SYNTHETIC_HYPOTHESIS_KILLED à P0-004; claim one-shot consommé, 4 tests P0 exécutés (3 PASS, 1 FAIL), P1/P2 non exécutés; clôture terminale et cause forensique approuvées, aucun retry H25`.
+- Étape : `harmonic_censoring_h26_scientific_preregistration`.
+- Statut : `paquet H26 déclaratif dormant préenregistré après clôture définitive de H25; 40 fixtures spécifiées, 27 tests P0/P1/P2 définis, 0 waveform, aucune implémentation/exécution/authority/capability/claim`.
+- La préinscription H26 sépare désormais un certificat positif de naissance et
+  un certificat négatif falsifiant une proposition candidate d'amplitude
+  minimale préenregistrée. L'absence d'évidence indépendante seule produit
+  `AMBIGUOUS`, jamais `NO_BIRTH`. Toute équivalence observationnelle a priorité
+  sur les scores et doit rester ambiguë. Les six collisions exactes futures
+  exigent deux décompositions latentes réellement non nulles et byte-identiques;
+  une source de gain zéro ne peut plus servir de collision. Le paquet contient
+  `40` fixtures seulement spécifiées et `27` tests dormants, sans moteur,
+  signal, runner ou calcul. Rapport :
+  `readme/results/2026-08-11_harmonic-censoring-h26-scientific-preregistration.md`.
 - L'unique exécution scientifique H25 autorisée a utilisé le point d'entrée
   public sur le commit `0baccdf7…`, puis a publié un terminal contrôlé avec
   `exit_code=0` et `scientific_status=H25_SYNTHETIC_HYPOTHESIS_KILLED`. Le claim
@@ -1646,12 +1656,11 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 ## Prochaine action réelle
 
-1. Faire relire uniquement ce commit documentaire de clôture H25.
-2. Ne définir aucun successeur, H26, nouvelle fixture ou modification de
-   `_derive_outcome` sans une autorisation scientifique séparée après revue.
-3. Ne jamais rejouer H25 : conserver le claim, le terminal, le transcript et
-   les quatre evidence intacts. Garder les données réelles, les modèles, le
-   fit, la calibration et le test verrouillé fermés.
+1. Faire relire uniquement le paquet déclaratif dormant de préinscription H26.
+2. Ne créer aucun moteur, recomputer, materializer, runner, authority,
+   capability, claim, waveform ou calcul H26 avant une autorisation séparée.
+3. Ne jamais rejouer H25. Garder les données réelles, les modèles, le fit, la
+   calibration et le test verrouillé fermés.
 
 ## État archivé — dual-stream du 30 juillet (remplacé)
 
@@ -2125,6 +2134,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-11 — capability scientifique et autorité one-shot dormantes H25](results/2026-08-11_harmonic-censoring-h25-dormant-scientific-capability-authority.md)
 - [2026-08-11 — autorité one-shot dormante de matérialisation H25](results/2026-08-11_harmonic-censoring-h25-materialization-authority-dormant.md)
 - [2026-08-11 — clôture terminale et analyse forensique H25 à P0-004](results/2026-08-11_harmonic-censoring-h25-terminal-forensic-closure.md)
+- [2026-08-11 — préinscription scientifique H26 à certificats bornés](results/2026-08-11_harmonic-censoring-h26-scientific-preregistration.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)
