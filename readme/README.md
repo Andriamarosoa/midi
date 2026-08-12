@@ -14,12 +14,18 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 dormant loader/materializer externally reviewed and closed; no materialization or science. -->
+<!-- H26_CORRECTION_STATUS: H27 engine/recomputer design contracted; no implementation, materialization or science; external review pending. -->
 ## État courant
 
 - Mise à jour : `2026-08-12`.
 - État courant :
-  `H27_DORMANT_MATERIALIZER_REVIEWED_CLOSED_NO_MATERIALIZATION_NO_SCIENCE`.
+  `H27_DORMANT_ENGINE_RECOMPUTER_DESIGN_CONTRACTED_PENDING_EXTERNAL_REVIEW_NO_IMPLEMENTATION_NO_MATERIALIZATION_NO_SCIENCE`.
+- Le contrat H27 engine/recomputer est défini, sans code exécutable : il lie les
+  cinq blobs H27 revus, fige record/mask/role semantics/ordre fail-closed,
+  interdit tout calcul avant validation des bytes/support et impose un
+  recomputer réellement indépendant. Les engine/recomputer, population,
+  FFT/NNLS, P0/P1/P2 et capacités restent absents. Rapport :
+  `readme/results/2026-08-12_harmonic-censoring-h27-engine-recomputer-design.md`.
 - Le loader et materializer H27 restent strictement dormants : les cinq blobs
   H27 revus sont contrôlés avant parsing, les 17/27/107/124 identités et le
   masque role-major sont réconciliés, et les frontières de synthèse/publication

@@ -1,0 +1,101 @@
+{
+  "schema_identity": "H27_DORMANT_ENGINE_RECOMPUTER_DESIGN_V1",
+  "schema_version": 1,
+  "status": "DESIGN_ONLY_NO_IMPLEMENTATION_NO_MATERIALIZATION_NO_SCIENCE",
+  "design_base_commit": "44c2c33db4bc64c775bf1401812316d432905880",
+  "hypothesis_id": "H27_ROLE_AWARE_ZERO_CONTEXT_V1",
+  "population_namespace": "H27_SYNTHETIC_V1",
+  "test_namespace": "H27_TEST_V1",
+  "immutable_upstream_git_blobs": {
+    "preregistration": "869c70f7c643d8387645377a8cf5166b8728914d",
+    "zero_context_cases": "1b57c27936cfb0befeceaf0c30ff73189f304672",
+    "fixture_specifications": "9aea04053a13a3f5cf81b461a58977c377600f5b",
+    "test_manifest": "594b33c8c579733718f7f0445d3780c9f60b2b2a",
+    "future_population_contract": "fc82c1c7b3dec837a63c6f86afed9a5f724f7aad"
+  },
+  "bindings_must_match_before_any_scientific_operation": true,
+  "existing_population_required_now": false,
+  "engine_exists": false,
+  "recomputer_exists": false,
+  "engine_implementation_authorized": false,
+  "recomputer_implementation_authorized": false,
+  "materialization_authorized": false,
+  "science_authorized": false,
+  "execution_authorized": false,
+  "authority_exists": false,
+  "claim_exists": false,
+  "capability_exists": false,
+  "locked_test_authorized": false,
+  "training_calibration_authorized": false,
+  "future_record_contract": {
+    "identity": "one canonical baseline or P2 record identity from the sealed fixed order",
+    "required_payloads": ["waveform.f64le", "sample-valid-mask.u8", "metadata.json"],
+    "collision_payload": "alternate-waveform.f64le required only for sealed exact-collision records",
+    "waveform": {"dtype":"<f8","sample_count":16640,"sample_rate_hz":44100,"sha256_and_exact_size_required":true},
+    "mask": {"dtype":"uint8","payload_length_bytes":66560,"role_order":["current_short","previous_short","current_long","previous_long"],"allowed_values":[0,1],"sha256_and_exact_size_required":true},
+    "metadata": {"record_identity_exact":true,"population_namespace_exact":true,"sha256_and_exact_size_required":true},
+    "path_containment_and_no_symlink_required": true,
+    "no_population_read_or_record_creation_now": true
+  },
+  "future_engine_fail_closed_order": [
+    "verify exact contract blobs and future authority bindings",
+    "verify record identity, namespace, file containment, exact sizes and SHA256",
+    "verify waveform dtype/shape/finite values and role-major mask encoding/support",
+    "classify support and role-aware zero/nonzero validity",
+    "only then permit FFT, band construction, NNLS or certificate computation",
+    "only then construct an outcome/result"
+  ],
+  "failure_before_science": ["binding mismatch","unknown record identity","size or SHA mismatch","path or symlink violation","non-finite waveform","mask mismatch","invalid required support","invalid current analysis","invalid previous nonzero context"],
+  "role_semantics": {
+    "current_short": {"exact_zero":"INVALID_CURRENT_SHORT_ANALYSIS","nonzero_rule":"finite T > max(1e-24,1e-12*sum(abs(P[k])))","invalid_outcome_without_active_history":"AMBIGUOUS","cannot_reach_fft_nnls_or_certificate":true},
+    "previous_short": {"exact_zero":"VALID_EXACT_ZERO_PREVIOUS_SHORT only with complete support","exact_zero_total_power":0,"onset_when_current_valid":1,"quasi_zero":"apply strictly-positive nonzero rule","epsilon_forbidden":true},
+    "current_long": {"exact_zero":"INVALID_CURRENT_LONG_ANALYSIS","nonzero_rule":"finite T > max(1e-24,1e-12*sum(abs(P[k])))","cannot_reach_certificate":true},
+    "previous_long": {"exact_zero":"VALID_EXACT_ZERO_PREVIOUS_LONG only with complete support","exact_zero_total_power":0,"persistence_when_current_valid":1,"quasi_zero":"apply strictly-positive nonzero rule","epsilon_forbidden":true}
+  },
+  "numeric_contract": {
+    "dtype":"float64","sample_rate_hz":44100,"hop_samples":256,"short_view_samples":4096,"long_view_samples":8192,"previous_view_offset_hops":1,"resolution_delay_hops":1,"maximum_future_samples_read":0,
+    "partial_ranks":[1,2,3,4,5,6,7,8],
+    "partial_frequency":"h*F0(p)*2^(cents/1200)*sqrt(1+B*h^2)",
+    "midi_frequency":"F0(p)=440.0*2^((float64(p)-69.0)/12.0)",
+    "positive_thresholds":{"exclusive_energy_ratio":0.02,"onset_rise":0.05,"residual_improvement":0.1},
+    "negative_thresholds":{"exclusive_energy_ratio":0.002,"onset_rise":0.005,"residual_improvement":0.001,"minimum_margin":10.0},
+    "minimum_exclusive_partial_count":2,"minimum_valid_bin_count_per_partial":3,
+    "new_threshold_or_fallback_forbidden":true
+  },
+  "engine_contract": {
+    "permitted_outcomes":["BIRTH_SUPPORTED","NO_BIRTH","AMBIGUOUS","ALREADY_ACTIVE_HISTORY"],
+    "decision_order":["ACTIVE_HISTORY_TO_ALREADY_ACTIVE_HISTORY","INVALID_REQUIRED_SUPPORT_OR_CONTEXT_TO_AMBIGUOUS","OBSERVATION_EQUIVALENCE_TO_AMBIGUOUS","COMPLETE_POSITIVE_CERTIFICATE_TO_BIRTH_SUPPORTED","COMPLETE_NEGATIVE_CERTIFICATE_TO_NO_BIRTH","OTHERWISE_AMBIGUOUS"],
+    "result_must_include":"canonical record identity, validated input hashes, role classifications, outcome, certificate completeness, exact numeric diagnostics required by the sealed tests",
+    "exact_collision_outcome":"AMBIGUOUS",
+    "absence_alone_is_insufficient_for_no_birth":true,
+    "invalid_support_zero_fill_forbidden":true
+  },
+  "independent_recomputer_contract": {
+    "same_sealed_input_record_required":true,
+    "independent_recomputation_required_before_comparison":true,
+    "engine_arrays_caches_intermediates_certificates_and_decisions_forbidden_as_input":true,
+    "engine_internal_scientific_functions_forbidden":true,
+    "permitted_shared_utilities":["strict JSON parsing","canonical identity string comparison","SHA256","exact byte length verification","role-major mask byte decoding"],
+    "wrapper_or_delegation_to_engine_forbidden":true,
+    "comparison_after_both_complete":true,
+    "comparison_contract":{"outcome":"exact equality","role_classifications":"exact equality","mask_counts":"exact equality","membership":"exact equality","finite_numeric":"abs(a-b)<=1e-12+1e-10*abs(a)","nan_or_inf":"forbidden unless explicitly declared by sealed negative-margin semantics"},
+    "mismatch":"terminal failure; never publish or coerce a valid outcome"
+  },
+  "runtime_contract": {
+    "primary":"CPython 3.11.9 Darwin arm64 NumPy 1.26.4 OpenBLAS ILP64",
+    "secondary":"CPython 3.9.6 Darwin arm64 NumPy 1.26.4 OpenBLAS ILP64",
+    "automatic_runtime_or_library_fallback_forbidden":true,
+    "future_runtime_qualification_required":true
+  },
+  "future_capability_boundary": {
+    "future_dormant_implementation_requires_unissuable_scientific_capability":true,
+    "future_real_execution_requires_separate_authority_claim_and_review":true,
+    "single_use":true,"retry_allowed":false,"objects_created_now":0
+  },
+  "future_test_obligations_only": ["input binding and attrition","role-aware exact-zero and quasi-zero","support failure before science","engine/recomputer independence","exact collision","outcome/certificate reconciliation","mismatch terminality","two pre-registered runtimes","causality and forbidden-input audit"],
+  "h26_policy": {"historical_documentation_only":true,"runtime_dependency_forbidden":true,"fixture_or_byte_read_forbidden":true,"normative_rule_delegation_forbidden":true},
+  "allowed_current_operations":["parse JSON","verify SHA or identity strings","count declarative values","verify enums and references","git diff --check"],
+  "forbidden_current_operations":["add Python engine or recomputer","add scientific stub or capability","read or create H27 population","create waveform or mask","run FFT","run NNLS","run engine","run recomputer","run P0","run P1","run P2","create authority claim or receipt","access locked-test","train","calibrate"],
+  "next_action":"external review of this contract before any dormant engine/recomputer implementation",
+  "stop_state":"H27_DORMANT_ENGINE_RECOMPUTER_DESIGN_CONTRACTED_PENDING_EXTERNAL_REVIEW_NO_IMPLEMENTATION_NO_MATERIALIZATION_NO_SCIENCE"
+}
