@@ -34,6 +34,13 @@ from src.polyphonic.harmonic_censoring_h27_materializer_dormant import (
 ROOT = Path(__file__).resolve().parents[1]
 
 
+class _FailIfTouchedNP:
+    """Sentinel proving a rejected production request cannot reach NumPy."""
+
+    def __getattr__(self, name: str) -> object:
+        raise AssertionError(f"numeric runtime touched before fail-closed guard: {name}")
+
+
 def _toy_source(*, pitch: int = 60, onset: int = 0) -> dict[str, object]:
     return {
         "pitch": pitch,
@@ -91,17 +98,21 @@ class HarmonicCensoringH27DormantTests(unittest.TestCase):
     def test_role_major_mask_is_exact_and_role_independent(self) -> None:
         encoded = role_major_mask_bytes(
             sample_count=8,
-            role_order=("current", "previous"),
-            required_intervals={"current": (2, 4), "previous": (0, 1)},
-            exceptions=({"role": "current", "sample_index": 3, "byte": 0},),
+            role_order=("toy_current", "toy_previous"),
+            required_intervals={"toy_current": (2, 4), "toy_previous": (0, 1)},
+            exceptions=({"role": "toy_current", "sample_index": 3, "byte": 0},),
         )
         self.assertEqual(encoded, bytes((0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0)))
         with self.assertRaisesRegex(ValueError, "outside required support"):
             role_major_mask_bytes(
-                sample_count=8, role_order=("current",),
-                required_intervals={"current": (2, 4)},
-                exceptions=({"role": "current", "sample_index": 1, "byte": 0},),
+                sample_count=8, role_order=("toy_current",),
+                required_intervals={"toy_current": (2, 4)},
+                exceptions=({"role": "toy_current", "sample_index": 1, "byte": 0},),
             )
+        with self.assertRaisesRegex(ValueError, "production role names"):
+            role_major_mask_bytes(sample_count=8, role_order=("current_short",), required_intervals={"current_short": (2, 4)})
+        with self.assertRaisesRegex(ValueError, "toy mask sample count"):
+            role_major_mask_bytes(sample_count=16640, role_order=("toy_current",), required_intervals={"toy_current": (0, 1)})
 
     def test_toy_recipe_is_deterministic_and_supports_symbolic_power(self) -> None:
         source = _toy_source(onset=2)
@@ -113,6 +124,10 @@ class HarmonicCensoringH27DormantTests(unittest.TestCase):
         self.assertEqual(first.shape, (32,))
         self.assertEqual(first.tobytes(), second.tobytes())
         self.assertEqual(first[:2].tobytes(), np.zeros(2, dtype=np.float64).tobytes())
+        with self.assertRaisesRegex(ValueError, "toy audio domain"):
+            render_toy_recipe(_FailIfTouchedNP(), recipe, sample_count=16640, sample_rate_hz=8000)
+        with self.assertRaisesRegex(ValueError, "toy audio domain"):
+            render_toy_recipe(_FailIfTouchedNP(), recipe, sample_count=32, sample_rate_hz=44100)
 
     def test_collision_pair_is_independent_and_byte_identical(self) -> None:
         first, second = render_toy_collision_pair(
@@ -129,6 +144,10 @@ class HarmonicCensoringH27DormantTests(unittest.TestCase):
                 collision_rank=2, old_gain=0.4, candidate_gain=0.3,
                 old_onset=0, collision_onset=8, phase=0.0,
             )
+        with self.assertRaisesRegex(ValueError, "toy audio domain"):
+            render_toy_collision_pair(np, sample_count=16640, sample_rate_hz=8000, old_pitch=48, collision_rank=2, old_gain=0.4, candidate_gain=0.2, old_onset=0, collision_onset=8, phase=0.0)
+        with self.assertRaisesRegex(ValueError, "toy audio domain"):
+            render_toy_collision_pair(np, sample_count=64, sample_rate_hz=44100, old_pitch=48, collision_rank=2, old_gain=0.4, candidate_gain=0.2, old_onset=0, collision_onset=8, phase=0.0)
 
 
 if __name__ == "__main__":

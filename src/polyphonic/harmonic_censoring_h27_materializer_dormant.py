@@ -7,19 +7,22 @@ testing this module cannot materialize H27_SYNTHETIC_V1.
 from __future__ import annotations
 
 from dataclasses import dataclass
-import hashlib
 import math
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 from .harmonic_censoring_h27_contract import (
     H27DormantPlan, REVIEWED_GIT_BLOBS, canonical_h27_record_identities,
-    deep_thaw,
 )
 
 
 SAMPLE_COUNT = 16640
 SAMPLE_RATE_HZ = 44100
+PRODUCTION_ROLE_ORDER = (
+    "current_short", "previous_short", "current_long", "previous_long",
+)
+TOY_MAX_SAMPLE_COUNT = 4096
+TOY_MAX_SAMPLE_RATE_HZ = 32000
 
 
 class H27MaterializationCapability:
@@ -54,6 +57,33 @@ def _numeric(value: object) -> float:
     return result
 
 
+def _require_toy_audio_domain(*, sample_count: int, sample_rate_hz: int) -> None:
+    """Reject any shape/rate that could reach the sealed H27 domain."""
+
+    if (
+        type(sample_count) is not int or not 1 <= sample_count <= TOY_MAX_SAMPLE_COUNT
+        or type(sample_rate_hz) is not int or not 1 <= sample_rate_hz <= TOY_MAX_SAMPLE_RATE_HZ
+    ):
+        raise ValueError("H27 toy audio domain invalid.")
+    if sample_count == SAMPLE_COUNT or sample_rate_hz == SAMPLE_RATE_HZ:
+        raise ValueError("H27 production audio domain is forbidden to toy helpers.")
+
+
+def _require_toy_mask_domain(*, sample_count: int, role_order: Sequence[str]) -> tuple[str, ...]:
+    """Validate a toy mask fully before allocating its byte payload."""
+
+    if type(sample_count) is not int or not 1 <= sample_count <= TOY_MAX_SAMPLE_COUNT:
+        raise ValueError("H27 toy mask sample count invalid.")
+    if isinstance(role_order, (str, bytes)) or not isinstance(role_order, Sequence):
+        raise ValueError("H27 toy mask role order invalid.")
+    roles = tuple(role_order)
+    if not roles or any(type(role) is not str or not role for role in roles) or len(roles) != len(set(roles)):
+        raise ValueError("H27 toy mask role order invalid.")
+    if any(role in PRODUCTION_ROLE_ORDER for role in roles):
+        raise ValueError("H27 production role names are forbidden to toy mask helpers.")
+    return roles
+
+
 def _f0(pitch: int) -> float:
     return 440.0 * 2.0 ** ((float(pitch) - 69.0) / 12.0)
 
@@ -79,13 +109,14 @@ def render_toy_recipe(
 ) -> Any:
     """Render a supplied toy recipe without consulting any H27 fixture ID."""
 
-    if type(sample_count) is not int or sample_count <= 0 or type(sample_rate_hz) is not int or sample_rate_hz <= 0:
-        raise ValueError("H27 toy shape/rate invalid.")
-    result = np.zeros(sample_count, dtype=np.float64)
+    _require_toy_audio_domain(sample_count=sample_count, sample_rate_hz=sample_rate_hz)
     sources = recipe.get("sources")
     if not isinstance(sources, Sequence) or isinstance(sources, (str, bytes)):
         raise ValueError("H27 recipe sources invalid.")
+    validated: list[tuple[Mapping[str, object], int, float, float, float, float, tuple[int, ...]]] = []
     for source in sources:
+        if not isinstance(source, Mapping):
+            raise ValueError("H27 toy source invalid.")
         pitch = int(source["pitch"])
         gain = _numeric(source["gain"])
         phase = _numeric(source["phase_radians"])
@@ -94,6 +125,21 @@ def render_toy_recipe(
         ranks = tuple(source["partial_ranks"])
         if ranks != tuple(sorted(set(ranks))) or any(type(rank) is not int or rank < 1 for rank in ranks):
             raise ValueError("H27 partial rank order invalid.")
+        onset = source.get("onset_sample")
+        if type(onset) is not int or not 0 <= onset < sample_count:
+            raise ValueError("H27 toy source onset outside toy support.")
+        if source.get("envelope_id") == "H27_ENV_ATTACK_DECAY_V1" and source.get("envelope_parameters") != {}:
+            raise ValueError("H27 attack-decay toy envelope takes no parameters.")
+        if source.get("envelope_id") not in ("H27_ENV_ATTACK_DECAY_V1", "H27_ENV_EXP_DECAY_V1"):
+            raise ValueError("H27 unknown envelope.")
+        if  any(1.0 + inharmonicity * rank * rank <= 0.0 for rank in ranks):
+            raise ValueError("H27 inharmonicity makes a partial frequency invalid.")
+        validated.append((source, pitch, gain, phase, cents, inharmonicity, ranks))
+    noise = recipe.get("noise")
+    if not isinstance(noise, Mapping) or noise.get("kind") != "NONE":
+        raise ValueError("H27 toy renderer accepts NONE noise only; stochastic helpers are separately reviewed.")
+    result = np.zeros(sample_count, dtype=np.float64)
+    for source, pitch, gain, phase, cents, inharmonicity, ranks in validated:
         for rank in ranks:
             frequency = rank * _f0(pitch) * 2.0 ** (cents / 1200.0) * math.sqrt(1.0 + inharmonicity * rank * rank)
             amplitude = gain / float(rank)
@@ -102,9 +148,6 @@ def render_toy_recipe(
                     2.0 * math.pi * frequency * float(sample) / float(sample_rate_hz) + phase
                 )
                 result[sample] = np.float64(result[sample] + component)
-    noise = recipe.get("noise")
-    if not isinstance(noise, Mapping) or noise.get("kind") != "NONE":
-        raise ValueError("H27 toy renderer accepts NONE noise only; stochastic helpers are separately reviewed.")
     return result
 
 
@@ -115,35 +158,43 @@ def role_major_mask_bytes(
 ) -> bytes:
     """Canonical generic role-major mask encoder, suitable for toy tests."""
 
-    if sample_count <= 0 or len(role_order) != len(set(role_order)):
-        raise ValueError("H27 mask shape/role order invalid.")
-    payload = bytearray(len(role_order) * sample_count)
-    role_index = {role: index for index, role in enumerate(role_order)}
-    if set(required_intervals) != set(role_order):
+    roles = _require_toy_mask_domain(sample_count=sample_count, role_order=role_order)
+    if not isinstance(required_intervals, Mapping) or set(required_intervals) != set(roles):
         raise ValueError("H27 mask intervals must cover every role exactly.")
-    for role in role_order:
+    normalized: dict[str, tuple[int, int]] = {}
+    for role in roles:
         bounds = required_intervals[role]
-        if len(bounds) != 2:
+        if isinstance(bounds, (str, bytes)) or not isinstance(bounds, Sequence) or len(bounds) != 2 or any(type(value) is not int for value in bounds):
             raise ValueError("H27 mask interval invalid.")
-        start, end = int(bounds[0]), int(bounds[1])
+        start, end = bounds
         if not 0 <= start <= end < sample_count:
             raise ValueError("H27 mask interval out of range.")
-        offset = role_index[role] * sample_count
-        payload[offset + start:offset + end + 1] = b"\x01" * (end - start + 1)
+        normalized[role] = (start, end)
+    if isinstance(exceptions, (str, bytes)) or not isinstance(exceptions, Sequence):
+        raise ValueError("H27 mask exceptions invalid.")
+    validated_exceptions: list[tuple[str, int, int]] = []
     seen: set[tuple[str, int]] = set()
     for item in exceptions:
         role, sample = item.get("role"), item.get("sample_index")
-        value = item.get("byte", item.get("replacement_uint8"))
-        if role not in role_index or type(sample) is not int or value not in (0, 1):
+        value = item["byte"] if "byte" in item else item.get("replacement_uint8")
+        if type(role) is not str or role not in normalized or type(sample) is not int or type(value) is not int or value not in (0, 1):
             raise ValueError("H27 mask exception invalid.")
         key = (str(role), sample)
         if key in seen:
             raise ValueError("H27 duplicate mask exception.")
         seen.add(key)
-        start, end = required_intervals[str(role)]
-        if not int(start) <= sample <= int(end):
+        start, end = normalized[role]
+        if not start <= sample <= end:
             raise ValueError("H27 mask exception outside required support.")
-        payload[role_index[str(role)] * sample_count + sample] = int(value)
+        validated_exceptions.append((role, sample, value))
+    payload = bytearray(len(roles) * sample_count)
+    role_index = {role: index for index, role in enumerate(roles)}
+    for role in roles:
+        start, end = normalized[role]
+        offset = role_index[role] * sample_count
+        payload[offset + start:offset + end + 1] = b"\x01" * (end - start + 1)
+    for role, sample, value in validated_exceptions:
+        payload[role_index[role] * sample_count + sample] = value
     return bytes(payload)
 
 
@@ -154,7 +205,15 @@ def render_toy_collision_pair(
 ) -> tuple[Any, Any]:
     """Independently render a toy exact-collision pair for unit verification."""
 
-    if collision_rank not in (2, 4, 8) or candidate_gain != old_gain / collision_rank:
+    _require_toy_audio_domain(sample_count=sample_count, sample_rate_hz=sample_rate_hz)
+    if type(old_pitch) is not int or type(collision_rank) is not int or collision_rank not in (2, 4, 8):
+        raise ValueError("H27 collision amplitude/rank equation invalid.")
+    if type(old_onset) is not int or type(collision_onset) is not int or not 0 <= old_onset < sample_count or not 0 <= collision_onset < sample_count:
+        raise ValueError("H27 toy collision onset outside toy support.")
+    old_gain = _numeric(old_gain)
+    candidate_gain = _numeric(candidate_gain)
+    phase = _numeric(phase)
+    if candidate_gain != old_gain / collision_rank:
         raise ValueError("H27 collision amplitude/rank equation invalid.")
     canonical = float(collision_rank) * _f0(old_pitch)
 

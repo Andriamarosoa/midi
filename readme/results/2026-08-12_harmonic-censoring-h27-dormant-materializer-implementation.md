@@ -40,6 +40,16 @@ Le module ne dépend pas de H26 et ne peut pas publier la population
 `H27_SYNTHETIC_V1`. Les rendus toy ne consultent aucun ID ni aucune recette H27
 scellée et ne constituent pas une matérialisation.
 
+## Correctif de revue fail-closed
+
+La revue de `c1992d26` a relevé qu'un appelant aurait pu fournir les dimensions
+ou rôles de production aux helpers numériques toy. Le correctif conserve les
+interfaces mais refuse maintenant, **avant toute allocation ou accès NumPy**,
+le nombre de samples `16640`, le taux `44100 Hz` et chacun des quatre rôles de
+production. Les helpers sont limités à un domaine toy explicitement plus petit.
+Les tests utilisent également une sentinelle NumPy afin de démontrer que ce
+rejet est réellement antérieur au runtime numérique.
+
 ## Vérification locale
 
 Commande exécutée depuis le worktree isolé :
@@ -48,7 +58,7 @@ Commande exécutée depuis le worktree isolé :
 C:\Users\user\Desktop\midi\.venv\Scripts\python.exe -B -m unittest discover -s tests -p test_harmonic_censoring_h27*.py -v
 ```
 
-Résultat : `8/8` tests réussis. Ils couvrent notamment le binding des cinq
+Résultat : `8/8` tests réussis après correctif de revue. Ils couvrent notamment le binding des cinq
 blobs, leur rejet après mutation d'octets, l'impossibilité d'émettre la
 capability, l'échec avant accès à la destination, les 124 identités, le masque
 role-major, `2^-80`, et les deux rendus indépendants byte-identiques d'une

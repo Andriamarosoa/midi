@@ -24,7 +24,9 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   H27 revus sont contrôlés avant parsing, les 17/27/107/124 identités et le
   masque role-major sont réconciliés, et les frontières de synthèse/publication
   échouent avant allocation ou accès filesystem faute de capability émissible.
-  Huit tests structurels/toy passent ; aucun waveform H27, record, index,
+  Le correctif de revue interdit aussi aux helpers toy le domaine de production
+  `16640/44100` et les rôles H27 avant tout accès NumPy. Huit tests
+  structurels/toy passent ; aucun waveform H27, record, index,
   authority, claim, FFT, NNLS, P0/P1/P2 ou locked-test n'existe. Rapport :
   `readme/results/2026-08-12_harmonic-censoring-h27-dormant-materializer-implementation.md`.
 - Le package de conception H27 fixe exactement 17 fixtures (`4/4/2/7`), 27
