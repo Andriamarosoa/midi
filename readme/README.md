@@ -14,12 +14,19 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 fixture/test/future-population design contracted; no implementation; external review only. -->
+<!-- H26_CORRECTION_STATUS: H27 dormant loader/materializer implemented; no materialization or science; external review pending. -->
 ## État courant
 
 - Mise à jour : `2026-08-12`.
 - État courant :
-  `H27_FIXTURE_TEST_POPULATION_DESIGN_CONTRACTED_PENDING_EXTERNAL_REVIEW_NO_IMPLEMENTATION`.
+  `H27_DORMANT_MATERIALIZER_IMPLEMENTED_PENDING_EXTERNAL_REVIEW_NO_MATERIALIZATION_NO_SCIENCE`.
+- Le loader et materializer H27 restent strictement dormants : les cinq blobs
+  H27 revus sont contrôlés avant parsing, les 17/27/107/124 identités et le
+  masque role-major sont réconciliés, et les frontières de synthèse/publication
+  échouent avant allocation ou accès filesystem faute de capability émissible.
+  Huit tests structurels/toy passent ; aucun waveform H27, record, index,
+  authority, claim, FFT, NNLS, P0/P1/P2 ou locked-test n'existe. Rapport :
+  `readme/results/2026-08-12_harmonic-censoring-h27-dormant-materializer-implementation.md`.
 - Le package de conception H27 fixe exactement 17 fixtures (`4/4/2/7`), 27
   tests (`9/9/9`) et 107 cellules P2 futures, soit 124 records de population
   conçus mais non matérialisés. Il lie les deux blobs H27 approuvés, conserve
