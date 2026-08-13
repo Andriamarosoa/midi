@@ -14,12 +14,23 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 dormant activation/connection gate PASS; exact module seal, acyclic identity binding and binding seal now await review; all five edges and science remain closed. -->
+<!-- H26_CORRECTION_STATUS: H27 dormant activation/connection gate sealing PASS; declarative future activation artifact contract and seal now await review; artifact, edges and science remain absent. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_FUTURE_BRIDGE_OPERATIONAL_ACTIVATION_CONNECTION_DORMANT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+  `H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `da5acf7026e89afec4155880d8e0cf7b1bf73f21`
+  conclut `PASS`. Un contrat declaratif distinct fixe maintenant le schema ferme
+  d'un futur artefact d'activation, ses quatorze champs ordonnes et seize
+  preconditions fail-closed. Il lie exactement les quatre artefacts gate PASS,
+  les douze artefacts activation/connection, bridge et compatibility, ainsi que
+  les vingt predecesseurs. Aucun path, SHA d'artefact ou implementation future
+  n'existe; creation et implementation restent non autorisees et devront etre
+  distinctes, revues et scellees separement. Les deux connexions et les cinq
+  public edges restent fermees. `9/9` tests administratifs et `209/209` tests H27
+  passent. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-future-bridge-activation-artifact-contract.md`.
 - La revue externe de `339e79d6e7f49606c0bfd05b269e7b4cb34faeb3`
   conclut `PASS`. Le gate dormant exact (blob `d6047037...`, 13835 octets,
   SHA-256 `7162a858...`) possede maintenant un seal externe, un identity binding
