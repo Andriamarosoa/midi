@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "seal_id": "H27_ONE_SHOT_EXECUTION_COMPOSITION_CONTRACT_EXTERNAL_SEAL_V1",
+  "status": "SEALED_PENDING_EXTERNAL_REVIEW_CONTRACT_ONLY_NO_OPERATION_NO_SCIENCE",
+  "composition_contract": {
+    "path": "configs/harmonic_censoring_h27_one_shot_execution_composition_contract.json",
+    "git_blob_sha1": "2fc615a5f1c45245dd579891b42cfe12feb100aa",
+    "size_bytes": 9912,
+    "raw_sha256": "230249ef9118d43d0d538f8b005178fd123852ddf6ed7ee69e1d76553949b622"
+  },
+  "issuer_boundary_identity_binding": {
+    "path": "configs/harmonic_censoring_h27_issuer_authority_claim_capability_identity_binding.json",
+    "git_blob_sha1": "e7191b7b27d9339b1f94fc89aec032dd9ad61062",
+    "size_bytes": 6032,
+    "raw_sha256": "0f965e7bce28982d408dfd41054bde59f02c11a5016dc90af483dba6a14b6a1d"
+  },
+  "issuer_boundary_identity_binding_external_seal": {
+    "path": "configs/harmonic_censoring_h27_issuer_authority_claim_capability_identity_binding_external_seal.json",
+    "git_blob_sha1": "9e89d4d68013193582dee1062c61aaf8dd191ad3",
+    "size_bytes": 2848,
+    "raw_sha256": "664ad640a623f3357226b83985665253b3c37b5c4fc10252223e25e0087def12"
+  },
+  "materializer_identity_binding": {
+    "path": "configs/harmonic_censoring_h27_activation_capable_materializer_identity_binding.json",
+    "git_blob_sha1": "a32721107c1ff65697661cfa7a2a235811884fc6",
+    "size_bytes": 4609,
+    "raw_sha256": "a752721a022433ac1d9fddccb29b9e56cbd5c1bc0566762ca50acd2f9b01a9fc"
+  },
+  "materializer_identity_binding_external_seal": {
+    "path": "configs/harmonic_censoring_h27_activation_capable_materializer_identity_binding_external_seal.json",
+    "git_blob_sha1": "be17bda1d7da5144758606ed4b4f1b56708ebf3d",
+    "size_bytes": 1760,
+    "raw_sha256": "a7aa1f6d844fb25e2f633db8bd2817f6741bfe194418985c8419bda64573b3be"
+  },
+  "seal_semantics": {
+    "composition_contract_only": true,
+    "dependency_graph_acyclic": true,
+    "self_hash_present": false,
+    "historical_back_reference_present": false,
+    "boundary_and_materializer_remain_byte_identical": true,
+    "future_operational_composition_module_exists": false,
+    "future_operational_composition_module_authorized": false,
+    "issuer_exists": false,
+    "authority_exists": false,
+    "claim_exists": false,
+    "operational_capability_exists": false,
+    "activation_exists": false,
+    "bridge_exists": false,
+    "materializer_invoked": false,
+    "materialization_authorized": false,
+    "scientific_execution_authorized": false,
+    "population_exists": false,
+    "population_index_exists": false,
+    "locked_test_used": false,
+    "training_or_calibration_authorized": false
+  },
+  "next_action": "External review of the exact one-shot execution composition contract and this seal; no implementation operation or science"
+}
