@@ -10,7 +10,24 @@
     {"name":"authority_contract_binding_seal","path":"configs/harmonic_censoring_h27_real_publication_one_shot_authority_contract_identity_binding_external_seal.json","git_blob_sha1":"0bb80e147ac684dd81661b04e2946524e650118c","size_bytes":931,"raw_sha256":"8250b6ecdb4cf7160d713afb6c84a0a9da7d29e3eaaddeb707e471a97c718644"}
   ],
   "transitive_identity_source":{"path":"configs/harmonic_censoring_h27_real_publication_one_shot_authority_contract.json","preexisting_unique_identities":68,"combined_unique_identity_count":72},
-  "future_artifact_schema":{"artifact_id_required":true,"issuer_id_required":true,"invocation_nonce_lowercase_hex_64_required":true,"issued_at_utc_required":true,"exact_destination_required":"/Users/amcarene/h27-admin/activation/h27-materialization-v1.json","single_use_required":true,"predecessor_identity_count":72,"canonical_json_lf_required":true},
+  "future_artifact_schema": {
+    "closed_schema": true,
+    "additional_fields_allowed": false,
+    "field_order": ["schema_version","artifact_id","issuer_id","invocation_nonce","issued_at_utc","destination_path","single_use","predecessor_identity_count","predecessor_manifest_sha256"],
+    "fields": {
+      "schema_version": {"json_type":"integer","exact_value":1,"boolean_forbidden":true},
+      "artifact_id": {"json_type":"string","derivation":"h27-authority- plus lowercase sha256 of UTF-8 issuer_id + newline + invocation_nonce + newline + destination_path + newline + predecessor_manifest_sha256","unique_within_namespace":"H27_REAL_PUBLICATION_ONE_SHOT_AUTHORITY_V1"},
+      "issuer_id": {"json_type":"string","exact_value":"h26-execution-codex-mac-primary"},
+      "invocation_nonce": {"json_type":"string","regex":"^[0-9a-f]{64}$","unique_per_issuer_and_never_reusable":true},
+      "issued_at_utc": {"json_type":"string","regex":"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$","strict_rfc3339_utc_parse_required":true,"fractional_seconds_forbidden":true},
+      "destination_path": {"json_type":"string","exact_value":"/Users/amcarene/h27-admin/activation/h27-materialization-v1.json"},
+      "single_use": {"json_type":"boolean","exact_value":true},
+      "predecessor_identity_count": {"json_type":"integer","exact_value":72,"boolean_forbidden":true},
+      "predecessor_manifest_sha256": {"json_type":"string","exact_value":"8861519a15a1765c681e0684aaf4bd8ea5e42fecc5479894e51e335c8d8f3a12","regex":"^[0-9a-f]{64}$"}
+    },
+    "predecessor_manifest_canonicalization": {"entries_sorted_by":"path ascending Unicode code point order","entry_field_order":["path","git_blob_sha1","size_bytes","raw_sha256"],"json_encoding":"UTF-8","bom_forbidden":true,"ensure_ascii":false,"separators":[",",":"],"duplicate_keys_forbidden":true,"non_finite_numbers_forbidden":true,"terminal_bytes":"exactly one LF","manifest_size_bytes":19398},
+    "artifact_canonicalization": {"json_encoding":"UTF-8","bom_forbidden":true,"ensure_ascii":false,"separators":[",",":"],"duplicate_keys_forbidden":true,"non_finite_numbers_forbidden":true,"terminal_bytes":"exactly one LF","object_key_order_must_equal_field_order":true}
+  },
   "future_issuance_preconditions":{"all_seventy_two_identities_rehashed":true,"separate_reviewed_issuer_implementation_required":true,"separate_real_issuance_authorization_required":true,"destination_must_remain_unobserved_before_consumption":true,"retry_forbidden_after_consumption":true},
   "dependency_graph":{"acyclic":true,"self_hash_present":false,"historical_back_reference_present":false},
   "current_state":{"issuance_artifact_contract_exists":true,"issuance_artifact_contract_externally_reviewed":false,"issuance_artifact_contract_externally_sealed":false,"issuance_artifact_exists":false,"authority_exists":false,"claim_exists":false,"capability_exists":false,"destination_observed":false,"filesystem_operation_authorized":false,"real_execution_authorized":false,"connections_open":false,"materializer_authorized":false,"population_exists":false,"science_authorized":false,"locked_test_used":false,"training_or_calibration_authorized":false},

@@ -2,7 +2,7 @@
   "schema_version":1,
   "seal_id":"H27_REAL_PUBLICATION_ONE_SHOT_AUTHORITY_ISSUANCE_ARTIFACT_CONTRACT_EXTERNAL_SEAL_V1",
   "status":"SEALED_PENDING_EXTERNAL_REVIEW_CONTRACT_ONLY_NO_ISSUANCE_NO_AUTHORITY_NO_SCIENCE",
-  "contract":{"path":"configs/harmonic_censoring_h27_real_publication_one_shot_authority_issuance_artifact_contract.json","git_blob_sha1":"2e1fe915ba7d136d83b899f05550013822a9b05e","size_bytes":3441,"raw_sha256":"8436cace01f9aedf7c919f77a920d0b5bd800c849c502ad2ddb4eb0e9c866645"},
+  "contract":{"path":"configs/harmonic_censoring_h27_real_publication_one_shot_authority_issuance_artifact_contract.json","git_blob_sha1":"795960cb29a4d6d5b78d9df8dd57750d53699072","size_bytes":5317,"raw_sha256":"00d75e8fa7d5ea893d63569e85e178c357c31188433e03ae1f967dd86f936848"},
   "bound_identity_count":72,
   "dependency_graph_acyclic":true,
   "self_hash_present":false,

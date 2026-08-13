@@ -14,12 +14,19 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 one-shot authority binding PASS; issuance-artifact contract awaits external review; no artifact, authority, destination or science. -->
+<!-- H26_CORRECTION_STATUS: H27 issuance-artifact contract initial review FAIL; closed-schema correction awaits external review; no artifact, authority, destination or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
   `H27_REAL_PUBLICATION_ONE_SHOT_AUTHORITY_ISSUANCE_ARTIFACT_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `007614a466033b8000ef8e9d2b119c517e264a95`
+  conclut `FAIL`: schema non ferme, identites/timestamp insuffisamment
+  contraints et compteur 72 sans liaison cryptographique. La correction ferme
+  et ordonne neuf champs, fixe leurs types, l'issuer exact, la derivation de
+  l'artifact_id, le nonce hex64 unique, le timestamp UTC strict et le SHA-256
+  du manifeste canonique des 72 identites. Des tests adversariaux sont ajoutes.
+  Aucun artefact ou pouvoir reel n'est cree; nouvelle revue requise.
 - La revue externe de `630b81d1ad8f13b21e79778d512083201da2fc60`
   conclut `PASS`. Un contrat declaratif et son seal lient quatre artefacts
   one-shot et 68 identites amont, soit 72 chemins rehashes. Ils definissent le
