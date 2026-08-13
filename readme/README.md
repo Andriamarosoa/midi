@@ -14,12 +14,20 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 dormant real-publication boundary PASS; its administrative seal and identity binding await external review; no destination, write, connection or science. -->
+<!-- H26_CORRECTION_STATUS: H27 dormant real-publication chain PASS; exact future destination contract awaits external review; destination not created, no write or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_REAL_PUBLICATION_DORMANT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+  `H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_REAL_PUBLICATION_DESTINATION_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `4c8d56d844e7c21623af1cc381b61d0c56136477`
+  conclut `PASS`. Un contrat declaratif fixe maintenant l'unique destination
+  future `/Users/amcarene/h27-admin/activation/h27-materialization-v1.json`
+  sans la creer ni l'autoriser. Il lie les quatre artefacts PASS/scelles de la
+  frontiere dormante et rehash les 56 upstream, soit 60 identites exactes. Son
+  seal et trois tests administratifs maintiennent huit edges fermes et tous les
+  etats operationnels faux. Une revue externe est requise; locked-test=false.
+  Rapport : `readme/results/2026-08-13_harmonic-censoring-h27-real-publication-destination-contract.md`.
 - La revue externe de `b7282164d04b4e0d99ba1d0b663116ecf62b2b7c`
   conclut `PASS`. Le module dormant exact possede maintenant son seal de revue,
   un identity binding administratif et le seal de ce binding. Le test rehash

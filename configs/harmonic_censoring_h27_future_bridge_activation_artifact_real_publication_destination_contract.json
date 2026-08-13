@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "contract_id": "H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_REAL_PUBLICATION_DESTINATION_CONTRACT_V1",
+  "status": "CONTRACT_ONLY_PENDING_EXTERNAL_REVIEW_DESTINATION_NOT_CREATED_NO_WRITE_NO_CONNECTION_NO_SCIENCE",
+  "population_namespace": "H27_SYNTHETIC_V1",
+  "canonical_destination": {
+    "administrative_root": "/Users/amcarene/h27-admin",
+    "destination_path": "/Users/amcarene/h27-admin/activation/h27-materialization-v1.json",
+    "path_is_absolute": true,
+    "path_is_unique_and_immutable": true,
+    "destination_exists": false,
+    "creation_authorized": false,
+    "write_authorized": false,
+    "overwrite_or_replace_authorized": false
+  },
+  "reviewed_and_sealed_dormant_boundary": [
+    {"name":"module","path":"src/polyphonic/harmonic_censoring_h27_future_bridge_activation_artifact_real_publication_dormant.py","git_blob_sha1":"dbf69dd1837009e9d45bb7da33e2ec787e2f2cbb","size_bytes":7488,"raw_sha256":"e6699947d71ddfa4a00e60e8074ec3d3e9629b43f9ea105a658b15c0055a2d8f"},
+    {"name":"module_seal","path":"configs/harmonic_censoring_h27_future_bridge_activation_artifact_real_publication_dormant_external_review_seal.json","git_blob_sha1":"dd134c3923741db17fafea19f33def92f60a5e46","size_bytes":1343,"raw_sha256":"9c3ab441386197b383309c5a9e6b1b2a3c4d23b5630f23c88ddf7f122591355d"},
+    {"name":"module_binding","path":"configs/harmonic_censoring_h27_future_bridge_activation_artifact_real_publication_dormant_identity_binding.json","git_blob_sha1":"96d32615506b9575d7bae0c16b60a5e43e469714","size_bytes":3519,"raw_sha256":"3245cfa3b2a59a93520f2b64b304731dbf40a118d1b9a797a076ba35bee448c8"},
+    {"name":"module_binding_seal","path":"configs/harmonic_censoring_h27_future_bridge_activation_artifact_real_publication_dormant_identity_binding_external_seal.json","git_blob_sha1":"2e4e8781db7d8256509c9919c97f2f797ceff8a6","size_bytes":1889,"raw_sha256":"757c9b06b41776ecafd93076f8a418596b2b3aa485d0b729304259eaa8f69fe9"}
+  ],
+  "transitive_identity_source": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_activation_artifact_real_publication_dormant_identity_binding.json",
+    "expected_unique_upstream": 56,
+    "combined_unique_identity_count": 60
+  },
+  "publication_requirements": {
+    "all_sixty_identities_rehashed_before_destination_observation": true,
+    "destination_must_be_absent_before_one_shot_consumption": true,
+    "create_exclusive_without_overwrite": true,
+    "full_write_flush_file_fsync_atomic_visibility_reopen_rehash_parent_fsync": true,
+    "success_or_post_consumption_failure_terminal_without_retry": true,
+    "separate_real_execution_authorization_required": true
+  },
+  "dependency_graph": {"acyclic":true,"self_hash_present":false,"historical_back_reference_present":false},
+  "current_state": {
+    "destination_contract_exists": true,
+    "destination_contract_externally_reviewed": false,
+    "destination_contract_externally_sealed": false,
+    "destination_exists": false,
+    "artifact_exists": false,
+    "write_authorized": false,
+    "connections_open": false,
+    "authority_claim_or_capability_exists": false,
+    "materializer_authorized": false,
+    "science_authorized": false,
+    "locked_test_used": false,
+    "training_or_calibration_authorized": false
+  },
+  "next_action": "External review of this destination contract and its seal only; do not create or access the destination"
+}

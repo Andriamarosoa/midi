@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "seal_id": "H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_REAL_PUBLICATION_DESTINATION_CONTRACT_EXTERNAL_SEAL_V1",
+  "status": "SEALED_PENDING_EXTERNAL_REVIEW_DESTINATION_NOT_CREATED_NO_WRITE_NO_CONNECTION_NO_SCIENCE",
+  "contract": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_activation_artifact_real_publication_destination_contract.json",
+    "git_blob_sha1": "56eb8a9a1cfd4ee3e42380b0108f19b1d482199b",
+    "size_bytes": 3383,
+    "raw_sha256": "e109b1275aa67b85ad6d0460947a3614ae1ea94539f355a06954285825a5c81e"
+  },
+  "canonical_destination_path": "/Users/amcarene/h27-admin/activation/h27-materialization-v1.json",
+  "bound_identity_count": 60,
+  "destination_exists": false,
+  "write_authorized": false,
+  "public_edges_closed": 8,
+  "connections_authority_materializer_science": false,
+  "locked_test_used": false,
+  "next_action": "External review only; destination creation remains forbidden"
+}
