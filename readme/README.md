@@ -14,12 +14,25 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 future bridge compatibility contract PASS at b4be156; exact contract identity binding and binding seal now await external review; every public edge and science step remain closed; no real operation or science. -->
+<!-- H26_CORRECTION_STATUS: H27 future bridge compatibility binding PASS at 52dd2ec; distinct dormant bridge module now reattests 4 bridge artifacts plus 20 predecessors and exercises a simulated one-shot handoff while all public edges and science remain closed; external review pending. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_FUTURE_BRIDGE_COMPATIBILITY_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+  `H27_FUTURE_BRIDGE_DORMANT_IMPLEMENTATION_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `52dd2ec3f12219b09cafbb8dc6a22d9e5a531540`
+  conclut `PASS` et autorise un module bridge strictement dormant. Le nouveau
+  module distinct revalide byte-exactement les quatre artefacts bridge puis les
+  vingt prédécesseurs avant les adapters. Son harness privé reçoit uniquement
+  le binding step-11 exact par identité, revalide authority/claim, nonce, PID,
+  code identity, materializer blob et barrière, consomme un droit local simulé
+  one-shot et dérive une capability materializer simulée. Il termine avec
+  `materializer_invocations=0`, `science_invocations=0`, `terminal=true`. Les
+  24 corruptions et les rejets adversariaux sont testés. L'entrée publique du
+  bridge est exactement `().__getitem__`; les trois modules PASS existants
+  restent inchangés et fermés. `9/9` tests ciblés et `154/154` tests H27 passent.
+  Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-future-bridge-dormant-implementation.md`.
 - La revue externe de `b4be1566c571e8dee9719091bcb41d8cda218fd7`
   conclut `PASS`. Un identity binding administratif lie maintenant le contrat
   bridge exact (blob `c03e81b9...`, 12630 octets, SHA-256 `fa394ba1...`) et son
