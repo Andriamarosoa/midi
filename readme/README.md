@@ -19,7 +19,15 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_REAL_ISSUANCE_AUTHORIZATION_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+  `H27_REAL_ISSUANCE_AUTHORIZATION_CONTRACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `4752b06d4e290b012c9c4e705cdac08011ee3446`
+  conclut `PASS`. Le lot courant ajoute uniquement l'identity binding du
+  contrat d'autorisation d'issuance et son seal. Il rehash le contrat, son seal
+  et 84 predecesseurs, soit 86 chemins uniques, tout en preservant l'ordre
+  `rehash -> consume -> observe absence -> create-exclusive`. Aucune authority
+  reelle n'existe ou n'est consommee; issuer, destination, filesystem,
+  materializer et science restent fermes. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-real-issuance-authorization-contract-identity-binding.md`.
 - La revue externe de `962e169e25acb11758a70e87ada78ab4004acad2`
   conclut `PASS`. Le lot courant ajoute uniquement un contrat declaratif et son
   seal pour une future autorisation d'issuance reelle one-shot. Il lie et
