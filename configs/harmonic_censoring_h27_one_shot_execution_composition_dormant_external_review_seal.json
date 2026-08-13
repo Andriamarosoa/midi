@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "seal_id": "H27_ONE_SHOT_EXECUTION_COMPOSITION_DORMANT_EXTERNAL_REVIEW_SEAL_V1",
+  "status": "REVIEWED_SEALED_DORMANT_NO_OPERATION_NO_SCIENCE",
+  "reviewed_commit": "b2e6a06ebe236eb9f192d85497753ee878617ec6",
+  "reviewed_parent_commit": "b17e827bba31330000069baf89f99f36923b246e",
+  "external_review_verdict": "PASS",
+  "implementation": {
+    "path": "src/polyphonic/harmonic_censoring_h27_one_shot_execution_composition_dormant.py",
+    "git_blob_sha1": "c57dbd4ccd6f9ef9b75e3698580ca14d66d74682",
+    "size_bytes": 7289,
+    "raw_sha256": "6e2ccf317e071eed583b85995c11c386dfc5b306bb9a3b4c283dbf2fe0c6c9bb",
+    "role": "reviewed dormant one-shot execution composition",
+    "public_operational_edge": "tuple.__getitem__ bound to the empty tuple",
+    "public_operational_edge_open": false,
+    "step_12_present": false,
+    "science_invocations": 0
+  },
+  "reviewed_composition_contract": {
+    "path": "configs/harmonic_censoring_h27_one_shot_execution_composition_contract.json",
+    "git_blob_sha1": "2fc615a5f1c45245dd579891b42cfe12feb100aa",
+    "size_bytes": 9912,
+    "raw_sha256": "230249ef9118d43d0d538f8b005178fd123852ddf6ed7ee69e1d76553949b622"
+  },
+  "composition_contract_external_seal": {
+    "path": "configs/harmonic_censoring_h27_one_shot_execution_composition_contract_external_seal.json",
+    "git_blob_sha1": "d912a1ebd0fb6818147a0f07da1f6140d9434398",
+    "size_bytes": 2786,
+    "raw_sha256": "9a698340046692eab0e415a6094cdffc7ce36c40ce38382cbe53425f10c6238e"
+  },
+  "composition_contract_identity_binding": {
+    "path": "configs/harmonic_censoring_h27_one_shot_execution_composition_identity_binding.json",
+    "git_blob_sha1": "1f41f92b60c541219013bb78d40d38d183b2b80c",
+    "size_bytes": 6092,
+    "raw_sha256": "4621b87709ecf74ed5cb733d1a4470e576b8ea159b48256446b5dd539b0a70e0"
+  },
+  "composition_contract_identity_binding_external_seal": {
+    "path": "configs/harmonic_censoring_h27_one_shot_execution_composition_identity_binding_external_seal.json",
+    "git_blob_sha1": "cfaf71d625e774cf7294b993b7ea6206b53adc43",
+    "size_bytes": 3184,
+    "raw_sha256": "9e8b20928f233e0910c3bb3c583a4a4686681b91ab8049e89dfe4129c1a5e5e3"
+  },
+  "issuer_boundary_identity_binding": {
+    "path": "configs/harmonic_censoring_h27_issuer_authority_claim_capability_identity_binding.json",
+    "git_blob_sha1": "e7191b7b27d9339b1f94fc89aec032dd9ad61062",
+    "size_bytes": 6032,
+    "raw_sha256": "0f965e7bce28982d408dfd41054bde59f02c11a5016dc90af483dba6a14b6a1d"
+  },
+  "materializer_identity_binding": {
+    "path": "configs/harmonic_censoring_h27_activation_capable_materializer_identity_binding.json",
+    "git_blob_sha1": "a32721107c1ff65697661cfa7a2a235811884fc6",
+    "size_bytes": 4609,
+    "raw_sha256": "a752721a022433ac1d9fddccb29b9e56cbd5c1bc0566762ca50acd2f9b01a9fc"
+  },
+  "issuer_exists": false,
+  "authority_exists": false,
+  "claim_exists": false,
+  "operational_capability_exists": false,
+  "activation_exists": false,
+  "materializer_invocation_authorized": false,
+  "scientific_execution_authorized": false,
+  "population_exists": false,
+  "population_index_exists": false,
+  "locked_test_used": false,
+  "training_or_calibration_authorized": false,
+  "next_action": "Bind this exact reviewed dormant composition module and seal acyclically without opening operation or science"
+}

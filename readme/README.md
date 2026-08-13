@@ -14,12 +14,23 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 composition binding PASS at f66e600; distinct dormant composition module now verifies sealed administrative bytes and exercises steps 1-11 with injected mocks while public edge and science step remain closed; no real operation or science; external review pending. -->
+<!-- H26_CORRECTION_STATUS: H27 dormant composition module PASS at b2e6a06; exact module external seal plus acyclic identity binding and binding seal now await external review; public edge and science step remain closed; no real operation or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_DORMANT_ONE_SHOT_COMPOSITION_IMPLEMENTATION_PENDING_EXTERNAL_REVIEW`.
+  `H27_DORMANT_ONE_SHOT_COMPOSITION_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `b2e6a06ebe236eb9f192d85497753ee878617ec6`
+  conclut `PASS`. Le module dormant exact (blob `c57dbd4...`, 7289 octets,
+  SHA-256 `6e2ccf31...`) possède maintenant un seal externe, un identity binding
+  acyclique et le seal de ce binding. Ces trois nouveaux artefacts relient le
+  commit/parent/module exacts ainsi que les chaînes composition, boundary,
+  materializer, activation et authority déjà scellées, sans self-hash ni
+  back-reference. Tous les prédécesseurs restent byte-identical. L'entrée
+  publique reste exactement `().__getitem__`; step 12 reste absent et tous les
+  états opérationnels/scientifiques restent faux. `8/8` tests administratifs et
+  `128/128` tests H27 passent; `locked_test_used=false`. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-dormant-one-shot-composition-identity-seal-binding.md`.
 - La revue externe de `f66e6008aa1ea1eb27773f4e069a23b03273506c`
   conclut `PASS` et autorise un module de composition strictement dormant. Le
   nouveau module distinct execute d'abord l'etape 1, puis rehache aux etapes
