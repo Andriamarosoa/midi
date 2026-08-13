@@ -54,3 +54,23 @@ makes retry impossible.
 
 The module awaits external review. It authorizes no real publication or later
 phase.
+
+## External-review correction
+
+The external review of commit `84c46f1f834efd4a4fed579dd9f5dbd696d24135`
+returned `FAIL` on one bounded schema mismatch: the publication simulator
+accepted arbitrary syntactically valid gate/materializer identities and did
+not validate `invocation_nonce` as lowercase 64-hex. The corrected harness now
+requires the exact reviewed gate blob, exact gate identity-binding SHA-256 and
+exact materializer blob already imposed by the sealed activation-artifact
+schema. It also validates `invocation_nonce` as lowercase 64-hex.
+
+Dedicated adversarial cases reject a substituted gate blob, gate binding,
+materializer blob, and malformed nonce before the one-shot ticket is consumed.
+The 48-input rehash order, 21 preconditions, seven closed public edges and all
+no-effect/terminal guarantees are unchanged. This correction still performs no
+filesystem operation or science and awaits a new external review.
+
+Post-correction verification: `py_compile` passes, `git diff --check` passes,
+the dedicated suite passes `9/9` in `0.431 s`, and the full H27 suite passes
+`259/259` in `41.505 s`. `locked_test_used=false`.

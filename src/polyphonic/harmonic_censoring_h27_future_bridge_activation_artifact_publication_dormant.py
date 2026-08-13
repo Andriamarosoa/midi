@@ -52,6 +52,9 @@ _PRECONDITIONS = (
     "partial_or_failed_publication_terminal_without_retry",
     "every_check_before_any_artifact_write_or_scientific_access",
 )
+_GATE_BLOB = "d60470373ab261d585ab8f8ad40e3c94b3a03d23"
+_GATE_BINDING_SHA = "a44d05b2e447f0f84167575354e7b54c0003651087d4b6660fc11d5540876504"
+_MATERIALIZER_BLOB = "79f399359e366781f9526098c98a93cca71b1b49"
 
 
 def _git_blob(raw: bytes) -> str:
@@ -164,9 +167,13 @@ def _canonical_payload(ticket: object) -> tuple[dict[str, object], bytes]:
         raise PermissionError("H27 dormant publication activation id invalid.")
     if payload["population_namespace"] != "H27_SYNTHETIC_V1" or type(payload["process_id"]) is not int or payload["process_id"] <= 0:
         raise PermissionError("H27 dormant publication identity invalid.")
+    if payload["gate_module_blob"] != _GATE_BLOB or payload["gate_identity_binding_sha256"] != _GATE_BINDING_SHA:
+        raise PermissionError("H27 dormant publication gate identity mismatch.")
+    if payload["materializer_blob"] != _MATERIALIZER_BLOB:
+        raise PermissionError("H27 dormant publication materializer identity mismatch.")
     if not _valid_utc(payload["created_at_utc"]) or payload["terminal"] is not True:
         raise PermissionError("H27 dormant publication terminal timestamp invalid.")
-    for field in ("gate_identity_binding_sha256", "authority_sha256", "claim_sha256", "code_identity_sha256", "terminal_step11_binding_sha256"):
+    for field in ("gate_identity_binding_sha256", "authority_sha256", "claim_sha256", "invocation_nonce", "code_identity_sha256", "terminal_step11_binding_sha256"):
         if not _hex(payload[field], 64):
             raise PermissionError(f"H27 dormant publication digest invalid: {field}.")
     for field in ("gate_module_blob", "materializer_blob"):
@@ -236,4 +243,3 @@ def _exercise_dormant_publication(ticket: object, exact_ticket: object, adapters
 
 
 simulate_h27_future_bridge_activation_artifact_publication = ().__getitem__
-

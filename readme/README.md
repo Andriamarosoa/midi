@@ -14,12 +14,22 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 publication contract binding PASS; distinct dormant synthetic publication simulator now awaits review; no real write, connection or science. -->
+<!-- H26_CORRECTION_STATUS: H27 dormant publication simulator review FAIL corrected locally; new external review required; no real write, connection or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_PUBLICATION_DORMANT_IMPLEMENTATION_PENDING_EXTERNAL_REVIEW`.
+  `H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_PUBLICATION_DORMANT_SCHEMA_CORRECTION_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `84c46f1f834efd4a4fed579dd9f5dbd696d24135`
+  conclut `FAIL` sur un seul ecart de schema : le simulateur acceptait des
+  identites gate/materializer arbitraires bien formees et ne validait pas
+  `invocation_nonce` en hex lowercase 64. La micro-correction locale exige les
+  blobs gate/materializer et le SHA du binding gate exacts deja imposes par le
+  schema activation-artifact PASS, valide le nonce, et ajoute quatre cas
+  adversariaux. Les 48 rehash, 21 preconditions, sept barriers, one-shot et
+  garanties sans effet restent inchanges. `9/9` tests cibles et `259/259` tests
+  H27 passent. Une nouvelle revue externe est requise; aucun filesystem reel,
+  artefact, connexion ou science n'est ouvert. `locked_test_used=false`.
 - La revue externe de `c74ecdb808283a42fff55dad5f10aa87354182c9`
   conclut `PASS` et autorise uniquement un simulateur dormant distinct. Le
   nouveau module rehash exactement les quatre artefacts publication, les quatre

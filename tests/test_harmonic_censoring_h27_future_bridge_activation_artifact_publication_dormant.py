@@ -23,14 +23,14 @@ def _ticket(**overrides: object) -> publication._H27DormantPublicationTicket:
         "schema_version": 1,
         "activation_id": "synthetic-publication",
         "population_namespace": "H27_SYNTHETIC_V1",
-        "gate_module_blob": "a" * 40,
-        "gate_identity_binding_sha256": "b" * 64,
+        "gate_module_blob": publication._GATE_BLOB,
+        "gate_identity_binding_sha256": publication._GATE_BINDING_SHA,
         "authority_sha256": "c" * 64,
         "claim_sha256": "d" * 64,
-        "invocation_nonce": "synthetic-nonce",
+        "invocation_nonce": "2" * 64,
         "process_id": 1234,
         "code_identity_sha256": "e" * 64,
-        "materializer_blob": "f" * 40,
+        "materializer_blob": publication._MATERIALIZER_BLOB,
         "terminal_step11_binding_sha256": "1" * 64,
         "created_at_utc": "2026-08-13T12:34:56.123456Z",
         "terminal": True,
@@ -128,6 +128,19 @@ class H27ActivationArtifactPublicationDormantTests(unittest.TestCase):
         ):
             with self.assertRaises(PermissionError):
                 publication._exercise_dormant_publication(exact, exact, base._replace(**replacement))
+
+    def test_exact_payload_identities_fail_closed_before_consumption(self) -> None:
+        for bad in (
+            _ticket(gate_module_blob="a" * 40),
+            _ticket(gate_identity_binding_sha256="b" * 64),
+            _ticket(materializer_blob="f" * 40),
+            _ticket(invocation_nonce="synthetic-nonce"),
+        ):
+            order: list[str] = []
+            with self.assertRaises(PermissionError):
+                publication._exercise_dormant_publication(bad, bad, _adapters(bad, order))
+            self.assertEqual(order, [])
+            self.assertIsNotNone(bad._consume(bad))
 
     def test_all_simulated_effects_must_remain_false(self) -> None:
         replacements = (
