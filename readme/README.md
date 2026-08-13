@@ -14,12 +14,27 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: exact reviewed H27 activation-capable materializer identity externally sealed and contractually bound; still dormant; no issuer, capability, claim, activation, materialization, or science; binding review pending. -->
+<!-- H26_CORRECTION_STATUS: H27 seal + identity binding PASS; dormant issuer/authority/claim/capability boundary implemented only in temp sandboxes; no operational artifact, activation, materialization, or science; external review pending. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_REVIEWED_MATERIALIZER_IDENTITY_BOUND_AND_SEALED_DORMANT_PENDING_EXTERNAL_REVIEW`.
+  `H27_ISSUER_AUTHORITY_CLAIM_CAPABILITY_DORMANT_IMPLEMENTED_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `0a39763a9002b41df1750a0c2cb322033962b4fc`
+  conclut `PASS` : le seal externe et l'identity binding acyclique du materializer
+  sont approuves. La portee suivante autorisee, strictement dormante, est
+  maintenant implementee dans un module distinct. L'entree operationnelle reste
+  la barriere native `().__getitem__`; seul un lifecycle prive limite a un
+  repertoire `h27-dormant*` sous le temp systeme exerce les futurs invariants.
+  Les tests couvrent payload deterministe, `O_EXCL`, mode `0600`, fsync fichier
+  et parent, nonce, claim durable apres interruption, capability process-local
+  non constructible/non copiable/single-use, concurrence, forge, mauvais PID et
+  drift post-claim terminal. Cette capability sandbox est incompatible avec le
+  type attendu par le materializer. `85/85` tests H27, `py_compile` et
+  `git diff --check` passent. Aucun artefact sous `/Users/amcarene/h27-admin`,
+  activation, materialization, population/index, NumPy scientifique, training,
+  calibration ou locked-test n'existe. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-issuer-authority-claim-capability-dormant.md`.
 - La revue externe du module exact au commit
   `e47effd1ac10987242b537f5b54a9cfbed84faeb` conclut `PASS` et autorise
   uniquement son scellement externe et le rebinding contractuel de son identite.
