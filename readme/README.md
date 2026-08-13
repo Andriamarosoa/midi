@@ -22,9 +22,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `H27_DORMANT_ONE_SHOT_COMPOSITION_IMPLEMENTATION_PENDING_EXTERNAL_REVIEW`.
 - La revue externe de `f66e6008aa1ea1eb27773f4e069a23b03273506c`
   conclut `PASS` et autorise un module de composition strictement dormant. Le
-  nouveau module distinct rehache avant adapters les quatre artefacts
-  composition/binding et les deux identity chains PASS. Son harness injecte
-  uniquement des mocks et exerce dans l'ordre les etapes 1-11; chaque echec
+  nouveau module distinct execute d'abord l'etape 1, puis rehache aux etapes
+  2-4 les quatre artefacts composition/binding, les quatre contrats/seals
+  historiques et les huit artefacts boundary/materializer PASS. Son harness
+  injecte uniquement des mocks et exerce dans l'ordre les etapes 1-11; chaque echec
   coupe les etapes suivantes. Claim simule, paire capability/binding exacte et
   retour du binding exact sont imposes. L'etape 12 ne possede aucun callback :
   `science_invocations=0`. L'entree publique reste exactement `().__getitem__`.

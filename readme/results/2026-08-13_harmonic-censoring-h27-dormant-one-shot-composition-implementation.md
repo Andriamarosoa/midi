@@ -11,15 +11,17 @@ strictly dormant composition module with sandbox/mock tests only.
 ## Implementation identity
 
 - path: `src/polyphonic/harmonic_censoring_h27_one_shot_execution_composition_dormant.py`
-- Git blob before commit: `427baa7c3a6c6d87d1669843a2b6ca1dae561ae2`
-- size: `4628` bytes
-- SHA-256: `1f41cf325cafb031d23f37933cbd6401c022f5382c7fa6fcfe65a89d05a5f65c`
+- Git blob before commit: `c57dbd4ccd6f9ef9b75e3698580ca14d66d74682`
+- size: `7289` bytes
+- SHA-256: `6e2ccf317e071eed583b85995c11c386dfc5b306bb9a3b4c283dbf2fe0c6c9bb`
 
 ## Dormant behavior
 
-Before any injected adapter, the module independently rehashes the composition
-contract/seal, composition binding/seal and both PASS identity bindings. The
-private harness then invokes fake adapters for steps 1-11 in exact order. A
+The private harness invokes fixed-path/override step 1 first. At steps 2-4 it
+independently rehashes the composition contract/seal/binding/seal, historical
+activation/authority contracts and seals, and complete boundary/materializer
+bindings, binding seals, review seals and PASS modules. It then invokes fake
+adapters for the corresponding semantic check. Steps 5-11 follow in exact order. A
 failure at any step prevents every later step. The durable claim, capability
 pair and atomic-consumption return are synthetic objects only.
 
@@ -30,10 +32,11 @@ the native empty-tuple `().__getitem__` barrier.
 ## Adversarial verification
 
 - `7/7` focused tests pass.
-- The combined H27 suite passes `120/120` in `3.733 s`; `py_compile` and
+- The combined H27 suite passes `120/120` in `5.903 s`; `py_compile` and
   `git diff --check` pass.
-- Each sealed administrative input is actually corrupted in an isolated temp
-  tree and rejected before the first adapter.
+- Each of the 16 sealed predecessors is actually corrupted in an isolated temp
+  tree and rejected at its exact normative step; step 1 always precedes reads
+  belonging to steps 2-4.
 - Every one of the 11 stages is failed independently; no later stage runs.
 - Foreign binding returns and malformed capability pairs are rejected.
 - Direct public-edge use does not inspect an exploding argument.

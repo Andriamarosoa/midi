@@ -54,7 +54,13 @@ class H27OneShotExecutionCompositionDormantTests(unittest.TestCase):
                 with mock.patch.object(composition, "_ROOT", fake_root):
                     with self.assertRaisesRegex(PermissionError, "administrative binding drift"):
                         composition._exercise_dormant_composition(self._adapters(order))
-                self.assertEqual(order, [], index)
+                if binding in composition._COMPOSITION_INPUTS:
+                    expected = ["verify_fixed_paths"]
+                elif binding in composition._HISTORICAL_INPUTS:
+                    expected = ["verify_fixed_paths", "verify_contract_chain"]
+                else:
+                    expected = ["verify_fixed_paths", "verify_contract_chain", "verify_historical_chain"]
+                self.assertEqual(order, expected, index)
 
     def test_every_failure_is_terminal_and_later_steps_are_not_called(self) -> None:
         for failed_index, failed in enumerate(composition._STEPS):
