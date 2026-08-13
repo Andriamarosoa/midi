@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "seal_id": "H27_REAL_PUBLICATION_EXECUTION_AUTHORIZATION_CONTRACT_IDENTITY_BINDING_EXTERNAL_SEAL_V1",
+  "status": "SEALED_PENDING_EXTERNAL_REVIEW_ADMINISTRATIVE_ONLY_NO_DESTINATION_OBSERVATION_NO_SCIENCE",
+  "identity_binding": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_activation_artifact_real_publication_execution_authorization_contract_identity_binding.json",
+    "git_blob_sha1": "1640e2f3b73dc559e8ee845f82e8b51fa1c9aee6",
+    "size_bytes": 2687,
+    "raw_sha256": "1003a615947d879b55f884783a5f4a53a5e7c611f71b0d943b817757f46a13a9"
+  },
+  "bound_identity_count": 66,
+  "dependency_graph_acyclic": true,
+  "self_hash_present": false,
+  "historical_back_reference_present": false,
+  "public_edges_closed": 8,
+  "destination_observation_authorized": false,
+  "filesystem_operation_authorized": false,
+  "real_execution_authorized": false,
+  "connections_authority_materializer_population_science": false,
+  "locked_test_used": false,
+  "next_action": "External review only; all real operations remain forbidden"
+}

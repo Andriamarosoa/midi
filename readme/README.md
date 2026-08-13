@@ -14,12 +14,17 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 destination binding PASS; declarative future real-execution authorization contract awaits external review; destination not observed, no filesystem operation or science. -->
+<!-- H26_CORRECTION_STATUS: H27 real-execution authorization contract PASS; its administrative binding awaits external review; destination not observed, no operation or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_REAL_PUBLICATION_EXECUTION_AUTHORIZATION_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+  `H27_REAL_PUBLICATION_EXECUTION_AUTHORIZATION_CONTRACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `4ee1bc40e439dd9e5d21580b6c139c2e07bd24fd`
+  conclut `PASS`. Le binding administratif et son seal lient le contrat exact,
+  son seal et 64 identites preexistantes, soit 66 chemins uniques rehashes.
+  Destination non observee, huit edges fermes et tous les etats operationnels
+  ou scientifiques faux. Rapport : `readme/results/2026-08-13_harmonic-censoring-h27-real-publication-execution-authorization-binding.md`.
 - La revue externe de `e6a67a0a30ecf0b9999b26695eeb66db4ceed216`
   conclut `PASS`. Un contrat declaratif distinct et son seal definissent
   uniquement les preconditions fail-closed d'une future autorisation
