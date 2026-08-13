@@ -17,7 +17,7 @@
     "fields": {
       "schema_version": {"json_type":"integer","exact_value":1,"boolean_forbidden":true},
       "artifact_id": {"json_type":"string","derivation":"h27-authority- plus lowercase sha256 of UTF-8 issuer_id + newline + invocation_nonce + newline + destination_path + newline + predecessor_manifest_sha256","unique_within_namespace":"H27_REAL_PUBLICATION_ONE_SHOT_AUTHORITY_V1"},
-      "issuer_id": {"json_type":"string","exact_value":"h26-execution-codex-mac-primary"},
+      "issuer_id": {"json_type":"string","exact_value":"h27-execution-codex-mac-primary","attested_source_path":"configs/harmonic_censoring_h27_one_shot_execution_composition_contract.json","attested_source_field":"fixed_paths_and_counts.issuer_identity"},
       "invocation_nonce": {"json_type":"string","regex":"^[0-9a-f]{64}$","unique_per_issuer_and_never_reusable":true},
       "issued_at_utc": {"json_type":"string","regex":"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$","strict_rfc3339_utc_parse_required":true,"fractional_seconds_forbidden":true},
       "destination_path": {"json_type":"string","exact_value":"/Users/amcarene/h27-admin/activation/h27-materialization-v1.json"},

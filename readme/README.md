@@ -27,6 +27,11 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   l'artifact_id, le nonce hex64 unique, le timestamp UTC strict et le SHA-256
   du manifeste canonique des 72 identites. Des tests adversariaux sont ajoutes.
   Aucun artefact ou pouvoir reel n'est cree; nouvelle revue requise.
+- La revue externe de `0d528cb9a734c23b9993ef06adde6e0791c97d68`
+  conclut `FAIL` sur l'unique issuer `h26-...`, incompatible avec l'identite
+  H27 scellee. La correction impose `h27-execution-codex-mac-primary`, le
+  verifie directement dans `fixed_paths_and_counts.issuer_identity` du contrat
+  de composition et rejette l'ancien issuer H26. Nouvelle revue requise.
 - La revue externe de `630b81d1ad8f13b21e79778d512083201da2fc60`
   conclut `PASS`. Un contrat declaratif et son seal lient quatre artefacts
   one-shot et 68 identites amont, soit 72 chemins rehashes. Ils definissent le

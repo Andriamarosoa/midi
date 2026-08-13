@@ -12,3 +12,9 @@ supplementaire, atteste l'issuer exact, derive l'artifact_id, impose nonce
 hex64 unique et timestamp RFC3339 UTC strict, et lie le manifeste canonique des
 72 identites au SHA-256 `8861519a...`. Des tests adversariaux couvrent chaque
 contrainte. Aucun artefact reel n'est produit.
+
+La seconde revue de `0d528cb9` conclut FAIL sur l'unique issuer `h26-...`,
+incompatible avec deux sources H27 scellees. La correction utilise exactement
+`h27-execution-codex-mac-primary`, le relit depuis
+`fixed_paths_and_counts.issuer_identity` du contrat de composition H27 et
+rejette explicitement l'ancien issuer H26.
