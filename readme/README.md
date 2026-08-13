@@ -14,24 +14,24 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 one-shot composition contract PASS at 40eb4a3; its acyclic identity binding and seal mark only contract exists/reviewed/sealed while future module, execution path and all operation/science remain false; external review pending. -->
+<!-- H26_CORRECTION_STATUS: H27 composition binding PASS at f66e600; distinct dormant composition module now verifies sealed administrative bytes and exercises steps 1-11 with injected mocks while public edge and science step remain closed; no real operation or science; external review pending. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_ONE_SHOT_COMPOSITION_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
-- La revue externe de `40eb4a3eb4a10fa6218f0a6e4fa6e3cc45b85307`
-  conclut `PASS` sur le contrat de composition one-shot et autorise uniquement
-  son identity binding administratif et son seal. Le binding lie le contrat
-  PASS blob `2fc615a5...` et son seal `d912a1eb...` aux chaines boundary et
-  materializer deja scellees et aux contrats historiques byte-identical. Son
-  overlay change uniquement trois etats administratifs : composition contract
-  exists/reviewed/sealed deviennent vrais. Le futur module reste absent et non
-  autorise, le chemin d'execution ferme, et tous les etats issuer/authority/
-  claim/capability/activation/bridge/materialization/science/population/
-  training/locked-test restent faux. Le graphe est acyclique, sans self-hash ni
-  back-reference; les deux barrieres restent `().__getitem__`. Rapport :
-  `readme/results/2026-08-13_harmonic-censoring-h27-one-shot-composition-identity-binding.md`.
+  `H27_DORMANT_ONE_SHOT_COMPOSITION_IMPLEMENTATION_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `f66e6008aa1ea1eb27773f4e069a23b03273506c`
+  conclut `PASS` et autorise un module de composition strictement dormant. Le
+  nouveau module distinct rehache avant adapters les quatre artefacts
+  composition/binding et les deux identity chains PASS. Son harness injecte
+  uniquement des mocks et exerce dans l'ordre les etapes 1-11; chaque echec
+  coupe les etapes suivantes. Claim simule, paire capability/binding exacte et
+  retour du binding exact sont imposes. L'etape 12 ne possede aucun callback :
+  `science_invocations=0`. L'entree publique reste exactement `().__getitem__`.
+  Le source ne contient ni NumPy, materializer, chemin admin, ecriture, plan ni
+  locked-test. Aucun vrai issuer/authority/claim/capability/activation/bridge/
+  materialization/science/population n'existe. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-dormant-one-shot-composition-implementation.md`.
 - La revue externe du module exact au commit
   `e47effd1ac10987242b537f5b54a9cfbed84faeb` conclut `PASS` et autorise
   uniquement son scellement externe et le rebinding contractuel de son identite.
