@@ -14,12 +14,24 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 future publication contract PASS; its administrative identity binding and seal now await review; no implementation, write, connection or science. -->
+<!-- H26_CORRECTION_STATUS: H27 publication contract binding PASS; distinct dormant synthetic publication simulator now awaits review; no real write, connection or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_PUBLICATION_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+  `H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_PUBLICATION_DORMANT_IMPLEMENTATION_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `c74ecdb808283a42fff55dad5f10aa87354182c9`
+  conclut `PASS` et autorise uniquement un simulateur dormant distinct. Le
+  nouveau module rehash exactement les quatre artefacts publication, les quatre
+  artefacts du module dormant et les quarante dependances avant tout adapter.
+  Son harness synthetique valide un payload canonique, l'absence de destination
+  et l'unicite, puis consomme un droit local one-shot immediatement avant les
+  simulations create-exclusive, flush/fsync, visibilite atomique, reopen/rehash
+  et fsync parent. Toutes les simulations doivent rester false. Succes ou erreur
+  post-consommation est terminal sans retry. Les sept public edges restent
+  `().__getitem__`; artifact created/written, connexions, materializer et science
+  restent faux. `8/8` tests ciblés passent. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-future-bridge-activation-artifact-publication-dormant.md`.
 - La revue externe de `ab19acf97bd919dd17d9a8daf98925e0937c22f0`
   conclut `PASS`. Un identity binding administratif lie maintenant ce contrat
   exact (blob `d4026726...`, 22288 octets, SHA-256 `82b10aae...`) et son seal
