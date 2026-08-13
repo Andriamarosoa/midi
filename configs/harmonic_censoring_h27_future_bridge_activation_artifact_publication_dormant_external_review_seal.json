@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "seal_id": "H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_PUBLICATION_DORMANT_EXTERNAL_REVIEW_SEAL_V1",
+  "status": "EXTERNALLY_REVIEWED_PASS_SEALED_DORMANT_NO_FILESYSTEM_NO_ARTIFACT_NO_CONNECTION_NO_SCIENCE",
+  "implementation": {
+    "path": "src/polyphonic/harmonic_censoring_h27_future_bridge_activation_artifact_publication_dormant.py",
+    "reviewed_commit": "6ad0232d460819962a89dc1f307b59f7d13b8f6c",
+    "reviewed_parent_commit": "84c46f1f834efd4a4fed579dd9f5dbd696d24135",
+    "external_review_verdict": "PASS",
+    "git_blob_sha1": "6d254f4358b182e35fd5f2911f801f69f9a46876",
+    "size_bytes": 12600,
+    "raw_sha256": "f4c35a76f26435c71b618e514818651c8cb4b1d95dd304d2e1bfb4f90969e3ec"
+  },
+  "reviewed_invariants": {
+    "forty_eight_unique_inputs_rehashed_before_adapters": true,
+    "payload_fields_exact": 14,
+    "preconditions_exact": 21,
+    "exact_gate_module_blob_required": true,
+    "exact_gate_identity_binding_sha256_required": true,
+    "exact_materializer_blob_required": true,
+    "invocation_nonce_lowercase_hex64_required": true,
+    "invalid_identity_rejected_before_adapter_and_consumption": true,
+    "public_edge_is_native_empty_tuple_barrier": true,
+    "seven_public_edges_remain_closed": true,
+    "ticket_owned_right_is_one_shot_terminal": true,
+    "artifact_created": false,
+    "artifact_written": false,
+    "composition_to_bridge_connected": false,
+    "bridge_to_materializer_connected": false,
+    "materializer_invocations": 0,
+    "science_invocations": 0,
+    "filesystem_or_scientific_path_present": false,
+    "locked_test_used": false
+  },
+  "authorization": {
+    "identity_binding_and_binding_seal_authorized": true,
+    "real_publication_authorized": false,
+    "activation_artifact_creation_authorized": false,
+    "connection_authorized": false,
+    "authority_claim_capability_authorized": false,
+    "materializer_invocation_authorized": false,
+    "scientific_execution_authorized": false,
+    "training_or_calibration_authorized": false
+  },
+  "next_action": "Create only an acyclic administrative identity binding and external binding seal for this exact PASS dormant publication simulator"
+}

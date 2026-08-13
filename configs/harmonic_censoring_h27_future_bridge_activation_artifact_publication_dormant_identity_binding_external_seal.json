@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "seal_id": "H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_PUBLICATION_DORMANT_IDENTITY_BINDING_EXTERNAL_SEAL_V1",
+  "status": "SEALED_PENDING_EXTERNAL_REVIEW_DORMANT_NO_FILESYSTEM_NO_ARTIFACT_NO_CONNECTION_NO_SCIENCE",
+  "identity_binding": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_activation_artifact_publication_dormant_identity_binding.json",
+    "git_blob_sha1": "358297d492ea5e6638369ec627888b43c6513115",
+    "size_bytes": 31571,
+    "raw_sha256": "a83af42818c7337132fc9c989d4f9a0249433ffa524443f4271168ed2e995ee9"
+  },
+  "reviewed_dormant_publication_module": {
+    "path": "src/polyphonic/harmonic_censoring_h27_future_bridge_activation_artifact_publication_dormant.py",
+    "reviewed_commit": "6ad0232d460819962a89dc1f307b59f7d13b8f6c",
+    "reviewed_parent_commit": "84c46f1f834efd4a4fed579dd9f5dbd696d24135",
+    "external_review_verdict": "PASS",
+    "git_blob_sha1": "6d254f4358b182e35fd5f2911f801f69f9a46876",
+    "size_bytes": 12600,
+    "raw_sha256": "f4c35a76f26435c71b618e514818651c8cb4b1d95dd304d2e1bfb4f90969e3ec",
+    "exists": true,
+    "externally_reviewed": true,
+    "externally_sealed": true
+  },
+  "dormant_publication_module_external_review_seal": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_activation_artifact_publication_dormant_external_review_seal.json",
+    "git_blob_sha1": "76f7efce3eb9bafcfcb7fcc01f6da923958236a1",
+    "size_bytes": 2172,
+    "raw_sha256": "8a80586757e6450a3436ddd327a8e9858814977946ea435af324cc912a7123be"
+  },
+  "seal_semantics": {
+    "administrative_identity_binding_only": true,
+    "dependency_graph_acyclic": true,
+    "self_hash_present": false,
+    "historical_back_reference_present": false,
+    "all_forty_eight_upstream_entries_remain_byte_identical": true,
+    "dormant_publication_module_exists": true,
+    "dormant_publication_module_externally_reviewed": true,
+    "dormant_publication_module_externally_sealed": true,
+    "publication_implementation_exists": false,
+    "publication_implementation_authorized": false,
+    "activation_artifact_exists": false,
+    "activation_artifact_write_authorized": false,
+    "composition_to_bridge_connected": false,
+    "bridge_to_materializer_connected": false,
+    "execution_path_open": false,
+    "authority_exists": false,
+    "claim_exists": false,
+    "operational_capability_exists": false,
+    "materializer_invocation_authorized": false,
+    "scientific_execution_authorized": false,
+    "population_exists": false,
+    "population_index_exists": false,
+    "locked_test_used": false,
+    "training_or_calibration_authorized": false
+  },
+  "next_action": "External review of the exact dormant publication simulator identity binding bytes and this seal; no filesystem, artifact, connection, operation, or science"
+}

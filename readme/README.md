@@ -14,12 +14,24 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 dormant publication simulator review FAIL corrected locally; new external review required; no real write, connection or science. -->
+<!-- H26_CORRECTION_STATUS: H27 corrected dormant publication simulator PASS; administrative module seal and identity binding await external review; no real write, connection or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_PUBLICATION_DORMANT_SCHEMA_CORRECTION_PENDING_EXTERNAL_REVIEW`.
+  `H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_PUBLICATION_DORMANT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `6ad0232d460819962a89dc1f307b59f7d13b8f6c`
+  conclut `PASS`. Le module dormant corrige exact (blob `6d254f43...`, 12600
+  octets, SHA-256 `f4c35a76...`) possede maintenant un seal de revue externe,
+  un identity binding acyclique et le seal de ce binding. Le binding rehash les
+  48 entrees amont uniques (quatre publication, quatre dormant-module et
+  quarante dependances) sans modifier aucun predecesseur. Seuls les etats
+  administratifs exists/reviewed/sealed du module sont vrais; les sept edges
+  restent `().__getitem__` et filesystem, artefact, connexions, authority,
+  materializer et science restent faux. `8/8` tests administratifs et
+  `267/267` tests H27 passent; `locked_test_used=false`. Le lot attend une revue externe.
+  Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-future-bridge-activation-artifact-publication-dormant-identity-binding.md`.
 - La revue externe de `84c46f1f834efd4a4fed579dd9f5dbd696d24135`
   conclut `FAIL` sur un seul ecart de schema : le simulateur acceptait des
   identites gate/materializer arbitraires bien formees et ne validait pas
