@@ -14,12 +14,18 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 issuer implementation contract PASS; administrative identity binding awaits external review; no issuer module, issuance, authority, destination or science. -->
+<!-- H26_CORRECTION_STATUS: H27 issuer contract binding PASS; effect-free issuer implementation awaits external review; no real issuance, authority, destination or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_REAL_PUBLICATION_ONE_SHOT_AUTHORITY_ISSUER_IMPLEMENTATION_CONTRACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+  `H27_REAL_PUBLICATION_ONE_SHOT_AUTHORITY_ISSUER_EFFECT_FREE_IMPLEMENTATION_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `cb581c7e989715b808a8334127dd1dd50ad816fd`
+  conclut `PASS`. L'implementation courante rehache 78 identites puis construit
+  uniquement les bytes canoniques en memoire via adapters fake/in-memory qui
+  doivent declarer zero effet. Aucun artefact, authority, claim, capability,
+  destination reelle, filesystem ou science n'est cree. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-one-shot-authority-issuer-effect-free-implementation.md`.
 - La revue externe de `108728b98311c6e5c3a8eaf2909670b3768b3f08`
   conclut `PASS`. Le binding administratif courant lie le contrat issuer PASS,
   son seal et 76 identites preexistantes, soit 78 chemins uniques rehashes.
