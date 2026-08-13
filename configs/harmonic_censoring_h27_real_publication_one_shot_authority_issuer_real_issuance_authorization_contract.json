@@ -65,14 +65,21 @@
     "separate_identity_binding_and_external_seal_required": true,
     "separate_one_shot_real_execution_authority_required": true,
     "all_eighty_four_predecessor_identities_rehashed_before_consumption": true,
-    "destination_absence_proven_before_consumption_required": true,
+    "no_destination_observation_before_consumption_required": true,
     "authority_consumed_immediately_before_first_destination_observation": true,
+    "first_post_consumption_observation_must_probe_destination_absence": true,
     "exclusive_create_without_overwrite_required": true,
     "full_write_flush_file_fsync_atomic_rename_reopen_rehash_parent_fsync_required": true,
     "success_or_post_consumption_failure_terminal_without_retry": true,
     "actual_invocation_requires_distinct_later_commit_and_review": true,
     "real_issuance_remains_forbidden_at_this_contract_step": true
   },
+  "future_normative_order": [
+    "rehash_all_eighty_four_predecessor_identities",
+    "consume_one_shot_authority",
+    "first_destination_observation_probes_absence",
+    "create_exclusive_without_overwrite"
+  ],
   "dependency_graph": {
     "acyclic": true,
     "self_hash_present": false,

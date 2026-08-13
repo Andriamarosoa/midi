@@ -113,6 +113,19 @@ class H27RealIssuanceAuthorizationContractTests(unittest.TestCase):
         for key, value in self.contract["current_state"].items():
             self.assertIs(value, key == "real_issuance_authorization_contract_exists", key)
         self.assertTrue(all(self.contract["future_authorization_preconditions"].values()))
+        self.assertNotIn(
+            "destination_absence_proven_before_consumption_required",
+            self.contract["future_authorization_preconditions"],
+        )
+        self.assertEqual(
+            self.contract["future_normative_order"],
+            [
+                "rehash_all_eighty_four_predecessor_identities",
+                "consume_one_shot_authority",
+                "first_destination_observation_probes_absence",
+                "create_exclusive_without_overwrite",
+            ],
+        )
         self.assertEqual(self.contract["public_edges_closed"], 8)
         for edge in (
             composition.execute_h27_one_shot_composition,

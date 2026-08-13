@@ -4,9 +4,9 @@
   "status": "SEALED_PENDING_EXTERNAL_REVIEW_CONTRACT_ONLY_NO_INVOCATION_NO_ISSUANCE_NO_AUTHORITY_NO_DESTINATION_NO_SCIENCE",
   "contract": {
     "path": "configs/harmonic_censoring_h27_real_publication_one_shot_authority_issuer_real_issuance_authorization_contract.json",
-    "git_blob_sha1": "4a4d106ddcf9da4fffb1b81121fff51d9a781846",
-    "size_bytes": 5277,
-    "raw_sha256": "970df939c83ac25397b13ca5399f2a9d62fc9f51b719b6e495aef7e727cc8c27"
+    "git_blob_sha1": "b7bc9462aee81c0ee985bbfd0f1df54092b4d9af",
+    "size_bytes": 5571,
+    "raw_sha256": "b838875140762ee795700f155ea46e35e576d2db81f3e64b48a00b6c006d4f66"
   },
   "issuer_id": "h27-execution-codex-mac-primary",
   "canonical_destination_path": "/Users/amcarene/h27-admin/activation/h27-materialization-v1.json",

@@ -9,19 +9,21 @@ Le contrat lie la chaine issuer PASS/scellee : module, seal du module, identity
 binding et seal du binding, puis les 80 predecesseurs administratifs et
 transitifs. Les 84 identites uniques sont rehashees dans le test.
 
-Identites avant commit : contrat blob
-`4a4d106ddcf9da4fffb1b81121fff51d9a781846`, `5277` octets, SHA-256
-`970df939c83ac25397b13ca5399f2a9d62fc9f51b719b6e495aef7e727cc8c27` ;
-seal blob `3b1b1f2cd91553f6b2d31df18d660d8052910aaa`, `1518` octets,
-SHA-256
-`3b91c4dd062889bdcf713b39dd72fa733ae5986014ca3735a35f9263828325fb`.
+L'identite initiale du contrat refuse etait blob `4a4d106d...`, `5277`
+octets, SHA-256 `970df939...`. L'identite corrigee avant commit est blob
+`b7bc9462aee81c0ee985bbfd0f1df54092b4d9af`, `5571` octets, SHA-256
+`b838875140762ee795700f155ea46e35e576d2db81f3e64b48a00b6c006d4f66`.
+Le seal corrige est blob `24f6858a499afb5088fe25e064a5559934210cbf`,
+`1518` octets, SHA-256
+`e39f4d755df9378cfde4a872238a6e25b7256901aa7d742ad175f7f7f766f3a6`.
 
-La destination canonique reste une donnee declarative. Le contrat exige pour
-une future etape distincte un rehash complet avant consommation, une preuve
-d'absence de destination, une autorite one-shot consommee juste avant la
-premiere observation, une creation exclusive, publication atomique et un etat
-terminal sans retry. Il ne fournit aucune autorite et n'invoque jamais
-l'issuer.
+La premiere revue conclut `FAIL` sur un ordre contradictoire qui demandait une
+preuve d'absence avant consommation tout en interdisant toute observation avant
+consommation. La correction fixe l'ordre normatif unique : rehash complet,
+consommation one-shot, premiere observation qui sonde l'absence, puis creation
+exclusive sans overwrite. La destination canonique reste une donnee
+declarative; publication atomique et etat terminal sans retry restent requis.
+Le contrat ne fournit aucune autorite et n'invoque jamais l'issuer.
 
 Validation locale : `3/3` tests administratifs, `337/337` tests H27,
 `py_compile` et `git diff --check` passent.

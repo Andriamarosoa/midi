@@ -28,6 +28,12 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   fermes. Aucune issuance, authority, claim, capability, operation filesystem,
   materializer, population ou science n'est ouverte. Rapport :
   `readme/results/2026-08-13_harmonic-censoring-h27-real-issuance-authorization-contract.md`.
+- La premiere revue de `a2941ed9bd40ca436958ab7d96504c748d1be478`
+  conclut `FAIL` sur une contradiction entre preuve d'absence et premiere
+  observation. La correction du meme contrat impose explicitement l'ordre
+  futur `rehash -> consommation one-shot -> premiere observation d'absence ->
+  create-exclusive`, sans executer aucune de ces operations. Nouvelle revue
+  requise; aucun identity binding du contrat n'est encore autorise.
 - La revue externe de `485c35b4d8469e483b438915ddf20aba0194d800`
   conclut `PASS`. Le lot courant scelle uniquement ce module issuer effect-free
   exact, ajoute son identity binding administratif et le seal du binding. Il
