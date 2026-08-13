@@ -14,12 +14,24 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 future real-publication contract PASS; its administrative identity binding awaits external review; no implementation, destination, write, connection or science. -->
+<!-- H26_CORRECTION_STATUS: H27 future real-publication contract binding PASS; a distinct dormant Python boundary awaits code review; no destination, write, connection or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_REAL_PUBLICATION_IMPLEMENTATION_CONTRACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+  `H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_REAL_PUBLICATION_DORMANT_IMPLEMENTATION_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `285daa719a38884cca1dadb3571c6cb7bba2cacf`
+  conclut `PASS`. Un module Python distinct implemente maintenant uniquement la
+  frontiere dormante de future publication reelle. Il rehash le binding et son
+  seal puis les 54 identites liees avant toute sonde, valide le payload et les
+  exigences fail-closed, consomme le one-shot juste avant la premiere sonde
+  create-exclusive, et exige que toutes les sondes restent sans effet. Le
+  nouveau public edge est `().__getitem__`, soit huit edges fermes. Aucun API
+  filesystem direct, destination reelle, artefact, write, connexion,
+  materializer ou science n'est execute. `7/7` tests cibles et `289/289` tests
+  H27 passent; une revue
+  externe du code exact est requise. `locked_test_used=false`. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-future-bridge-activation-artifact-real-publication-dormant.md`.
 - La revue externe de `1115d5cc841e41a3ecd51620f3122117c270b6ad`
   conclut `PASS`. Un identity binding administratif et son external seal lient
   maintenant le contrat PASS exact, son seal, les quatre artefacts du
