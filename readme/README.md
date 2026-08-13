@@ -14,12 +14,18 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 one-shot authority contract PASS; its administrative binding awaits external review; no authority, destination observation, operation or science. -->
+<!-- H26_CORRECTION_STATUS: H27 one-shot authority binding PASS; issuance-artifact contract awaits external review; no artifact, authority, destination or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_REAL_PUBLICATION_ONE_SHOT_AUTHORITY_CONTRACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+  `H27_REAL_PUBLICATION_ONE_SHOT_AUTHORITY_ISSUANCE_ARTIFACT_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `630b81d1ad8f13b21e79778d512083201da2fc60`
+  conclut `PASS`. Un contrat declaratif et son seal lient quatre artefacts
+  one-shot et 68 identites amont, soit 72 chemins rehashes. Ils definissent le
+  format du futur artefact d'issuance sans le creer; authority, claim,
+  capability, destination et science restent fermes. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-one-shot-authority-issuance-artifact-contract.md`.
 - La revue externe de `827cccead21986fc77046911d2f9321c3c11d39c`
   conclut `PASS`. Le binding administratif et son seal lient le contrat, son
   seal et 68 identites amont, soit 70 chemins rehashes. Aucune authority,

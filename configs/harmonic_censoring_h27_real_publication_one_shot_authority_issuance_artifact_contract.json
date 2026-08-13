@@ -1,0 +1,19 @@
+{
+  "schema_version":1,
+  "contract_id":"H27_REAL_PUBLICATION_ONE_SHOT_AUTHORITY_ISSUANCE_ARTIFACT_CONTRACT_V1",
+  "status":"CONTRACT_ONLY_PENDING_EXTERNAL_REVIEW_NO_ISSUANCE_NO_AUTHORITY_NO_DESTINATION_NO_SCIENCE",
+  "scope":"define the exact future issuance artifact format and preconditions without issuing authority, claim, or capability",
+  "reviewed_and_sealed_one_shot_authority_chain":[
+    {"name":"authority_contract","path":"configs/harmonic_censoring_h27_real_publication_one_shot_authority_contract.json","reviewed_commit":"827cccead21986fc77046911d2f9321c3c11d39c","external_review_verdict":"PASS","git_blob_sha1":"72b3adffed2426e1254809a90d1cd7783768d3c9","size_bytes":3695,"raw_sha256":"aac8e197778f6fd818c030a4f8392ae89d2f1de9975068840c10465d769c9512"},
+    {"name":"authority_contract_seal","path":"configs/harmonic_censoring_h27_real_publication_one_shot_authority_contract_external_seal.json","git_blob_sha1":"a1cfa34bd475c8fdee24cc59f4b3c3651724d229","size_bytes":984,"raw_sha256":"a81e4dafad6947fecb34db3e94699ced180774594be96d9f1d917b8b0d801127"},
+    {"name":"authority_contract_binding","path":"configs/harmonic_censoring_h27_real_publication_one_shot_authority_contract_identity_binding.json","reviewed_commit":"630b81d1ad8f13b21e79778d512083201da2fc60","external_review_verdict":"PASS","git_blob_sha1":"79129687259d629dc272c82c304364937366bc86","size_bytes":2096,"raw_sha256":"3f8f830a4d4a4fe9f8a08be9ccd3f6e459491e214a410e5f05f1bd4042fa2a93"},
+    {"name":"authority_contract_binding_seal","path":"configs/harmonic_censoring_h27_real_publication_one_shot_authority_contract_identity_binding_external_seal.json","git_blob_sha1":"0bb80e147ac684dd81661b04e2946524e650118c","size_bytes":931,"raw_sha256":"8250b6ecdb4cf7160d713afb6c84a0a9da7d29e3eaaddeb707e471a97c718644"}
+  ],
+  "transitive_identity_source":{"path":"configs/harmonic_censoring_h27_real_publication_one_shot_authority_contract.json","preexisting_unique_identities":68,"combined_unique_identity_count":72},
+  "future_artifact_schema":{"artifact_id_required":true,"issuer_id_required":true,"invocation_nonce_lowercase_hex_64_required":true,"issued_at_utc_required":true,"exact_destination_required":"/Users/amcarene/h27-admin/activation/h27-materialization-v1.json","single_use_required":true,"predecessor_identity_count":72,"canonical_json_lf_required":true},
+  "future_issuance_preconditions":{"all_seventy_two_identities_rehashed":true,"separate_reviewed_issuer_implementation_required":true,"separate_real_issuance_authorization_required":true,"destination_must_remain_unobserved_before_consumption":true,"retry_forbidden_after_consumption":true},
+  "dependency_graph":{"acyclic":true,"self_hash_present":false,"historical_back_reference_present":false},
+  "current_state":{"issuance_artifact_contract_exists":true,"issuance_artifact_contract_externally_reviewed":false,"issuance_artifact_contract_externally_sealed":false,"issuance_artifact_exists":false,"authority_exists":false,"claim_exists":false,"capability_exists":false,"destination_observed":false,"filesystem_operation_authorized":false,"real_execution_authorized":false,"connections_open":false,"materializer_authorized":false,"population_exists":false,"science_authorized":false,"locked_test_used":false,"training_or_calibration_authorized":false},
+  "public_edges_closed":8,
+  "next_action":"External review of this issuance artifact contract and seal only; no issuance or execution"
+}
