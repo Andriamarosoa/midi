@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "binding_id": "H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_REAL_PUBLICATION_DESTINATION_CONTRACT_IDENTITY_BINDING_V1",
+  "status": "ADMINISTRATIVE_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW_DESTINATION_NOT_CREATED_NO_WRITE_NO_CONNECTION_NO_SCIENCE",
+  "scope": "bind the exact externally reviewed destination contract, its external seal, and all sixty transitive identities without observing or creating the destination",
+  "population_namespace": "H27_SYNTHETIC_V1",
+  "reviewed_contract": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_activation_artifact_real_publication_destination_contract.json",
+    "reviewed_commit": "85fc9d33f58a20575727be76fa6bc3678f145956",
+    "reviewed_parent_commit": "4c8d56d844e7c21623af1cc381b61d0c56136477",
+    "external_review_verdict": "PASS",
+    "git_blob_sha1": "56eb8a9a1cfd4ee3e42380b0108f19b1d482199b",
+    "size_bytes": 3383,
+    "raw_sha256": "e109b1275aa67b85ad6d0460947a3614ae1ea94539f355a06954285825a5c81e"
+  },
+  "contract_external_seal": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_activation_artifact_real_publication_destination_contract_external_seal.json",
+    "git_blob_sha1": "316929e8f3590da111a4df09282dd65ba0bfd1c6",
+    "size_bytes": 940,
+    "raw_sha256": "3fc9b5ba2b22591092f7030ba6099382dac8ad07236dfce66dff99d2aacf8571"
+  },
+  "transitive_identity_source": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_activation_artifact_real_publication_destination_contract.json",
+    "reviewed_and_sealed_dormant_boundary": 4,
+    "expanded_upstream_identities": 56,
+    "expanded_unique_identities": 60
+  },
+  "bound_identity_counts": {
+    "reviewed_contract": 1,
+    "contract_external_seal": 1,
+    "expanded_transitive_identities": 60,
+    "combined_unique_identity_count": 62
+  },
+  "dependency_graph": {
+    "acyclic": true,
+    "self_hash_present": false,
+    "historical_back_reference_present": false,
+    "all_edges_point_to_preexisting_reviewed_or_sealed_artifacts": true,
+    "all_sixty_two_bound_identities_rehashed": true,
+    "all_sixty_two_bound_identities_remain_byte_identical": true
+  },
+  "canonical_destination": {
+    "destination_path": "/Users/amcarene/h27-admin/activation/h27-materialization-v1.json",
+    "destination_observed": false,
+    "destination_exists": false,
+    "creation_authorized": false,
+    "write_authorized": false,
+    "overwrite_or_replace_authorized": false
+  },
+  "current_state": {
+    "destination_contract_exists": true,
+    "destination_contract_externally_reviewed": true,
+    "destination_contract_externally_sealed": true,
+    "destination_contract_identity_binding_exists": true,
+    "destination_contract_identity_binding_externally_reviewed": false,
+    "destination_contract_identity_binding_externally_sealed": false,
+    "destination_exists": false,
+    "artifact_exists": false,
+    "write_authorized": false,
+    "connections_open": false,
+    "authority_claim_or_capability_exists": false,
+    "materializer_authorized": false,
+    "science_authorized": false,
+    "locked_test_used": false,
+    "training_or_calibration_authorized": false
+  },
+  "public_edges_closed": 8,
+  "next_action": "External review of this administrative identity binding and its exact external seal only; do not observe, create, open, or write the destination"
+}

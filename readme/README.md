@@ -14,12 +14,22 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 dormant real-publication chain PASS; exact future destination contract awaits external review; destination not created, no write or science. -->
+<!-- H26_CORRECTION_STATUS: H27 destination contract PASS; its administrative identity binding awaits external review; destination not observed or created, no write or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_REAL_PUBLICATION_DESTINATION_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+  `H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_REAL_PUBLICATION_DESTINATION_CONTRACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `85fc9d33f58a20575727be76fa6bc3678f145956`
+  conclut `PASS`. Un identity binding administratif et son seal lient le
+  contrat de destination exact, son seal et les 60 identites transitives, soit
+  62 chemins uniques rehashes. Le graphe reste acyclique, sans self-hash ni
+  back-reference, et les huit edges restent fermes. La destination n'est ni
+  observee, ni creee, ni ouverte ou ecrite; tous les etats operationnels et
+  scientifiques restent faux. `3/3` tests administratifs et `298/298` tests
+  H27 passent avec le venv du projet. Le lot attend une revue externe;
+  `locked_test_used=false`. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-real-publication-destination-contract-identity-binding.md`.
 - La revue externe de `4c8d56d844e7c21623af1cc381b61d0c56136477`
   conclut `PASS`. Un contrat declaratif fixe maintenant l'unique destination
   future `/Users/amcarene/h27-admin/activation/h27-materialization-v1.json`
