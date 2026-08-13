@@ -14,12 +14,25 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 operational activation/connection contract PASS; exact administrative identity binding and seal now await review; activation, connections, public edges and science remain closed. -->
+<!-- H26_CORRECTION_STATUS: H27 activation/connection binding PASS; a distinct dormant gate implementation now awaits review; activation, both connections, materializer and science remain closed. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_FUTURE_BRIDGE_OPERATIONAL_ACTIVATION_CONNECTION_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+  `H27_FUTURE_BRIDGE_OPERATIONAL_ACTIVATION_CONNECTION_DORMANT_IMPLEMENTATION_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `e0c51e9f2006aabfcc104f3bf63caa8885aac607`
+  conclut `PASS` et autorise un module gate strictement dormant. Ce nouveau
+  module revalide avant tout mock les quatre artefacts activation/connection
+  PASS, les quatre bridge, les quatre compatibility et les vingt predecesseurs.
+  Son harness synthetique exige le binding step-11 exact et terminal, les
+  identites authority/claim/nonce/PID/code, le bridge terminal ainsi que le blob
+  materializer et sa barriere fermee. Il refuse toute observation d'un edge
+  connecte ou autorise, puis consomme un droit local one-shot sans creer
+  d'activation. Le succes et toute erreur post-consommation rendent le ticket
+  terminal. L'entree publique du nouveau module est `().__getitem__`; les quatre
+  edges historiques sont inchanges. `10/10` tests ciblés et `192/192` tests H27
+  passent. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-future-bridge-operational-activation-connection-dormant.md`.
 - La revue externe de `4327484ec20e4331277112ec7b4606f0cba923b5`
   conclut `PASS`. Un identity binding administratif lie maintenant ce contrat
   exact (blob `d084467f...`, 13281 octets, SHA-256 `7565b0fa...`) et son seal
