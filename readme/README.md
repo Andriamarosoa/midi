@@ -24,7 +24,9 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   cinq blobs H27 revus, fige record/mask/role semantics/ordre fail-closed,
   distingue corruption terminale et résolution scientifique `AMBIGUOUS`,
   effectue l'exact-zero avant FFT et le plancher non nul après FFT, et impose un
-  recomputer réellement indépendant. Les engine/recomputer, population,
+  recomputer réellement indépendant. Le profil primaire CPython 3.11.9 scelle
+  désormais aussi son exécutable résolu, ses 152 624 octets et son SHA-256,
+  symétriquement au profil secondaire. Les engine/recomputer, population,
   FFT/NNLS, P0/P1/P2 et capacités restent absents. Rapport :
   `readme/results/2026-08-12_harmonic-censoring-h27-engine-recomputer-design.md`.
 - Le loader et materializer H27 restent strictement dormants : les cinq blobs

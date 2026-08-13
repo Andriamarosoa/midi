@@ -35,6 +35,14 @@ aussi les champs d'entrée autorisés, les douze entrées oracle interdites et
 leurs aliases, ainsi que les identités complètes des deux runtimes et leur
 environnement exact.
 
+La fermeture B6 scelle aussi explicitement l'exécutable primaire CPython 3.11.9
+résolu sous `/Library/Frameworks/Python.framework/Versions/3.11/bin/python3.11` :
+152 624 octets, SHA-256
+`4e28e811a89aeac6eed668ae641c7f85f5831e42e8dc6cd9a85a3bcc032ec46a`.
+Le profil primaire possède donc les mêmes champs chemin/taille/SHA que le
+profil secondaire ; aucune sélection ou substitution runtime automatique
+n'est permise.
+
 ## Interdictions conservées
 
 Aucun engine, recomputer, stub scientifique, capability, runner, population,
