@@ -19,7 +19,15 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_REAL_PUBLICATION_ONE_SHOT_AUTHORITY_ISSUER_EFFECT_FREE_IMPLEMENTATION_PENDING_EXTERNAL_REVIEW`.
+  `H27_REAL_PUBLICATION_ONE_SHOT_AUTHORITY_ISSUER_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `485c35b4d8469e483b438915ddf20aba0194d800`
+  conclut `PASS`. Le lot courant scelle uniquement ce module issuer effect-free
+  exact, ajoute son identity binding administratif et le seal du binding. Il
+  rehache 80 predecesseurs et lie 82 chemins uniques avec le module et son
+  seal. Les huit edges restent fermes; aucune invocation, issuance, authority,
+  claim, capability, destination, operation filesystem, materializer ou
+  science n'est ouverte. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-one-shot-authority-issuer-identity-binding.md`.
 - La revue externe de `cb581c7e989715b808a8334127dd1dd50ad816fd`
   conclut `PASS`. L'implementation courante rehache 78 identites puis construit
   uniquement les bytes canoniques en memoire via adapters fake/in-memory qui

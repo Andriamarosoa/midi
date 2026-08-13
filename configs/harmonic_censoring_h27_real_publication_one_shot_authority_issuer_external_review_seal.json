@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "seal_id": "H27_REAL_PUBLICATION_ONE_SHOT_AUTHORITY_ISSUER_EXTERNAL_REVIEW_SEAL_V1",
+  "status": "PASS_SEALED_EFFECT_FREE_NO_ISSUANCE_NO_AUTHORITY_NO_DESTINATION_NO_SCIENCE",
+  "implementation": {
+    "path": "src/polyphonic/harmonic_censoring_h27_real_publication_one_shot_authority_issuer.py",
+    "reviewed_commit": "485c35b4d8469e483b438915ddf20aba0194d800",
+    "reviewed_parent_commit": "7d06d02227fdf0e8b667f5cc3ee1fbbe05a4f919",
+    "external_review_verdict": "PASS",
+    "git_blob_sha1": "e9cc159e6d6284f692feb5d42d03d8682aa202c3",
+    "size_bytes": 10333,
+    "raw_sha256": "2d7224dda54b901b89a3b5392c41433a2df72e0a259ac8d0b3519ecf0d63a34b"
+  },
+  "seal_semantics": {
+    "effect_free_implementation_only": true,
+    "verified_predecessor_identities": 78,
+    "public_edges_closed": 8,
+    "issuer_invoked": false,
+    "destination_observed": false,
+    "issuance_artifact_exists": false,
+    "authority_claim_or_capability_exists": false,
+    "filesystem_effects": 0,
+    "materializer_invocations": 0,
+    "science_invocations": 0,
+    "locked_test_used": false,
+    "training_or_calibration_authorized": false
+  },
+  "next_action": "Administrative identity binding and external seal of this exact PASS issuer module only; no invocation, issuance, authority, destination, filesystem, materializer, or science"
+}
