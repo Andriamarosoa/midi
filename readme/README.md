@@ -14,12 +14,19 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 issuance-artifact contract initial review FAIL; closed-schema correction awaits external review; no artifact, authority, destination or science. -->
+<!-- H26_CORRECTION_STATUS: H27 issuance-artifact contract PASS; administrative identity binding awaits external review; no artifact, authority, destination or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_REAL_PUBLICATION_ONE_SHOT_AUTHORITY_ISSUANCE_ARTIFACT_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+  `H27_REAL_PUBLICATION_ONE_SHOT_AUTHORITY_ISSUANCE_ARTIFACT_CONTRACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `b39668e3cc777061f0004dbad6c22b94e47465aa`
+  conclut `PASS`. Le binding administratif courant lie le contrat corrige, son
+  seal et les 72 identites preexistantes, soit 74 chemins uniques rehashes.
+  L'issuer H27 exact, le manifeste canonique 72 et les huit edges fermes sont
+  preserves. Aucun artefact, pouvoir, destination, operation ou science n'est
+  cree; nouvelle revue requise. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-one-shot-authority-issuance-artifact-contract-identity-binding.md`.
 - La revue externe de `007614a466033b8000ef8e9d2b119c517e264a95`
   conclut `FAIL`: schema non ferme, identites/timestamp insuffisamment
   contraints et compteur 72 sans liaison cryptographique. La correction ferme
