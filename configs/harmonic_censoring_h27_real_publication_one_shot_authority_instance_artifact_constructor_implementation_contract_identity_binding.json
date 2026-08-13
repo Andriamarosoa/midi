@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "binding_id": "H27_REAL_PUBLICATION_AUTHORITY_INSTANCE_ARTIFACT_CONSTRUCTOR_IMPLEMENTATION_CONTRACT_IDENTITY_BINDING_V1",
+  "status": "ADMINISTRATIVE_BINDING_PENDING_EXTERNAL_REVIEW_NO_CONSTRUCTOR_NO_ARTIFACT_NO_AUTHORITY_INSTANCE_NO_DESTINATION_NO_FILESYSTEM_NO_SCIENCE",
+  "reviewed_contract": {
+    "path": "configs/harmonic_censoring_h27_real_publication_one_shot_authority_instance_artifact_constructor_implementation_contract.json",
+    "reviewed_commit": "c80a7c73264ece3354f1f8e03acecd0f061d99a0",
+    "external_review_verdict": "PASS",
+    "git_blob_sha1": "eb739e6541f1d05b1d3ff2ed426c98e70ab1c3d5",
+    "size_bytes": 4193,
+    "raw_sha256": "58bdfb9327b3167f02622dba41562d245886ef73b943f59aa492308e34c17019"
+  },
+  "contract_external_seal": {
+    "path": "configs/harmonic_censoring_h27_real_publication_one_shot_authority_instance_artifact_constructor_implementation_contract_external_seal.json",
+    "git_blob_sha1": "ed4adf2f462c4cd8fd91e52f6ad9042df5d8bb96",
+    "size_bytes": 1110,
+    "raw_sha256": "7ce002e816221d4c02cf2914507abe2ccc8c39a514e13674b124934d5e671bf2"
+  },
+  "transitive_identity_source": {
+    "path": "configs/harmonic_censoring_h27_real_publication_one_shot_authority_instance_artifact_constructor_implementation_contract.json",
+    "expanded_predecessor_identities": 96,
+    "combined_unique_identity_count": 98
+  },
+  "preserved_constructor_guards": {
+    "all_ninety_six_identities_rehashed_before_any_future_input_parse": true,
+    "exact_native_input_types_required_before_magic_methods": true,
+    "canonical_top_level_and_nested_orders_preserved": true,
+    "authority_instance_id_derivation_preserved": true,
+    "identity_nonce_persistent_uniqueness_and_terminal_reservation_preserved": true,
+    "constructor_implementation_requires_distinct_later_commit_and_external_review": true
+  },
+  "future_constructor_boundary": {
+    "module_path": "src/polyphonic/harmonic_censoring_h27_real_publication_authority_instance_artifact_constructor.py",
+    "entrypoint": "construct_h27_real_publication_authority_instance_artifact",
+    "module_must_remain_absent": true,
+    "entrypoint_must_remain_absent": true
+  },
+  "dependency_graph": {
+    "acyclic": true,
+    "self_hash_present": false,
+    "historical_back_reference_present": false,
+    "all_ninety_eight_bound_identities_rehashed": true
+  },
+  "current_state": {
+    "constructor_contract_exists": true,
+    "constructor_contract_externally_reviewed": true,
+    "constructor_contract_externally_sealed": true,
+    "constructor_contract_identity_binding_exists": true,
+    "constructor_contract_identity_binding_externally_reviewed": false,
+    "constructor_contract_identity_binding_externally_sealed": false,
+    "constructor_module_exists": false,
+    "constructor_entrypoint_exists": false,
+    "authority_instance_artifact_exists": false,
+    "authority_instance_exists": false,
+    "authority_instance_granted": false,
+    "authority_instance_consumed": false,
+    "issuer_invoked": false,
+    "destination_observed": false,
+    "filesystem_operation_authorized": false,
+    "connections_open": false,
+    "materializer_authorized": false,
+    "population_exists": false,
+    "science_authorized": false,
+    "locked_test_used": false,
+    "training_or_calibration_authorized": false
+  },
+  "public_edges_closed": 8,
+  "next_action": "External review of this administrative binding and seal only; constructor implementation remains forbidden"
+}

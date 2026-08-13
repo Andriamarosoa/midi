@@ -14,12 +14,19 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 authority-instance artifact constructor implementation contract pending external review; no constructor, artifact, instance, destination or science. -->
+<!-- H26_CORRECTION_STATUS: H27 authority-instance artifact constructor implementation contract identity binding pending external review; no constructor, artifact, instance, destination or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_AUTHORITY_INSTANCE_ARTIFACT_CONSTRUCTOR_IMPLEMENTATION_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+  `H27_AUTHORITY_INSTANCE_ARTIFACT_CONSTRUCTOR_IMPLEMENTATION_CONTRACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `c80a7c73264ece3354f1f8e03acecd0f061d99a0`
+  conclut `PASS`. Le lot courant ajoute uniquement l'identity binding du
+  contrat constructor et son seal : contrat + seal + 96 predecesseurs = 98
+  chemins uniques rehashes. Le module futur reste absent et les huit edges
+  restent fermes. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-authority-instance-artifact-constructor-implementation-contract-identity-binding.md`.
+  Validation locale : `3/3` tests administratifs et `358/358` tests H27.
 - La revue externe de `2233f17cd6ce2814f1a086398114cceceb4227ef`
   conclut `PASS`. Le lot courant ajoute uniquement le contrat declaratif et le
   seal du futur constructeur d'artefact. Il lie quatre artefacts PASS/scelles
