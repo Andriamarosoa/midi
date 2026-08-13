@@ -14,12 +14,22 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 dormant bridge operational activation/connection contract and external seal now await review; activation, both connections, all four public edges and science remain closed; no real operation. -->
+<!-- H26_CORRECTION_STATUS: H27 operational activation/connection contract PASS; exact administrative identity binding and seal now await review; activation, connections, public edges and science remain closed. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_FUTURE_BRIDGE_OPERATIONAL_ACTIVATION_CONNECTION_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+  `H27_FUTURE_BRIDGE_OPERATIONAL_ACTIVATION_CONNECTION_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `4327484ec20e4331277112ec7b4606f0cba923b5`
+  conclut `PASS`. Un identity binding administratif lie maintenant ce contrat
+  exact (blob `d084467f...`, 13281 octets, SHA-256 `7565b0fa...`) et son seal
+  (blob `a76af483...`, 4090 octets, SHA-256 `7d8b6933...`), rebind les quatre
+  artefacts bridge PASS, les quatre artefacts compatibility et les vingt
+  predecesseurs byte-identical. Seuls contract exists/reviewed/sealed sont vrais.
+  Activation, les deux connexions, le chemin d'execution, materializer et science
+  restent faux; les quatre public edges restent `().__getitem__`. `8/8` tests
+  administratifs et `182/182` tests H27 passent. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-future-bridge-operational-activation-connection-identity-binding.md`.
 - Un contrat declaratif distinct decrit maintenant les deux futures transitions
   `composition -> bridge` et `bridge -> materializer`, mais les conserve toutes
   deux `connected=false` et `connection_authorized=false`. Il lie exactement le
