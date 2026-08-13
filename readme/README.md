@@ -14,12 +14,24 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 in-memory dormant constructor review found RFC3339 and activation-id uniqueness gaps; bounded correction now awaits review; no artifact, write, connection or science. -->
+<!-- H26_CORRECTION_STATUS: H27 corrected dormant activation-artifact module PASS; administrative seal/binding lot now awaits review; no artifact, write, connection or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_DORMANT_CORRECTION_PENDING_EXTERNAL_REVIEW`.
+  `H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_DORMANT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+- La revue externe du correctif exact
+  `19af83ea7127e16c1abccc05315e5651f6074241` conclut `PASS`. Le lot
+  administratif suivant scelle uniquement le module corrige (blob
+  `277e8e56...`, 11226 octets, SHA-256 `c3ae1b3c...`), ajoute son identity
+  binding acyclique et le seal de ce binding. Il rebind directement les quatre
+  artefacts activation-artifact et les trente-six dependances historiques
+  byte-identical. Seuls le contrat et le module dormant exacts sont
+  exists/reviewed/sealed; implementation operationnelle, artefact, connexions,
+  authority/claim/capability, materializer et science restent faux. Les six
+  public edges restent `().__getitem__`. `8/8` tests administratifs passent.
+  Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-future-bridge-activation-artifact-dormant-identity-binding.md`.
 - La revue externe de `d18ed0ffb9a815ec349fb43c844fa25360e02449`
   a refuse uniquement deux ecarts au schema scelle : `created_at_utc` ne
   validait que le suffixe `Z` et l'unicite de `activation_id` n'etait pas
