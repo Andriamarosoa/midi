@@ -11,8 +11,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import errno
-import functools
 import hashlib
+import importlib.metadata
 import itertools
 import json
 import math
@@ -22,7 +22,6 @@ import subprocess
 import sys
 from pathlib import Path
 from typing import Any, Mapping, Sequence
-from types import MappingProxyType
 
 from .harmonic_censoring_h27_contract import (
     H27DormantPlan,
@@ -37,6 +36,7 @@ ROLE_ORDER = ("current_short", "previous_short", "current_long", "previous_long"
 POPULATION_NAMESPACE = "H27_SYNTHETIC_V1"
 FINAL_DESTINATION = Path("/Users/amcarene/h27-admin/population/h27-synthetic-v1")
 STAGING_DESTINATION = Path("/Users/amcarene/h27-admin/population/.h27-synthetic-v1.staging")
+CLAIM_DESTINATION = Path("/Users/amcarene/h27-admin/claims/h27-synthetic-v1.consumed.json")
 INDEX_FIELDS = (
     "record_identity", "record_directory", "population_namespace", "payload_sha256",
     "candidate_pitch", "active_pitches", "proposal_hop_end", "resolution_hop_end",
@@ -75,7 +75,7 @@ def _load_exact_json(path: Path, blob: str, sha256: str) -> Mapping[str, object]
     value = json.loads(raw)
     if type(value) is not dict:
         raise ValueError("H27 normative binding source must be an object.")
-    return MappingProxyType(value)
+    return value
 
 
 def validate_normative_authority_bindings() -> Mapping[str, object]:
@@ -103,7 +103,7 @@ def validate_normative_authority_bindings() -> Mapping[str, object]:
         or authority_seal["contract"]["git_blob_sha1"] != AUTHORITY_CONTRACT_BLOB
     ):
         raise ValueError("H27 exact derived activation binding drift.")
-    return MappingProxyType({"authority_contract": authority, "authority_seal": authority_seal, "activation_contract": activation, "activation_seal": activation_seal})
+    return {"authority_contract": authority, "authority_seal": authority_seal, "activation_contract": activation, "activation_seal": activation_seal}
 
 
 def _require_reviewed_self_identity() -> None:
@@ -124,6 +124,8 @@ def validate_preclaim_runtime_git_and_destinations() -> None:
     """Validate the fixed runtime/Git/destination boundary; never creates a claim."""
 
     bindings = validate_normative_authority_bindings()
+    _require_reviewed_self_identity()
+    validate_critical_callable_identity(sys.modules.get(__name__))
     expected = bindings["activation_contract"]
     runtime = expected["runtime_exact"]
     environment = expected["process_environment_exact"]
@@ -140,6 +142,29 @@ def validate_preclaim_runtime_git_and_destinations() -> None:
     for field, actual in observed_runtime.items():
         if actual != runtime[field]:
             raise PermissionError(f"H27 runtime mismatch: {field}.")
+    distribution = importlib.metadata.distribution("numpy")
+    if distribution.version != runtime["numpy_version"]:
+        raise PermissionError("H27 runtime mismatch: numpy_version.")
+
+    def require_distribution_file(size: int, sha256: str, label: str) -> Path:
+        matches: list[Path] = []
+        for relative in distribution.files or ():
+            candidate = Path(distribution.locate_file(relative)).resolve(strict=True)
+            if candidate.is_file() and candidate.stat().st_size == size:
+                if hashlib.sha256(candidate.read_bytes()).hexdigest() == sha256:
+                    matches.append(candidate)
+        if len(matches) != 1:
+            raise PermissionError(f"H27 runtime mismatch: {label}.")
+        return matches[0]
+
+    require_distribution_file(
+        runtime["numpy_multiarray_size_bytes"], runtime["numpy_multiarray_sha256"], "numpy_multiarray",
+    )
+    blas = require_distribution_file(
+        runtime["blas_library_size_bytes"], runtime["blas_library_sha256"], "blas_library",
+    )
+    if runtime["blas_provider"] != "OpenBLAS ILP64" or "openblas" not in blas.name.lower():
+        raise PermissionError("H27 runtime mismatch: blas_provider.")
     for name, value in environment.items():
         if os.environ.get(name) != value:
             raise PermissionError(f"H27 environment mismatch: {name}.")
@@ -155,10 +180,26 @@ def validate_preclaim_runtime_git_and_destinations() -> None:
     ).stdout
     if head != FUTURE_ACTIVATION_REVIEWED_HEAD or dirty:
         raise PermissionError("H27 Git HEAD/worktree mismatch.")
-    for destination in (FINAL_DESTINATION, STAGING_DESTINATION):
+    for destination in (CLAIM_DESTINATION, FINAL_DESTINATION, STAGING_DESTINATION):
         if os.path.lexists(destination):
             raise FileExistsError(f"H27 destination already exists: {destination}.")
-    _require_reviewed_self_identity()
+
+
+def validate_critical_callable_identity(module: object) -> None:
+    """Attest the native dormant barrier and every exported production edge."""
+
+    if module is not sys.modules.get(__name__) or getattr(module, "__file__", None) != __file__:
+        raise PermissionError("H27 loaded module identity drift.")
+    native_type = type(().__getitem__)
+    if type(_DORMANT_NATIVE_BARRIER) is not native_type:
+        raise PermissionError("H27 native barrier type drift.")
+    if _DORMANT_NATIVE_BARRIER.__self__ != () or _DORMANT_NATIVE_BARRIER.__name__ != "__getitem__":
+        raise PermissionError("H27 native barrier identity drift.")
+    for name in _PRODUCTION_HELPER_NAMES:
+        if getattr(module, name, None) is not _DORMANT_NATIVE_BARRIER:
+            raise PermissionError(f"H27 critical helper identity drift: {name}.")
+    if getattr(module, "materialize_h27_activation_capable_production_population", None) is not _DORMANT_NATIVE_BARRIER:
+        raise PermissionError("H27 entry identity drift.")
 
 
 class H27ActivationCapableProductionMaterializationCapability:
@@ -189,7 +230,7 @@ def _require_capability(_: H27ActivationCapableProductionMaterializationCapabili
 
 # A C-implemented bound method over an immutable empty mapping.  It has no
 # writable ``__code__`` and no key can ever authorize a caller.
-_FROZEN_CAPABILITY_GUARD = MappingProxyType({}).__getitem__
+_FROZEN_CAPABILITY_GUARD = ().__getitem__
 
 
 @dataclass(frozen=True)
@@ -600,9 +641,7 @@ _PRODUCTION_HELPER_NAMES = (
     "_render_collision", "_mask_bytes", "_render_record", "_write_new",
     "_fsync_directory", "_rename_no_replace", "_publish",
 )
-_DORMANT_NATIVE_BARRIER = functools.partial(
-    _FROZEN_CAPABILITY_GUARD, "H27_DORMANT_NO_CAPABILITY",
-)
+_DORMANT_NATIVE_BARRIER = _FROZEN_CAPABILITY_GUARD
 for _helper_name in _PRODUCTION_HELPER_NAMES:
     globals()[_helper_name] = _DORMANT_NATIVE_BARRIER
 

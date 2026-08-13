@@ -25,13 +25,16 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   reste strictement dormant et non scelle. Sa logique scientifique est
   mecaniquement identique au blob dormant revu `d3a903ac...`; seuls le type de
   capability et le plumbing de frontiere d'autorite sont ajoutes. Le correctif
-  adversarial remplace le garde Python mutable par une barriere native sans
-  `__code__`; l'entree et les onze helpers refusent avant tout argument, meme
-  apres rebinding. Les validateurs runtime, environnement, HEAD/worktree,
-  destinations et identite code/seal sont maintenant effectifs mais restent
+  adversarial remplace le garde Python mutable par `().__getitem__`, barriere
+  native sans import substituable ni `__code__`; l'entree et les onze helpers
+  refusent avant tout argument, meme apres rebinding. Les validateurs runtime
+  complet (NumPy/multiarray/OpenBLAS inclus), environnement, HEAD/worktree,
+  claim/staging/final, module/callables et identite code/seal sont effectifs mais restent
   inemissibles faute de seal/HEAD futur. Aucun issuer, authority,
   capability utilisable, claim, activation, population ou calcul n'existe.
-  `py_compile`, `git diff --check` et `62/62` tests H27 passent. Rapport :
+  `py_compile`, `git diff --check` et `64/64` tests H27 passent. Les familles
+  exigeant un futur claim restent declarees differees, sans claim factice.
+  Rapport :
   `readme/results/2026-08-13_harmonic-censoring-h27-activation-capable-production-materializer-dormant.md`.
 - La revue externe de `ece4b630e15a895daef9dafeca4955ee7b338573`
   conclut `PASS`. Le nouveau lot contractuel définit maintenant l'unique
