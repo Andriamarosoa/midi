@@ -14,12 +14,22 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: future H27 activation-capable authority boundary contract sealed; implementation remains absent; no activation, materialization, or science; external review pending. -->
+<!-- H26_CORRECTION_STATUS: future H27 activation-capable materializer implemented but dormant and unsealed; no issuer, capability, claim, activation, materialization, or science; external review pending. -->
 ## État courant
 
 - Mise à jour : `2026-08-12`.
 - État courant :
-  `H27_ACTIVATION_CAPABLE_AUTHORITY_BOUNDARY_CONTRACT_SEALED_IMPLEMENTATION_ABSENT_NO_ACTIVATION_NO_EXECUTION`.
+  `H27_ACTIVATION_CAPABLE_MATERIALIZER_DORMANT_IMPLEMENTED_UNSEALED_NO_AUTHORITY_NO_ACTIVATION_NO_EXECUTION`.
+- La revue externe de `b8f6d904d3b0bdf6db5dbce939e6cdf09ee6ac55`
+  conclut `PASS`. Le nouveau module activable est maintenant implemente mais
+  reste strictement dormant et non scelle. Sa logique scientifique est
+  mecaniquement identique au blob dormant revu `d3a903ac...`; seuls le type de
+  capability et le plumbing de frontiere d'autorite sont ajoutes. L'entree et
+  les onze helpers refusent les capabilities forgees avant tout argument,
+  meme apres rebinding du garde ou du publisher. Aucun issuer, authority,
+  capability utilisable, claim, activation, population ou calcul n'existe.
+  `py_compile`, `git diff --check` et `62/62` tests H27 passent. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-activation-capable-production-materializer-dormant.md`.
 - La revue externe de `ece4b630e15a895daef9dafeca4955ee7b338573`
   conclut `PASS`. Le nouveau lot contractuel définit maintenant l'unique
   différence future autorisée — le plumbing d'autorité —, l'ordre fail-closed
