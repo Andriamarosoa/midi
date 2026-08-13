@@ -14,12 +14,22 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 future bridge compatibility binding PASS at 52dd2ec; distinct dormant bridge module now reattests 4 bridge artifacts plus 20 predecessors and exercises a simulated one-shot handoff while all public edges and science remain closed; external review pending. -->
+<!-- H26_CORRECTION_STATUS: H27 dormant bridge PASS at 22f5b50; exact module external seal plus acyclic identity binding and binding seal now await external review; all four public edges and science remain closed; no real operation. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_FUTURE_BRIDGE_DORMANT_IMPLEMENTATION_PENDING_EXTERNAL_REVIEW`.
+  `H27_FUTURE_BRIDGE_DORMANT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `22f5b501d632b45fd7ef68c98ce007f5aacc8f35`
+  conclut `PASS`. Le bridge dormant exact (blob `6cc65097...`, 10443 octets,
+  SHA-256 `23e33bc4...`) possède maintenant un external-review seal, un binding
+  acyclique et le seal du binding. Le lot lie les quatre artefacts de
+  compatibilité et rebind les vingt prédécesseurs byte-identical. Seuls module
+  exists/reviewed/sealed deviennent vrais; le bridge reste non opérationnel,
+  déconnecté de composition et materializer, sans chemin d'exécution. Les quatre
+  public edges restent `().__getitem__`. `8/8` tests administratifs et `165/165`
+  tests H27 passent. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-future-bridge-identity-seal-binding.md`.
 - La revue externe de `52dd2ec3f12219b09cafbb8dc6a22d9e5a531540`
   conclut `PASS` et autorise un module bridge strictement dormant. Le nouveau
   module distinct revalide byte-exactement les quatre artefacts bridge puis les

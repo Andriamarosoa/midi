@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "seal_id": "H27_FUTURE_BRIDGE_DORMANT_IDENTITY_BINDING_EXTERNAL_SEAL_V1",
+  "status": "SEALED_PENDING_EXTERNAL_REVIEW_DORMANT_NO_OPERATION_NO_SCIENCE",
+  "identity_binding": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_dormant_identity_binding.json",
+    "git_blob_sha1": "57426a89a4c05093c7bf2dc5867383d4620aa1a6",
+    "size_bytes": 11020,
+    "raw_sha256": "285123266ffec33605d997ff5e80ccf7feca81d13b96fc6f3bea543f9e700466"
+  },
+  "reviewed_bridge_module": {
+    "path": "src/polyphonic/harmonic_censoring_h27_future_bridge_dormant.py",
+    "reviewed_commit": "22f5b501d632b45fd7ef68c98ce007f5aacc8f35",
+    "reviewed_parent_commit": "19aec74d2e08f49830b1f9dc66e2ad2ec767f760",
+    "external_review_verdict": "PASS",
+    "git_blob_sha1": "6cc65097b636ed35eeedf5675457c4f599cb811d",
+    "size_bytes": 10443,
+    "raw_sha256": "23e33bc4f81610c84fe0cb7bcc174d9176b531cae5559ad0b904edf257b97777"
+  },
+  "bridge_module_external_review_seal": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_dormant_external_review_seal.json",
+    "git_blob_sha1": "e6eae1e6a91bd959c8ddcbc810f8c0cc7707e3b6",
+    "size_bytes": 2829,
+    "raw_sha256": "7d281ab1ce55bfb9bb3a75b725697754343b98a8c52e9e4a7d805f6ad921dd42"
+  },
+  "compatibility_identity_binding": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_compatibility_identity_binding.json",
+    "git_blob_sha1": "5d9c1cb07d147d3ce0ad07f998c81ef3ea7950b8",
+    "size_bytes": 9690,
+    "raw_sha256": "a67b3d3beca48d52fff756c959aa18ae7be752acd0a26865f2f861c9e32909e5"
+  },
+  "compatibility_identity_binding_external_seal": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_compatibility_identity_binding_external_seal.json",
+    "git_blob_sha1": "686b2ea3c86ef91c13e67c3ea5af00867282751e",
+    "size_bytes": 3928,
+    "raw_sha256": "29735327c4581f9f7a0b0ddd01f150a7a2fda2d50bc2dcefb8b75eed1f37d72f"
+  },
+  "seal_semantics": {
+    "administrative_identity_binding_only": true,
+    "dependency_graph_acyclic": true,
+    "self_hash_present": false,
+    "historical_back_reference_present": false,
+    "all_predecessors_remain_byte_identical": true,
+    "bridge_module_exists": true,
+    "bridge_module_externally_reviewed": true,
+    "bridge_module_externally_sealed": true,
+    "bridge_operational": false,
+    "composition_to_bridge_connected": false,
+    "bridge_to_materializer_connected": false,
+    "bridge_execution_path_open": false,
+    "issuer_exists": false,
+    "authority_exists": false,
+    "claim_exists": false,
+    "operational_capability_exists": false,
+    "activation_exists": false,
+    "materializer_invocation_authorized": false,
+    "scientific_execution_authorized": false,
+    "population_exists": false,
+    "population_index_exists": false,
+    "locked_test_used": false,
+    "training_or_calibration_authorized": false
+  },
+  "next_action": "External review of the exact dormant bridge identity binding bytes and this seal; no connection operation or science"
+}
