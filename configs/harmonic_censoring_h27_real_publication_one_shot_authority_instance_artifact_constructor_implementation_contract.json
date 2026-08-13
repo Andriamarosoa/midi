@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "contract_id": "H27_REAL_PUBLICATION_AUTHORITY_INSTANCE_ARTIFACT_CONSTRUCTOR_IMPLEMENTATION_CONTRACT_V1",
+  "status": "CONTRACT_ONLY_PENDING_EXTERNAL_REVIEW_NO_CONSTRUCTOR_NO_ARTIFACT_NO_AUTHORITY_INSTANCE_NO_DESTINATION_NO_FILESYSTEM_NO_SCIENCE",
+  "scope": "define the exact future constructor boundary without adding its Python module or creating an authority-instance artifact",
+  "reviewed_and_sealed_authority_instance_artifact_chain": [
+    {"name":"artifact_contract","path":"configs/harmonic_censoring_h27_real_publication_one_shot_authority_issuer_one_shot_real_execution_authority_instance_artifact_contract.json","reviewed_commit":"0e3abcf37c4909cd0b6eebdb5f43a2f051868f24","external_review_verdict":"PASS","git_blob_sha1":"969fc67b0e9cd024d2021226afb2ff971f81e242","size_bytes":7320,"raw_sha256":"197b9f0d304d2b159b8194c584ce3b1c2fbb9edf7131e5a6a3b201d2b6cf2d56"},
+    {"name":"artifact_contract_external_seal","path":"configs/harmonic_censoring_h27_real_publication_one_shot_authority_issuer_one_shot_real_execution_authority_instance_artifact_contract_external_seal.json","git_blob_sha1":"62555d67cb90629852b31644bc7ddb01fbed16a5","size_bytes":1445,"raw_sha256":"dd36c8ee7d99930f38085766d16a6a51f757e9706ae287ec67ea9052458f05ae"},
+    {"name":"artifact_contract_identity_binding","path":"configs/harmonic_censoring_h27_real_publication_one_shot_authority_issuer_one_shot_real_execution_authority_instance_artifact_contract_identity_binding.json","reviewed_commit":"2233f17cd6ce2814f1a086398114cceceb4227ef","external_review_verdict":"PASS","git_blob_sha1":"544d1b6cfc058028dde9a97defabf0da2de160ee","size_bytes":3482,"raw_sha256":"11d9c682b5b43712f1e125120221afb4edb8123355aaf6cdf7ede564f7233da9"},
+    {"name":"artifact_contract_identity_binding_external_seal","path":"configs/harmonic_censoring_h27_real_publication_one_shot_authority_issuer_one_shot_real_execution_authority_instance_artifact_contract_identity_binding_external_seal.json","git_blob_sha1":"e370b22b2ab5c1336caf56ff324b9cff0c8220b6","size_bytes":1532,"raw_sha256":"828372a4b193b416182fa3ca605a89b7490430d8f608812d1590a6bd80ccdbf8"}
+  ],
+  "transitive_identity_source":{"path":"configs/harmonic_censoring_h27_real_publication_one_shot_authority_issuer_one_shot_real_execution_authority_instance_artifact_contract_identity_binding.json","expanded_upstream_identities":92,"combined_unique_predecessor_identity_count":96},
+  "future_constructor_boundary": {
+    "module_path": "src/polyphonic/harmonic_censoring_h27_real_publication_authority_instance_artifact_constructor.py",
+    "entrypoint": "construct_h27_real_publication_authority_instance_artifact",
+    "module_must_not_exist_at_contract_step": true,
+    "entrypoint_must_not_exist_at_contract_step": true,
+    "all_ninety_six_identities_rehashed_before_any_future_input_parse": true,
+    "exact_native_input_types_required_before_magic_methods": true,
+    "canonical_top_level_and_nested_orders_preserved": true,
+    "authority_instance_id_derivation_preserved": true,
+    "identity_nonce_persistent_uniqueness_and_terminal_reservation_preserved": true,
+    "constructor_implementation_requires_distinct_later_commit_and_external_review": true
+  },
+  "dependency_graph":{"acyclic":true,"self_hash_present":false,"historical_back_reference_present":false,"all_ninety_six_predecessor_identities_rehashed":true},
+  "current_state":{"constructor_contract_exists":true,"constructor_contract_externally_reviewed":false,"constructor_contract_externally_sealed":false,"constructor_module_exists":false,"constructor_entrypoint_exists":false,"authority_instance_artifact_exists":false,"authority_instance_exists":false,"authority_instance_granted":false,"authority_instance_consumed":false,"issuer_invoked":false,"destination_observed":false,"filesystem_operation_authorized":false,"connections_open":false,"materializer_authorized":false,"population_exists":false,"science_authorized":false,"locked_test_used":false,"training_or_calibration_authorized":false},
+  "public_edges_closed": 8,
+  "next_action": "External review of this declarative constructor implementation contract and seal only; no Python constructor or real artifact"
+}

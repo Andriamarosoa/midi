@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "seal_id": "H27_REAL_PUBLICATION_AUTHORITY_INSTANCE_ARTIFACT_CONSTRUCTOR_IMPLEMENTATION_CONTRACT_EXTERNAL_SEAL_V1",
+  "status": "SEALED_PENDING_EXTERNAL_REVIEW_CONTRACT_ONLY_NO_CONSTRUCTOR_NO_ARTIFACT_NO_INSTANCE_NO_SCIENCE",
+  "contract": {"path":"configs/harmonic_censoring_h27_real_publication_one_shot_authority_instance_artifact_constructor_implementation_contract.json","git_blob_sha1":"eb739e6541f1d05b1d3ff2ed426c98e70ab1c3d5","size_bytes":4193,"raw_sha256":"58bdfb9327b3167f02622dba41562d245886ef73b943f59aa492308e34c17019"},
+  "bound_predecessor_identity_count": 96,
+  "future_module_path": "src/polyphonic/harmonic_censoring_h27_real_publication_authority_instance_artifact_constructor.py",
+  "future_entrypoint": "construct_h27_real_publication_authority_instance_artifact",
+  "constructor_exists": false,
+  "artifact_or_instance_exists": false,
+  "destination_filesystem_materializer_population_science": false,
+  "public_edges_closed": 8,
+  "locked_test_used": false,
+  "next_action": "External review of this exact declarative implementation contract and seal only"
+}

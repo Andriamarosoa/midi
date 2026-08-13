@@ -1,0 +1,30 @@
+from __future__ import annotations
+import hashlib,json
+from pathlib import Path
+import unittest
+from src.polyphonic import harmonic_censoring_h27_activation_capable_production_materializer_dormant as m
+from src.polyphonic import harmonic_censoring_h27_future_bridge_activation_artifact_dormant as a
+from src.polyphonic import harmonic_censoring_h27_future_bridge_activation_artifact_publication_dormant as p
+from src.polyphonic import harmonic_censoring_h27_future_bridge_activation_artifact_real_publication_dormant as r
+from src.polyphonic import harmonic_censoring_h27_future_bridge_dormant as b
+from src.polyphonic import harmonic_censoring_h27_future_bridge_operational_activation_connection_dormant as g
+from src.polyphonic import harmonic_censoring_h27_issuer_authority_claim_capability_dormant as q
+from src.polyphonic import harmonic_censoring_h27_one_shot_execution_composition_dormant as c
+from tests.test_harmonic_censoring_h27_real_publication_one_shot_authority_issuer_one_shot_real_execution_authority_instance_artifact_contract_identity_binding import _ninety_two
+ROOT=Path(__file__).resolve().parents[1];C=ROOT/'configs/harmonic_censoring_h27_real_publication_one_shot_authority_instance_artifact_constructor_implementation_contract.json';S=ROOT/'configs/harmonic_censoring_h27_real_publication_one_shot_authority_instance_artifact_constructor_implementation_contract_external_seal.json'
+def blob(x):return hashlib.sha1(b'blob '+str(len(x)).encode()+b'\0'+x).hexdigest()
+def chk(t,x):
+ raw=(ROOT/x['path']).read_bytes();t.assertEqual((x['git_blob_sha1'],x['size_bytes'],x['raw_sha256']),(blob(raw),len(raw),hashlib.sha256(raw).hexdigest()))
+class TestContract(unittest.TestCase):
+ @classmethod
+ def setUpClass(cls):cls.c=json.loads(C.read_bytes());cls.s=json.loads(S.read_bytes())
+ def test_96_exact(self):
+  chk(self,self.s['contract']);roots=self.c['reviewed_and_sealed_authority_instance_artifact_chain'];ac=json.loads((ROOT/roots[0]['path']).read_bytes());entries=[*roots,*_ninety_two(ac)];self.assertEqual((len(entries),len({x['path'] for x in entries})),(96,96));[chk(self,x) for x in entries]
+ def test_boundary_closed(self):
+  z=self.c['future_constructor_boundary'];self.assertEqual(z['module_path'],'src/polyphonic/harmonic_censoring_h27_real_publication_authority_instance_artifact_constructor.py');self.assertEqual(z['entrypoint'],'construct_h27_real_publication_authority_instance_artifact');self.assertFalse((ROOT/z['module_path']).exists())
+  for k,v in self.c['current_state'].items():self.assertIs(v,k=='constructor_contract_exists',k)
+  for e in (c.execute_h27_one_shot_composition,b.invoke_h27_future_bridge,g.activate_and_connect_h27_future_bridge,a.construct_h27_future_bridge_activation_artifact,p.simulate_h27_future_bridge_activation_artifact_publication,r.publish_h27_future_bridge_activation_artifact_real,q.issue_h27_materialization_authority_and_capability,m.materialize_h27_activation_capable_production_population):self.assertIs(type(e),type(().__getitem__))
+ def test_graph_and_backrefs(self):
+  z=self.c['dependency_graph'];self.assertTrue(z['acyclic']);self.assertFalse(z['self_hash_present'] or z['historical_back_reference_present']);roots=self.c['reviewed_and_sealed_authority_instance_artifact_chain'];ac=json.loads((ROOT/roots[0]['path']).read_bytes())
+  for x in [*roots,*_ninety_two(ac)]:self.assertNotIn(C.name.encode(),(ROOT/x['path']).read_bytes());self.assertNotIn(S.name.encode(),(ROOT/x['path']).read_bytes())
+if __name__=='__main__':unittest.main()
