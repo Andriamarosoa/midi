@@ -10,9 +10,9 @@ Le nouveau module est :
 
 `src/polyphonic/harmonic_censoring_h27_activation_capable_production_materializer_dormant.py`
 
-- blob Git apres hardening : `791514b32fa603ac59f0d59b48ee4feee936e804` ;
+- blob Git apres hardening : `79f399359e366781f9526098c98a93cca71b1b49` ;
 - taille : `32 243` octets ;
-- SHA-256 : `bf8027ffc9473db40a44f60ddb65433fdc8a6151351b1bc78017a192480e5330`.
+- SHA-256 : `02bf7e9a8e7d0e8f292adb7b00742c83c19ab56eb89e35adc5da9c1c3144ff70`.
 
 Les dix-huit fonctions de logique scientifique et de publication sont
 mecaniquement identiques au module dormant revu `d3a903ac...`, a l'exception
@@ -30,12 +30,14 @@ elle est le bound method natif `().__getitem__`, sans import de constructeur et
 sans `__code__` modifiable. L'entree et les onze noms de helpers production pointent
 sur cette meme barriere native et refusent avant tout argument, meme si les
 anciens attributs de garde/publisher sont rebindes.
-Un validateur administratif effectif compare aussi runtime complet (Python,
-executable, NumPy, multiarray et OpenBLAS), environnement, HEAD/worktree,
-claim/staging/final et identite module/seal avant toute future claim. Une
+Un validateur administratif effectif compare aussi, dans l'ordre fail-closed
+scelle, identite module/seal et callables, HEAD/worktree, runtime complet
+(Python, executable, NumPy, multiarray et OpenBLAS), environnement, puis
+claim/staging/final avant toute future claim. Une
 attestation runtime exige que le module charge, l'entree et les onze helpers
-pointent exactement sur la barriere native attendue; fake module et rebinding
-de callable critique sont testes.
+pointent exactement sur la barriere native attendue; fake module, rebinding
+litteral du registre `sys.modules` et rebinding de callable critique sont
+testes.
 L'identite future du module et son seal restent volontairement absents : le
 module est donc non emissible et non activable.
 

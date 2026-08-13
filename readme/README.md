@@ -27,9 +27,11 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   capability et le plumbing de frontiere d'autorite sont ajoutes. Le correctif
   adversarial remplace le garde Python mutable par `().__getitem__`, barriere
   native sans import substituable ni `__code__`; l'entree et les onze helpers
-  refusent avant tout argument, meme apres rebinding. Les validateurs runtime
-  complet (NumPy/multiarray/OpenBLAS inclus), environnement, HEAD/worktree,
-  claim/staging/final, module/callables et identite code/seal sont effectifs mais restent
+  refusent avant tout argument, meme apres rebinding. Les validateurs suivent
+  l'ordre fail-closed scelle : identite code/seal et module/callables,
+  HEAD/worktree, runtime complet (NumPy/multiarray/OpenBLAS inclus),
+  environnement, puis claim/staging/final. Le rebinding litteral de
+  `sys.modules` est teste. Ces controles sont effectifs mais restent
   inemissibles faute de seal/HEAD futur. Aucun issuer, authority,
   capability utilisable, claim, activation, population ou calcul n'existe.
   `py_compile`, `git diff --check` et `64/64` tests H27 passent. Les familles

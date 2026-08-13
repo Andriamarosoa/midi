@@ -102,6 +102,9 @@ class H27ActivationCapableProductionMaterializerDormantTests(unittest.TestCase):
         fake = SimpleNamespace(__file__=target.__file__)
         with self.assertRaisesRegex(PermissionError, "loaded module identity drift"):
             target.validate_critical_callable_identity(fake)
+        with mock.patch.dict(sys.modules, {target.__name__: fake}):
+            with self.assertRaisesRegex(PermissionError, "loaded module identity drift"):
+                target.validate_critical_callable_identity(target)
         with mock.patch.object(target, "_publish", object()):
             with self.assertRaisesRegex(PermissionError, "critical helper identity drift"):
                 target.validate_critical_callable_identity(target)
@@ -138,7 +141,11 @@ class H27ActivationCapableProductionMaterializerDormantTests(unittest.TestCase):
     def test_wrong_runtime_or_environment_cannot_reach_science(self) -> None:
         with mock.patch.dict("os.environ", {"MIDI_FORCE_CPU": "0"}), mock.patch.object(
             target, "_require_reviewed_self_identity",
-        ), mock.patch.object(target, "validate_critical_callable_identity"):
+        ), mock.patch.object(target, "validate_critical_callable_identity"), mock.patch.object(
+            target, "FUTURE_ACTIVATION_REVIEWED_HEAD", "f" * 40,
+        ), mock.patch.object(
+            target.subprocess, "run", side_effect=(mock.Mock(stdout="f" * 40 + "\n"), mock.Mock(stdout="")),
+        ):
             with self.assertRaisesRegex(PermissionError, "runtime mismatch|environment mismatch"):
                 target.validate_preclaim_runtime_git_and_destinations()
 

@@ -127,6 +127,18 @@ def validate_preclaim_runtime_git_and_destinations() -> None:
     _require_reviewed_self_identity()
     validate_critical_callable_identity(sys.modules.get(__name__))
     expected = bindings["activation_contract"]
+    if FUTURE_ACTIVATION_REVIEWED_HEAD is None:
+        raise PermissionError("H27 reviewed activation HEAD is absent.")
+    head = subprocess.run(
+        ("git", "rev-parse", "HEAD"), cwd=_ROOT, check=True,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+    ).stdout.strip()
+    dirty = subprocess.run(
+        ("git", "status", "--porcelain"), cwd=_ROOT, check=True,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+    ).stdout
+    if head != FUTURE_ACTIVATION_REVIEWED_HEAD or dirty:
+        raise PermissionError("H27 Git HEAD/worktree mismatch.")
     runtime = expected["runtime_exact"]
     environment = expected["process_environment_exact"]
     observed_runtime = {
@@ -168,18 +180,6 @@ def validate_preclaim_runtime_git_and_destinations() -> None:
     for name, value in environment.items():
         if os.environ.get(name) != value:
             raise PermissionError(f"H27 environment mismatch: {name}.")
-    if FUTURE_ACTIVATION_REVIEWED_HEAD is None:
-        raise PermissionError("H27 reviewed activation HEAD is absent.")
-    head = subprocess.run(
-        ("git", "rev-parse", "HEAD"), cwd=_ROOT, check=True,
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
-    ).stdout.strip()
-    dirty = subprocess.run(
-        ("git", "status", "--porcelain"), cwd=_ROOT, check=True,
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
-    ).stdout
-    if head != FUTURE_ACTIVATION_REVIEWED_HEAD or dirty:
-        raise PermissionError("H27 Git HEAD/worktree mismatch.")
     for destination in (CLAIM_DESTINATION, FINAL_DESTINATION, STAGING_DESTINATION):
         if os.path.lexists(destination):
             raise FileExistsError(f"H27 destination already exists: {destination}.")
