@@ -14,6 +14,7 @@ from src.polyphonic.harmonic_censoring_h27_scientific_capability_dormant import 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT = ROOT / "configs/harmonic_censoring_h27_materialization_activation_contract.json"
 SEAL = ROOT / "configs/harmonic_censoring_h27_materialization_activation_contract_external_seal.json"
+PRODUCTION_REVIEW_SEAL = ROOT / "configs/harmonic_censoring_h27_production_materializer_dormant_external_review_seal.json"
 ENGINE_CONTRACT = ROOT / "configs/harmonic_censoring_h27_engine_recomputer_contract.json"
 
 
@@ -26,17 +27,59 @@ class H27MaterializationActivationContractTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.contract_raw = CONTRACT.read_bytes()
         cls.seal_raw = SEAL.read_bytes()
+        cls.production_review_seal_raw = PRODUCTION_REVIEW_SEAL.read_bytes()
         cls.contract = json.loads(cls.contract_raw.decode("utf-8"))
         cls.seal = json.loads(cls.seal_raw.decode("utf-8"))
+        cls.production_review_seal = json.loads(cls.production_review_seal_raw.decode("utf-8"))
 
     def test_contract_and_seal_are_strict_lf_json_without_self_reference(self) -> None:
-        for raw in (self.contract_raw, self.seal_raw):
+        for raw in (self.contract_raw, self.seal_raw, self.production_review_seal_raw):
             self.assertFalse(raw.startswith(b"\xef\xbb\xbf"))
             self.assertNotIn(b"\r", raw)
         self.assertNotIn("external_seal_sha256", self.contract)
         self.assertNotIn("seal_sha256", self.seal)
+        self.assertNotIn("seal_sha256", self.production_review_seal)
         self.assertEqual(self.contract["schema_version"], 1)
         self.assertEqual(self.seal["schema_version"], 1)
+        self.assertEqual(self.production_review_seal["schema_version"], 1)
+
+    def test_dormant_production_implementation_is_review_sealed_but_never_activable(self) -> None:
+        binding = self.contract["reviewed_dormant_production_implementation"]
+        source_raw = (ROOT / binding["path"]).read_bytes()
+        seal_raw = (ROOT / binding["external_review_seal_path"]).read_bytes()
+        self.assertTrue(binding["exists"])
+        self.assertEqual(binding["git_blob_sha1"], _git_blob_sha1(source_raw))
+        self.assertEqual(binding["raw_sha256"], hashlib.sha256(source_raw).hexdigest())
+        self.assertEqual(binding["external_review_seal_git_blob_sha1"], _git_blob_sha1(seal_raw))
+        self.assertEqual(binding["external_review_seal_size_bytes"], len(seal_raw))
+        self.assertEqual(binding["external_review_seal_sha256"], hashlib.sha256(seal_raw).hexdigest())
+        self.assertFalse(binding["activation_execution_target"])
+        self.assertTrue(binding["must_remain_unconditionally_refusing"])
+        self.assertTrue(binding["monkeypatch_or_rebinding_activation_forbidden"])
+        implementation = self.production_review_seal["implementation"]
+        self.assertEqual(implementation["git_blob_sha1"], _git_blob_sha1(source_raw))
+        self.assertFalse(implementation["activation_execution_target"])
+
+    def test_dormant_implementation_review_seal_is_acyclic_and_binds_prior_contract(self) -> None:
+        prior = self.production_review_seal["prior_activation_contract"]
+        prior_raw = subprocess.check_output(
+            ["git", "show", f"4a0fcadcfd82530212a7f9bc381cb678ff275bb2:{prior['path']}"],
+            cwd=ROOT,
+        )
+        self.assertEqual(prior["git_blob_sha1"], _git_blob_sha1(prior_raw))
+        self.assertEqual(prior["size_bytes"], len(prior_raw))
+        self.assertEqual(prior["raw_sha256"], hashlib.sha256(prior_raw).hexdigest())
+        self.assertNotIn("external_review_seal_sha256", self.production_review_seal)
+        for field in (
+            "future_activation_capable_production_materializer_exists",
+            "future_activation_capable_production_materializer_implementation_authorized",
+            "future_activation_capable_production_materializer_seal_exists",
+            "activation_exists", "authority_exists", "capability_exists", "claim_exists",
+            "materialization_authorized", "population_exists", "population_index_exists",
+            "payload_read", "scientific_execution_authorized", "locked_test_used",
+            "training_or_calibration_authorized",
+        ):
+            self.assertIs(self.production_review_seal[field], False, field)
 
     def test_external_seal_binds_exact_contract_bytes(self) -> None:
         binding = self.seal["contract"]
@@ -82,13 +125,22 @@ class H27MaterializationActivationContractTests(unittest.TestCase):
         self.assertFalse(self.contract["future_materialization_authority"]["authority_exists"])
         state = self.contract["current_state"]
         self.assertTrue(state["external_seal_exists"])
+        permitted_true_state = {
+            "external_seal_exists",
+            "reviewed_dormant_production_implementation_exists",
+            "reviewed_dormant_production_implementation_external_review_seal_exists",
+        }
         for field, value in state.items():
-            if field != "external_seal_exists":
+            if field not in permitted_true_state:
                 self.assertIs(value, False, field)
         authorization = self.contract["authorization"]
         self.assertTrue(authorization["contract_and_external_seal_creation_authorized"])
+        permitted_true_authorization = {
+            "contract_and_external_seal_creation_authorized",
+            "reviewed_dormant_production_implementation_external_review_seal_creation_authorized",
+        }
         for field, value in authorization.items():
-            if field != "contract_and_external_seal_creation_authorized":
+            if field not in permitted_true_authorization:
                 self.assertIs(value, False, field)
         for field in (
             "activation_exists", "authority_exists", "capability_exists", "claim_exists",
@@ -108,12 +160,15 @@ class H27MaterializationActivationContractTests(unittest.TestCase):
         future = self.contract["future_production_materializer"]
         self.assertFalse(future["exists"])
         self.assertFalse(future["implementation_authorized"])
+        self.assertEqual(future["role"], "future activation-capable production materializer")
         for field in (
             "path", "reviewed_commit", "git_blob_sha1", "raw_sha256",
             "external_seal_path", "external_seal_sha256",
         ):
             self.assertIsNone(future[field])
         self.assertTrue(future["must_be_separately_implemented_reviewed_and_sealed"])
+        self.assertTrue(future["must_be_distinct_from_reviewed_dormant_production_implementation"])
+        self.assertTrue(future["must_preserve_reviewed_dormant_production_implementation_logic"])
         authority = self.contract["future_materialization_authority"]
         self.assertTrue(authority["issuance_must_fail_before_claim_if_future_production_materializer_or_its_seal_is_absent"])
         self.assertTrue(authority["dormant_reviewed_reference_must_never_be_invoked_by_activation"])

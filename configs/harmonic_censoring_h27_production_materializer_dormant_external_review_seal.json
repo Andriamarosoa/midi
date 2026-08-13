@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "seal_id": "H27_PRODUCTION_MATERIALIZER_DORMANT_EXTERNAL_REVIEW_SEAL_V1",
+  "status": "REVIEWED_DORMANT_IMPLEMENTATION_NON_EXECUTABLE",
+  "reviewed_commit": "4a0fcadcfd82530212a7f9bc381cb678ff275bb2",
+  "reviewed_parent_commit": "fbcbb4a2c8e5ee5f496110dbef615140e06c8909",
+  "implementation": {
+    "path": "src/polyphonic/harmonic_censoring_h27_production_materializer_dormant.py",
+    "git_blob_sha1": "d3a903acfa67daf822d50aab005b88943a8c18fa",
+    "size_bytes": 22223,
+    "raw_sha256": "1d4b0b651c2c916a1a1bcd71578aa263074290c90fd381be867b77ef46cc0a25",
+    "role": "reviewed dormant production implementation only",
+    "activation_execution_target": false,
+    "must_remain_unconditionally_refusing": true
+  },
+  "historical_dormant_reference": {
+    "path": "src/polyphonic/harmonic_censoring_h27_materializer_dormant.py",
+    "git_blob_sha1": "394f25a51f854cf629ef184694c4dcf1a45904b8",
+    "future_activation_execution_target": false
+  },
+  "prior_activation_contract": {
+    "path": "configs/harmonic_censoring_h27_materialization_activation_contract.json",
+    "git_blob_sha1": "d10d9cfb138047fa83f480b60cacb5e91431852d",
+    "size_bytes": 9617,
+    "raw_sha256": "0d3f33c2084cb63e31eb69b92924b1d5c7aed8133aeaeeb6220cc365caeed54e"
+  },
+  "prior_activation_contract_external_seal": {
+    "path": "configs/harmonic_censoring_h27_materialization_activation_contract_external_seal.json",
+    "git_blob_sha1": "ab28690ca93b96b477ab5e0f3bb054a18e4faaff",
+    "size_bytes": 2377,
+    "raw_sha256": "40bb71dbfa79247176bbe776cddb022caeb4404f20764a5fe15fb25cab643442"
+  },
+  "future_activation_capable_production_materializer_exists": false,
+  "future_activation_capable_production_materializer_implementation_authorized": false,
+  "future_activation_capable_production_materializer_seal_exists": false,
+  "activation_exists": false,
+  "authority_exists": false,
+  "capability_exists": false,
+  "claim_exists": false,
+  "materialization_authorized": false,
+  "population_exists": false,
+  "population_index_exists": false,
+  "payload_read": false,
+  "scientific_execution_authorized": false,
+  "locked_test_used": false,
+  "training_or_calibration_authorized": false,
+  "next_action": "Bind this review seal contractually while keeping a distinct activation-capable materializer absent"
+}

@@ -109,6 +109,8 @@ tests/test_harmonic_censoring_h27_materialization_activation_contract.py text eo
 src/polyphonic/harmonic_censoring_h27_production_materializer_dormant.py text eol=lf
 tests/test_harmonic_censoring_h27_production_materializer_dormant.py text eol=lf
 readme/results/2026-08-13_harmonic-censoring-h27-production-materializer-dormant-implementation.md text eol=lf
+configs/harmonic_censoring_h27_production_materializer_dormant_external_review_seal.json text eol=lf
+readme/results/2026-08-13_harmonic-censoring-h27-production-materializer-review-seal.md text eol=lf
 configs/harmonic_censoring_h25_scientific_execution_authorization_seal.json text eol=lf
 tests/test_harmonic_censoring_h25_scientific_capability_dormant.py text eol=lf
 readme/results/2026-08-11_harmonic-censoring-h25-dormant-scientific-capability-authority.md text eol=lf

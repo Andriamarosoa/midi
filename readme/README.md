@@ -14,12 +14,23 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: future H27 production materializer implemented dormant; no seal, activation, materialization, or science; external review pending. -->
+<!-- H26_CORRECTION_STATUS: dormant H27 production implementation review-sealed; activation-capable successor absent; no activation, materialization, or science; external review pending. -->
 ## État courant
 
 - Mise à jour : `2026-08-12`.
 - État courant :
-  `H27_PRODUCTION_MATERIALIZER_IMPLEMENTED_DORMANT_PENDING_EXTERNAL_REVIEW_NO_SEAL_NO_ACTIVATION_NO_EXECUTION`.
+  `H27_DORMANT_PRODUCTION_IMPLEMENTATION_REVIEW_SEALED_FUTURE_ACTIVABLE_TARGET_ABSENT_NO_ACTIVATION_NO_EXECUTION`.
+- La revue externe de `4a0fcadcfd82530212a7f9bc381cb678ff275bb2`
+  conclut `PASS` : les appels directs aux onze helpers production sont tous
+  bloqués avant NumPy/plan/filesystem et les payloads futurs sont relus puis
+  vérifiés en taille/SHA avant l'index. Un seal externe acyclique lie maintenant
+  le blob dormant revu `d3a903ac…` et affirme explicitement qu'il n'est jamais
+  une cible d'activation. Le contrat d'activation rebondi distingue ce code
+  dormant d'un futur matérialiseur activation-capable, distinct et toujours
+  `exists=false`/`implementation_authorized=false`. Aucun garde n'est relâché,
+  aucun issuer/capability/claim n'est créé et aucune population n'est lue ou
+  produite. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-production-materializer-review-seal.md`.
 - Le futur matérialiseur H27 de production est maintenant implémenté dans un
   module distinct du matérialiseur dormant historique, qui reste au blob Git
   `394f25a5…` inchangé. La nouvelle entrée échoue inconditionnellement avant

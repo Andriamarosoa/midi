@@ -14,7 +14,23 @@
     "must_remain_unissuable": true,
     "modification_by_this_contract_forbidden": true
   },
+  "reviewed_dormant_production_implementation": {
+    "exists": true,
+    "path": "src/polyphonic/harmonic_censoring_h27_production_materializer_dormant.py",
+    "reviewed_commit": "4a0fcadcfd82530212a7f9bc381cb678ff275bb2",
+    "git_blob_sha1": "d3a903acfa67daf822d50aab005b88943a8c18fa",
+    "raw_sha256": "1d4b0b651c2c916a1a1bcd71578aa263074290c90fd381be867b77ef46cc0a25",
+    "external_review_seal_path": "configs/harmonic_censoring_h27_production_materializer_dormant_external_review_seal.json",
+    "external_review_seal_git_blob_sha1": "ac2cdc907da3dc2de3ff3f60973f973fcb217ea9",
+    "external_review_seal_size_bytes": 2318,
+    "external_review_seal_sha256": "0d9730c78aa487a0d326d27a975ec0fe7f8b9566dc1900dec1092bc53c4cf3c2",
+    "purpose": "reviewed dormant production logic only",
+    "activation_execution_target": false,
+    "must_remain_unconditionally_refusing": true,
+    "monkeypatch_or_rebinding_activation_forbidden": true
+  },
   "future_production_materializer": {
+    "role": "future activation-capable production materializer",
     "exists": false,
     "implementation_authorized": false,
     "path": null,
@@ -25,6 +41,8 @@
     "external_seal_sha256": null,
     "must_be_separately_implemented_reviewed_and_sealed": true,
     "must_preserve_reviewed_dormant_reference_semantics": true,
+    "must_preserve_reviewed_dormant_production_implementation_logic": true,
+    "must_be_distinct_from_reviewed_dormant_production_implementation": true,
     "activation_execution_target_only_after_all_bindings_exist": true,
     "invocations_maximum": 1,
     "retry_allowed": false
@@ -144,6 +162,9 @@
   },
   "current_state": {
     "external_seal_exists": true,
+    "reviewed_dormant_production_implementation_exists": true,
+    "reviewed_dormant_production_implementation_external_review_seal_exists": true,
+    "reviewed_dormant_production_implementation_invoked": false,
     "activation_exists": false,
     "authority_exists": false,
     "capability_exists": false,
@@ -166,6 +187,7 @@
   },
   "authorization": {
     "contract_and_external_seal_creation_authorized": true,
+    "reviewed_dormant_production_implementation_external_review_seal_creation_authorized": true,
     "activation_creation_authorized": false,
     "authority_or_capability_creation_authorized": false,
     "claim_creation_authorized": false,
@@ -176,5 +198,5 @@
     "locked_test_authorized": false,
     "training_or_calibration_authorized": false
   },
-  "next_action": "External review of this contract and its external seal only; no activation or execution"
+  "next_action": "External review of the dormant implementation seal and rebound contract only; activation-capable implementation remains absent"
 }
