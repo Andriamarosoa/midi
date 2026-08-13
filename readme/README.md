@@ -26,11 +26,14 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   vingt prédécesseurs avant les adapters. Son harness privé reçoit uniquement
   le binding step-11 exact par identité, revalide authority/claim, nonce, PID,
   code identity, materializer blob et barrière, consomme un droit local simulé
-  one-shot et dérive une capability materializer simulée. Il termine avec
+  one-shot attaché au binding lui-même et dérive une capability materializer
+  simulée. Un succès ou une exception après consommation rend donc le même
+  binding terminal pour tout nouvel appel complet, sans registre global mutable. Il termine avec
   `materializer_invocations=0`, `science_invocations=0`, `terminal=true`. Les
-  24 corruptions et les rejets adversariaux sont testés. L'entrée publique du
+  24 corruptions, le second appel complet et le retry après exception sont
+  testés. L'entrée publique du
   bridge est exactement `().__getitem__`; les trois modules PASS existants
-  restent inchangés et fermés. `9/9` tests ciblés et `154/154` tests H27 passent.
+  restent inchangés et fermés. `12/12` tests ciblés et `157/157` tests H27 passent.
   Rapport :
   `readme/results/2026-08-13_harmonic-censoring-h27-future-bridge-dormant-implementation.md`.
 - La revue externe de `b4be1566c571e8dee9719091bcb41d8cda218fd7`

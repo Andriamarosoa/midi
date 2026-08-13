@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import copy
 import json
 from pathlib import Path
+import pickle
 import shutil
 import tempfile
 import unittest
@@ -19,8 +21,8 @@ MATERIALIZER_BLOB = "79f399359e366781f9526098c98a93cca71b1b49"
 PID = 4321
 
 
-def _binding() -> bridge.H27DormantStep11Binding:
-    return bridge.H27DormantStep11Binding(
+def _binding(**overrides: object) -> bridge._H27DormantStep11Binding:
+    values = dict(
         authority_sha256=SHA_A,
         claim_sha256=SHA_B,
         materializer_blob=MATERIALIZER_BLOB,
@@ -28,6 +30,8 @@ def _binding() -> bridge.H27DormantStep11Binding:
         process_id=PID,
         code_identity_sha256=SHA_C,
     )
+    values.update(overrides)
+    return bridge._make_mock_step11_binding(**values)
 
 
 def _adapters(order: list[str]) -> bridge.H27DormantBridgeAdapters:
@@ -77,7 +81,9 @@ class H27FutureBridgeDormantTests(unittest.TestCase):
 
     def test_nonidentical_equal_binding_and_wrong_types_are_rejected_first(self) -> None:
         exact = _binding()
-        for received in (bridge.H27DormantStep11Binding(*exact), tuple(exact), exact._asdict(), object()):
+        for received in (_binding(), tuple(vars(exact)) if hasattr(exact, "__dict__") else (), {
+            "authority_sha256": SHA_A
+        }, object()):
             order: list[str] = []
             with self.subTest(type=type(received)):
                 with self.assertRaises(PermissionError):
@@ -127,12 +133,12 @@ class H27FutureBridgeDormantTests(unittest.TestCase):
     def test_malformed_exact_binding_fields_are_rejected_before_adapters(self) -> None:
         exact = _binding()
         cases = (
-            exact._replace(authority_sha256="bad"),
-            exact._replace(claim_sha256="bad"),
-            exact._replace(materializer_blob="bad"),
-            exact._replace(invocation_nonce="bad"),
-            exact._replace(process_id=0),
-            exact._replace(code_identity_sha256="bad"),
+            _binding(authority_sha256="bad"),
+            _binding(claim_sha256="bad"),
+            _binding(materializer_blob="bad"),
+            _binding(invocation_nonce="bad"),
+            _binding(process_id=0),
+            _binding(code_identity_sha256="bad"),
         )
         for malformed in cases:
             order: list[str] = []
@@ -154,7 +160,44 @@ class H27FutureBridgeDormantTests(unittest.TestCase):
         foreign = bridge._single_use_local_right(exact)
         next(foreign)
         with self.assertRaises(PermissionError):
-            foreign.send(bridge.H27DormantStep11Binding(*exact))
+            foreign.send(_binding())
+
+    def test_step11_binding_has_no_public_constructor_or_mutable_retry_state(self) -> None:
+        with self.assertRaises(PermissionError):
+            bridge._H27DormantStep11Binding()
+        exact = _binding()
+        with self.assertRaises(TypeError):
+            exact.authority_sha256 = SHA_B
+        with self.assertRaises(TypeError):
+            exact._consume_bridge_right = lambda _: object()
+        with self.assertRaises(TypeError):
+            copy.copy(exact)
+        with self.assertRaises(TypeError):
+            copy.deepcopy(exact)
+        with self.assertRaises(TypeError):
+            pickle.dumps(exact)
+
+    def test_second_full_harness_call_with_same_binding_is_terminally_rejected(self) -> None:
+        exact = _binding()
+        first = bridge._exercise_dormant_bridge(exact, exact, _adapters([]))
+        self.assertTrue(first.terminal)
+        second_order: list[str] = []
+        with self.assertRaisesRegex(PermissionError, "already terminally consumed"):
+            bridge._exercise_dormant_bridge(exact, exact, _adapters(second_order))
+        self.assertEqual(second_order, ["contract", "predecessors", "modules", "authority_claim", "runtime", "materializer"])
+
+    def test_derive_failure_after_consumption_makes_retry_terminal(self) -> None:
+        exact = _binding()
+        first_order: list[str] = []
+        failing = _adapters(first_order)._replace(
+            derive_simulated_materializer_capability=mock.Mock(side_effect=RuntimeError("interrupt"))
+        )
+        with self.assertRaisesRegex(RuntimeError, "interrupt"):
+            bridge._exercise_dormant_bridge(exact, exact, failing)
+        retry_order: list[str] = []
+        with self.assertRaisesRegex(PermissionError, "already terminally consumed"):
+            bridge._exercise_dormant_bridge(exact, exact, _adapters(retry_order))
+        self.assertEqual(retry_order, ["contract", "predecessors", "modules", "authority_claim", "runtime", "materializer"])
 
     def test_each_of_twenty_four_sealed_inputs_is_rejected_before_its_mock(self) -> None:
         contract = json.loads((ROOT / bridge._BRIDGE_CHAIN_INPUTS[0][0]).read_bytes())

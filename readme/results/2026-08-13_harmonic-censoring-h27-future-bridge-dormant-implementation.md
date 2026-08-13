@@ -14,9 +14,9 @@ materializer invocation or science was authorized or introduced.
 ## Implementation identity
 
 - path: `src/polyphonic/harmonic_censoring_h27_future_bridge_dormant.py`
-- Git blob before commit: `2b52ca220b2191722b491817cc73205d8b5ded76`
-- size: `8194` bytes
-- SHA-256: `c9e4f4486a72165553977093f1fc7dab20d31a4398fccb92defdb126f79e4189`
+- Git blob before commit: `6cc65097b636ed35eeedf5675457c4f599cb811d`
+- size: `10443` bytes
+- SHA-256: `23e33bc4f81610c84fe0cb7bcc174d9176b531cae5559ad0b904edf257b97777`
 
 ## Dormant harness
 
@@ -34,8 +34,12 @@ Before semantic mocks, it independently rehashes:
 It then checks simulated module identities, current authority/claim hashes,
 claim freshness, nonce, PID, code identity, materializer blob and the closed
 materializer barrier. Only then does it consume an internal identity-bound
-one-shot invocation right and derive a simulated non-operational materializer
-capability.
+one-shot invocation right owned by that exact binding object and derive a
+simulated non-operational materializer capability. The binding has no public
+constructor, is immutable, noncopyable and nonserializable. It owns its primed
+generator without a global registry. A successful call or any exception after
+right consumption leaves the same binding terminal, so a second full harness
+invocation and retry both fail.
 
 The harness stops there. Its trace records:
 
@@ -50,13 +54,14 @@ terminal=true
 
 ## Adversarial verification
 
-- `9/9` focused tests pass.
-- The combined H27 suite passes `154/154` in `12.358 s` using the project venv.
+- `12/12` focused tests pass.
+- The combined H27 suite passes `157/157` in `12.312 s` using the project venv.
 - Each of the 4 bridge-chain files and 20 predecessor files is copied to an
   isolated tree, corrupted individually and rejected before its semantic mock.
 - Nonidentical binding/type, stale claim, authority/claim SHA, nonce, PID, code
   identity, materializer blob/barrier, malformed fields, second local-right
-  use and retry are rejected.
+  use, second complete harness invocation and retry after derive exception are
+  rejected.
 - Each semantic adapter failure prevents every later adapter.
 - `py_compile` and `git diff --check` pass.
 - Source inspection excludes NumPy, the materializer callable, admin paths,

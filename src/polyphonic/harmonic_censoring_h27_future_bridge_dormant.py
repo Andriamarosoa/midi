@@ -58,13 +58,69 @@ def _verify_twenty_predecessors() -> None:
         )
 
 
-class H27DormantStep11Binding(NamedTuple):
-    authority_sha256: str
-    claim_sha256: str
-    materializer_blob: str
-    invocation_nonce: str
-    process_id: int
-    code_identity_sha256: str
+class _H27DormantStep11Binding:
+    """Synthetic immutable binding with an object-owned terminal right."""
+
+    __slots__ = (
+        "_authority_sha256",
+        "_claim_sha256",
+        "_materializer_blob",
+        "_invocation_nonce",
+        "_process_id",
+        "_code_identity_sha256",
+        "_consume_bridge_right",
+    )
+
+    def __new__(cls, *args: object, **kwargs: object) -> "_H27DormantStep11Binding":
+        del cls, args, kwargs
+        raise PermissionError("H27 dormant step-11 binding has no public constructor.")
+
+    def __setattr__(self, name: str, value: object) -> None:
+        del name, value
+        raise TypeError("H27 dormant step-11 binding is immutable.")
+
+    def __copy__(self) -> "_H27DormantStep11Binding":
+        del self
+        raise TypeError("H27 dormant step-11 binding cannot be copied.")
+
+    def __deepcopy__(self, memo: object) -> "_H27DormantStep11Binding":
+        del self, memo
+        raise TypeError("H27 dormant step-11 binding cannot be copied.")
+
+    def __reduce__(self) -> object:
+        del self
+        raise TypeError("H27 dormant step-11 binding cannot be serialized.")
+
+    authority_sha256 = property(lambda self: self._authority_sha256)
+    claim_sha256 = property(lambda self: self._claim_sha256)
+    materializer_blob = property(lambda self: self._materializer_blob)
+    invocation_nonce = property(lambda self: self._invocation_nonce)
+    process_id = property(lambda self: self._process_id)
+    code_identity_sha256 = property(lambda self: self._code_identity_sha256)
+
+
+def _make_mock_step11_binding(
+    authority_sha256: str,
+    claim_sha256: str,
+    materializer_blob: str,
+    invocation_nonce: str,
+    process_id: int,
+    code_identity_sha256: str,
+) -> _H27DormantStep11Binding:
+    binding = object.__new__(_H27DormantStep11Binding)
+    for name, value in (
+        ("_authority_sha256", authority_sha256),
+        ("_claim_sha256", claim_sha256),
+        ("_materializer_blob", materializer_blob),
+        ("_invocation_nonce", invocation_nonce),
+        ("_process_id", process_id),
+        ("_code_identity_sha256", code_identity_sha256),
+    ):
+        object.__setattr__(binding, name, value)
+    right_consumer = _single_use_local_right(binding)
+    next(right_consumer)
+    object.__setattr__(binding, "_consume_bridge_right", right_consumer.send)
+    return binding
 
 
 class H27DormantBridgeAdapters(NamedTuple):
@@ -74,7 +130,7 @@ class H27DormantBridgeAdapters(NamedTuple):
     observe_authority_claim: Callable[[], tuple[str, str, bool]]
     observe_runtime_binding: Callable[[], tuple[str, int, str]]
     observe_materializer: Callable[[], tuple[str, bool]]
-    derive_simulated_materializer_capability: Callable[[object, H27DormantStep11Binding], object]
+    derive_simulated_materializer_capability: Callable[[object, _H27DormantStep11Binding], object]
 
 
 @dataclass(frozen=True)
@@ -92,7 +148,7 @@ class _SimulatedLocalInvocationRight:
     __slots__ = ()
 
 
-def _single_use_local_right(exact_binding: H27DormantStep11Binding) -> object:
+def _single_use_local_right(exact_binding: _H27DormantStep11Binding) -> object:
     request = yield
     if request is not exact_binding:
         raise PermissionError("H27 dormant bridge requires the exact consumed binding identity.")
@@ -104,8 +160,8 @@ def _require_hex_sha(value: object, field: str) -> None:
         raise PermissionError(f"H27 dormant bridge invalid {field}.")
 
 
-def _require_step11_binding(binding: object) -> H27DormantStep11Binding:
-    if type(binding) is not H27DormantStep11Binding:
+def _require_step11_binding(binding: object) -> _H27DormantStep11Binding:
+    if type(binding) is not _H27DormantStep11Binding:
         raise PermissionError("H27 dormant bridge rejects caller-built or nonexact binding types.")
     for field in (
         "authority_sha256", "claim_sha256", "invocation_nonce", "code_identity_sha256"
@@ -121,7 +177,7 @@ def _require_step11_binding(binding: object) -> H27DormantStep11Binding:
 
 
 def _exercise_dormant_bridge(
-    exact_step11_binding: H27DormantStep11Binding,
+    exact_step11_binding: _H27DormantStep11Binding,
     received_step11_binding: object,
     adapters: H27DormantBridgeAdapters,
 ) -> H27DormantBridgeTrace:
@@ -162,9 +218,10 @@ def _exercise_dormant_bridge(
         raise PermissionError("H27 dormant bridge materializer identity or barrier mismatch.")
     completed.append("verify_materializer_identity_and_barrier")
 
-    right_consumer = _single_use_local_right(exact)
-    next(right_consumer)
-    right = right_consumer.send(exact)
+    try:
+        right = exact._consume_bridge_right(exact)
+    except StopIteration as exc:
+        raise PermissionError("H27 dormant bridge binding is already terminally consumed.") from exc
     completed.append("consume_simulated_local_invocation_right")
 
     simulated_capability = adapters.derive_simulated_materializer_capability(right, exact)
