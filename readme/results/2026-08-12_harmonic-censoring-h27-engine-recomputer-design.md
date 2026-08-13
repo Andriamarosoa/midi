@@ -13,16 +13,27 @@ les quatre outcomes, les seuils H27 et les deux profils runtime préenregistrés
 
 ## Frontières définies, non implémentées
 
-Il définit un futur record (waveform `<f8`, masque role-major de 66 560 octets,
-métadonnées, tailles, SHA et containment) et impose l’ordre : bindings puis
-identité/bytes/mask/support, puis seulement classification role-aware, puis
-éventuellement FFT/NNLS/certificats dans une phase future.
+Il conserve exactement les payloads scellés du futur record : waveform `<f8`,
+masque role-major de 66 560 octets et alternate `<f8` uniquement pour les
+collisions. Le descriptor d'invocation reste en mémoire et n'ajoute aucun
+`metadata.json`. L'ordre est : intégrité et support, exact-zero sur les samples,
+puis FFT et plancher spectral pour les seules vues non nulles, puis seulement
+bands/NNLS/certificats dans une phase future.
 
 Le silence exact entièrement supporté n’est valide que pour `previous_short`
-et `previous_long`. Un `current_*` nul ou sous le plancher est rejeté avant le
-calcul scientifique. Le recomputer devra effectuer sa propre recomputation sans
+et `previous_long`. Un `current_*` exact-zero résout tôt vers `AMBIGUOUS`; une
+vue non nulle sous le plancher ne peut être reconnue qu'après FFT, puis résout
+elle aussi vers `AMBIGUOUS` sans atteindre bands/NNLS/certificats. Une entrée
+corrompue reste une erreur terminale distincte. Le recomputer devra effectuer sa propre recomputation sans
 arrays, caches, certificats, décision ou fonction scientifique interne de
 l’engine ; tout mismatch est terminal.
+
+Le contrat recopie désormais de façon autonome Hann, zéro-padding, rFFT,
+puissance, bandes triangulaires à 35 cents, grille MIDI 24..96, base harmonique,
+512 sweeps NNLS, résidus, onset, persistence et timbre borné à 0,8. Il ferme
+aussi les champs d'entrée autorisés, les douze entrées oracle interdites et
+leurs aliases, ainsi que les identités complètes des deux runtimes et leur
+environnement exact.
 
 ## Interdictions conservées
 

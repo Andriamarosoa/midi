@@ -22,7 +22,8 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `H27_DORMANT_ENGINE_RECOMPUTER_DESIGN_CONTRACTED_PENDING_EXTERNAL_REVIEW_NO_IMPLEMENTATION_NO_MATERIALIZATION_NO_SCIENCE`.
 - Le contrat H27 engine/recomputer est défini, sans code exécutable : il lie les
   cinq blobs H27 revus, fige record/mask/role semantics/ordre fail-closed,
-  interdit tout calcul avant validation des bytes/support et impose un
+  distingue corruption terminale et résolution scientifique `AMBIGUOUS`,
+  effectue l'exact-zero avant FFT et le plancher non nul après FFT, et impose un
   recomputer réellement indépendant. Les engine/recomputer, population,
   FFT/NNLS, P0/P1/P2 et capacités restent absents. Rapport :
   `readme/results/2026-08-12_harmonic-censoring-h27-engine-recomputer-design.md`.
