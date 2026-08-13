@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "seal_id": "H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_REAL_PUBLICATION_IMPLEMENTATION_CONTRACT_EXTERNAL_SEAL_V1",
+  "status": "SEALED_PENDING_EXTERNAL_REVIEW_CONTRACT_ONLY_NO_IMPLEMENTATION_NO_DESTINATION_NO_WRITE_NO_CONNECTION_NO_SCIENCE",
+  "contract": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_activation_artifact_real_publication_implementation_contract.json",
+    "git_blob_sha1": "8c2f977adabc0779bd11df5e72b040ec0503a2d8",
+    "size_bytes": 6009,
+    "raw_sha256": "f9231681be25829057eaa6d68b7d5f4364ec59a70e351d3521060c6ced041b54"
+  },
+  "reviewed_and_sealed_dormant_publication_simulator": {
+    "reviewed_commit": "6ad0232d460819962a89dc1f307b59f7d13b8f6c",
+    "external_review_verdict": "PASS",
+    "artifact_count": 4,
+    "transitive_upstream_count": 48,
+    "combined_unique_identity_count": 52
+  },
+  "seal_semantics": {
+    "contract_only": true,
+    "dependency_graph_acyclic": true,
+    "self_hash_present": false,
+    "historical_back_reference_present": false,
+    "all_four_dormant_simulator_artifacts_bound_exactly": true,
+    "all_forty_eight_transitive_upstream_entries_rehashed": true,
+    "all_fifty_two_bound_identities_remain_byte_identical": true,
+    "real_publication_contract_exists": true,
+    "real_publication_contract_externally_reviewed": false,
+    "real_publication_contract_externally_sealed": false,
+    "real_publication_implementation_exists": false,
+    "real_publication_implementation_authorized": false,
+    "destination_exists": false,
+    "activation_artifact_exists": false,
+    "activation_artifact_write_authorized": false,
+    "composition_to_bridge_connected": false,
+    "bridge_to_materializer_connected": false,
+    "execution_path_open": false,
+    "authority_exists": false,
+    "claim_exists": false,
+    "operational_capability_exists": false,
+    "materializer_invocation_authorized": false,
+    "scientific_execution_authorized": false,
+    "population_exists": false,
+    "population_index_exists": false,
+    "locked_test_used": false,
+    "training_or_calibration_authorized": false
+  },
+  "next_action": "External review of the exact declarative real-publication implementation contract bytes and this seal only; no implementation, destination, write, artifact, connection, authority, materializer, or science"
+}

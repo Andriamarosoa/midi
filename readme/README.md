@@ -14,12 +14,24 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 corrected dormant publication simulator PASS; administrative module seal and identity binding await external review; no real write, connection or science. -->
+<!-- H26_CORRECTION_STATUS: H27 dormant publication simulator chain PASS; declarative future real-publication implementation contract awaits external review; no implementation, destination, write, connection or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_PUBLICATION_DORMANT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+  `H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_REAL_PUBLICATION_IMPLEMENTATION_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `2f8562d23a1b167bf9cd22db3d347f2d4238e661`
+  conclut `PASS`. Un contrat declaratif distinct et son seal definissent
+  uniquement les exigences fail-closed d'une future implementation reelle de
+  publication. Ils lient les quatre artefacts exacts du simulateur dormant
+  revu/scelle et rehashent transitivement ses 48 entrees amont, soit 52
+  identites uniques. L'implementation, le chemin de destination, l'artefact et
+  le write restent absents et non autorises; les sept edges restent
+  `().__getitem__`; connexions, authority, materializer, science, locked-test,
+  training et calibration restent faux. `8/8` tests administratifs et
+  `275/275` tests H27 passent. Une revue externe du contrat et du seal exacts
+  est requise avant toute autre portee. `locked_test_used=false`. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-future-bridge-activation-artifact-real-publication-implementation-contract.md`.
 - La revue externe de `6ad0232d460819962a89dc1f307b59f7d13b8f6c`
   conclut `PASS`. Le module dormant corrige exact (blob `6d254f43...`, 12600
   octets, SHA-256 `f4c35a76...`) possede maintenant un seal de revue externe,
