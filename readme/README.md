@@ -26,6 +26,8 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   sans registre, reservation, invocation ou artefact reel. Rapport :
   `readme/results/2026-08-13_harmonic-censoring-h27-constructor-real-invocation-authorization-contract.md`.
   Validation locale : `3/3` tests administratifs et `373/373` tests H27.
+  Le futur artefact d'autorite devra lier un `expected_git_head` hex40 exact;
+  egalite HEAD et worktree propre seront verifies avant le rehash104.
 - La revue externe de `6cbcf1c477770c0c5b05a6505146e20a0fcb137b`
   conclut `PASS`. Le lot courant scelle le module effect-free exact, ajoute son
   identity binding et le binding seal : 100 predecesseurs, 102 chemins uniques

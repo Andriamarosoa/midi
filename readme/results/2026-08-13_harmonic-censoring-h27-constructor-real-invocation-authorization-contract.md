@@ -11,10 +11,15 @@ observation destination seulement apres, create-exclusive et aucun retry.
 Aucune de ces operations n'est autorisee ni executee ici; les huit edges restent
 fermes.
 
-Identites exactes : contrat blob
-`960cafac1046393f60f6a21338a3eb4dcbf9c8b0`, `5068` octets, SHA-256
-`1614b4b99760e36be804eebb7d69e05c6a777e85006836d044bfd54a13417aab` ;
-seal blob `9d71db5f5bbc4b1ff5561584c85512ccb3174b11`, `1378` octets,
-SHA-256 `6ff228ff602d880a5254f7d3bf0551553f027e94dada70fd0963cbb8f7f68276`.
+Identites corrigees : contrat blob
+`c5262db444bc0852403cfd76770470946b53abdb`, `5836` octets, SHA-256
+`6f4557d33d0134057a84b6adaf5a18fc57b77117a2eedc034b91615c82ddd2bb` ;
+seal blob `1657b358595c1864f147b5a07c56e0f910eb7d81`, `1520` octets,
+SHA-256 `308b991d3adb78f012c60fda205171ec89db7d5eaedea76e9b2035491721b486`.
 
 Validation locale : `3/3` tests administratifs et `373/373` tests H27.
+
+Correction apres revue : un futur artefact d'autorite distinct/revu/scelle doit
+lier un `expected_git_head` natif exact en hex40 minuscule. Le runtime devra
+imposer `HEAD == expected_git_head` et un worktree propre avant le rehash104;
+aucun fallback vers le HEAD courant ni selection automatique n'est permis.
