@@ -19,7 +19,15 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_REAL_PUBLICATION_ONE_SHOT_AUTHORITY_ISSUER_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+  `H27_REAL_ISSUANCE_AUTHORIZATION_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `962e169e25acb11758a70e87ada78ab4004acad2`
+  conclut `PASS`. Le lot courant ajoute uniquement un contrat declaratif et son
+  seal pour une future autorisation d'issuance reelle one-shot. Il lie et
+  rehache 84 identites uniques de la chaine issuer PASS/scellee. Destination et
+  invocation restent declaratives et interdites; les huit edges restent
+  fermes. Aucune issuance, authority, claim, capability, operation filesystem,
+  materializer, population ou science n'est ouverte. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-real-issuance-authorization-contract.md`.
 - La revue externe de `485c35b4d8469e483b438915ddf20aba0194d800`
   conclut `PASS`. Le lot courant scelle uniquement ce module issuer effect-free
   exact, ajoute son identity binding administratif et le seal du binding. Il
