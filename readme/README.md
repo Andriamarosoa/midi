@@ -14,12 +14,21 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 constructor real-invocation authorization contract identity binding pending external review; no runtime authority artifact, expected head, invocation or science. -->
+<!-- H26_CORRECTION_STATUS: H27 constructor execution-authority artifact contract pending external review; no runtime authority artifact, expected head value, invocation or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_CONSTRUCTOR_REAL_INVOCATION_AUTHORIZATION_CONTRACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+  `H27_CONSTRUCTOR_EXECUTION_AUTHORITY_ARTIFACT_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `a786d5730b488694728088368a33e7584f8f13e7`
+  conclut `PASS`. Le lot courant definit seulement le schema ferme et le seal
+  externe du futur artefact d'autorite d'execution : 108 chemins uniques sont
+  rehashes. Il exige un `expected_git_head` lowercase hex40 explicite dans un
+  futur artefact distinct revu/scelle et interdit tout fallback vers le HEAD
+  courant. Aucun artefact runtime, HEAD concret, registre, reservation,
+  invocation ou science n'existe. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-constructor-execution-authority-artifact-contract.md`.
+  Validation locale : `3/3` tests administratifs et `379/379` tests H27.
 - La revue externe de `8382475d7a0d7bfb5e5ccb7f75dd3f874afd6cea`
   conclut `PASS`. Le lot courant ajoute seulement l'identity binding du contrat
   corrige et son seal : 106 chemins uniques rehashes. Aucun artefact runtime ni
