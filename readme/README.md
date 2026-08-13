@@ -14,12 +14,20 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 future real-publication contract binding PASS; a distinct dormant Python boundary awaits code review; no destination, write, connection or science. -->
+<!-- H26_CORRECTION_STATUS: H27 dormant real-publication boundary PASS; its administrative seal and identity binding await external review; no destination, write, connection or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_REAL_PUBLICATION_DORMANT_IMPLEMENTATION_PENDING_EXTERNAL_REVIEW`.
+  `H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_REAL_PUBLICATION_DORMANT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `b7282164d04b4e0d99ba1d0b663116ecf62b2b7c`
+  conclut `PASS`. Le module dormant exact possede maintenant son seal de revue,
+  un identity binding administratif et le seal de ce binding. Le test rehash
+  les deux racines administratives et les 54 identites transitives, soit 56
+  upstream uniques. Le graphe reste acyclique, les huit edges restent fermes et
+  destination, artefact, write, connexions, authority, materializer et science
+  restent faux. Le lot attend une revue externe; `locked_test_used=false`.
+  Rapport : `readme/results/2026-08-13_harmonic-censoring-h27-future-bridge-activation-artifact-real-publication-dormant-identity-binding.md`.
 - La revue externe de `285daa719a38884cca1dadb3571c6cb7bba2cacf`
   conclut `PASS`. Un module Python distinct implemente maintenant uniquement la
   frontiere dormante de future publication reelle. Il rehash le binding et son

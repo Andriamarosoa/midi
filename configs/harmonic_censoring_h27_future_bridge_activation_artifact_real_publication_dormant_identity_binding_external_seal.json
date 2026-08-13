@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "seal_id": "H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_REAL_PUBLICATION_DORMANT_IDENTITY_BINDING_EXTERNAL_SEAL_V1",
+  "status": "SEALED_PENDING_EXTERNAL_REVIEW_DORMANT_NO_DESTINATION_NO_WRITE_NO_CONNECTION_NO_SCIENCE",
+  "identity_binding": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_activation_artifact_real_publication_dormant_identity_binding.json",
+    "git_blob_sha1": "96d32615506b9575d7bae0c16b60a5e43e469714",
+    "size_bytes": 3519,
+    "raw_sha256": "3245cfa3b2a59a93520f2b64b304731dbf40a118d1b9a797a076ba35bee448c8"
+  },
+  "reviewed_dormant_implementation": {
+    "path": "src/polyphonic/harmonic_censoring_h27_future_bridge_activation_artifact_real_publication_dormant.py",
+    "reviewed_commit": "b7282164d04b4e0d99ba1d0b663116ecf62b2b7c",
+    "external_review_verdict": "PASS",
+    "git_blob_sha1": "dbf69dd1837009e9d45bb7da33e2ec787e2f2cbb",
+    "size_bytes": 7488,
+    "raw_sha256": "e6699947d71ddfa4a00e60e8074ec3d3e9629b43f9ea105a658b15c0055a2d8f"
+  },
+  "seal_semantics": {
+    "administrative_identity_binding_only": true,
+    "dependency_graph_acyclic": true,
+    "self_hash_present": false,
+    "historical_back_reference_present": false,
+    "all_fifty_six_upstream_identities_rehashed": true,
+    "public_edges_closed": 8,
+    "real_publication_implementation_authorized": false,
+    "destination_exists": false,
+    "activation_artifact_exists": false,
+    "activation_artifact_write_authorized": false,
+    "connections_open": false,
+    "authority_claim_or_capability_exists": false,
+    "materializer_invocations": 0,
+    "science_invocations": 0,
+    "locked_test_used": false,
+    "training_or_calibration_authorized": false
+  },
+  "next_action": "External review of the exact dormant real-publication module identity binding and this seal only; no destination, write, connection, authority, materializer, or science"
+}

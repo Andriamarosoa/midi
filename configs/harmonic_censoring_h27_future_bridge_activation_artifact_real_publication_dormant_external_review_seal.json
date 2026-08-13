@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "seal_id": "H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_REAL_PUBLICATION_DORMANT_EXTERNAL_REVIEW_SEAL_V1",
+  "status": "PASS_SEALED_DORMANT_NO_DESTINATION_NO_WRITE_NO_CONNECTION_NO_SCIENCE",
+  "implementation": {
+    "path": "src/polyphonic/harmonic_censoring_h27_future_bridge_activation_artifact_real_publication_dormant.py",
+    "reviewed_commit": "b7282164d04b4e0d99ba1d0b663116ecf62b2b7c",
+    "reviewed_parent_commit": "285daa719a38884cca1dadb3571c6cb7bba2cacf",
+    "external_review_verdict": "PASS",
+    "git_blob_sha1": "dbf69dd1837009e9d45bb7da33e2ec787e2f2cbb",
+    "size_bytes": 7488,
+    "raw_sha256": "e6699947d71ddfa4a00e60e8074ec3d3e9629b43f9ea105a658b15c0055a2d8f"
+  },
+  "seal_semantics": {
+    "dormant_implementation_only": true,
+    "verified_upstream_identities": 54,
+    "public_edges_closed": 8,
+    "destination_path": null,
+    "artifact_created": false,
+    "artifact_written": false,
+    "connections_open": false,
+    "authority_claim_or_capability_exists": false,
+    "materializer_invocations": 0,
+    "science_invocations": 0,
+    "locked_test_used": false,
+    "training_or_calibration_authorized": false
+  },
+  "next_action": "Administrative identity binding and external seal of this exact PASS module only; no real destination, write, connection, authority, materializer, or science"
+}

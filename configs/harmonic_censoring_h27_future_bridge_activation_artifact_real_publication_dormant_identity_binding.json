@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "binding_id": "H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_REAL_PUBLICATION_DORMANT_IDENTITY_BINDING_V1",
+  "status": "ADMINISTRATIVE_BINDING_PENDING_EXTERNAL_REVIEW_DORMANT_NO_DESTINATION_NO_WRITE_NO_CONNECTION_NO_SCIENCE",
+  "reviewed_dormant_implementation": {
+    "path": "src/polyphonic/harmonic_censoring_h27_future_bridge_activation_artifact_real_publication_dormant.py",
+    "reviewed_commit": "b7282164d04b4e0d99ba1d0b663116ecf62b2b7c",
+    "reviewed_parent_commit": "285daa719a38884cca1dadb3571c6cb7bba2cacf",
+    "external_review_verdict": "PASS",
+    "git_blob_sha1": "dbf69dd1837009e9d45bb7da33e2ec787e2f2cbb",
+    "size_bytes": 7488,
+    "raw_sha256": "e6699947d71ddfa4a00e60e8074ec3d3e9629b43f9ea105a658b15c0055a2d8f"
+  },
+  "dormant_implementation_external_review_seal": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_activation_artifact_real_publication_dormant_external_review_seal.json",
+    "git_blob_sha1": "dd134c3923741db17fafea19f33def92f60a5e46",
+    "size_bytes": 1343,
+    "raw_sha256": "9c3ab441386197b383309c5a9e6b1b2a3c4d23b5630f23c88ddf7f122591355d"
+  },
+  "upstream_roots": [
+    {
+      "name": "real_publication_contract_identity_binding",
+      "path": "configs/harmonic_censoring_h27_future_bridge_activation_artifact_real_publication_implementation_contract_identity_binding.json",
+      "git_blob_sha1": "4b052086a2fa9a541bd337c454492f74efec3c31",
+      "size_bytes": 5047,
+      "raw_sha256": "69d81538c3db9e293c45d32cd619b388025dc559905b9ea09e9549c5046b64b0"
+    },
+    {
+      "name": "real_publication_contract_identity_binding_external_seal",
+      "path": "configs/harmonic_censoring_h27_future_bridge_activation_artifact_real_publication_implementation_contract_identity_binding_external_seal.json",
+      "git_blob_sha1": "1b49b2ac3774638511cc2700afa108a6bd4d0db0",
+      "size_bytes": 3047,
+      "raw_sha256": "dca1fa4aa1ec478d51f3cfe061ae0fb0a1b8a6077c36e58cd1c9a7616c6881f2"
+    }
+  ],
+  "transitive_identity_source": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_activation_artifact_real_publication_implementation_contract_identity_binding.json",
+    "reviewed_contract_and_seal": 2,
+    "dormant_simulator_artifacts": 4,
+    "transitive_upstream_entries": 48,
+    "expanded_unique_identities": 54
+  },
+  "bound_identity_counts": {
+    "direct_upstream_roots": 2,
+    "expanded_transitive_identities": 54,
+    "combined_unique_upstream_count": 56
+  },
+  "dependency_graph": {
+    "acyclic": true,
+    "self_hash_present": false,
+    "historical_back_reference_present": false,
+    "all_fifty_six_upstream_identities_rehashed": true,
+    "all_fifty_six_upstream_identities_remain_byte_identical": true
+  },
+  "current_state": {
+    "dormant_real_publication_module_exists": true,
+    "dormant_real_publication_module_externally_reviewed": true,
+    "dormant_real_publication_module_externally_sealed": true,
+    "real_publication_implementation_authorized": false,
+    "destination_exists": false,
+    "activation_artifact_exists": false,
+    "activation_artifact_write_authorized": false,
+    "connections_open": false,
+    "authority_claim_or_capability_exists": false,
+    "materializer_invocation_authorized": false,
+    "scientific_execution_authorized": false,
+    "locked_test_used": false,
+    "training_or_calibration_authorized": false
+  },
+  "next_action": "External review of this administrative binding and its exact seal only; no real destination, write, connection, authority, materializer, or science"
+}
