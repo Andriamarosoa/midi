@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "seal_id": "H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_REAL_PUBLICATION_IMPLEMENTATION_CONTRACT_IDENTITY_BINDING_EXTERNAL_SEAL_V1",
+  "status": "SEALED_PENDING_EXTERNAL_REVIEW_ADMINISTRATIVE_BINDING_NO_IMPLEMENTATION_NO_DESTINATION_NO_WRITE_NO_CONNECTION_NO_SCIENCE",
+  "identity_binding": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_activation_artifact_real_publication_implementation_contract_identity_binding.json",
+    "git_blob_sha1": "4b052086a2fa9a541bd337c454492f74efec3c31",
+    "size_bytes": 5047,
+    "raw_sha256": "69d81538c3db9e293c45d32cd619b388025dc559905b9ea09e9549c5046b64b0"
+  },
+  "reviewed_contract": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_activation_artifact_real_publication_implementation_contract.json",
+    "reviewed_commit": "1115d5cc841e41a3ecd51620f3122117c270b6ad",
+    "reviewed_parent_commit": "2f8562d23a1b167bf9cd22db3d347f2d4238e661",
+    "external_review_verdict": "PASS",
+    "git_blob_sha1": "8c2f977adabc0779bd11df5e72b040ec0503a2d8",
+    "size_bytes": 6009,
+    "raw_sha256": "f9231681be25829057eaa6d68b7d5f4364ec59a70e351d3521060c6ced041b54"
+  },
+  "contract_external_seal": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_activation_artifact_real_publication_implementation_contract_external_seal.json",
+    "git_blob_sha1": "0be88f5b4b74375d70a0231ff21679165ff1b631",
+    "size_bytes": 2322,
+    "raw_sha256": "574a0fb2bc36276110b09147a313eff2be05ef944fa6b6f754a71045fa099405"
+  },
+  "seal_semantics": {
+    "administrative_identity_binding_only": true,
+    "dependency_graph_acyclic": true,
+    "self_hash_present": false,
+    "historical_back_reference_present": false,
+    "all_fifty_four_bound_identities_remain_byte_identical": true,
+    "real_publication_contract_exists": true,
+    "real_publication_contract_externally_reviewed": true,
+    "real_publication_contract_externally_sealed": true,
+    "real_publication_contract_identity_binding_exists": true,
+    "real_publication_contract_identity_binding_externally_reviewed": false,
+    "real_publication_contract_identity_binding_externally_sealed": false,
+    "real_publication_implementation_exists": false,
+    "real_publication_implementation_authorized": false,
+    "destination_exists": false,
+    "activation_artifact_exists": false,
+    "activation_artifact_write_authorized": false,
+    "composition_to_bridge_connected": false,
+    "bridge_to_materializer_connected": false,
+    "execution_path_open": false,
+    "authority_exists": false,
+    "claim_exists": false,
+    "operational_capability_exists": false,
+    "materializer_invocation_authorized": false,
+    "scientific_execution_authorized": false,
+    "population_exists": false,
+    "population_index_exists": false,
+    "locked_test_used": false,
+    "training_or_calibration_authorized": false
+  },
+  "next_action": "External review of the exact administrative identity binding bytes and this seal only; no implementation, destination, write, artifact, connection, authority, materializer, or science"
+}

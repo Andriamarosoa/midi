@@ -14,12 +14,24 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 dormant publication simulator chain PASS; declarative future real-publication implementation contract awaits external review; no implementation, destination, write, connection or science. -->
+<!-- H26_CORRECTION_STATUS: H27 future real-publication contract PASS; its administrative identity binding awaits external review; no implementation, destination, write, connection or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_REAL_PUBLICATION_IMPLEMENTATION_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+  `H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_REAL_PUBLICATION_IMPLEMENTATION_CONTRACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `1115d5cc841e41a3ecd51620f3122117c270b6ad`
+  conclut `PASS`. Un identity binding administratif et son external seal lient
+  maintenant le contrat PASS exact, son seal, les quatre artefacts du
+  simulateur dormant et ses 48 entrees amont, soit 54 identites uniques
+  rehashees. Le graphe reste acyclique sans self-hash/back-reference. Seuls les
+  etats administratifs contract exists/reviewed/sealed et binding exists sont
+  vrais; implementation, destination, artefact, write, connexions, authority,
+  materializer, science, locked-test, training et calibration restent faux.
+  Les sept edges restent `().__getitem__`. `7/7` tests administratifs et
+  `282/282` tests H27 passent;
+  le binding exact attend une revue externe. `locked_test_used=false`. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-future-bridge-activation-artifact-real-publication-implementation-contract-identity-binding.md`.
 - La revue externe de `2f8562d23a1b167bf9cd22db3d347f2d4238e661`
   conclut `PASS`. Un contrat declaratif distinct et son seal definissent
   uniquement les exigences fail-closed d'une future implementation reelle de

@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "binding_id": "H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_REAL_PUBLICATION_IMPLEMENTATION_CONTRACT_IDENTITY_BINDING_V1",
+  "status": "ADMINISTRATIVE_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW_NO_IMPLEMENTATION_NO_DESTINATION_NO_WRITE_NO_CONNECTION_NO_SCIENCE",
+  "scope": "bind the exact externally reviewed real-publication implementation contract, its external seal, the four dormant simulator artifacts, and all forty-eight transitive upstream identities",
+  "population_namespace": "H27_SYNTHETIC_V1",
+  "reviewed_contract": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_activation_artifact_real_publication_implementation_contract.json",
+    "reviewed_commit": "1115d5cc841e41a3ecd51620f3122117c270b6ad",
+    "reviewed_parent_commit": "2f8562d23a1b167bf9cd22db3d347f2d4238e661",
+    "external_review_verdict": "PASS",
+    "git_blob_sha1": "8c2f977adabc0779bd11df5e72b040ec0503a2d8",
+    "size_bytes": 6009,
+    "raw_sha256": "f9231681be25829057eaa6d68b7d5f4364ec59a70e351d3521060c6ced041b54"
+  },
+  "contract_external_seal": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_activation_artifact_real_publication_implementation_contract_external_seal.json",
+    "git_blob_sha1": "0be88f5b4b74375d70a0231ff21679165ff1b631",
+    "size_bytes": 2322,
+    "raw_sha256": "574a0fb2bc36276110b09147a313eff2be05ef944fa6b6f754a71045fa099405"
+  },
+  "reviewed_and_sealed_dormant_publication_simulator": [
+    {
+      "name": "dormant_publication_simulator.module",
+      "path": "src/polyphonic/harmonic_censoring_h27_future_bridge_activation_artifact_publication_dormant.py",
+      "git_blob_sha1": "6d254f4358b182e35fd5f2911f801f69f9a46876",
+      "size_bytes": 12600,
+      "raw_sha256": "f4c35a76f26435c71b618e514818651c8cb4b1d95dd304d2e1bfb4f90969e3ec"
+    },
+    {
+      "name": "dormant_publication_simulator.module_external_review_seal",
+      "path": "configs/harmonic_censoring_h27_future_bridge_activation_artifact_publication_dormant_external_review_seal.json",
+      "git_blob_sha1": "76f7efce3eb9bafcfcb7fcc01f6da923958236a1",
+      "size_bytes": 2172,
+      "raw_sha256": "8a80586757e6450a3436ddd327a8e9858814977946ea435af324cc912a7123be"
+    },
+    {
+      "name": "dormant_publication_simulator.identity_binding",
+      "path": "configs/harmonic_censoring_h27_future_bridge_activation_artifact_publication_dormant_identity_binding.json",
+      "git_blob_sha1": "358297d492ea5e6638369ec627888b43c6513115",
+      "size_bytes": 31571,
+      "raw_sha256": "a83af42818c7337132fc9c989d4f9a0249433ffa524443f4271168ed2e995ee9"
+    },
+    {
+      "name": "dormant_publication_simulator.identity_binding_external_seal",
+      "path": "configs/harmonic_censoring_h27_future_bridge_activation_artifact_publication_dormant_identity_binding_external_seal.json",
+      "git_blob_sha1": "ecfd0e867e02de584f4186de3dae00d1fff0733c",
+      "size_bytes": 2791,
+      "raw_sha256": "55a45d233bb04bedbe48ec35b5655c4cb72f735eb9999b317f2ed747bc24f2e6"
+    }
+  ],
+  "transitive_upstream_binding": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_activation_artifact_publication_dormant_identity_binding.json",
+    "expected_unique_entries": 48,
+    "all_entries_rehashed_by_administrative_test": true
+  },
+  "bound_identity_counts": {
+    "reviewed_contract": 1,
+    "contract_external_seal": 1,
+    "dormant_simulator_artifacts": 4,
+    "transitive_upstream_entries": 48,
+    "combined_unique_identity_count": 54
+  },
+  "dependency_graph": {
+    "acyclic": true,
+    "self_hash_present": false,
+    "historical_back_reference_present": false,
+    "all_edges_point_to_preexisting_reviewed_or_sealed_artifacts": true,
+    "all_fifty_four_bound_identities_remain_byte_identical": true
+  },
+  "current_state": {
+    "real_publication_contract_exists": true,
+    "real_publication_contract_externally_reviewed": true,
+    "real_publication_contract_externally_sealed": true,
+    "real_publication_contract_identity_binding_exists": true,
+    "real_publication_contract_identity_binding_externally_reviewed": false,
+    "real_publication_contract_identity_binding_externally_sealed": false,
+    "real_publication_implementation_exists": false,
+    "real_publication_implementation_authorized": false,
+    "destination_exists": false,
+    "activation_artifact_exists": false,
+    "activation_artifact_write_authorized": false,
+    "composition_to_bridge_connected": false,
+    "bridge_to_materializer_connected": false,
+    "execution_path_open": false,
+    "authority_exists": false,
+    "claim_exists": false,
+    "operational_capability_exists": false,
+    "materializer_invocation_authorized": false,
+    "scientific_execution_authorized": false,
+    "population_exists": false,
+    "population_index_exists": false,
+    "locked_test_used": false,
+    "training_or_calibration_authorized": false
+  },
+  "next_action": "External review of this administrative identity binding and its exact external seal only; no implementation, destination, write, artifact, connection, authority, materializer, or science"
+}
