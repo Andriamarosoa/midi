@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "seal_id": "H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_REAL_PUBLICATION_EXECUTION_AUTHORIZATION_CONTRACT_EXTERNAL_SEAL_V1",
+  "status": "SEALED_PENDING_EXTERNAL_REVIEW_CONTRACT_ONLY_NO_DESTINATION_OBSERVATION_NO_FILESYSTEM_OPERATION_NO_SCIENCE",
+  "contract": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_activation_artifact_real_publication_execution_authorization_contract.json",
+    "git_blob_sha1": "7604515e4cbf9a7f2da83d68d2b1ec248a5b2124",
+    "size_bytes": 4963,
+    "raw_sha256": "48baf62970f051d44618e05a6e00e19e663a87b3f26e6e90534d58847a6c6712"
+  },
+  "canonical_destination_path": "/Users/amcarene/h27-admin/activation/h27-materialization-v1.json",
+  "bound_preexisting_identity_count": 64,
+  "contract_only": true,
+  "dependency_graph_acyclic": true,
+  "self_hash_present": false,
+  "historical_back_reference_present": false,
+  "public_edges_closed": 8,
+  "real_execution_authorized": false,
+  "destination_observation_authorized": false,
+  "open_create_write_fsync_rename_authorized": false,
+  "artifact_exists": false,
+  "connections_authority_materializer_science": false,
+  "locked_test_used": false,
+  "training_or_calibration_authorized": false,
+  "next_action": "External review of this exact declarative contract and seal only; all real destination and filesystem operations remain forbidden"
+}

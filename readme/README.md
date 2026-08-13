@@ -14,12 +14,23 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 destination contract PASS; its administrative identity binding awaits external review; destination not observed or created, no write or science. -->
+<!-- H26_CORRECTION_STATUS: H27 destination binding PASS; declarative future real-execution authorization contract awaits external review; destination not observed, no filesystem operation or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_REAL_PUBLICATION_DESTINATION_CONTRACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+  `H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_REAL_PUBLICATION_EXECUTION_AUTHORIZATION_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `e6a67a0a30ecf0b9999b26695eeb66db4ceed216`
+  conclut `PASS`. Un contrat declaratif distinct et son seal definissent
+  uniquement les preconditions fail-closed d'une future autorisation
+  d'execution reelle. Ils lient le destination contract, son seal, son binding
+  et le seal du binding puis rehashent les 60 transitifs, soit 64 identites
+  uniques. La destination n'est pas observee; open, create-exclusive, write,
+  fsync, rename et toute operation/science restent interdites. Les huit edges
+  restent fermes. `3/3` tests administratifs et `301/301` tests H27 passent.
+  Le lot attend une revue externe; `locked_test_used=false`.
+  Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-real-publication-execution-authorization-contract.md`.
 - La revue externe de `85fc9d33f58a20575727be76fa6bc3678f145956`
   conclut `PASS`. Un identity binding administratif et son seal lient le
   contrat de destination exact, son seal et les 60 identites transitives, soit

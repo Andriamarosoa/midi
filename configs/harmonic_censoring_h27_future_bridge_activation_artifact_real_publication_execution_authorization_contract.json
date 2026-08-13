@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "contract_id": "H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_REAL_PUBLICATION_EXECUTION_AUTHORIZATION_CONTRACT_V1",
+  "status": "CONTRACT_ONLY_PENDING_EXTERNAL_REVIEW_NO_DESTINATION_OBSERVATION_NO_FILESYSTEM_OPERATION_NO_CONNECTION_NO_SCIENCE",
+  "scope": "define fail-closed preconditions for a future separate real-publication execution authorization without granting or exercising that authorization",
+  "population_namespace": "H27_SYNTHETIC_V1",
+  "reviewed_and_sealed_destination_contract_chain": [
+    {
+      "name": "destination_contract",
+      "path": "configs/harmonic_censoring_h27_future_bridge_activation_artifact_real_publication_destination_contract.json",
+      "reviewed_commit": "85fc9d33f58a20575727be76fa6bc3678f145956",
+      "external_review_verdict": "PASS",
+      "git_blob_sha1": "56eb8a9a1cfd4ee3e42380b0108f19b1d482199b",
+      "size_bytes": 3383,
+      "raw_sha256": "e109b1275aa67b85ad6d0460947a3614ae1ea94539f355a06954285825a5c81e"
+    },
+    {
+      "name": "destination_contract_external_seal",
+      "path": "configs/harmonic_censoring_h27_future_bridge_activation_artifact_real_publication_destination_contract_external_seal.json",
+      "git_blob_sha1": "316929e8f3590da111a4df09282dd65ba0bfd1c6",
+      "size_bytes": 940,
+      "raw_sha256": "3fc9b5ba2b22591092f7030ba6099382dac8ad07236dfce66dff99d2aacf8571"
+    },
+    {
+      "name": "destination_contract_identity_binding",
+      "path": "configs/harmonic_censoring_h27_future_bridge_activation_artifact_real_publication_destination_contract_identity_binding.json",
+      "reviewed_commit": "e6a67a0a30ecf0b9999b26695eeb66db4ceed216",
+      "external_review_verdict": "PASS",
+      "git_blob_sha1": "d55f0b4bb127418d7035799453e8eb37fbce36a2",
+      "size_bytes": 3321,
+      "raw_sha256": "ac872e2e193a997a7e76a9ef3939ae41d839026ef5d5a482a91d243f0ef1f653"
+    },
+    {
+      "name": "destination_contract_identity_binding_external_seal",
+      "path": "configs/harmonic_censoring_h27_future_bridge_activation_artifact_real_publication_destination_contract_identity_binding_external_seal.json",
+      "git_blob_sha1": "968251ad9b6b2c8259514e23ef9999e7a7325ce7",
+      "size_bytes": 2643,
+      "raw_sha256": "95aeffc71a17836926d6f717c96193114e0c98d153d6d188cc341e7747b23d4d"
+    }
+  ],
+  "transitive_identity_source": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_activation_artifact_real_publication_destination_contract_identity_binding.json",
+    "expanded_transitive_identities": 60,
+    "combined_unique_identity_count": 64,
+    "all_identities_must_be_rehashed_before_any_future_destination_observation": true
+  },
+  "canonical_destination": {
+    "destination_path": "/Users/amcarene/h27-admin/activation/h27-materialization-v1.json",
+    "destination_observation_authorized": false,
+    "destination_exists": false,
+    "open_authorized": false,
+    "create_exclusive_authorized": false,
+    "write_authorized": false,
+    "file_fsync_authorized": false,
+    "rename_authorized": false,
+    "parent_fsync_authorized": false,
+    "reopen_and_rehash_authorized": false
+  },
+  "future_authorization_preconditions": {
+    "separate_contract_review_pass_required": true,
+    "separate_contract_identity_binding_and_seal_required": true,
+    "separate_one_shot_execution_authority_required": true,
+    "exact_canonical_destination_required": true,
+    "all_sixty_four_preexisting_identities_rehashed_before_first_observation": true,
+    "destination_absence_must_be_proven_before_consumption": true,
+    "exclusive_create_without_overwrite_required": true,
+    "full_write_flush_file_fsync_atomic_rename_reopen_rehash_parent_fsync_required": true,
+    "success_or_post_consumption_failure_terminal_without_retry": true,
+    "real_execution_remains_forbidden_until_all_later_artifacts_are_reviewed": true
+  },
+  "dependency_graph": {
+    "acyclic": true,
+    "self_hash_present": false,
+    "historical_back_reference_present": false,
+    "all_sixty_four_bound_identities_rehashed": true
+  },
+  "current_state": {
+    "execution_authorization_contract_exists": true,
+    "execution_authorization_contract_externally_reviewed": false,
+    "execution_authorization_contract_externally_sealed": false,
+    "real_execution_authorized": false,
+    "destination_observation_authorized": false,
+    "destination_exists": false,
+    "artifact_exists": false,
+    "open_authorized": false,
+    "create_exclusive_authorized": false,
+    "write_authorized": false,
+    "fsync_authorized": false,
+    "rename_authorized": false,
+    "connections_open": false,
+    "authority_claim_or_capability_exists": false,
+    "materializer_authorized": false,
+    "science_authorized": false,
+    "locked_test_used": false,
+    "training_or_calibration_authorized": false
+  },
+  "public_edges_closed": 8,
+  "next_action": "External review of this declarative authorization contract and its exact seal only; no destination observation or filesystem operation"
+}
