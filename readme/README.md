@@ -14,12 +14,22 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 future activation artifact contract PASS; exact administrative identity binding and seal now await review; artifact, edges and science remain absent. -->
+<!-- H26_CORRECTION_STATUS: H27 activation artifact binding PASS; distinct in-memory dormant constructor now awaits review; no artifact, write, connection or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+  `H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_DORMANT_IMPLEMENTATION_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `cdb30334d79f46d4661ad349fc6e3ca3b9f8c311`
+  conclut `PASS` et autorise un constructeur strictement dormant en memoire. Le
+  nouveau module revalide quarante entrees scellees avant tout mock, construit
+  et valide les quatorze champs ordonnes du schema, exige les seize preconditions
+  fail-closed et simule create-exclusive sans aucun appel filesystem. Son ticket
+  local est immutable et one-shot; succes ou erreur post-consommation interdit
+  tout retry. La trace termine avec artifact created/written=false, connexions
+  false, materializer/science=0 et terminal=true. Le sixieme public edge est
+  `().__getitem__`. `8/8` tests ciblés et `225/225` tests H27 passent. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-future-bridge-activation-artifact-dormant.md`.
 - La revue externe de `b22e7e5f8f8c2d1032c719ed19ec5e956613ed8d`
   conclut `PASS`. Un identity binding administratif lie maintenant le contrat
   exact (blob `f7baf8c1...`, 17525 octets, SHA-256 `a84427a2...`) et son seal
