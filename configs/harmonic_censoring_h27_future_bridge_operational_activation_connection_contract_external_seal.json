@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "seal_id": "H27_FUTURE_BRIDGE_OPERATIONAL_ACTIVATION_CONNECTION_CONTRACT_EXTERNAL_SEAL_V1",
+  "status": "SEALED_PENDING_EXTERNAL_REVIEW_DORMANT_NO_ACTIVATION_NO_CONNECTION_NO_OPERATION_NO_SCIENCE",
+  "contract": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_operational_activation_connection_contract.json",
+    "git_blob_sha1": "d084467fa316f308e78a1235280c4d0dae3c8324",
+    "size_bytes": 13281,
+    "raw_sha256": "7565b0faccd5aa40855196cf15f8468bdd85a081292f301811fa14964ddba403"
+  },
+  "reviewed_bridge_module": {
+    "path": "src/polyphonic/harmonic_censoring_h27_future_bridge_dormant.py",
+    "git_blob_sha1": "6cc65097b636ed35eeedf5675457c4f599cb811d",
+    "size_bytes": 10443,
+    "raw_sha256": "23e33bc4f81610c84fe0cb7bcc174d9176b531cae5559ad0b904edf257b97777"
+  },
+  "bridge_module_external_review_seal": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_dormant_external_review_seal.json",
+    "git_blob_sha1": "e6eae1e6a91bd959c8ddcbc810f8c0cc7707e3b6",
+    "size_bytes": 2829,
+    "raw_sha256": "7d281ab1ce55bfb9bb3a75b725697754343b98a8c52e9e4a7d805f6ad921dd42"
+  },
+  "bridge_identity_binding": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_dormant_identity_binding.json",
+    "git_blob_sha1": "57426a89a4c05093c7bf2dc5867383d4620aa1a6",
+    "size_bytes": 11020,
+    "raw_sha256": "285123266ffec33605d997ff5e80ccf7feca81d13b96fc6f3bea543f9e700466"
+  },
+  "bridge_identity_binding_external_seal": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_dormant_identity_binding_external_seal.json",
+    "git_blob_sha1": "6e77dccebc771a37e41a24a2edf82b62dbc6039d",
+    "size_bytes": 2994,
+    "raw_sha256": "e155a3bc8afd8b6f6dc64042c65bbb3bd377ae2d549eddb6fdde2b44a8b5da2a"
+  },
+  "compatibility_contract": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_compatibility_contract.json",
+    "git_blob_sha1": "c03e81b9532c9d3c2ef95bec3ca58e4daf3a0bca",
+    "size_bytes": 12630,
+    "raw_sha256": "fa394ba1567e021aeb46f714837f52b9a63fd43cd56ff1440a962884dc274fd1"
+  },
+  "compatibility_contract_external_seal": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_compatibility_contract_external_seal.json",
+    "git_blob_sha1": "c0a09c2eabe08ae6387ad3ef19d038a777295978",
+    "size_bytes": 3661,
+    "raw_sha256": "952eae119585349454efe4f6585e0954c1197b5d0ce0bf0cb9000ecab8263376"
+  },
+  "compatibility_identity_binding": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_compatibility_identity_binding.json",
+    "git_blob_sha1": "5d9c1cb07d147d3ce0ad07f998c81ef3ea7950b8",
+    "size_bytes": 9690,
+    "raw_sha256": "a67b3d3beca48d52fff756c959aa18ae7be752acd0a26865f2f861c9e32909e5"
+  },
+  "compatibility_identity_binding_external_seal": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_compatibility_identity_binding_external_seal.json",
+    "git_blob_sha1": "686b2ea3c86ef91c13e67c3ea5af00867282751e",
+    "size_bytes": 3928,
+    "raw_sha256": "29735327c4581f9f7a0b0ddd01f150a7a2fda2d50bc2dcefb8b75eed1f37d72f"
+  },
+  "seal_semantics": {
+    "contract_only": true,
+    "dependency_graph_acyclic": true,
+    "self_hash_present": false,
+    "historical_back_reference_present": false,
+    "all_predecessors_remain_byte_identical": true,
+    "reviewed_bridge_chain_bound_exactly": true,
+    "compatibility_chain_bound_exactly": true,
+    "composition_to_bridge_connected": false,
+    "bridge_to_materializer_connected": false,
+    "activation_exists": false,
+    "activation_authorized": false,
+    "execution_path_open": false,
+    "materializer_invocation_authorized": false,
+    "scientific_execution_authorized": false,
+    "authority_exists": false,
+    "claim_exists": false,
+    "operational_capability_exists": false,
+    "population_exists": false,
+    "population_index_exists": false,
+    "locked_test_used": false,
+    "training_or_calibration_authorized": false
+  },
+  "next_action": "External review of the exact dormant operational activation/connection contract bytes and this seal only; no activation implementation, connection, operation, or science"
+}

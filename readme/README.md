@@ -14,12 +14,24 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 dormant bridge PASS at 22f5b50; exact module external seal plus acyclic identity binding and binding seal now await external review; all four public edges and science remain closed; no real operation. -->
+<!-- H26_CORRECTION_STATUS: H27 dormant bridge operational activation/connection contract and external seal now await review; activation, both connections, all four public edges and science remain closed; no real operation. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_FUTURE_BRIDGE_DORMANT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+  `H27_FUTURE_BRIDGE_OPERATIONAL_ACTIVATION_CONNECTION_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+- Un contrat declaratif distinct decrit maintenant les deux futures transitions
+  `composition -> bridge` et `bridge -> materializer`, mais les conserve toutes
+  deux `connected=false` et `connection_authorized=false`. Il lie exactement le
+  module bridge revu et ses trois artefacts de seal/binding, les quatre artefacts
+  de compatibilite et les vingt predecesseurs byte-identical. L'activation future
+  reste absente, non autorisee, distincte et exige un commit, une revue et un seal
+  separes. Les conditions futures fail-closed couvrent HEAD/worktree, identites
+  code/contrat, binding step-11 exact, consommation terminale, authority/claim,
+  nonce/PID/code identity, one-shot bridge, blob/barriere materializer et absence
+  de retry. `9/9` tests administratifs et `174/174` tests H27 passent. Aucun code
+  Python ni octet predecesseur n'est modifie. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-future-bridge-operational-activation-connection-contract.md`.
 - La revue externe de `22f5b501d632b45fd7ef68c98ce007f5aacc8f35`
   conclut `PASS`. Le bridge dormant exact (blob `6cc65097...`, 10443 octets,
   SHA-256 `23e33bc4...`) possède maintenant un external-review seal, un binding
