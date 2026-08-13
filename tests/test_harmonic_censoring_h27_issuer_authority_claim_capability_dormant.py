@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import copy
+import dataclasses
 import hashlib
 import json
 import os
 from pathlib import Path
 import pickle
+import subprocess
 import tempfile
 import threading
 import unittest
@@ -24,6 +26,17 @@ class H27IssuerAuthorityClaimCapabilityDormantTests(unittest.TestCase):
         root = Path(parent) / "h27-dormant-boundary"
         root.mkdir()
         return root
+
+    def _consume(self, issuance: object, candidate: object, identity: bytes | None = None) -> object:
+        binding = issuance["binding"]
+        self.assertEqual(issuance["attest_capability"](candidate), binding)
+        self.assertEqual(issuance["attest_process"](os.getpid()), binding)
+        self.assertEqual(issuance["consume_once"](), binding)
+        observed = identity
+        if observed is None:
+            observed = Path(boundary.__file__).resolve(strict=True).read_bytes()
+        self.assertEqual(issuance["attest_code_identity"](hashlib.sha256(observed).hexdigest()), binding)
+        return binding
 
     def test_exact_reviewed_bindings_validate_without_side_effects(self) -> None:
         loaded = boundary.validate_h27_dormant_issuer_bindings()
@@ -94,53 +107,79 @@ class H27IssuerAuthorityClaimCapabilityDormantTests(unittest.TestCase):
             with mock.patch.object(boundary.os, "open", side_effect=capture_open), mock.patch.object(
                 boundary, "_fsync_directory", wraps=boundary._fsync_directory,
             ) as sync_directory:
-                session = boundary._issue_dormant_sandbox_session(root, NONCE, ISSUED_AT)
+                issuance = boundary._issue_dormant_sandbox_session(root, NONCE, ISSUED_AT)
             self.assertEqual(modes, [0o600, 0o600])
             self.assertTrue(all(flags & os.O_EXCL and flags & os.O_CREAT and flags & os.O_WRONLY for flags in flags_seen))
             self.assertEqual(sync_directory.call_count, 2)
-            self.assertTrue(session.authority_path.is_file())
-            self.assertTrue(session.claim_path.is_file())
-            self.assertEqual(hashlib.sha256(session.authority_path.read_bytes()).hexdigest(), session.authority_sha256)
-            self.assertEqual(hashlib.sha256(session.claim_path.read_bytes()).hexdigest(), session.claim_sha256)
-            session.consume(session.capability)
-            with self.assertRaisesRegex(PermissionError, "already consumed"):
-                session.consume(session.capability)
+            binding = issuance["binding"]
+            self.assertTrue(issuance["authority_path"].is_file())
+            self.assertTrue(issuance["claim_path"].is_file())
+            self.assertEqual(hashlib.sha256(issuance["authority_path"].read_bytes()).hexdigest(), binding.authority_sha256)
+            self.assertEqual(hashlib.sha256(issuance["claim_path"].read_bytes()).hexdigest(), binding.claim_sha256)
+            self.assertEqual(binding.materializer_blob, "79f399359e366781f9526098c98a93cca71b1b49")
+            self.assertEqual(binding.invocation_nonce, NONCE)
+            self._consume(issuance, issuance["capability"])
+            with self.assertRaises(StopIteration):
+                issuance["consume_once"]()
 
     def test_capability_is_process_local_identity_attested_noncopyable_and_not_materializer_capability(self) -> None:
         with tempfile.TemporaryDirectory() as parent:
-            session = boundary._issue_dormant_sandbox_session(self._sandbox(parent), NONCE, ISSUED_AT)
+            issuance = boundary._issue_dormant_sandbox_session(self._sandbox(parent), NONCE, ISSUED_AT)
             for operation in (copy.copy, copy.deepcopy, pickle.dumps):
                 with self.assertRaises((TypeError, PermissionError)):
-                    operation(session.capability)
+                    operation(issuance["capability"])
             forged = object.__new__(boundary._H27DormantBoundaryCapability)
-            with self.assertRaisesRegex(PermissionError, "identity/process mismatch"):
-                session.consume(forged)
+            with self.assertRaises(KeyError):
+                issuance["attest_capability"](forged)
             with self.assertRaises(PermissionError):
                 boundary._H27DormantBoundaryCapability()
             self.assertEqual(boundary._H27DormantBoundaryCapability.__slots__, ("__weakref__",))
             self.assertFalse(hasattr(boundary, "_CAPABILITY_REGISTRY"))
-            self.assertNotIsInstance(session.capability, materializer.H27ActivationCapableProductionMaterializationCapability)
+            self.assertNotIsInstance(issuance["capability"], materializer.H27ActivationCapableProductionMaterializationCapability)
+
+    def test_session_and_native_guards_resist_python_reflection_and_replacement(self) -> None:
+        with tempfile.TemporaryDirectory() as parent:
+            issuance = boundary._issue_dormant_sandbox_session(self._sandbox(parent), NONCE, ISSUED_AT)
+            for field in ("attest_capability", "attest_process", "attest_code_identity", "consume_once"):
+                guard = issuance[field]
+                self.assertFalse(hasattr(guard, "__code__"), field)
+                self.assertFalse(hasattr(guard, "__closure__"), field)
+                with self.assertRaises((AttributeError, TypeError)):
+                    setattr(guard, "__code__", (lambda: None).__code__)
+            with self.assertRaises(TypeError):
+                issuance["consume_once"] = lambda: issuance["binding"]
+            with self.assertRaises(TypeError):
+                dataclasses.replace(issuance, consume_once=lambda: issuance["binding"])
+            iterator = issuance["consume_once"].__self__
+            with self.assertRaises((TypeError, pickle.PicklingError)):
+                copy.copy(iterator)
+            with self.assertRaises((TypeError, pickle.PicklingError)):
+                pickle.dumps(iterator)
+            for field in ("authority_sha256", "claim_sha256", "materializer_blob", "invocation_nonce"):
+                forged = dict(issuance)
+                forged["binding"] = issuance["binding"]._replace(**{field: "f" * 64})
+                self.assertNotEqual(forged["binding"], forged["attest_capability"](issuance["capability"]), field)
+            self._consume(issuance, issuance["capability"])
 
     def test_process_mismatch_rejected_without_consuming_valid_capability(self) -> None:
         with tempfile.TemporaryDirectory() as parent:
-            session = boundary._issue_dormant_sandbox_session(self._sandbox(parent), NONCE, ISSUED_AT)
+            issuance = boundary._issue_dormant_sandbox_session(self._sandbox(parent), NONCE, ISSUED_AT)
             real_pid = os.getpid()
-            with mock.patch.object(boundary.os, "getpid", return_value=real_pid + 1):
-                with self.assertRaisesRegex(PermissionError, "identity/process mismatch"):
-                    session.consume(session.capability)
-            session.consume(session.capability)
+            with self.assertRaises(KeyError):
+                issuance["attest_process"](real_pid + 1)
+            self._consume(issuance, issuance["capability"])
 
     def test_atomic_consumption_allows_only_one_concurrent_winner(self) -> None:
         with tempfile.TemporaryDirectory() as parent:
-            session = boundary._issue_dormant_sandbox_session(self._sandbox(parent), NONCE, ISSUED_AT)
+            issuance = boundary._issue_dormant_sandbox_session(self._sandbox(parent), NONCE, ISSUED_AT)
             results: list[str] = []
             lock = threading.Lock()
 
             def run() -> None:
                 try:
-                    session.consume(session.capability)
+                    self.assertEqual(issuance["consume_once"](), issuance["binding"])
                     result = "ok"
-                except PermissionError:
+                except StopIteration:
                     result = "rejected"
                 with lock:
                     results.append(result)
@@ -156,26 +195,27 @@ class H27IssuerAuthorityClaimCapabilityDormantTests(unittest.TestCase):
     def test_post_claim_code_drift_is_terminal_and_capability_stays_consumed(self) -> None:
         with tempfile.TemporaryDirectory() as parent:
             identity = [b"reviewed-code"]
-            session = boundary._issue_dormant_sandbox_session(
+            issuance = boundary._issue_dormant_sandbox_session(
                 self._sandbox(parent), NONCE, ISSUED_AT, identity_supplier=lambda: identity[0],
             )
             identity[0] = b"drifted-code"
-            with self.assertRaisesRegex(PermissionError, "post-claim code identity drift"):
-                session.consume(session.capability)
-            self.assertTrue(session.claim_path.exists())
-            with self.assertRaisesRegex(PermissionError, "already consumed"):
-                session.consume(session.capability)
+            self.assertEqual(issuance["consume_once"](), issuance["binding"])
+            with self.assertRaises(KeyError):
+                issuance["attest_code_identity"](hashlib.sha256(identity[0]).hexdigest())
+            self.assertTrue(issuance["claim_path"].exists())
+            with self.assertRaises(StopIteration):
+                issuance["consume_once"]()
 
     def test_existing_authority_or_claim_is_terminal_before_new_write(self) -> None:
         with tempfile.TemporaryDirectory() as parent:
             root = self._sandbox(parent)
             first = boundary._issue_dormant_sandbox_session(root, NONCE, ISSUED_AT)
-            authority_before = first.authority_path.read_bytes()
-            claim_before = first.claim_path.read_bytes()
+            authority_before = first["authority_path"].read_bytes()
+            claim_before = first["claim_path"].read_bytes()
             with self.assertRaises(FileExistsError):
                 boundary._issue_dormant_sandbox_session(root, NONCE, ISSUED_AT)
-            self.assertEqual(first.authority_path.read_bytes(), authority_before)
-            self.assertEqual(first.claim_path.read_bytes(), claim_before)
+            self.assertEqual(first["authority_path"].read_bytes(), authority_before)
+            self.assertEqual(first["claim_path"].read_bytes(), claim_before)
 
     def test_claim_fsync_interruption_leaves_claim_and_prevents_retry(self) -> None:
         with tempfile.TemporaryDirectory() as parent:
@@ -224,6 +264,30 @@ class H27IssuerAuthorityClaimCapabilityDormantTests(unittest.TestCase):
             boundary._require_sandbox_root(Path.cwd())
         with self.assertRaises((PermissionError, FileNotFoundError)):
             boundary._require_sandbox_root(Path("/Users/amcarene/h27-admin"))
+
+    def test_nested_authority_and_claim_symlink_escapes_are_rejected(self) -> None:
+        for nested in ("authority", "claims"):
+            with self.subTest(nested=nested), tempfile.TemporaryDirectory() as parent:
+                root = self._sandbox(parent)
+                outside = Path(parent) / f"outside-{nested}"
+                outside.mkdir()
+                link = root / nested
+                try:
+                    os.symlink(outside, link, target_is_directory=True)
+                except (OSError, NotImplementedError):
+                    if os.name != "nt":
+                        raise
+                    subprocess.run(
+                        ("cmd", "/c", "mklink", "/J", str(link), str(outside)),
+                        check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                    )
+                try:
+                    with self.assertRaisesRegex(PermissionError, "symlink or reparse"):
+                        boundary._issue_dormant_sandbox_session(root, NONCE, ISSUED_AT)
+                    self.assertEqual(list(outside.iterdir()), [])
+                finally:
+                    if link.exists() or link.is_symlink():
+                        os.rmdir(link)
 
 
 if __name__ == "__main__":

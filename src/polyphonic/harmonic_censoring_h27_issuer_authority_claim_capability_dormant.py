@@ -8,16 +8,16 @@ administrative root.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
 import copy
 import hashlib
 import json
 import os
 from pathlib import Path
 import re
+import stat
 import tempfile
-import threading
-from typing import Callable, Mapping
+from types import MappingProxyType
+from typing import Callable, Mapping, NamedTuple
 
 
 _ROOT = Path(__file__).resolve().parents[2]
@@ -213,9 +213,38 @@ def _require_sandbox_root(root: Path) -> Path:
     return resolved
 
 
-def _write_durable_new(path: Path, raw: bytes) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
-    descriptor = os.open(str(path), os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+def _is_link_or_reparse(path: Path) -> bool:
+    information = path.lstat()
+    if stat.S_ISLNK(information.st_mode):
+        return True
+    attributes = getattr(information, "st_file_attributes", 0)
+    reparse = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
+    return bool(attributes & reparse)
+
+
+def _require_safe_sandbox_parent(root: Path, parent: Path) -> Path:
+    if parent.exists() or parent.is_symlink():
+        if _is_link_or_reparse(parent):
+            raise PermissionError("H27 dormant sandbox parent cannot be a symlink or reparse point.")
+    else:
+        parent.mkdir(mode=0o700)
+    resolved = parent.resolve(strict=True)
+    try:
+        resolved.relative_to(root)
+    except ValueError as exc:
+        raise PermissionError("H27 dormant sandbox parent escaped the sandbox.") from exc
+    if _is_link_or_reparse(resolved):
+        raise PermissionError("H27 dormant sandbox resolved parent cannot be redirected.")
+    return resolved
+
+
+def _write_durable_new(root: Path, path: Path, raw: bytes) -> None:
+    parent = _require_safe_sandbox_parent(root, path.parent)
+    target = parent / path.name
+    if target.is_symlink():
+        raise PermissionError("H27 dormant sandbox target cannot be a symlink.")
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0)
+    descriptor = os.open(str(target), flags, 0o600)
     try:
         with os.fdopen(descriptor, "wb", closefd=True) as handle:
             descriptor = -1
@@ -225,7 +254,7 @@ def _write_durable_new(path: Path, raw: bytes) -> None:
     finally:
         if descriptor >= 0:
             os.close(descriptor)
-    _fsync_directory(path.parent)
+    _fsync_directory(parent)
 
 
 def _fsync_directory(path: Path) -> None:
@@ -260,14 +289,13 @@ class _H27DormantBoundaryCapability:
         raise TypeError("H27 dormant boundary capability cannot be serialized.")
 
 
-@dataclass(frozen=True)
-class _DormantSandboxSession:
-    capability: _H27DormantBoundaryCapability
-    authority_path: Path
+class _CapabilityBinding(NamedTuple):
     authority_sha256: str
-    claim_path: Path
     claim_sha256: str
-    consume: Callable[[object], None]
+    materializer_blob: str
+    invocation_nonce: str
+    process_id: int
+    code_identity_sha256: str
 
 
 def _claim_payload(authority_sha256: str, invocation_nonce: str) -> bytes:
@@ -294,7 +322,7 @@ def _issue_dormant_sandbox_session(
     invocation_nonce: str,
     issued_at_utc: str,
     identity_supplier: Callable[[], bytes] | None = None,
-) -> _DormantSandboxSession:
+) -> Mapping[str, object]:
     """Exercise the future lifecycle only inside a dedicated temporary sandbox."""
 
     root = _require_sandbox_root(sandbox_root)
@@ -307,35 +335,42 @@ def _issue_dormant_sandbox_session(
 
     supplier = identity_supplier or (lambda: Path(__file__).resolve(strict=True).read_bytes())
     expected_identity = hashlib.sha256(supplier()).hexdigest()
-    _write_durable_new(authority_path, authority_raw)
+    _write_durable_new(root, authority_path, authority_raw)
     authority_written = authority_path.read_bytes()
     if authority_written != authority_raw:
         raise PermissionError("H27 sandbox authority bytes changed after durable write.")
     authority_sha256 = hashlib.sha256(authority_written).hexdigest()
     claim_raw = _claim_payload(authority_sha256, invocation_nonce)
-    _write_durable_new(claim_path, claim_raw)
+    _write_durable_new(root, claim_path, claim_raw)
     claim_written = claim_path.read_bytes()
     if claim_written != claim_raw:
         raise PermissionError("H27 sandbox claim bytes changed after durable write.")
     claim_sha256 = hashlib.sha256(claim_written).hexdigest()
 
     capability = object.__new__(_H27DormantBoundaryCapability)
-    lock = threading.Lock()
-    consumed = False
-    process_id = os.getpid()
-
-    def consume(candidate: object) -> None:
-        nonlocal consumed
-        with lock:
-            if candidate is not capability or os.getpid() != process_id:
-                raise PermissionError("H27 dormant sandbox capability identity/process mismatch.")
-            if consumed:
-                raise PermissionError("H27 dormant sandbox capability was already consumed.")
-            consumed = True
-        if hashlib.sha256(supplier()).hexdigest() != expected_identity:
-            raise PermissionError("H27 post-claim code identity drift; claim remains consumed.")
-
-    return _DormantSandboxSession(capability, authority_path, authority_sha256, claim_path, claim_sha256, consume)
+    binding = _CapabilityBinding(
+        authority_sha256=authority_sha256,
+        claim_sha256=claim_sha256,
+        materializer_blob=_MATERIALIZER[1],
+        invocation_nonce=invocation_nonce,
+        process_id=os.getpid(),
+        code_identity_sha256=expected_identity,
+    )
+    capability_guard = MappingProxyType({capability: binding}).__getitem__
+    process_guard = MappingProxyType({binding.process_id: binding}).__getitem__
+    code_identity_guard = MappingProxyType({binding.code_identity_sha256: binding}).__getitem__
+    one_shot_iterator = (item for item in (binding,))
+    consume_once = one_shot_iterator.__next__
+    return MappingProxyType({
+        "capability": capability,
+        "binding": binding,
+        "authority_path": authority_path,
+        "claim_path": claim_path,
+        "attest_capability": capability_guard,
+        "attest_process": process_guard,
+        "attest_code_identity": code_identity_guard,
+        "consume_once": consume_once,
+    })
 
 
 _DORMANT_NATIVE_BARRIER = ().__getitem__
