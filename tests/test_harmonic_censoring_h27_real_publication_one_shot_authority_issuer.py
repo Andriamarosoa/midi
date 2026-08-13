@@ -39,6 +39,18 @@ class TestIssuer(unittest.TestCase):
   with issuer._NONCE_LOCK:issuer._USED_NONCES.clear()
   invoke()
   with self.assertRaises(PermissionError):invoke()
+ def test_custom_objects_are_rejected_before_magic_methods_can_execute(self):
+  class ExecutableValue:
+   def _execute(self,*args,**kwargs):raise AssertionError('custom code executed')
+   __eq__=__ne__=__str__=__repr__=__hash__=__add__=__radd__=_execute
+  bad=ExecutableValue()
+  for field in ('issuer_id','invocation_nonce','issued_at_utc','destination_path'):
+   args={'issuer_id':issuer._ISSUER_ID,'invocation_nonce':NONCE,'issued_at_utc':STAMP,'destination_path':issuer._DESTINATION,'probe':probe(NONCE)};args[field]=bad
+   with self.assertRaises(TypeError):issuer.issue_h27_real_publication_one_shot_authority(**args)
+  for field in ('destination_observed','create_attempted','write_attempted','expected_canonical_sha256'):
+   values={'destination_observed':False,'create_attempted':False,'write_attempted':False,'expected_canonical_sha256':probe(NONCE).expected_canonical_sha256};values[field]=bad
+   with self.assertRaises(TypeError):invoke(p=issuer.H27EffectFreeIssuerProbe(**values))
+  with issuer._NONCE_LOCK:self.assertNotIn(NONCE,issuer._USED_NONCES)
  def test_source_has_no_real_filesystem_or_science_api(self):
   source=Path(issuer.__file__).read_text(encoding='utf-8')
   for forbidden in ('os.open','O_EXCL','write_bytes','open(','fsync','rename(','import numpy','tensorflow','Callable'):

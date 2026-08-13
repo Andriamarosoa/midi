@@ -125,6 +125,8 @@ def _strict_timestamp(value: str) -> None:
 
 
 def _canonical_artifact_bytes(issuer_id: str, invocation_nonce: str, issued_at_utc: str, destination_path: str) -> bytes:
+    if not all(type(value) is str for value in (issuer_id, invocation_nonce, issued_at_utc, destination_path)):
+        raise TypeError("H27 issuer inputs must be exact native strings.")
     if issuer_id != _ISSUER_ID:
         raise ValueError("H27 issuer identity mismatch.")
     if re.fullmatch(r"[0-9a-f]{64}", invocation_nonce) is None:
@@ -185,10 +187,19 @@ def issue_h27_real_publication_one_shot_authority(
 ) -> H27EffectFreeIssuerResult:
     """Validate and simulate the issuer entirely in memory; never issue."""
     _verify_seventy_eight_inputs()
-    raw = _canonical_artifact_bytes(issuer_id, invocation_nonce, issued_at_utc, destination_path)
-    expected_sha256 = hashlib.sha256(raw).hexdigest()
+    if not all(type(value) is str for value in (issuer_id, invocation_nonce, issued_at_utc, destination_path)):
+        raise TypeError("H27 issuer inputs must be exact native strings.")
     if type(probe) is not H27EffectFreeIssuerProbe:
         raise PermissionError("H27 effect-free issuer requires the closed immutable probe type.")
+    if (
+        type(probe.destination_observed) is not bool
+        or type(probe.create_attempted) is not bool
+        or type(probe.write_attempted) is not bool
+        or type(probe.expected_canonical_sha256) is not str
+    ):
+        raise TypeError("H27 effect-free issuer probe fields must use exact native scalar types.")
+    raw = _canonical_artifact_bytes(issuer_id, invocation_nonce, issued_at_utc, destination_path)
+    expected_sha256 = hashlib.sha256(raw).hexdigest()
     if probe.destination_observed is not False or probe.create_attempted is not False or probe.write_attempted is not False:
         raise PermissionError("H27 effect-free issuer probe must attest zero effects.")
     if probe.expected_canonical_sha256 != expected_sha256:

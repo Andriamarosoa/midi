@@ -30,7 +30,12 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   conclut `FAIL`: verification trop tardive de certaines dependances, callbacks
   arbitraires non attestables et nonce reutilisable. La correction du meme
   module impose verify-before-parse, une probe immutable sans callable et un
-  registre one-shot in-memory verrouille. Nouvelle revue requise.
+  registre one-shot in-memory verrouille. La deuxieme revue de `7d06d022...`
+  confirme ces trois corrections mais refuse les annotations Python non
+  imposees a l'execution. La micro-correction exige donc des types natifs exacts
+  pour les quatre entrees et les quatre champs de probe avant toute operation;
+  un objet personnalise adversarial est rejete sans methode magique executee ni
+  consommation du nonce. Nouvelle revue requise.
 - La revue externe de `108728b98311c6e5c3a8eaf2909670b3768b3f08`
   conclut `PASS`. Le binding administratif courant lie le contrat issuer PASS,
   son seal et 76 identites preexistantes, soit 78 chemins uniques rehashes.
