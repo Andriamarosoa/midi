@@ -1,7 +1,7 @@
 {
   "schema_identity": "H27_DORMANT_ENGINE_RECOMPUTER_DESIGN_V1",
   "schema_version": 1,
-  "status": "DESIGN_ONLY_NO_IMPLEMENTATION_NO_MATERIALIZATION_NO_SCIENCE",
+  "status": "DORMANT_ENGINE_RECOMPUTER_IMPLEMENTED_PENDING_EXTERNAL_REVIEW_NO_MATERIALIZATION_NO_SCIENCE",
   "design_base_commit": "44c2c33db4bc64c775bf1401812316d432905880",
   "hypothesis_id": "H27_ROLE_AWARE_ZERO_CONTEXT_V1",
   "population_namespace": "H27_SYNTHETIC_V1",
@@ -15,10 +15,10 @@
   },
   "bindings_must_match_before_any_scientific_operation": true,
   "existing_population_required_now": false,
-  "engine_exists": false,
-  "recomputer_exists": false,
-  "engine_implementation_authorized": false,
-  "recomputer_implementation_authorized": false,
+  "engine_exists": true,
+  "recomputer_exists": true,
+  "engine_implementation_authorized": true,
+  "recomputer_implementation_authorized": true,
   "materialization_authorized": false,
   "science_authorized": false,
   "execution_authorized": false,
@@ -27,6 +27,12 @@
   "capability_exists": false,
   "locked_test_authorized": false,
   "training_calibration_authorized": false,
+  "dormant_implementation_bindings": {
+    "capability":{"path":"src/polyphonic/harmonic_censoring_h27_scientific_capability_dormant.py","git_blob_sha1":"212cd4e2962817e1543b0c97e967cb9218957ce3","issuer_exists":false,"issued_identity_count":0},
+    "engine":{"path":"src/polyphonic/harmonic_censoring_h27_engine.py","git_blob_sha1":"b309b1a3a993ed549673fa35c66b93ee612c662e","numpy_import_time":false,"execution_invoked":false},
+    "independent_recomputer":{"path":"src/polyphonic/harmonic_censoring_h27_recomputer.py","git_blob_sha1":"a5c2f4f8fe0ae1b8163d3aca6b1e52a374fab566","imports_engine":false,"execution_invoked":false},
+    "tests":{"path":"tests/test_harmonic_censoring_h27_engine_recomputer_dormant.py","git_blob_sha1":"6c64d1b742e83a888a1a9478d8ade8d3fa32dd8e","scientific_kernels_invoked":false}
+  },
   "future_record_contract": {
     "identity": "one canonical baseline or P2 record identity from the sealed fixed order",
     "sealed_storage_payloads": ["waveform.f64le", "sample-valid-mask.u8"],
@@ -110,14 +116,14 @@
     "future_runtime_qualification_required":true
   },
   "future_capability_boundary": {
-    "future_dormant_implementation_requires_unissuable_scientific_capability":true,
+    "dormant_implementation_uses_unissuable_scientific_capability":true,
     "future_real_execution_requires_separate_authority_claim_and_review":true,
     "single_use":true,"retry_allowed":false,"objects_created_now":0
   },
   "future_test_obligations_only": ["input binding and attrition","role-aware exact-zero and quasi-zero","support failure before science","engine/recomputer independence","exact collision","outcome/certificate reconciliation","mismatch terminality","two pre-registered runtimes","causality and forbidden-input audit"],
   "h26_policy": {"historical_documentation_only":true,"runtime_dependency_forbidden":true,"fixture_or_byte_read_forbidden":true,"normative_rule_delegation_forbidden":true},
-  "allowed_current_operations":["parse JSON","verify SHA or identity strings","count declarative values","verify enums and references","git diff --check"],
-  "forbidden_current_operations":["add Python engine or recomputer","add scientific stub or capability","read or create H27 population","create waveform or mask","run FFT","run NNLS","run engine","run recomputer","run P0","run P1","run P2","create authority claim or receipt","access locked-test","train","calibrate"],
-  "next_action":"external review of this contract before any dormant engine/recomputer implementation",
-  "stop_state":"H27_DORMANT_ENGINE_RECOMPUTER_DESIGN_CONTRACTED_PENDING_EXTERNAL_REVIEW_NO_IMPLEMENTATION_NO_MATERIALIZATION_NO_SCIENCE"
+  "allowed_current_operations":["parse JSON","verify SHA or identity strings","count declarative values","verify enums and references","import dormant modules","py_compile","run static and fail-before-capability mock tests","git diff --check"],
+  "forbidden_current_operations":["issue or forge scientific capability","read or create H27 population","create waveform or mask","run FFT","run NNLS","run engine","run recomputer","run P0","run P1","run P2","create authority claim or receipt","access locked-test","train","calibrate"],
+  "next_action":"external review of the dormant engine/recomputer implementation before any scientific execution or population access",
+  "stop_state":"H27_DORMANT_ENGINE_RECOMPUTER_IMPLEMENTED_PENDING_EXTERNAL_REVIEW_NO_MATERIALIZATION_NO_SCIENCE"
 }

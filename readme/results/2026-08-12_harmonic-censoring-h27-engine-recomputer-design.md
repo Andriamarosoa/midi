@@ -1,17 +1,18 @@
-# H27 — contrat de conception engine/recomputer dormant
+# H27 — contrat et implémentation dormante engine/recomputer
 
 ## Portée
 
-Ce lot est strictement contractuel. Il ajoute
-`configs/harmonic_censoring_h27_engine_recomputer_contract.json` et ne modifie
-ni les cinq blobs H27 déjà scellés, ni le loader/materializer dormant, ni un
-fichier Python de science.
+Ce lot a commencé par un contrat strictement documentaire. Après fermeture de
+B1–B6 et autorisation externe séparée, il ajoute uniquement une capability
+scientifique inémissible, l'engine dormant, le recomputer dormant indépendant
+et leurs tests fail-before-capability. Il ne modifie ni les cinq blobs H27 déjà
+scellés ni le loader/materializer dormant.
 
 Le contrat lie le commit de clôture `44c2c33db4bc64c775bf1401812316d432905880`
 et les cinq blobs H27 revus. Il conserve `H27_SYNTHETIC_V1`, les quatre rôles,
 les quatre outcomes, les seuils H27 et les deux profils runtime préenregistrés.
 
-## Frontières définies, non implémentées
+## Frontières implémentées, non exécutables
 
 Il conserve exactement les payloads scellés du futur record : waveform `<f8`,
 masque role-major de 66 560 octets et alternate `<f8` uniquement pour les
@@ -43,19 +44,36 @@ Le profil primaire possède donc les mêmes champs chemin/taille/SHA que le
 profil secondaire ; aucune sélection ou substitution runtime automatique
 n'est permise.
 
+L'engine et le recomputer lisent chacun les payloads scellés depuis leurs
+chemins bornés, vérifient topologie, tailles, SHA, dtype, finitude et masque,
+puis implémentent séparément la classification role-aware, Hann/rFFT, bandes,
+NNLS fixe, certificats et décision. Le recomputer n'importe aucune fonction de
+l'engine et ne reçoit ses résultats qu'au comparateur terminal, après sa propre
+recomputation. NumPy reste injecté par le futur appelant et n'est pas importé au
+chargement des modules.
+
+La capability process-local n'a aucun constructeur, issuer, factory ou identité
+enregistrée. Les deux frontières la contrôlent avant descriptor, filesystem ou
+NumPy ; elles sont donc impossibles à exécuter dans ce lot.
+
 ## Interdictions conservées
 
-Aucun engine, recomputer, stub scientifique, capability, runner, population,
-waveform, mask, FFT, NNLS, P0/P1/P2, authority, claim, locked-test,
-entraînement ou calibration n’existe ou n’est autorisé dans ce lot.
+Aucune capability émise, aucun runner, population, waveform, mask, FFT, NNLS,
+P0/P1/P2, authority, claim, locked-test, entraînement ou calibration n'existe
+ou n'est autorisé dans ce lot. L'existence du code dormant ne vaut aucune
+autorité d'exécution.
 
 ## Vérification autorisée
 
-Seul le parsing JSON et la cohérence déclarative ont été exécutés : schéma,
-identité, cinq bindings, enums, rôles, outcomes et flags à `false`.
+Le parsing JSON, `py_compile`, les contrôles de blobs, les tests statiques et
+les mocks d'échec avant capability sont autorisés. `17` tests H27
+engine/recomputer/materializer réussissent en `1,589 s`, avec
+`git diff --check`. Ils ne passent aucun objet scientifique valide aux kernels
+et n'exécutent ni FFT ni NNLS.
 
 ## STOP
 
-`H27_DORMANT_ENGINE_RECOMPUTER_DESIGN_CONTRACTED_PENDING_EXTERNAL_REVIEW_NO_IMPLEMENTATION_NO_MATERIALIZATION_NO_SCIENCE`
+`H27_DORMANT_ENGINE_RECOMPUTER_IMPLEMENTED_PENDING_EXTERNAL_REVIEW_NO_MATERIALIZATION_NO_SCIENCE`
 
-Une revue externe est obligatoire avant toute implémentation Python dormante.
+Une revue externe est obligatoire avant toute population, capability émissible
+ou exécution scientifique.

@@ -14,20 +14,23 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 engine/recomputer design contracted; no implementation, materialization or science; external review pending. -->
+<!-- H26_CORRECTION_STATUS: H27 engine/recomputer implemented dormant behind an unissuable capability; no materialization or science; external review pending. -->
 ## État courant
 
 - Mise à jour : `2026-08-12`.
 - État courant :
-  `H27_DORMANT_ENGINE_RECOMPUTER_DESIGN_CONTRACTED_PENDING_EXTERNAL_REVIEW_NO_IMPLEMENTATION_NO_MATERIALIZATION_NO_SCIENCE`.
-- Le contrat H27 engine/recomputer est défini, sans code exécutable : il lie les
+  `H27_DORMANT_ENGINE_RECOMPUTER_IMPLEMENTED_PENDING_EXTERNAL_REVIEW_NO_MATERIALIZATION_NO_SCIENCE`.
+- Le contrat H27 engine/recomputer est désormais implémenté de façon dormante : il lie les
   cinq blobs H27 revus, fige record/mask/role semantics/ordre fail-closed,
   distingue corruption terminale et résolution scientifique `AMBIGUOUS`,
   effectue l'exact-zero avant FFT et le plancher non nul après FFT, et impose un
   recomputer réellement indépendant. Le profil primaire CPython 3.11.9 scelle
   désormais aussi son exécutable résolu, ses 152 624 octets et son SHA-256,
-  symétriquement au profil secondaire. Les engine/recomputer, population,
-  FFT/NNLS, P0/P1/P2 et capacités restent absents. Rapport :
+  symétriquement au profil secondaire. L'engine et le recomputer indépendant
+  n'importent pas NumPy au chargement et échouent avant tout accès tant que la
+  capability process-local reste inémissible. Population, FFT/NNLS,
+  P0/P1/P2 et exécution scientifique restent absents. `py_compile`,
+  `git diff --check` et 17 tests dormants/materializer passent. Rapport :
   `readme/results/2026-08-12_harmonic-censoring-h27-engine-recomputer-design.md`.
 - Le loader et materializer H27 restent strictement dormants : les cinq blobs
   H27 revus sont contrôlés avant parsing, les 17/27/107/124 identités et le
