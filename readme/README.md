@@ -24,7 +24,11 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   conclut `PASS`. Le nouveau lot contractuel définit maintenant l'unique
   différence future autorisée — le plumbing d'autorité —, l'ordre fail-closed
   jusqu'à la claim `O_EXCL`, une capability process-local non forgeable et les
-  tests adversariaux monkeypatch/rebinding/appels directs requis. Le futur
+  tests adversariaux monkeypatch/rebinding/appels directs requis. Le correctif
+  de revue lie maintenant explicitement le contrat d'activation approuve au
+  blob `2df0e536...` et son seal au blob `0ef61aa7...`; runtime, environnement,
+  cinq inputs, namespace, comptages et destinations doivent etre derives de
+  ces octets exacts, sans override. Le futur
   module activable reste absent, non autorisé et sans path/blob/SHA/seal ; le
   code dormant `d3a903…` reste inchangé et non exécutable. Rapport :
   `readme/results/2026-08-13_harmonic-censoring-h27-activation-capable-authority-contract.md`.

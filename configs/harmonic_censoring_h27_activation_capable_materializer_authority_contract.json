@@ -5,6 +5,32 @@
   "reviewed_parent_commit": "ece4b630e15a895daef9dafeca4955ee7b338573",
   "scope": "future authority boundary design only; implementation activation claim materialization and science forbidden",
   "population_namespace": "H27_SYNTHETIC_V1",
+  "normative_activation_binding_source": {
+    "contract": {
+      "path": "configs/harmonic_censoring_h27_materialization_activation_contract.json",
+      "git_blob_sha1": "2df0e53637cc31d97c01e75b88cb47c2e866c187",
+      "size_bytes": 11131,
+      "raw_sha256": "a1e679e4357552bd88640d3d67a6f17bd9feaad38e8f26e4ed68539f167980c4"
+    },
+    "external_seal": {
+      "path": "configs/harmonic_censoring_h27_materialization_activation_contract_external_seal.json",
+      "git_blob_sha1": "0ef61aa7ada69b619a8e7acd7138151a36496089",
+      "size_bytes": 3122,
+      "raw_sha256": "2174570372df3e8349a425d62ce8e1d084238757fb944968ad8539d9dcabac9d"
+    },
+    "required_exact_derivations": {
+      "sealed_runtime_source": "$.sealed_runtime_source",
+      "runtime_exact": "$.runtime_exact",
+      "process_environment_exact": "$.process_environment_exact",
+      "sealed_h27_inputs": "$.sealed_h27_inputs",
+      "population_namespace": "$.population_namespace",
+      "expected_counts": "$.atomic_publication.expected_record_count|expected_baseline_record_count|expected_p2_record_count",
+      "fixed_destinations": "$.atomic_publication.final_destination|staging_destination"
+    },
+    "all_derived_values_must_equal_the_linked_contract_exactly": true,
+    "caller_file_environment_or_runtime_override_forbidden": true,
+    "missing_mismatched_or_unsealed_source_is_terminal_before_claim": true
+  },
   "reviewed_dormant_logic": {
     "path": "src/polyphonic/harmonic_censoring_h27_production_materializer_dormant.py",
     "git_blob_sha1": "d3a903acfa67daf822d50aab005b88943a8c18fa",

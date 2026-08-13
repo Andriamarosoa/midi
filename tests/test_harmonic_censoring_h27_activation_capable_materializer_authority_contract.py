@@ -9,6 +9,8 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT = ROOT / "configs/harmonic_censoring_h27_activation_capable_materializer_authority_contract.json"
 SEAL = ROOT / "configs/harmonic_censoring_h27_activation_capable_materializer_authority_contract_external_seal.json"
+ACTIVATION_CONTRACT = ROOT / "configs/harmonic_censoring_h27_materialization_activation_contract.json"
+ACTIVATION_SEAL = ROOT / "configs/harmonic_censoring_h27_materialization_activation_contract_external_seal.json"
 
 
 def _blob(raw: bytes) -> str:
@@ -39,6 +41,34 @@ class H27ActivationCapableMaterializerAuthorityContractTests(unittest.TestCase):
             self.assertIsNone(future[field])
         self.assertTrue(future["must_be_distinct_module"])
         self.assertEqual(future["allowed_difference_from_dormant_logic"], "authority boundary plumbing only")
+
+    def test_normative_activation_contract_and_seal_are_exactly_bound(self) -> None:
+        source = self.contract["normative_activation_binding_source"]
+        for binding, path in ((source["contract"], ACTIVATION_CONTRACT), (source["external_seal"], ACTIVATION_SEAL)):
+            raw = path.read_bytes()
+            self.assertEqual(binding["path"], path.relative_to(ROOT).as_posix())
+            self.assertEqual(binding["git_blob_sha1"], _blob(raw))
+            self.assertEqual(binding["size_bytes"], len(raw))
+            self.assertEqual(binding["raw_sha256"], hashlib.sha256(raw).hexdigest())
+
+    def test_all_scientific_bindings_are_derived_without_override(self) -> None:
+        source = self.contract["normative_activation_binding_source"]
+        activation = json.loads(ACTIVATION_CONTRACT.read_bytes())
+        derivations = source["required_exact_derivations"]
+        self.assertEqual(
+            set(derivations),
+            {"sealed_runtime_source", "runtime_exact", "process_environment_exact", "sealed_h27_inputs", "population_namespace", "expected_counts", "fixed_destinations"},
+        )
+        self.assertEqual(activation["population_namespace"], self.contract["population_namespace"])
+        self.assertEqual(activation["atomic_publication"]["expected_record_count"], 124)
+        self.assertEqual(activation["atomic_publication"]["expected_baseline_record_count"], 17)
+        self.assertEqual(activation["atomic_publication"]["expected_p2_record_count"], 107)
+        self.assertEqual(activation["atomic_publication"]["final_destination"], "/Users/amcarene/h27-admin/population/h27-synthetic-v1")
+        self.assertEqual(activation["atomic_publication"]["staging_destination"], "/Users/amcarene/h27-admin/population/.h27-synthetic-v1.staging")
+        self.assertEqual(len(activation["sealed_h27_inputs"]), 5)
+        self.assertTrue(source["all_derived_values_must_equal_the_linked_contract_exactly"])
+        self.assertTrue(source["caller_file_environment_or_runtime_override_forbidden"])
+        self.assertTrue(source["missing_mismatched_or_unsealed_source_is_terminal_before_claim"])
 
     def test_fail_closed_order_places_claim_before_science(self) -> None:
         order = self.contract["fail_closed_order"]

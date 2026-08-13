@@ -5,9 +5,9 @@
   "reviewed_parent_commit": "ece4b630e15a895daef9dafeca4955ee7b338573",
   "contract": {
     "path": "configs/harmonic_censoring_h27_activation_capable_materializer_authority_contract.json",
-    "git_blob_sha1": "5b44b716d44c3313f99fd773f07c70649a981482",
-    "size_bytes": 5958,
-    "raw_sha256": "830050fc580a7957336d3cdb7aa41a49a7e069df5da55366b41b007e3678cc01"
+    "git_blob_sha1": "e7ff1b71bdd62adf8341dbd824302f1eb57e69c6",
+    "size_bytes": 7358,
+    "raw_sha256": "da96c338d4a99e848ab5fa63d717442c3af27fab6268bb9abae99c1f76321dab"
   },
   "reviewed_dormant_logic_git_blob_sha1": "d3a903acfa67daf822d50aab005b88943a8c18fa",
   "reviewed_dormant_logic_activation_target": false,
