@@ -14,12 +14,18 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 authority-instance artifact constructor dormant effect-free implementation pending external review; no artifact, instance, destination or science. -->
+<!-- H26_CORRECTION_STATUS: H27 authority-instance artifact constructor effect-free seal and identity binding pending external review; no artifact, instance, destination or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_AUTHORITY_INSTANCE_ARTIFACT_CONSTRUCTOR_DORMANT_EFFECT_FREE_IMPLEMENTATION_PENDING_EXTERNAL_REVIEW`.
+  `H27_AUTHORITY_INSTANCE_ARTIFACT_CONSTRUCTOR_EFFECT_FREE_SEAL_BINDING_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `6cbcf1c477770c0c5b05a6505146e20a0fcb137b`
+  conclut `PASS`. Le lot courant scelle le module effect-free exact, ajoute son
+  identity binding et le binding seal : 100 predecesseurs, 102 chemins uniques
+  rehashes. Aucune invocation ni reservation n'est autorisee. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-authority-instance-artifact-constructor-seal-binding.md`.
+  Validation locale : `3/3` tests administratifs et `370/370` tests H27.
 - La revue externe de `1f46498d94949efe1a1c380a85fa046538fd8e94`
   conclut `PASS`. Le lot courant ajoute uniquement le module constructor
   dormant/effect-free et ses tests. Les 98 identites sont rehashees avant les
