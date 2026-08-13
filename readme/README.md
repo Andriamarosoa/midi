@@ -14,28 +14,24 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 boundary identity binding PASS at 8f6b6a3; one-shot execution composition contract and seal now bind both reviewed chains, historical runtime/environment, fixed paths/counts and final fail-closed order; no implementation, operation, activation, materialization, or science; external review pending. -->
+<!-- H26_CORRECTION_STATUS: H27 one-shot composition contract PASS at 40eb4a3; its acyclic identity binding and seal mark only contract exists/reviewed/sealed while future module, execution path and all operation/science remain false; external review pending. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_ONE_SHOT_EXECUTION_COMPOSITION_CONTRACT_PENDING_EXTERNAL_REVIEW`.
-- La revue externe de `8f6b6a3be74dbbaa56a059da981196d8a83d7049`
-  conclut `PASS` sur le seal/binding de la frontiere et autorise uniquement un
-  contrat de composition one-shot et son seal, sans implementation. Le nouveau
-  contrat lie exactement la chaine boundary PASS, la chaine materializer PASS,
-  les contrats/seals activation et authority historiques, le runtime Darwin et
-  l'environnement exacts, les chemins administratifs/destinations fixes et les
-  comptes `124/17/107`. Il fixe l'ordre final : paths/overrides, contrats/seals,
-  identities, HEAD/worktree, runtime/env, destinations, activation/authority,
-  claim durable, capability, consommation atomique, puis seulement une future
-  science separement revue. Le futur module de composition reste
-  `exists=false`, sans path et `implementation_authorized=false`. Les deux
-  barrieres publiques restent exactement `().__getitem__`; aucun issuer,
-  authority, claim, capability operationnelle, activation, bridge,
-  materialization, population/index, science, training/calibration ou
-  locked-test n'existe. Rapport :
-  `readme/results/2026-08-13_harmonic-censoring-h27-one-shot-execution-composition-contract.md`.
+  `H27_ONE_SHOT_COMPOSITION_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `40eb4a3eb4a10fa6218f0a6e4fa6e3cc45b85307`
+  conclut `PASS` sur le contrat de composition one-shot et autorise uniquement
+  son identity binding administratif et son seal. Le binding lie le contrat
+  PASS blob `2fc615a5...` et son seal `d912a1eb...` aux chaines boundary et
+  materializer deja scellees et aux contrats historiques byte-identical. Son
+  overlay change uniquement trois etats administratifs : composition contract
+  exists/reviewed/sealed deviennent vrais. Le futur module reste absent et non
+  autorise, le chemin d'execution ferme, et tous les etats issuer/authority/
+  claim/capability/activation/bridge/materialization/science/population/
+  training/locked-test restent faux. Le graphe est acyclique, sans self-hash ni
+  back-reference; les deux barrieres restent `().__getitem__`. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-one-shot-composition-identity-binding.md`.
 - La revue externe du module exact au commit
   `e47effd1ac10987242b537f5b54a9cfbed84faeb` conclut `PASS` et autorise
   uniquement son scellement externe et le rebinding contractuel de son identite.
