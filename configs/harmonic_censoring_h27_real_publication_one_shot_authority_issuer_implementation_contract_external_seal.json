@@ -1,0 +1,19 @@
+{
+  "schema_version":1,
+  "seal_id":"H27_REAL_PUBLICATION_ONE_SHOT_AUTHORITY_ISSUER_IMPLEMENTATION_CONTRACT_EXTERNAL_SEAL_V1",
+  "status":"SEALED_PENDING_EXTERNAL_REVIEW_CONTRACT_ONLY_NO_ISSUER_MODULE_NO_ISSUANCE_NO_AUTHORITY_NO_SCIENCE",
+  "contract":{"path":"configs/harmonic_censoring_h27_real_publication_one_shot_authority_issuer_implementation_contract.json","git_blob_sha1":"7bd0f31ed9b3d6a85de420451756a4856f74e5f7","size_bytes":5891,"raw_sha256":"90aa65d1e112a24309120e750e10dc24755d98330de5640586213f5795aaa421"},
+  "bound_identity_count":76,
+  "dependency_graph_acyclic":true,
+  "self_hash_present":false,
+  "historical_back_reference_present":false,
+  "public_edges_closed":8,
+  "issuer_implementation_exists":false,
+  "issuer_invoked":false,
+  "issuance_artifact_exists":false,
+  "authority_claim_capability_created":false,
+  "destination_observed":false,
+  "filesystem_execution_materializer_population_science":false,
+  "locked_test_used":false,
+  "next_action":"External review only; no issuer module, issuance, authority, destination observation, or execution"
+}
