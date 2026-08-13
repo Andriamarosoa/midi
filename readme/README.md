@@ -14,12 +14,22 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 engine/recomputer implemented dormant behind an unissuable capability; no materialization or science; external review pending. -->
+<!-- H26_CORRECTION_STATUS: H27 materialization activation contract externally sealed; no activation, materialization, or science; external review pending. -->
 ## État courant
 
 - Mise à jour : `2026-08-12`.
 - État courant :
-  `H27_DORMANT_ENGINE_RECOMPUTER_IMPLEMENTED_PENDING_EXTERNAL_REVIEW_NO_MATERIALIZATION_NO_SCIENCE`.
+  `H27_MATERIALIZATION_ACTIVATION_CONTRACT_SEALED_PENDING_EXTERNAL_REVIEW_NO_ACTIVATION_NO_EXECUTION`.
+- La revue externe de `43d160bc5c0c0d5fc5b199363d007e768eec1080`
+  conclut `PASS` : les trois bloqueurs capability/binding/result-schema sont
+  fermés. La portée suivante reste contract-only. Un nouveau contrat scelle
+  donc le materializer dormant, les cinq blobs H27, le runtime primaire exact,
+  la future activation/authority/capability one-shot, la publication atomique
+  de `H27_SYNTHETIC_V1` et la dérivation exclusive de
+  `H27SealedRecordBinding` depuis une ligne vérifiée du futur index. Le contrat
+  et son seal externe existent, mais activation, authority, capability, claim,
+  population, index, loader et exécution restent absents. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-materialization-activation-contract.md`.
 - Le contrat H27 engine/recomputer est désormais implémenté de façon dormante : il lie les
   cinq blobs H27 revus, fige record/mask/role semantics/ordre fail-closed,
   distingue corruption terminale et résolution scientifique `AMBIGUOUS`,

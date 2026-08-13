@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "seal_id": "H27_MATERIALIZATION_ACTIVATION_CONTRACT_EXTERNAL_SEAL_V1",
+  "status": "CONTRACT_SEALED_DORMANT_NO_ACTIVATION_NO_EXECUTION",
+  "reviewed_parent_commit": "43d160bc5c0c0d5fc5b199363d007e768eec1080",
+  "contract": {
+    "path": "configs/harmonic_censoring_h27_materialization_activation_contract.json",
+    "git_blob_sha1": "708112a7f12d662aa33d1c4eecb3ff4bec7d0a91",
+    "size_bytes": 8649,
+    "raw_sha256": "c54e50761934d0c5ef34d2d5bb1c49dda614aef1a4ee7826f69f20e09dfc0f28"
+  },
+  "materializer": {
+    "path": "src/polyphonic/harmonic_censoring_h27_materializer_dormant.py",
+    "git_blob_sha1": "394f25a51f854cf629ef184694c4dcf1a45904b8",
+    "raw_sha256": "90950664e764f6b982df3a44fd08bd534ecb190b3d7019cc49cc60b57a1c3eb7"
+  },
+  "sealed_h27_input_git_blobs": {
+    "configs/harmonic_censoring_h27_scientific_preregistration_contract.json": "869c70f7c643d8387645377a8cf5166b8728914d",
+    "configs/harmonic_censoring_h27_zero_context_synthetic_cases.json": "1b57c27936cfb0befeceaf0c30ff73189f304672",
+    "configs/harmonic_censoring_h27_fixture_specifications.json": "9aea04053a13a3f5cf81b461a58977c377600f5b",
+    "configs/harmonic_censoring_h27_test_manifest.json": "594b33c8c579733718f7f0445d3780c9f60b2b2a",
+    "configs/harmonic_censoring_h27_future_population_contract.json": "fc82c1c7b3dec837a63c6f86afed9a5f724f7aad"
+  },
+  "runtime_source": {
+    "path": "configs/harmonic_censoring_h27_engine_recomputer_contract.json",
+    "git_blob_sha1": "11689878ca2158ab78d19933532cdc1ddb8c41c8",
+    "raw_sha256": "82bb25b27913d1d6a333e6324b52e6b6f20203351056273559800b1e4112b449",
+    "profile": "primary"
+  },
+  "population_namespace": "H27_SYNTHETIC_V1",
+  "activation_exists": false,
+  "authority_exists": false,
+  "capability_exists": false,
+  "claim_exists": false,
+  "materialization_authorized": false,
+  "population_exists": false,
+  "population_index_exists": false,
+  "scientific_execution_authorized": false,
+  "locked_test_used": false,
+  "training_or_calibration_authorized": false,
+  "next_action": "External review of contract and seal; activation requires separate authorization"
+}
