@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "seal_id": "H27_ACTIVATION_CAPABLE_MATERIALIZER_AUTHORITY_CONTRACT_EXTERNAL_SEAL_V1",
+  "status": "CONTRACT_SEALED_DORMANT_NO_IMPLEMENTATION_NO_AUTHORITY",
+  "reviewed_parent_commit": "ece4b630e15a895daef9dafeca4955ee7b338573",
+  "contract": {
+    "path": "configs/harmonic_censoring_h27_activation_capable_materializer_authority_contract.json",
+    "git_blob_sha1": "5b44b716d44c3313f99fd773f07c70649a981482",
+    "size_bytes": 5958,
+    "raw_sha256": "830050fc580a7957336d3cdb7aa41a49a7e069df5da55366b41b007e3678cc01"
+  },
+  "reviewed_dormant_logic_git_blob_sha1": "d3a903acfa67daf822d50aab005b88943a8c18fa",
+  "reviewed_dormant_logic_activation_target": false,
+  "future_materializer_exists": false,
+  "future_materializer_implementation_authorized": false,
+  "future_materializer_seal_exists": false,
+  "authority_exists": false,
+  "capability_exists": false,
+  "claim_exists": false,
+  "activation_exists": false,
+  "population_exists": false,
+  "population_index_exists": false,
+  "materialization_authorized": false,
+  "scientific_execution_authorized": false,
+  "locked_test_used": false,
+  "training_or_calibration_authorized": false,
+  "next_action": "External review only; no implementation or execution"
+}

@@ -14,12 +14,20 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: dormant H27 production implementation review-sealed; activation-capable successor absent; no activation, materialization, or science; external review pending. -->
+<!-- H26_CORRECTION_STATUS: future H27 activation-capable authority boundary contract sealed; implementation remains absent; no activation, materialization, or science; external review pending. -->
 ## État courant
 
 - Mise à jour : `2026-08-12`.
 - État courant :
-  `H27_DORMANT_PRODUCTION_IMPLEMENTATION_REVIEW_SEALED_FUTURE_ACTIVABLE_TARGET_ABSENT_NO_ACTIVATION_NO_EXECUTION`.
+  `H27_ACTIVATION_CAPABLE_AUTHORITY_BOUNDARY_CONTRACT_SEALED_IMPLEMENTATION_ABSENT_NO_ACTIVATION_NO_EXECUTION`.
+- La revue externe de `ece4b630e15a895daef9dafeca4955ee7b338573`
+  conclut `PASS`. Le nouveau lot contractuel définit maintenant l'unique
+  différence future autorisée — le plumbing d'autorité —, l'ordre fail-closed
+  jusqu'à la claim `O_EXCL`, une capability process-local non forgeable et les
+  tests adversariaux monkeypatch/rebinding/appels directs requis. Le futur
+  module activable reste absent, non autorisé et sans path/blob/SHA/seal ; le
+  code dormant `d3a903…` reste inchangé et non exécutable. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-activation-capable-authority-contract.md`.
 - La revue externe de `4a0fcadcfd82530212a7f9bc381cb678ff275bb2`
   conclut `PASS` : les appels directs aux onze helpers production sont tous
   bloqués avant NumPy/plan/filesystem et les payloads futurs sont relus puis
@@ -43,7 +51,7 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   indépendantes, les huit grilles P2, les masques role-major, l'index à dix
   champs et la publication Darwin create-exclusive/fsync/rename-no-replace.
   Les tests restent administratifs/toy/fail-closed : aucun waveform H27 de
-  production, payload, index ou destination n'a été créé. Le contrat
+  production, payload, index ou destination n'a été créé.
   Chaque payload futur devra aussi être relu et vérifié en taille/SHA avant
   l'écriture de l'index, puis rehaché après l'index. Le contrat d'activation et
   son seal ne sont pas modifiés : ils continuent donc à
