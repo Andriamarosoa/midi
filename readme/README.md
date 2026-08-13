@@ -14,12 +14,20 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 dormant activation-artifact administrative seal/binding PASS; declarative future publication contract now awaits review; no implementation, write, connection or science. -->
+<!-- H26_CORRECTION_STATUS: H27 future publication contract PASS; its administrative identity binding and seal now await review; no implementation, write, connection or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_PUBLICATION_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+  `H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_PUBLICATION_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `ab19acf97bd919dd17d9a8daf98925e0937c22f0`
+  conclut `PASS`. Un identity binding administratif lie maintenant ce contrat
+  exact (blob `d4026726...`, 22288 octets, SHA-256 `82b10aae...`) et son seal
+  (blob `28a2e397...`, 3628 octets, SHA-256 `148829df...`), les quatre artefacts
+  du module dormant et les quarante dependances existantes. Un external seal du
+  binding est egalement present. Graphe acyclique, aucun self-hash/back-reference,
+  six public edges fermes. `7/7` tests administratifs passent. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-future-bridge-activation-artifact-publication-identity-binding.md`.
 - La revue externe de `309b93153ee4df7a17ae13a85b70532c0a426a69`
   conclut `PASS`. Un contrat declaratif distinct definit maintenant uniquement
   les preconditions fail-closed d'une future publication atomique/exclusive de
