@@ -22,3 +22,13 @@ Identite exacte du module avant commit : blob
 
 Validation locale : `14/14` tests constructor/contrats, `366/366` tests H27,
 `py_compile` et `git diff --check` reussis.
+
+Correction apres revue : toutes les cles nested sont maintenant exigees
+`type(key) is str` avant comparaison d'ordre ou appel de methode; les valeurs
+sont elles aussi typees avant comparaison. Une sous-classe de cle explosive
+prouve le rejet par `TypeError` sans execution de magic method.
+
+Identite corrigee du module : blob
+`0c1a2aca42baa77edbd77ab42c0bd0cefaaa2b62`, `12599` octets, SHA-256
+`0b8ad2a7efcd875b0102619eefe7ca9f015d9349693959803b9004bccf15b807`.
+Validation corrigee : `15/15` tests cibles et `367/367` tests H27.

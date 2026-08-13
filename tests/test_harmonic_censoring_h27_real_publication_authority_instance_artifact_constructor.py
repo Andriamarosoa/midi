@@ -50,6 +50,13 @@ class TestConstructor(unittest.TestCase):
    with self.assertRaises(TypeError):ctor.construct_h27_real_publication_authority_instance_artifact(**args)
   values={'persistent_registry_checked':True,'identity_available':True,'nonce_available':True,'reservation_attempted':False,'destination_observed':False,'create_attempted':False,'write_attempted':False,'expected_canonical_sha256':probe().expected_canonical_sha256};values['identity_available']=bad
   with self.assertRaises(TypeError):invoke(p=ctor.H27EffectFreeConstructorProbe(**values))
+ def test_nested_key_subclass_rejected_before_magic_methods(self):
+  class ExplosiveKey(str):
+   __hash__=str.__hash__
+   def boom(self,*a,**k):raise AssertionError('nested key magic method executed')
+   __eq__=__ne__=__str__=__repr__=endswith=boom
+  items=list(sealed().items());items[0]=(ExplosiveKey(items[0][0]),items[0][1]);nested=dict(items)
+  with self.assertRaises(TypeError):ctor.construct_h27_real_publication_authority_instance_artifact(issuer_id=ctor._ISSUER_ID,issued_at_utc=STAMP,invocation_nonce=NONCE,canonical_destination_path=ctor._DESTINATION,sealed_chain_identity=nested,probe=probe())
  def test_source_has_no_publication_or_science_api(self):
   source=Path(ctor.__file__).read_text(encoding='utf-8')
   for forbidden in ('os.open','O_EXCL','write_bytes','fsync','rename(','replace(','import numpy','tensorflow','subprocess','socket'):

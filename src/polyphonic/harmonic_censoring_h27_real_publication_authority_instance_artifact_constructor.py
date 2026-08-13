@@ -132,12 +132,16 @@ def _strict_timestamp(value: str) -> None:
 def _canonical_artifact_bytes(issuer_id: str, issued_at_utc: str, invocation_nonce: str, canonical_destination_path: str, sealed_chain_identity: dict[str, object]) -> bytes:
     if not all(type(x) is str for x in (issuer_id, issued_at_utc, invocation_nonce, canonical_destination_path)) or type(sealed_chain_identity) is not dict:
         raise TypeError("H27 constructor inputs must use exact native types.")
-    if tuple(sealed_chain_identity) != _SEALED_FIELDS:
-        raise ValueError("H27 sealed_chain_identity key order mismatch.")
-    for key, value in sealed_chain_identity.items():
+    nested_keys = tuple(sealed_chain_identity.keys())
+    nested_values = tuple(sealed_chain_identity.values())
+    if not all(type(key) is str for key in nested_keys):
+        raise TypeError("H27 sealed_chain_identity keys must be exact native strings.")
+    for key, value in zip(nested_keys, nested_values):
         expected_type = int if key.endswith("size_bytes") else str
         if type(value) is not expected_type:
             raise TypeError("H27 sealed_chain_identity values must use exact native types.")
+    if nested_keys != _SEALED_FIELDS:
+        raise ValueError("H27 sealed_chain_identity key order mismatch.")
     if sealed_chain_identity != _SEALED_VALUES:
         raise ValueError("H27 sealed_chain_identity value mismatch.")
     if issuer_id != _ISSUER_ID or canonical_destination_path != _DESTINATION:
