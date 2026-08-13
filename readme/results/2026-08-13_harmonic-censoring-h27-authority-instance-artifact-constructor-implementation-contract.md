@@ -18,3 +18,8 @@ SHA-256
 `7ce002e816221d4c02cf2914507abe2ccc8c39a514e13674b124934d5e671bf2`.
 
 Validation locale : `3/3` tests administratifs et `355/355` tests H27.
+
+Correction apres revue : le test verrouille maintenant explicitement les six
+garde-fous du futur constructeur et les relie aux ordres canoniques, a la
+derivation d'identite, aux types natifs, a l'unicite ID/nonce, au registre et a
+la reservation terminale du contrat d'artefact PASS amont.

@@ -28,6 +28,8 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   filesystem, materializer ou science n'est ouvert. Rapport :
   `readme/results/2026-08-13_harmonic-censoring-h27-authority-instance-artifact-constructor-implementation-contract.md`.
   Validation locale : `3/3` tests administratifs et `355/355` tests H27.
+  Apres la premiere revue, les six garde-fous du constructor boundary sont
+  aussi testes explicitement contre les invariants exacts du contrat PASS amont.
 - La revue externe de `0e3abcf37c4909cd0b6eebdb5f43a2f051868f24`
   conclut `PASS`. Le lot courant ajoute uniquement l'identity binding du
   contrat d'artefact d'instance d'autorite et son seal. Il lie le contrat, son
