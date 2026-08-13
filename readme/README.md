@@ -14,12 +14,22 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 corrected dormant activation-artifact module PASS; administrative seal/binding lot now awaits review; no artifact, write, connection or science. -->
+<!-- H26_CORRECTION_STATUS: H27 dormant activation-artifact administrative seal/binding PASS; declarative future publication contract now awaits review; no implementation, write, connection or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_DORMANT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+  `H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_PUBLICATION_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `309b93153ee4df7a17ae13a85b70532c0a426a69`
+  conclut `PASS`. Un contrat declaratif distinct definit maintenant uniquement
+  les preconditions fail-closed d'une future publication atomique/exclusive de
+  l'artefact d'activation. Il lie les quatre artefacts exacts du module dormant
+  scelle et rebind les quarante dependances existantes. Le contrat et son seal
+  n'ajoutent aucun Python, path de destination, artefact, write/O_EXCL,
+  connexion, authority/claim/capability, materializer ou science. La future
+  implementation reste absente, non autorisee et exige un commit/review/seal
+  separes. `9/9` tests administratifs passent. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-future-bridge-activation-artifact-publication-contract.md`.
 - La revue externe du correctif exact
   `19af83ea7127e16c1abccc05315e5651f6074241` conclut `PASS`. Le lot
   administratif suivant scelle uniquement le module corrige (blob
