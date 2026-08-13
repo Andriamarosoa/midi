@@ -40,6 +40,9 @@ def _adapters(ticket: artifact._H27DormantActivationArtifactTicket, order: list[
     def connections() -> tuple[bool, bool]:
         order.append("connections")
         return False, False
+    def unique(activation_id: str) -> bool:
+        order.append("unique")
+        return activation_id == "synthetic-activation"
     def simulate(payload: dict[str, object]) -> tuple[bool, bool]:
         order.append("simulate")
         if tuple(payload) != artifact._FIELDS:
@@ -48,7 +51,7 @@ def _adapters(ticket: artifact._H27DormantActivationArtifactTicket, order: list[
     def finalize(_: object, __: dict[str, object]) -> object:
         order.append("finalize")
         return ticket
-    return artifact.H27DormantActivationArtifactAdapters(preconditions, connections, simulate, finalize)
+    return artifact.H27DormantActivationArtifactAdapters(preconditions, unique, connections, simulate, finalize)
 
 
 class H27FutureBridgeActivationArtifactDormantTests(unittest.TestCase):
@@ -57,7 +60,7 @@ class H27FutureBridgeActivationArtifactDormantTests(unittest.TestCase):
         order: list[str] = []
         trace = artifact._exercise_dormant_activation_artifact(exact, exact, _adapters(exact, order))
         self.assertEqual(trace.payload_fields, artifact._FIELDS)
-        self.assertEqual(order, ["preconditions", "connections", "simulate", "finalize"])
+        self.assertEqual(order, ["preconditions", "unique", "connections", "simulate", "finalize"])
         self.assertFalse(trace.artifact_created)
         self.assertFalse(trace.artifact_written)
         self.assertFalse(trace.composition_to_bridge_connected)
@@ -76,7 +79,8 @@ class H27FutureBridgeActivationArtifactDormantTests(unittest.TestCase):
         for bad in (
             _ticket(schema_version=2), _ticket(activation_id=""), _ticket(authority_sha256="bad"),
             _ticket(process_id=0), _ticket(materializer_blob="f" * 40),
-            _ticket(created_at_utc="bad"), _ticket(terminal=False),
+            _ticket(created_at_utc="bad"), _ticket(created_at_utc="garbageZ"),
+            _ticket(created_at_utc="2026-99-99T99:99:99Z"), _ticket(terminal=False),
         ):
             order = []
             with self.assertRaises(PermissionError):
@@ -88,6 +92,7 @@ class H27FutureBridgeActivationArtifactDormantTests(unittest.TestCase):
         base = _adapters(exact, [])
         cases = (
             {"observe_preconditions": mock.Mock(return_value={})},
+            {"observe_activation_id_unique": mock.Mock(return_value=False)},
             {"observe_connections": mock.Mock(return_value=(True, False))},
             {"simulate_atomic_create_exclusive": mock.Mock(return_value=(True, False))},
             {"simulate_atomic_create_exclusive": mock.Mock(return_value=(False, True))},
@@ -96,6 +101,11 @@ class H27FutureBridgeActivationArtifactDormantTests(unittest.TestCase):
         for replacement in cases:
             with self.assertRaises(PermissionError):
                 artifact._exercise_dormant_activation_artifact(exact, exact, base._replace(**replacement))
+
+    def test_rfc3339_utc_with_fraction_is_accepted(self) -> None:
+        exact = _ticket(created_at_utc="2026-08-13T12:34:56.123456Z")
+        trace = artifact._exercise_dormant_activation_artifact(exact, exact, _adapters(exact, []))
+        self.assertTrue(trace.terminal)
 
     def test_ticket_is_immutable_noncopyable_nonserializable_and_terminal(self) -> None:
         with self.assertRaises(PermissionError):

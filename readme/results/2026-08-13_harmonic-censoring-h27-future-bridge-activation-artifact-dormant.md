@@ -63,3 +63,28 @@ Successful trace:
 
 Only an in-memory synthetic harness exists. No activation artifact was created
 or written.
+
+## Bounded review correction
+
+External review of `d18ed0ffb9a815ec349fb43c844fa25360e02449`
+identified two schema gaps only: a suffix-only UTC check accepted `garbageZ`,
+and activation-id uniqueness was not explicitly attested.
+
+The corrected module identity before its correction commit is:
+
+- Git blob: `277e8e56c3cf25c04e5b1e8857f46e9a54b3b826`
+- size: `11226` bytes
+- SHA-256: `c3ae1b3c7471ee45a97d2c5b303d0e42696d8b1e7979913b49ad71d9c0b9717b`
+
+The timestamp validator now requires the full UTC RFC3339 shape, parses the
+calendar/time value and accepts fractional seconds. Tests reject `garbageZ` and
+an impossible calendar date, while accepting a valid fractional timestamp.
+
+A new synthetic adapter explicitly attests activation-id uniqueness. It runs
+after all 40 byte rehashes and before connection observation, simulated
+publication and one-shot consumption. A false uniqueness attestation fails
+closed.
+
+The correction passes `9/9` focused tests and `226/226` H27 tests in `41.646 s`.
+All six public edges remain closed and no filesystem or scientific action is
+introduced.

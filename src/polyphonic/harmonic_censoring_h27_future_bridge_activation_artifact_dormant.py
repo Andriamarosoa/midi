@@ -6,9 +6,11 @@ synthetic and the public edge is an immutable native barrier.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime, timezone
 import hashlib
 import json
 from pathlib import Path
+import re
 from typing import Callable, NamedTuple
 
 
@@ -126,6 +128,18 @@ def _hex(value: object, length: int) -> bool:
     return type(value) is str and len(value) == length and all(c in "0123456789abcdef" for c in value)
 
 
+def _is_rfc3339_utc(value: object) -> bool:
+    if type(value) is not str or re.fullmatch(
+        r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z", value
+    ) is None:
+        return False
+    try:
+        parsed = datetime.fromisoformat(value[:-1] + "+00:00")
+    except ValueError:
+        return False
+    return parsed.tzinfo is not None and parsed.utcoffset() == timezone.utc.utcoffset(parsed)
+
+
 def _payload(ticket: object) -> dict[str, object]:
     if type(ticket) is not _H27DormantActivationArtifactTicket:
         raise PermissionError("H27 dormant activation artifact rejects nonexact ticket types.")
@@ -145,7 +159,7 @@ def _payload(ticket: object) -> dict[str, object]:
         raise PermissionError("H27 dormant activation artifact materializer mismatch.")
     if type(payload["process_id"]) is not int or payload["process_id"] <= 0:
         raise PermissionError("H27 dormant activation artifact process id invalid.")
-    if type(payload["created_at_utc"]) is not str or not payload["created_at_utc"].endswith("Z"):
+    if not _is_rfc3339_utc(payload["created_at_utc"]):
         raise PermissionError("H27 dormant activation artifact creation time invalid.")
     if payload["terminal"] is not True:
         raise PermissionError("H27 dormant activation artifact terminal state invalid.")
@@ -154,6 +168,7 @@ def _payload(ticket: object) -> dict[str, object]:
 
 class H27DormantActivationArtifactAdapters(NamedTuple):
     observe_preconditions: Callable[[], dict[str, bool]]
+    observe_activation_id_unique: Callable[[str], bool]
     observe_connections: Callable[[], tuple[bool, bool]]
     simulate_atomic_create_exclusive: Callable[[dict[str, object]], tuple[bool, bool]]
     finalize: Callable[[object, dict[str, object]], object]
@@ -183,6 +198,8 @@ def _exercise_dormant_activation_artifact(
     observed = adapters.observe_preconditions()
     if type(observed) is not dict or tuple(observed) != _PRECONDITIONS or any(observed[name] is not True for name in _PRECONDITIONS):
         raise PermissionError("H27 dormant activation artifact preconditions incomplete.")
+    if adapters.observe_activation_id_unique(payload["activation_id"]) is not True:
+        raise PermissionError("H27 dormant activation artifact id is not uniquely attested.")
     if adapters.observe_connections() != (False, False):
         raise PermissionError("H27 dormant activation artifact connections must remain closed.")
     if adapters.simulate_atomic_create_exclusive(payload) != (False, False):
