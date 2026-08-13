@@ -14,12 +14,18 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 authority-instance artifact constructor effect-free seal and identity binding pending external review; no artifact, instance, destination or science. -->
+<!-- H26_CORRECTION_STATUS: H27 authority-instance constructor real-invocation authorization contract pending external review; no invocation, reservation, artifact, destination or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_AUTHORITY_INSTANCE_ARTIFACT_CONSTRUCTOR_EFFECT_FREE_SEAL_BINDING_PENDING_EXTERNAL_REVIEW`.
+  `H27_AUTHORITY_INSTANCE_CONSTRUCTOR_REAL_INVOCATION_AUTHORIZATION_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `df0c4996fe3118197985ffb4aead9e0588681396`
+  conclut `PASS`. Le lot courant ajoute seulement le contrat declaratif et le
+  seal de la future autorisation d'invocation : 104 identites uniques rehashees,
+  sans registre, reservation, invocation ou artefact reel. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-constructor-real-invocation-authorization-contract.md`.
+  Validation locale : `3/3` tests administratifs et `373/373` tests H27.
 - La revue externe de `6cbcf1c477770c0c5b05a6505146e20a0fcb137b`
   conclut `PASS`. Le lot courant scelle le module effect-free exact, ajoute son
   identity binding et le binding seal : 100 predecesseurs, 102 chemins uniques
