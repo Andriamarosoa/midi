@@ -14,12 +14,18 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 real-execution authorization contract PASS; its administrative binding awaits external review; destination not observed, no operation or science. -->
+<!-- H26_CORRECTION_STATUS: H27 execution-authorization binding PASS; future one-shot authority contract awaits external review; no authority, destination observation, operation or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_REAL_PUBLICATION_EXECUTION_AUTHORIZATION_CONTRACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+  `H27_REAL_PUBLICATION_ONE_SHOT_AUTHORITY_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `b9438c9ca9a1be2e66c22afb978ea2b6e5acd8dc`
+  conclut `PASS`. Un contrat declaratif et son seal definissent seulement les
+  regles d'une future autorite one-shot. Ils lient quatre racines PASS et 64
+  identites amont, soit 68 chemins rehashes. Aucune authority, claim,
+  capability, observation destination, operation ou science n'est ouverte.
+  Rapport : `readme/results/2026-08-13_harmonic-censoring-h27-real-publication-one-shot-authority-contract.md`.
 - La revue externe de `4ee1bc40e439dd9e5d21580b6c139c2e07bd24fd`
   conclut `PASS`. Le binding administratif et son seal lient le contrat exact,
   son seal et 64 identites preexistantes, soit 66 chemins uniques rehashes.
