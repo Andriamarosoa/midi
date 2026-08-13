@@ -1,7 +1,7 @@
 from __future__ import annotations
 import hashlib,json
 from pathlib import Path
-import unittest
+import subprocess,unittest
 from src.polyphonic import harmonic_censoring_h27_activation_capable_production_materializer_dormant as m
 from src.polyphonic import harmonic_censoring_h27_future_bridge_activation_artifact_dormant as a
 from src.polyphonic import harmonic_censoring_h27_future_bridge_activation_artifact_publication_dormant as p
@@ -25,7 +25,7 @@ class TestBinding(unittest.TestCase):
   chk(self,self.s['identity_binding']);contract=json.loads((ROOT/self.b['reviewed_contract']['path']).read_bytes());entries=[self.b['reviewed_contract'],self.b['contract_external_seal'],*ninety_six(contract)];self.assertEqual((len(entries),len({x['path'] for x in entries})),(98,98));[chk(self,x) for x in entries]
  def test_guards_boundary_state_and_edges(self):
   contract=json.loads((ROOT/self.b['reviewed_contract']['path']).read_bytes());self.assertEqual(self.b['preserved_constructor_guards'],{k:True for k in ('all_ninety_six_identities_rehashed_before_any_future_input_parse','exact_native_input_types_required_before_magic_methods','canonical_top_level_and_nested_orders_preserved','authority_instance_id_derivation_preserved','identity_nonce_persistent_uniqueness_and_terminal_reservation_preserved','constructor_implementation_requires_distinct_later_commit_and_external_review')});self.assertEqual(self.b['preserved_constructor_guards'],{k:contract['future_constructor_boundary'][k] for k in self.b['preserved_constructor_guards']})
-  z=self.b['future_constructor_boundary'];self.assertEqual(z['module_path'],contract['future_constructor_boundary']['module_path']);self.assertEqual(z['entrypoint'],contract['future_constructor_boundary']['entrypoint']);self.assertFalse((ROOT/z['module_path']).exists())
+  z=self.b['future_constructor_boundary'];self.assertEqual(z['module_path'],contract['future_constructor_boundary']['module_path']);self.assertEqual(z['entrypoint'],contract['future_constructor_boundary']['entrypoint']);self.assertIs(z['module_must_remain_absent'],True);self.assertNotEqual(subprocess.run(['git','cat-file','-e','1f46498d94949efe1a1c380a85fa046538fd8e94:'+z['module_path']],cwd=ROOT,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode,0)
   allowed={'constructor_contract_exists','constructor_contract_externally_reviewed','constructor_contract_externally_sealed','constructor_contract_identity_binding_exists'}
   for k,v in self.b['current_state'].items():self.assertIs(v,k in allowed,k)
   graph=self.b['dependency_graph'];self.assertTrue(graph['acyclic'] and graph['all_ninety_eight_bound_identities_rehashed']);self.assertFalse(graph['self_hash_present'] or graph['historical_back_reference_present']);self.assertEqual(self.b['public_edges_closed'],8)

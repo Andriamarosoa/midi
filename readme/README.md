@@ -14,12 +14,19 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 authority-instance artifact constructor implementation contract identity binding pending external review; no constructor, artifact, instance, destination or science. -->
+<!-- H26_CORRECTION_STATUS: H27 authority-instance artifact constructor dormant effect-free implementation pending external review; no artifact, instance, destination or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_AUTHORITY_INSTANCE_ARTIFACT_CONSTRUCTOR_IMPLEMENTATION_CONTRACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+  `H27_AUTHORITY_INSTANCE_ARTIFACT_CONSTRUCTOR_DORMANT_EFFECT_FREE_IMPLEMENTATION_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `1f46498d94949efe1a1c380a85fa046538fd8e94`
+  conclut `PASS`. Le lot courant ajoute uniquement le module constructor
+  dormant/effect-free et ses tests. Les 98 identites sont rehashees avant les
+  entrees runtime; aucun registre, destination ou filesystem n'est modifie et
+  aucun artefact reel n'est cree. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-authority-instance-artifact-constructor-effect-free-implementation.md`.
+  Validation locale : `14/14` tests constructor/contrats et `366/366` tests H27.
 - La revue externe de `c80a7c73264ece3354f1f8e03acecd0f061d99a0`
   conclut `PASS`. Le lot courant ajoute uniquement l'identity binding du
   contrat constructor et son seal : contrat + seal + 96 predecesseurs = 98

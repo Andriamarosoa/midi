@@ -1,7 +1,7 @@
 from __future__ import annotations
 import hashlib,json
 from pathlib import Path
-import unittest
+import subprocess,unittest
 from src.polyphonic import harmonic_censoring_h27_activation_capable_production_materializer_dormant as m
 from src.polyphonic import harmonic_censoring_h27_future_bridge_activation_artifact_dormant as a
 from src.polyphonic import harmonic_censoring_h27_future_bridge_activation_artifact_publication_dormant as p
@@ -21,7 +21,7 @@ class TestContract(unittest.TestCase):
  def test_96_exact(self):
   chk(self,self.s['contract']);roots=self.c['reviewed_and_sealed_authority_instance_artifact_chain'];ac=json.loads((ROOT/roots[0]['path']).read_bytes());entries=[*roots,*_ninety_two(ac)];self.assertEqual((len(entries),len({x['path'] for x in entries})),(96,96));[chk(self,x) for x in entries]
  def test_boundary_closed(self):
-  z=self.c['future_constructor_boundary'];self.assertEqual(z['module_path'],'src/polyphonic/harmonic_censoring_h27_real_publication_authority_instance_artifact_constructor.py');self.assertEqual(z['entrypoint'],'construct_h27_real_publication_authority_instance_artifact');self.assertFalse((ROOT/z['module_path']).exists())
+  z=self.c['future_constructor_boundary'];self.assertEqual(z['module_path'],'src/polyphonic/harmonic_censoring_h27_real_publication_authority_instance_artifact_constructor.py');self.assertEqual(z['entrypoint'],'construct_h27_real_publication_authority_instance_artifact');self.assertIs(z['module_must_not_exist_at_contract_step'],True);self.assertNotEqual(subprocess.run(['git','cat-file','-e','c80a7c73264ece3354f1f8e03acecd0f061d99a0:'+z['module_path']],cwd=ROOT,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode,0)
   guards=('all_ninety_six_identities_rehashed_before_any_future_input_parse','exact_native_input_types_required_before_magic_methods','canonical_top_level_and_nested_orders_preserved','authority_instance_id_derivation_preserved','identity_nonce_persistent_uniqueness_and_terminal_reservation_preserved','constructor_implementation_requires_distinct_later_commit_and_external_review')
   for guard in guards:self.assertIs(z[guard],True,guard)
   ac=json.loads((ROOT/self.c['reviewed_and_sealed_authority_instance_artifact_chain'][0]['path']).read_bytes());schema=ac['future_artifact_schema'];rules=ac['future_instance_rules']
