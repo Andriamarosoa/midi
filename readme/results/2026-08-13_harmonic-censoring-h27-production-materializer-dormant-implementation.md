@@ -24,8 +24,8 @@ Le nouveau target de production est distinct :
 
 ```text
 src/polyphonic/harmonic_censoring_h27_production_materializer_dormant.py
-Git blob e1b712c096a00d8ff225858b15387667f2b495ee
-SHA-256 9b47955b0f16cbcf0b959812083468499d3c36a8b518a8a6adc7842a7513246a
+Git blob d3a903acfa67daf822d50aab005b88943a8c18fa
+SHA-256 1d4b0b651c2c916a1a1bcd71578aa263074290c90fd381be867b77ef46cc0a25
 ```
 
 Ces empreintes identifient l'implémentation proposée à la revue. Elles ne sont
@@ -35,11 +35,13 @@ existant par ce lot.
 ## Frontière dormante
 
 `H27ProductionMaterializationCapability` n'a ni constructeur ni issuer. La
-fonction publique `materialize_h27_production_population()` appelle un refus
-inconditionnel comme première instruction, avant d'inspecter NumPy, le plan ou
-un chemin. Les copies et sérialisations d'une instance forgée sont également
-refusées. Aucun registre mutable ne peut transformer une instance en
-capability valide.
+fonction publique `materialize_h27_production_population()` et chaque helper
+capable de synthétiser un waveform, encoder un payload, écrire un fichier ou
+publier la population appellent le même refus inconditionnel comme première
+instruction, avant d'inspecter NumPy, le plan ou un chemin. Le préfixe Python
+`_` n'est donc jamais utilisé comme barrière de sécurité. Les copies et
+sérialisations d'une instance forgée sont également refusées. Aucun registre
+mutable ne peut transformer une instance en capability valide.
 
 La destination n'est pas fournie par l'appelant. Les deux chemins POSIX sont
 fixes :
@@ -81,7 +83,9 @@ inharmonicity
 ```
 
 La publication préparée écrit chaque payload en `O_EXCL`/`0600`, fsync les
-fichiers, écrit l'index canonique en dernier, rehache les payloads, puis utilise
+fichiers, relit immédiatement les octets réellement écrits et vérifie taille
+et SHA-256 avant de construire l'index. Elle écrit ensuite l'index canonique en
+dernier, rehache une seconde fois tous les payloads, puis utilise
 `renameatx_np(RENAME_EXCL)` et fsync le répertoire parent. Une staging
 partielle reste non autoritative et n'est jamais effacée ou recyclée.
 
@@ -93,10 +97,12 @@ python -m unittest discover -s tests -p 'test_harmonic_censoring_h27*.py'
 git diff --check
 ```
 
-Résultat ciblé : `35 tests réussis`. Les tests du nouveau module couvrent le
-refus avant tout accès, l'absence de registre/issuer, la non-copiabilité, la
+Résultat ciblé : `37 tests réussis`. Les tests du nouveau module couvrent le
+refus avant tout accès de l'entrée et de onze helpers production appelés
+directement, l'absence de registre/issuer, la non-copiabilité, la
 forme exacte des chemins et champs, l'ordre déterministe d'un petit produit
-cartésien administratif et l'encodage JSON canonique sur données toy.
+cartésien administratif, l'encodage JSON canonique sur données toy et l'ordre
+structurel write → reopen → size/SHA → index → rehash.
 
 Le chargement administratif du plan revu a aussi confirmé `124` identités,
 de `baseline/H27-F-P01` à

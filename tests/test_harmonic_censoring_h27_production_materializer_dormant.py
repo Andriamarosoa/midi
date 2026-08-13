@@ -35,6 +35,25 @@ class H27ProductionMaterializerDormantTests(unittest.TestCase):
                 _Exploding(), forged, _Exploding(),
             )
 
+    def test_every_production_helper_rejects_direct_calls_before_input_access(self) -> None:
+        forged = object.__new__(materializer.H27ProductionMaterializationCapability)
+        calls = (
+            lambda: materializer._envelope(forged, _Exploding(), 0),
+            lambda: materializer._accumulate_sources(forged, _Exploding(), _Exploding()),
+            lambda: materializer._add_noise(forged, _Exploding(), _Exploding(), _Exploding()),
+            lambda: materializer._render_recipe(forged, _Exploding(), _Exploding()),
+            lambda: materializer._render_collision(forged, _Exploding(), _Exploding(), _Exploding()),
+            lambda: materializer._mask_bytes(forged, _Exploding(), _Exploding()),
+            lambda: materializer._render_record(forged, _Exploding(), _Exploding(), _Exploding()),
+            lambda: materializer._write_new(forged, _Exploding(), _Exploding()),
+            lambda: materializer._fsync_directory(forged, _Exploding()),
+            lambda: materializer._rename_no_replace(forged, _Exploding(), _Exploding()),
+            lambda: materializer._publish(forged, _Exploding(), _Exploding()),
+        )
+        for call in calls:
+            with self.subTest(call=call), self.assertRaisesRegex(PermissionError, "remains dormant"):
+                call()
+
     def test_guard_is_unconditional_and_has_no_registry(self) -> None:
         source = inspect.getsource(materializer._require_capability)
         tree = ast.parse(source)
@@ -94,6 +113,18 @@ class H27ProductionMaterializerDormantTests(unittest.TestCase):
         self.assertIn("renameatx_np", source)
         self.assertIn("O_EXCL", source)
         self.assertIn("population_index.json", source)
+
+    def test_payload_file_is_reopened_and_verified_before_index_write(self) -> None:
+        source = inspect.getsource(materializer._publish)
+        write_payload = source.index("_write_new(capability, path, raw)")
+        reopen_payload = source.index("written = path.read_bytes()")
+        verify_size = source.index("len(written) != len(raw)")
+        write_index = source.index('_write_new(capability, STAGING_DESTINATION / "population_index.json"')
+        post_index_rehash = source.rindex("path.read_bytes()")
+        self.assertLess(write_payload, reopen_payload)
+        self.assertLess(reopen_payload, verify_size)
+        self.assertLess(verify_size, write_index)
+        self.assertLess(write_index, post_index_rehash)
 
 
 if __name__ == "__main__":

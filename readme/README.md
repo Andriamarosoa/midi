@@ -24,15 +24,20 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   module distinct du matérialiseur dormant historique, qui reste au blob Git
   `394f25a5…` inchangé. La nouvelle entrée échoue inconditionnellement avant
   tout accès à NumPy, au plan ou au filesystem ; aucun issuer, registre ou
-  capability constructible n'existe. Sous cette frontière dormante, le code
+  capability constructible n'existe. Le correctif de revue impose le même
+  refus en première instruction de chaque helper capable de synthétiser ou
+  publier, empêchant tout contournement par appel direct de fonction privée.
+  Sous cette frontière dormante, le code
   décrit les 124 records dans l'ordre canonique, les recettes et collisions
   indépendantes, les huit grilles P2, les masques role-major, l'index à dix
   champs et la publication Darwin create-exclusive/fsync/rename-no-replace.
   Les tests restent administratifs/toy/fail-closed : aucun waveform H27 de
   production, payload, index ou destination n'a été créé. Le contrat
-  d'activation et son seal ne sont pas modifiés : ils continuent donc à
+  Chaque payload futur devra aussi être relu et vérifié en taille/SHA avant
+  l'écriture de l'index, puis rehaché après l'index. Le contrat d'activation et
+  son seal ne sont pas modifiés : ils continuent donc à
   interdire ce nouveau target jusqu'à un futur lot de binding/seal séparément
-  autorisé. `py_compile`, `git diff --check` et 35 tests H27 passent. Rapport :
+  autorisé. `py_compile`, `git diff --check` et 37 tests H27 passent. Rapport :
   `readme/results/2026-08-13_harmonic-censoring-h27-production-materializer-dormant-implementation.md`.
 - La revue externe de `43d160bc5c0c0d5fc5b199363d007e768eec1080`
   conclut `PASS` : les trois bloqueurs capability/binding/result-schema sont

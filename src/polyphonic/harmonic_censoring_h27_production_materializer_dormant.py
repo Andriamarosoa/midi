@@ -97,7 +97,8 @@ def _f0(pitch: int) -> float:
     return 440.0 * 2.0 ** ((float(pitch) - 69.0) / 12.0)
 
 
-def _envelope(source: Mapping[str, object], sample: int) -> float:
+def _envelope(capability: H27ProductionMaterializationCapability, source: Mapping[str, object], sample: int) -> float:
+    _require_capability(capability)
     onset = int(source["onset_sample"])
     if sample < onset:
         return 0.0
@@ -112,7 +113,11 @@ def _envelope(source: Mapping[str, object], sample: int) -> float:
     raise ValueError("H27 envelope identity invalid.")
 
 
-def _accumulate_sources(np: Any, sources: Sequence[Mapping[str, object]]) -> Any:
+def _accumulate_sources(
+    capability: H27ProductionMaterializationCapability, np: Any,
+    sources: Sequence[Mapping[str, object]],
+) -> Any:
+    _require_capability(capability)
     result = np.zeros(SAMPLE_COUNT, dtype=np.float64)
     for source in sources:
         pitch = int(source["pitch"])
@@ -130,14 +135,18 @@ def _accumulate_sources(np: Any, sources: Sequence[Mapping[str, object]]) -> Any
             frequency = float(rank) * _f0(pitch) * 2.0 ** (cents / 1200.0) * math.sqrt(radicand)
             amplitude = gain / float(rank)
             for sample in range(SAMPLE_COUNT):
-                component = amplitude * _envelope(source, sample) * math.sin(
+                component = amplitude * _envelope(capability, source, sample) * math.sin(
                     2.0 * math.pi * frequency * float(sample) / SAMPLE_RATE_HZ + phase
                 )
                 result[sample] = np.float64(result[sample] + component)
     return result
 
 
-def _add_noise(np: Any, clean: Any, noise: Mapping[str, object]) -> Any:
+def _add_noise(
+    capability: H27ProductionMaterializationCapability, np: Any,
+    clean: Any, noise: Mapping[str, object],
+) -> Any:
+    _require_capability(capability)
     if noise["kind"] == "NONE":
         return clean
     if noise["kind"] not in ("WHITE_GAUSSIAN_SNR_V1", "P2_NOISE_V1"):
@@ -178,11 +187,21 @@ def _add_noise(np: Any, clean: Any, noise: Mapping[str, object]) -> Any:
     return result
 
 
-def _render_recipe(np: Any, recipe: Mapping[str, object]) -> Any:
-    return _add_noise(np, _accumulate_sources(np, recipe["sources"]), recipe["noise"])
+def _render_recipe(
+    capability: H27ProductionMaterializationCapability, np: Any,
+    recipe: Mapping[str, object],
+) -> Any:
+    _require_capability(capability)
+    return _add_noise(
+        capability, np, _accumulate_sources(capability, np, recipe["sources"]), recipe["noise"],
+    )
 
 
-def _render_collision(np: Any, fixture: Mapping[str, object], collision: Mapping[str, object]) -> tuple[Any, Any]:
+def _render_collision(
+    capability: H27ProductionMaterializationCapability, np: Any,
+    fixture: Mapping[str, object], collision: Mapping[str, object],
+) -> tuple[Any, Any]:
+    _require_capability(capability)
     recipe = fixture["recipe"]
     old_pitch = int(recipe["old_pitch"])
     rank = int(recipe["collision_harmonic_rank"])
@@ -198,8 +217,8 @@ def _render_collision(np: Any, fixture: Mapping[str, object], collision: Mapping
         "partial_ranks": [value for value in range(1, 9) if value != rank],
         "phase_radians": _numeric(collision["old_background_phase_radians"]), "cents": 0.0, "B": 0.0,
     },)
-    old = _accumulate_sources(np, background)
-    candidate = _accumulate_sources(np, background)
+    old = _accumulate_sources(capability, np, background)
+    candidate = _accumulate_sources(capability, np, background)
     frequency = float(rank) * _f0(old_pitch)
     onset = int(collision["collision_onset_sample"])
     for target, amplitude in ((old, old_gain / float(rank)), (candidate, candidate_gain)):
@@ -313,7 +332,11 @@ def _transformed_recipe(plan: H27DormantPlan, descriptor: _RecordDescriptor) -> 
     return recipe
 
 
-def _mask_bytes(plan: H27DormantPlan, descriptor: _RecordDescriptor) -> bytes:
+def _mask_bytes(
+    capability: H27ProductionMaterializationCapability,
+    plan: H27DormantPlan, descriptor: _RecordDescriptor,
+) -> bytes:
+    _require_capability(capability)
     contract = plan.specifications["sample_valid_mask_contract"]
     shift = descriptor.proposal_hop_end - 16383
     payload = bytearray(len(ROLE_ORDER) * SAMPLE_COUNT)
@@ -333,7 +356,11 @@ def _mask_bytes(plan: H27DormantPlan, descriptor: _RecordDescriptor) -> bytes:
     return bytes(payload)
 
 
-def _render_record(np: Any, plan: H27DormantPlan, descriptor: _RecordDescriptor) -> tuple[bytes, bytes, bytes | None]:
+def _render_record(
+    capability: H27ProductionMaterializationCapability, np: Any,
+    plan: H27DormantPlan, descriptor: _RecordDescriptor,
+) -> tuple[bytes, bytes, bytes | None]:
+    _require_capability(capability)
     fixture = deep_thaw(next(item for item in plan.fixtures if item["id"] == descriptor.fixture_id))
     recipe = _transformed_recipe(plan, descriptor)
     alternate = None
@@ -343,19 +370,22 @@ def _render_record(np: Any, plan: H27DormantPlan, descriptor: _RecordDescriptor)
             phase = float(descriptor.cell["phase"]["value_radians"])
             fixture["recipe"]["phase_radians"] = phase
             collision["old_background_phase_radians"] = phase
-        waveform, alternate_array = _render_collision(np, fixture, collision)
+        waveform, alternate_array = _render_collision(capability, np, fixture, collision)
         alternate = alternate_array.astype("<f8", copy=False).tobytes(order="C")
     else:
-        waveform = _render_recipe(np, recipe)
+        waveform = _render_recipe(capability, np, recipe)
     if descriptor.grid_id == "P2_ZERO_CONTEXT_BOUNDARY_V1" and descriptor.cell["mutation"]["target"] == "waveform":
         waveform[int(descriptor.cell["mutation"]["sample_index"])] = np.float64(math.ldexp(1.0, -80))
     raw = waveform.astype("<f8", copy=False).tobytes(order="C")
     if len(raw) != SAMPLE_COUNT * 8 or alternate is not None and alternate != raw:
         raise ValueError("H27 waveform payload/collision mismatch.")
-    return raw, _mask_bytes(plan, descriptor), alternate
+    return raw, _mask_bytes(capability, plan, descriptor), alternate
 
 
-def _write_new(path: Path, raw: bytes) -> None:
+def _write_new(
+    capability: H27ProductionMaterializationCapability, path: Path, raw: bytes,
+) -> None:
+    _require_capability(capability)
     path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
     descriptor = os.open(str(path), os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
     with os.fdopen(descriptor, "wb", closefd=True) as handle:
@@ -364,7 +394,8 @@ def _write_new(path: Path, raw: bytes) -> None:
         os.fsync(handle.fileno())
 
 
-def _fsync_directory(path: Path) -> None:
+def _fsync_directory(capability: H27ProductionMaterializationCapability, path: Path) -> None:
+    _require_capability(capability)
     descriptor = os.open(str(path), os.O_RDONLY)
     try:
         os.fsync(descriptor)
@@ -372,7 +403,11 @@ def _fsync_directory(path: Path) -> None:
         os.close(descriptor)
 
 
-def _rename_no_replace(source: Path, destination: Path) -> None:
+def _rename_no_replace(
+    capability: H27ProductionMaterializationCapability,
+    source: Path, destination: Path,
+) -> None:
+    _require_capability(capability)
     if os.uname().sysname != "Darwin":
         raise OSError(errno.ENOTSUP, "H27 no-replace publish requires reviewed Darwin runtime.")
     import ctypes
@@ -385,21 +420,29 @@ def _rename_no_replace(source: Path, destination: Path) -> None:
         raise OSError(code, os.strerror(code), str(destination))
 
 
-def _publish(np: Any, plan: H27DormantPlan) -> None:
+def _publish(
+    capability: H27ProductionMaterializationCapability, np: Any, plan: H27DormantPlan,
+) -> None:
+    _require_capability(capability)
     if FINAL_DESTINATION.exists() or STAGING_DESTINATION.exists():
         raise FileExistsError("H27 final or staging destination already exists.")
     STAGING_DESTINATION.mkdir(parents=True, mode=0o700)
     records: list[dict[str, object]] = []
     for descriptor in _descriptors(plan):
-        waveform, mask, alternate = _render_record(np, plan, descriptor)
+        waveform, mask, alternate = _render_record(capability, np, plan, descriptor)
         record_root = STAGING_DESTINATION / descriptor.identity
         payloads = {"waveform.f64le": waveform, "sample-valid-mask.u8": mask}
         if alternate is not None:
             payloads["alternate-waveform.f64le"] = alternate
         shas: dict[str, str] = {}
         for name, raw in payloads.items():
-            _write_new(record_root / name, raw)
-            shas[name] = hashlib.sha256(raw).hexdigest()
+            path = record_root / name
+            expected_sha256 = hashlib.sha256(raw).hexdigest()
+            _write_new(capability, path, raw)
+            written = path.read_bytes()
+            if len(written) != len(raw) or hashlib.sha256(written).hexdigest() != expected_sha256:
+                raise ValueError("H27 payload verification before index failed.")
+            shas[name] = expected_sha256
         row = {
             "record_identity": descriptor.identity, "record_directory": descriptor.identity,
             "population_namespace": POPULATION_NAMESPACE, "payload_sha256": shas,
@@ -412,16 +455,16 @@ def _publish(np: Any, plan: H27DormantPlan) -> None:
         records.append(row)
     index = {"schema_version": 1, "population_namespace": POPULATION_NAMESPACE, "record_count": 124, "records": records}
     index_raw = _canonical_json_bytes(index)
-    _write_new(STAGING_DESTINATION / "population_index.json", index_raw)
+    _write_new(capability, STAGING_DESTINATION / "population_index.json", index_raw)
     for row in records:
         root = STAGING_DESTINATION / str(row["record_directory"])
         for name, expected in row["payload_sha256"].items():
             path = root / name
             if path.is_symlink() or hashlib.sha256(path.read_bytes()).hexdigest() != expected:
                 raise ValueError("H27 staging tree verification failed.")
-    _fsync_directory(STAGING_DESTINATION)
-    _rename_no_replace(STAGING_DESTINATION, FINAL_DESTINATION)
-    _fsync_directory(FINAL_DESTINATION.parent)
+    _fsync_directory(capability, STAGING_DESTINATION)
+    _rename_no_replace(capability, STAGING_DESTINATION, FINAL_DESTINATION)
+    _fsync_directory(capability, FINAL_DESTINATION.parent)
 
 
 def materialize_h27_production_population(
