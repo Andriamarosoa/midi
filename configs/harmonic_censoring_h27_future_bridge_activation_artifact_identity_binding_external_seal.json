@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "seal_id": "H27_FUTURE_BRIDGE_ACTIVATION_ARTIFACT_IDENTITY_BINDING_EXTERNAL_SEAL_V1",
+  "status": "SEALED_PENDING_EXTERNAL_REVIEW_NO_ACTIVATION_ARTIFACT_NO_CONNECTION_NO_OPERATION_NO_SCIENCE",
+  "identity_binding": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_activation_artifact_identity_binding.json",
+    "git_blob_sha1": "b9e1e68dedcd15e59fa39ae2d499ce2c4a4c82e5",
+    "size_bytes": 16243,
+    "raw_sha256": "103bfe54029c97dceb9a799f86f6cac2b9a6da5c95380f13c98025acc3c5e27c"
+  },
+  "reviewed_activation_artifact_contract": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_activation_artifact_contract.json",
+    "reviewed_commit": "b22e7e5f8f8c2d1032c719ed19ec5e956613ed8d",
+    "reviewed_parent_commit": "da5acf7026e89afec4155880d8e0cf7b1bf73f21",
+    "external_review_verdict": "PASS",
+    "git_blob_sha1": "f7baf8c16eb138e06e25dd647de3b516e094d732",
+    "size_bytes": 17525,
+    "raw_sha256": "a84427a24adba80a730aad9fdbd53434a47d29c6a4685661f87797a7e0ec68a0",
+    "exists": true,
+    "externally_reviewed": true,
+    "externally_sealed": true
+  },
+  "activation_artifact_contract_external_seal": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_activation_artifact_contract_external_seal.json",
+    "git_blob_sha1": "0e2f5558876598de1eb7c888f358a8d8dde7e04d",
+    "size_bytes": 3296,
+    "raw_sha256": "9d2de17519af8e8343f0097cbba353225bd2f36844e8d15c328e78f59a6dbd20"
+  },
+  "gate_module": {
+    "path": "src/polyphonic/harmonic_censoring_h27_future_bridge_operational_activation_connection_dormant.py",
+    "reviewed_commit": "339e79d6e7f49606c0bfd05b269e7b4cb34faeb3",
+    "reviewed_parent_commit": "e0c51e9f2006aabfcc104f3bf63caa8885aac607",
+    "external_review_verdict": "PASS",
+    "git_blob_sha1": "d60470373ab261d585ab8f8ad40e3c94b3a03d23",
+    "size_bytes": 13835,
+    "raw_sha256": "7162a8588111eb6242196245ed31767893a008d8e3584dc70f67869a4660a45e",
+    "exists": true,
+    "externally_reviewed": true,
+    "externally_sealed": true
+  },
+  "gate_identity_binding": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_operational_activation_connection_dormant_identity_binding.json",
+    "git_blob_sha1": "09bb4ffb1350b9bc81a7106a950703723d89820a",
+    "size_bytes": 14325,
+    "raw_sha256": "a44d05b2e447f0f84167575354e7b54c0003651087d4b6660fc11d5540876504"
+  },
+  "activation_connection_identity_binding": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_operational_activation_connection_identity_binding.json",
+    "git_blob_sha1": "cf7e0eb546970e1535eb1f5116f7587d691d1724",
+    "size_bytes": 12720,
+    "raw_sha256": "d43a2bdce4bc221bb44ca23897819e0cd247ed2ed488185cf87bc745738a005a"
+  },
+  "bridge_identity_binding": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_dormant_identity_binding.json",
+    "git_blob_sha1": "57426a89a4c05093c7bf2dc5867383d4620aa1a6",
+    "size_bytes": 11020,
+    "raw_sha256": "285123266ffec33605d997ff5e80ccf7feca81d13b96fc6f3bea543f9e700466"
+  },
+  "compatibility_identity_binding": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_compatibility_identity_binding.json",
+    "git_blob_sha1": "5d9c1cb07d147d3ce0ad07f998c81ef3ea7950b8",
+    "size_bytes": 9690,
+    "raw_sha256": "a67b3d3beca48d52fff756c959aa18ae7be752acd0a26865f2f861c9e32909e5"
+  },
+  "seal_semantics": {
+    "administrative_identity_binding_only": true,
+    "dependency_graph_acyclic": true,
+    "self_hash_present": false,
+    "historical_back_reference_present": false,
+    "all_thirty_six_dependencies_remain_byte_identical": true,
+    "activation_artifact_contract_exists": true,
+    "activation_artifact_contract_externally_reviewed": true,
+    "activation_artifact_contract_externally_sealed": true,
+    "activation_implementation_exists": false,
+    "activation_implementation_authorized": false,
+    "activation_artifact_exists": false,
+    "activation_artifact_creation_authorized": false,
+    "composition_to_bridge_connected": false,
+    "bridge_to_materializer_connected": false,
+    "execution_path_open": false,
+    "materializer_invocation_authorized": false,
+    "scientific_execution_authorized": false,
+    "authority_exists": false,
+    "claim_exists": false,
+    "operational_capability_exists": false,
+    "population_exists": false,
+    "population_index_exists": false,
+    "locked_test_used": false,
+    "training_or_calibration_authorized": false
+  },
+  "next_action": "External review of the exact administrative activation artifact identity binding bytes and this seal; no implementation, artifact, connection, operation, or science"
+}
