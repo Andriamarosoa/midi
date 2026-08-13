@@ -1,0 +1,13 @@
+{
+  "schema_version":1,
+  "binding_id":"H27_REAL_PUBLICATION_ONE_SHOT_AUTHORITY_ISSUER_IMPLEMENTATION_CONTRACT_IDENTITY_BINDING_V1",
+  "status":"ADMINISTRATIVE_BINDING_PENDING_EXTERNAL_REVIEW_NO_ISSUER_MODULE_NO_ISSUANCE_NO_AUTHORITY_NO_DESTINATION_NO_SCIENCE",
+  "reviewed_contract":{"path":"configs/harmonic_censoring_h27_real_publication_one_shot_authority_issuer_implementation_contract.json","reviewed_commit":"108728b98311c6e5c3a8eaf2909670b3768b3f08","external_review_verdict":"PASS","git_blob_sha1":"7bd0f31ed9b3d6a85de420451756a4856f74e5f7","size_bytes":5891,"raw_sha256":"90aa65d1e112a24309120e750e10dc24755d98330de5640586213f5795aaa421"},
+  "contract_external_seal":{"path":"configs/harmonic_censoring_h27_real_publication_one_shot_authority_issuer_implementation_contract_external_seal.json","git_blob_sha1":"64a50f2f97ff3ef4f756e18f96362e985a58f973","size_bytes":1080,"raw_sha256":"e85ec889c91e73c94ec0a8d71afb5b900bd8391b971ee4fe705c5b6f0592a7ab"},
+  "transitive_identity_source":{"path":"configs/harmonic_censoring_h27_real_publication_one_shot_authority_issuer_implementation_contract.json","preexisting_unique_identities":76,"combined_unique_identity_count":78},
+  "preserved_future_boundary":{"implementation_path":"src/polyphonic/harmonic_censoring_h27_real_publication_one_shot_authority_issuer.py","public_entrypoint":"issue_h27_real_publication_one_shot_authority","issuer_id":"h27-execution-codex-mac-primary","implementation_exists":false,"implementation_authorized":false,"invocation_authorized":false},
+  "dependency_graph":{"acyclic":true,"self_hash_present":false,"historical_back_reference_present":false,"all_seventy_eight_identities_rehashed":true},
+  "current_state":{"issuer_implementation_contract_exists":true,"issuer_implementation_contract_externally_reviewed":true,"issuer_implementation_contract_externally_sealed":true,"issuer_implementation_contract_identity_binding_exists":true,"issuer_implementation_contract_identity_binding_externally_reviewed":false,"issuer_implementation_contract_identity_binding_externally_sealed":false,"issuer_implementation_exists":false,"issuer_implementation_authorized":false,"issuer_invoked":false,"issuance_artifact_exists":false,"authority_exists":false,"claim_exists":false,"capability_exists":false,"destination_observed":false,"filesystem_operation_authorized":false,"real_execution_authorized":false,"connections_open":false,"materializer_authorized":false,"population_exists":false,"science_authorized":false,"locked_test_used":false,"training_or_calibration_authorized":false},
+  "public_edges_closed":8,
+  "next_action":"External review of this administrative identity binding and its seal only; no issuer module, issuance, authority, destination observation, or execution"
+}

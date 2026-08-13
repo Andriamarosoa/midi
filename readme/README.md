@@ -14,12 +14,18 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 issuance-artifact binding PASS; future issuer implementation contract awaits external review; no issuer module, issuance, authority, destination or science. -->
+<!-- H26_CORRECTION_STATUS: H27 issuer implementation contract PASS; administrative identity binding awaits external review; no issuer module, issuance, authority, destination or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_REAL_PUBLICATION_ONE_SHOT_AUTHORITY_ISSUER_IMPLEMENTATION_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+  `H27_REAL_PUBLICATION_ONE_SHOT_AUTHORITY_ISSUER_IMPLEMENTATION_CONTRACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `108728b98311c6e5c3a8eaf2909670b3768b3f08`
+  conclut `PASS`. Le binding administratif courant lie le contrat issuer PASS,
+  son seal et 76 identites preexistantes, soit 78 chemins uniques rehashes.
+  Le chemin et l'entrypoint futurs sont preserves, mais le module issuer reste
+  inexistant et non autorise. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-one-shot-authority-issuer-implementation-contract-identity-binding.md`.
 - La revue externe de `005c4e5eedfbb10b0452f9fa3e1939e589234f89`
   conclut `PASS`. Le contrat declaratif courant lie les quatre artefacts
   PASS/scelles du contrat d'artefact d'issuance et 72 identites transitives,
