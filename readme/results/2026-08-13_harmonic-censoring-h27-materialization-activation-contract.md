@@ -12,8 +12,13 @@ contrat ne contient ni le SHA du seal ni un futur commit d'activation.
 
 ## Bindings fermés
 
-Le contrat lie le materializer dormant existant, les cinq blobs H27 revus, le
-contrat engine/recomputer qui porte le profil runtime primaire, puis recopie
+Le contrat lie le materializer dormant existant uniquement comme référence
+sémantique revue et inémissible, jamais comme cible de l'activation. Le futur
+materializer de production est explicitement absent, non autorisé, sans chemin,
+blob ou seal. Il devra être implémenté, revu et scellé séparément ; toute future
+issuance devra échouer avant claim tant que ces bindings manquent. Le contrat
+lie aussi les cinq blobs H27 revus et le contrat engine/recomputer qui porte le
+profil runtime primaire, puis recopie
 exactement CPython 3.11.9, Darwin arm64, NumPy 1.26.4, OpenBLAS ILP64 et les dix
 variables d'environnement mono-thread/CPU/locale.
 
@@ -56,7 +61,7 @@ Les tests sont uniquement structurels : strict JSON LF, SHA/blob bindings,
 profil runtime exact, one-shot, publication atomique, états faux et dérivation
 exclusive du binding depuis l'index futur. Ils ne chargent aucun actif H27 et
 n'appellent aucun kernel scientifique. `py_compile`, `git diff --check` et
-`26/26` tests H27 contractuels/dormants passent en `2,293 s`.
+`27/27` tests H27 contractuels/dormants passent en `1,996 s`.
 
 ## STOP
 

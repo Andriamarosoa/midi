@@ -5,15 +5,19 @@
   "reviewed_parent_commit": "43d160bc5c0c0d5fc5b199363d007e768eec1080",
   "contract": {
     "path": "configs/harmonic_censoring_h27_materialization_activation_contract.json",
-    "git_blob_sha1": "708112a7f12d662aa33d1c4eecb3ff4bec7d0a91",
-    "size_bytes": 8649,
-    "raw_sha256": "c54e50761934d0c5ef34d2d5bb1c49dda614aef1a4ee7826f69f20e09dfc0f28"
+    "git_blob_sha1": "d10d9cfb138047fa83f480b60cacb5e91431852d",
+    "size_bytes": 9617,
+    "raw_sha256": "0d3f33c2084cb63e31eb69b92924b1d5c7aed8133aeaeeb6220cc365caeed54e"
   },
-  "materializer": {
+  "dormant_reviewed_reference": {
     "path": "src/polyphonic/harmonic_censoring_h27_materializer_dormant.py",
     "git_blob_sha1": "394f25a51f854cf629ef184694c4dcf1a45904b8",
-    "raw_sha256": "90950664e764f6b982df3a44fd08bd534ecb190b3d7019cc49cc60b57a1c3eb7"
+    "raw_sha256": "90950664e764f6b982df3a44fd08bd534ecb190b3d7019cc49cc60b57a1c3eb7",
+    "future_activation_execution_target": false
   },
+  "future_production_materializer_exists": false,
+  "future_production_materializer_implementation_authorized": false,
+  "future_production_materializer_seal_exists": false,
   "sealed_h27_input_git_blobs": {
     "configs/harmonic_censoring_h27_scientific_preregistration_contract.json": "869c70f7c643d8387645377a8cf5166b8728914d",
     "configs/harmonic_censoring_h27_zero_context_synthetic_cases.json": "1b57c27936cfb0befeceaf0c30ff73189f304672",

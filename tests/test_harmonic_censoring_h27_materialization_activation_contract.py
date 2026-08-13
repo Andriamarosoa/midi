@@ -45,13 +45,15 @@ class H27MaterializationActivationContractTests(unittest.TestCase):
         self.assertEqual(binding["raw_sha256"], hashlib.sha256(self.contract_raw).hexdigest())
         self.assertEqual(binding["git_blob_sha1"], _git_blob_sha1(self.contract_raw))
 
-    def test_materializer_and_five_h27_inputs_are_bound_to_reviewed_parent(self) -> None:
+    def test_dormant_reference_and_five_h27_inputs_are_bound_to_reviewed_parent(self) -> None:
         parent = self.contract["reviewed_parent_commit"]
-        materializer = self.contract["sealed_implementation"]
-        raw = (ROOT / materializer["materializer_path"]).read_bytes()
-        self.assertEqual(materializer["materializer_git_blob_sha1"], _git_blob_sha1(raw))
-        self.assertEqual(materializer["materializer_raw_sha256"], hashlib.sha256(raw).hexdigest())
-        self.assertEqual(self.seal["materializer"]["git_blob_sha1"], _git_blob_sha1(raw))
+        reference = self.contract["dormant_reviewed_reference"]
+        raw = (ROOT / reference["path"]).read_bytes()
+        self.assertEqual(reference["git_blob_sha1"], _git_blob_sha1(raw))
+        self.assertEqual(reference["raw_sha256"], hashlib.sha256(raw).hexdigest())
+        self.assertEqual(self.seal["dormant_reviewed_reference"]["git_blob_sha1"], _git_blob_sha1(raw))
+        self.assertFalse(reference["future_activation_execution_target"])
+        self.assertTrue(reference["must_remain_unissuable"])
         for binding in self.contract["sealed_h27_inputs"].values():
             payload = (ROOT / binding["path"]).read_bytes()
             self.assertEqual(binding["git_blob_sha1"], _git_blob_sha1(payload))
@@ -95,12 +97,32 @@ class H27MaterializationActivationContractTests(unittest.TestCase):
             "training_or_calibration_authorized",
         ):
             self.assertIs(self.seal[field], False, field)
+        for field in (
+            "future_production_materializer_exists",
+            "future_production_materializer_implementation_authorized",
+            "future_production_materializer_seal_exists",
+        ):
+            self.assertIs(self.seal[field], False, field)
+
+    def test_future_production_materializer_is_absent_and_blocks_issuance(self) -> None:
+        future = self.contract["future_production_materializer"]
+        self.assertFalse(future["exists"])
+        self.assertFalse(future["implementation_authorized"])
+        for field in (
+            "path", "reviewed_commit", "git_blob_sha1", "raw_sha256",
+            "external_seal_path", "external_seal_sha256",
+        ):
+            self.assertIsNone(future[field])
+        self.assertTrue(future["must_be_separately_implemented_reviewed_and_sealed"])
+        authority = self.contract["future_materialization_authority"]
+        self.assertTrue(authority["issuance_must_fail_before_claim_if_future_production_materializer_or_its_seal_is_absent"])
+        self.assertTrue(authority["dormant_reviewed_reference_must_never_be_invoked_by_activation"])
 
     def test_one_shot_and_atomic_publication_contract_is_closed(self) -> None:
-        implementation = self.contract["sealed_implementation"]
+        implementation = self.contract["future_production_materializer"]
         authority = self.contract["future_materialization_authority"]
         publication = self.contract["atomic_publication"]
-        self.assertEqual(implementation["materializer_invocations_maximum"], 1)
+        self.assertEqual(implementation["invocations_maximum"], 1)
         self.assertFalse(implementation["retry_allowed"])
         self.assertTrue(authority["claim_create_exclusive_before_numpy_or_first_scientific_allocation"])
         self.assertTrue(authority["claim_persists_after_success_failure_interrupt_or_timeout"])

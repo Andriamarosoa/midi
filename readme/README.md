@@ -23,12 +23,15 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 - La revue externe de `43d160bc5c0c0d5fc5b199363d007e768eec1080`
   conclut `PASS` : les trois bloqueurs capability/binding/result-schema sont
   fermés. La portée suivante reste contract-only. Un nouveau contrat scelle
-  donc le materializer dormant, les cinq blobs H27, le runtime primaire exact,
+  donc le materializer dormant comme référence revue jamais exécutable par
+  l'activation, les cinq blobs H27, le runtime primaire exact,
   la future activation/authority/capability one-shot, la publication atomique
   de `H27_SYNTHETIC_V1` et la dérivation exclusive de
   `H27SealedRecordBinding` depuis une ligne vérifiée du futur index. Le contrat
   et son seal externe existent, mais activation, authority, capability, claim,
-  population, index, loader et exécution restent absents. Rapport :
+  population, index, loader et exécution restent absents. Le futur materializer
+  de production est lui aussi explicitement absent/non autorisé et exigera son
+  propre commit et seal avant toute émission. Rapport :
   `readme/results/2026-08-13_harmonic-censoring-h27-materialization-activation-contract.md`.
 - Le contrat H27 engine/recomputer est désormais implémenté de façon dormante : il lie les
   cinq blobs H27 revus, fige record/mask/role semantics/ordre fail-closed,
