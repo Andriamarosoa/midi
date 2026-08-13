@@ -14,28 +14,27 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 dormant issuer/authority/claim/capability boundary hardened after second CHANGES REQUIRED; one native generator.send atomically attests exact capability/binding, PID and code identity before terminal consumption; no mutable mapping authority, operational artifact, activation, materialization, or science; external review pending. -->
+<!-- H26_CORRECTION_STATUS: H27 dormant issuer/authority/claim/capability boundary PASS at f82f4b2a; exact module externally sealed and bound by an acyclic identity contract plus seal; no authority, claim, operational capability, activation, materialization, or science; binding review pending. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_DORMANT_ATOMIC_ATTESTED_CONSUMPTION_PENDING_EXTERNAL_REVIEW`.
-- La revue externe de `8812091656e2f5921f8bf51adcb0fcf1de8d7538`
-  conclut `CHANGES REQUIRED` sur deux derniers bypass : la consommation pouvait
-  avancer sans appeler les trois guards voisins, et le dictionnaire derriere
-  `MappingProxyType` restait recuperable par reflexion. Le correctif supprime les
-  quatre primitives separees. Une seule methode native `generator.send`, sans
-  `__code__` ni `__closure__`, exige dans la meme transition l'objet capability
-  exact et l'objet binding exact, puis verifie le PID courant et rehache
-  l'identite code avant de retourner le binding et de devenir terminale. Un
-  echec capability, binding, PID ou code consomme egalement la tentative sans
-  retry. La session est un tuple natif immutable et aucune autorite ne repose
-  plus sur un backing dict; une attaque reelle `gc.get_referents`, les voisins
-  forges et la concurrence sont testes. Les protections filesystem precedentes
-  sont conservees. `88/88` tests H27 passent; aucun artefact reel, activation,
-  materialization, population/index, NumPy scientifique, training, calibration
-  ou locked-test n'existe. Rapport :
-  `readme/results/2026-08-13_harmonic-censoring-h27-atomic-attested-consumption-hardening.md`.
+  `H27_DORMANT_BOUNDARY_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `f82f4b2a3dc940828a924ac251456d4390f646f6`
+  conclut `PASS` sur la frontiere dormante atomique et autorise uniquement son
+  scellement externe et son identity binding contractuel. Le seal externe lie
+  exactement le module blob `ec61eef8...`, 18 915 octets, SHA-256
+  `d3d06f8c...`, au commit revu et a son parent. Un nouveau binding acyclique
+  lie ce module et son seal aux binding/seal materializer deja acceptes, au seal
+  materializer et aux contrats/seals activation et authority historiques. Son
+  propre seal lie les octets exacts du binding sans self-hash. Les tests
+  administratifs verifient Git blobs, tailles, SHA-256, acyclicite, absence de
+  self-hash, byte-identical historique, barriere publique toujours exactement
+  `().__getitem__` et tous les etats operationnels/scientifiques faux. Aucun vrai
+  issuer, authority, claim, capability operationnelle, activation,
+  materialization, population/index, science, training/calibration ou
+  locked-test n'existe. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-dormant-boundary-identity-binding.md`.
 - La revue externe du module exact au commit
   `e47effd1ac10987242b537f5b54a9cfbed84faeb` conclut `PASS` et autorise
   uniquement son scellement externe et le rebinding contractuel de son identite.
