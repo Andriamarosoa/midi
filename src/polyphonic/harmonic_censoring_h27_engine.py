@@ -18,7 +18,8 @@ from .harmonic_censoring_h27_contract import (
     canonical_h27_record_identities, load_h27_dormant_plan,
 )
 from .harmonic_censoring_h27_scientific_capability_dormant import (
-    H27ScientificCapability, require_h27_scientific_capability,
+    H27ScientificCapability, H27SealedRecordBinding,
+    require_h27_scientific_capability, require_h27_sealed_record_binding,
 )
 
 
@@ -50,24 +51,6 @@ FORBIDDEN_DESCRIPTOR_FIELDS = frozenset({
     "string_id", "fret", "h25_outcome", "h25_membership",
     "raw_transform_disappearance_index",
 })
-
-
-@dataclass(frozen=True)
-class H27RecordInvocation:
-    population_root: Path
-    record_directory: Path
-    record_identity: str
-    population_namespace: str
-    payload_sha256: Mapping[str, str]
-    candidate_pitch: int
-    active_pitches: tuple[int, ...]
-    proposal_hop_end: int
-    resolution_hop_end: int
-    cents: float = 0.0
-    inharmonicity: float = 0.0
-
-    def __post_init__(self) -> None:
-        object.__setattr__(self, "payload_sha256", MappingProxyType(dict(self.payload_sha256)))
 
 
 @dataclass(frozen=True)
@@ -112,13 +95,28 @@ def _finite_float(value: object, label: str) -> float:
     return result
 
 
-def _validate_invocation(invocation: H27RecordInvocation) -> None:
-    if type(invocation) is not H27RecordInvocation:
-        raise TypeError("H27 invocation type invalid.")
+def _validate_invocation(invocation: H27SealedRecordBinding) -> None:
+    if type(invocation) is not H27SealedRecordBinding:
+        raise TypeError("H27 sealed record binding type invalid.")
     if invocation.population_namespace != "H27_SYNTHETIC_V1":
         raise ValueError("H27 population namespace mismatch.")
     if type(invocation.record_identity) is not str or not invocation.record_identity:
         raise ValueError("H27 record identity invalid.")
+    identity_path = Path(invocation.record_identity)
+    if identity_path.is_absolute() or ".." in identity_path.parts:
+        raise ValueError("H27 record identity path invalid.")
+    population_root = Path(invocation.population_root)
+    if Path(invocation.population_index_path) != population_root / "population_index.json":
+        raise ValueError("H27 sealed population index path mismatch.")
+    if Path(invocation.record_directory) != population_root / identity_path:
+        raise ValueError("H27 sealed record directory mismatch.")
+    for digest, label in (
+        (invocation.population_index_sha256, "population index"),
+        (invocation.population_index_record_sha256, "population index record"),
+    ):
+        if (type(digest) is not str or len(digest) != 64 or digest.lower() != digest
+                or any(ch not in "0123456789abcdef" for ch in digest)):
+            raise ValueError(f"H27 sealed {label} SHA-256 invalid.")
     if type(invocation.candidate_pitch) is not int or not 24 <= invocation.candidate_pitch <= 96:
         raise ValueError("H27 candidate pitch invalid.")
     active = invocation.active_pitches
@@ -168,7 +166,7 @@ def _contained_regular_file(root: Path, record_dir: Path, name: str) -> Path:
     return path
 
 
-def _load_payloads(invocation: H27RecordInvocation) -> tuple[bytes, bytes, bytes | None]:
+def _load_payloads(invocation: H27SealedRecordBinding) -> tuple[bytes, bytes, bytes | None]:
     root = Path(invocation.population_root)
     record_dir = Path(invocation.record_directory)
     root_absolute = root.absolute()
@@ -356,7 +354,7 @@ def _residual(np: Any, spectrum: H27Spectrum, pitches: tuple[int, ...], cents: f
     return float(residual_square) / max(float(target_square), 1e-24)
 
 
-def _early_result(invocation: H27RecordInvocation, shas: Mapping[str, str],
+def _early_result(invocation: H27SealedRecordBinding, shas: Mapping[str, str],
                   classes: Mapping[str, str], counts: Mapping[str, int],
                   outcome: str, reason: str, kind: str = "NONE") -> H27EngineResult:
     return H27EngineResult(invocation.record_identity, MappingProxyType(dict(shas)),
@@ -367,10 +365,11 @@ def _early_result(invocation: H27RecordInvocation, shas: Mapping[str, str],
 
 
 def run_h27_engine(np: Any, capability: H27ScientificCapability,
-                   repository_root: Path, invocation: H27RecordInvocation) -> H27EngineResult:
+                   repository_root: Path, invocation: H27SealedRecordBinding) -> H27EngineResult:
     """Execute H27 only after a future separately authorized capability."""
 
     require_h27_scientific_capability(capability)
+    require_h27_sealed_record_binding(invocation)
     plan = load_h27_dormant_plan(Path(repository_root))
     _validate_invocation(invocation)
     if invocation.record_identity not in canonical_h27_record_identities(plan):
@@ -466,5 +465,5 @@ def run_h27_engine(np: Any, capability: H27ScientificCapability,
     )
 
 
-__all__ = ["H27EngineResult", "H27RecordInvocation", "H27ScientificCapability",
+__all__ = ["H27EngineResult", "H27SealedRecordBinding", "H27ScientificCapability",
            "run_h27_engine"]

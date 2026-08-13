@@ -17,7 +17,8 @@ from .harmonic_censoring_h27_contract import (
     canonical_h27_record_identities, load_h27_dormant_plan,
 )
 from .harmonic_censoring_h27_scientific_capability_dormant import (
-    H27ScientificCapability, require_h27_scientific_capability,
+    H27ScientificCapability, H27SealedRecordBinding,
+    require_h27_scientific_capability, require_h27_sealed_record_binding,
 )
 
 
@@ -26,24 +27,17 @@ _LENGTH = {"current_short": 4096, "previous_short": 4096,
            "current_long": 8192, "previous_long": 8192}
 _BACK = {"current_short": 0, "previous_short": 256,
          "current_long": 0, "previous_long": 256}
-
-
-@dataclass(frozen=True)
-class H27RecomputerInvocation:
-    population_root: Path
-    record_directory: Path
-    record_identity: str
-    population_namespace: str
-    payload_sha256: Mapping[str, str]
-    candidate_pitch: int
-    active_pitches: tuple[int, ...]
-    proposal_hop_end: int
-    resolution_hop_end: int
-    cents: float = 0.0
-    inharmonicity: float = 0.0
-
-    def __post_init__(self) -> None:
-        object.__setattr__(self, "payload_sha256", MappingProxyType(dict(self.payload_sha256)))
+EXACT_RESULT_FIELDS = (
+    "record_identity", "validated_payload_sha256", "role_classifications",
+    "mask_counts", "outcome", "certificate_kind", "certificate_complete",
+    "exclusive_partial_membership", "early_resolution_reason",
+    "maximum_sample_read",
+)
+NUMERIC_RESULT_FIELDS = (
+    "exclusive_energy_ratios", "onset_rise", "residual_improvement",
+    "persistence", "bounded_claim_lower_bounds", "negative_margins",
+    "pitch_dilution_curve",
+)
 
 
 @dataclass(frozen=True)
@@ -78,11 +72,26 @@ def _digest(raw: bytes) -> str:
     return hashlib.sha256(raw).hexdigest()
 
 
-def _require_descriptor(value: H27RecomputerInvocation) -> None:
-    if type(value) is not H27RecomputerInvocation:
-        raise TypeError("H27 recomputer descriptor type invalid.")
+def _require_descriptor(value: H27SealedRecordBinding) -> None:
+    if type(value) is not H27SealedRecordBinding:
+        raise TypeError("H27 recomputer sealed binding type invalid.")
     if value.population_namespace != "H27_SYNTHETIC_V1" or not value.record_identity:
         raise ValueError("H27 recomputer identity binding invalid.")
+    identity_path = Path(value.record_identity)
+    if identity_path.is_absolute() or ".." in identity_path.parts:
+        raise ValueError("H27 recomputer record identity path invalid.")
+    population_root = Path(value.population_root)
+    if Path(value.population_index_path) != population_root / "population_index.json":
+        raise ValueError("H27 recomputer population index path mismatch.")
+    if Path(value.record_directory) != population_root / identity_path:
+        raise ValueError("H27 recomputer record directory mismatch.")
+    for digest, label in (
+        (value.population_index_sha256, "population index"),
+        (value.population_index_record_sha256, "population index record"),
+    ):
+        if (type(digest) is not str or len(digest) != 64 or digest.lower() != digest
+                or any(ch not in "0123456789abcdef" for ch in digest)):
+            raise ValueError(f"H27 recomputer {label} SHA-256 invalid.")
     if type(value.candidate_pitch) is not int or not 24 <= value.candidate_pitch <= 96:
         raise ValueError("H27 recomputer candidate pitch invalid.")
     if (type(value.active_pitches) is not tuple
@@ -120,7 +129,7 @@ def _safe_directory(root: Path, record: Path) -> tuple[Path, Path]:
     return root_real, record_real
 
 
-def _read_record(value: H27RecomputerInvocation) -> tuple[bytes, bytes, bytes | None]:
+def _read_record(value: H27SealedRecordBinding) -> tuple[bytes, bytes, bytes | None]:
     _, directory = _safe_directory(Path(value.population_root), Path(value.record_directory))
     names = set(value.payload_sha256)
     if {entry.name for entry in directory.iterdir()} != names:
@@ -288,7 +297,7 @@ def _independent_residual(np: Any, spectrum: _IndependentSpectrum,
     return float(error_square) / max(float(observation_square), 1e-24)
 
 
-def _early(value: H27RecomputerInvocation, classes: Mapping[str, str], counts: Mapping[str, int],
+def _early(value: H27SealedRecordBinding, classes: Mapping[str, str], counts: Mapping[str, int],
            outcome: str, reason: str, kind: str = "NONE") -> H27RecomputedResult:
     return H27RecomputedResult(value.record_identity, MappingProxyType(dict(value.payload_sha256)),
                                MappingProxyType(dict(classes)), MappingProxyType(dict(counts)),
@@ -298,10 +307,11 @@ def _early(value: H27RecomputerInvocation, classes: Mapping[str, str], counts: M
 
 def run_h27_independent_recomputer(np: Any, capability: H27ScientificCapability,
                                    repository_root: Path,
-                                   invocation: H27RecomputerInvocation) -> H27RecomputedResult:
+                                   invocation: H27SealedRecordBinding) -> H27RecomputedResult:
     """Recompute H27 from sealed bytes without receiving engine intermediates."""
 
     require_h27_scientific_capability(capability)
+    require_h27_sealed_record_binding(invocation)
     plan = load_h27_dormant_plan(Path(repository_root))
     _require_descriptor(invocation)
     if invocation.record_identity not in canonical_h27_record_identities(plan):
@@ -395,16 +405,9 @@ def compare_h27_engine_and_recomputer(engine_result: object,
 
     if type(recomputed) is not H27RecomputedResult:
         raise TypeError("H27 recomputed result type invalid.")
-    exact_fields = ("record_identity", "validated_payload_sha256", "role_classifications",
-                    "mask_counts", "outcome", "certificate_kind", "certificate_complete",
-                    "exclusive_partial_membership", "early_resolution_reason", "maximum_sample_read")
-    for field in exact_fields:
+    for field in EXACT_RESULT_FIELDS:
         if getattr(engine_result, field, object()) != getattr(recomputed, field):
             raise RuntimeError(f"H27 engine/recomputer mismatch: {field}.")
-    numeric_fields = ("exclusive_energy_ratios", "onset_rise", "residual_improvement",
-                      "persistence", "bounded_claim_lower_bounds", "negative_margins",
-                      "pitch_dilution_curve")
-
     def close(left: object, right: object) -> bool:
         if left is None or right is None:
             return left is right
@@ -417,10 +420,11 @@ def compare_h27_engine_and_recomputer(engine_result: object,
             return all(close(a, b) for a, b in zip(left, right))
         return False
 
-    for field in numeric_fields:
+    for field in NUMERIC_RESULT_FIELDS:
         if not close(getattr(engine_result, field, object()), getattr(recomputed, field)):
             raise RuntimeError(f"H27 engine/recomputer mismatch: {field}.")
 
 
-__all__ = ["H27RecomputedResult", "H27RecomputerInvocation",
+__all__ = ["H27RecomputedResult", "H27SealedRecordBinding",
+           "EXACT_RESULT_FIELDS", "NUMERIC_RESULT_FIELDS",
            "compare_h27_engine_and_recomputer", "run_h27_independent_recomputer"]

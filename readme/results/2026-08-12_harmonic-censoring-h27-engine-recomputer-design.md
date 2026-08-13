@@ -52,9 +52,26 @@ l'engine et ne reçoit ses résultats qu'au comparateur terminal, après sa prop
 recomputation. NumPy reste injecté par le futur appelant et n'est pas importé au
 chargement des modules.
 
-La capability process-local n'a aucun constructeur, issuer, factory ou identité
-enregistrée. Les deux frontières la contrôlent avant descriptor, filesystem ou
-NumPy ; elles sont donc impossibles à exécuter dans ce lot.
+La capability process-local n'a aucun constructeur, issuer, factory, registre
+ou hook mutable d'autorisation. Son garde est un refus inconditionnel : forger
+le type par `object.__new__` puis ajouter ou réassigner un faux registre de
+module ne peut autoriser aucune frontière.
+
+La revue de `0c2296d2` a aussi fermé le descriptor librement constructible. Les
+deux implémentations exigent désormais un `H27SealedRecordBinding` nominal sans
+constructeur ni loader dans ce lot. Son schéma fermé lie l'index de population
+et son SHA, le SHA de la ligne canonique, l'identité, le chemin dérivé, la
+topologie et les SHA payload, la présence de l'alternate, les coordonnées
+causales, les pitches et les paramètres P2 `cents/B`. Son garde est lui aussi un
+refus inconditionnel. Un futur loader d'index et son autorité devront donc être
+introduits ensemble dans un commit séparément revu ; aucun caller ne peut
+assembler les champs scientifiques dans ce lot.
+
+Enfin, `engine_contract.result_field_order` et `result_schema` déclarent
+exactement les 17 champs des deux dataclasses, y compris `mask_counts`,
+`pitch_dilution_curve` et `maximum_sample_read`. Un test structurel exige
+l'identité de l'ordre contractuel, des deux dataclasses et la couverture
+exhaustive/disjointe du comparateur exact ou numérique.
 
 ## Interdictions conservées
 
@@ -66,8 +83,8 @@ autorité d'exécution.
 ## Vérification autorisée
 
 Le parsing JSON, `py_compile`, les contrôles de blobs, les tests statiques et
-les mocks d'échec avant capability sont autorisés. `17` tests H27
-engine/recomputer/materializer réussissent en `1,589 s`, avec
+les mocks d'échec avant capability sont autorisés. `19` tests H27
+engine/recomputer/materializer réussissent en `2,893 s`, avec
 `git diff --check`. Ils ne passent aucun objet scientifique valide aux kernels
 et n'exécutent ni FFT ni NNLS.
 

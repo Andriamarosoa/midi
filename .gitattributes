@@ -102,6 +102,7 @@ src/polyphonic/harmonic_censoring_h27_scientific_capability_dormant.py text eol=
 src/polyphonic/harmonic_censoring_h27_engine.py text eol=lf
 src/polyphonic/harmonic_censoring_h27_recomputer.py text eol=lf
 tests/test_harmonic_censoring_h27_engine_recomputer_dormant.py text eol=lf
+configs/harmonic_censoring_h27_engine_recomputer_contract.json text eol=lf
 configs/harmonic_censoring_h25_scientific_execution_authorization_seal.json text eol=lf
 tests/test_harmonic_censoring_h25_scientific_capability_dormant.py text eol=lf
 readme/results/2026-08-11_harmonic-censoring-h25-dormant-scientific-capability-authority.md text eol=lf

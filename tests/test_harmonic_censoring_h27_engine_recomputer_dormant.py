@@ -9,14 +9,16 @@ import pickle
 import unittest
 
 from src.polyphonic.harmonic_censoring_h27_engine import (
-    H27EngineResult, H27RecordInvocation, run_h27_engine,
+    H27EngineResult, run_h27_engine,
 )
 from src.polyphonic.harmonic_censoring_h27_recomputer import (
-    H27RecomputedResult, H27RecomputerInvocation,
+    EXACT_RESULT_FIELDS, NUMERIC_RESULT_FIELDS, H27RecomputedResult,
     compare_h27_engine_and_recomputer, run_h27_independent_recomputer,
 )
+import src.polyphonic.harmonic_censoring_h27_scientific_capability_dormant as capability_module
 from src.polyphonic.harmonic_censoring_h27_scientific_capability_dormant import (
-    H27ScientificCapability,
+    H27ScientificCapability, H27SealedRecordBinding,
+    H27_SEALED_RECORD_BINDING_FIELDS, require_h27_sealed_record_binding,
 )
 
 
@@ -54,23 +56,42 @@ class H27DormantEngineRecomputerTests(unittest.TestCase):
         with self.assertRaises(TypeError):
             replace(forged)  # type: ignore[arg-type]
 
+    def test_rebinding_cannot_register_forged_capability_or_record_binding(self) -> None:
+        forged_capability = object.__new__(H27ScientificCapability)
+        forged_binding = object.__new__(H27SealedRecordBinding)
+        capability_module._ISSUED_CAPABILITY_IDENTITIES = (id(forged_capability),)
+        capability_module._ISSUED_RECORD_BINDING_IDENTITIES = (id(forged_binding),)
+        try:
+            for boundary in (run_h27_engine, run_h27_independent_recomputer):
+                with self.assertRaisesRegex(PermissionError, "not issued"):
+                    boundary(_Exploding(), forged_capability, _Exploding(), forged_binding)
+            with self.assertRaisesRegex(PermissionError, "not issued"):
+                require_h27_sealed_record_binding(forged_binding)
+        finally:
+            del capability_module._ISSUED_CAPABILITY_IDENTITIES
+            del capability_module._ISSUED_RECORD_BINDING_IDENTITIES
+
     def test_both_public_boundaries_fail_before_numpy_invocation_or_filesystem(self) -> None:
         forged = object.__new__(H27ScientificCapability)
         for boundary in (run_h27_engine, run_h27_independent_recomputer):
             with self.assertRaisesRegex(PermissionError, "not issued"):
                 boundary(_Exploding(), forged, _Exploding(), _Exploding())
 
-    def test_engine_and_recomputer_descriptors_expose_only_scientific_inputs(self) -> None:
-        expected = {
-            "population_root", "record_directory", "record_identity",
-            "population_namespace", "payload_sha256", "candidate_pitch",
-            "active_pitches", "proposal_hop_end", "resolution_hop_end",
-            "cents", "inharmonicity",
-        }
-        self.assertEqual({field.name for field in fields(H27RecordInvocation)}, expected)
-        self.assertEqual({field.name for field in fields(H27RecomputerInvocation)}, expected)
+    def test_record_binding_is_closed_unconstructible_and_matches_contract(self) -> None:
+        with self.assertRaises(PermissionError):
+            H27SealedRecordBinding()
+        forged = object.__new__(H27SealedRecordBinding)
+        with self.assertRaises(TypeError):
+            copy.copy(forged)
+        with self.assertRaises(TypeError):
+            pickle.dumps(forged)
+        contract = json.loads(CONTRACT.read_text(encoding="utf-8"))
+        expected = tuple(contract["future_record_contract"]["sealed_record_binding_field_order"])
+        self.assertEqual(H27_SEALED_RECORD_BINDING_FIELDS, expected)
         forbidden = set(json.loads(CONTRACT.read_text(encoding="utf-8"))["engine_contract"]["static_leakage_aliases"])
-        self.assertFalse(expected & forbidden)
+        self.assertFalse(set(expected) & forbidden)
+        self.assertIn("population_index_sha256", expected)
+        self.assertIn("population_index_record_sha256", expected)
 
     def test_recomputer_does_not_import_or_delegate_to_engine_or_historical_science(self) -> None:
         source = RECOMPUTER.read_text(encoding="utf-8")
@@ -127,9 +148,21 @@ class H27DormantEngineRecomputerTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "onset_rise"):
             compare_h27_engine_and_recomputer(engine, replace(recomputed, onset_rise=0.2))
 
+    def test_result_schema_exactly_matches_both_results_and_comparator(self) -> None:
+        contract = json.loads(CONTRACT.read_text(encoding="utf-8"))["engine_contract"]
+        expected = tuple(contract["result_field_order"])
+        self.assertEqual(tuple(contract["result_schema"]), expected)
+        self.assertEqual(tuple(field.name for field in fields(H27EngineResult)), expected)
+        self.assertEqual(tuple(field.name for field in fields(H27RecomputedResult)), expected)
+        compared = EXACT_RESULT_FIELDS + NUMERIC_RESULT_FIELDS
+        self.assertEqual(len(compared), len(set(compared)))
+        self.assertEqual(set(compared), set(expected))
+
     def test_no_source_contains_runtime_issuer_or_execution_at_import(self) -> None:
         capability = CAPABILITY.read_text(encoding="utf-8")
-        self.assertIn("_ISSUED_CAPABILITY_IDENTITIES: tuple[int, ...] = ()", capability)
+        self.assertNotIn("_ISSUED_CAPABILITY_IDENTITIES:", capability)
+        self.assertIn('raise PermissionError("H27 scientific capability is not issued.")', capability)
+        self.assertIn('raise PermissionError("H27 sealed record binding is not issued.")', capability)
         self.assertNotIn("def issue", capability)
         for path in (CAPABILITY, ENGINE, RECOMPUTER):
             source = path.read_text(encoding="utf-8")

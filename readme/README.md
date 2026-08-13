@@ -27,10 +27,14 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   recomputer réellement indépendant. Le profil primaire CPython 3.11.9 scelle
   désormais aussi son exécutable résolu, ses 152 624 octets et son SHA-256,
   symétriquement au profil secondaire. L'engine et le recomputer indépendant
-  n'importent pas NumPy au chargement et échouent avant tout accès tant que la
-  capability process-local reste inémissible. Population, FFT/NNLS,
-  P0/P1/P2 et exécution scientifique restent absents. `py_compile`,
-  `git diff --check` et 17 tests dormants/materializer passent. Rapport :
+  n'importent pas NumPy au chargement et échouent avant tout accès : le garde
+  capability est maintenant un refus inconditionnel sans registre mutable, et
+  le descriptor libre est remplacé par un binding nominal inconstructible qui
+  lie futur index, ligne canonique, chemin, topologie/SHA payload et paramètres
+  P2. Le schéma de résultat contractuel couvre exactement les 17 champs des
+  deux implémentations et du comparateur. Population, FFT/NNLS, P0/P1/P2 et
+  exécution scientifique restent absents. `py_compile`, `git diff --check` et
+  19 tests dormants/materializer passent. Rapport :
   `readme/results/2026-08-12_harmonic-censoring-h27-engine-recomputer-design.md`.
 - Le loader et materializer H27 restent strictement dormants : les cinq blobs
   H27 revus sont contrôlés avant parsing, les 17/27/107/124 identités et le
