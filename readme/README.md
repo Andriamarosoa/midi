@@ -14,12 +14,26 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 materialization activation contract externally sealed; no activation, materialization, or science; external review pending. -->
+<!-- H26_CORRECTION_STATUS: future H27 production materializer implemented dormant; no seal, activation, materialization, or science; external review pending. -->
 ## État courant
 
 - Mise à jour : `2026-08-12`.
 - État courant :
-  `H27_MATERIALIZATION_ACTIVATION_CONTRACT_SEALED_PENDING_EXTERNAL_REVIEW_NO_ACTIVATION_NO_EXECUTION`.
+  `H27_PRODUCTION_MATERIALIZER_IMPLEMENTED_DORMANT_PENDING_EXTERNAL_REVIEW_NO_SEAL_NO_ACTIVATION_NO_EXECUTION`.
+- Le futur matérialiseur H27 de production est maintenant implémenté dans un
+  module distinct du matérialiseur dormant historique, qui reste au blob Git
+  `394f25a5…` inchangé. La nouvelle entrée échoue inconditionnellement avant
+  tout accès à NumPy, au plan ou au filesystem ; aucun issuer, registre ou
+  capability constructible n'existe. Sous cette frontière dormante, le code
+  décrit les 124 records dans l'ordre canonique, les recettes et collisions
+  indépendantes, les huit grilles P2, les masques role-major, l'index à dix
+  champs et la publication Darwin create-exclusive/fsync/rename-no-replace.
+  Les tests restent administratifs/toy/fail-closed : aucun waveform H27 de
+  production, payload, index ou destination n'a été créé. Le contrat
+  d'activation et son seal ne sont pas modifiés : ils continuent donc à
+  interdire ce nouveau target jusqu'à un futur lot de binding/seal séparément
+  autorisé. `py_compile`, `git diff --check` et 35 tests H27 passent. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-production-materializer-dormant-implementation.md`.
 - La revue externe de `43d160bc5c0c0d5fc5b199363d007e768eec1080`
   conclut `PASS` : les trois bloqueurs capability/binding/result-schema sont
   fermés. La portée suivante reste contract-only. Un nouveau contrat scelle
