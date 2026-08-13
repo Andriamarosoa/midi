@@ -11,11 +11,15 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import errno
+import functools
 import hashlib
 import itertools
 import json
 import math
 import os
+import platform
+import subprocess
+import sys
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 from types import MappingProxyType
@@ -54,6 +58,8 @@ ACTIVATION_SEAL_BLOB = "0ef61aa7ada69b619a8e7acd7138151a36496089"
 ACTIVATION_SEAL_SHA256 = "2174570372df3e8349a425d62ce8e1d084238757fb944968ad8539d9dcabac9d"
 FUTURE_MATERIALIZER_REVIEWED_BLOB: str | None = None
 FUTURE_MATERIALIZER_EXTERNAL_SEAL_SHA256: str | None = None
+FUTURE_MATERIALIZER_EXTERNAL_SEAL_PATH: Path | None = None
+FUTURE_ACTIVATION_REVIEWED_HEAD: str | None = None
 
 
 def _git_blob(raw: bytes) -> str:
@@ -101,9 +107,58 @@ def validate_normative_authority_bindings() -> Mapping[str, object]:
 
 
 def _require_reviewed_self_identity() -> None:
-    if FUTURE_MATERIALIZER_REVIEWED_BLOB is None or FUTURE_MATERIALIZER_EXTERNAL_SEAL_SHA256 is None:
+    if (
+        FUTURE_MATERIALIZER_REVIEWED_BLOB is None
+        or FUTURE_MATERIALIZER_EXTERNAL_SEAL_SHA256 is None
+        or FUTURE_MATERIALIZER_EXTERNAL_SEAL_PATH is None
+    ):
         raise PermissionError("H27 activation-capable materializer is implemented but not reviewed or sealed.")
-    raise PermissionError("H27 activation-capable materializer has no issuer in this lot.")
+    if _git_blob(Path(__file__).resolve(strict=True).read_bytes()) != FUTURE_MATERIALIZER_REVIEWED_BLOB:
+        raise PermissionError("H27 activation-capable materializer identity drift.")
+    seal_raw = FUTURE_MATERIALIZER_EXTERNAL_SEAL_PATH.resolve(strict=True).read_bytes()
+    if hashlib.sha256(seal_raw).hexdigest() != FUTURE_MATERIALIZER_EXTERNAL_SEAL_SHA256:
+        raise PermissionError("H27 activation-capable materializer seal drift.")
+
+
+def validate_preclaim_runtime_git_and_destinations() -> None:
+    """Validate the fixed runtime/Git/destination boundary; never creates a claim."""
+
+    bindings = validate_normative_authority_bindings()
+    expected = bindings["activation_contract"]
+    runtime = expected["runtime_exact"]
+    environment = expected["process_environment_exact"]
+    observed_runtime = {
+        "implementation": platform.python_implementation(),
+        "version": platform.python_version(),
+        "platform_system": platform.system(),
+        "platform_release": platform.release(),
+        "platform_machine": platform.machine(),
+        "resolved_executable": Path(sys.executable).resolve(strict=True).as_posix(),
+        "executable_size_bytes": Path(sys.executable).resolve(strict=True).stat().st_size,
+        "executable_sha256": hashlib.sha256(Path(sys.executable).resolve(strict=True).read_bytes()).hexdigest(),
+    }
+    for field, actual in observed_runtime.items():
+        if actual != runtime[field]:
+            raise PermissionError(f"H27 runtime mismatch: {field}.")
+    for name, value in environment.items():
+        if os.environ.get(name) != value:
+            raise PermissionError(f"H27 environment mismatch: {name}.")
+    if FUTURE_ACTIVATION_REVIEWED_HEAD is None:
+        raise PermissionError("H27 reviewed activation HEAD is absent.")
+    head = subprocess.run(
+        ("git", "rev-parse", "HEAD"), cwd=_ROOT, check=True,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+    ).stdout.strip()
+    dirty = subprocess.run(
+        ("git", "status", "--porcelain"), cwd=_ROOT, check=True,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+    ).stdout
+    if head != FUTURE_ACTIVATION_REVIEWED_HEAD or dirty:
+        raise PermissionError("H27 Git HEAD/worktree mismatch.")
+    for destination in (FINAL_DESTINATION, STAGING_DESTINATION):
+        if os.path.lexists(destination):
+            raise FileExistsError(f"H27 destination already exists: {destination}.")
+    _require_reviewed_self_identity()
 
 
 class H27ActivationCapableProductionMaterializationCapability:
@@ -132,7 +187,9 @@ def _require_capability(_: H27ActivationCapableProductionMaterializationCapabili
     raise PermissionError("H27 production materialization remains dormant.")
 
 
-_FROZEN_CAPABILITY_GUARD = _require_capability
+# A C-implemented bound method over an immutable empty mapping.  It has no
+# writable ``__code__`` and no key can ever authorize a caller.
+_FROZEN_CAPABILITY_GUARD = MappingProxyType({}).__getitem__
 
 
 @dataclass(frozen=True)
@@ -538,40 +595,19 @@ def _publish(
     _fsync_directory(capability, FINAL_DESTINATION.parent)
 
 
-def _freeze_production_helper(function: Any, guard: Any) -> Any:
-    def guarded(capability: H27ActivationCapableProductionMaterializationCapability, *args: object, **kwargs: object) -> Any:
-        guard(capability)
-        return function(capability, *args, **kwargs)
-    guarded.__name__ = function.__name__
-    guarded.__qualname__ = function.__qualname__
-    return guarded
-
-
 _PRODUCTION_HELPER_NAMES = (
     "_envelope", "_accumulate_sources", "_add_noise", "_render_recipe",
     "_render_collision", "_mask_bytes", "_render_record", "_write_new",
     "_fsync_directory", "_rename_no_replace", "_publish",
 )
-for _helper_name in _PRODUCTION_HELPER_NAMES:
-    globals()[_helper_name] = _freeze_production_helper(globals()[_helper_name], _FROZEN_CAPABILITY_GUARD)
-
-
-def _build_dormant_entry(guard: Any, publisher: Any) -> Any:
-    def entry(
-        np: Any, capability: H27ActivationCapableProductionMaterializationCapability,
-        plan: H27DormantPlan,
-    ) -> None:
-        """Future one-shot entry; frozen dormant guard is the first action."""
-
-        guard(capability)
-        _require_reviewed_self_identity()
-        publisher(capability, np, plan)
-    return entry
-
-
-materialize_h27_activation_capable_production_population = _build_dormant_entry(
-    _FROZEN_CAPABILITY_GUARD, _publish,
+_DORMANT_NATIVE_BARRIER = functools.partial(
+    _FROZEN_CAPABILITY_GUARD, "H27_DORMANT_NO_CAPABILITY",
 )
+for _helper_name in _PRODUCTION_HELPER_NAMES:
+    globals()[_helper_name] = _DORMANT_NATIVE_BARRIER
+
+
+materialize_h27_activation_capable_production_population = _DORMANT_NATIVE_BARRIER
 
 
 __all__ = [

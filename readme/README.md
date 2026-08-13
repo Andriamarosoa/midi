@@ -24,9 +24,12 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   conclut `PASS`. Le nouveau module activable est maintenant implemente mais
   reste strictement dormant et non scelle. Sa logique scientifique est
   mecaniquement identique au blob dormant revu `d3a903ac...`; seuls le type de
-  capability et le plumbing de frontiere d'autorite sont ajoutes. L'entree et
-  les onze helpers refusent les capabilities forgees avant tout argument,
-  meme apres rebinding du garde ou du publisher. Aucun issuer, authority,
+  capability et le plumbing de frontiere d'autorite sont ajoutes. Le correctif
+  adversarial remplace le garde Python mutable par une barriere native sans
+  `__code__`; l'entree et les onze helpers refusent avant tout argument, meme
+  apres rebinding. Les validateurs runtime, environnement, HEAD/worktree,
+  destinations et identite code/seal sont maintenant effectifs mais restent
+  inemissibles faute de seal/HEAD futur. Aucun issuer, authority,
   capability utilisable, claim, activation, population ou calcul n'existe.
   `py_compile`, `git diff --check` et `62/62` tests H27 passent. Rapport :
   `readme/results/2026-08-13_harmonic-censoring-h27-activation-capable-production-materializer-dormant.md`.

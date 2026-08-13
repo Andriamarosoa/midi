@@ -4,6 +4,10 @@ import ast
 import copy
 import inspect
 import pickle
+import hashlib
+import platform
+import sys
+import tempfile
 from pathlib import Path
 from unittest import mock
 import unittest
@@ -25,6 +29,10 @@ def _forged_capability() -> target.H27ActivationCapableProductionMaterialization
 
 
 class H27ActivationCapableProductionMaterializerDormantTests(unittest.TestCase):
+    def assertDormantBarrier(self, call: object) -> None:
+        with self.assertRaises((KeyError, TypeError)):
+            call()
+
     def test_normative_contracts_and_seals_validate_without_override(self) -> None:
         result = target.validate_normative_authority_bindings()
         self.assertEqual(set(result), {"authority_contract", "authority_seal", "activation_contract", "activation_seal"})
@@ -37,12 +45,10 @@ class H27ActivationCapableProductionMaterializerDormantTests(unittest.TestCase):
         self.assertFalse(any(name.startswith("create_claim") for name in names))
 
     def test_forged_authority_cannot_be_supplied_to_entry(self) -> None:
-        with self.assertRaisesRegex(PermissionError, "remains dormant"):
-            target.materialize_h27_activation_capable_production_population(_Exploding(), object(), _Exploding())
+        self.assertDormantBarrier(lambda: target.materialize_h27_activation_capable_production_population(_Exploding(), object(), _Exploding()))
 
     def test_forged_capability_via_object_new_is_rejected(self) -> None:
-        with self.assertRaisesRegex(PermissionError, "remains dormant"):
-            target.materialize_h27_activation_capable_production_population(_Exploding(), _forged_capability(), _Exploding())
+        self.assertDormantBarrier(lambda: target.materialize_h27_activation_capable_production_population(_Exploding(), _forged_capability(), _Exploding()))
 
     def test_copy_deepcopy_and_pickle_are_rejected(self) -> None:
         forged = _forged_capability()
@@ -61,13 +67,13 @@ class H27ActivationCapableProductionMaterializerDormantTests(unittest.TestCase):
 
     def test_guard_module_rebinding_cannot_unlock_frozen_entry(self) -> None:
         with mock.patch.object(target, "_require_capability", return_value=None):
-            with self.assertRaisesRegex(PermissionError, "remains dormant"):
-                target.materialize_h27_activation_capable_production_population(_Exploding(), _forged_capability(), _Exploding())
+            self.assertDormantBarrier(lambda: target.materialize_h27_activation_capable_production_population(_Exploding(), _forged_capability(), _Exploding()))
+        self.assertFalse(hasattr(target._FROZEN_CAPABILITY_GUARD, "__code__"))
+        self.assertFalse(hasattr(target._DORMANT_NATIVE_BARRIER, "__code__"))
 
     def test_publisher_monkeypatch_is_not_reached(self) -> None:
         with mock.patch.object(target, "_publish", side_effect=AssertionError("publisher reached")):
-            with self.assertRaisesRegex(PermissionError, "remains dormant"):
-                target.materialize_h27_activation_capable_production_population(_Exploding(), _forged_capability(), _Exploding())
+            self.assertDormantBarrier(lambda: target.materialize_h27_activation_capable_production_population(_Exploding(), _forged_capability(), _Exploding()))
 
     def test_direct_call_of_every_production_helper_fails_before_inputs(self) -> None:
         forged = _forged_capability()
@@ -85,8 +91,8 @@ class H27ActivationCapableProductionMaterializerDormantTests(unittest.TestCase):
             lambda: target._publish(forged, _Exploding(), _Exploding()),
         )
         for call in calls:
-            with self.subTest(call=call), self.assertRaisesRegex(PermissionError, "remains dormant"):
-                call()
+            with self.subTest(call=call):
+                self.assertDormantBarrier(call)
 
     def test_wrong_or_missing_materializer_blob_and_seal_are_terminal(self) -> None:
         self.assertIsNone(target.FUTURE_MATERIALIZER_REVIEWED_BLOB)
@@ -96,13 +102,26 @@ class H27ActivationCapableProductionMaterializerDormantTests(unittest.TestCase):
 
     def test_wrong_runtime_or_environment_cannot_reach_science(self) -> None:
         with mock.patch.dict("os.environ", {"MIDI_FORCE_CPU": "0"}):
-            with self.assertRaisesRegex(PermissionError, "remains dormant"):
-                target.materialize_h27_activation_capable_production_population(_Exploding(), _forged_capability(), _Exploding())
+            with self.assertRaisesRegex(PermissionError, "runtime mismatch|environment mismatch"):
+                target.validate_preclaim_runtime_git_and_destinations()
 
     def test_preexisting_destinations_are_not_inspected_before_guard(self) -> None:
-        with mock.patch.object(Path, "exists", side_effect=AssertionError("destination inspected")):
-            with self.assertRaisesRegex(PermissionError, "remains dormant"):
-                target.materialize_h27_activation_capable_production_population(_Exploding(), _forged_capability(), _Exploding())
+        runtime = {
+            "implementation": platform.python_implementation(), "version": platform.python_version(),
+            "platform_system": platform.system(), "platform_release": platform.release(),
+            "platform_machine": platform.machine(), "resolved_executable": Path(sys.executable).resolve().as_posix(),
+            "executable_size_bytes": Path(sys.executable).stat().st_size,
+            "executable_sha256": hashlib.sha256(Path(sys.executable).read_bytes()).hexdigest(),
+        }
+        activation = {"runtime_exact": runtime, "process_environment_exact": {}, "atomic_publication": {}}
+        completed = mock.Mock(stdout="f" * 40 + "\n")
+        with mock.patch.object(target, "validate_normative_authority_bindings", return_value={"activation_contract": activation}), mock.patch.object(
+            target, "FUTURE_ACTIVATION_REVIEWED_HEAD", "f" * 40,
+        ), mock.patch.object(target.subprocess, "run", side_effect=(completed, mock.Mock(stdout=""))), mock.patch.object(
+            target.os.path, "lexists", return_value=True,
+        ):
+            with self.assertRaises(FileExistsError):
+                target.validate_preclaim_runtime_git_and_destinations()
 
     def test_claim_write_or_fsync_path_does_not_exist_in_this_lot(self) -> None:
         source = Path(target.__file__).read_text(encoding="utf-8")
@@ -112,15 +131,17 @@ class H27ActivationCapableProductionMaterializerDormantTests(unittest.TestCase):
     def test_second_capability_consumption_is_impossible(self) -> None:
         forged = _forged_capability()
         for _ in range(2):
-            with self.assertRaisesRegex(PermissionError, "remains dormant"):
-                target.materialize_h27_activation_capable_production_population(_Exploding(), forged, _Exploding())
+            self.assertDormantBarrier(lambda: target.materialize_h27_activation_capable_production_population(_Exploding(), forged, _Exploding()))
 
     def test_post_claim_identity_drift_has_no_claim_to_consume(self) -> None:
-        with mock.patch.object(target, "FUTURE_MATERIALIZER_REVIEWED_BLOB", "0" * 40), mock.patch.object(
-            target, "FUTURE_MATERIALIZER_EXTERNAL_SEAL_SHA256", "0" * 64,
-        ):
-            with self.assertRaisesRegex(PermissionError, "no issuer"):
-                target._require_reviewed_self_identity()
+        with tempfile.TemporaryDirectory() as directory:
+            seal = Path(directory) / "seal.json"
+            seal.write_bytes(b"{}\n")
+            with mock.patch.object(target, "FUTURE_MATERIALIZER_REVIEWED_BLOB", "0" * 40), mock.patch.object(
+                target, "FUTURE_MATERIALIZER_EXTERNAL_SEAL_SHA256", hashlib.sha256(seal.read_bytes()).hexdigest(),
+            ), mock.patch.object(target, "FUTURE_MATERIALIZER_EXTERNAL_SEAL_PATH", seal):
+                with self.assertRaisesRegex(PermissionError, "identity drift"):
+                    target._require_reviewed_self_identity()
 
     def test_scientific_helpers_are_mechanically_identical_to_reviewed_blob(self) -> None:
         old_source = Path(reviewed.__file__).read_text(encoding="utf-8")

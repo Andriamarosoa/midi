@@ -10,9 +10,9 @@ Le nouveau module est :
 
 `src/polyphonic/harmonic_censoring_h27_activation_capable_production_materializer_dormant.py`
 
-- blob Git : `969c7f9a1c8830a2d91f94654a06a833c492c8f7` ;
-- taille : `27 951` octets ;
-- SHA-256 : `a273c975e72a324d60e3c6413141098a547ce905f2fdcedecfcbd5a3f7ff4a7a`.
+- blob Git apres hardening : `9bd10221dd620f5982e80edb215579245bb755a1` ;
+- taille : `29 984` octets ;
+- SHA-256 : `627f1993ee0c3f26624c72b32fea1ba524abe3058e47057cba58a7111bb82390`.
 
 Les dix-huit fonctions de logique scientifique et de publication sont
 mecaniquement identiques au module dormant revu `d3a903ac...`, a l'exception
@@ -24,11 +24,14 @@ de son seal, du contrat d'activation `2df0e536...` et de son seal
 `0ef61aa7...`. Elle confirme les cinq inputs, le namespace, les comptages
 `124/17/107` et les destinations fixes. Aucun override n'est expose.
 
-La capability reste inconstructible, non copiable et non serialisable. Le
-garde et le publisher utilises par l'entree sont captures hors des attributs
-de module modifiables; rebinder `_require_capability` ou `_publish` ne peut pas
-deverrouiller l'entree. Les onze helpers production sont enveloppes par le
-garde fige et refusent les appels directs avant tout acces a leurs arguments.
+La capability reste inconstructible, non copiable et non serialisable. Apres
+revue adversariale, la barriere n'est plus un objet fonction Python mutable :
+elle est un `mappingproxy.__getitem__` natif partiellement applique, sans
+`__code__` modifiable. L'entree et les onze noms de helpers production pointent
+sur cette meme barriere native et refusent avant tout argument, meme si les
+anciens attributs de garde/publisher sont rebindes.
+Un validateur administratif effectif compare aussi runtime, environnement,
+HEAD/worktree, destinations et identite module/seal avant toute future claim.
 L'identite future du module et son seal restent volontairement absents : le
 module est donc non emissible et non activable.
 
