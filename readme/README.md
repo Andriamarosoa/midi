@@ -14,12 +14,22 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 activation/connection binding PASS; a distinct dormant gate implementation now awaits review; activation, both connections, materializer and science remain closed. -->
+<!-- H26_CORRECTION_STATUS: H27 dormant activation/connection gate PASS; exact module seal, acyclic identity binding and binding seal now await review; all five edges and science remain closed. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_FUTURE_BRIDGE_OPERATIONAL_ACTIVATION_CONNECTION_DORMANT_IMPLEMENTATION_PENDING_EXTERNAL_REVIEW`.
+  `H27_FUTURE_BRIDGE_OPERATIONAL_ACTIVATION_CONNECTION_DORMANT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `339e79d6e7f49606c0bfd05b269e7b4cb34faeb3`
+  conclut `PASS`. Le gate dormant exact (blob `d6047037...`, 13835 octets,
+  SHA-256 `7162a858...`) possede maintenant un seal externe, un identity binding
+  acyclique et le seal du binding. Le lot rebind les quatre artefacts
+  activation/connection, quatre bridge, quatre compatibility et vingt
+  predecesseurs sans les modifier. Seuls gate exists/reviewed/sealed sont vrais;
+  gate operational, activation, les deux connexions, materializer et science
+  restent faux. Les cinq public edges restent `().__getitem__`. `8/8` tests
+  administratifs et `200/200` tests H27 passent. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-future-bridge-operational-activation-connection-dormant-identity-binding.md`.
 - La revue externe de `e0c51e9f2006aabfcc104f3bf63caa8885aac607`
   conclut `PASS` et autorise un module gate strictement dormant. Ce nouveau
   module revalide avant tout mock les quatre artefacts activation/connection
