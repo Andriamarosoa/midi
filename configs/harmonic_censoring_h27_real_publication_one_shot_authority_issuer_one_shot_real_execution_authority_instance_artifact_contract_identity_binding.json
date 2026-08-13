@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "binding_id": "H27_REAL_PUBLICATION_ONE_SHOT_REAL_EXECUTION_AUTHORITY_INSTANCE_ARTIFACT_CONTRACT_IDENTITY_BINDING_V1",
+  "status": "ADMINISTRATIVE_BINDING_PENDING_EXTERNAL_REVIEW_NO_AUTHORITY_INSTANCE_NO_GRANT_NO_CONSUMPTION_NO_DESTINATION_NO_FILESYSTEM_NO_SCIENCE",
+  "reviewed_contract": {
+    "path": "configs/harmonic_censoring_h27_real_publication_one_shot_authority_issuer_one_shot_real_execution_authority_instance_artifact_contract.json",
+    "reviewed_commit": "0e3abcf37c4909cd0b6eebdb5f43a2f051868f24",
+    "external_review_verdict": "PASS",
+    "git_blob_sha1": "969fc67b0e9cd024d2021226afb2ff971f81e242",
+    "size_bytes": 7320,
+    "raw_sha256": "197b9f0d304d2b159b8194c584ce3b1c2fbb9edf7131e5a6a3b201d2b6cf2d56"
+  },
+  "contract_external_seal": {
+    "path": "configs/harmonic_censoring_h27_real_publication_one_shot_authority_issuer_one_shot_real_execution_authority_instance_artifact_contract_external_seal.json",
+    "git_blob_sha1": "62555d67cb90629852b31644bc7ddb01fbed16a5",
+    "size_bytes": 1445,
+    "raw_sha256": "dd36c8ee7d99930f38085766d16a6a51f757e9706ae287ec67ea9052458f05ae"
+  },
+  "transitive_identity_source": {
+    "path": "configs/harmonic_censoring_h27_real_publication_one_shot_authority_issuer_one_shot_real_execution_authority_instance_artifact_contract.json",
+    "expanded_predecessor_identities": 92,
+    "combined_unique_identity_count": 94
+  },
+  "preserved_canonical_schema": {
+    "top_level_field_order_exact": true,
+    "sealed_chain_identity_field_order_exact": true,
+    "canonical_utf8_lf_no_bom_compact": true,
+    "authority_instance_id_derivation_exact": true,
+    "authority_instance_id_and_nonce_unique_never_reusable": true,
+    "persistent_registry_and_terminal_reservation_required": true
+  },
+  "preserved_normative_order": [
+    "rehash_all_ninety_two_predecessor_identities",
+    "consume_one_shot_authority",
+    "first_destination_observation_probes_absence",
+    "create_exclusive_without_overwrite"
+  ],
+  "dependency_graph": {
+    "acyclic": true,
+    "self_hash_present": false,
+    "historical_back_reference_present": false,
+    "all_ninety_four_bound_identities_rehashed": true
+  },
+  "current_state": {
+    "authority_instance_artifact_contract_exists": true,
+    "authority_instance_artifact_contract_externally_reviewed": true,
+    "authority_instance_artifact_contract_externally_sealed": true,
+    "authority_instance_artifact_contract_identity_binding_exists": true,
+    "authority_instance_artifact_contract_identity_binding_externally_reviewed": false,
+    "authority_instance_artifact_contract_identity_binding_externally_sealed": false,
+    "authority_instance_exists": false,
+    "authority_instance_granted": false,
+    "authority_instance_consumed": false,
+    "issuer_invocation_authorized": false,
+    "issuer_invoked": false,
+    "issuance_artifact_exists": false,
+    "authority_exists": false,
+    "claim_exists": false,
+    "capability_exists": false,
+    "destination_observation_authorized": false,
+    "destination_observed": false,
+    "filesystem_operation_authorized": false,
+    "connections_open": false,
+    "materializer_authorized": false,
+    "population_exists": false,
+    "science_authorized": false,
+    "locked_test_used": false,
+    "training_or_calibration_authorized": false
+  },
+  "public_edges_closed": 8,
+  "next_action": "External review of this administrative binding and seal only; the real authority-instance artifact remains forbidden"
+}

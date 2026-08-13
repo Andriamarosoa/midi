@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "seal_id": "H27_REAL_PUBLICATION_ONE_SHOT_REAL_EXECUTION_AUTHORITY_INSTANCE_ARTIFACT_CONTRACT_IDENTITY_BINDING_EXTERNAL_SEAL_V1",
+  "status": "SEALED_PENDING_EXTERNAL_REVIEW_ADMINISTRATIVE_ONLY_NO_AUTHORITY_INSTANCE_NO_ARTIFACT_NO_DESTINATION_NO_SCIENCE",
+  "identity_binding": {
+    "path": "configs/harmonic_censoring_h27_real_publication_one_shot_authority_issuer_one_shot_real_execution_authority_instance_artifact_contract_identity_binding.json",
+    "git_blob_sha1": "544d1b6cfc058028dde9a97defabf0da2de160ee",
+    "size_bytes": 3482,
+    "raw_sha256": "11d9c682b5b43712f1e125120221afb4edb8123355aaf6cdf7ede564f7233da9"
+  },
+  "reviewed_contract_commit": "0e3abcf37c4909cd0b6eebdb5f43a2f051868f24",
+  "bound_identity_count": 94,
+  "canonical_top_level_and_nested_order_preserved": true,
+  "identity_nonce_uniqueness_and_terminal_reservation_preserved": true,
+  "dependency_graph_acyclic": true,
+  "self_hash_present": false,
+  "historical_back_reference_present": false,
+  "public_edges_closed": 8,
+  "authority_instance_exists": false,
+  "authority_instance_artifact_exists": false,
+  "authority_granted": false,
+  "authority_consumed": false,
+  "issuer_invocation_authorized": false,
+  "destination_observation_authorized": false,
+  "filesystem_materializer_population_science": false,
+  "locked_test_used": false,
+  "training_or_calibration_authorized": false,
+  "next_action": "External review of this exact administrative binding and seal only; no authority-instance artifact may be created"
+}
