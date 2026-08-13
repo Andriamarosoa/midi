@@ -1,0 +1,12 @@
+{
+  "schema_version":1,
+  "binding_id":"H27_REAL_PUBLICATION_ONE_SHOT_AUTHORITY_CONTRACT_IDENTITY_BINDING_V1",
+  "status":"ADMINISTRATIVE_BINDING_PENDING_EXTERNAL_REVIEW_NO_AUTHORITY_NO_DESTINATION_OBSERVATION_NO_SCIENCE",
+  "reviewed_contract":{"path":"configs/harmonic_censoring_h27_real_publication_one_shot_authority_contract.json","reviewed_commit":"827cccead21986fc77046911d2f9321c3c11d39c","external_review_verdict":"PASS","git_blob_sha1":"72b3adffed2426e1254809a90d1cd7783768d3c9","size_bytes":3695,"raw_sha256":"aac8e197778f6fd818c030a4f8392ae89d2f1de9975068840c10465d769c9512"},
+  "contract_external_seal":{"path":"configs/harmonic_censoring_h27_real_publication_one_shot_authority_contract_external_seal.json","git_blob_sha1":"a1cfa34bd475c8fdee24cc59f4b3c3651724d229","size_bytes":984,"raw_sha256":"a81e4dafad6947fecb34db3e94699ced180774594be96d9f1d917b8b0d801127"},
+  "transitive_identity_source":{"path":"configs/harmonic_censoring_h27_real_publication_one_shot_authority_contract.json","preexisting_unique_identities":68,"combined_unique_identity_count":70},
+  "dependency_graph":{"acyclic":true,"self_hash_present":false,"historical_back_reference_present":false,"all_seventy_identities_rehashed":true},
+  "current_state":{"one_shot_authority_contract_exists":true,"one_shot_authority_contract_externally_reviewed":true,"one_shot_authority_contract_externally_sealed":true,"one_shot_authority_contract_identity_binding_exists":true,"one_shot_authority_contract_identity_binding_externally_reviewed":false,"one_shot_authority_contract_identity_binding_externally_sealed":false,"authority_exists":false,"claim_exists":false,"capability_exists":false,"destination_observed":false,"filesystem_operation_authorized":false,"real_execution_authorized":false,"connections_open":false,"materializer_authorized":false,"population_exists":false,"science_authorized":false,"locked_test_used":false,"training_or_calibration_authorized":false},
+  "public_edges_closed":8,
+  "next_action":"External review of this administrative binding and seal only; no authority instantiation or execution"
+}
