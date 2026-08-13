@@ -71,6 +71,12 @@ class H27OneShotAuthorityInstanceArtifactContractTests(unittest.TestCase):
         self.assertTrue(schema["single_use_exact_boolean"])
         self.assertFalse(schema["consumed_initial_exact_boolean"])
         self.assertTrue(schema["object_key_order_must_equal_exact_top_level_field_order"])
+        self.assertTrue(schema["sealed_chain_identity_key_order_must_equal_exact_fields"])
+        self.assertTrue(schema["nested_object_key_order_must_equal_sealed_chain_identity_exact_fields"])
+        self.assertEqual(
+            list(schema["sealed_chain_identity_exact_values"]),
+            schema["sealed_chain_identity_exact_fields"],
+        )
         self.assertNotIn("sorted_keys", " ".join(schema))
         self.assertIn("sha256(", schema["authority_instance_id_derivation"])
         self.assertTrue(schema["authority_instance_id_unique_in_namespace_and_never_reusable"])
@@ -92,6 +98,17 @@ class H27OneShotAuthorityInstanceArtifactContractTests(unittest.TestCase):
         ordered = {key: values[key] for key in schema["exact_top_level_field_order"]}
         canonical = (json.dumps(ordered, ensure_ascii=True, separators=(",", ":")) + "\n").encode("utf-8")
         self.assertEqual(list(json.loads(canonical).keys()), schema["exact_top_level_field_order"])
+        parsed = json.loads(canonical)
+        self.assertEqual(
+            list(parsed["sealed_chain_identity"]),
+            schema["sealed_chain_identity_exact_fields"],
+        )
+        permuted_nested = dict(reversed(list(schema["sealed_chain_identity_exact_values"].items())))
+        self.assertNotEqual(list(permuted_nested), schema["sealed_chain_identity_exact_fields"])
+        self.assertNotEqual(
+            json.dumps(permuted_nested, separators=(",", ":")),
+            json.dumps(schema["sealed_chain_identity_exact_values"], separators=(",", ":")),
+        )
         self.assertNotIn(b"\r", canonical)
         self.assertFalse(canonical.startswith(b"\xef\xbb\xbf"))
         self.assertTrue(canonical.endswith(b"\n"))

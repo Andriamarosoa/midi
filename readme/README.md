@@ -36,6 +36,9 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   de derivation/unicite terminale de l'identite et du nonce. La correction du
   meme contrat conserve l'ordre exact, definit la derivation SHA-256 et exige
   un registre persistant avec reservation terminale avant publication.
+  La deuxieme revue de `cc8749ce...` confirme ces corrections mais exige aussi
+  l'ordre normatif exact des six cles du sous-objet `sealed_chain_identity`;
+  celui-ci est maintenant ferme et une permutation est rejetee par test.
 - La revue externe de `9dcd506e95c74f03c0efe4a7e8117bbf7b841d86`
   conclut `PASS`. Le lot courant ajoute uniquement l'identity binding du
   contrat de la future autorite d'execution reelle one-shot et son seal. Il

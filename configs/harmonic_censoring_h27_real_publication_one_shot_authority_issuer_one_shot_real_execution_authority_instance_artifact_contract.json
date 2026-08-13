@@ -77,6 +77,7 @@
       "binding_size_bytes",
       "binding_raw_sha256"
     ],
+    "sealed_chain_identity_key_order_must_equal_exact_fields": true,
     "sealed_chain_identity_exact_values": {
       "contract_git_blob_sha1": "40757fa14d3df8b2aca2e12924faf7be329b9687",
       "contract_size_bytes": 5300,
@@ -91,6 +92,7 @@
     "duplicate_json_keys_rejected": true,
     "non_finite_json_values_rejected": true,
     "object_key_order_must_equal_exact_top_level_field_order": true,
+    "nested_object_key_order_must_equal_sealed_chain_identity_exact_fields": true,
     "canonical_utf8_lf_no_bom_compact_json_preserving_exact_field_order": true
   },
   "future_instance_rules": {

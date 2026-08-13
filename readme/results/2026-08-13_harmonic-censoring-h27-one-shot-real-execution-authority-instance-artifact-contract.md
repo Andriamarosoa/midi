@@ -18,11 +18,11 @@ n'est autorisee. Les huit edges restent fermes. `locked_test_used=false`;
 entrainement et calibration restent interdits.
 
 Identites avant commit : contrat blob
-`302b9ad2de7985c1636dd17ab859e3ac107e25ce`, `7168` octets, SHA-256
-`ace62d0f8602597bd4fb2b4135ee25cbd218c9c7f5588086c3816741343b3261` ;
-seal blob `064718b0d02a95a0b2f8484d0f43c36620546f7f`, `1445` octets,
+`969fc67b0e9cd024d2021226afb2ff971f81e242`, `7320` octets, SHA-256
+`197b9f0d304d2b159b8194c584ce3b1c2fbb9edf7131e5a6a3b201d2b6cf2d56` ;
+seal blob `62555d67cb90629852b31644bc7ddb01fbed16a5`, `1445` octets,
 SHA-256
-`f26086db443d69910709cbda1450b57fe5dcb1c99d5afa0c6fd778e2c996ab7d`.
+`dd36c8ee7d99930f38085766d16a6a51f757e9706ae287ec67ea9052458f05ae`.
 
 Validation locale : `3/3` tests administratifs, `349/349` tests H27,
 `py_compile` et `git diff --check` passent.
@@ -31,3 +31,8 @@ La premiere revue externe conclut `FAIL` sur deux ambiguïtes. La correction
 conserve un seul ordre canonique explicite des dix champs, definit l'ID par
 SHA-256 du namespace et des bindings exacts, puis exige l'unicite permanente
 de l'ID et du nonce avec reservation terminale avant publication.
+
+La deuxieme revue conclut `FAIL` sur l'ordre interne encore implicite du
+sous-objet `sealed_chain_identity`. La correction exige maintenant exactement
+l'ordre declare de ses six cles et teste qu'une permutation produit des bytes
+non canoniques et doit etre rejetee.
