@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "contract_id": "H27_ACTIVATION_CAPABLE_MATERIALIZER_IDENTITY_BINDING_V1",
+  "status": "CONTRACT_ONLY_REVIEWED_IDENTITY_BOUND_DORMANT_NO_AUTHORITY_NO_ACTIVATION",
+  "scope": "bind the exact externally reviewed activation-capable materializer identity without changing any runtime scientific or authority semantics",
+  "population_namespace": "H27_SYNTHETIC_V1",
+  "reviewed_materializer": {
+    "path": "src/polyphonic/harmonic_censoring_h27_activation_capable_production_materializer_dormant.py",
+    "reviewed_commit": "e47effd1ac10987242b537f5b54a9cfbed84faeb",
+    "reviewed_parent_commit": "c1871e67a9aac441ec1df9f654b1a1a3b28f17d3",
+    "git_blob_sha1": "79f399359e366781f9526098c98a93cca71b1b49",
+    "size_bytes": 32243,
+    "raw_sha256": "02bf7e9a8e7d0e8f292adb7b00742c83c19ab56eb89e35adc5da9c1c3144ff70",
+    "exists": true,
+    "externally_reviewed": true,
+    "externally_sealed": true,
+    "activation_execution_target": false
+  },
+  "materializer_external_review_seal": {
+    "path": "configs/harmonic_censoring_h27_activation_capable_production_materializer_external_review_seal.json",
+    "git_blob_sha1": "d5b852e63676b59a75b938ef17c51f9247dd5e68",
+    "size_bytes": 3057,
+    "raw_sha256": "68751aede0f11ce04763eb7398f4c071db91310c62c9a58c11667b908b58f95f"
+  },
+  "historical_activation_contract": {
+    "path": "configs/harmonic_censoring_h27_materialization_activation_contract.json",
+    "git_blob_sha1": "2df0e53637cc31d97c01e75b88cb47c2e866c187",
+    "size_bytes": 11131,
+    "raw_sha256": "a1e679e4357552bd88640d3d67a6f17bd9feaad38e8f26e4ed68539f167980c4",
+    "remains_byte_identical": true
+  },
+  "historical_activation_contract_external_seal": {
+    "path": "configs/harmonic_censoring_h27_materialization_activation_contract_external_seal.json",
+    "git_blob_sha1": "0ef61aa7ada69b619a8e7acd7138151a36496089",
+    "size_bytes": 3122,
+    "raw_sha256": "2174570372df3e8349a425d62ce8e1d084238757fb944968ad8539d9dcabac9d",
+    "remains_byte_identical": true
+  },
+  "historical_authority_contract": {
+    "path": "configs/harmonic_censoring_h27_activation_capable_materializer_authority_contract.json",
+    "git_blob_sha1": "e7ff1b71bdd62adf8341dbd824302f1eb57e69c6",
+    "size_bytes": 7358,
+    "raw_sha256": "da96c338d4a99e848ab5fa63d717442c3af27fab6268bb9abae99c1f76321dab",
+    "remains_byte_identical": true
+  },
+  "historical_authority_contract_external_seal": {
+    "path": "configs/harmonic_censoring_h27_activation_capable_materializer_authority_contract_external_seal.json",
+    "git_blob_sha1": "d34da25095581694ce4ca928734bb9b01d2e357c",
+    "size_bytes": 1245,
+    "raw_sha256": "8bb92ad437331528adf744388e77b445c8477a2e7dcbc87f4b84d602a147102b",
+    "remains_byte_identical": true
+  },
+  "normative_overlay": {
+    "supplements_only": "historical_authority_contract.future_activation_capable_materializer",
+    "replacements": {
+      "exists": true,
+      "implementation_authorized": false,
+      "path": "src/polyphonic/harmonic_censoring_h27_activation_capable_production_materializer_dormant.py",
+      "reviewed_commit": "e47effd1ac10987242b537f5b54a9cfbed84faeb",
+      "git_blob_sha1": "79f399359e366781f9526098c98a93cca71b1b49",
+      "raw_sha256": "02bf7e9a8e7d0e8f292adb7b00742c83c19ab56eb89e35adc5da9c1c3144ff70",
+      "external_seal_path": "configs/harmonic_censoring_h27_activation_capable_production_materializer_external_review_seal.json",
+      "external_seal_sha256": "68751aede0f11ce04763eb7398f4c071db91310c62c9a58c11667b908b58f95f"
+    },
+    "all_other_historical_activation_authority_runtime_input_count_destination_one_shot_and_scientific_semantics_inherited_unchanged": true,
+    "caller_override_forbidden": true,
+    "does_not_patch_or_activate_reviewed_module_constants": true,
+    "does_not_create_issuer_authority_capability_claim_or_activation": true
+  },
+  "current_state": {
+    "reviewed_materializer_exists": true,
+    "reviewed_materializer_externally_reviewed": true,
+    "reviewed_materializer_externally_sealed": true,
+    "reviewed_materializer_implementation_authorized": false,
+    "issuer_exists": false,
+    "authority_exists": false,
+    "capability_exists": false,
+    "claim_exists": false,
+    "activation_exists": false,
+    "materialization_authorized": false,
+    "population_exists": false,
+    "population_index_exists": false,
+    "scientific_execution_authorized": false,
+    "locked_test_used": false,
+    "training_or_calibration_authorized": false
+  },
+  "next_action": "External review of this identity binding and its seal only; no issuer claim activation or scientific execution"
+}

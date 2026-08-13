@@ -14,12 +14,24 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: future H27 activation-capable materializer implemented but dormant and unsealed; no issuer, capability, claim, activation, materialization, or science; external review pending. -->
+<!-- H26_CORRECTION_STATUS: exact reviewed H27 activation-capable materializer identity externally sealed and contractually bound; still dormant; no issuer, capability, claim, activation, materialization, or science; binding review pending. -->
 ## État courant
 
-- Mise à jour : `2026-08-12`.
+- Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_ACTIVATION_CAPABLE_MATERIALIZER_DORMANT_IMPLEMENTED_UNSEALED_NO_AUTHORITY_NO_ACTIVATION_NO_EXECUTION`.
+  `H27_REVIEWED_MATERIALIZER_IDENTITY_BOUND_AND_SEALED_DORMANT_PENDING_EXTERNAL_REVIEW`.
+- La revue externe du module exact au commit
+  `e47effd1ac10987242b537f5b54a9cfbed84faeb` conclut `PASS` et autorise
+  uniquement son scellement externe et le rebinding contractuel de son identite.
+  Le seal lie le blob `79f39935...` (32 243 octets, SHA-256 `02bf7e9a...`).
+  Un overlay acyclique lie cette identite et son seal sans modifier les contrats
+  historiques ni le module revu. Les constantes d'activation du module restent
+  `None` et son entree publique reste la barriere dormante. Aucun issuer,
+  authority, capability, claim, activation, materialization, population, index,
+  calcul NumPy, entrainement, calibration ou locked-test n'existe. `72/72` tests
+  H27 passent; `locked_test_used=false`. Le lot exact attend maintenant une revue
+  externe avant toute nouvelle portee. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-activation-capable-materializer-identity-seal-binding.md`.
 - La revue externe de `b8f6d904d3b0bdf6db5dbce939e6cdf09ee6ac55`
   conclut `PASS`. Le nouveau module activable est maintenant implemente mais
   reste strictement dormant et non scelle. Sa logique scientifique est

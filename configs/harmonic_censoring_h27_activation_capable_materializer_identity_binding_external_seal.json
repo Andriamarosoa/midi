@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "seal_id": "H27_ACTIVATION_CAPABLE_MATERIALIZER_IDENTITY_BINDING_EXTERNAL_SEAL_V1",
+  "status": "SEALED_PENDING_EXTERNAL_REVIEW_DORMANT_NO_AUTHORITY_NO_ACTIVATION",
+  "identity_binding": {
+    "path": "configs/harmonic_censoring_h27_activation_capable_materializer_identity_binding.json",
+    "git_blob_sha1": "a32721107c1ff65697661cfa7a2a235811884fc6",
+    "size_bytes": 4609,
+    "raw_sha256": "a752721a022433ac1d9fddccb29b9e56cbd5c1bc0566762ca50acd2f9b01a9fc"
+  },
+  "reviewed_materializer": {
+    "path": "src/polyphonic/harmonic_censoring_h27_activation_capable_production_materializer_dormant.py",
+    "reviewed_commit": "e47effd1ac10987242b537f5b54a9cfbed84faeb",
+    "git_blob_sha1": "79f399359e366781f9526098c98a93cca71b1b49",
+    "size_bytes": 32243,
+    "raw_sha256": "02bf7e9a8e7d0e8f292adb7b00742c83c19ab56eb89e35adc5da9c1c3144ff70"
+  },
+  "materializer_external_review_seal": {
+    "path": "configs/harmonic_censoring_h27_activation_capable_production_materializer_external_review_seal.json",
+    "git_blob_sha1": "d5b852e63676b59a75b938ef17c51f9247dd5e68",
+    "size_bytes": 3057,
+    "raw_sha256": "68751aede0f11ce04763eb7398f4c071db91310c62c9a58c11667b908b58f95f"
+  },
+  "seal_semantics": {
+    "identity_binding_only": true,
+    "historical_contracts_remain_byte_identical": true,
+    "reviewed_module_remains_byte_identical": true,
+    "issuer_exists": false,
+    "authority_exists": false,
+    "capability_exists": false,
+    "claim_exists": false,
+    "activation_exists": false,
+    "materialization_authorized": false,
+    "scientific_execution_authorized": false,
+    "locked_test_used": false
+  },
+  "next_action": "External review of the exact identity binding bytes and this seal; no operational action"
+}

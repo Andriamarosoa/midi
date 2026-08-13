@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "seal_id": "H27_ACTIVATION_CAPABLE_PRODUCTION_MATERIALIZER_EXTERNAL_REVIEW_SEAL_V1",
+  "status": "REVIEWED_SEALED_DORMANT_NO_AUTHORITY_NO_ACTIVATION",
+  "reviewed_commit": "e47effd1ac10987242b537f5b54a9cfbed84faeb",
+  "reviewed_parent_commit": "c1871e67a9aac441ec1df9f654b1a1a3b28f17d3",
+  "external_review_verdict": "PASS",
+  "implementation": {
+    "path": "src/polyphonic/harmonic_censoring_h27_activation_capable_production_materializer_dormant.py",
+    "git_blob_sha1": "79f399359e366781f9526098c98a93cca71b1b49",
+    "size_bytes": 32243,
+    "raw_sha256": "02bf7e9a8e7d0e8f292adb7b00742c83c19ab56eb89e35adc5da9c1c3144ff70",
+    "role": "reviewed activation-capable production materializer implementation, still dormant",
+    "activation_execution_target": false,
+    "authority_boundary_only_difference": true,
+    "scientific_logic_mechanically_equivalent_to_reviewed_dormant_logic": true
+  },
+  "reviewed_dormant_logic": {
+    "path": "src/polyphonic/harmonic_censoring_h27_production_materializer_dormant.py",
+    "git_blob_sha1": "d3a903acfa67daf822d50aab005b88943a8c18fa",
+    "size_bytes": 22223,
+    "raw_sha256": "1d4b0b651c2c916a1a1bcd71578aa263074290c90fd381be867b77ef46cc0a25",
+    "activation_execution_target": false
+  },
+  "prior_activation_contract": {
+    "path": "configs/harmonic_censoring_h27_materialization_activation_contract.json",
+    "git_blob_sha1": "2df0e53637cc31d97c01e75b88cb47c2e866c187",
+    "size_bytes": 11131,
+    "raw_sha256": "a1e679e4357552bd88640d3d67a6f17bd9feaad38e8f26e4ed68539f167980c4"
+  },
+  "prior_activation_contract_external_seal": {
+    "path": "configs/harmonic_censoring_h27_materialization_activation_contract_external_seal.json",
+    "git_blob_sha1": "0ef61aa7ada69b619a8e7acd7138151a36496089",
+    "size_bytes": 3122,
+    "raw_sha256": "2174570372df3e8349a425d62ce8e1d084238757fb944968ad8539d9dcabac9d"
+  },
+  "prior_authority_contract": {
+    "path": "configs/harmonic_censoring_h27_activation_capable_materializer_authority_contract.json",
+    "git_blob_sha1": "e7ff1b71bdd62adf8341dbd824302f1eb57e69c6",
+    "size_bytes": 7358,
+    "raw_sha256": "da96c338d4a99e848ab5fa63d717442c3af27fab6268bb9abae99c1f76321dab"
+  },
+  "prior_authority_contract_external_seal": {
+    "path": "configs/harmonic_censoring_h27_activation_capable_materializer_authority_contract_external_seal.json",
+    "git_blob_sha1": "d34da25095581694ce4ca928734bb9b01d2e357c",
+    "size_bytes": 1245,
+    "raw_sha256": "8bb92ad437331528adf744388e77b445c8477a2e7dcbc87f4b84d602a147102b"
+  },
+  "issuer_exists": false,
+  "authority_exists": false,
+  "capability_exists": false,
+  "claim_exists": false,
+  "activation_exists": false,
+  "materialization_authorized": false,
+  "population_exists": false,
+  "population_index_exists": false,
+  "scientific_execution_authorized": false,
+  "locked_test_used": false,
+  "training_or_calibration_authorized": false,
+  "next_action": "Bind this reviewed implementation and seal contractually without creating an issuer, claim, activation, or execution path"
+}
