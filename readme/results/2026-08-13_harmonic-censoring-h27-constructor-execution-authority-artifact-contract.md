@@ -21,3 +21,10 @@ Identite exacte du contrat : blob
 `4a6539a5a4e85f5017919a6b676ed06587405fdbb06360cea386aee6513be86e`.
 
 Validation locale : `3/3` tests administratifs et `379/379` tests H27.
+
+La premiere revue de `d3b80971326c2cf810b8fe6cc9e90e72a80d23db`
+conclut `FAIL` uniquement parce que le test ne verrouillait pas explicitement
+tous les invariants normatifs deja presents. La micro-correction conserve le
+contrat et son seal byte-identiques et ajoute les assertions manquantes sur les
+types, constantes, rejets JSON, canonicalisation, six regles futures et
+semantiques du seal. Aucun nouveau pouvoir n'est ouvert.

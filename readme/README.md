@@ -29,6 +29,11 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   invocation ou science n'existe. Rapport :
   `readme/results/2026-08-13_harmonic-censoring-h27-constructor-execution-authority-artifact-contract.md`.
   Validation locale : `3/3` tests administratifs et `379/379` tests H27.
+  La premiere revue de `d3b80971326c2cf810b8fe6cc9e90e72a80d23db`
+  conclut `FAIL` sur la couverture mecanique incomplete des invariants deja
+  declares. La micro-correction conserve contrat et seal byte-identiques et
+  verrouille tous les types, constantes, rejets JSON, regles futures et
+  semantiques du seal; nouvelle revue requise avant tout identity binding.
 - La revue externe de `8382475d7a0d7bfb5e5ccb7f75dd3f874afd6cea`
   conclut `PASS`. Le lot courant ajoute seulement l'identity binding du contrat
   corrige et son seal : 106 chemins uniques rehashes. Aucun artefact runtime ni
