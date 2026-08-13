@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "binding_id": "H27_REAL_PUBLICATION_AUTHORITY_INSTANCE_ARTIFACT_CONSTRUCTOR_REAL_INVOCATION_AUTHORIZATION_CONTRACT_IDENTITY_BINDING_V1",
+  "status": "ADMINISTRATIVE_BINDING_PENDING_EXTERNAL_REVIEW_NO_EXECUTION_AUTHORITY_ARTIFACT_NO_EXPECTED_HEAD_NO_INVOCATION_NO_RESERVATION_NO_SCIENCE",
+  "reviewed_contract":{"path":"configs/harmonic_censoring_h27_real_publication_authority_instance_artifact_constructor_real_invocation_authorization_contract.json","reviewed_commit":"8382475d7a0d7bfb5e5ccb7f75dd3f874afd6cea","external_review_verdict":"PASS","git_blob_sha1":"c5262db444bc0852403cfd76770470946b53abdb","size_bytes":5836,"raw_sha256":"6f4557d33d0134057a84b6adaf5a18fc57b77117a2eedc034b91615c82ddd2bb"},
+  "contract_external_seal":{"path":"configs/harmonic_censoring_h27_real_publication_authority_instance_artifact_constructor_real_invocation_authorization_contract_external_seal.json","git_blob_sha1":"1657b358595c1864f147b5a07c56e0f910eb7d81","size_bytes":1520,"raw_sha256":"308b991d3adb78f012c60fda205171ec89db7d5eaedea76e9b2035491721b486"},
+  "transitive_identity_source":{"path":"configs/harmonic_censoring_h27_real_publication_authority_instance_artifact_constructor_real_invocation_authorization_contract.json","expanded_predecessor_identities":104,"combined_unique_identity_count":106},
+  "preserved_git_head_contract":{"future_authority_artifact_distinct_reviewed_sealed":true,"expected_git_head_exact_native_lowercase_hex40":true,"expected_git_head_bound_by_artifact_identity_and_seal":true,"no_current_head_fallback_or_automatic_selection":true,"runtime_head_equality_and_clean_worktree_before_rehash104":true,"mismatch_terminal_before_registry_or_reservation":true},
+  "preserved_fail_closed_order_exact": true,
+  "dependency_graph":{"acyclic":true,"self_hash_present":false,"historical_back_reference_present":false,"all_one_hundred_six_bound_identities_rehashed":true},
+  "current_state":{"authorization_contract_exists":true,"authorization_contract_externally_reviewed":true,"authorization_contract_externally_sealed":true,"authorization_contract_identity_binding_exists":true,"authorization_contract_identity_binding_externally_reviewed":false,"authorization_contract_identity_binding_externally_sealed":false,"execution_authority_artifact_exists":false,"expected_git_head_bound":false,"constructor_invoked_really":false,"persistent_registry_opened":false,"identity_nonce_reserved":false,"authority_instance_artifact_exists":false,"authority_instance_exists":false,"destination_observed":false,"filesystem_operation_authorized":false,"connections_open":false,"materializer_authorized":false,"population_exists":false,"science_authorized":false,"locked_test_used":false,"training_or_calibration_authorized":false},
+  "public_edges_closed":8,
+  "next_action":"External review of this administrative binding and seal only; no execution authority artifact or expected Git head"
+}
