@@ -14,28 +14,28 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 dormant issuer/authority/claim/capability boundary hardened after CHANGES REQUIRED; exact bindings, native single-use guards, and nested symlink confinement tested; no operational artifact, activation, materialization, or science; external review pending. -->
+<!-- H26_CORRECTION_STATUS: H27 dormant issuer/authority/claim/capability boundary hardened after second CHANGES REQUIRED; one native generator.send atomically attests exact capability/binding, PID and code identity before terminal consumption; no mutable mapping authority, operational artifact, activation, materialization, or science; external review pending. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_DORMANT_AUTHORITY_BOUNDARY_HARDENED_PENDING_EXTERNAL_REVIEW`.
-- La revue externe de `38bba1111aea6b0669b56eec7ed3d3aaa16449fe`
-  conclut `CHANGES REQUIRED` sur trois bloqueurs adversariaux. Le correctif lie
-  maintenant effectivement la capability aux SHA authority/claim, au blob du
-  materializer et au nonce. La closure Python `consume` et sa cellule mutable
-  sont supprimees : les attestations utilisent `mappingproxy.__getitem__` et la
-  consommation single-use un unique `generator.__next__`, sans `__code__` ni
-  `__closure__` modifiables. Le bundle est read-only, les faux bindings et
-  `dataclasses.replace` sont refuses, et la concurrence conserve un seul
-  gagnant. Chaque parent reellement ouvert est controle par `lstat`, reparse,
-  resolution et containment; de vrais liens/junctions `authority` et `claims`
-  vers l'exterieur echouent sans ecriture. Les invariants precedents `O_EXCL`,
-  `0600`, fsync, interruption durable, mauvais PID et drift post-claim restent
-  couverts. `87/87` tests H27, `py_compile` et `git diff --check` passent. Aucun
-  artefact reel, activation, materialization, population/index, NumPy
-  scientifique, training, calibration ou locked-test n'existe. Rapport :
-  `readme/results/2026-08-13_harmonic-censoring-h27-dormant-authority-boundary-hardening.md`.
+  `H27_DORMANT_ATOMIC_ATTESTED_CONSUMPTION_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `8812091656e2f5921f8bf51adcb0fcf1de8d7538`
+  conclut `CHANGES REQUIRED` sur deux derniers bypass : la consommation pouvait
+  avancer sans appeler les trois guards voisins, et le dictionnaire derriere
+  `MappingProxyType` restait recuperable par reflexion. Le correctif supprime les
+  quatre primitives separees. Une seule methode native `generator.send`, sans
+  `__code__` ni `__closure__`, exige dans la meme transition l'objet capability
+  exact et l'objet binding exact, puis verifie le PID courant et rehache
+  l'identite code avant de retourner le binding et de devenir terminale. Un
+  echec capability, binding, PID ou code consomme egalement la tentative sans
+  retry. La session est un tuple natif immutable et aucune autorite ne repose
+  plus sur un backing dict; une attaque reelle `gc.get_referents`, les voisins
+  forges et la concurrence sont testes. Les protections filesystem precedentes
+  sont conservees. `88/88` tests H27 passent; aucun artefact reel, activation,
+  materialization, population/index, NumPy scientifique, training, calibration
+  ou locked-test n'existe. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-atomic-attested-consumption-hardening.md`.
 - La revue externe du module exact au commit
   `e47effd1ac10987242b537f5b54a9cfbed84faeb` conclut `PASS` et autorise
   uniquement son scellement externe et le rebinding contractuel de son identite.

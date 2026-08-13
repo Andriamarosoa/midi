@@ -16,7 +16,6 @@ from pathlib import Path
 import re
 import stat
 import tempfile
-from types import MappingProxyType
 from typing import Callable, Mapping, NamedTuple
 
 
@@ -298,6 +297,51 @@ class _CapabilityBinding(NamedTuple):
     code_identity_sha256: str
 
 
+class _DormantSandboxSession(NamedTuple):
+    capability: object
+    binding: _CapabilityBinding
+    authority_path: Path
+    claim_path: Path
+    consume_attested: object
+
+
+def _attested_single_use_consumer(
+    exact_capability: object,
+    exact_binding: _CapabilityBinding,
+    identity_path: str,
+    identity_open_flags: int,
+    native_getpid: Callable[[], int],
+    native_open: Callable[..., int],
+    native_read: Callable[[int, int], bytes],
+    native_close: Callable[[int], None],
+    native_sha256: Callable[[bytes], object],
+) -> object:
+    """Consume once only after all attestations pass in the same generator step."""
+
+    request = yield
+    if type(request) is not tuple or len(request) != 2:
+        raise PermissionError("H27 dormant consumption requires an exact capability/binding pair.")
+    candidate, candidate_binding = request
+    if candidate is not exact_capability or candidate_binding is not exact_binding:
+        raise PermissionError("H27 dormant capability or binding identity mismatch.")
+    if native_getpid() != exact_binding.process_id:
+        raise PermissionError("H27 dormant capability cannot cross a process boundary.")
+    descriptor = native_open(identity_path, identity_open_flags)
+    chunks = []
+    try:
+        while True:
+            chunk = native_read(descriptor, 1024 * 1024)
+            if not chunk:
+                break
+            chunks.append(chunk)
+    finally:
+        native_close(descriptor)
+    observed_identity = native_sha256(b"".join(chunks)).hexdigest()
+    if observed_identity != exact_binding.code_identity_sha256:
+        raise PermissionError("H27 dormant issuer code identity drift after claim.")
+    yield exact_binding
+
+
 def _claim_payload(authority_sha256: str, invocation_nonce: str) -> bytes:
     return _canonical_json_bytes({
         "schema_version": 1,
@@ -321,8 +365,9 @@ def _issue_dormant_sandbox_session(
     sandbox_root: Path,
     invocation_nonce: str,
     issued_at_utc: str,
-    identity_supplier: Callable[[], bytes] | None = None,
-) -> Mapping[str, object]:
+    identity_path: Path | None = None,
+    expected_process_id: int | None = None,
+) -> _DormantSandboxSession:
     """Exercise the future lifecycle only inside a dedicated temporary sandbox."""
 
     root = _require_sandbox_root(sandbox_root)
@@ -333,8 +378,8 @@ def _issue_dormant_sandbox_session(
     if authority_path.exists() or claim_path.exists():
         raise FileExistsError("H27 dormant sandbox authority or claim already exists.")
 
-    supplier = identity_supplier or (lambda: Path(__file__).resolve(strict=True).read_bytes())
-    expected_identity = hashlib.sha256(supplier()).hexdigest()
+    sealed_identity_path = (identity_path or Path(__file__)).resolve(strict=True)
+    expected_identity = hashlib.sha256(sealed_identity_path.read_bytes()).hexdigest()
     _write_durable_new(root, authority_path, authority_raw)
     authority_written = authority_path.read_bytes()
     if authority_written != authority_raw:
@@ -353,24 +398,28 @@ def _issue_dormant_sandbox_session(
         claim_sha256=claim_sha256,
         materializer_blob=_MATERIALIZER[1],
         invocation_nonce=invocation_nonce,
-        process_id=os.getpid(),
+        process_id=os.getpid() if expected_process_id is None else expected_process_id,
         code_identity_sha256=expected_identity,
     )
-    capability_guard = MappingProxyType({capability: binding}).__getitem__
-    process_guard = MappingProxyType({binding.process_id: binding}).__getitem__
-    code_identity_guard = MappingProxyType({binding.code_identity_sha256: binding}).__getitem__
-    one_shot_iterator = (item for item in (binding,))
-    consume_once = one_shot_iterator.__next__
-    return MappingProxyType({
-        "capability": capability,
-        "binding": binding,
-        "authority_path": authority_path,
-        "claim_path": claim_path,
-        "attest_capability": capability_guard,
-        "attest_process": process_guard,
-        "attest_code_identity": code_identity_guard,
-        "consume_once": consume_once,
-    })
+    one_shot_iterator = _attested_single_use_consumer(
+        capability,
+        binding,
+        str(sealed_identity_path),
+        os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0),
+        os.getpid,
+        os.open,
+        os.read,
+        os.close,
+        hashlib.sha256,
+    )
+    next(one_shot_iterator)
+    return _DormantSandboxSession(
+        capability=capability,
+        binding=binding,
+        authority_path=authority_path,
+        claim_path=claim_path,
+        consume_attested=one_shot_iterator.send,
+    )
 
 
 _DORMANT_NATIVE_BARRIER = ().__getitem__
