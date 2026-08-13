@@ -14,12 +14,21 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 constructor execution-authority artifact contract identity binding pending external review; no runtime authority artifact, expected head value, invocation or science. -->
+<!-- H26_CORRECTION_STATUS: H27 constructor execution-authority artifact pending external review; no registry, reservation, invocation or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_CONSTRUCTOR_EXECUTION_AUTHORITY_ARTIFACT_CONTRACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+  `H27_CONSTRUCTOR_EXECUTION_AUTHORITY_ARTIFACT_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `46a6bdf81a56a7a7a10524d4e55092301a452207`
+  conclut `PASS`. Le lot courant cree uniquement l'artefact administratif
+  d'autorite d'execution et son seal, avec `expected_git_head` explicitement
+  fixe au commit PASS `46a6bdf81a56a7a7a10524d4e55092301a452207` et identite
+  `45f4dc4ff73284f1355eb125dc36d8c8bad2372818bf5f80b85b758ea69ae64e`.
+  Les 112 identites amont sont rehashees. Aucun registre, reservation,
+  invocation ou science n'est ouvert. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-constructor-execution-authority-artifact.md`.
+  Validation locale : `3/3` tests administratifs et `385/385` tests H27.
 - La revue externe de `55bd7a533952d1ead5d7611580a066e7505698f4`
   conclut `PASS`. Le lot courant ajoute seulement l'identity binding
   administratif du contrat de l'artefact d'autorite d'execution et son seal :
