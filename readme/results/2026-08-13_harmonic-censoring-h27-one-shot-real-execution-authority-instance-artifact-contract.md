@@ -18,11 +18,16 @@ n'est autorisee. Les huit edges restent fermes. `locked_test_used=false`;
 entrainement et calibration restent interdits.
 
 Identites avant commit : contrat blob
-`b2e2a3d7ee8d554c4e7d4c988d17a7b8e5a39c22`, `6393` octets, SHA-256
-`dffe596e893b34d3ecf840e7a038ef4e8849d744db6b95ccd250e3a9a1e0e020` ;
-seal blob `17a7666fa71e00346a388d2f6e7bcae69c0e1b81`, `1445` octets,
+`302b9ad2de7985c1636dd17ab859e3ac107e25ce`, `7168` octets, SHA-256
+`ace62d0f8602597bd4fb2b4135ee25cbd218c9c7f5588086c3816741343b3261` ;
+seal blob `064718b0d02a95a0b2f8484d0f43c36620546f7f`, `1445` octets,
 SHA-256
-`405d64c1b53a7125ef95a1def76db0880cb98aeba721576ba54851379c3f13ac`.
+`f26086db443d69910709cbda1450b57fe5dcb1c99d5afa0c6fd778e2c996ab7d`.
 
 Validation locale : `3/3` tests administratifs, `349/349` tests H27,
 `py_compile` et `git diff --check` passent.
+
+La premiere revue externe conclut `FAIL` sur deux ambiguïtes. La correction
+conserve un seul ordre canonique explicite des dix champs, definit l'ID par
+SHA-256 du namespace et des bindings exacts, puis exige l'unicite permanente
+de l'ID et du nonce avec reservation terminale avant publication.

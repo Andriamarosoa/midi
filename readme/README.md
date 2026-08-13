@@ -31,6 +31,11 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   Rapport :
   `readme/results/2026-08-13_harmonic-censoring-h27-one-shot-real-execution-authority-instance-artifact-contract.md`.
   Validation locale : `3/3` tests administratifs et `349/349` tests H27.
+  La premiere revue de `517c590a0bdfbeb967a2cff12d4a661a4eef97e4`
+  conclut `FAIL`: ordre de champs contradictoire avec `sorted_keys` et absence
+  de derivation/unicite terminale de l'identite et du nonce. La correction du
+  meme contrat conserve l'ordre exact, definit la derivation SHA-256 et exige
+  un registre persistant avec reservation terminale avant publication.
 - La revue externe de `9dcd506e95c74f03c0efe4a7e8117bbf7b841d86`
   conclut `PASS`. Le lot courant ajoute uniquement l'identity binding du
   contrat de la future autorite d'execution reelle one-shot et son seal. Il

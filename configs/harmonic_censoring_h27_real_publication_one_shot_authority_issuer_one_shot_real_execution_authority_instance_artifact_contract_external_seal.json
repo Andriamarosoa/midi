@@ -4,9 +4,9 @@
   "status": "SEALED_PENDING_EXTERNAL_REVIEW_CONTRACT_ONLY_NO_AUTHORITY_INSTANCE_NO_CONSUMPTION_NO_DESTINATION_NO_SCIENCE",
   "contract": {
     "path": "configs/harmonic_censoring_h27_real_publication_one_shot_authority_issuer_one_shot_real_execution_authority_instance_artifact_contract.json",
-    "git_blob_sha1": "b2e2a3d7ee8d554c4e7d4c988d17a7b8e5a39c22",
-    "size_bytes": 6393,
-    "raw_sha256": "dffe596e893b34d3ecf840e7a038ef4e8849d744db6b95ccd250e3a9a1e0e020"
+    "git_blob_sha1": "302b9ad2de7985c1636dd17ab859e3ac107e25ce",
+    "size_bytes": 7168,
+    "raw_sha256": "ace62d0f8602597bd4fb2b4135ee25cbd218c9c7f5588086c3816741343b3261"
   },
   "bound_predecessor_identity_count": 92,
   "issuer_id": "h27-execution-codex-mac-primary",

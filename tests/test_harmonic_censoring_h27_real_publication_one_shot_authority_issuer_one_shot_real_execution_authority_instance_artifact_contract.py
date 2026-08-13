@@ -57,7 +57,7 @@ class H27OneShotAuthorityInstanceArtifactContractTests(unittest.TestCase):
     def test_exact_future_schema_order_and_closed_state(self) -> None:
         schema = self.contract["future_artifact_schema"]
         self.assertEqual(
-            schema["exact_top_level_fields"],
+            schema["exact_top_level_field_order"],
             [
                 "schema_version", "artifact_type", "authority_instance_id", "issuer_id",
                 "issued_at_utc", "invocation_nonce", "canonical_destination_path",
@@ -70,6 +70,46 @@ class H27OneShotAuthorityInstanceArtifactContractTests(unittest.TestCase):
         self.assertEqual(schema["canonical_destination_path_exact"], "/Users/amcarene/h27-admin/activation/h27-materialization-v1.json")
         self.assertTrue(schema["single_use_exact_boolean"])
         self.assertFalse(schema["consumed_initial_exact_boolean"])
+        self.assertTrue(schema["object_key_order_must_equal_exact_top_level_field_order"])
+        self.assertNotIn("sorted_keys", " ".join(schema))
+        self.assertIn("sha256(", schema["authority_instance_id_derivation"])
+        self.assertTrue(schema["authority_instance_id_unique_in_namespace_and_never_reusable"])
+        self.assertTrue(schema["invocation_nonce_unique_in_h27_namespace_and_never_reusable"])
+        self.assertTrue(schema["persistent_used_identity_and_nonce_registry_required_before_creation"])
+        self.assertTrue(schema["identity_or_nonce_reserved_terminally_before_artifact_publication"])
+        values = {
+            "schema_version": 1,
+            "artifact_type": schema["artifact_type_exact"],
+            "authority_instance_id": "a" * 64,
+            "issuer_id": schema["issuer_id_exact"],
+            "issued_at_utc": "2026-08-13T00:00:00Z",
+            "invocation_nonce": "b" * 64,
+            "canonical_destination_path": schema["canonical_destination_path_exact"],
+            "sealed_chain_identity": schema["sealed_chain_identity_exact_values"],
+            "single_use": True,
+            "consumed": False,
+        }
+        ordered = {key: values[key] for key in schema["exact_top_level_field_order"]}
+        canonical = (json.dumps(ordered, ensure_ascii=True, separators=(",", ":")) + "\n").encode("utf-8")
+        self.assertEqual(list(json.loads(canonical).keys()), schema["exact_top_level_field_order"])
+        self.assertNotIn(b"\r", canonical)
+        self.assertFalse(canonical.startswith(b"\xef\xbb\xbf"))
+        self.assertTrue(canonical.endswith(b"\n"))
+        def derive(nonce: str) -> str:
+            preimage = "\0".join((
+                schema["authority_instance_id_namespace"], schema["issuer_id_exact"],
+                values["issued_at_utc"], nonce, schema["canonical_destination_path_exact"],
+                schema["sealed_chain_identity_exact_values"]["contract_raw_sha256"],
+                schema["sealed_chain_identity_exact_values"]["binding_raw_sha256"],
+            )).encode("ascii")
+            return hashlib.sha256(preimage).hexdigest()
+        self.assertNotEqual(derive("b" * 64), derive("c" * 64))
+        used_ids: set[str] = set()
+        used_nonces: set[str] = set()
+        instance_id = derive("b" * 64)
+        used_ids.add(instance_id); used_nonces.add("b" * 64)
+        self.assertIn(instance_id, used_ids)
+        self.assertIn("b" * 64, used_nonces)
         self.assertEqual(
             self.contract["future_normative_order"],
             [

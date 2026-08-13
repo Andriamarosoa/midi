@@ -44,7 +44,7 @@
     "all_identities_must_be_rehashed_before_future_instance_creation": true
   },
   "future_artifact_schema": {
-    "exact_top_level_fields": [
+    "exact_top_level_field_order": [
       "schema_version",
       "artifact_type",
       "authority_instance_id",
@@ -59,9 +59,15 @@
     "schema_version_exact_integer": 1,
     "artifact_type_exact": "h27_real_publication_one_shot_execution_authority_instance",
     "authority_instance_id_lowercase_hex64": true,
+    "authority_instance_id_derivation": "lowercase_hex(sha256(ascii(namespace + NUL + issuer_id + NUL + issued_at_utc + NUL + invocation_nonce + NUL + canonical_destination_path + NUL + sealed_chain_identity.contract_raw_sha256 + NUL + sealed_chain_identity.binding_raw_sha256)))",
+    "authority_instance_id_namespace": "H27_REAL_PUBLICATION_ONE_SHOT_AUTHORITY_INSTANCE_V1",
+    "authority_instance_id_unique_in_namespace_and_never_reusable": true,
     "issuer_id_exact": "h27-execution-codex-mac-primary",
     "issued_at_utc_strict_rfc3339_seconds": true,
     "invocation_nonce_lowercase_hex64": true,
+    "invocation_nonce_unique_in_h27_namespace_and_never_reusable": true,
+    "persistent_used_identity_and_nonce_registry_required_before_creation": true,
+    "identity_or_nonce_reserved_terminally_before_artifact_publication": true,
     "canonical_destination_path_exact": "/Users/amcarene/h27-admin/activation/h27-materialization-v1.json",
     "sealed_chain_identity_exact_fields": [
       "contract_git_blob_sha1",
@@ -84,7 +90,8 @@
     "unknown_or_missing_fields_rejected": true,
     "duplicate_json_keys_rejected": true,
     "non_finite_json_values_rejected": true,
-    "canonical_utf8_lf_no_bom_sorted_keys_compact_json": true
+    "object_key_order_must_equal_exact_top_level_field_order": true,
+    "canonical_utf8_lf_no_bom_compact_json_preserving_exact_field_order": true
   },
   "future_instance_rules": {
     "instance_strictly_single_use_and_non_reusable": true,
