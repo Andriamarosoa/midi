@@ -14,12 +14,22 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 dormant composition module seal/binding PASS through 9828ddf; future bridge compatibility contract and seal now await external review; every public edge and science step remain closed; no real operation or science. -->
+<!-- H26_CORRECTION_STATUS: H27 future bridge compatibility contract PASS at b4be156; exact contract identity binding and binding seal now await external review; every public edge and science step remain closed; no real operation or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_FUTURE_BRIDGE_COMPATIBILITY_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+  `H27_FUTURE_BRIDGE_COMPATIBILITY_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `b4be1566c571e8dee9719091bcb41d8cda218fd7`
+  conclut `PASS`. Un identity binding administratif lie maintenant le contrat
+  bridge exact (blob `c03e81b9...`, 12630 octets, SHA-256 `fa394ba1...`) et son
+  seal (blob `c0a09c2e...`, 3661 octets, SHA-256 `952eae11...`), puis rebind les
+  20 prédécesseurs composition/boundary/materializer/historiques sans les
+  modifier. Le graphe reste acyclique, sans self-hash ni back-reference. Seuls
+  contract exists/reviewed/sealed deviennent vrais; bridge, implémentation,
+  chemin d'exécution et invocation materializer restent faux. `8/8` tests
+  administratifs et `145/145` tests H27 passent. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-future-bridge-compatibility-identity-binding.md`.
 - La portée cumulative `69c343374e1f4a9c555e12cc40a8d883ea7bec40`
   puis `9828ddf2ef89dd6cddb88a482c88c0f1ef6abdd6` conclut `PASS`.
   Un contrat purement déclaratif fixe maintenant la compatibilité du futur
