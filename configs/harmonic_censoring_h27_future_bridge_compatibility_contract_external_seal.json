@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "seal_id": "H27_FUTURE_BRIDGE_COMPATIBILITY_CONTRACT_EXTERNAL_SEAL_V1",
+  "status": "SEALED_PENDING_EXTERNAL_REVIEW_DORMANT_NO_BRIDGE_NO_OPERATION_NO_SCIENCE",
+  "contract": {
+    "path": "configs/harmonic_censoring_h27_future_bridge_compatibility_contract.json",
+    "git_blob_sha1": "c03e81b9532c9d3c2ef95bec3ca58e4daf3a0bca",
+    "size_bytes": 12630,
+    "raw_sha256": "fa394ba1567e021aeb46f714837f52b9a63fd43cd56ff1440a962884dc274fd1"
+  },
+  "composition_module_identity_binding": {
+    "path": "configs/harmonic_censoring_h27_one_shot_execution_composition_dormant_identity_binding.json",
+    "git_blob_sha1": "94dc6d881fc194b6a2d3555c034aea10ac78547b",
+    "size_bytes": 7178,
+    "raw_sha256": "95041dbaf037e4bd84911436ea7c1ca8bd6aaaca1843fe194968f1767c41d9c2"
+  },
+  "composition_module_identity_binding_external_seal": {
+    "path": "configs/harmonic_censoring_h27_one_shot_execution_composition_dormant_identity_binding_external_seal.json",
+    "git_blob_sha1": "4d0be3a499bb6cdb5082a940eb03cf0e383f6db7",
+    "size_bytes": 3593,
+    "raw_sha256": "af7b334440808a52501259c692b9815824efbfedce3e468bb9813f7d3cae41c7"
+  },
+  "boundary_identity_binding": {
+    "path": "configs/harmonic_censoring_h27_issuer_authority_claim_capability_identity_binding.json",
+    "git_blob_sha1": "e7191b7b27d9339b1f94fc89aec032dd9ad61062",
+    "size_bytes": 6032,
+    "raw_sha256": "0f965e7bce28982d408dfd41054bde59f02c11a5016dc90af483dba6a14b6a1d"
+  },
+  "materializer_identity_binding": {
+    "path": "configs/harmonic_censoring_h27_activation_capable_materializer_identity_binding.json",
+    "git_blob_sha1": "a32721107c1ff65697661cfa7a2a235811884fc6",
+    "size_bytes": 4609,
+    "raw_sha256": "a752721a022433ac1d9fddccb29b9e56cbd5c1bc0566762ca50acd2f9b01a9fc"
+  },
+  "composition_contract_identity_binding": {
+    "path": "configs/harmonic_censoring_h27_one_shot_execution_composition_identity_binding.json",
+    "git_blob_sha1": "1f41f92b60c541219013bb78d40d38d183b2b80c",
+    "size_bytes": 6092,
+    "raw_sha256": "4621b87709ecf74ed5cb733d1a4470e576b8ea159b48256446b5dd539b0a70e0"
+  },
+  "activation_contract": {
+    "path": "configs/harmonic_censoring_h27_materialization_activation_contract.json",
+    "git_blob_sha1": "2df0e53637cc31d97c01e75b88cb47c2e866c187",
+    "size_bytes": 11131,
+    "raw_sha256": "a1e679e4357552bd88640d3d67a6f17bd9feaad38e8f26e4ed68539f167980c4"
+  },
+  "authority_contract": {
+    "path": "configs/harmonic_censoring_h27_activation_capable_materializer_authority_contract.json",
+    "git_blob_sha1": "e7ff1b71bdd62adf8341dbd824302f1eb57e69c6",
+    "size_bytes": 7358,
+    "raw_sha256": "da96c338d4a99e848ab5fa63d717442c3af27fab6268bb9abae99c1f76321dab"
+  },
+  "seal_semantics": {
+    "contract_only": true,
+    "dependency_graph_acyclic": true,
+    "self_hash_present": false,
+    "historical_back_reference_present": false,
+    "all_predecessors_remain_byte_identical": true,
+    "step_11_binding_only_handoff": true,
+    "science_before_consumption_forbidden": true,
+    "bridge_exists": false,
+    "bridge_implementation_authorized": false,
+    "bridge_execution_path_open": false,
+    "issuer_exists": false,
+    "authority_exists": false,
+    "claim_exists": false,
+    "operational_capability_exists": false,
+    "activation_exists": false,
+    "materializer_invocation_authorized": false,
+    "scientific_execution_authorized": false,
+    "population_exists": false,
+    "population_index_exists": false,
+    "locked_test_used": false,
+    "training_or_calibration_authorized": false
+  },
+  "next_action": "External review of the exact future bridge compatibility contract bytes and this seal only"
+}

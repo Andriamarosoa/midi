@@ -1,0 +1,254 @@
+{
+  "schema_version": 1,
+  "contract_id": "H27_FUTURE_BRIDGE_COMPATIBILITY_V1",
+  "status": "CONTRACT_ONLY_DORMANT_NO_BRIDGE_NO_OPERATION_NO_SCIENCE",
+  "scope": "define the exact future compatibility boundary between consumed H27 step-11 authority and the reviewed dormant production materializer",
+  "population_namespace": "H27_SYNTHETIC_V1",
+  "sealed_predecessors": {
+    "composition_module": {
+      "path": "src/polyphonic/harmonic_censoring_h27_one_shot_execution_composition_dormant.py",
+      "git_blob_sha1": "c57dbd4ccd6f9ef9b75e3698580ca14d66d74682",
+      "size_bytes": 7289,
+      "raw_sha256": "6e2ccf317e071eed583b85995c11c386dfc5b306bb9a3b4c283dbf2fe0c6c9bb"
+    },
+    "composition_module_external_review_seal": {
+      "path": "configs/harmonic_censoring_h27_one_shot_execution_composition_dormant_external_review_seal.json",
+      "git_blob_sha1": "2376e43f4276b9faa5f4e3e1a65aea55faf0fde1",
+      "size_bytes": 3344,
+      "raw_sha256": "9ba47632bca989b53fdcfeca5c957d5c20e81ed17c3eda358a4ee4b981e6bc4a"
+    },
+    "composition_module_identity_binding": {
+      "path": "configs/harmonic_censoring_h27_one_shot_execution_composition_dormant_identity_binding.json",
+      "git_blob_sha1": "94dc6d881fc194b6a2d3555c034aea10ac78547b",
+      "size_bytes": 7178,
+      "raw_sha256": "95041dbaf037e4bd84911436ea7c1ca8bd6aaaca1843fe194968f1767c41d9c2"
+    },
+    "composition_module_identity_binding_external_seal": {
+      "path": "configs/harmonic_censoring_h27_one_shot_execution_composition_dormant_identity_binding_external_seal.json",
+      "git_blob_sha1": "4d0be3a499bb6cdb5082a940eb03cf0e383f6db7",
+      "size_bytes": 3593,
+      "raw_sha256": "af7b334440808a52501259c692b9815824efbfedce3e468bb9813f7d3cae41c7"
+    },
+    "boundary_module": {
+      "path": "src/polyphonic/harmonic_censoring_h27_issuer_authority_claim_capability_dormant.py",
+      "git_blob_sha1": "ec61eef88dce7591fd411af230568b1e1d44d62e",
+      "size_bytes": 18915,
+      "raw_sha256": "d3d06f8c087845089094ff71f29d8745581d391784b9bbc40abeb57b0ba42f2f"
+    },
+    "boundary_module_external_review_seal": {
+      "path": "configs/harmonic_censoring_h27_issuer_authority_claim_capability_boundary_external_review_seal.json",
+      "git_blob_sha1": "c33350b3712a179a0e5577e90763ec72f96fd165",
+      "size_bytes": 3864,
+      "raw_sha256": "93b3d86633f979a9521cd93d0e7629956015e279ad61cbbfca579d2857185c6b"
+    },
+    "boundary_identity_binding": {
+      "path": "configs/harmonic_censoring_h27_issuer_authority_claim_capability_identity_binding.json",
+      "git_blob_sha1": "e7191b7b27d9339b1f94fc89aec032dd9ad61062",
+      "size_bytes": 6032,
+      "raw_sha256": "0f965e7bce28982d408dfd41054bde59f02c11a5016dc90af483dba6a14b6a1d"
+    },
+    "boundary_identity_binding_external_seal": {
+      "path": "configs/harmonic_censoring_h27_issuer_authority_claim_capability_identity_binding_external_seal.json",
+      "git_blob_sha1": "9e89d4d68013193582dee1062c61aaf8dd191ad3",
+      "size_bytes": 2848,
+      "raw_sha256": "664ad640a623f3357226b83985665253b3c37b5c4fc10252223e25e0087def12"
+    },
+    "materializer_module": {
+      "path": "src/polyphonic/harmonic_censoring_h27_activation_capable_production_materializer_dormant.py",
+      "git_blob_sha1": "79f399359e366781f9526098c98a93cca71b1b49",
+      "size_bytes": 32243,
+      "raw_sha256": "02bf7e9a8e7d0e8f292adb7b00742c83c19ab56eb89e35adc5da9c1c3144ff70"
+    },
+    "materializer_module_external_review_seal": {
+      "path": "configs/harmonic_censoring_h27_activation_capable_production_materializer_external_review_seal.json",
+      "git_blob_sha1": "d5b852e63676b59a75b938ef17c51f9247dd5e68",
+      "size_bytes": 3057,
+      "raw_sha256": "68751aede0f11ce04763eb7398f4c071db91310c62c9a58c11667b908b58f95f"
+    },
+    "materializer_identity_binding": {
+      "path": "configs/harmonic_censoring_h27_activation_capable_materializer_identity_binding.json",
+      "git_blob_sha1": "a32721107c1ff65697661cfa7a2a235811884fc6",
+      "size_bytes": 4609,
+      "raw_sha256": "a752721a022433ac1d9fddccb29b9e56cbd5c1bc0566762ca50acd2f9b01a9fc"
+    },
+    "materializer_identity_binding_external_seal": {
+      "path": "configs/harmonic_censoring_h27_activation_capable_materializer_identity_binding_external_seal.json",
+      "git_blob_sha1": "be17bda1d7da5144758606ed4b4f1b56708ebf3d",
+      "size_bytes": 1760,
+      "raw_sha256": "a7aa1f6d844fb25e2f633db8bd2817f6741bfe194418985c8419bda64573b3be"
+    },
+    "composition_contract": {
+      "path": "configs/harmonic_censoring_h27_one_shot_execution_composition_contract.json",
+      "git_blob_sha1": "2fc615a5f1c45245dd579891b42cfe12feb100aa",
+      "size_bytes": 9912,
+      "raw_sha256": "230249ef9118d43d0d538f8b005178fd123852ddf6ed7ee69e1d76553949b622"
+    },
+    "composition_contract_external_seal": {
+      "path": "configs/harmonic_censoring_h27_one_shot_execution_composition_contract_external_seal.json",
+      "git_blob_sha1": "d912a1ebd0fb6818147a0f07da1f6140d9434398",
+      "size_bytes": 2786,
+      "raw_sha256": "9a698340046692eab0e415a6094cdffc7ce36c40ce38382cbe53425f10c6238e"
+    },
+    "composition_contract_identity_binding": {
+      "path": "configs/harmonic_censoring_h27_one_shot_execution_composition_identity_binding.json",
+      "git_blob_sha1": "1f41f92b60c541219013bb78d40d38d183b2b80c",
+      "size_bytes": 6092,
+      "raw_sha256": "4621b87709ecf74ed5cb733d1a4470e576b8ea159b48256446b5dd539b0a70e0"
+    },
+    "composition_contract_identity_binding_external_seal": {
+      "path": "configs/harmonic_censoring_h27_one_shot_execution_composition_identity_binding_external_seal.json",
+      "git_blob_sha1": "cfaf71d625e774cf7294b993b7ea6206b53adc43",
+      "size_bytes": 3184,
+      "raw_sha256": "9e8b20928f233e0910c3bb3c583a4a4686681b91ab8049e89dfe4129c1a5e5e3"
+    },
+    "activation_contract": {
+      "path": "configs/harmonic_censoring_h27_materialization_activation_contract.json",
+      "git_blob_sha1": "2df0e53637cc31d97c01e75b88cb47c2e866c187",
+      "size_bytes": 11131,
+      "raw_sha256": "a1e679e4357552bd88640d3d67a6f17bd9feaad38e8f26e4ed68539f167980c4"
+    },
+    "activation_contract_external_seal": {
+      "path": "configs/harmonic_censoring_h27_materialization_activation_contract_external_seal.json",
+      "git_blob_sha1": "0ef61aa7ada69b619a8e7acd7138151a36496089",
+      "size_bytes": 3122,
+      "raw_sha256": "2174570372df3e8349a425d62ce8e1d084238757fb944968ad8539d9dcabac9d"
+    },
+    "authority_contract": {
+      "path": "configs/harmonic_censoring_h27_activation_capable_materializer_authority_contract.json",
+      "git_blob_sha1": "e7ff1b71bdd62adf8341dbd824302f1eb57e69c6",
+      "size_bytes": 7358,
+      "raw_sha256": "da96c338d4a99e848ab5fa63d717442c3af27fab6268bb9abae99c1f76321dab"
+    },
+    "authority_contract_external_seal": {
+      "path": "configs/harmonic_censoring_h27_activation_capable_materializer_authority_contract_external_seal.json",
+      "git_blob_sha1": "d34da25095581694ce4ca928734bb9b01d2e357c",
+      "size_bytes": 1245,
+      "raw_sha256": "8bb92ad437331528adf744388e77b445c8477a2e7dcbc87f4b84d602a147102b"
+    }
+  },
+  "step_11_consumption_output": {
+    "producer": "composition adapters consume_attested exact single-use generator send",
+    "input_pair": "exact process-local capability identity plus exact binding identity",
+    "successful_return": "the exact same binding object by identity",
+    "capability_state_after_return": "terminally consumed and unusable",
+    "binding_state_after_return": "immutable attested handoff descriptor only",
+    "science_may_begin_before_return": false,
+    "science_may_use_the_consumed_capability_object": false,
+    "required_binding_fields_in_order": [
+      "authority_sha256",
+      "claim_sha256",
+      "materializer_blob",
+      "invocation_nonce",
+      "process_id",
+      "code_identity_sha256"
+    ]
+  },
+  "future_bridge_input_contract": {
+    "accepts_only_successful_step_11_return": true,
+    "accepts_capability_object": false,
+    "accepts_caller_constructed_mapping_or_tuple": false,
+    "requires_exact_binding_object_identity": true,
+    "requires_same_process_id": true,
+    "requires_current_boundary_code_identity_sha256": true,
+    "requires_authority_file_sha256_equal_to_binding": true,
+    "requires_claim_file_sha256_equal_to_binding": true,
+    "requires_materializer_blob": "79f399359e366781f9526098c98a93cca71b1b49",
+    "requires_single_invocation_nonce_equal_to_authority_and_claim": true,
+    "requires_claim_already_durably_consumed": true
+  },
+  "future_materializer_handoff_contract": {
+    "target_module_path": "src/polyphonic/harmonic_censoring_h27_activation_capable_production_materializer_dormant.py",
+    "target_module_blob": "79f399359e366781f9526098c98a93cca71b1b49",
+    "target_module_sha256": "02bf7e9a8e7d0e8f292adb7b00742c83c19ab56eb89e35adc5da9c1c3144ff70",
+    "binding_forwarded_without_field_rewrite": true,
+    "expected_binding_fields_in_order": [
+      "authority_sha256",
+      "claim_sha256",
+      "materializer_blob",
+      "invocation_nonce",
+      "process_id",
+      "code_identity_sha256"
+    ],
+    "future_materializer_capability_may_be_derived_only_inside_a_separately_reviewed_bridge": true,
+    "future_materializer_capability_public_constructor_forbidden": true,
+    "future_materializer_capability_must_be_process_local_noncopyable_and_single_use": true,
+    "direct_materializer_or_helper_call_forbidden": true,
+    "bridge_may_invoke_materializer_at_most_once": true
+  },
+  "future_fail_closed_order": [
+    "receive exact successful step-11 binding identity",
+    "verify bridge contract and external seal bytes",
+    "verify every sealed predecessor byte identity",
+    "verify exact composition boundary and materializer code identities",
+    "verify authority and claim bytes still match the consumed binding",
+    "verify invocation nonce process id and code identity still match",
+    "verify materializer blob and public dormant barrier identity",
+    "atomically establish one local bridge invocation right",
+    "only then derive a nonpublic materializer capability",
+    "invoke the exact materializer once with the unchanged binding context"
+  ],
+  "mandatory_rejections": {
+    "wrong_capability_or_binding": true,
+    "caller_constructed_or_equal_but_nonidentical_binding": true,
+    "stale_missing_replaced_or_rewritten_claim": true,
+    "wrong_authority_sha256": true,
+    "wrong_claim_sha256": true,
+    "wrong_materializer_blob": true,
+    "wrong_invocation_nonce": true,
+    "wrong_process_id": true,
+    "wrong_code_identity_sha256": true,
+    "post_consume_code_or_file_drift": true,
+    "second_bridge_or_materializer_invocation": true,
+    "direct_bridge_helper_or_materializer_call": true,
+    "retry_after_any_consumption_success_failure_interrupt_or_timeout": true
+  },
+  "future_bridge": {
+    "exists": false,
+    "implementation_authorized": false,
+    "path": null,
+    "reviewed_commit": null,
+    "git_blob_sha1": null,
+    "raw_sha256": null,
+    "external_seal_path": null,
+    "external_seal_sha256": null,
+    "execution_path_open": false,
+    "materializer_invocation_authorized": false
+  },
+  "dependency_graph": {
+    "acyclic": true,
+    "self_hash_present": false,
+    "historical_back_reference_present": false,
+    "all_edges_point_to_preexisting_reviewed_or_sealed_artifacts": true,
+    "all_predecessors_remain_byte_identical": true
+  },
+  "current_state": {
+    "bridge_contract_exists": true,
+    "bridge_contract_externally_reviewed": false,
+    "bridge_contract_externally_sealed": false,
+    "bridge_exists": false,
+    "bridge_implementation_authorized": false,
+    "bridge_execution_path_open": false,
+    "issuer_exists": false,
+    "authority_exists": false,
+    "claim_exists": false,
+    "operational_capability_exists": false,
+    "activation_exists": false,
+    "materializer_invocation_authorized": false,
+    "scientific_execution_authorized": false,
+    "population_exists": false,
+    "population_index_exists": false,
+    "locked_test_used": false,
+    "training_or_calibration_authorized": false
+  },
+  "authorization": {
+    "bridge_contract_and_external_seal_creation_authorized": true,
+    "bridge_implementation_authorized": false,
+    "real_administrative_artifact_creation_authorized": false,
+    "authority_claim_capability_or_activation_authorized": false,
+    "materializer_invocation_authorized": false,
+    "scientific_execution_authorized": false,
+    "locked_test_authorized": false,
+    "training_or_calibration_authorized": false
+  },
+  "next_action": "External review of this future bridge compatibility contract and its exact seal only"
+}

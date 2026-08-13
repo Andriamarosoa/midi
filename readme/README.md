@@ -14,12 +14,24 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 dormant composition module PASS at b2e6a06; exact module external seal plus acyclic identity binding and binding seal now await external review; public edge and science step remain closed; no real operation or science. -->
+<!-- H26_CORRECTION_STATUS: H27 dormant composition module seal/binding PASS through 9828ddf; future bridge compatibility contract and seal now await external review; every public edge and science step remain closed; no real operation or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_DORMANT_ONE_SHOT_COMPOSITION_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+  `H27_FUTURE_BRIDGE_COMPATIBILITY_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+- La portée cumulative `69c343374e1f4a9c555e12cc40a8d883ea7bec40`
+  puis `9828ddf2ef89dd6cddb88a482c88c0f1ef6abdd6` conclut `PASS`.
+  Un contrat purement déclaratif fixe maintenant la compatibilité du futur
+  bridge après consommation réussie de step 11 : seul le binding exact par
+  identité peut être transmis, avec authority/claim SHA, materializer blob,
+  nonce, PID et code identity inchangés. La capability consommée est terminale
+  et ne peut pas entrer dans la science. Le contrat lie 20 prédécesseurs exacts,
+  interdit stale claim, drift, mauvais binding/blob/nonce/process, second appel
+  et appel direct. Le bridge reste absent, non autorisé et fermé. Son contrat et
+  son seal passent `9/9` tests ciblés et la suite H27 passe `137/137`; aucune
+  opération ni science n'a été exécutée. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-future-bridge-compatibility-contract.md`.
 - La revue externe de `b2e6a06ebe236eb9f192d85497753ee878617ec6`
   conclut `PASS`. Le module dormant exact (blob `c57dbd4...`, 7289 octets,
   SHA-256 `6e2ccf31...`) possède maintenant un seal externe, un identity binding
