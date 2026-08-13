@@ -14,12 +14,23 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 issuer contract binding PASS; effect-free issuer implementation awaits external review; no real issuance, authority, destination or science. -->
+<!-- H26_CORRECTION_STATUS: H27 one-shot real execution authority contract pending external review; no authority instance, consumption, destination or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_REAL_ISSUANCE_AUTHORIZATION_CONTRACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+  `H27_ONE_SHOT_REAL_EXECUTION_AUTHORITY_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `b29d90a18461cd05ed003ab4cab53f7f49e04c1b`
+  conclut `PASS`. Le lot courant ajoute uniquement le contrat declaratif et le
+  seal externe de la future autorite d'execution reelle one-shot. Il lie les
+  quatre identites PASS/scellees de l'autorisation d'issuance et leurs 84
+  identites amont, soit 88 chemins uniques a rehasher avant toute consommation.
+  L'ordre futur reste `rehash -> consume -> observe absence ->
+  create-exclusive`; succes et echec post-consommation sont terminaux sans
+  retry. Aucune instance d'autorite n'existe ou n'est consommee; issuer,
+  destination, filesystem, materializer et science restent fermes. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-one-shot-real-execution-authority-contract.md`.
+  Validation locale : `3/3` tests administratifs et `343/343` tests H27.
 - La revue externe de `4752b06d4e290b012c9c4e705cdac08011ee3446`
   conclut `PASS`. Le lot courant ajoute uniquement l'identity binding du
   contrat d'autorisation d'issuance et son seal. Il rehash le contrat, son seal
