@@ -14,12 +14,22 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 one-shot real execution authority contract pending external review; no authority instance, consumption, destination or science. -->
+<!-- H26_CORRECTION_STATUS: H27 one-shot real execution authority contract binding pending external review; no authority instance, consumption, destination or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_ONE_SHOT_REAL_EXECUTION_AUTHORITY_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+  `H27_ONE_SHOT_REAL_EXECUTION_AUTHORITY_CONTRACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `9dcd506e95c74f03c0efe4a7e8117bbf7b841d86`
+  conclut `PASS`. Le lot courant ajoute uniquement l'identity binding du
+  contrat de la future autorite d'execution reelle one-shot et son seal. Il
+  recompose le contrat, son seal et 88 predecesseurs, soit 90 chemins uniques,
+  et preserve le single-use, l'ordre `rehash -> consume -> observe absence ->
+  create-exclusive`, la terminalite et l'interdiction de retry. Aucune instance
+  d'autorite n'existe ou n'est consommee; issuer, destination, filesystem,
+  materializer et science restent fermes. Rapport :
+  `readme/results/2026-08-13_harmonic-censoring-h27-one-shot-real-execution-authority-contract-identity-binding.md`.
+  Validation locale : `3/3` tests administratifs et `346/346` tests H27.
 - La revue externe de `b29d90a18461cd05ed003ab4cab53f7f49e04c1b`
   conclut `PASS`. Le lot courant ajoute uniquement le contrat declaratif et le
   seal externe de la future autorite d'execution reelle one-shot. Il lie les

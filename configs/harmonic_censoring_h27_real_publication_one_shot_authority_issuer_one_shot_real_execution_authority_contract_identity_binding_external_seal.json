@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "seal_id": "H27_REAL_PUBLICATION_ISSUER_ONE_SHOT_REAL_EXECUTION_AUTHORITY_CONTRACT_IDENTITY_BINDING_EXTERNAL_SEAL_V1",
+  "status": "SEALED_PENDING_EXTERNAL_REVIEW_ADMINISTRATIVE_ONLY_NO_AUTHORITY_INSTANCE_NO_CONSUMPTION_NO_DESTINATION_NO_SCIENCE",
+  "identity_binding": {
+    "path": "configs/harmonic_censoring_h27_real_publication_one_shot_authority_issuer_one_shot_real_execution_authority_contract_identity_binding.json",
+    "git_blob_sha1": "41bb902d99379c0a518181e97056b4232abbc143",
+    "size_bytes": 3369,
+    "raw_sha256": "400a1010c4be36cbec585de0399137abca8b0b61f218946498d19fad23739e55"
+  },
+  "reviewed_contract_commit": "9dcd506e95c74f03c0efe4a7e8117bbf7b841d86",
+  "bound_identity_count": 90,
+  "single_use_only": true,
+  "success_terminal": true,
+  "post_consumption_failure_terminal": true,
+  "retry_after_consumption_forbidden": true,
+  "dependency_graph_acyclic": true,
+  "self_hash_present": false,
+  "historical_back_reference_present": false,
+  "public_edges_closed": 8,
+  "authority_instance_exists": false,
+  "authority_granted": false,
+  "authority_consumed": false,
+  "issuer_invocation_authorized": false,
+  "destination_observation_authorized": false,
+  "filesystem_materializer_population_science": false,
+  "locked_test_used": false,
+  "training_or_calibration_authorized": false,
+  "next_action": "External review of this exact administrative binding and seal only; the real authority instance remains forbidden"
+}
