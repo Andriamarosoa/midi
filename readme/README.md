@@ -26,6 +26,11 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   doivent declarer zero effet. Aucun artefact, authority, claim, capability,
   destination reelle, filesystem ou science n'est cree. Rapport :
   `readme/results/2026-08-13_harmonic-censoring-h27-one-shot-authority-issuer-effect-free-implementation.md`.
+- La premiere revue de `f8daca6a138285a1946420071b6d4dd32ae94f3b`
+  conclut `FAIL`: verification trop tardive de certaines dependances, callbacks
+  arbitraires non attestables et nonce reutilisable. La correction du meme
+  module impose verify-before-parse, une probe immutable sans callable et un
+  registre one-shot in-memory verrouille. Nouvelle revue requise.
 - La revue externe de `108728b98311c6e5c3a8eaf2909670b3768b3f08`
   conclut `PASS`. Le binding administratif courant lie le contrat issuer PASS,
   son seal et 76 identites preexistantes, soit 78 chemins uniques rehashes.

@@ -9,8 +9,15 @@ H27 exact, un nonce caller-supplied lowercase hex64, un timestamp UTC strict et
 la destination logique exacte. Il construit seulement les neuf champs et les
 bytes JSON canoniques en memoire.
 
-Les adapters doivent attester qu'aucune destination n'a ete observee, qu'aucun
-create/write n'a eu lieu et que les bytes n'ont pas change. Le resultat indique
+La premiere revue conclut FAIL : des dependances etaient parsees avant leur
+verification, des callbacks arbitraires pouvaient produire des effets et le
+nonce etait reutilisable. La correction verifie chaque artefact avant de parser
+ou suivre ses references, remplace les callbacks par une probe immutable sans
+code executable et consomme chaque nonce une seule fois dans un registre
+in-memory verrouille.
+
+La probe doit attester qu'aucune destination n'a ete observee et qu'aucun
+create/write n'a eu lieu. Le resultat indique
 explicitement zero artefact, authority, claim, capability, effet filesystem et
 science. Aucun `open`, `O_EXCL`, write, fsync ou rename n'existe dans le module.
 
