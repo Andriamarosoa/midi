@@ -44,6 +44,32 @@ class TestH27ControlParentCreationContract(unittest.TestCase):
             check(self, entry)
         self.assertEqual(entries[0]["reviewed_commit"], "042974fde833d1ec13132520f003fba0b60ae044")
         self.assertEqual(entries[0]["external_review_verdict"], "PASS")
+        self.assertEqual(
+            (self.contract["schema_version"], self.contract["contract_id"], self.contract["status"], self.contract["scope"]),
+            (
+                1,
+                "H27_CONTROL_PARENT_ONE_SHOT_CREATION_CONTRACT_V1",
+                "CONTRACT_ONLY_NO_RUNNER_NO_FILESYSTEM_NO_REGISTRY_NO_CREATOR_NO_BUNDLE_NO_SCIENCE",
+                "define only the future one-shot bounded creation of the exact control parent below the terminally created H27 administrative root",
+            ),
+        )
+        self.assertEqual(self.contract["completed_admin_root_creation"], {
+            "status_exact": "H27_ADMIN_ROOT_CREATED_TERMINAL_SUCCESS",
+            "authority_terminally_consumed": True,
+            "verified_identity_count": 7,
+            "target_path_exact": "/Users/amcarene/h27-admin",
+            "target_device": 16777233,
+            "target_inode": 1445438,
+            "control_child_created": False,
+            "registry_opened": False,
+            "authority_reserved": False,
+            "authority_consumed": False,
+            "creator_entrypoint_executed": False,
+            "control_bundle_created": False,
+            "constructor_or_materializer_executed": False,
+            "science_or_locked_test": False,
+            "admin_root_creator_retry_forbidden": True,
+        })
 
     def test_closed_future_parent_preflights_order_and_rules(self) -> None:
         self.assertEqual(self.contract["future_control_parent"], {
@@ -97,6 +123,15 @@ class TestH27ControlParentCreationContract(unittest.TestCase):
             "authority_reservation_consumption_creator_bundle_or_science_forbidden": True,
             "target_checkout_detachment_forbidden_in_current_stage": True,
         })
+        self.assertEqual(self.contract["future_runner_requirements"], {
+            "must_be_created_in_distinct_later_commit": True,
+            "external_review_pass_required_before_execution": True,
+            "exact_identity_binding_required": True,
+            "external_identity_binding_seal_required": True,
+            "execution_from_exact_reviewed_git_blob_bytes_only": True,
+            "current_checkout_or_worktree_file_fallback_forbidden": True,
+            "runner_implementation_forbidden_in_current_stage": True,
+        })
         self.assertEqual(
             (self.seal["future_acknowledgement_environment_exact"], self.seal["future_arguments_forbidden"], self.seal["reviewed_predecessor_identity_count"], self.seal["static_preflight_count"], self.seal["one_shot_creation_step_count"], self.seal["creation_rule_count"], self.seal["future_runner_requirement_count"]),
             ("H27_CONTROL_PARENT_CREATE_EXECUTE=1", True, 3, 4, 7, 15, 7),
@@ -109,22 +144,71 @@ class TestH27ControlParentCreationContract(unittest.TestCase):
         )
 
     def test_contract_only_state_and_no_back_reference(self) -> None:
-        true_keys = {"contract_exists", "admin_root_creation_authority_consumed", "admin_root_exists", "empty_registry_file_exists", "reviewed_creator_source_published"}
-        for key, value in self.contract["current_state"].items():
-            self.assertIs(value, key in true_keys, key)
-        for key in (
-            "contract_externally_reviewed", "contract_externally_sealed", "runner_exists",
-            "control_parent_observed", "control_parent_created", "registry_opened",
-            "authority_reserved", "authority_consumed", "creator_entrypoint_executed",
-            "control_bundle_created", "constructor_or_materializer_executed", "science_or_locked_test",
-        ):
-            self.assertIs(self.seal[key], False, key)
-        self.assertIs(self.seal["admin_root_creation_authority_terminally_consumed"], True)
-        self.assertIs(self.seal["empty_registry_file_exists"], True)
-        self.assertIs(self.seal["reviewed_creator_source_published"], True)
-        graph = self.contract["dependency_graph"]
-        self.assertTrue(graph["acyclic"] and graph["all_three_predecessor_identities_rehashed"])
-        self.assertFalse(graph["self_hash_present"] or graph["historical_back_reference_present"])
+        self.assertEqual(self.contract["dependency_graph"], {
+            "acyclic": True,
+            "self_hash_present": False,
+            "historical_back_reference_present": False,
+            "all_three_predecessor_identities_rehashed": True,
+        })
+        self.assertEqual(self.contract["current_state"], {
+            "contract_exists": True,
+            "admin_root_creation_authority_consumed": True,
+            "admin_root_exists": True,
+            "empty_registry_file_exists": True,
+            "reviewed_creator_source_published": True,
+            "runner_exists": False,
+            "control_parent_observed": False,
+            "control_parent_created": False,
+            "registry_opened": False,
+            "authority_reserved": False,
+            "authority_consumed": False,
+            "creator_entrypoint_executed": False,
+            "control_bundle_created": False,
+            "constructor_or_materializer_executed": False,
+            "science_or_locked_test": False,
+        })
+        self.assertEqual(
+            self.contract["next_action"],
+            "External review of this declarative contract and its external seal only; do not implement a runner, create control, detach the target checkout, open the registry, or invoke the creator",
+        )
+        self.assertEqual(self.seal, {
+            "schema_version": 1,
+            "seal_id": "H27_CONTROL_PARENT_ONE_SHOT_CREATION_CONTRACT_EXTERNAL_SEAL_V1",
+            "status": "SEALED_PENDING_EXTERNAL_REVIEW_CONTRACT_ONLY_NO_RUNNER_NO_FILESYSTEM_NO_REGISTRY_NO_CREATOR_NO_BUNDLE_NO_SCIENCE",
+            "contract": {"path": "configs/harmonic_censoring_h27_control_parent_creation_contract.json", "git_blob_sha1": "a9b37b3081ad79b773f3a7291a508665d623307a", "size_bytes": 5537, "raw_sha256": "5d1d0474827e72708e4c1bcb5951e91425fcf95a00f3fc373266193c94653dc3"},
+            "reviewed_admin_root_creator_commit": "042974fde833d1ec13132520f003fba0b60ae044",
+            "admin_root_creation_authority_terminally_consumed": True,
+            "empty_registry_file_exists": True,
+            "reviewed_creator_source_published": True,
+            "future_parent_path_exact": "/Users/amcarene/h27-admin",
+            "future_parent_expected_device_exact": 16777233,
+            "future_parent_expected_inode_exact": 1445438,
+            "future_parent_fd_and_named_entry_must_match_terminal_identity": True,
+            "future_target_leaf_exact": "control",
+            "future_target_path_exact": "/Users/amcarene/h27-admin/control",
+            "future_target_type_exact": "directory",
+            "future_target_mode_exact_octal": "0700",
+            "future_acknowledgement_environment_exact": "H27_CONTROL_PARENT_CREATE_EXECUTE=1",
+            "future_arguments_forbidden": True,
+            "reviewed_predecessor_identity_count": 3,
+            "static_preflight_count": 4,
+            "one_shot_creation_step_count": 7,
+            "creation_rule_count": 15,
+            "future_runner_requirement_count": 7,
+            "contract_externally_reviewed": False,
+            "contract_externally_sealed": False,
+            "runner_exists": False,
+            "control_parent_observed": False,
+            "control_parent_created": False,
+            "registry_opened": False,
+            "authority_reserved": False,
+            "authority_consumed": False,
+            "creator_entrypoint_executed": False,
+            "control_bundle_created": False,
+            "constructor_or_materializer_executed": False,
+            "science_or_locked_test": False,
+            "next_action": "External review of the exact control-parent contract and seal only",
+        })
         for entry in self.contract["reviewed_admin_root_creator_chain"]:
             raw = (ROOT / entry["path"]).read_bytes()
             self.assertNotIn(CONTRACT.name.encode("ascii"), raw)

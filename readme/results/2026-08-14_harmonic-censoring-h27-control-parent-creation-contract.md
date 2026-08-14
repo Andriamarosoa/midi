@@ -31,6 +31,14 @@ Identités exactes :
 - seal : `9edefaa15313be5d3a618b4b3ada012e14ef039b` / `1921` /
   `39f5b4ac64df47644a29597a497f280bdf7dbced02c3d5f549b17e918851f1b5`.
 
+La première revue du commit `667e93e6b3d1797570e12ac1671f6a0083dd863f`
+a conclu `FAIL` uniquement sur la fermeture mécanique du test : plusieurs
+claims contractuels et champs non booléens du seal pouvaient dériver sans
+échec. Le micro-correctif teste désormais exactement les métadonnées, l'état
+terminal du root, les exigences du futur runner, l'état courant, les
+`next_action` et le dictionnaire complet du seal. Les deux JSON ci-dessus ne
+sont pas modifiés.
+
 Le futur contrat lie le parent terminal `/Users/amcarene/h27-admin` au tuple
 `device=16777233`, `inode=1445438`, puis fixe la seule cible
 `/Users/amcarene/h27-admin/control`. La cible devra être absente, créée comme
@@ -50,7 +58,7 @@ registry n'est ni ouvert ni modifié ; aucune autorité n'est réservée ou
 consommée ; le checkout n'est pas détaché ; le creator, le bundle, le
 constructor/materializer, la science et le locked-test restent inexécutés.
 
-État : `H27_CONTROL_PARENT_CREATION_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+État : `H27_CONTROL_PARENT_CREATION_CONTRACT_EXACT_TEST_MICROFIX_PENDING_EXTERNAL_REVIEW`.
 La seule prochaine action est la revue externe du contrat et de son seal.
 
 Validation locale : `3/3` tests ciblés, `477/477` tests H27 et

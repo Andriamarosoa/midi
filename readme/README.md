@@ -14,12 +14,18 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 empty registry file terminal PASS; missing control parent confirmed; declarative control-parent contract pending external review, no runner/filesystem/registry/creator/bundle/science. -->
+<!-- H26_CORRECTION_STATUS: H27 empty registry file terminal PASS; control-parent contract blobs preserved; exact-test microfix pending external review, no runner/filesystem/registry/creator/bundle/science. -->
 ## État courant
 
 - Mise à jour : `2026-08-14`.
 - État courant :
-  `H27_CONTROL_PARENT_CREATION_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+  `H27_CONTROL_PARENT_CREATION_CONTRACT_EXACT_TEST_MICROFIX_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `667e93e6b3d1797570e12ac1671f6a0083dd863f`
+  conclut `FAIL` uniquement parce que le test ne verrouillait pas chaque claim
+  du contrat et du seal. Le micro-correctif courant ajoute les égalités exactes
+  complètes requises dans le test et la documentation. Les blobs contrat
+  `a9b37b30...` et seal `9edefaa1...` restent byte-identiques ; aucun autre
+  fichier ni état opérationnel n'est modifié.
 - La revue externe du préflight post-`c44cf938b04c9d2d3c023be12ab3a35186915c96`
   confirme `PASS` pour le STOP avant réservation : le parent exact
   `/Users/amcarene/h27-admin/control` est absent et le creator consommerait
