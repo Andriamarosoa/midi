@@ -14,12 +14,20 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 control bundle creation authority artifact pending external review and unconsumed; no bundle, filesystem, registry, consumption or science. -->
+<!-- H26_CORRECTION_STATUS: H27 control bundle creation authority artifact identity binding pending external review and unconsumed; no bundle, filesystem, registry, consumption or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_CONTROL_BUNDLE_CREATION_AUTHORITY_ARTIFACT_PENDING_EXTERNAL_REVIEW_UNCONSUMED`.
+  `H27_CONTROL_BUNDLE_CREATION_AUTHORITY_ARTIFACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW_UNCONSUMED`.
+- La revue externe de `f5f4b825b3103386ca3745c915beb20c05f78f0f`
+  conclut `PASS`. Le lot courant ajoute uniquement l'identity binding de
+  l'artefact non consomme et son seal : artefact + seal + 126 amont forment
+  128 paths uniques rehashes. Aucun bundle, filesystem, registre, consommation
+  ou science n'est ouvert. Rapport :
+  `readme/results/2026-08-14_harmonic-censoring-h27-control-bundle-creation-authority-artifact-identity-binding.md`.
+  Identites : binding `2c1d96a6...` / `3730` / `e39079c5...`, seal
+  `47244bbd...` / `1400` / `13ef586b...` ; tests `3/3` et `412/412`.
 - La revue externe de `7ee0a8977208bfa389e284b07207abc40a3517fd`
   conclut `PASS`. Le lot courant cree uniquement l'artefact administratif reel
   distinct et son seal, avec HEAD d'execution fixe au commit PASS `7ee0a897...`,
