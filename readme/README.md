@@ -14,12 +14,27 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 dormant admin-root one-shot creator, identity binding and seal pending external review; no filesystem, source publication, registry, bundle or science. -->
+<!-- H26_CORRECTION_STATUS: H27 creator-leaf creation contract and seal pending external review; no creator runner/filesystem, source publication, registry, bundle or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_ADMIN_ROOT_ONE_SHOT_CREATOR_PENDING_EXTERNAL_REVIEW_DORMANT`.
+  `H27_CREATOR_LEAF_CREATION_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+- L'unique execution one-shot du runner admin-root exact au commit
+  `042974fde833d1ec13132520f003fba0b60ae044` aboutit au succes terminal :
+  `/Users/amcarene/h27-admin`, device `16777233`, inode `1445438`, sept
+  identites verifiees. Cette autorite est consommee et le runner ne doit jamais
+  etre rejoue. Publisher, creator, registre, bundle et science restent faux ;
+  l'autorisation du publisher reste non consommee. Le lot courant definit
+  uniquement le contrat declaratif et le seal externe de la future creation
+  one-shot du leaf exact `creator`. Parent `O_NOFOLLOW`/dirfd stable, probe
+  unique, `mkdir("creator")` premier/seul effet, fsync, verification
+  inode/device, aucun retry/cleanup ni observation des roots publisher sont
+  fermes. Aucun runner creator-leaf ni filesystem n'est execute. Rapport :
+  `readme/results/2026-08-14_harmonic-censoring-h27-creator-leaf-creation-contract.md`.
+  Identites : contrat `133719bc...` / `4976` / `65fca3a1...`, seal
+  `90a3e827...` / `1424` / `2d3d0ef9...`. Prochaine action unique : revue
+  externe de ce contrat et seal ; aucune creation de `creator` autorisee.
 - La revue externe de `fba12da62f2271d574a9fb46c8a20260cf55a1f1`
   conclut `PASS`. Le lot courant implemente uniquement le runner one-shot
   dormant de creation du leaf exact `/Users/amcarene/h27-admin`, son identity
