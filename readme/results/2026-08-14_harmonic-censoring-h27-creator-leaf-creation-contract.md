@@ -31,7 +31,9 @@ Le contrat fixe :
 2. macOS, zéro argument et ACK futur exact
    `H27_CREATOR_LEAF_CREATE_EXECUTE=1` ;
 3. parent exact `/Users/amcarene/h27-admin`, réel, préexistant, ouvert
-   `O_NOFOLLOW` et ancré par `dirfd`/inode/device ;
+   `O_NOFOLLOW` et ancré par `dirfd` ; le fd et l'entrée nommée doivent tous
+   deux correspondre exactement au device `16777233` / inode `1445438` de la
+   création terminale ;
 4. unique probe d'absence de `creator` ;
 5. revalidation du parent immédiatement avant effet ;
 6. `mkdir("creator", dir_fd=parent_fd)` comme premier et seul effet
@@ -51,14 +53,14 @@ Git exacts. Aucun fallback checkout/worktree n'est permis.
 
 ```text
 contract
-133719bcfca63bc05b5988a7f435d69d8794ef5e
-4976 octets
-65fca3a1d6c753ae8f9c4f26f14f5a26011b86923688e2f45f90d9cafdeccaed
+8a03300a483bfc962ce8577e59e32df964d79a0e
+5148 octets
+1c3412c459301b5e0f0c90f4ce2eb0bc926aa7e160e7c7efc43eed134fafec54
 
 external seal
-90a3e827b595a71795d436224f252a518ef182d1
-1424 octets
-2d3d0ef988c717e33218890aeda3d9a83647b301bb6f9fed24d7f85b123487b5
+c86b6da60f834480a64db5e806a9cebc119de815
+1652 octets
+af370f69c2bfffcc2559f9473039fbf05e968d64c7f0c72a6170d96f65f38257
 ```
 
 ## Validation locale sans effet
@@ -67,6 +69,10 @@ Le test compare les trois predecessor identities, la preuve terminale, les
 paths/ACK, l'ordre exact des quatre préflights et sept étapes, le dictionnaire
 exact des quatorze règles, les sept exigences du futur runner et tous les états
 dormants.
+La micro-correction après revue lie mécaniquement l'identité future attendue
+du parent à l'identité terminale archivée, et le seal reflète ces valeurs
+exactes. Une suppression/remplacement au même chemin doit donc échouer avant
+le probe de `creator`.
 
 ```text
 python -B -m unittest tests.test_harmonic_censoring_h27_creator_leaf_creation_contract

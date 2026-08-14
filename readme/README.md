@@ -28,12 +28,15 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   l'autorisation du publisher reste non consommee. Le lot courant definit
   uniquement le contrat declaratif et le seal externe de la future creation
   one-shot du leaf exact `creator`. Parent `O_NOFOLLOW`/dirfd stable, probe
-  unique, `mkdir("creator")` premier/seul effet, fsync, verification
+  unique, et identite parent liee exactement au device `16777233` / inode
+  `1445438` terminal sont exiges pour le fd et l'entree nommee a chaque
+  revalidation. `mkdir("creator")` reste premier/seul effet, fsync, verification
   inode/device, aucun retry/cleanup ni observation des roots publisher sont
   fermes. Aucun runner creator-leaf ni filesystem n'est execute. Rapport :
   `readme/results/2026-08-14_harmonic-censoring-h27-creator-leaf-creation-contract.md`.
-  Identites : contrat `133719bc...` / `4976` / `65fca3a1...`, seal
-  `90a3e827...` / `1424` / `2d3d0ef9...`. Prochaine action unique : revue
+  La micro-correction apres revue ferme ainsi le remplacement du parent au meme
+  path. Identites : contrat `8a03300a...` / `5148` / `1c3412c4...`, seal
+  `c86b6da6...` / `1652` / `af370f69...`. Prochaine action unique : revue
   externe de ce contrat et seal ; aucune creation de `creator` autorisee.
 - La revue externe de `fba12da62f2271d574a9fb46c8a20260cf55a1f1`
   conclut `PASS`. Le lot courant implemente uniquement le runner one-shot

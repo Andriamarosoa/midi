@@ -71,6 +71,8 @@ class TestH27CreatorLeafCreationContract(unittest.TestCase):
                 "acknowledgement_value_exact": "1",
                 "arguments_forbidden": True,
                 "parent_path_exact": "/Users/amcarene/h27-admin",
+                "parent_expected_device_exact": 16777233,
+                "parent_expected_inode_exact": 1445438,
                 "parent_must_preexist": True,
                 "parent_must_be_real_directory_not_symlink": True,
                 "parent_identity_must_remain_stable_by_open_verified_dirfd": True,
@@ -84,17 +86,17 @@ class TestH27CreatorLeafCreationContract(unittest.TestCase):
         self.assertEqual(self.contract["future_static_preflight_before_target_observation"], [
             "rehash_three_reviewed_admin_root_creator_identities",
             "verify_exact_macos_platform_and_future_acknowledgement_without_arguments",
-            "open_parent_exact_with_o_nofollow_and_verify_directory_realpath_inode_and_device",
-            "retain_verified_parent_dirfd_for_all_later_operations",
+            "open_parent_exact_o_nofollow_and_require_fd_and_named_entry_match_terminal_device_16777233_inode_1445438",
+            "retain_verified_exact_parent_dirfd_for_all_later_operations",
         ])
         self.assertEqual(self.contract["future_one_shot_creation_order"], [
             "probe_creator_leaf_absence_once_relative_to_verified_parent_dirfd",
-            "reverify_parent_named_identity",
+            "reverify_parent_fd_and_named_entry_match_terminal_device_and_inode",
             "mkdir_exact_creator_leaf_relative_to_parent_dirfd_first_and_only_irreversible_effect",
             "fsync_parent_directory",
             "open_created_creator_leaf_o_nofollow_relative_to_parent_dirfd",
             "verify_created_creator_leaf_real_directory_inode_and_device_against_named_entry",
-            "reverify_parent_named_identity_and_return_terminal_success",
+            "reverify_parent_fd_and_named_entry_match_terminal_device_and_inode_then_return_success",
         ])
         self.assertEqual(self.contract["future_creation_rules"], {
             "exact_creator_leaf_only": True,
@@ -124,6 +126,26 @@ class TestH27CreatorLeafCreationContract(unittest.TestCase):
         self.assertEqual(
             (self.seal["future_acknowledgement_environment_exact"], self.seal["future_arguments_forbidden"], self.seal["reviewed_predecessor_identity_count"], self.seal["static_preflight_count"], self.seal["one_shot_creation_step_count"], self.seal["creation_rule_count"], self.seal["future_runner_requirement_count"]),
             ("H27_CREATOR_LEAF_CREATE_EXECUTE=1", True, 3, 4, 7, 14, 7),
+        )
+        terminal = self.contract["completed_admin_root_creation"]
+        future = self.contract["future_creator_leaf"]
+        self.assertEqual(
+            (future["parent_path_exact"], future["parent_expected_device_exact"], future["parent_expected_inode_exact"]),
+            (terminal["target_path_exact"], terminal["target_device"], terminal["target_inode"]),
+        )
+        self.assertEqual(
+            {
+                "future_parent_path_exact": self.seal["future_parent_path_exact"],
+                "future_parent_expected_device_exact": self.seal["future_parent_expected_device_exact"],
+                "future_parent_expected_inode_exact": self.seal["future_parent_expected_inode_exact"],
+                "future_parent_fd_and_named_entry_must_match_terminal_identity": self.seal["future_parent_fd_and_named_entry_must_match_terminal_identity"],
+            },
+            {
+                "future_parent_path_exact": "/Users/amcarene/h27-admin",
+                "future_parent_expected_device_exact": 16777233,
+                "future_parent_expected_inode_exact": 1445438,
+                "future_parent_fd_and_named_entry_must_match_terminal_identity": True,
+            },
         )
 
     def test_contract_only_state_and_no_back_reference(self) -> None:
