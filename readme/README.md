@@ -14,12 +14,23 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 empty registry-file contract corrected after external FAIL; exact mode and complete mechanical closure pending re-review, no runner/filesystem/creator/bundle/science. -->
+<!-- H26_CORRECTION_STATUS: H27 empty registry-file contract PASS; exact identity binding and external seal pending review, no runner/filesystem/creator/bundle/science. -->
 ## État courant
 
-- Mise à jour : `2026-08-13`.
+- Mise à jour : `2026-08-14`.
 - État courant :
-  `H27_EMPTY_REGISTRY_FILE_CONTRACT_CLOSURE_PENDING_EXTERNAL_REVIEW`.
+  `H27_EMPTY_REGISTRY_FILE_CONTRACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `ef866d365b79455508f5d2d866bbf1dc043f0f70`
+  conclut `PASS`. Le lot courant ajoute uniquement l'identity binding du
+  contrat du futur fichier registry vide, son external seal, un test et la
+  documentation. Il lie byte-exactement le contrat `943034b7...`, son seal
+  `e697b7fe...` et les quatre identités terminales du registry-leaf. Parent
+  `/Users/amcarene/h27-admin/registry`, tuple `16777233 / 1448669`, cible,
+  taille `0`, `nlink=1`, mode `0600`, ACK et compteurs `4 / 9 / 18 / 7`
+  restent fermés. Aucun runner, accès Mac, observation/création du JSONL,
+  creator, bundle, science ou locked-test. Rapport :
+  `readme/results/2026-08-14_harmonic-censoring-h27-empty-registry-file-contract-identity-binding.md`.
+  Prochaine action unique : revue externe du binding et de son seal exacts.
 - La revue externe de `366b778c86a0e00fb49be15bc122123f0db2fb56`
   confirme la frontiere principale mais rend `FAIL` sur deux fermetures : mode
   reel `0600` non revérifie et tests de contenu trop permissifs. La
@@ -3573,6 +3584,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-14 — runner dormant one-shot du leaf registry H27](results/2026-08-14_harmonic-censoring-h27-registry-leaf-one-shot-creator.md)
 - [2026-08-14 — exécution terminale du creator registry-leaf H27](results/2026-08-14_harmonic-censoring-h27-registry-leaf-terminal-execution.md)
 - [2026-08-14 — contrat du fichier registry H27 initialement vide](results/2026-08-14_harmonic-censoring-h27-empty-registry-file-creation-contract.md)
+- [2026-08-14 — identity binding du contrat du fichier registry H27](results/2026-08-14_harmonic-censoring-h27-empty-registry-file-contract-identity-binding.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)
