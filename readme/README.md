@@ -14,12 +14,20 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 immutable control bundle creation contract pending external review; no bundle, registry, reservation, consumption, invocation or science. -->
+<!-- H26_CORRECTION_STATUS: H27 immutable control bundle creation contract identity binding pending external review; no bundle, registry, reservation, consumption, invocation or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_IMMUTABLE_CONTROL_BUNDLE_CREATION_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+  `H27_IMMUTABLE_CONTROL_BUNDLE_CREATION_CONTRACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `e875d5831f45fdf2fa7c8f9c62d2206a98bd0d98`
+  conclut `PASS`. Le lot courant ajoute uniquement l'identity binding du
+  contrat de creation du bundle et son seal : contrat + seal + 120
+  predecesseurs = 122 chemins uniques rehashes. Aucun bundle n'est observe ou
+  cree; filesystem, registre, reservation, consommation, invocation et science
+  restent fermes. Rapport :
+  `readme/results/2026-08-14_harmonic-censoring-h27-control-bundle-creation-contract-identity-binding.md`.
+  Validation locale : `3/3` tests administratifs et `400/400` tests H27.
 - La revue externe de `5db5424d3cce72f8a1b9eee84cf4d1a8d9e09ace`
   conclut `PASS`. Le lot courant definit seulement le contrat declaratif et le
   seal de la future creation du bundle de controle immuable : manifeste ferme
