@@ -1,0 +1,19 @@
+{
+  "schema_version":1,
+  "seal_id":"H27_REVIEWED_CREATOR_SOURCE_PUBLISHER_IDENTITY_BINDING_EXTERNAL_SEAL_V1",
+  "status":"SEALED_PENDING_EXTERNAL_REVIEW_PUBLISHER_DORMANT_NO_ADMIN_SOURCE_PUBLICATION_NO_REGISTRY_NO_CONSUMPTION_NO_BUNDLE_NO_SCIENCE",
+  "identity_binding":{"path":"configs/harmonic_censoring_h27_reviewed_creator_source_publisher_identity_binding.json","git_blob_sha1":"11b68809991352a42430cde7ecb301e441abb542","size_bytes":2984,"raw_sha256":"f700f00c10cb96fd310f98d7d9baa53ad32ae42529622b9385e41f2254b41e03"},
+  "publisher":{"path":"scripts/h27_publish_reviewed_creator_source_one_shot.py","git_blob_sha1":"22fbc4ae6da12fd7ab7a55b630a87fbac73b07db","size_bytes":16875,"raw_sha256":"80d46a6d695e1b2f10b24bf8ffd24024521862776d21c4c9027c1b76ec3b43fc"},
+  "approved_implementation_source_binding_commit":"257d1d4c000ad8f7385edbbe8cc4f4699d47ddb7",
+  "publisher_externally_reviewed":false,
+  "publisher_externally_sealed":false,
+  "admin_source_published":false,
+  "admin_source_root_observed":false,
+  "creator_entrypoint_executed":false,
+  "registry_opened":false,
+  "authority_reserved":false,
+  "authority_consumed":false,
+  "control_bundle_created":false,
+  "science_or_locked_test":false,
+  "next_action":"External review of the exact versioned one-shot publisher, identity binding and seal only"
+}

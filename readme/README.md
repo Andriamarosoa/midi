@@ -14,12 +14,26 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 reviewed control-bundle creator dormant Git implementation source pending external review; no admin source publication, registry, consumption, bundle, filesystem or science. -->
+<!-- H26_CORRECTION_STATUS: H27 reviewed creator source one-shot publisher dormant and sealed pending external review; no admin source publication, registry, consumption, bundle or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_REVIEWED_CONTROL_BUNDLE_CREATOR_GIT_IMPLEMENTATION_SOURCE_PENDING_EXTERNAL_REVIEW`.
+  `H27_REVIEWED_CREATOR_SOURCE_PUBLISHER_DORMANT_PENDING_EXTERNAL_REVIEW`.
+- La premiere revue du publisher non versionne conclut `FAIL` sur trois
+  surfaces : parent non ancre contre TOCTOU, rehash staging/final par chemins
+  separes, et absence d'identite immuable du publisher. Le lot courant corrige
+  uniquement ces trois points sans execution : toutes les operations sont
+  relatives a un `dirfd` parent `O_NOFOLLOW` verifie, les fichiers sont lus et
+  controles depuis le meme fd, et le publisher exact est versionne avec son
+  identity binding et son seal. Les `139/139` identites sont verifiees en test,
+  le manifest canonique mesure `795` octets, et les tests passent `3/3` puis
+  `430/430`. Aucune racine administrative n'est observee ou creee. Rapport :
+  `readme/results/2026-08-14_harmonic-censoring-h27-reviewed-creator-source-publisher.md`.
+  Identites : publisher `22fbc4ae...` / `16875` / `80d46a6d...`, binding
+  `11b68809...` / `2984` / `f700f00c...`, seal `cc627c22...` / `1317` /
+  `256d24c...`. Prochaine action unique : revue externe de ce lot exact avant
+  toute publication one-shot.
 - La revue externe de `b93d6580ff19b7a514cefdae18a00c0f0c0457e6`
   conclut `PASS`. Le lot courant cree uniquement dans Git l'entrypoint dormant
   futur du creator, son identity binding et son seal. Il lie 139 paths uniques,
