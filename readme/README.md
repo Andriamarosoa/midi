@@ -14,12 +14,18 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 empty registry-file contract binding PASS; dormant one-shot runner, binding and seal pending review, no filesystem/creator/bundle/science. -->
+<!-- H26_CORRECTION_STATUS: H27 empty registry-file contract binding PASS; original runner FAIL; dormant ordering microfix pending review, no filesystem/creator/bundle/science. -->
 ## État courant
 
 - Mise à jour : `2026-08-14`.
 - État courant :
-  `H27_EMPTY_REGISTRY_FILE_ONE_SHOT_RUNNER_PENDING_EXTERNAL_REVIEW`.
+  `H27_EMPTY_REGISTRY_FILE_RUNNER_ORDER_MICROFIX_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `abf92acad5f2b6c93e6b718f9450b365a5ac12d6`
+  conclut `FAIL` sur un unique ordre d'opérations : la vérification du fd créé
+  précédait son `fsync`. Le micro-correctif courant place désormais
+  strictement `fsync(created_fd)` avant la vérification du fd, puis
+  `fsync(parent_fd)`, sans aucun autre changement de contrat. Le runner refusé
+  n'a jamais été exécuté et ne doit pas l'être.
 - La revue externe de `8c7152ccd5e50d8dbbb40c12ec582efadc58dd54`
   conclut `PASS`. Le lot courant implémente uniquement le runner dormant
   one-shot du futur fichier registry vide, son identity binding, son external
@@ -27,9 +33,9 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   toute observation du parent, exige macOS, zéro argument et l'ACK exact, lie
   le parent au tuple terminal `16777233 / 1448669`, effectue un probe unique,
   puis réserve `O_CREAT|O_EXCL|O_NOFOLLOW` mode `0600` comme premier/seul effet
-  irréversible. Fd créé, entrée nommée et fd rouvert doivent tous rester
-  regular, `nlink=1`, taille `0`, mode réel `0600` et même device/inode, avec
-  fsync fichier et parent. Le runner n'est pas exécuté; aucun accès Mac,
+  irréversible. Le fichier créé est fsync avant la vérification du fd, puis le
+  parent est fsync; fd créé, entrée nommée et fd rouvert doivent tous rester
+  regular, `nlink=1`, taille `0`, mode réel `0600` et même device/inode. Le runner n'est pas exécuté; aucun accès Mac,
   record, autorité, creator, bundle, science ou locked-test. Rapport :
   `readme/results/2026-08-14_harmonic-censoring-h27-empty-registry-file-one-shot-creator.md`.
   Prochaine action unique : revue externe du runner, binding et seal exacts.

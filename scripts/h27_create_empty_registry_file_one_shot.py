@@ -249,8 +249,8 @@ def create() -> dict[str, object]:
             0o600,
             dir_fd=parent_fd,
         )
-        target_device, target_inode = require_file_identity(parent_fd, created_fd)
         os.fsync(created_fd)
+        target_device, target_inode = require_file_identity(parent_fd, created_fd)
         os.fsync(parent_fd)
         reopened_fd = os.open(TARGET_LEAF, os.O_RDONLY | os.O_NOFOLLOW, dir_fd=parent_fd)
         require_file_identity(parent_fd, reopened_fd, (target_device, target_inode))
