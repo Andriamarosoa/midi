@@ -14,12 +14,25 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 publisher terminal result coherent and consumed; POSIX manifest test correction pending external review, no replay/creator/registry/bundle/science. -->
+<!-- H26_CORRECTION_STATUS: H27 publisher correction externally PASS; registry-leaf declarative contract and seal pending external review, no runner/filesystem/registry/bundle/science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_PUBLISHER_POSIX_MANIFEST_TEST_CORRECTION_PENDING_EXTERNAL_REVIEW`.
+  `H27_REGISTRY_LEAF_CREATION_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `9d8106135144c449e9d06a71269f61adf64457e8`
+  conclut `PASS` : l'anomalie Windows/POSIX `795 -> 790` est fermee sans
+  modifier ni rejouer le publisher terminalement consomme. Le lot courant est
+  strictement declaratif : contrat + external seal + test + documentation de
+  la future creation one-shot du leaf exact
+  `/Users/amcarene/h27-admin/registry`. Le parent est lie au tuple terminal
+  device `16777233` / inode `1445438`; le futur probe est unique et le futur
+  `mkdir("registry", dir_fd=parent_fd)` doit etre le premier/seul effet
+  irreversible. Aucun runner n'existe dans ce lot et aucune observation ou
+  mutation du filesystem Mac, du JSONL registry, du bundle ou de la science
+  n'a lieu. Rapport :
+  `readme/results/2026-08-14_harmonic-censoring-h27-registry-leaf-creation-contract.md`.
+  Prochaine action unique : revue externe de ce contrat et de son seal.
 - La revue externe de `c5e2a8522502832223ef196900af70fb1fa31f4f`
   confirme que l'execution publisher est coherente et terminalement consommee,
   mais rend `FAIL` sur une contradiction du test : sous Windows,
@@ -3488,6 +3501,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-11 — rejet des constantes non-JSON dans le loader runtime H26](results/2026-08-11_harmonic-censoring-h26-runtime-loader-non-json-constants-correction.md)
 - [2026-08-11 — correction strict JSON du loader de materialisation H26](results/2026-08-11_harmonic-censoring-h26-materialization-loader-strict-json-correction.md)
 - [2026-08-11 — correction strict JSON du loader scientifique H26](results/2026-08-11_harmonic-censoring-h26-scientific-loader-strict-json-correction.md)
+- [2026-08-14 — contrat de création one-shot du leaf registry H27](results/2026-08-14_harmonic-censoring-h27-registry-leaf-creation-contract.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)
