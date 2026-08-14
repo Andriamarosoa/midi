@@ -14,12 +14,23 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 publisher correction externally PASS; registry-leaf declarative contract and seal pending external review, no runner/filesystem/registry/bundle/science. -->
+<!-- H26_CORRECTION_STATUS: H27 registry-leaf contract externally PASS; administrative identity binding and seal pending external review, no runner/filesystem/registry/bundle/science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_REGISTRY_LEAF_CREATION_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+  `H27_REGISTRY_LEAF_CONTRACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `e07e26111bbcf0343a7b57f30c154ab667154fcf`
+  conclut `PASS`. Le lot courant ajoute uniquement l'identity binding
+  administratif du contrat registry-leaf PASS, son external seal, un test et
+  la documentation. Il lie byte-exactement le contrat `ae1b6517...`, son seal
+  `381b979b...` et les trois predecessor identities, tout en preservant parent
+  `/Users/amcarene/h27-admin`, tuple terminal `16777233 / 1445438`, cible
+  `/Users/amcarene/h27-admin/registry`, ACK futur et compteurs `4 / 7 / 14 /
+  7`. Aucun runner, filesystem Mac, leaf registry, JSONL, creator entrypoint,
+  bundle, constructor/materializer, science ou locked-test. Rapport :
+  `readme/results/2026-08-14_harmonic-censoring-h27-registry-leaf-contract-identity-binding.md`.
+  Prochaine action unique : revue externe du binding et de son seal.
 - La revue externe de `9d8106135144c449e9d06a71269f61adf64457e8`
   conclut `PASS` : l'anomalie Windows/POSIX `795 -> 790` est fermee sans
   modifier ni rejouer le publisher terminalement consomme. Le lot courant est
@@ -3502,6 +3513,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-11 — correction strict JSON du loader de materialisation H26](results/2026-08-11_harmonic-censoring-h26-materialization-loader-strict-json-correction.md)
 - [2026-08-11 — correction strict JSON du loader scientifique H26](results/2026-08-11_harmonic-censoring-h26-scientific-loader-strict-json-correction.md)
 - [2026-08-14 — contrat de création one-shot du leaf registry H27](results/2026-08-14_harmonic-censoring-h27-registry-leaf-creation-contract.md)
+- [2026-08-14 — identity binding du contrat registry-leaf H27](results/2026-08-14_harmonic-censoring-h27-registry-leaf-contract-identity-binding.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)
