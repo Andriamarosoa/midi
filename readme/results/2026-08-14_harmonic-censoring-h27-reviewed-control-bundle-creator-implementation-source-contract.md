@@ -17,6 +17,13 @@ exacte du futur entrypoint devra provenir d'un commit ulterieur distinct,
 reviewed PASS et scelle ; aucun placeholder ou fallback vers le checkout
 courant n'est permis.
 
+La premiere revue externe de `dd04b4d65a78cd3de8143629f33b3fa1aa11648a`
+a conclu `FAIL` uniquement parce que le test comptait les douze regles sans
+verrouiller byte-exactement leurs cles et valeurs. La micro-correction conserve
+le contrat et son seal inchanges et verrouille les dictionnaires complets
+`future_implementation_source`, `future_manifest_schema`, les ordres 7/9 et
+les douze regles toutes egales a `true`.
+
 Identites exactes :
 
 - contrat : `08a75b332320fce18e13b5bdb2ae201f6dc821bd` / `7535` octets /

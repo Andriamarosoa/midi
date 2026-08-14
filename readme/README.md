@@ -30,6 +30,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `readme/results/2026-08-14_harmonic-censoring-h27-reviewed-control-bundle-creator-implementation-source-contract.md`.
   Identites : contrat `08a75b33...` / `7535` / `200242f8...`, seal
   `60830362...` / `1401` / `7632b7d0...` ; tests `3/3` et `421/421`.
+  La premiere revue de `dd04b4d...` a conclu `FAIL` uniquement sur la couverture
+  mecanique du test. La micro-correction garde contrat et seal byte-identiques
+  et verrouille les dictionnaires source/manifest ainsi que les douze cles et
+  valeurs fail-closed exactes.
 - La revue externe de `4b58428db71de7a1810bd6c71b5bfc17d1277aed`
   conclut `PASS`. Le lot courant ajoute uniquement l'identity binding du
   contrat creator corrige et son seal : 132 paths uniques rehashes, sans
