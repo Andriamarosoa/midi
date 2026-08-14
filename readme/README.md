@@ -14,12 +14,22 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 admin-root one-shot creation contract and seal pending external review; no runner, filesystem, source publication, registry, bundle or science. -->
+<!-- H26_CORRECTION_STATUS: H27 admin-root creation contract identity binding and seal pending external review; no runner, filesystem, source publication, registry, bundle or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_ADMIN_ROOT_CREATION_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+  `H27_ADMIN_ROOT_CREATION_CONTRACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `20f43758b6349ce7de9aa8503a3a6e81334cd36a`
+  conclut `PASS`. Le lot courant ajoute uniquement l'identity binding
+  administratif de ce contrat et son seal : contrat, seal et trois
+  predecessors PASS forment cinq chemins uniques a rehasher. ACK, paths et
+  sept exigences du futur runner sont preserves byte-exactement. Aucun runner,
+  parent, target ou filesystem n'est ouvert. Rapport :
+  `readme/results/2026-08-14_harmonic-censoring-h27-admin-root-creation-contract-identity-binding.md`.
+  Identites : binding `4ecb86e7...` / `3541` / `1efcd187...`, seal
+  `7c0c8ee6...` / `1282` / `d1d4c3f5...`. Prochaine action unique : revue
+  externe de ce binding et seal exacts.
 - Le lot courant definit uniquement le contrat declaratif et le seal externe de
   la future creation one-shot de `/Users/amcarene/h27-admin`. Il lie les trois
   identites PASS du publisher bloque, exige `/Users/amcarene` preexistant et
