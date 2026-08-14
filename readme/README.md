@@ -14,12 +14,21 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 creator-leaf creation contract and seal pending external review; no creator runner/filesystem, source publication, registry, bundle or science. -->
+<!-- H26_CORRECTION_STATUS: H27 creator-leaf contract identity binding and seal pending external review; no creator runner/filesystem, source publication, registry, bundle or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_CREATOR_LEAF_CREATION_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+  `H27_CREATOR_LEAF_CONTRACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `e22296126b8119fd2422d79f85597536e02f6bb8`
+  conclut `PASS`. Le lot courant ajoute uniquement l'identity binding du
+  contrat creator-leaf et son seal. Il lie exactement cinq paths uniques,
+  preserve le parent terminal `/Users/amcarene/h27-admin` device `16777233` /
+  inode `1445438`, l'ACK, les compteurs `4/7/14/7`, le publisher non consomme
+  et tous les etats operationnels fermes. Aucun runner/filesystem. Rapport :
+  `readme/results/2026-08-14_harmonic-censoring-h27-creator-leaf-contract-identity-binding.md`.
+  Identites : binding `08b359b0...` / `3989` / `83c7419c...`, seal
+  `a6da2009...` / `1595` / `e22b065c...`. Prochaine action : revue externe.
 - L'unique execution one-shot du runner admin-root exact au commit
   `042974fde833d1ec13132520f003fba0b60ae044` aboutit au succes terminal :
   `/Users/amcarene/h27-admin`, device `16777233`, inode `1445438`, sept
