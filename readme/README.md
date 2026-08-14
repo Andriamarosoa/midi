@@ -25,13 +25,16 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   futur du creator, son identity binding et son seal. Il lie 139 paths uniques,
   un object database explicite, les 130 identites amont, les six fichiers du
   bundle et l'ordre registre/reservation/consommation/publication terminale.
+  La premiere revue de `b8d0c9c7...` conclut `FAIL` sur le JSON canonique,
+  la validation des records, les erreurs write/fsync et le TOCTOU registre.
+  La micro-correction du meme stage ferme ces quatre surfaces sans execution.
   La racine administrative n'est ni creee ni observee ; aucun filesystem,
   registre, reservation, consommation, bundle, invocation ou science n'est
   ouvert. Rapport :
   `readme/results/2026-08-14_harmonic-censoring-h27-reviewed-control-bundle-creator-implementation-source.md`.
-  Identites : entrypoint `c55699f4...` / `36292` / `3b118bd5...`, binding
-  `f066065b...` / `5885` / `817d73cc...`, seal `fa6dcc65...` / `1649` /
-  `edae3f61...` ; tests `3/3` et `427/427`.
+  Identites : entrypoint `2091028d...` / `44063` / `0f0dd586...`, binding
+  `a6c82e67...` / `5885` / `7c68a3ac...`, seal `86507d24...` / `1649` /
+  `63dea428...` ; tests `3/3` et `427/427`.
 - La revue externe de `53607b623858b18064c23ab0a9772d4c36b48b90`
   conclut `PASS`. Le lot courant ajoute uniquement l'identity binding du
   contrat de source immutable et son seal : contrat + seal + 134 amont forment

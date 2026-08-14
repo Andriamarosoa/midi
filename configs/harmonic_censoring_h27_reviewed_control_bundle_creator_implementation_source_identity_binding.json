@@ -2,7 +2,7 @@
   "schema_version":1,
   "binding_id":"H27_REVIEWED_CONTROL_BUNDLE_CREATOR_IMPLEMENTATION_SOURCE_IDENTITY_BINDING_V1",
   "status":"GIT_SOURCE_IMPLEMENTED_DORMANT_PENDING_EXTERNAL_REVIEW_NO_ADMIN_SOURCE_PUBLICATION_NO_REGISTRY_NO_CONSUMPTION_NO_BUNDLE_NO_FILESYSTEM_NO_SCIENCE",
-  "implementation_entrypoint":{"path":"scripts/h27_reviewed_control_bundle_creator.py","git_blob_sha1":"c55699f4a51d1b2806e4ed423d25601b809210c4","size_bytes":36292,"raw_sha256":"3b118bd5c292b5bd1935bcbd736d971f56b75a64fe6f27dcaed0674658cd0052"},
+  "implementation_entrypoint":{"path":"scripts/h27_reviewed_control_bundle_creator.py","git_blob_sha1":"2091028d44bf9c8e1ab05b7d6656719ebc260832","size_bytes":44063,"raw_sha256":"0f0dd5867c82b1237736d03f48a6176171c4459b9106bca251ab53778092e42f"},
   "reviewed_source_contract_chain":[
     {"name":"implementation_source_contract","path":"configs/harmonic_censoring_h27_reviewed_control_bundle_creator_implementation_source_contract.json","reviewed_commit":"53607b623858b18064c23ab0a9772d4c36b48b90","external_review_verdict":"PASS","git_blob_sha1":"08a75b332320fce18e13b5bdb2ae201f6dc821bd","size_bytes":7535,"raw_sha256":"200242f8058c810dc335c8e6cbbaa937b936d572c553eb68cb7960d275808821"},
     {"name":"implementation_source_contract_external_seal","path":"configs/harmonic_censoring_h27_reviewed_control_bundle_creator_implementation_source_contract_external_seal.json","git_blob_sha1":"608303627999107f5f41ab2117d2cf32344aac11","size_bytes":1401,"raw_sha256":"7632b7d0a1ebeb2e1dcbf608520b1da8df80adc8f92ab62e9cdeca1f4ac484c7"},

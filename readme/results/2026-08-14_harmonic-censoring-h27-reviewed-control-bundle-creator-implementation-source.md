@@ -12,14 +12,22 @@ fichiers du bundle, le registre preexistant, la reservation/consommation, la
 publication atomique macOS sans overwrite et les sorties terminales sans retry.
 Son execution reelle reste interdite.
 
+La premiere revue externe de `b8d0c9c7879dfe656e582f5b3a53e6a04ba41627`
+conclut `FAIL` sur quatre surfaces fail-closed. La micro-correction du meme
+stage rejette desormais tout JSON duplique/non canonique et `schema_version`
+booleen, valide chaque record registre byte-exactement avec sa chaine de
+transitions, ouvre le registre par `O_NOFOLLOW` puis `fstat`, et distingue un
+append prouve inchange d'un append incertain afin de ne jamais creer deux
+branches apres un echec de write/fsync.
+
 Identites exactes :
 
-- entrypoint : `c55699f4a51d1b2806e4ed423d25601b809210c4` / `36292` octets /
-  `3b118bd5c292b5bd1935bcbd736d971f56b75a64fe6f27dcaed0674658cd0052` ;
-- binding : `f066065b800f491323b1ae6023e81495d286fad2` / `5885` octets /
-  `817d73cceef1f891879ef964ad7c727b592f13fa4cf0862581d65862995e3334` ;
-- seal : `fa6dcc657a26434df37486eac222963d51fb8f7f` / `1649` octets /
-  `edae3f615a6dd1cede8d274c9a04856c4fce6b9507a0ed3c3a9793abdf113674`.
+- entrypoint : `2091028d44bf9c8e1ab05b7d6656719ebc260832` / `44063` octets /
+  `0f0dd5867c82b1237736d03f48a6176171c4459b9106bca251ab53778092e42f` ;
+- binding : `a6c82e679a4b2fcfb27538ba5583537ccff2cb36` / `5885` octets /
+  `7c68a3ac5eebce5d9793d9ceb06938c59eec9c2d784b7edb8229aa1a74c8f585` ;
+- seal : `86507d24ab254fd9c1d461cb1fd035fea2476d23` / `1649` octets /
+  `63dea428ac69385cc40cd678c05564ad26fd3e0783d6ab8853521cb508f1045f`.
 
 Aucun filesystem administratif, registre, reservation, consommation, bundle,
 invocation ou science n'a ete execute.

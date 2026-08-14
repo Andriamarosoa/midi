@@ -15,6 +15,7 @@ import json
 import os
 from pathlib import Path, PurePosixPath
 import re
+import stat
 import subprocess
 import sys
 from typing import Callable, Iterable, Mapping, Optional
@@ -199,34 +200,82 @@ def _read_blob(blob_sha1: str) -> bytes:
     return result.stdout
 
 
-def _strict_json(raw: bytes) -> dict[str, object]:
-    if raw.startswith(b"\xef\xbb\xbf") or b"\r" in raw or not raw.endswith(b"\n"):
-        raise PermissionError("H27 canonical JSON bytes invalid.")
-    value = json.loads(raw)
-    if type(value) is not dict:
-        raise PermissionError("H27 expected an exact JSON object.")
+def _reject_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    value: dict[str, object] = {}
+    for key, nested in pairs:
+        if type(key) is not str or key in value:
+            raise ValueError("duplicate or non-string JSON object key")
+        value[key] = nested
     return value
+
+
+def _strict_json(raw: bytes) -> dict[str, object]:
+    if (
+        not raw
+        or raw.startswith(b"\xef\xbb\xbf")
+        or b"\r" in raw
+        or raw.count(b"\n") != 1
+        or not raw.endswith(b"\n")
+    ):
+        raise PermissionError("H27 canonical JSON bytes invalid.")
+    try:
+        value = json.loads(raw.decode("utf-8"), object_pairs_hook=_reject_duplicate_keys)
+        canonical = (
+            json.dumps(value, ensure_ascii=False, allow_nan=False, separators=(",", ":"))
+            + "\n"
+        ).encode("utf-8")
+    except (UnicodeDecodeError, json.JSONDecodeError, TypeError, ValueError) as exc:
+        raise PermissionError("H27 canonical JSON bytes invalid.") from exc
+    if type(value) is not dict or canonical != raw:
+        raise PermissionError("H27 expected an exact canonical JSON object.")
+    return value
+
+
+def _read_exact_regular_file(path: Path) -> bytes:
+    if not hasattr(os, "O_NOFOLLOW"):
+        raise PermissionError("H27 no-follow file access unavailable.")
+    fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
+    try:
+        descriptor = os.fstat(fd)
+        pathname = os.stat(path, follow_symlinks=False)
+        if (
+            not stat.S_ISREG(descriptor.st_mode)
+            or not stat.S_ISREG(pathname.st_mode)
+            or descriptor.st_nlink != 1
+            or (descriptor.st_dev, descriptor.st_ino) != (pathname.st_dev, pathname.st_ino)
+        ):
+            raise PermissionError("H27 exact regular non-symlink file required.")
+        with os.fdopen(fd, "rb", closefd=False) as handle:
+            return handle.read()
+    finally:
+        os.close(fd)
+
+
+def _validate_source_manifest(manifest_raw: bytes, entrypoint_raw: bytes) -> None:
+    manifest = _strict_json(manifest_raw)
+    if tuple(manifest) != ("schema_version", "source_id", "reviewed_creator_contract_identity", "reviewed_creator_binding_identity", "root", "entrypoint"):
+        raise PermissionError("H27 creator source manifest order mismatch.")
+    if type(manifest["schema_version"]) is not int or manifest["schema_version"] != 1 or manifest["source_id"] != "H27_REVIEWED_CONTROL_BUNDLE_CREATOR_IMPLEMENTATION_SOURCE_V1" or manifest["root"] != str(SOURCE_ROOT):
+        raise PermissionError("H27 creator source manifest values mismatch.")
+    contract_identity = manifest["reviewed_creator_contract_identity"]
+    if type(contract_identity) is not dict or tuple(contract_identity) != ("git_blob_sha1", "size_bytes", "raw_sha256") or contract_identity != {"git_blob_sha1":"cee37fbececa8387266ba693ae915aeb8ce3ac4e","size_bytes":9920,"raw_sha256":"8decca47ec6947951fddfb8becdaa550609fa50e2c12e310d7a4476210f583da"}:
+        raise PermissionError("H27 reviewed creator contract identity mismatch.")
+    binding_identity = manifest["reviewed_creator_binding_identity"]
+    if type(binding_identity) is not dict or tuple(binding_identity) != ("git_blob_sha1", "size_bytes", "raw_sha256") or binding_identity != {"git_blob_sha1":"b5ec9c1c65e1f15a8eff65fec7749d808c1193ae","size_bytes":3248,"raw_sha256":"54a31600aa1898d946b57bcda5330993e6740a642aec5f1a7ca35d5bb96b380c"}:
+        raise PermissionError("H27 reviewed creator binding identity mismatch.")
+    entrypoint = manifest["entrypoint"]
+    if type(entrypoint) is not dict or tuple(entrypoint) != ("path", "git_blob_sha1", "size_bytes", "raw_sha256"):
+        raise PermissionError("H27 creator entrypoint identity schema mismatch.")
+    if entrypoint["path"] != SOURCE_ENTRYPOINT.name or not _identity_ok(entrypoint, entrypoint_raw):
+        raise PermissionError("H27 creator entrypoint identity mismatch.")
 
 
 def _verify_source() -> str:
     if Path(__file__).resolve(strict=True) != SOURCE_ENTRYPOINT:
         raise PermissionError("H27 creator must execute only from the immutable administrative source.")
-    raw = SOURCE_ENTRYPOINT.read_bytes()
-    manifest_raw = SOURCE_MANIFEST.read_bytes()
-    manifest = _strict_json(manifest_raw)
-    if tuple(manifest) != ("schema_version", "source_id", "reviewed_creator_contract_identity", "reviewed_creator_binding_identity", "root", "entrypoint"):
-        raise PermissionError("H27 creator source manifest order mismatch.")
-    if manifest["schema_version"] != 1 or manifest["source_id"] != "H27_REVIEWED_CONTROL_BUNDLE_CREATOR_IMPLEMENTATION_SOURCE_V1" or manifest["root"] != str(SOURCE_ROOT):
-        raise PermissionError("H27 creator source manifest values mismatch.")
-    if manifest["reviewed_creator_contract_identity"] != {"git_blob_sha1":"cee37fbececa8387266ba693ae915aeb8ce3ac4e","size_bytes":9920,"raw_sha256":"8decca47ec6947951fddfb8becdaa550609fa50e2c12e310d7a4476210f583da"}:
-        raise PermissionError("H27 reviewed creator contract identity mismatch.")
-    if manifest["reviewed_creator_binding_identity"] != {"git_blob_sha1":"b5ec9c1c65e1f15a8eff65fec7749d808c1193ae","size_bytes":3248,"raw_sha256":"54a31600aa1898d946b57bcda5330993e6740a642aec5f1a7ca35d5bb96b380c"}:
-        raise PermissionError("H27 reviewed creator binding identity mismatch.")
-    entrypoint = manifest["entrypoint"]
-    if type(entrypoint) is not dict or tuple(entrypoint) != ("path", "git_blob_sha1", "size_bytes", "raw_sha256"):
-        raise PermissionError("H27 creator entrypoint identity schema mismatch.")
-    if entrypoint["path"] != SOURCE_ENTRYPOINT.name or not _identity_ok(entrypoint, raw):
-        raise PermissionError("H27 creator entrypoint identity mismatch.")
+    raw = _read_exact_regular_file(SOURCE_ENTRYPOINT)
+    manifest_raw = _read_exact_regular_file(SOURCE_MANIFEST)
+    _validate_source_manifest(manifest_raw, raw)
     return _sha256(raw)
 
 
@@ -241,24 +290,130 @@ def _require_exact_environment() -> None:
         raise PermissionError("H27 target checkout HEAD or cleanliness mismatch.")
 
 
-def _validate_registry_locked(handle) -> None:
+def _validate_registry_locked(handle, creator_sha256: str) -> None:
+    if type(creator_sha256) is not str or re.fullmatch(r"[0-9a-f]{64}", creator_sha256) is None:
+        raise PermissionError("H27 reviewed creator digest invalid.")
     handle.seek(0)
     raw = handle.read()
     if raw and not raw.endswith(b"\n"):
         raise PermissionError("H27 registry has a partial final line.")
-    for line in raw.splitlines(keepends=True):
+    lines = raw.splitlines(keepends=True)
+    prior_line: Optional[bytes] = None
+    prior_state: Optional[str] = None
+    for line_number, line in enumerate(lines):
         record = _strict_json(line)
         if tuple(record) != RECORD_FIELDS:
             raise PermissionError("H27 registry record schema/order mismatch.")
-        if record["creation_authority_artifact_id"] == AUTHORITY_ID:
-            raise PermissionError("H27 authority ID is permanently non-reusable.")
+        if (
+            type(record["schema_version"]) is not int
+            or record["schema_version"] != 1
+            or record["registry_namespace"] != REGISTRY_NAMESPACE
+            or record["creation_authority_artifact_id"] != AUTHORITY_ID
+            or record["expected_execution_git_head"] != EXPECTED_EXECUTION_HEAD
+            or record["creator_implementation_raw_sha256"] != creator_sha256
+        ):
+            raise PermissionError("H27 registry fixed values or types mismatch.")
+        expected_prior = None if prior_line is None else _sha256(prior_line)
+        state = record["state"]
+        expected_failure = None
+        if line_number == 0:
+            if state != "reserved":
+                raise PermissionError("H27 registry must begin with reserved.")
+        elif line_number == 1 and prior_state == "reserved":
+            if state not in ("consumed", "terminal_failure"):
+                raise PermissionError("H27 transition after reserved invalid.")
+            if state == "terminal_failure":
+                expected_failure = "after_reservation_before_consumption"
+        elif line_number == 2 and prior_state == "consumed":
+            if state not in ("bundle_creation_succeeded", "terminal_failure"):
+                raise PermissionError("H27 transition after consumed invalid.")
+            if state == "terminal_failure":
+                expected_failure = "after_consumption_before_bundle_success"
+        else:
+            raise PermissionError("H27 duplicate, branched or terminal transition forbidden.")
+        if record["prior_record_raw_sha256"] != expected_prior:
+            raise PermissionError("H27 registry prior record digest mismatch.")
+        if state == "terminal_failure" and record["failure_stage"] != expected_failure:
+            raise PermissionError("H27 terminal failure stage mismatch.")
+        try:
+            expected = canonical_registry_record(
+                transition_index=record["transition_index"],
+                state=state,
+                prior_record_raw_sha256=record["prior_record_raw_sha256"],
+                creator_sha256=creator_sha256,
+                bundle_sha256=record["bundle_manifest_raw_sha256"],
+                failure_stage=record["failure_stage"],
+            )
+        except (TypeError, ValueError) as exc:
+            raise PermissionError("H27 registry record values invalid.") from exc
+        if expected != line or record["record_id"] != json.loads(expected)["record_id"]:
+            raise PermissionError("H27 registry record bytes or record_id mismatch.")
+        prior_line = line
+        prior_state = state
+    if lines:
+        raise PermissionError("H27 authority ID is permanently non-reusable.")
+
+
+def _open_locked_registry():
+    if fcntl is None or not hasattr(os, "O_NOFOLLOW"):
+        raise PermissionError("H27 race-safe registry access unavailable.")
+    if REGISTRY.parent.resolve(strict=True) != REGISTRY.parent:
+        raise PermissionError("H27 registry parent realpath mismatch.")
+    fd = os.open(REGISTRY, os.O_RDWR | os.O_NOFOLLOW)
+    locked = False
+    try:
+        descriptor = os.fstat(fd)
+        if not stat.S_ISREG(descriptor.st_mode) or descriptor.st_nlink != 1:
+            raise PermissionError("H27 exact pre-existing regular registry required.")
+        fcntl.flock(fd, fcntl.LOCK_EX)
+        locked = True
+        descriptor = os.fstat(fd)
+        pathname = os.stat(REGISTRY, follow_symlinks=False)
+        if (
+            not stat.S_ISREG(descriptor.st_mode)
+            or not stat.S_ISREG(pathname.st_mode)
+            or descriptor.st_nlink != 1
+            or (descriptor.st_dev, descriptor.st_ino) != (pathname.st_dev, pathname.st_ino)
+        ):
+            raise PermissionError("H27 locked registry descriptor/path identity mismatch.")
+        return os.fdopen(fd, "r+b", buffering=0)
+    except BaseException:
+        if locked:
+            fcntl.flock(fd, fcntl.LOCK_UN)
+        os.close(fd)
+        raise
+
+
+class _RegistryAppendUnchangedError(RuntimeError):
+    """The failed append provably wrote no bytes."""
+
+
+class _RegistryAppendOutcomeUncertainError(RuntimeError):
+    """The failed append may already be present or partial; never branch."""
 
 
 def _append_fsync(handle, raw: bytes) -> None:
-    handle.seek(0, os.SEEK_END)
-    handle.write(raw)
-    handle.flush()
-    os.fsync(handle.fileno())
+    start = handle.seek(0, os.SEEK_END)
+    try:
+        written = handle.write(raw)
+        if written != len(raw):
+            raise OSError("H27 registry append was not complete.")
+        handle.flush()
+        os.fsync(handle.fileno())
+    except BaseException as exc:
+        try:
+            end = handle.seek(0, os.SEEK_END)
+        except BaseException as inspection_exc:
+            raise _RegistryAppendOutcomeUncertainError(
+                "H27 registry append outcome cannot be inspected."
+            ) from inspection_exc
+        if end == start:
+            raise _RegistryAppendUnchangedError(
+                "H27 registry append failed before writing bytes."
+            ) from exc
+        raise _RegistryAppendOutcomeUncertainError(
+            "H27 registry append may already be present or partial."
+        ) from exc
 
 
 def _bundle_bytes() -> dict[str, bytes]:
@@ -345,30 +500,41 @@ def execute_reviewed_control_bundle_creator() -> str:
     if authority.get("creation_authority_artifact_id") != AUTHORITY_ID or authority.get("expected_execution_git_head") != EXPECTED_EXECUTION_HEAD or authority.get("single_use") is not True or authority.get("consumed") is not False:
         raise PermissionError("H27 creation authority artifact mismatch.")
     files = _bundle_bytes()
-    if REGISTRY.parent.resolve(strict=True) != REGISTRY.parent or not REGISTRY.is_file() or REGISTRY.is_symlink():
-        raise PermissionError("H27 exact pre-existing registry required.")
-    with REGISTRY.open("r+b", buffering=0) as registry:
-        fcntl.flock(registry.fileno(), fcntl.LOCK_EX)
-        _validate_registry_locked(registry)
+    registry = _open_locked_registry()
+    try:
+        _validate_registry_locked(registry, creator_sha)
         reserved = canonical_registry_record(transition_index=0, state="reserved", prior_record_raw_sha256=None, creator_sha256=creator_sha, bundle_sha256=None, failure_stage=None)
+        consumed = canonical_registry_record(transition_index=1, state="consumed", prior_record_raw_sha256=_sha256(reserved), creator_sha256=creator_sha, bundle_sha256=None, failure_stage=None)
         _append_fsync(registry, reserved)
-        consumed = None
         try:
-            pending_consumed = canonical_registry_record(transition_index=1, state="consumed", prior_record_raw_sha256=_sha256(reserved), creator_sha256=creator_sha, bundle_sha256=None, failure_stage=None)
-            _append_fsync(registry, pending_consumed)
-            consumed = pending_consumed
-            bundle_sha = _publish_bundle(files)
-            success = canonical_registry_record(transition_index=2, state="bundle_creation_succeeded", prior_record_raw_sha256=_sha256(consumed), creator_sha256=creator_sha, bundle_sha256=bundle_sha, failure_stage=None)
-            _append_fsync(registry, success)
-            return bundle_sha
-        except BaseException:
-            prior = consumed if consumed is not None else reserved
-            stage = "after_consumption_before_bundle_success" if consumed is not None else "after_reservation_before_consumption"
-            failure = canonical_registry_record(transition_index=2 if consumed is not None else 1, state="terminal_failure", prior_record_raw_sha256=_sha256(prior), creator_sha256=creator_sha, bundle_sha256=None, failure_stage=stage)
+            _append_fsync(registry, consumed)
+        except _RegistryAppendUnchangedError:
+            failure = canonical_registry_record(transition_index=1, state="terminal_failure", prior_record_raw_sha256=_sha256(reserved), creator_sha256=creator_sha, bundle_sha256=None, failure_stage="after_reservation_before_consumption")
             _append_fsync(registry, failure)
             raise
-        finally:
+        # An uncertain append propagates without another write.  The
+        # non-empty/partial registry remains a permanent fail-closed barrier.
+        try:
+            bundle_sha = _publish_bundle(files)
+        except BaseException:
+            failure = canonical_registry_record(transition_index=2, state="terminal_failure", prior_record_raw_sha256=_sha256(consumed), creator_sha256=creator_sha, bundle_sha256=None, failure_stage="after_consumption_before_bundle_success")
+            _append_fsync(registry, failure)
+            raise
+        success = canonical_registry_record(transition_index=2, state="bundle_creation_succeeded", prior_record_raw_sha256=_sha256(consumed), creator_sha256=creator_sha, bundle_sha256=bundle_sha, failure_stage=None)
+        try:
+            _append_fsync(registry, success)
+        except _RegistryAppendUnchangedError:
+            failure = canonical_registry_record(transition_index=2, state="terminal_failure", prior_record_raw_sha256=_sha256(consumed), creator_sha256=creator_sha, bundle_sha256=None, failure_stage="after_consumption_before_bundle_success")
+            _append_fsync(registry, failure)
+            raise
+        # An uncertain success append likewise propagates without a competing
+        # terminal_failure branch.
+        return bundle_sha
+    finally:
+        try:
             fcntl.flock(registry.fileno(), fcntl.LOCK_UN)
+        finally:
+            registry.close()
 
 
 def main() -> int:
