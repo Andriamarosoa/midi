@@ -14,12 +14,20 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 reviewed control-bundle creator contract pending external review; no implementation, registry, consumption, bundle, filesystem or science. -->
+<!-- H26_CORRECTION_STATUS: H27 reviewed control-bundle creator contract identity binding pending external review; no implementation, registry, consumption, bundle, filesystem or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_REVIEWED_CONTROL_BUNDLE_CREATOR_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+  `H27_REVIEWED_CONTROL_BUNDLE_CREATOR_CONTRACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `4b58428db71de7a1810bd6c71b5bfc17d1277aed`
+  conclut `PASS`. Le lot courant ajoute uniquement l'identity binding du
+  contrat creator corrige et son seal : 132 paths uniques rehashes, sans
+  implementation, registre, reservation, consommation, bundle, filesystem ou
+  science. Rapport :
+  `readme/results/2026-08-14_harmonic-censoring-h27-reviewed-control-bundle-creator-contract-identity-binding.md`.
+  Identites : binding `b5ec9c1c...` / `3248` / `54a31600...`, seal
+  `49240ffb...` / `1265` / `f99ccfde...` ; tests `3/3` et `418/418`.
 - La revue externe de `817f4c8ab2d51674d17eef968a907e519ac2cccf`
   conclut `PASS`. Le lot courant definit uniquement le futur creator one-shot :
   130 identites rehashees avant registre, dix controles statiques, reservation
