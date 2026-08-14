@@ -30,9 +30,12 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   cleanup, retry, creation parente, publisher, creator, registre, bundle et
   science. Aucun code n'a ete execute sur Mac. Rapport :
   `readme/results/2026-08-14_harmonic-censoring-h27-admin-root-one-shot-creator.md`.
-  Identites : runner `769c0751...` / `9336` / `be2c4841...`, binding
-  `42c680c9...` / `4537` / `1fbdbb22...`, seal `3ae07784...` / `1432` /
-  `a333a6b4...`. Prochaine action unique : revue externe de ce runner dormant,
+  La micro-correction apres revue remet l'ordre scelle exact `rehash ->
+  ACK/macOS/0 args -> open parent` et verrouille comme dictionnaires fermes
+  `execution_binding`, les dix safeguards et les claims correspondants du
+  seal. Identites : runner `4fd4c778...` / `9401` / `f29d33c5...`, binding
+  `28331255...` / `4537` / `2bf1dc2e...`, seal `696ca0c0...` / `1432` /
+  `b28c1e91...`. Prochaine action unique : revue externe de ce runner dormant,
   de son binding et de son seal exacts ; aucune creation reelle autorisee.
 - La revue externe de `20f43758b6349ce7de9aa8503a3a6e81334cd36a`
   conclut `PASS`. Le lot courant ajoute uniquement l'identity binding

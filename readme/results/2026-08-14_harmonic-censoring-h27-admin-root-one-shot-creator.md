@@ -15,10 +15,10 @@ control bundle, science et locked test restent hors portée.
 
 Le runner `scripts/h27_create_admin_root_one_shot.py` impose, dans cet ordre :
 
-1. macOS, zéro argument et ACK exact `H27_ADMIN_ROOT_CREATE_EXECUTE=1` ;
-2. accès au seul object database Git
+1. accès au seul object database Git
    `/Users/amcarene/midi-worker/repository/.git` ;
-3. rehash byte-exact de sept identités predecessor uniques ;
+2. rehash byte-exact de sept identités predecessor uniques ;
+3. macOS, zéro argument et ACK exact `H27_ADMIN_ROOT_CREATE_EXECUTE=1` ;
 4. ouverture de `/Users/amcarene` avec `O_NOFOLLOW`, contrôle realpath,
    répertoire, inode et device, puis conservation du `dirfd` ;
 5. unique probe d'absence du leaf `h27-admin` relatif au `dirfd` ;
@@ -36,19 +36,19 @@ les fichiers du checkout/worktree. Le publisher précédent n'est pas consommé.
 
 ```text
 runner
-769c075121e26c267e586c8b109c30ac5379e9aa
-9336 octets
-be2c4841e861974627c6bf543c586dac1d35a969136a90ef39ca54020c4ec00a
+4fd4c77881f9801ec9d78494231a7c053b478da5
+9401 octets
+f29d33c589d8a2d1fbf88e8ed5b995b471d38fd1854683daaf8feeaf998de1b0
 
 identity binding
-42c680c98d0a8af1aef4ea279034da563d886ce3
+283312559e7c9a2cdfe52ed7102a7821ccb4e96b
 4537 octets
-1fbdbb2250155e6a332d4edb8a20f20ba04b00b5846dd7b1ae890bfd7d91d18c
+2bf1dc2ec905ae6a736f852ad5e6a5dff01357844ae643751ea11eb2b5423a8b
 
 external seal
-3ae077848263ddab9275a63199e69958991d155c
+696ca0c006202c63a1942b3da71078097b64c257
 1432 octets
-a333a6b4f56fb84ab0fa3a0801503002c81655fab4524388e1ca25e765c11693
+b28c1e91399bfea56782c7405e76aa240df1f96b09ff12684368c487a1908dd8
 ```
 
 Le graphe lié contient huit paths uniques en incluant le runner. À
@@ -72,7 +72,10 @@ PASS
 ```
 
 Le test synthétique vérifie dynamiquement l'ordre des appels et l'unicité du
-`mkdir`, sans accéder au Mac ni au filesystem cible.
+`mkdir`, sans accéder au Mac ni au filesystem cible. Après la première revue,
+le test verrouille aussi comme dictionnaires exacts `execution_binding`, les
+dix `creation_safeguards` et les trois claims correspondants du seal ; l'ordre
+normatif est exactement `rehash -> ACK/macOS/0 args -> open parent`.
 
 ## STOP
 

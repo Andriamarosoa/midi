@@ -91,11 +91,15 @@ def require_environment() -> None:
         raise PermissionError("H27 exact macOS one-shot acknowledgement required.")
     if not hasattr(os, "O_NOFOLLOW"):
         raise PermissionError("H27 no-follow access unavailable.")
+
+
+def require_git_database() -> None:
     if GIT_DATABASE.resolve(strict=True) != GIT_DATABASE or GIT_DATABASE.is_symlink():
         raise PermissionError("H27 exact Git object database realpath mismatch.")
 
 
 def verify_identity_graph() -> dict[str, bytes]:
+    require_git_database()
     roots: dict[str, bytes] = {}
     for identity in ROOT_IDENTITIES:
         raw = read_blob(str(identity["git_blob_sha1"]))
@@ -197,8 +201,8 @@ def verify_created_leaf(parent_fd: int, leaf_fd: int) -> tuple[int, int]:
 
 
 def create() -> dict[str, object]:
-    require_environment()
     verified = verify_identity_graph()
+    require_environment()
     parent_fd = open_verified_parent()
     leaf_fd: Optional[int] = None
     try:

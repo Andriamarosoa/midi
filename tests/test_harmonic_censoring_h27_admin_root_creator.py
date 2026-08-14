@@ -75,18 +75,23 @@ class TestAdminRootCreator(unittest.TestCase):
             ).stdout
 
         original_read_blob = self.module.read_blob
+        original_require_git_database = self.module.require_git_database
         try:
             self.module.read_blob = local_blob
+            self.module.require_git_database = lambda: None
             verified = self.module.verify_identity_graph()
         finally:
             self.module.read_blob = original_read_blob
+            self.module.require_git_database = original_require_git_database
         self.assertEqual((len(verified), len(set(verified))), (7, 7))
+        verify_source = inspect.getsource(self.module.verify_identity_graph)
+        self.assertLess(verify_source.index("require_git_database()"), verify_source.index("read_blob("))
 
     def test_exact_one_shot_order_and_dormant_state(self) -> None:
         source = inspect.getsource(self.module.create)
         ordered = [
-            "require_environment()",
             "verify_identity_graph()",
+            "require_environment()",
             "open_verified_parent()",
             "probe_target_absence_once(parent_fd)",
             "require_parent_fd_still_named(parent_fd)",
@@ -101,9 +106,47 @@ class TestAdminRootCreator(unittest.TestCase):
         self.assertEqual(source.count("os.mkdir("), 1)
         self.assertNotIn("rmtree", source)
         self.assertNotIn("unlink", source)
-        safeguards = self.binding["creation_safeguards"]
-        self.assertEqual(len(safeguards), 10)
-        self.assertTrue(all(safeguards.values()))
+        self.assertEqual(
+            self.binding["execution_binding"],
+            {
+                "platform_exact": "darwin",
+                "acknowledgement_environment_exact": "H27_ADMIN_ROOT_CREATE_EXECUTE=1",
+                "arguments_forbidden": True,
+                "git_object_database_exact": "/Users/amcarene/midi-worker/repository/.git",
+                "parent_path_exact": "/Users/amcarene",
+                "target_leaf_exact": "h27-admin",
+                "target_path_exact": "/Users/amcarene/h27-admin",
+                "execution_from_exact_reviewed_git_blob_only": True,
+                "checkout_or_worktree_fallback_forbidden": True,
+            },
+        )
+        self.assertEqual(
+            self.binding["creation_safeguards"],
+            {
+                "all_seven_predecessor_identities_rehashed_before_parent_observation": True,
+                "parent_opened_o_nofollow_and_anchored_by_verified_dirfd": True,
+                "single_target_absence_probe_relative_to_parent_dirfd": True,
+                "parent_identity_reverified_before_first_effect_and_before_success": True,
+                "exact_leaf_mkdir_first_and_only_irreversible_effect": True,
+                "mkdir_parents_forbidden": True,
+                "parent_fsynced_after_creation": True,
+                "created_leaf_opened_o_nofollow_and_inode_device_verified": True,
+                "cleanup_retry_repair_or_recreation_forbidden": True,
+                "publisher_creator_registry_bundle_and_science_forbidden": True,
+            },
+        )
+        self.assertEqual(
+            {
+                "future_acknowledgement_environment_exact": self.seal["future_acknowledgement_environment_exact"],
+                "future_arguments_forbidden": self.seal["future_arguments_forbidden"],
+                "future_execution_from_exact_reviewed_git_blob_only": self.seal["future_execution_from_exact_reviewed_git_blob_only"],
+            },
+            {
+                "future_acknowledgement_environment_exact": "H27_ADMIN_ROOT_CREATE_EXECUTE=1",
+                "future_arguments_forbidden": True,
+                "future_execution_from_exact_reviewed_git_blob_only": True,
+            },
+        )
         for key, value in self.binding["current_state"].items():
             self.assertIs(value, key == "runner_exists", key)
         for key in (
@@ -131,8 +174,8 @@ class TestAdminRootCreator(unittest.TestCase):
             return action
 
         with (
-            mock.patch.object(self.module, "require_environment", side_effect=mark("environment")),
             mock.patch.object(self.module, "verify_identity_graph", side_effect=mark("identities", {str(i): b"" for i in range(7)})),
+            mock.patch.object(self.module, "require_environment", side_effect=mark("environment")),
             mock.patch.object(self.module, "open_verified_parent", side_effect=mark("open_parent", 17)),
             mock.patch.object(self.module, "probe_target_absence_once", side_effect=mark("probe")),
             mock.patch.object(self.module, "require_parent_fd_still_named", side_effect=mark("parent")),
@@ -145,7 +188,7 @@ class TestAdminRootCreator(unittest.TestCase):
             result = self.module.create()
         self.assertEqual(
             calls,
-            ["environment", "identities", "open_parent", "probe", "parent", "mkdir", "fsync", "open_leaf", "verify_leaf", "parent", "close", "close"],
+            ["identities", "environment", "open_parent", "probe", "parent", "mkdir", "fsync", "open_leaf", "verify_leaf", "parent", "close", "close"],
         )
         self.assertEqual(calls.count("mkdir"), 1)
         self.assertEqual(result["verified_identity_count"], 7)

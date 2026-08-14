@@ -2,7 +2,7 @@
   "schema_version":1,
   "binding_id":"H27_ADMIN_ROOT_ONE_SHOT_CREATOR_IDENTITY_BINDING_V1",
   "status":"RUNNER_IMPLEMENTED_DORMANT_PENDING_EXTERNAL_REVIEW_NO_FILESYSTEM_NO_PUBLICATION_NO_REGISTRY_NO_BUNDLE_NO_SCIENCE",
-  "runner":{"path":"scripts/h27_create_admin_root_one_shot.py","git_blob_sha1":"769c075121e26c267e586c8b109c30ac5379e9aa","size_bytes":9336,"raw_sha256":"be2c4841e861974627c6bf543c586dac1d35a969136a90ef39ca54020c4ec00a"},
+  "runner":{"path":"scripts/h27_create_admin_root_one_shot.py","git_blob_sha1":"4fd4c77881f9801ec9d78494231a7c053b478da5","size_bytes":9401,"raw_sha256":"f29d33c589d8a2d1fbf88e8ed5b995b471d38fd1854683daaf8feeaf998de1b0"},
   "approved_contract_chain":[
     {"path":"configs/harmonic_censoring_h27_admin_root_creation_contract_identity_binding.json","reviewed_commit":"fba12da62f2271d574a9fb46c8a20260cf55a1f1","external_review_verdict":"PASS","git_blob_sha1":"4ecb86e7e14e80ee276c6b9a8ca300de2981e127","size_bytes":3541,"raw_sha256":"1efcd187908ae791bb8740e659cc327b11c31f56af194bafffb8e498adeab0c9"},
     {"path":"configs/harmonic_censoring_h27_admin_root_creation_contract_identity_binding_external_seal.json","git_blob_sha1":"7c0c8ee64f4f684c1aff63b1c37089d720d19f29","size_bytes":1282,"raw_sha256":"d1d4c3f5d47d6585cd85578b20580e29386667b9397fcb1b96681cb34128d302"}
