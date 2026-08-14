@@ -14,12 +14,24 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 empty registry file created terminally by the externally approved one-shot blob; STOP before record/creator/bundle/science. -->
+<!-- H26_CORRECTION_STATUS: H27 empty registry file terminal PASS; missing control parent confirmed; declarative control-parent contract pending external review, no runner/filesystem/registry/creator/bundle/science. -->
 ## État courant
 
 - Mise à jour : `2026-08-14`.
 - État courant :
-  `H27_EMPTY_REGISTRY_FILE_CREATED_TERMINAL_SUCCESS_STOP_PENDING_EXTERNAL_REVIEW`.
+  `H27_CONTROL_PARENT_CREATION_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+- La revue externe du préflight post-`c44cf938b04c9d2d3c023be12ab3a35186915c96`
+  confirme `PASS` pour le STOP avant réservation : le parent exact
+  `/Users/amcarene/h27-admin/control` est absent et le creator consommerait
+  l'autorité avant d'échouer terminalement. Le lot courant définit uniquement
+  le futur contrat one-shot de ce parent réel, mode `0700`, sous le root
+  terminal `/Users/amcarene/h27-admin` lié à `16777233 / 1445438`, avec probe
+  unique, `mkdir` relatif comme premier/seul effet irréversible, fsync parent,
+  vérification fd/entrée nommée et aucun retry. Aucun runner, accès Mac,
+  registry, détachement checkout, creator, bundle, science ou locked-test.
+  Rapport :
+  `readme/results/2026-08-14_harmonic-censoring-h27-control-parent-creation-contract.md`.
+  Prochaine action unique : revue externe du contrat et de son seal exacts.
 - La revue externe de `75322bc6b0fbf2afe458cc3ed5116c9cb8229cbf`
   conclut `PASS` et autorise une seule exécution réelle du blob runner
   `bd8b42c4b6e047076f0cddaad3765899914900e2`. Le Mac a été synchronisé sur
