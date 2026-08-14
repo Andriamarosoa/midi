@@ -14,12 +14,26 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 empty registry-file contract binding PASS; original runner FAIL; dormant ordering microfix pending review, no filesystem/creator/bundle/science. -->
+<!-- H26_CORRECTION_STATUS: H27 empty registry file created terminally by the externally approved one-shot blob; STOP before record/creator/bundle/science. -->
 ## État courant
 
 - Mise à jour : `2026-08-14`.
 - État courant :
-  `H27_EMPTY_REGISTRY_FILE_RUNNER_ORDER_MICROFIX_PENDING_EXTERNAL_REVIEW`.
+  `H27_EMPTY_REGISTRY_FILE_CREATED_TERMINAL_SUCCESS_STOP_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `75322bc6b0fbf2afe458cc3ed5116c9cb8229cbf`
+  conclut `PASS` et autorise une seule exécution réelle du blob runner
+  `bd8b42c4b6e047076f0cddaad3765899914900e2`. Le Mac a été synchronisé sur
+  ce commit exact, worktree propre, cible absente et trois identités exactes.
+  Le blob a été exécuté directement depuis l'ODB approuvé avec l'ACK exact et
+  zéro argument. Résultat terminal :
+  `H27_EMPTY_REGISTRY_FILE_CREATED_TERMINAL_SUCCESS`, huit identités vérifiées,
+  parent `16777233 / 1448669`, cible régulière `16777233 / 1450301`, `nlink=1`,
+  taille `0`, mode `0600`. Aucun processus runner ne reste actif. Aucun record,
+  réservation/consommation bundle, creator, control bundle,
+  constructor/materializer, science ou locked-test. Rapport :
+  `readme/results/2026-08-14_harmonic-censoring-h27-empty-registry-file-terminal-execution.md`.
+  Prochaine action unique : revue externe de cette exécution terminale avant
+  toute définition ou exécution du writer de record/creator.
 - La revue externe de `abf92acad5f2b6c93e6b718f9450b365a5ac12d6`
   conclut `FAIL` sur un unique ordre d'opérations : la vérification du fd créé
   précédait son `fsync`. Le micro-correctif courant place désormais
