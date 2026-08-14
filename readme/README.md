@@ -14,12 +14,24 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 reviewed control-bundle creator immutable implementation-source contract identity binding pending external review; no implementation source, registry, consumption, bundle, filesystem or science. -->
+<!-- H26_CORRECTION_STATUS: H27 reviewed control-bundle creator dormant Git implementation source pending external review; no admin source publication, registry, consumption, bundle, filesystem or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_REVIEWED_CONTROL_BUNDLE_CREATOR_IMPLEMENTATION_SOURCE_CONTRACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+  `H27_REVIEWED_CONTROL_BUNDLE_CREATOR_GIT_IMPLEMENTATION_SOURCE_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `b93d6580ff19b7a514cefdae18a00c0f0c0457e6`
+  conclut `PASS`. Le lot courant cree uniquement dans Git l'entrypoint dormant
+  futur du creator, son identity binding et son seal. Il lie 139 paths uniques,
+  un object database explicite, les 130 identites amont, les six fichiers du
+  bundle et l'ordre registre/reservation/consommation/publication terminale.
+  La racine administrative n'est ni creee ni observee ; aucun filesystem,
+  registre, reservation, consommation, bundle, invocation ou science n'est
+  ouvert. Rapport :
+  `readme/results/2026-08-14_harmonic-censoring-h27-reviewed-control-bundle-creator-implementation-source.md`.
+  Identites : entrypoint `c55699f4...` / `36292` / `3b118bd5...`, binding
+  `f066065b...` / `5885` / `817d73cc...`, seal `fa6dcc65...` / `1649` /
+  `edae3f61...` ; tests `3/3` et `427/427`.
 - La revue externe de `53607b623858b18064c23ab0a9772d4c36b48b90`
   conclut `PASS`. Le lot courant ajoute uniquement l'identity binding du
   contrat de source immutable et son seal : contrat + seal + 134 amont forment

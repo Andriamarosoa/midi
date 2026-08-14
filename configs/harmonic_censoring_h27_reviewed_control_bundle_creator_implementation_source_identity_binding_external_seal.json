@@ -1,0 +1,23 @@
+{
+  "schema_version":1,
+  "seal_id":"H27_REVIEWED_CONTROL_BUNDLE_CREATOR_IMPLEMENTATION_SOURCE_IDENTITY_BINDING_EXTERNAL_SEAL_V1",
+  "status":"SEALED_PENDING_EXTERNAL_REVIEW_GIT_SOURCE_DORMANT_NO_ADMIN_SOURCE_PUBLICATION_NO_REGISTRY_NO_CONSUMPTION_NO_BUNDLE_NO_FILESYSTEM_NO_SCIENCE",
+  "identity_binding":{"path":"configs/harmonic_censoring_h27_reviewed_control_bundle_creator_implementation_source_identity_binding.json","git_blob_sha1":"f066065b800f491323b1ae6023e81495d286fad2","size_bytes":5885,"raw_sha256":"817d73cceef1f891879ef964ad7c727b592f13fa4cf0862581d65862995e3334"},
+  "implementation_entrypoint":{"path":"scripts/h27_reviewed_control_bundle_creator.py","git_blob_sha1":"c55699f4a51d1b2806e4ed423d25601b809210c4","size_bytes":36292,"raw_sha256":"3b118bd5c292b5bd1935bcbd736d971f56b75a64fe6f27dcaed0674658cd0052"},
+  "reviewed_source_contract_binding_commit":"b93d6580ff19b7a514cefdae18a00c0f0c0457e6",
+  "bound_identity_count":139,
+  "source_git_object_database_exact":"/Users/amcarene/midi-worker/repository/.git",
+  "future_admin_source_root_exact":"/Users/amcarene/h27-admin/creator/h27-reviewed-control-bundle-creator-v1",
+  "future_admin_source_published":false,
+  "future_admin_source_observed":false,
+  "filesystem_operation_authorized":false,
+  "creator_invoked_really":false,
+  "persistent_registry_opened":false,
+  "identity_nonce_reserved":false,
+  "authority_consumed":false,
+  "bundle_path_observed":false,
+  "administrative_control_bundle_exists":false,
+  "science_or_locked_test":false,
+  "public_edges_closed":8,
+  "next_action":"External review of this exact dormant Git entrypoint, identity binding and seal only"
+}
