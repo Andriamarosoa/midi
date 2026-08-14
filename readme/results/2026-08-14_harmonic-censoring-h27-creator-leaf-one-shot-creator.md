@@ -56,3 +56,19 @@ seul effet `mkdir`, le tuple terminal exact du parent et les états dormants.
 l'autorité creator-leaf et le publisher restent non consommés. La seule action
 suivante est la revue externe du runner exact, de son binding et de son seal.
 Une exécution réelle demeure interdite avant PASS explicite.
+
+## Micro-correction après revue externe
+
+La revue de `c2b2fd7264966a183d20106004816149c1b0a3a9` confirme le runner
+fonctionnellement conforme mais rend `FAIL` sur une fermeture de test
+incomplète. La correction autorisée modifie uniquement le test, ce rapport et
+le README. Elle compare désormais exactement :
+
+- le dictionnaire `identity_graph` complet ;
+- les dix clés/valeurs de `creation_safeguards` ;
+- les quatre clés/valeurs de `authority_state` ;
+- le commit contractuel, l'interdiction des arguments, l'exécution depuis le
+  blob exact et la consommation terminale admin-root déclarés par le seal.
+
+Les octets et identités du runner, du binding et du seal restent strictement
+inchangés. Aucune exécution one-shot n'est autorisée avant la nouvelle revue.

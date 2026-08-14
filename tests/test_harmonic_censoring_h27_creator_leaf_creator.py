@@ -124,23 +124,66 @@ class TestCreatorLeafCreator(unittest.TestCase):
             },
         )
         self.assertEqual(
+            self.binding["identity_graph"],
+            {
+                "combined_unique_path_count_including_runner": 8,
+                "runner_rehashes_seven_predecessor_identities_before_parent_observation": True,
+                "duplicates_forbidden": True,
+                "path_or_identity_drift_forbidden": True,
+                "acyclic": True,
+                "self_hash_present": False,
+            },
+        )
+        self.assertEqual(
+            self.binding["creation_safeguards"],
+            {
+                "all_seven_predecessor_identities_rehashed_before_parent_observation": True,
+                "parent_opened_o_nofollow_and_anchored_by_verified_dirfd": True,
+                "parent_fd_and_named_entry_match_terminal_device_inode_before_probe_effect_and_success": True,
+                "single_target_absence_probe_relative_to_parent_dirfd": True,
+                "exact_leaf_mkdir_first_and_only_irreversible_effect": True,
+                "mkdir_parents_forbidden": True,
+                "parent_fsynced_after_creation": True,
+                "created_leaf_opened_o_nofollow_and_inode_device_verified": True,
+                "cleanup_retry_repair_or_recreation_forbidden": True,
+                "publisher_creator_entrypoint_registry_bundle_and_science_forbidden": True,
+            },
+        )
+        self.assertEqual(
+            self.binding["authority_state"],
+            {
+                "admin_root_creation_authority_terminally_consumed": True,
+                "admin_root_creator_retry_forbidden": True,
+                "creator_leaf_creation_authority_unconsumed": True,
+                "publisher_authorization_consumed": False,
+            },
+        )
+        self.assertEqual(
             (self.module.PARENT_EXPECTED_DEVICE, self.module.PARENT_EXPECTED_INODE),
             (16777233, 1445438),
         )
         self.assertEqual(
             {
+                "contract_commit": self.seal["approved_contract_binding_commit"],
                 "ack": self.seal["future_acknowledgement_environment_exact"],
+                "arguments_forbidden": self.seal["future_arguments_forbidden"],
                 "parent": self.seal["future_parent_path_exact"],
                 "device": self.seal["future_parent_expected_device_exact"],
                 "inode": self.seal["future_parent_expected_inode_exact"],
                 "target": self.seal["future_target_path_exact"],
+                "exact_blob_only": self.seal["future_execution_from_exact_reviewed_git_blob_only"],
+                "admin_root_consumed": self.seal["admin_root_creation_authority_terminally_consumed"],
             },
             {
+                "contract_commit": "3021fa1dfe1bf3645ab3ae8d50927df3feaf1dfd",
                 "ack": "H27_CREATOR_LEAF_CREATE_EXECUTE=1",
+                "arguments_forbidden": True,
                 "parent": "/Users/amcarene/h27-admin",
                 "device": 16777233,
                 "inode": 1445438,
                 "target": "/Users/amcarene/h27-admin/creator",
+                "exact_blob_only": True,
+                "admin_root_consumed": True,
             },
         )
         true_state = {"runner_exists", "admin_root_exists"}

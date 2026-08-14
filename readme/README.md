@@ -14,14 +14,22 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 creator-leaf dormant one-shot runner, identity binding and seal pending external review; no creator filesystem, source publication, registry, bundle or science. -->
+<!-- H26_CORRECTION_STATUS: H27 creator-leaf runner mechanical test closure pending external review; runner/binding/seal byte-identical, no creator filesystem, publication, registry, bundle or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_CREATOR_LEAF_ONE_SHOT_RUNNER_PENDING_EXTERNAL_REVIEW`.
+  `H27_CREATOR_LEAF_RUNNER_MECHANICAL_TEST_CLOSURE_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `c2b2fd7264966a183d20106004816149c1b0a3a9`
+  conclut `FAIL` uniquement sur la fermeture mecanique du test : le runner est
+  juge fonctionnellement conforme, mais `identity_graph`, les dix claims
+  `creation_safeguards`, les quatre claims `authority_state` et plusieurs
+  claims positifs du seal n'etaient pas compares comme valeurs exactes. Le lot
+  courant modifie uniquement le test, ce README et le rapport pour fermer ces
+  dictionnaires. Runner, binding et seal restent byte-identiques ; aucune
+  execution reelle n'est autorisee avant une nouvelle revue externe.
 - La revue externe de `3021fa1dfe1bf3645ab3ae8d50927df3feaf1dfd`
-  conclut `PASS`. Le lot courant implemente uniquement le runner dormant
+  concluait `PASS`. Le lot precedent implementait uniquement le runner dormant
   one-shot de creation du leaf exact `/Users/amcarene/h27-admin/creator`, son
   identity binding et son seal. Il rehash sept identites depuis l'object
   database Git avant toute observation du parent, impose macOS, l'ACK exact et
@@ -34,7 +42,8 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `readme/results/2026-08-14_harmonic-censoring-h27-creator-leaf-one-shot-creator.md`.
   Identites : runner `848c65d0...` / `10474` / `04e5102e...`, binding
   `31b3dc73...` / `4968` / `58b3581e...`, seal `d79d8af6...` / `1812` /
-  `dd7fd034...`. Prochaine action unique : revue externe du runner dormant ;
+  `dd7fd034...`. Prochaine action unique : revue externe de la micro-correction
+  mecanique du test ;
   aucune creation reelle de `creator` n'est autorisee.
 - L'unique execution one-shot du runner admin-root exact au commit
   `042974fde833d1ec13132520f003fba0b60ae044` aboutit au succes terminal :
