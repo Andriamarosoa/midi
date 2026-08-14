@@ -1,0 +1,21 @@
+{
+  "schema_version":1,
+  "seal_id":"H27_REVIEWED_CONTROL_BUNDLE_CREATOR_CONTRACT_EXTERNAL_SEAL_V1",
+  "status":"SEALED_PENDING_EXTERNAL_REVIEW_CONTRACT_ONLY_NO_IMPLEMENTATION_NO_REGISTRY_NO_CONSUMPTION_NO_BUNDLE_NO_SCIENCE",
+  "contract":{"path":"configs/harmonic_censoring_h27_reviewed_control_bundle_creator_contract.json","git_blob_sha1":"93bad4ba1118e3152ccbeb83f7f50ed35d9444c8","size_bytes":6610,"raw_sha256":"1b04ac5a9a422ba6a83f7b3e1fdc3b675abeda7817042e7f534ec8f6eb735e23"},
+  "reviewed_authority_binding_commit":"817f4c8ab2d51674d17eef968a907e519ac2cccf",
+  "bound_predecessor_identity_count":130,
+  "static_preflight_step_count":10,
+  "one_shot_effect_step_count":7,
+  "bundle_creation_step_count":13,
+  "creator_implemented":false,
+  "persistent_registry_opened":false,
+  "identity_nonce_reserved":false,
+  "authority_consumed":false,
+  "bundle_path_observed":false,
+  "administrative_control_bundle_exists":false,
+  "filesystem_operation_authorized":false,
+  "science_or_locked_test":false,
+  "public_edges_closed":8,
+  "next_action":"External review of this exact declarative reviewed control-bundle creator contract and seal only"
+}

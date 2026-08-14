@@ -14,12 +14,21 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 control bundle creation authority artifact identity binding pending external review and unconsumed; no bundle, filesystem, registry, consumption or science. -->
+<!-- H26_CORRECTION_STATUS: H27 reviewed control-bundle creator contract pending external review; no implementation, registry, consumption, bundle, filesystem or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_CONTROL_BUNDLE_CREATION_AUTHORITY_ARTIFACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW_UNCONSUMED`.
+  `H27_REVIEWED_CONTROL_BUNDLE_CREATOR_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `817f4c8ab2d51674d17eef968a907e519ac2cccf`
+  conclut `PASS`. Le lot courant definit uniquement le futur creator one-shot :
+  130 identites rehashees avant registre, dix controles statiques, reservation
+  puis consommation atomique et treize etapes exactes, avec terminalite sans
+  retry. Aucune implementation, registre, consommation, bundle, filesystem ou
+  science n'est ouvert. Rapport :
+  `readme/results/2026-08-14_harmonic-censoring-h27-reviewed-control-bundle-creator-contract.md`.
+  Identites : contrat `93bad4ba...` / `6610` / `1b04ac5a...`, seal
+  `4096b4dc...` / `1149` / `fd5cb76e...` ; tests `3/3` et `415/415`.
 - La revue externe de `f5f4b825b3103386ca3745c915beb20c05f78f0f`
   conclut `PASS`. Le lot courant ajoute uniquement l'identity binding de
   l'artefact non consomme et son seal : artefact + seal + 126 amont forment
