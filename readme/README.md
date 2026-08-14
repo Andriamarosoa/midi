@@ -30,6 +30,13 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   Rapport :
   `readme/results/2026-08-14_harmonic-censoring-h27-constructor-one-shot-execution-gate-contract.md`.
   Validation locale : `3/3` tests administratifs et `391/391` tests H27.
+  La premiere revue de `18ee84e2fd4edba39681effc315d9f5762f132fd`
+  conclut `FAIL` : le HEAD cible `46a6bdf8...` ne contient pas encore les
+  quatre fichiers de chaine d'autorite. La micro-correction separe le checkout
+  cible exact `/Users/amcarene/midi-worker/repository` du bundle de controle
+  immuable exact `/Users/amcarene/h27-admin/control/h27-constructor-execution-gate-v1`.
+  Aucun fallback vers le checkout courant n'est permis et ce bundle n'est pas
+  cree par le lot.
 - La revue externe de `5e95219a517fb7206f4d54e5dc5e492dc868d80f`
   conclut `PASS`. Le lot courant ajoute uniquement l'identity binding de
   l'artefact d'autorite et son seal : artefact + seal + 112 identites amont =
