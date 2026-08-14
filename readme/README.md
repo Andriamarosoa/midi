@@ -14,12 +14,25 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 registry-leaf created terminally; authority consumed and runner non-replayable; terminal evidence pending external review, JSONL/bundle/science untouched. -->
+<!-- H26_CORRECTION_STATUS: H27 registry-leaf terminal evidence externally PASS; empty registry-file declarative contract/seal pending review, no runner/filesystem/creator/bundle/science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_REGISTRY_LEAF_CREATED_TERMINAL_SUCCESS_PENDING_EXTERNAL_REVIEW`.
+  `H27_EMPTY_REGISTRY_FILE_CREATION_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `0ea166702f7573d894e487cb7d7f2551af769317`
+  conclut `PASS`: le leaf registry est terminal, son autorite consommee et le
+  runner `ca93c383...` non rejouable. Le lot courant definit uniquement le
+  contrat declaratif + external seal + test + documentation de la future
+  creation exclusive du fichier exact
+  `/Users/amcarene/h27-admin/registry/h27-control-bundle-creation-authority-v1.jsonl`,
+  initialement vide. Le parent est lie au tuple terminal `16777233 / 1448669`;
+  le futur fichier doit etre regular, 0 octet, `nlink=1`, mode `0600`, cree
+  exclusivement comme premier/seul effet puis fsync et reverifie. Aucun runner
+  ni action Mac, aucune ligne JSONL, reservation/consommation, creator, bundle,
+  constructor/materializer, science ou locked-test. Rapport :
+  `readme/results/2026-08-14_harmonic-censoring-h27-empty-registry-file-creation-contract.md`.
+  Prochaine action unique : revue externe du contrat et de son seal.
 - La revue externe de `57e3f5be80ed12192776425799c58a7a4305ba6c`
   conclut `PASS` et autorise une seule execution du runner exact blob
   `ca93c383d8cc61a6f3869318f1e462ab82a1c92a`. Le Mac est synchronise propre
@@ -3551,6 +3564,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-14 — identity binding du contrat registry-leaf H27](results/2026-08-14_harmonic-censoring-h27-registry-leaf-contract-identity-binding.md)
 - [2026-08-14 — runner dormant one-shot du leaf registry H27](results/2026-08-14_harmonic-censoring-h27-registry-leaf-one-shot-creator.md)
 - [2026-08-14 — exécution terminale du creator registry-leaf H27](results/2026-08-14_harmonic-censoring-h27-registry-leaf-terminal-execution.md)
+- [2026-08-14 — contrat du fichier registry H27 initialement vide](results/2026-08-14_harmonic-censoring-h27-empty-registry-file-creation-contract.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)
