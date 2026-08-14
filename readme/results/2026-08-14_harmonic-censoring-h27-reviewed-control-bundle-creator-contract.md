@@ -14,12 +14,17 @@ seule fois. Tout echec apres reservation est terminal et interdit le retry.
 Aucune implementation, ouverture de registre, reservation, consommation,
 observation/creation de bundle, operation filesystem ou science n'est ouverte.
 
-Identites exactes :
+La premiere revue de `b9bb9ea725a9faaf224a5f40989ee29f70253e4e`
+a conclu `FAIL` uniquement sur le schema byte-exact des records JSONL et la
+source d'implementation implicite. La micro-correction definit onze champs,
+onze regles de transition et une racine de controle distincte exacte.
 
-- contrat : `93bad4ba1118e3152ccbeb83f7f50ed35d9444c8` / `6610` octets /
-  `1b04ac5a9a422ba6a83f7b3e1fdc3b675abeda7817042e7f534ec8f6eb735e23` ;
-- seal : `4096b4dc0d35b409b465312ce0363ffcae4b8e5f` / `1149` octets /
-  `fd5cb76e9b45ad290c447f865b5ad6a2ab9a460baf6760e34208261e823c237a`.
+Identites exactes apres micro-correction :
+
+- contrat : `cee37fbececa8387266ba693ae915aeb8ce3ac4e` / `9920` octets /
+  `8decca47ec6947951fddfb8becdaa550609fa50e2c12e310d7a4476210f583da` ;
+- seal : `530e2f57c371165303846402392f09223b9ff43b` / `1283` octets /
+  `b883b10ddc5757dc790aa250e43c377fdc1711e25ca22b2b1c64a3c8e697cf20`.
 
 La verification a corrige avant commit le comptage transitive : les quatre
 racines incluent deja artefact + seal, donc `4 + 126 = 130` paths uniques.

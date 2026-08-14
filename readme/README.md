@@ -27,8 +27,11 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   retry. Aucune implementation, registre, consommation, bundle, filesystem ou
   science n'est ouvert. Rapport :
   `readme/results/2026-08-14_harmonic-censoring-h27-reviewed-control-bundle-creator-contract.md`.
-  Identites : contrat `93bad4ba...` / `6610` / `1b04ac5a...`, seal
-  `4096b4dc...` / `1149` / `fd5cb76e...` ; tests `3/3` et `415/415`.
+  La premiere revue de `b9bb9ea...` a conclu `FAIL` sur le format du registre
+  et la source du creator. La micro-correction ferme 11 champs JSONL, 11 regles
+  de transition et la racine distincte `/Users/amcarene/h27-admin/creator/`.
+  Identites : contrat `cee37fbe...` / `9920` / `8decca47...`, seal
+  `530e2f57...` / `1283` / `b883b10d...` ; tests `3/3` et `415/415`.
 - La revue externe de `f5f4b825b3103386ca3745c915beb20c05f78f0f`
   conclut `PASS`. Le lot courant ajoute uniquement l'identity binding de
   l'artefact non consomme et son seal : artefact + seal + 126 amont forment
