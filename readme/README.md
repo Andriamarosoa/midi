@@ -28,13 +28,16 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   La premiere revue de `b8d0c9c7...` conclut `FAIL` sur le JSON canonique,
   la validation des records, les erreurs write/fsync et le TOCTOU registre.
   La micro-correction du meme stage ferme ces quatre surfaces sans execution.
+  La deuxieme revue de `a9c60a43...` les confirme mais conclut `FAIL` sur le
+  claim universel de fsync terminal du binding. La correction courante garde
+  l'entrypoint byte-identique et remplace ce claim par quatre invariants exacts.
   La racine administrative n'est ni creee ni observee ; aucun filesystem,
   registre, reservation, consommation, bundle, invocation ou science n'est
   ouvert. Rapport :
   `readme/results/2026-08-14_harmonic-censoring-h27-reviewed-control-bundle-creator-implementation-source.md`.
   Identites : entrypoint `2091028d...` / `44063` / `0f0dd586...`, binding
-  `a6c82e67...` / `5885` / `7c68a3ac...`, seal `86507d24...` / `1649` /
-  `63dea428...` ; tests `3/3` et `427/427`.
+  `3eea754a...` / `6091` / `0d084495...`, seal `aa3ebc70...` / `1649` /
+  `1dd748ed...` ; tests `3/3` et `427/427`.
 - La revue externe de `53607b623858b18064c23ab0a9772d4c36b48b90`
   conclut `PASS`. Le lot courant ajoute uniquement l'identity binding du
   contrat de source immutable et son seal : contrat + seal + 134 amont forment

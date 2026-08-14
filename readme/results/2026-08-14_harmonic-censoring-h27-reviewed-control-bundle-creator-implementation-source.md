@@ -20,14 +20,22 @@ transitions, ouvre le registre par `O_NOFOLLOW` puis `fstat`, et distingue un
 append prouve inchange d'un append incertain afin de ne jamais creer deux
 branches apres un echec de write/fsync.
 
+La deuxieme revue de `a9c60a4336638fa433a0cb978c1c892e1fb4848b`
+confirme les quatre corrections fonctionnelles mais conclut `FAIL` sur un claim
+de binding trop fort. Le claim universel de fsync terminal est remplace par
+quatre invariants exacts : retour seulement apres fsync reussi, propagation
+sans branche concurrente d'un append incertain, et terminal_failure unique
+seulement apres append prouve inchange ou echec de publication. L'entrypoint
+reste strictement byte-identique.
+
 Identites exactes :
 
 - entrypoint : `2091028d44bf9c8e1ab05b7d6656719ebc260832` / `44063` octets /
   `0f0dd5867c82b1237736d03f48a6176171c4459b9106bca251ab53778092e42f` ;
-- binding : `a6c82e679a4b2fcfb27538ba5583537ccff2cb36` / `5885` octets /
-  `7c68a3ac5eebce5d9793d9ceb06938c59eec9c2d784b7edb8229aa1a74c8f585` ;
-- seal : `86507d24ab254fd9c1d461cb1fd035fea2476d23` / `1649` octets /
-  `63dea428ac69385cc40cd678c05564ad26fd3e0783d6ab8853521cb508f1045f`.
+- binding : `3eea754aeb355780e082e9de9bbdeec350b66152` / `6091` octets /
+  `0d0844952802dfe4b29c5c04104a4128c9a480171255f1aa6178a4cdbdd44367` ;
+- seal : `aa3ebc704e5cb874cb09430eccdc5fc616ebb1cc` / `1649` octets /
+  `1dd748ed7dce831128b42f6d5c1646952f5aaff2cff912071f2853e7e6ab1d23`.
 
 Aucun filesystem administratif, registre, reservation, consommation, bundle,
 invocation ou science n'a ete execute.

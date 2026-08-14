@@ -2,7 +2,7 @@
   "schema_version":1,
   "seal_id":"H27_REVIEWED_CONTROL_BUNDLE_CREATOR_IMPLEMENTATION_SOURCE_IDENTITY_BINDING_EXTERNAL_SEAL_V1",
   "status":"SEALED_PENDING_EXTERNAL_REVIEW_GIT_SOURCE_DORMANT_NO_ADMIN_SOURCE_PUBLICATION_NO_REGISTRY_NO_CONSUMPTION_NO_BUNDLE_NO_FILESYSTEM_NO_SCIENCE",
-  "identity_binding":{"path":"configs/harmonic_censoring_h27_reviewed_control_bundle_creator_implementation_source_identity_binding.json","git_blob_sha1":"a6c82e679a4b2fcfb27538ba5583537ccff2cb36","size_bytes":5885,"raw_sha256":"7c68a3ac5eebce5d9793d9ceb06938c59eec9c2d784b7edb8229aa1a74c8f585"},
+  "identity_binding":{"path":"configs/harmonic_censoring_h27_reviewed_control_bundle_creator_implementation_source_identity_binding.json","git_blob_sha1":"3eea754aeb355780e082e9de9bbdeec350b66152","size_bytes":6091,"raw_sha256":"0d0844952802dfe4b29c5c04104a4128c9a480171255f1aa6178a4cdbdd44367"},
   "implementation_entrypoint":{"path":"scripts/h27_reviewed_control_bundle_creator.py","git_blob_sha1":"2091028d44bf9c8e1ab05b7d6656719ebc260832","size_bytes":44063,"raw_sha256":"0f0dd5867c82b1237736d03f48a6176171c4459b9106bca251ab53778092e42f"},
   "reviewed_source_contract_binding_commit":"b93d6580ff19b7a514cefdae18a00c0f0c0457e6",
   "bound_identity_count":139,

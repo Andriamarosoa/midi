@@ -162,6 +162,15 @@ class TestReviewedCreatorImplementationSource(unittest.TestCase):
         graph = self.binding["dependency_graph"]
         self.assertTrue(graph["acyclic"] and graph["all_one_hundred_thirty_nine_bound_identities_rehashed"])
         self.assertFalse(graph["self_hash_present"] or graph["historical_back_reference_present"])
+        runtime = self.binding["preserved_runtime_boundary"]
+        self.assertNotIn("success_or_terminal_failure_record_fsynced", runtime)
+        for key in (
+            "successful_registry_append_returns_only_after_fsync",
+            "uncertain_registry_append_propagates_without_competing_transition",
+            "unchanged_failed_append_may_emit_single_terminal_failure",
+            "publication_failure_may_emit_single_terminal_failure",
+        ):
+            self.assertIs(runtime[key], True, key)
 
 
 if __name__ == "__main__":
