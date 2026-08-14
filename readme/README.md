@@ -14,12 +14,22 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 reviewed control-bundle creator immutable implementation-source contract pending external review; no implementation source, registry, consumption, bundle, filesystem or science. -->
+<!-- H26_CORRECTION_STATUS: H27 reviewed control-bundle creator immutable implementation-source contract identity binding pending external review; no implementation source, registry, consumption, bundle, filesystem or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_REVIEWED_CONTROL_BUNDLE_CREATOR_IMPLEMENTATION_SOURCE_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+  `H27_REVIEWED_CONTROL_BUNDLE_CREATOR_IMPLEMENTATION_SOURCE_CONTRACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `53607b623858b18064c23ab0a9772d4c36b48b90`
+  conclut `PASS`. Le lot courant ajoute uniquement l'identity binding du
+  contrat de source immutable et son seal : contrat + seal + 134 amont forment
+  136 paths uniques rehashes. Les racines, deux fichiers fermes, schema du
+  manifest, ordres 7/9 et douze regles sont preserves. Aucune source,
+  implementation, filesystem, registre, reservation, consommation, bundle ou
+  science n'est ouverte. Rapport :
+  `readme/results/2026-08-14_harmonic-censoring-h27-reviewed-control-bundle-creator-implementation-source-contract-identity-binding.md`.
+  Identites : binding `9da5ef44...` / `3751` / `4fe12fc4...`, seal
+  `49de9d84...` / `1423` / `95a2e861...` ; tests `3/3` et `424/424`.
 - La revue externe de `53335c83dffc7551e3f0e2f3236503ef92970599`
   conclut `PASS`. Le lot courant definit uniquement le contrat et le seal de la
   future source immutable du creator : racine exacte sous `h27-admin`, deux
