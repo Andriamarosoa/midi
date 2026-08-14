@@ -14,12 +14,26 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 registry-leaf runner functionally conforming; test-only complete seal closure pending external review, no execution/filesystem/registry/bundle/science. -->
+<!-- H26_CORRECTION_STATUS: H27 registry-leaf created terminally; authority consumed and runner non-replayable; terminal evidence pending external review, JSONL/bundle/science untouched. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_REGISTRY_LEAF_RUNNER_SEAL_TEST_CLOSURE_PENDING_EXTERNAL_REVIEW`.
+  `H27_REGISTRY_LEAF_CREATED_TERMINAL_SUCCESS_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `57e3f5be80ed12192776425799c58a7a4305ba6c`
+  conclut `PASS` et autorise une seule execution du runner exact blob
+  `ca93c383d8cc61a6f3869318f1e462ab82a1c92a`. Le Mac est synchronise propre
+  sur ce commit, puis les bytes du blob sont executes depuis l'ODB avec l'ACK
+  exact et zero argument. Resultat :
+  `H27_REGISTRY_LEAF_CREATED_TERMINAL_SUCCESS`, sept identites verifiees,
+  parent device `16777233` / inode `1445438`, leaf
+  `/Users/amcarene/h27-admin/registry` device `16777233` / inode `1448669`.
+  JSONL non observe/non ouvert, aucune reservation ou consommation d'autorite
+  bundle, aucun creator entrypoint, bundle, constructor/materializer, science
+  ou locked-test. STOP immediat, aucun retry/cleanup/repair. Rapport :
+  `readme/results/2026-08-14_harmonic-censoring-h27-registry-leaf-terminal-execution.md`.
+  L'autorite registry-leaf est terminalement consommee et le blob ne doit
+  jamais etre rejoue. Prochaine action unique : revue externe de cette preuve.
 - La revue externe de `78957b981fdf679e2ccca2ead0223e5310c1a909`
   juge le runner, son binding et son seal fonctionnellement conformes, mais
   rend `FAIL` uniquement parce que le test ne verrouillait pas plusieurs
@@ -3536,6 +3550,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-14 — contrat de création one-shot du leaf registry H27](results/2026-08-14_harmonic-censoring-h27-registry-leaf-creation-contract.md)
 - [2026-08-14 — identity binding du contrat registry-leaf H27](results/2026-08-14_harmonic-censoring-h27-registry-leaf-contract-identity-binding.md)
 - [2026-08-14 — runner dormant one-shot du leaf registry H27](results/2026-08-14_harmonic-censoring-h27-registry-leaf-one-shot-creator.md)
+- [2026-08-14 — exécution terminale du creator registry-leaf H27](results/2026-08-14_harmonic-censoring-h27-registry-leaf-terminal-execution.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)
