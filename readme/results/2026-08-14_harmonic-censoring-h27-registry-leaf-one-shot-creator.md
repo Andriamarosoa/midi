@@ -49,6 +49,13 @@ Le test vérifie les huit paths, le rehash réel des sept blobs Git, l'ordre
 normatif, l'unicité du `mkdir`, le tuple parent, les dictionnaires complets du
 binding/seal et l'appel synthétique sans filesystem réel.
 
+La revue externe initiale a confirmé la conformité fonctionnelle du runner,
+binding et seal, mais a relevé que le test ne comparait pas plusieurs champs
+non booléens du seal. La micro-correction suivante modifie uniquement ce test,
+le README et le présent rapport : le dictionnaire complet du seal est désormais
+verrouillé exactement. Les trois objets opérationnels restent byte-identiques
+et aucune exécution n'a eu lieu.
+
 ```text
 python -B -m unittest tests.test_harmonic_censoring_h27_registry_leaf_creator
 5/5 PASS

@@ -139,6 +139,48 @@ class TestRegistryLeafCreator(unittest.TestCase):
         for key, value in self.seal.items():
             if isinstance(value, bool):
                 self.assertIs(value, key in seal_true, key)
+        self.assertEqual(self.seal, {
+            "schema_version": 1,
+            "seal_id": "H27_REGISTRY_LEAF_ONE_SHOT_CREATOR_IDENTITY_BINDING_EXTERNAL_SEAL_V1",
+            "status": "SEALED_PENDING_EXTERNAL_REVIEW_RUNNER_DORMANT_NO_FILESYSTEM_NO_REGISTRY_OPEN_NO_BUNDLE_NO_SCIENCE",
+            "identity_binding": {
+                "path": "configs/harmonic_censoring_h27_registry_leaf_creator_identity_binding.json",
+                "git_blob_sha1": "e2b18cf3c2d10ee3ee1f898038548717dd748b9b",
+                "size_bytes": 5253,
+                "raw_sha256": "397f7ff3ce1d8c6f2f3cba3620814e7a502325ea13a45db246460a273e35ae79",
+            },
+            "runner": {
+                "path": "scripts/h27_create_registry_leaf_one_shot.py",
+                "git_blob_sha1": "ca93c383d8cc61a6f3869318f1e462ab82a1c92a",
+                "size_bytes": 11186,
+                "raw_sha256": "589950570a4ad30c8953f568a6df9a3027ce64d2abab62bd817c48f8b62a729c",
+            },
+            "approved_contract_binding_commit": "c18ec0632e23edeca59816246c947a585f918af4",
+            "future_acknowledgement_environment_exact": "H27_REGISTRY_LEAF_CREATE_EXECUTE=1",
+            "future_arguments_forbidden": True,
+            "future_parent_path_exact": "/Users/amcarene/h27-admin",
+            "future_parent_expected_device_exact": 16777233,
+            "future_parent_expected_inode_exact": 1445438,
+            "future_target_path_exact": "/Users/amcarene/h27-admin/registry",
+            "future_execution_from_exact_reviewed_git_blob_only": True,
+            "admin_root_creation_authority_terminally_consumed": True,
+            "publisher_authority_terminally_consumed": True,
+            "registry_leaf_creation_authority_consumed": False,
+            "runner_externally_reviewed": False,
+            "runner_externally_sealed": False,
+            "parent_observed_by_registry_runner": False,
+            "registry_leaf_observed": False,
+            "registry_leaf_created": False,
+            "registry_jsonl_observed": False,
+            "registry_opened": False,
+            "authority_reserved": False,
+            "authority_consumed": False,
+            "creator_entrypoint_executed": False,
+            "control_bundle_created": False,
+            "constructor_or_materializer_executed": False,
+            "science_or_locked_test": False,
+            "next_action": "External review of the exact dormant registry-leaf runner, identity binding and seal only",
+        })
 
     def test_parent_identity_requires_exact_terminal_tuple(self) -> None:
         mode = 0o040700

@@ -14,12 +14,21 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 registry-leaf contract binding externally PASS; dormant one-shot runner/binding/seal pending external review, no execution/filesystem/registry/bundle/science. -->
+<!-- H26_CORRECTION_STATUS: H27 registry-leaf runner functionally conforming; test-only complete seal closure pending external review, no execution/filesystem/registry/bundle/science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_REGISTRY_LEAF_ONE_SHOT_RUNNER_DORMANT_PENDING_EXTERNAL_REVIEW`.
+  `H27_REGISTRY_LEAF_RUNNER_SEAL_TEST_CLOSURE_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `78957b981fdf679e2ccca2ead0223e5310c1a909`
+  juge le runner, son binding et son seal fonctionnellement conformes, mais
+  rend `FAIL` uniquement parce que le test ne verrouillait pas plusieurs
+  claims non booleens du seal. Le lot courant modifie seulement le test, ce
+  README et le rapport : il compare desormais le dictionnaire complet du seal,
+  notamment schema/id/status, commit, ACK, parent/path/device/inode, cible et
+  next_action. Runner `ca93c383...`, binding `e2b18cf3...` et seal
+  `c3b99549...` restent byte-identiques. Aucune execution ou action Mac.
+  Prochaine action unique : revue externe de cette micro-correction.
 - La revue externe de `c18ec0632e23edeca59816246c947a585f918af4`
   conclut `PASS`. Le lot courant implemente uniquement le runner dormant
   one-shot de creation du leaf exact `/Users/amcarene/h27-admin/registry`, son
