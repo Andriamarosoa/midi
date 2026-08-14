@@ -14,12 +14,25 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 creator-leaf runner mechanical test closure pending external review; runner/binding/seal byte-identical, no creator filesystem, publication, registry, bundle or science. -->
+<!-- H26_CORRECTION_STATUS: H27 creator leaf created terminally once; creator-leaf authority consumed, publisher/source/registry/bundle/science untouched, pending external result review. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_CREATOR_LEAF_RUNNER_MECHANICAL_TEST_CLOSURE_PENDING_EXTERNAL_REVIEW`.
+  `H27_CREATOR_LEAF_CREATED_TERMINAL_SUCCESS_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `406f04db0c3315b82ad91f02ffb71a425512f61b`
+  conclut `PASS` et autorise une seule execution du runner exact blob
+  `848c65d0039b0ef60a5752835ce4a9b84be47c73`. Le Mac est synchronise propre
+  sur ce commit, puis les octets du blob sont executes une seule fois avec
+  `H27_CREATOR_LEAF_CREATE_EXECUTE=1` et zero argument. Resultat terminal :
+  `H27_CREATOR_LEAF_CREATED_TERMINAL_SUCCESS`, sept identites verifiees,
+  parent `/Users/amcarene/h27-admin` device `16777233` / inode `1445438`, leaf
+  `/Users/amcarene/h27-admin/creator` device `16777233` / inode `1447071`.
+  Publisher, source, creator entrypoint, registre, bundle et science restent
+  faux. Aucun retry, cleanup ni autre phase n'a suivi. Rapport :
+  `readme/results/2026-08-14_harmonic-censoring-h27-creator-leaf-terminal-execution.md`.
+  L'autorite creator-leaf est desormais consommee et le runner ne doit jamais
+  etre rejoue. Prochaine action unique : revue externe de ce resultat terminal.
 - La revue externe de `c2b2fd7264966a183d20106004816149c1b0a3a9`
   conclut `FAIL` uniquement sur la fermeture mecanique du test : le runner est
   juge fonctionnellement conforme, mais `identity_graph`, les dix claims
@@ -27,7 +40,7 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   claims positifs du seal n'etaient pas compares comme valeurs exactes. Le lot
   courant modifie uniquement le test, ce README et le rapport pour fermer ces
   dictionnaires. Runner, binding et seal restent byte-identiques ; aucune
-  execution reelle n'est autorisee avant une nouvelle revue externe.
+  execution reelle n'etait autorisee avant une nouvelle revue externe.
 - La revue externe de `3021fa1dfe1bf3645ab3ae8d50927df3feaf1dfd`
   concluait `PASS`. Le lot precedent implementait uniquement le runner dormant
   one-shot de creation du leaf exact `/Users/amcarene/h27-admin/creator`, son
