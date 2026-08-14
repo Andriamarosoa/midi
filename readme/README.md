@@ -14,12 +14,30 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 creator leaf created terminally once; creator-leaf authority consumed, publisher/source/registry/bundle/science untouched, pending external result review. -->
+<!-- H26_CORRECTION_STATUS: H27 dormant publisher terminal-parent microfix pending external review; creator-leaf consumed, publisher unconsumed, no publication/registry/bundle/science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_CREATOR_LEAF_CREATED_TERMINAL_SUCCESS_PENDING_EXTERNAL_REVIEW`.
+  `H27_PUBLISHER_TERMINAL_PARENT_MICROFIX_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `81acfa74ea9b6007bed3d02ce1ac7eec9d6a5ef9`
+  conclut `PASS` : l'autorite creator-leaf est consommee terminalement et le
+  runner `848c65d0...` ne doit jamais etre rejoue. Le lot courant durcit
+  uniquement le publisher dormant existant : son parent exact
+  `/Users/amcarene/h27-admin/creator` doit maintenant correspondre, pour le fd
+  et l'entree nommee, au tuple terminal device `16777233` / inode `1447071`
+  avant toute observation final/staging, immediatement avant le premier effet
+  et avant succes. Un nouveau binding et son seal lient le publisher corrige,
+  l'ancienne chaine publisher PASS et la preuve terminale creator-leaf. Aucun
+  publisher n'a ete execute ; autorisation publisher, source, creator
+  entrypoint, registre, bundle et science restent non consommes/faux. Rapport :
+  `readme/results/2026-08-14_harmonic-censoring-h27-publisher-terminal-parent-microfix.md`.
+  Le publisher PASS historique reste byte-identique sous son path d'origine ;
+  le microfix est un nouveau publisher versionne. Identites : publisher
+  `2941c693...` / `17188` / `ab2e7499...`, binding `6f2f7cd3...` / `4380` /
+  `06f72a9e...`, seal `af976aaa...` / `1857` / `2618f315...`. Prochaine action
+  unique : revue externe de ce lot dormant ;
+  aucune publication reelle n'est autorisee.
 - La revue externe de `406f04db0c3315b82ad91f02ffb71a425512f61b`
   conclut `PASS` et autorise une seule execution du runner exact blob
   `848c65d0039b0ef60a5752835ce4a9b84be47c73`. Le Mac est synchronise propre
@@ -32,7 +50,7 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   faux. Aucun retry, cleanup ni autre phase n'a suivi. Rapport :
   `readme/results/2026-08-14_harmonic-censoring-h27-creator-leaf-terminal-execution.md`.
   L'autorite creator-leaf est desormais consommee et le runner ne doit jamais
-  etre rejoue. Prochaine action unique : revue externe de ce resultat terminal.
+  etre rejoue.
 - La revue externe de `c2b2fd7264966a183d20106004816149c1b0a3a9`
   conclut `FAIL` uniquement sur la fermeture mecanique du test : le runner est
   juge fonctionnellement conforme, mais `identity_graph`, les dix claims
