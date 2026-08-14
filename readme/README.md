@@ -14,12 +14,26 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 dormant publisher terminal-parent microfix pending external review; creator-leaf consumed, publisher unconsumed, no publication/registry/bundle/science. -->
+<!-- H26_CORRECTION_STATUS: H27 reviewed creator source published terminally once; publisher consumed, creator entrypoint/registry/bundle/science untouched, pending external result review. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_PUBLISHER_TERMINAL_PARENT_MICROFIX_PENDING_EXTERNAL_REVIEW`.
+  `H27_REVIEWED_CREATOR_SOURCE_PUBLISHED_TERMINAL_SUCCESS_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `242f7ae505763d69c6ffc14ea4454fded4a635f0`
+  conclut `PASS` et autorise une seule execution du nouveau publisher exact
+  blob `60287a98eb0a7ff227bfcff49e72935b4a40dafc`. Le Mac est synchronise propre
+  sur ce commit puis les octets du blob sont executes une seule fois depuis
+  l'ODB avec l'ACK exact et zero argument. Resultat terminal :
+  `H27_REVIEWED_CREATOR_SOURCE_PUBLISHED_TERMINAL_SUCCESS`, 139 identites,
+  entrypoint `2091028d...` / `44063` / `0f0dd586...`, manifest `790` /
+  `1d21fc85...`, digest ferme `bc0d75eb...`. Le creator entrypoint n'est pas
+  execute ; registre, bundle et science restent faux. Aucun retry, cleanup,
+  repair ni autre phase ne suit. Rapport :
+  `readme/results/2026-08-14_harmonic-censoring-h27-reviewed-creator-source-terminal-publication.md`.
+  L'autorite publisher est desormais consommee et le blob `60287a98...` ne
+  doit jamais etre rejoue. Prochaine action unique : revue externe de cette
+  preuve terminale.
 - La revue externe de `81acfa74ea9b6007bed3d02ce1ac7eec9d6a5ef9`
   conclut `PASS` : l'autorite creator-leaf est consommee terminalement et le
   runner `848c65d0...` ne doit jamais etre rejoue. Le lot courant durcit
@@ -37,7 +51,7 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `60287a98...` / `17187` / `c84a6476...`, binding `7ae682b7...` / `4380` /
   `9691a3aa...`, seal `c852b08c...` / `1857` / `57f0d4e3...`. Prochaine action
   unique : revue externe de ce lot dormant ;
-  aucune publication reelle n'est autorisee.
+  aucune publication reelle n'etait autorisee avant ce PASS.
 - La revue externe de `406f04db0c3315b82ad91f02ffb71a425512f61b`
   conclut `PASS` et autorise une seule execution du runner exact blob
   `848c65d0039b0ef60a5752835ce4a9b84be47c73`. Le Mac est synchronise propre
