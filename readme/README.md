@@ -25,11 +25,15 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   identites PASS du publisher bloque, exige `/Users/amcarene` preexistant et
   stable par `dirfd`, fixe quatre preflights, sept etapes et quatorze regles.
   `mkdir("h27-admin")` serait le premier et seul effet ; `mkdir -p`, retry,
-  cleanup et observation de `creator`/publisher roots sont interdits. Aucun
-  runner ou filesystem n'est ouvert. Rapport :
+  cleanup et observation de `creator`/publisher roots sont interdits. La
+  micro-correction apres revue fixe l'ACK futur exact
+  `H27_ADMIN_ROOT_CREATE_EXECUTE=1`, ferme le dictionnaire des 14 regles et
+  exige un futur runner distinct, PASS, identity-bound, scelle et execute
+  uniquement depuis son blob Git exact. Aucun runner ou filesystem n'est
+  ouvert. Rapport :
   `readme/results/2026-08-14_harmonic-censoring-h27-admin-root-creation-contract.md`.
-  Identites : contrat `9c536d6c...` / `3981` / `f2e22929...`, seal
-  `de9f83cf...` / `1174` / `5327764a...`. Prochaine action unique : revue
+  Identites : contrat `7ac98b37...` / `4505` / `82e4bbe7...`, seal
+  `93597fd6...` / `1335` / `4bd891cd...`. Prochaine action unique : revue
   externe de ce contrat et seal exacts.
 - La revue externe de `ddba2178028b385cb33f9a68455d724015e22814`
   conclut `PASS` et autorise uniquement la publication one-shot depuis le blob

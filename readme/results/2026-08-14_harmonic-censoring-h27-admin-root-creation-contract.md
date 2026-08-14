@@ -41,18 +41,26 @@ le leaf `h27-admin`, obligatoirement absent avant effet.
 et recreation sont interdits. Le contrat interdit aussi toute observation du
 child `creator`, des roots publisher, du registre, du bundle ou de la science.
 
+Apres la premiere revue externe, le meme stage fixe aussi :
+
+- l'ACK futur exact `H27_ADMIN_ROOT_CREATE_EXECUTE=1` et zero argument ;
+- le dictionnaire ferme des quatorze regles ;
+- sept exigences fermees pour un futur runner distinct : commit ulterieur,
+  revue externe PASS, identity binding, seal externe, execution exclusive du
+  blob Git exact et aucun fallback checkout/worktree.
+
 ## Identites
 
 ```text
 contract
-9c536d6c5198a439fffc74b0b36510dedeb94910
-3981 octets
-f2e2292990de56d001d7e25a047a430865181bfea49f2c875911815679d221df
+7ac98b37e745f2b3d1dc906c7392d21f8129019b
+4505 octets
+82e4bbe797493f99b7ef8e72073d9b761fd9036155fa74175b98b90e6bb4e32a
 
 external seal
-de9f83cfa079009bb5571995984004a945459b84
-1174 octets
-5327764a4bcf27ca4d1ea8f93d0bf24bf469730cbeb70103de26469e6878c74f
+93597fd6d62db66d11c967466c663dece8b397de
+1335 octets
+4bd891cd9f008cb84702f8be1767be1f794361c2fe4cc9aeb070f56ee9efabbf
 ```
 
 ## Etat

@@ -48,6 +48,9 @@ class TestH27AdminRootCreationContract(unittest.TestCase):
     def test_closed_future_root_preflight_order_and_rules(self) -> None:
         self.assertEqual(self.contract["future_root"], {
             "platform_exact": "darwin",
+            "acknowledgement_environment_exact": "H27_ADMIN_ROOT_CREATE_EXECUTE",
+            "acknowledgement_value_exact": "1",
+            "arguments_forbidden": True,
             "parent_path_exact": "/Users/amcarene",
             "parent_must_preexist": True,
             "parent_must_be_real_directory_not_symlink": True,
@@ -73,12 +76,38 @@ class TestH27AdminRootCreationContract(unittest.TestCase):
             "verify_created_leaf_real_directory_inode_and_device_against_named_entry",
             "reverify_parent_named_identity_and_return_terminal_success",
         ])
-        rules = self.contract["future_creation_rules"]
-        self.assertEqual(len(rules), 14)
-        self.assertTrue(all(value is True for value in rules.values()))
+        self.assertEqual(self.contract["future_creation_rules"], {
+            "exact_leaf_only": True,
+            "mkdir_p_forbidden": True,
+            "target_probe_occurs_only_after_all_four_static_preflights": True,
+            "mkdir_is_first_and_only_irreversible_effect": True,
+            "target_creation_exclusive": True,
+            "parent_and_target_symlink_forbidden": True,
+            "all_operations_relative_to_stable_parent_dirfd": True,
+            "parent_fsynced_after_creation": True,
+            "created_target_inode_and_device_verified": True,
+            "failure_after_mkdir_terminal": True,
+            "retry_cleanup_repair_or_recreation_forbidden": True,
+            "creator_child_or_publisher_roots_observation_forbidden": True,
+            "registry_reservation_consumption_bundle_or_science_forbidden": True,
+            "current_publisher_authorization_not_consumed": True,
+        })
+        self.assertEqual(self.contract["future_runner_requirements"], {
+            "must_be_created_in_distinct_later_commit": True,
+            "external_review_pass_required_before_execution": True,
+            "exact_identity_binding_required": True,
+            "external_identity_binding_seal_required": True,
+            "execution_from_exact_reviewed_git_blob_bytes_only": True,
+            "current_checkout_or_worktree_file_fallback_forbidden": True,
+            "runner_implementation_forbidden_in_current_stage": True,
+        })
         self.assertEqual(
-            (self.seal["reviewed_predecessor_identity_count"], self.seal["static_preflight_step_count"], self.seal["one_shot_creation_step_count"], self.seal["creation_rule_count"]),
-            (3, 4, 7, 14),
+            (self.seal["reviewed_predecessor_identity_count"], self.seal["static_preflight_step_count"], self.seal["one_shot_creation_step_count"], self.seal["creation_rule_count"], self.seal["future_runner_requirement_count"]),
+            (3, 4, 7, 14, 7),
+        )
+        self.assertEqual(
+            (self.seal["future_acknowledgement_environment_exact"], self.seal["future_acknowledgement_value_exact"]),
+            ("H27_ADMIN_ROOT_CREATE_EXECUTE", "1"),
         )
 
     def test_dormant_state_and_no_back_reference(self) -> None:
