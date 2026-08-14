@@ -14,21 +14,28 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 creator-leaf contract identity binding and seal pending external review; no creator runner/filesystem, source publication, registry, bundle or science. -->
+<!-- H26_CORRECTION_STATUS: H27 creator-leaf dormant one-shot runner, identity binding and seal pending external review; no creator filesystem, source publication, registry, bundle or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_CREATOR_LEAF_CONTRACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
-- La revue externe de `e22296126b8119fd2422d79f85597536e02f6bb8`
-  conclut `PASS`. Le lot courant ajoute uniquement l'identity binding du
-  contrat creator-leaf et son seal. Il lie exactement cinq paths uniques,
-  preserve le parent terminal `/Users/amcarene/h27-admin` device `16777233` /
-  inode `1445438`, l'ACK, les compteurs `4/7/14/7`, le publisher non consomme
-  et tous les etats operationnels fermes. Aucun runner/filesystem. Rapport :
-  `readme/results/2026-08-14_harmonic-censoring-h27-creator-leaf-contract-identity-binding.md`.
-  Identites : binding `08b359b0...` / `3989` / `83c7419c...`, seal
-  `a6da2009...` / `1595` / `e22b065c...`. Prochaine action : revue externe.
+  `H27_CREATOR_LEAF_ONE_SHOT_RUNNER_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `3021fa1dfe1bf3645ab3ae8d50927df3feaf1dfd`
+  conclut `PASS`. Le lot courant implemente uniquement le runner dormant
+  one-shot de creation du leaf exact `/Users/amcarene/h27-admin/creator`, son
+  identity binding et son seal. Il rehash sept identites depuis l'object
+  database Git avant toute observation du parent, impose macOS, l'ACK exact et
+  zero argument, puis lie le parent au tuple terminal device `16777233` / inode
+  `1445438` par `O_NOFOLLOW` et dirfd. Le probe est unique ; `mkdir("creator")`
+  reste le premier/seul effet irreversible, sans cleanup/retry/repair. Aucun
+  runner n'a ete execute et aucun filesystem Mac n'a ete observe par ce lot.
+  Publisher, source, creator entrypoint, registre, bundle et science restent
+  faux. Rapport :
+  `readme/results/2026-08-14_harmonic-censoring-h27-creator-leaf-one-shot-creator.md`.
+  Identites : runner `848c65d0...` / `10474` / `04e5102e...`, binding
+  `31b3dc73...` / `4968` / `58b3581e...`, seal `d79d8af6...` / `1812` /
+  `dd7fd034...`. Prochaine action unique : revue externe du runner dormant ;
+  aucune creation reelle de `creator` n'est autorisee.
 - L'unique execution one-shot du runner admin-root exact au commit
   `042974fde833d1ec13132520f003fba0b60ae044` aboutit au succes terminal :
   `/Users/amcarene/h27-admin`, device `16777233`, inode `1445438`, sept
