@@ -14,12 +14,26 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 admin-root creation contract identity binding and seal pending external review; no runner, filesystem, source publication, registry, bundle or science. -->
+<!-- H26_CORRECTION_STATUS: H27 dormant admin-root one-shot creator, identity binding and seal pending external review; no filesystem, source publication, registry, bundle or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_ADMIN_ROOT_CREATION_CONTRACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+  `H27_ADMIN_ROOT_ONE_SHOT_CREATOR_PENDING_EXTERNAL_REVIEW_DORMANT`.
+- La revue externe de `fba12da62f2271d574a9fb46c8a20260cf55a1f1`
+  conclut `PASS`. Le lot courant implemente uniquement le runner one-shot
+  dormant de creation du leaf exact `/Users/amcarene/h27-admin`, son identity
+  binding et son seal. Le runner rehash sept predecessors depuis l'object
+  database Git explicite avant toute observation de `/Users/amcarene`, ancre
+  ce parent par `O_NOFOLLOW` + `dirfd`, effectue un probe unique, puis fixe
+  `mkdir("h27-admin")` comme premier et seul effet irreversible. Il interdit
+  cleanup, retry, creation parente, publisher, creator, registre, bundle et
+  science. Aucun code n'a ete execute sur Mac. Rapport :
+  `readme/results/2026-08-14_harmonic-censoring-h27-admin-root-one-shot-creator.md`.
+  Identites : runner `769c0751...` / `9336` / `be2c4841...`, binding
+  `42c680c9...` / `4537` / `1fbdbb22...`, seal `3ae07784...` / `1432` /
+  `a333a6b4...`. Prochaine action unique : revue externe de ce runner dormant,
+  de son binding et de son seal exacts ; aucune creation reelle autorisee.
 - La revue externe de `20f43758b6349ce7de9aa8503a3a6e81334cd36a`
   conclut `PASS`. Le lot courant ajoute uniquement l'identity binding
   administratif de ce contrat et son seal : contrat, seal et trois

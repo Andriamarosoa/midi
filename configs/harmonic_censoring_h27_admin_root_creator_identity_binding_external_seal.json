@@ -1,0 +1,23 @@
+{
+  "schema_version":1,
+  "seal_id":"H27_ADMIN_ROOT_ONE_SHOT_CREATOR_IDENTITY_BINDING_EXTERNAL_SEAL_V1",
+  "status":"SEALED_PENDING_EXTERNAL_REVIEW_RUNNER_DORMANT_NO_FILESYSTEM_NO_PUBLICATION_NO_REGISTRY_NO_BUNDLE_NO_SCIENCE",
+  "identity_binding":{"path":"configs/harmonic_censoring_h27_admin_root_creator_identity_binding.json","git_blob_sha1":"42c680c98d0a8af1aef4ea279034da563d886ce3","size_bytes":4537,"raw_sha256":"1fbdbb2250155e6a332d4edb8a20f20ba04b00b5846dd7b1ae890bfd7d91d18c"},
+  "runner":{"path":"scripts/h27_create_admin_root_one_shot.py","git_blob_sha1":"769c075121e26c267e586c8b109c30ac5379e9aa","size_bytes":9336,"raw_sha256":"be2c4841e861974627c6bf543c586dac1d35a969136a90ef39ca54020c4ec00a"},
+  "approved_contract_binding_commit":"fba12da62f2271d574a9fb46c8a20260cf55a1f1",
+  "future_acknowledgement_environment_exact":"H27_ADMIN_ROOT_CREATE_EXECUTE=1",
+  "future_arguments_forbidden":true,
+  "future_execution_from_exact_reviewed_git_blob_only":true,
+  "runner_externally_reviewed":false,
+  "runner_externally_sealed":false,
+  "parent_observed":false,
+  "target_observed":false,
+  "target_created":false,
+  "publisher_authorization_consumed":false,
+  "creator_child_created":false,
+  "source_published":false,
+  "registry_opened":false,
+  "control_bundle_created":false,
+  "science_or_locked_test":false,
+  "next_action":"External review of the exact dormant admin-root creator, identity binding and seal only"
+}
