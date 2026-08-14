@@ -14,12 +14,20 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 registry-leaf terminal evidence externally PASS; empty registry-file declarative contract/seal pending review, no runner/filesystem/creator/bundle/science. -->
+<!-- H26_CORRECTION_STATUS: H27 empty registry-file contract corrected after external FAIL; exact mode and complete mechanical closure pending re-review, no runner/filesystem/creator/bundle/science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_EMPTY_REGISTRY_FILE_CREATION_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+  `H27_EMPTY_REGISTRY_FILE_CONTRACT_CLOSURE_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `366b778c86a0e00fb49be15bc122123f0db2fb56`
+  confirme la frontiere principale mais rend `FAIL` sur deux fermetures : mode
+  reel `0600` non revérifie et tests de contenu trop permissifs. La
+  micro-correction du meme lot declaratif exige maintenant `0600` sur fd cree,
+  fd rouvert et entree nommee, porte les regles a 18 et compare exactement les
+  quatre preflights, neuf etapes, 18 regles, sept exigences runner et le seal
+  complet. Toujours aucun runner, action Mac, JSONL, creator, bundle ou science.
+  Prochaine action unique : nouvelle revue externe de ce lot corrige.
 - La revue externe de `0ea166702f7573d894e487cb7d7f2551af769317`
   conclut `PASS`: le leaf registry est terminal, son autorite consommee et le
   runner `ca93c383...` non rejouable. Le lot courant definit uniquement le

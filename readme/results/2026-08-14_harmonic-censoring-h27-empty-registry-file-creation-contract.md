@@ -34,15 +34,20 @@ cleanup, repair ou recreation n'est permis après le premier effet.
 
 ```text
 contract
-0ba34b0ab41b45b340e80cd6ee2dc72e1381b841
-5892 octets
-9d9fbce3bc5baeb90fbdbcc2f1690ae3c2ee73270dbaeaaa809568ce3e80fa61
+943034b75504eefc6986e5eb5b7237b63cd36155
+5981 octets
+ccdc38bef19ea77391bd551c308d5bbb0dafd955435764b3c0685123c3c0d671
 
 external seal
-8604c164c42855b68f136d8dbb8099dfc2a1c806
+e697b7fe342583d7d153a9fcd717b43e28f7c581
 1868 octets
-cfd02ecb552b8f3bcecb51e6e6b3fa93c1c9b3af43f1531ec9ec8cec69590a68
+9de62a4856758d9784de4f3e8963e8994a8f5198558a67ee88febab1d017065d
 ```
+
+La micro-correction après revue exige désormais explicitement que le mode
+réel soit `0600` sur le fd créé puis sur le fd rouvert et l'entrée nommée. Le
+test compare les quatre préflights, les neuf étapes, le dictionnaire exact des
+18 règles, les sept exigences runner et le seal complet exact.
 
 ## Validation locale sans effet
 
