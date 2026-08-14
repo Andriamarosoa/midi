@@ -62,9 +62,24 @@ git diff --check : PASS
 Le test dry-run remplace uniquement la lecture du Git object database Mac par le
 Git local et confirme `139` chemins uniques ; il n'appelle jamais `publish()`.
 
-## Etat et suite
+## Revue externe et STOP pre-effet
 
-Etat : `DORMANT_PENDING_EXTERNAL_REVIEW`.
+La revue externe du commit `ddba2178028b385cb33f9a68455d724015e22814`
+conclut `PASS` et autorise l'unique publication depuis les bytes du blob exact
+`22fbc4ae6da12fd7ab7a55b630a87fbac73b07db`.
 
-La prochaine action autorisee est la revue externe du publisher, de son binding
-et de son seal exacts. La publication reelle reste interdite avant verdict PASS.
+La premiere invocation Mac s'est arretee dans `open_verified_parent()` parce
+que `/Users/amcarene/h27-admin/creator` n'existait pas. Cet arret precede toute
+observation final/staging et `mkdir(staging)` ; l'autorisation n'est donc pas
+consommee. La revue a ensuite autorise uniquement la creation du leaf `creator`
+si `/Users/amcarene/h27-admin` existait deja et etait conforme.
+
+Le controle borne constate que `/Users/amcarene/h27-admin` est lui-meme absent.
+Conformement au verdict, aucun repertoire n'a ete cree et le publisher n'a pas
+ete relance.
+
+Etat : `H27_CREATOR_ADMIN_ROOT_ABSENT_STOP_PRE_EFFECT_PUBLICATION_UNCONSUMED`.
+
+Une nouvelle autorite explicite est requise avant toute creation de la racine
+administrative `/Users/amcarene/h27-admin`. Registre, creator, control bundle,
+population, science et locked-test restent interdits.

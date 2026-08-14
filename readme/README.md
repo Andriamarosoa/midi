@@ -14,12 +14,22 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 reviewed creator source one-shot publisher dormant and sealed pending external review; no admin source publication, registry, consumption, bundle or science. -->
+<!-- H26_CORRECTION_STATUS: H27 creator admin root absent; publication authorization remains unconsumed after two pre-effect stops; no source publication, registry, consumption, bundle or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_REVIEWED_CREATOR_SOURCE_PUBLISHER_DORMANT_PENDING_EXTERNAL_REVIEW`.
+  `H27_CREATOR_ADMIN_ROOT_ABSENT_STOP_PRE_EFFECT_PUBLICATION_UNCONSUMED`.
+- La revue externe de `ddba2178028b385cb33f9a68455d724015e22814`
+  conclut `PASS` et autorise uniquement la publication one-shot depuis le blob
+  publisher exact `22fbc4ae...`. La premiere invocation Mac s'arrete avant
+  effet car `/Users/amcarene/h27-admin/creator` est absent. La revue confirme
+  que l'autorisation n'est pas consommee et autorise la creation bornee du leaf
+  seulement si `/Users/amcarene/h27-admin` existe deja et est conforme. Ce
+  parent est lui-meme absent ; la sequence s'arrete donc sans creation. Aucun
+  final/staging n'est observe, aucun `mkdir(staging)`, registre, creator, bundle
+  ou science n'est execute. La publication reste non consommee. Une nouvelle
+  autorite explicite est requise avant toute creation de `h27-admin`.
 - La premiere revue du publisher non versionne conclut `FAIL` sur trois
   surfaces : parent non ancre contre TOCTOU, rehash staging/final par chemins
   separes, et absence d'identite immuable du publisher. Le lot courant corrige
