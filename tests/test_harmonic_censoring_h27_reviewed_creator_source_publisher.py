@@ -4,7 +4,7 @@ import hashlib
 import importlib.util
 import inspect
 import json
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import subprocess
 import unittest
 from unittest import mock
@@ -113,7 +113,27 @@ class TestReviewedCreatorSourcePublisher(unittest.TestCase):
             self.module.read_blob = original_read_blob
             self.module.GIT_DATABASE = original_database
         self.assertEqual((len(verified), len(set(verified))), (139, 139))
-        self.assertEqual(len(self.module.canonical_manifest()), 795)
+        original_final_root = self.module.FINAL_ROOT
+        try:
+            self.module.FINAL_ROOT = PurePosixPath(
+                "/Users/amcarene/h27-admin/creator/h27-reviewed-control-bundle-creator-v1"
+            )
+            manifest = self.module.canonical_manifest()
+        finally:
+            self.module.FINAL_ROOT = original_final_root
+        self.assertEqual(
+            (len(manifest), hashlib.sha256(manifest).hexdigest()),
+            (790, "1d21fc852bec98310f331b2122fb1b2005ab2fd4d2a1b0c5cdd270a1c6dc9a0f"),
+        )
+        entrypoint = verified[self.module.ENTRYPOINT_IDENTITY["path"]]
+        digest_lines = (
+            f"{self.module.ENTRYPOINT_NAME}\0{len(entrypoint)}\0{hashlib.sha256(entrypoint).hexdigest()}\n"
+            f"{self.module.MANIFEST_NAME}\0{len(manifest)}\0{hashlib.sha256(manifest).hexdigest()}\n"
+        ).encode("utf-8")
+        self.assertEqual(
+            hashlib.sha256(digest_lines).hexdigest(),
+            "bc0d75ebf043018b677652b414d122d7dcbdd4c5a7fef0a38eef9b93b4c6d51d",
+        )
 
     def test_dirfd_race_safety_order_and_dormant_state(self) -> None:
         publish = inspect.getsource(self.module.publish)

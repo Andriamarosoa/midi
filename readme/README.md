@@ -14,12 +14,23 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 reviewed creator source published terminally once; publisher consumed, creator entrypoint/registry/bundle/science untouched, pending external result review. -->
+<!-- H26_CORRECTION_STATUS: H27 publisher terminal result coherent and consumed; POSIX manifest test correction pending external review, no replay/creator/registry/bundle/science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_REVIEWED_CREATOR_SOURCE_PUBLISHED_TERMINAL_SUCCESS_PENDING_EXTERNAL_REVIEW`.
+  `H27_PUBLISHER_POSIX_MANIFEST_TEST_CORRECTION_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `c5e2a8522502832223ef196900af70fb1fa31f4f`
+  confirme que l'execution publisher est coherente et terminalement consommee,
+  mais rend `FAIL` sur une contradiction du test : sous Windows,
+  `Path` serialisait le root avec des backslashes et le test attendait `795`,
+  tandis que le blob execute sur macOS produit canoniquement `790` octets. Le
+  lot courant corrige uniquement le test pour imposer la semantique POSIX
+  exacte et verrouille `790`, SHA `1d21fc85...` et digest ferme
+  `bc0d75eb...`; README et rapport enregistrent cette correction. Publisher
+  `60287a98...`, binding et seal restent byte-identiques ; aucune execution ou
+  nouvelle observation Mac. Prochaine action unique : revue externe de cette
+  correction administrative test-only.
 - La revue externe de `242f7ae505763d69c6ffc14ea4454fded4a635f0`
   conclut `PASS` et autorise une seule execution du nouveau publisher exact
   blob `60287a98eb0a7ff227bfcff49e72935b4a40dafc`. Le Mac est synchronise propre

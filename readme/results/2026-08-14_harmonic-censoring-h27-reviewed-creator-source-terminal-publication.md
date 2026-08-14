@@ -40,3 +40,22 @@ registre n'a pas été ouvert, aucune autorité bundle n'a été réservée/cons
 aucun bundle, materializer, science ou locked-test n'a été lancé.
 
 La seule prochaine action est la revue externe de cette preuve terminale.
+
+## Micro-correction administrative après revue
+
+La revue de `c5e2a8522502832223ef196900af70fb1fa31f4f` confirme que le résultat
+terminal est cohérent avec le publisher exact, mais découvre que le test local
+Windows comparait `len(canonical_manifest())` à `795`. Cette valeur provenait
+de la représentation Windows du `Path`; l'exécution macOS exacte produit la
+représentation POSIX préenregistrée :
+
+```text
+manifest_size_bytes  = 790
+manifest_raw_sha256  = 1d21fc852bec98310f331b2122fb1b2005ab2fd4d2a1b0c5cdd270a1c6dc9a0f
+closed_source_digest = bc0d75ebf043018b677652b414d122d7dcbdd4c5a7fef0a38eef9b93b4c6d51d
+```
+
+Le test force maintenant explicitement `PurePosixPath` pour cette construction
+canonique et verrouille les trois valeurs. Publisher, binding et seal restent
+byte-identiques. La publication n'est pas rejouée et aucune phase suivante
+n'est exécutée avant la nouvelle revue externe.
