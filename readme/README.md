@@ -14,12 +14,21 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 constructor one-shot execution gate contract pending external review; no registry, reservation, consumption, invocation or science. -->
+<!-- H26_CORRECTION_STATUS: H27 constructor one-shot execution gate contract identity binding pending external review; no control bundle, registry, reservation, consumption, invocation or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_CONSTRUCTOR_ONE_SHOT_EXECUTION_GATE_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+  `H27_CONSTRUCTOR_ONE_SHOT_EXECUTION_GATE_CONTRACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `6be05ef36794e4a42c133f9542fa2a30fa618496`
+  conclut `PASS`. Le lot courant ajoute uniquement l'identity binding du
+  contrat corrige du gate one-shot et son seal : contrat + seal + 116
+  predecesseurs = 118 chemins uniques rehashes. Les deux sources runtime, le
+  HEAD cible, l'autorite single-use non consommee et les huit edges fermes sont
+  preserves. Aucun bundle administratif, registre, reservation, consommation,
+  invocation, destination, filesystem ou science n'est ouvert. Rapport :
+  `readme/results/2026-08-14_harmonic-censoring-h27-constructor-one-shot-execution-gate-contract-identity-binding.md`.
+  Validation locale : `3/3` tests administratifs et `394/394` tests H27.
 - La revue externe de `5a0b8d3d3f301ed4357bd1853af778bd6794f406`
   conclut `PASS`. Le lot courant definit seulement le contrat declaratif et le
   seal externe du futur gate one-shot : artefact, seal, binding, binding seal
