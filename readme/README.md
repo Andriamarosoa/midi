@@ -14,12 +14,23 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 creator admin root absent; publication authorization remains unconsumed after two pre-effect stops; no source publication, registry, consumption, bundle or science. -->
+<!-- H26_CORRECTION_STATUS: H27 admin-root one-shot creation contract and seal pending external review; no runner, filesystem, source publication, registry, bundle or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_CREATOR_ADMIN_ROOT_ABSENT_STOP_PRE_EFFECT_PUBLICATION_UNCONSUMED`.
+  `H27_ADMIN_ROOT_CREATION_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+- Le lot courant definit uniquement le contrat declaratif et le seal externe de
+  la future creation one-shot de `/Users/amcarene/h27-admin`. Il lie les trois
+  identites PASS du publisher bloque, exige `/Users/amcarene` preexistant et
+  stable par `dirfd`, fixe quatre preflights, sept etapes et quatorze regles.
+  `mkdir("h27-admin")` serait le premier et seul effet ; `mkdir -p`, retry,
+  cleanup et observation de `creator`/publisher roots sont interdits. Aucun
+  runner ou filesystem n'est ouvert. Rapport :
+  `readme/results/2026-08-14_harmonic-censoring-h27-admin-root-creation-contract.md`.
+  Identites : contrat `9c536d6c...` / `3981` / `f2e22929...`, seal
+  `de9f83cf...` / `1174` / `5327764a...`. Prochaine action unique : revue
+  externe de ce contrat et seal exacts.
 - La revue externe de `ddba2178028b385cb33f9a68455d724015e22814`
   conclut `PASS` et autorise uniquement la publication one-shot depuis le blob
   publisher exact `22fbc4ae...`. La premiere invocation Mac s'arrete avant
