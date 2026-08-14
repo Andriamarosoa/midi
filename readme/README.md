@@ -27,9 +27,11 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   artefact reel, bundle, filesystem, registre, consommation ou science n'est
   ouvert. Rapport :
   `readme/results/2026-08-14_harmonic-censoring-h27-control-bundle-creation-authority-artifact-contract.md`.
-  Identites : contrat `50685e3b...` / `5073` /
-  `64de8d65...`, seal `a0067cef...` / `975` / `d105166a...` ; tests
-  structurels `3/3` et suite H27 `403/403`.
+  La premiere revue de `e2672ed...` a conclu `FAIL` sur trois verrouillages
+  mecaniques. La micro-correction fixe les six valeurs exactes de chaine, la
+  canonicalisation byte-exacte de l'ID et les gardes HEAD/bundle. Identites :
+  contrat `12f7645d...` / `6121` / `dd030822...`, seal `870ef976...` /
+  `1172` / `3f264fb3...` ; tests structurels `3/3` et suite H27 `403/403`.
 - La revue externe de `e875d5831f45fdf2fa7c8f9c62d2206a98bd0d98`
   conclut `PASS`. Le lot courant ajoute uniquement l'identity binding du
   contrat de creation du bundle et son seal : contrat + seal + 120

@@ -9,12 +9,18 @@ forment 124 predecesseurs uniques.
 Aucun artefact reel, bundle, observation, filesystem, registre, reservation,
 consommation, invocation ou science n'est ouvert.
 
-Identites exactes :
+La premiere revue de `e2672ed94806318528d07da337cccb94034653bd`
+a conclu `FAIL` uniquement parce que les six valeurs de chaine, les octets
+canoniques de derivation de l'identifiant et les gardes HEAD/bundle n'etaient
+pas tous normatifs et testes. La micro-correction les verrouille sans ouvrir
+de nouvelle portee.
 
-- contrat : `50685e3b18cc326b7d5964632c016bc945150cf5` / `5073` octets /
-  `64de8d6508fb9fd3636f86367913801e172e3ce055443f3ba1a2c3f894fd47c1` ;
-- seal : `a0067cef1d5122a2c727053c87e9084a0e57b92b` / `975` octets /
-  `d105166aa498540c38fa3abf8bae3bcf5732b57e80891a27cd85adc9819dbb2f`.
+Identites exactes apres micro-correction :
+
+- contrat : `12f7645d12f4198253e41cee0a1065aabf172da9` / `6121` octets /
+  `dd030822581b9f68c1611b895aceb108cffc53cd4c413ca4144f2ce38932ee88` ;
+- seal : `870ef976f50e8dad1a3d497aba3c58c04feb23be` / `1172` octets /
+  `3f264fb306b88867ecef0f03931ee3d7a50e8c7f6655f8afe30d430285b01849`.
 
 Validation locale sans calcul scientifique :
 
