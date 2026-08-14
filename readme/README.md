@@ -30,6 +30,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   filesystem ou science n'est ouvert. Rapport :
   `readme/results/2026-08-14_harmonic-censoring-h27-control-bundle-creation-contract.md`.
   Validation locale : `3/3` tests administratifs et `397/397` tests H27.
+  La premiere revue de `29784a47ed283d1ae609780ce33087e2e2564264`
+  conclut `FAIL` uniquement sur la couverture mecanique. La micro-correction
+  garde contrat et seal byte-identiques et compare desormais l'ordre exact des
+  13 etapes, les listes fermees de cles et les six identites completes.
 - La revue externe de `6be05ef36794e4a42c133f9542fa2a30fa618496`
   conclut `PASS`. Le lot courant ajoute uniquement l'identity binding du
   contrat corrige du gate one-shot et son seal : contrat + seal + 116

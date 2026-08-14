@@ -22,3 +22,10 @@ octets, SHA-256
 
 Validation locale : `3/3` tests administratifs, `397/397` tests H27 et
 `git diff --check` sans anomalie.
+
+La premiere revue de `29784a47ed283d1ae609780ce33087e2e2564264`
+conclut `FAIL` uniquement sur la couverture mecanique : le test comptait les
+13 etapes sans comparer leur ordre exact et n'imposait pas la liste fermee des
+regles. La micro-correction conserve contrat et seal byte-identiques et
+verrouille l'ordre exact, toutes les cles de definition/regles et les six
+quadruplets chemin/blob/taille/SHA-256 du manifeste.
