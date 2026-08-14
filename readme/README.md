@@ -14,12 +14,24 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 registry-leaf contract externally PASS; administrative identity binding and seal pending external review, no runner/filesystem/registry/bundle/science. -->
+<!-- H26_CORRECTION_STATUS: H27 registry-leaf contract binding externally PASS; dormant one-shot runner/binding/seal pending external review, no execution/filesystem/registry/bundle/science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_REGISTRY_LEAF_CONTRACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+  `H27_REGISTRY_LEAF_ONE_SHOT_RUNNER_DORMANT_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `c18ec0632e23edeca59816246c947a585f918af4`
+  conclut `PASS`. Le lot courant implemente uniquement le runner dormant
+  one-shot de creation du leaf exact `/Users/amcarene/h27-admin/registry`, son
+  identity binding, son external seal, les tests et la documentation. Le
+  runner rehash sept identites Git avant observation du parent, impose macOS,
+  zero argument et l'ACK exact, puis applique `O_NOFOLLOW`, tuple terminal,
+  probe unique, revalidation, unique `mkdir`, fsync et verification du leaf.
+  Il n'est pas execute. JSONL registry, creator entrypoint, reservation,
+  consommation, bundle, constructor/materializer, science et locked-test
+  restent interdits. Rapport :
+  `readme/results/2026-08-14_harmonic-censoring-h27-registry-leaf-one-shot-creator.md`.
+  Prochaine action unique : revue externe du runner, binding et seal.
 - La revue externe de `e07e26111bbcf0343a7b57f30c154ab667154fcf`
   conclut `PASS`. Le lot courant ajoute uniquement l'identity binding
   administratif du contrat registry-leaf PASS, son external seal, un test et
@@ -3514,6 +3526,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-11 — correction strict JSON du loader scientifique H26](results/2026-08-11_harmonic-censoring-h26-scientific-loader-strict-json-correction.md)
 - [2026-08-14 — contrat de création one-shot du leaf registry H27](results/2026-08-14_harmonic-censoring-h27-registry-leaf-creation-contract.md)
 - [2026-08-14 — identity binding du contrat registry-leaf H27](results/2026-08-14_harmonic-censoring-h27-registry-leaf-contract-identity-binding.md)
+- [2026-08-14 — runner dormant one-shot du leaf registry H27](results/2026-08-14_harmonic-censoring-h27-registry-leaf-one-shot-creator.md)
 - [2026-08-10 — runner/provenance synthétique de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-implementation.md)
 - [2026-08-10 — contrat d'exécution déclaratif de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-execution-contract.md)
 - [2026-08-10 — frontière d'exécution directe de l'évaluation V2 indépendante](results/2026-08-10_causal-candidate-v2-independent-validation-runner-contract-only.md)
