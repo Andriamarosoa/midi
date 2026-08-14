@@ -14,12 +14,22 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 constructor execution-authority artifact identity binding pending external review; no registry, reservation, consumption, invocation or science. -->
+<!-- H26_CORRECTION_STATUS: H27 constructor one-shot execution gate contract pending external review; no registry, reservation, consumption, invocation or science. -->
 ## État courant
 
 - Mise à jour : `2026-08-13`.
 - État courant :
-  `H27_CONSTRUCTOR_EXECUTION_AUTHORITY_ARTIFACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+  `H27_CONSTRUCTOR_ONE_SHOT_EXECUTION_GATE_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `5a0b8d3d3f301ed4357bd1853af778bd6794f406`
+  conclut `PASS`. Le lot courant definit seulement le contrat declaratif et le
+  seal externe du futur gate one-shot : artefact, seal, binding, binding seal
+  et 112 identites amont = 116 chemins uniques a rehasher avant registre.
+  L'ordre futur est `artifact -> HEAD/clean -> rehash116 -> registre ->
+  reservation -> consommation -> invocation`. Aucun registre, reservation,
+  consommation, invocation, destination, filesystem ou science n'est ouvert.
+  Rapport :
+  `readme/results/2026-08-14_harmonic-censoring-h27-constructor-one-shot-execution-gate-contract.md`.
+  Validation locale : `3/3` tests administratifs et `391/391` tests H27.
 - La revue externe de `5e95219a517fb7206f4d54e5dc5e492dc868d80f`
   conclut `PASS`. Le lot courant ajoute uniquement l'identity binding de
   l'artefact d'autorite et son seal : artefact + seal + 112 identites amont =
