@@ -34,9 +34,9 @@ de fichiers, `renameatx_np(..., RENAME_EXCL)`, fsync, aucun cleanup/retry/repair
 
 | Objet | Git blob | Octets | SHA-256 brut |
 |---|---:|---:|---:|
-| publisher terminal-parent | `2941c6938fded70057810b7ea7a2f4cc60b53b78` | 17188 | `ab2e7499fd87cb46261be3b70c38a549fc37880173320053260740df02132982` |
-| binding parent terminal | `6f2f7cd32e05858a2ec79b7e44440d0155931b02` | 4380 | `06f72a9ea0b85d50af1236f99d43b03550410a9c31b31a63e91bbead6ff639ad` |
-| seal externe | `af976aaa897c711871085ed08a6fa51bb17f4b09` | 1857 | `2618f315b430224a77b14f4d9c07b28f25ab9d640ae17837106427ce62ac95ad` |
+| publisher terminal-parent | `60287a98eb0a7ff227bfcff49e72935b4a40dafc` | 17187 | `c84a64767a2cf3912ae8aaca0d74accc634b1219b202825a74a36d0c72481859` |
+| binding parent terminal | `7ae682b72594832a2a72b484b1e8dff2e4b30152` | 4380 | `9691a3aa1cb82b02fd113c62e2acc96f197b3c05412d27f3c21dae7e5b0a4830` |
+| seal externe | `c852b08cbdaf2992cb87a8b454b8fcae3ef62a37` | 1857 | `57f0d4e360397591381e836b09378a874be94e6eec9aeff630f9bd466b7451bb` |
 
 Le binding conserve les trois identités du publisher PASS précédent et lie la
 preuve terminale creator-leaf revue PASS. Il ferme aussi les dictionnaires

@@ -34,8 +34,8 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `readme/results/2026-08-14_harmonic-censoring-h27-publisher-terminal-parent-microfix.md`.
   Le publisher PASS historique reste byte-identique sous son path d'origine ;
   le microfix est un nouveau publisher versionne. Identites : publisher
-  `2941c693...` / `17188` / `ab2e7499...`, binding `6f2f7cd3...` / `4380` /
-  `06f72a9e...`, seal `af976aaa...` / `1857` / `2618f315...`. Prochaine action
+  `60287a98...` / `17187` / `c84a6476...`, binding `7ae682b7...` / `4380` /
+  `9691a3aa...`, seal `c852b08c...` / `1857` / `57f0d4e3...`. Prochaine action
   unique : revue externe de ce lot dormant ;
   aucune publication reelle n'est autorisee.
 - La revue externe de `406f04db0c3315b82ad91f02ffb71a425512f61b`

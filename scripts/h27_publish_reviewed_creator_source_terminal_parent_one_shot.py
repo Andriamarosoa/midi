@@ -379,4 +379,3 @@ def publish() -> dict[str, object]:
 
 if __name__ == "__main__":
     print(json.dumps(publish(), ensure_ascii=False, allow_nan=False, separators=(",", ":")))
-
