@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import datetime
 import hashlib
-import importlib.util
 import json
 import os
 from pathlib import Path
@@ -231,11 +230,12 @@ def verify_one_hundred_twelve_target_identities() -> tuple[tuple[str, str, int, 
     return tuple(verified[path] for path in sorted(verified))
 
 
-def verify_constructor() -> None:
+def verify_constructor() -> bytes:
     tree = git_read("ls-tree", REQUIRED_HEAD, CONSTRUCTOR_PATH).stdout.rstrip(b"\n").split(maxsplit=3)
     require(len(tree) == 4 and tree[1] == b"blob" and tree[2].decode("ascii") == CONSTRUCTOR_BLOB, "H27 constructor tree identity mismatch")
     raw = stable_regular_bytes(TARGET / CONSTRUCTOR_PATH)
     require((git_blob(raw), len(raw), sha256(raw)) == (CONSTRUCTOR_BLOB, CONSTRUCTOR_SIZE, CONSTRUCTOR_SHA256), "H27 constructor byte identity mismatch")
+    return raw
 
 
 def require_no_active_processes() -> None:
@@ -276,14 +276,14 @@ def preflight() -> dict[str, object]:
     bundle_digest, _ = verify_control_bundle()
     verify_checkout()
     identities = verify_one_hundred_twelve_target_identities()
-    verify_constructor()
+    constructor_raw = verify_constructor()
     require_no_active_processes()
     # Full second validation immediately before registry open.  No destination
     # path has been observed; the exclusive registry create is the first effect.
     require(verify_control_bundle()[0] == bundle_digest, "H27 control bundle drifted")
     verify_checkout()
     require(verify_one_hundred_twelve_target_identities() == identities, "H27 target identity set drifted")
-    verify_constructor()
+    require(verify_constructor() == constructor_raw, "H27 constructor bytes drifted")
     require_no_active_processes()
     issued_at, nonce, instance_id, canonical_raw, canonical_sha, authority_id = canonical_runtime_inputs()
     return {
@@ -297,6 +297,7 @@ def preflight() -> dict[str, object]:
         "canonical_bytes": canonical_raw,
         "canonical_sha256": canonical_sha,
         "execution_authority_artifact_id": authority_id,
+        "constructor_bytes": constructor_raw,
     }
 
 
@@ -310,31 +311,36 @@ def _write_record_once(fd: int, value: dict[str, object]) -> None:
     os.fsync(fd)
 
 
-def fsync_registry_parent() -> None:
-    parent_fd = os.open(REGISTRY.parent, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
-    try:
-        os.fsync(parent_fd)
-    finally:
-        os.close(parent_fd)
-
-
-def verify_registry_parent_without_observing_registry() -> None:
+def open_verified_registry_parent() -> int:
     parent = REGISTRY.parent
     require(parent.resolve(strict=True) == parent, "H27 registry parent realpath mismatch")
     require(parent.is_dir() and not parent.is_symlink(), "H27 registry parent type mismatch")
+    require(hasattr(os, "O_DIRECTORY") and hasattr(os, "O_NOFOLLOW"), "H27 directory FD safeguards unavailable")
+    parent_fd = os.open(parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    try:
+        descriptor = os.fstat(parent_fd)
+        named = os.stat(parent, follow_symlinks=False)
+        require(stat.S_ISDIR(descriptor.st_mode) and stat.S_ISDIR(named.st_mode), "H27 registry parent is not a directory")
+        require((descriptor.st_dev, descriptor.st_ino) == (named.st_dev, named.st_ino), "H27 registry parent descriptor mismatch")
+        return parent_fd
+    except BaseException:
+        os.close(parent_fd)
+        raise
 
 
-def open_and_reserve(context: dict[str, object]) -> int:
-    verify_registry_parent_without_observing_registry()
-    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
-    if hasattr(os, "O_NOFOLLOW"):
-        flags |= os.O_NOFOLLOW
-    fd = os.open(REGISTRY, flags, 0o600)
+def open_and_reserve(context: dict[str, object], parent_fd: int) -> int:
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW
+    fd = os.open(REGISTRY.name, flags, 0o600, dir_fd=parent_fd)
     try:
         if hasattr(os, "fchmod"):
             os.fchmod(fd, 0o600)
         if sys.platform == "darwin":
             require(stat.S_IMODE(os.fstat(fd).st_mode) == 0o600, "H27 registry mode mismatch; terminal consumed failure")
+        descriptor = os.fstat(fd)
+        named = os.stat(REGISTRY.name, dir_fd=parent_fd, follow_symlinks=False)
+        require(stat.S_ISREG(descriptor.st_mode) and stat.S_ISREG(named.st_mode), "H27 registry entry type mismatch; terminal consumed failure")
+        require(descriptor.st_nlink == 1, "H27 registry hard link forbidden; terminal consumed failure")
+        require((descriptor.st_dev, descriptor.st_ino) == (named.st_dev, named.st_ino), "H27 registry descriptor mismatch; terminal consumed failure")
         _write_record_once(fd, {
             "schema_version": 1,
             "state": "reserved",
@@ -344,7 +350,7 @@ def open_and_reserve(context: dict[str, object]) -> int:
             "issued_at_utc": context["issued_at_utc"],
             "canonical_sha256": context["canonical_sha256"],
         })
-        fsync_registry_parent()
+        os.fsync(parent_fd)
         return fd
     except BaseException:
         os.close(fd)
@@ -363,18 +369,21 @@ def consume_authority(fd: int, context: dict[str, object]) -> None:
     })
 
 
-def load_constructor() -> ModuleType:
-    path = TARGET / CONSTRUCTOR_PATH
-    spec = importlib.util.spec_from_file_location("_h27_review4_exact_constructor", path)
-    require(spec is not None and spec.loader is not None, "H27 constructor import spec unavailable")
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = module
-    spec.loader.exec_module(module)
+def load_constructor_from_frozen_bytes(raw: bytes) -> ModuleType:
+    require(type(raw) is bytes, "H27 frozen constructor bytes required")
+    require((git_blob(raw), len(raw), sha256(raw)) == (CONSTRUCTOR_BLOB, CONSTRUCTOR_SIZE, CONSTRUCTOR_SHA256), "H27 frozen constructor identity mismatch")
+    name = "_h27_review4_exact_constructor"
+    module = ModuleType(name)
+    module.__file__ = str(TARGET / CONSTRUCTOR_PATH)
+    module.__package__ = ""
+    sys.modules[name] = module
+    code = compile(raw, module.__file__, "exec", dont_inherit=True, optimize=0)
+    exec(code, module.__dict__)
     return module
 
 
 def invoke_constructor(context: dict[str, object]) -> object:
-    module = load_constructor()
+    module = load_constructor_from_frozen_bytes(context["constructor_bytes"])
     probe = module.H27EffectFreeConstructorProbe(
         persistent_registry_checked=True,
         identity_available=True,
@@ -397,13 +406,18 @@ def invoke_constructor(context: dict[str, object]) -> object:
 
 def execute() -> dict[str, object]:
     context = preflight()
-    # First persistent effect and one-shot attempt boundary.  Any failure from
-    # os.open onward is terminal.  Never retry, reconstruct, clean, or repair.
-    fd = open_and_reserve(context)
+    parent_fd = open_verified_registry_parent()
     try:
-        consume_authority(fd, context)
+        # First persistent effect and one-shot attempt boundary.  Any failure
+        # from this relative O_EXCL create onward is terminal.  Never retry,
+        # reconstruct, clean, or repair.
+        fd = open_and_reserve(context, parent_fd)
+        try:
+            consume_authority(fd, context)
+        finally:
+            os.close(fd)
     finally:
-        os.close(fd)
+        os.close(parent_fd)
     result = invoke_constructor(context)
     require(result.canonical_bytes == context["canonical_bytes"], "H27 constructor canonical bytes mismatch after consumption")
     require(result.canonical_sha256 == context["canonical_sha256"], "H27 constructor digest mismatch after consumption")

@@ -41,19 +41,26 @@ Le graphe normatif est développé et rehaché depuis les identités scellées :
 ```
 
 Le contrôle est répété intégralement immédiatement avant la première frontière
-persistante. Aucun chemin de destination n'est observé pendant le préflight.
+persistante. Les bytes du constructor exact sont conservés en mémoire par ce
+second contrôle. Après consommation, ils sont compilés et exécutés directement
+depuis cette copie figée : le fichier vivant n'est jamais rouvert et aucun
+`__pycache__` n'est produit. Aucun chemin de destination n'est observé pendant
+le préflight.
 
 ## Frontières persistantes
 
 L'ordre du futur chemin réel est explicite :
 
 ```text
-préflight statique complet
-→ os.open(registry, O_CREAT | O_EXCL | O_NOFOLLOW, 0600)
-→ record reserved + fsync fichier + fsync parent
+préflight statique complet + constructor bytes figés en RAM
+→ ouverture unique du parent avec O_DIRECTORY | O_NOFOLLOW
+→ validation fstat du parent et conservation de ce FD
+→ os.open(registry.name, O_CREAT | O_EXCL | O_NOFOLLOW, 0600, dir_fd=parent_fd)
+→ égalité inode/device entre FD registre et entrée relative au parent_fd
+→ record reserved + fsync fichier + fsync du même parent_fd
 → record consumed + fsync fichier
 → fermeture registre
-→ chargement du constructor exact
+→ compilation/exécution des bytes constructor figés en RAM
 → invocation unique effect-free
 → vérification bytes/SHA/instance et zéro effet
 → STOP
@@ -75,8 +82,8 @@ Commandes exécutées uniquement dans le worktree auxiliaire Windows :
 
 ```text
 python -B -m unittest tests.test_harmonic_censoring_h27_review4_constructor_execution_gate
-.........
-Ran 9 tests in 24.531s
+...........
+Ran 11 tests in 24.263s
 OK
 
 python -m py_compile \
@@ -90,9 +97,11 @@ PASS
 
 Les tests couvrent notamment l'inertie d'import, ACK/arguments fail-closed, la
 construction canonique déterministe, les 112 identités normatives uniques,
-l'exclusivité et l'ordre du registre, l'ordre préflight → réservation →
-consommation → constructor, l'absence d'ouverture sur échec préflight et
-l'absence de retry après une erreur constructor post-consommation.
+la création relative au même parent FD validé/fsyncé, l'ordre préflight →
+réservation → consommation → constructor, l'absence d'ouverture sur échec
+préflight, l'absence de retry après une erreur constructor post-consommation,
+et l'exécution des bytes figés malgré une mutation synthétique du pathname
+vivant sans création de bytecode.
 
 ## STOP
 

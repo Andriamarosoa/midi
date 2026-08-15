@@ -181,8 +181,15 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   du registre. La création exclusive du registre est sa première frontière
   persistante; réservation et consommation sont écrites et fsyncées avant
   l'unique invocation du constructor effect-free. Aucun chemin destination
-  n'est observé, aucun materializer ou calcul n'est accessible. Les tests
-  ciblés rendent `9/9`; `py_compile` et `git diff --check` passent. Le runner
+  n'est observé, aucun materializer ou calcul n'est accessible. La première
+  revue de `f112f687...` rend un `FAIL` limité sur deux TOCTOU : relecture du
+  constructor par pathname après consommation et réouverture du parent du
+  registre par pathname. Le correctif courant conserve les bytes constructor
+  vérifiés en RAM puis les compile/exécute directement sans import fichier ni
+  bytecode; il ouvre le parent du registre une fois avec
+  `O_DIRECTORY|O_NOFOLLOW`, conserve ce descripteur et l'utilise pour la
+  création relative, la comparaison inode/device et le fsync. Les tests
+  ciblés rendent `11/11`; `py_compile` et `git diff --check` passent. Le runner
   reste dormant : aucun SSH, ACK réel, registre Mac, réservation,
   consommation, constructor, materializer, science ou locked-test n'a été
   exécuté. Rapport :
