@@ -14,12 +14,12 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 authority-instance publisher stopped pre-consumption because activation parent is absent; no retry; pending external review. -->
+<!-- H26_CORRECTION_STATUS: H27 activation parent created exactly at 0700; publisher remains uninvoked; STOP pending external review. -->
 ## État courant
 
 - Mise à jour : `2026-08-16`.
 - État courant :
-  `H27_REVIEW4_AUTHORITY_INSTANCE_PUBLICATION_PRECONSUMPTION_FAILURE_STOP_PENDING_EXTERNAL_REVIEW`.
+  `H27_REVIEW4_ACTIVATION_PARENT_CREATION_TERMINAL_SUCCESS_STOP_PENDING_EXTERNAL_REVIEW`.
 - La revue externe de `61dc4b496a454b596fca6ac361504f441e987aab`
   conclut `PASS` sur le sender dormant corrigé et autorise uniquement sa
   préparation locale Windows au HEAD historique. Le préflight live a révélé
@@ -256,6 +256,21 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   science ou locked-test. STOP et revue externe obligatoire avant toute suite.
   Rapport :
   `readme/results/2026-08-16_harmonic-censoring-h27-review4-authority-instance-publication-preconsumption-failure.md`.
+  La revue externe de cette archive conclut `PASS` : l'autorité de publication
+  reste non consommée, mais l'autorisation SSH précédente est close. Elle a
+  autorisé uniquement la création contrôlée du parent activation, puis STOP.
+  Une unique invocation Python distante a ancré
+  `/Users/amcarene/h27-admin` avec `O_DIRECTORY|O_NOFOLLOW`, vérifié
+  `fstat == stat`, refusé toute entrée préexistante, créé relativement
+  `activation` en `0700`, rouvert et comparé directory/inode/dev/mode, puis
+  fsyncé le parent. Le statut terminal est
+  `H27_REVIEW4_ACTIVATION_PARENT_CREATION_TERMINAL_SUCCESS_STOP`.
+  Le publisher n'a pas été invoqué; destination et registre de publication
+  restent non observés/non créés; aucun materializer/science/locked-test.
+  Rapport :
+  `readme/results/2026-08-16_harmonic-censoring-h27-review4-activation-parent-terminal-creation.md`.
+  Prochaine action unique : revue externe de cette création avant toute nouvelle
+  invocation du publisher exact `d296bfee...`.
 - La revue externe de `bc9fd98e4fdc011f229979206e17040ac66017d5`
   conclut `PASS` sur le receiver exact et autorise uniquement le sender de
   préparation dormant couvrant les quatre étapes pré-SSH. Le lot courant
