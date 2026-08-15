@@ -14,12 +14,12 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 constructor execution gate implemented dormant after successful consumed HEAD transition; local tests pass; pending external review; no Mac execution. -->
+<!-- H26_CORRECTION_STATUS: H27 constructor execution gate consumed successfully; authority reserved/consumed and effect-free constructor invoked once; STOP before materializer; pending external review. -->
 ## État courant
 
 - Mise à jour : `2026-08-16`.
 - État courant :
-  `H27_REVIEW4_CONSTRUCTOR_EXECUTION_GATE_DORMANT_PENDING_EXTERNAL_REVIEW`.
+  `H27_REVIEW4_CONSTRUCTOR_EXECUTION_GATE_TERMINAL_SUCCESS_STOP_PENDING_EXTERNAL_REVIEW`.
 - La revue externe de `61dc4b496a454b596fca6ac361504f441e987aab`
   conclut `PASS` sur le sender dormant corrigé et autorise uniquement sa
   préparation locale Windows au HEAD historique. Le préflight live a révélé
@@ -196,6 +196,21 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `readme/results/2026-08-16_harmonic-censoring-h27-review4-constructor-execution-gate-dormant.md`.
   Prochaine action unique : revue externe du commit complet; aucune exécution
   Mac avant un nouveau `PASS` explicite.
+  La revue externe de `342f46695974ece843dcdc5de86562d016edcd36`
+  conclut ensuite `PASS — exécutable` et autorise une invocation Mac unique du
+  gate exact. Le bootstrap LF utilise un root administratif neuf, télécharge le
+  runner depuis ce commit, vérifie blob `231d7793...`, taille `25156` et
+  SHA-256 `82953b3f...`, puis l'invoque sans argument dans `env -i` avec le seul
+  ACK constructor. L'unique SSH termine avec code `0` et le statut
+  `H27_REVIEW4_CONSTRUCTOR_EXECUTION_GATE_TERMINAL_SUCCESS_STOP`. Les 116
+  identités sont revalidées avant registre; l'autorité est réservée puis
+  consommée durablement; le constructor figé est invoqué exactement une fois
+  et rapporte zéro effet filesystem/science. Le registre existe désormais;
+  la destination activation reste non observée et le constructor atteste ne
+  pas l'avoir créée; aucun materializer, P0/P1/P2, science ou locked-test n'est
+  lancé. La tentative est définitivement consommée sans retry. STOP avant
+  toute prochaine frontière. Rapport :
+  `readme/results/2026-08-16_harmonic-censoring-h27-review4-constructor-execution-gate-terminal.md`.
 - La revue externe de `bc9fd98e4fdc011f229979206e17040ac66017d5`
   conclut `PASS` sur le receiver exact et autorise uniquement le sender de
   préparation dormant couvrant les quatre étapes pré-SSH. Le lot courant
