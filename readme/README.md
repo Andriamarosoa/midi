@@ -14,12 +14,12 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 Review 3 closed PASS; Review 4 creator read-only preflight PASS and STOP; creator/authority/bundle/materializer remain unconsumed. -->
+<!-- H26_CORRECTION_STATUS: H27 Review 4 creator consumed successfully and exact control bundle published; STOP before materializer/P0/P1/P2/science. -->
 ## État courant
 
 - Mise à jour : `2026-08-16`.
 - État courant :
-  `H27_REVIEW_4_CREATOR_READ_ONLY_PREFLIGHT_PASS_STOP_PENDING_EXTERNAL_REVIEW`.
+  `H27_REVIEW_4_CREATOR_TERMINAL_SUCCESS_STOP_PENDING_EXTERNAL_REVIEW`.
 - La revue externe de `61dc4b496a454b596fca6ac361504f441e987aab`
   conclut `PASS` sur le sender dormant corrigé et autorise uniquement sa
   préparation locale Windows au HEAD historique. Le préflight live a révélé
@@ -112,6 +112,16 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   creator, bundle, materializer, science ou locked-test n'a été exécuté. STOP
   avant toute mutation Review 4. Rapport :
   `readme/results/2026-08-16_harmonic-censoring-h27-review4-creator-read-only-preflight-pass.md`.
+  La revue externe du commit `6f67b3c51cfa43fa58499cb472623e99a84157a5`
+  conclut `PASS` et autorise ensuite une seule invocation du creator publié
+  exact. Cette invocation unique termine avec code `0`, stdout/stderr vides.
+  Le postcheck read-only confirme les trois transitions exactes `reserved →
+  consumed → bundle_creation_succeeded`, le registre de `1928` octets au
+  SHA-256 `e3dcfc11...`, les six fichiers exacts et le digest fermé
+  `879d547c...`. Staging est absent, final présent, HEAD détaché/propre inchangé.
+  Materializer, P0/P1/P2, science et locked-test restent tous non exécutés.
+  STOP avant toute étape suivante. Rapport :
+  `readme/results/2026-08-16_harmonic-censoring-h27-review4-creator-terminal-execution.md`.
 - La revue externe de `bc9fd98e4fdc011f229979206e17040ac66017d5`
   conclut `PASS` sur le receiver exact et autorise uniquement le sender de
   préparation dormant couvrant les quatre étapes pré-SSH. Le lot courant
