@@ -14,12 +14,12 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 source transport abandoned; self-contained target import + detach Review 3 implemented, no Mac execution, pending external review. -->
+<!-- H26_CORRECTION_STATUS: H27 Review 3 runner PASS; exact no-SSH local Mac bootstrap approved; execution not consumed and awaiting direct Mac Terminal invocation. -->
 ## État courant
 
 - Mise à jour : `2026-08-15`.
 - État courant :
-  `H27_REVIEW_3_SELF_CONTAINED_TARGET_IMPORT_AND_DETACH_IMPLEMENTED_PENDING_EXTERNAL_REVIEW_NO_MAC_EXECUTION`.
+  `H27_REVIEW_3_PASS_AWAITING_APPROVED_LOCAL_MAC_BOOTSTRAP_NOT_CONSUMED`.
 - La revue externe de `61dc4b496a454b596fca6ac361504f441e987aab`
   conclut `PASS` sur le sender dormant corrigé et autorise uniquement sa
   préparation locale Windows au HEAD historique. Le préflight live a révélé
@@ -88,6 +88,13 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   detach exact vers `7ee0a897...` et STOP. Aucun SSH ou ODB source n'est lu.
   Le runner n'a pas été exécuté sur le Mac et attend une revue externe unique :
   `readme/results/2026-08-15_harmonic-censoring-h27-self-contained-target-import-detach-runner.md`.
+  La revue finale du correctif `ef4748f0...` conclut `PASS`. Le bootstrap local
+  sans SSH est également approuvé : téléchargement du runner depuis ce commit
+  vers `/Users/amcarene/h27-review3-ef4748f0`, vérification exacte `40550`
+  octets / SHA-256 `aaca37b5...` / blob Git `a2ec8048...`, puis une invocation
+  locale avec `H27_TARGET_IMPORT_AND_DETACH_EXECUTE=1`. Cette invocation n'a
+  pas eu lieu et Review 3 n'est pas consommée. Elle requiert une saisie directe
+  dans le Terminal du Mac ; aucun canal Windows conforme sans SSH n'existe.
 - La revue externe de `bc9fd98e4fdc011f229979206e17040ac66017d5`
   conclut `PASS` sur le receiver exact et autorise uniquement le sender de
   préparation dormant couvrant les quatre étapes pré-SSH. Le lot courant

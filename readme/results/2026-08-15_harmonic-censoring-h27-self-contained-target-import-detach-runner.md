@@ -78,5 +78,34 @@ ou calcul scientifique n'a été touché.
 État :
 
 ```text
-H27_REVIEW_3_SELF_CONTAINED_TARGET_IMPORT_AND_DETACH_IMPLEMENTED_PENDING_EXTERNAL_REVIEW_NO_MAC_EXECUTION
+H27_REVIEW_3_PASS_AWAITING_APPROVED_LOCAL_MAC_BOOTSTRAP_NOT_CONSUMED
 ```
+
+## Revue finale et bootstrap local
+
+La correction `ef4748f0f2353657bf9b0db1ebe13ac543a27050` ajoute le nom
+du nouveau runner au contrôle de processus concurrents. Le test avec un second
+PID prouve l'arrêt avant décodage, premier `hash-object -w` et detach. La revue
+externe conclut `PASS final` et autorise une exécution unique.
+
+Comme aucun canal non-SSH préexistant ne pouvait déposer le runner hors target,
+le bootstrap local Mac suivant a été approuvé : racine administrative nouvelle
+`/Users/amcarene/h27-review3-ef4748f0`, téléchargement HTTPS depuis le commit
+immuable, puis vérification avant lancement des trois identités exactes :
+
+```text
+size_bytes = 40550
+raw_sha256 = aaca37b50ec6b98da43392e578145d6b45f45c4b587fac603010ad71a13d15f7
+git_blob_sha1 = a2ec8048c7f46915aeb26bb449abd1fe027cddec
+```
+
+Une erreur avant l'appel Python du runner est un échec bootstrap pré-runner :
+Review 3 reste non consommée et le target intact. Dès que l'appel Python est
+lancé, Review 3 est consommée quel que soit son résultat et tout retry est
+interdit. stdout, stderr, exit code et leurs digests doivent rester dans la
+racine administrative.
+
+Cette commande locale n'a pas été exécutée : l'agent Windows ne possède aucun
+canal Terminal Mac sans SSH, et le troisième SSH reste interdit. Le target est
+donc inchangé et Review 3 reste non consommée en attente d'une invocation
+directe dans le Terminal du Mac.
