@@ -14,12 +14,23 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 control-parent contract PASS; identity binding and seal pending external review, no runner/filesystem/registry/creator/bundle/science. -->
+<!-- H26_CORRECTION_STATUS: H27 control-parent contract binding PASS; dormant one-shot runner, binding and seal pending external review, no Mac execution/filesystem/registry/creator/bundle/science. -->
 ## État courant
 
 - Mise à jour : `2026-08-14`.
 - État courant :
-  `H27_CONTROL_PARENT_CREATION_CONTRACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+  `H27_CONTROL_PARENT_ONE_SHOT_RUNNER_PENDING_EXTERNAL_REVIEW_DORMANT`.
+- La revue externe de `a8662780533c9c613b22f709bd5da94d1526f314`
+  conclut `PASS`. Le lot courant implémente uniquement le runner dormant
+  one-shot `scripts/h27_create_control_parent_one_shot.py`, son identity
+  binding, son external seal, ses tests et le présent journal. Le runner
+  rehash sept identités Git avant toute observation du parent, impose macOS,
+  ACK exact et zéro argument, ancre le parent à `16777233 / 1445438`, puis
+  spécifie l’unique séquence `probe → revalidation → mkdir control 0700 →
+  fsync → reopen/verify → revalidation → STOP`. Aucun accès Mac ni effet réel.
+  Rapport :
+  `readme/results/2026-08-14_harmonic-censoring-h27-control-parent-one-shot-runner.md`.
+  Prochaine action unique : revue externe du runner dormant et de ses seals.
 - La revue externe de `a07522cbac45097acb53e24f06b61bb2a6060ce0`
   conclut `PASS`. Le lot courant lie exclusivement les cinq identités exactes
   du contrat control-parent PASS, de son seal et des trois prédécesseurs du
