@@ -14,12 +14,19 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 corrected control-parent runner implemented dormant and identity-sealed pending external review; no Mac effect/registry/creator/bundle/science. -->
+<!-- H26_CORRECTION_STATUS: H27 corrected control-parent runner mechanically closed after external FAIL; runner/binding/seal byte-identical, micro-corrected test/docs pending external review, no Mac effect. -->
 ## État courant
 
 - Mise à jour : `2026-08-15`.
 - État courant :
-  `H27_CONTROL_PARENT_CORRECTED_RUNNER_PENDING_EXTERNAL_REVIEW`.
+  `H27_CONTROL_PARENT_CORRECTED_RUNNER_TEST_CLOSURE_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `2f0fb5c7cf0fd496f5a80a514b42081c00f87e74`
+  conclut `FAIL` uniquement parce que le test ne comparait pas encore les
+  dictionnaires complets du binding et du seal. La micro-correction autorisée
+  ferme désormais exactement métadonnées, `execution_binding`, état stale,
+  safeguards, `current_state`, `next_action` et le seal entier. Runner, binding
+  et seal restent byte-identiques. Aucun effet Mac. Prochaine action unique :
+  revue externe de cette fermeture mécanique.
 - La revue externe de `da614f836e129df9a94534fae621e823ddef1d99`
   conclut `PASS`. Le nouveau runner one-shot corrigé est distinct du blob stale
   `96df0511...`, requiert le parent exact `16777234 / 1445438`, rehache onze

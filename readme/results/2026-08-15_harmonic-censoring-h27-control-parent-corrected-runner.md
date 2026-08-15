@@ -57,7 +57,18 @@ Le blob stale `96df05111a5e40a418e12fb2b3db4bd9516bcab3` reste :
 ## État et prochaine action
 
 État :
-`CORRECTED_RUNNER_IMPLEMENTED_DORMANT_PENDING_EXTERNAL_REVIEW`.
+`CORRECTED_RUNNER_TEST_CLOSURE_PENDING_EXTERNAL_REVIEW`.
 
-Prochaine action unique : revue externe des octets exacts du runner corrigé,
-du binding et du seal. Aucune exécution Mac n'est autorisée par ce lot.
+La première revue externe du commit `2f0fb5c7...` a conclu `FAIL` sur un seul
+point : le test ne verrouillait pas encore tous les dictionnaires du binding et
+le seal complet. La micro-correction compare maintenant exactement les
+métadonnées du binding, `execution_binding`, l'état stale, les safeguards,
+`current_state`, `next_action` et le dictionnaire entier du seal. Le runner, le
+binding et le seal restent byte-identiques aux blobs `2b2bd6e5...`,
+`08366caf...` et `1052ff54...`.
+
+Revalidation après micro-correction : `6/6` tests ciblés et `500/500` tests
+H27 en `75,639 s`, avec `py_compile` et `git diff --check` réussis.
+
+Prochaine action unique : revue externe de cette fermeture mécanique. Aucune
+exécution Mac n'est autorisée par ce lot.
