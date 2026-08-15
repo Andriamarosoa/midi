@@ -1,0 +1,27 @@
+{
+  "schema_version":1,
+  "seal_id":"H27_ODB_ONLY_EXACT_BLOB_IMPORT_ONE_SHOT_CONTRACT_EXTERNAL_SEAL_V1",
+  "status":"SEALED_DECLARATIVE_ONLY_PENDING_EXTERNAL_REVIEW_NO_IMPORT_NO_MAC_MUTATION_NO_DETACH_NO_DOWNSTREAM",
+  "contract":{"path":"configs/harmonic_censoring_h27_odb_only_blob_import_contract.json","git_blob_sha1":"a2c1b55cf4f128fcccce21a1823ad60c85f8d0ff","size_bytes":5967,"raw_sha256":"3e784445a6f058c2658f86383cdd0b7f6b59c7214f884546b7f1b59a98ab7321"},
+  "payloads":[
+    {"path":"scripts/h27_detach_target_checkout_one_shot.py","git_blob_sha1":"d1cdf1562a814cef271d606da331e96565fcc79a","size_bytes":10428,"raw_sha256":"e0fd3a4794cc2fdb266b9f3b89da25fa1260f6575e31dc3d95f761ed313b833f"},
+    {"path":"configs/harmonic_censoring_h27_target_checkout_detach_runner_identity_binding.json","git_blob_sha1":"d03385d842ca11631ba690d0a4bb70448c84480e","size_bytes":4927,"raw_sha256":"3db676881b0fca2265c09801be5fbb94d98bbf475429a7113deee872a68970df"},
+    {"path":"configs/harmonic_censoring_h27_target_checkout_detach_runner_identity_binding_external_seal.json","git_blob_sha1":"e574ddbcccb8bac791d9719fbee3e7fd5db8a047","size_bytes":3118,"raw_sha256":"b935cb71933f35517fa407d904b5554dc6fba949e9d3045830e07c5d3e913339"},
+    {"path":"configs/harmonic_censoring_h27_target_checkout_detach_transition_contract_identity_binding.json","git_blob_sha1":"a514aa0270926dca1d8402ac84078a50754d2f17","size_bytes":4496,"raw_sha256":"c614d733121451c65134f480427a6d883013256633b123f34aa57f2a25f09f82"},
+    {"path":"configs/harmonic_censoring_h27_target_checkout_detach_transition_contract_identity_binding_external_seal.json","git_blob_sha1":"0f6a64b7477bde24968200a81d389b03a4a6ced0","size_bytes":2797,"raw_sha256":"bd187e4e692d0d36572d8d3e151e40682b528b03e584d6b9620b34267ffd133f"},
+    {"path":"configs/harmonic_censoring_h27_target_checkout_detach_transition_contract.json","git_blob_sha1":"11fff0962fc0951a0bb06605e233d34756a2f4d9","size_bytes":3643,"raw_sha256":"f1c7bf1b94b0a35e3f0bd1771e93addd594053cb155ed1c3a9e09670e57de1e5"},
+    {"path":"configs/harmonic_censoring_h27_target_checkout_detach_transition_contract_external_seal.json","git_blob_sha1":"24a8c14fddd52eca148f961a31c39abaa4de018f","size_bytes":1796,"raw_sha256":"b62eff68cbca0c84c7483cbd9f3ea5049b1156129398e571b88adcbf553f0aba"},
+    {"path":"readme/results/2026-08-15_harmonic-censoring-h27-creator-read-only-preflight.md","git_blob_sha1":"bda7e1fae7379996563e73d8bbcf1b2d7a871aa0","size_bytes":1987,"raw_sha256":"a28a73389a338c8d493b7c75ca82656fb01ce75eddf3aa0f277d4a928b5dbc95"}
+  ],
+  "future_fail_closed_order":["verify_platform_ack_and_zero_arguments","verify_checkout_and_odb_realpaths","verify_exact_baseline_head_symbolic_head_cleanliness_and_no_index_lock","capture_index_bytes_identity","verify_runner_ack_and_process_absent","receive_exact_eight_payloads_outside_target_checkout_into_memory","prevalidate_all_eight_payload_triples_and_git_blob_ids_without_write","reverify_exact_baseline_and_index_identity","verify_all_eight_target_blobs_absent","write_each_exact_blob_once_in_declared_order_and_require_returned_id","revalidate_all_eight_target_blobs_byte_exact","verify_head_symbolic_head_index_and_worktree_unchanged_no_lock_no_runner_ack","terminal_success_then_stop"],
+  "future_write_operation_exact":"git --no-replace-objects --git-dir=/Users/amcarene/midi-worker/repository/.git hash-object -w --stdin",
+  "future_all_payloads_prevalidated_before_any_write":true,
+  "future_all_target_blobs_absent_before_execution":true,
+  "future_ref_head_index_worktree_changes_forbidden":true,
+  "future_single_attempt_only":true,
+  "future_partial_import_terminal_consumed_failure":true,
+  "future_retry_cleanup_repair_automatic_recovery_forbidden":true,
+  "current_import_executed":false,
+  "downstream_state":{"target_odb_changed":false,"head_changed":false,"index_changed":false,"worktree_changed":false,"runner_acknowledgement_set":false,"runner_invoked":false,"detach_executed":false,"registry_opened":false,"authority_reserved":false,"creator_invoked":false,"control_bundle_created":false,"materializer_executed":false,"science_or_locked_test":false},
+  "next_action":"External review of the exact declarative ODB-only import contract and this seal; no blob import"
+}

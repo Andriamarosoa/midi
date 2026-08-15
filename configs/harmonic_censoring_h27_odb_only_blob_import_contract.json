@@ -1,0 +1,31 @@
+{
+  "schema_version":1,
+  "contract_id":"H27_ODB_ONLY_EXACT_BLOB_IMPORT_ONE_SHOT_CONTRACT_V1",
+  "status":"DECLARATIVE_ONLY_PENDING_EXTERNAL_REVIEW_NO_IMPORT_NO_MAC_MUTATION_NO_DETACH_NO_DOWNSTREAM",
+  "purpose":"Introduce exactly eight pre-reviewed Git blobs into the target Mac object database without changing refs, HEAD, index or worktree",
+  "platform_exact":"darwin",
+  "acknowledgement_environment_exact":"H27_ODB_ONLY_BLOB_IMPORT_EXECUTE=1",
+  "arguments_forbidden":true,
+  "target_checkout_exact":"/Users/amcarene/midi-worker/repository",
+  "target_git_object_database_exact":"/Users/amcarene/midi-worker/repository/.git",
+  "baseline":{"head_exact":"75322bc6b0fbf2afe458cc3ed5116c9cb8229cbf","symbolic_head_exact":"refs/heads/codex/independent-note-neural-v2","worktree_clean":true,"index_lock_absent":true,"runner_acknowledgement_absent":"H27_TARGET_CHECKOUT_DETACH_EXECUTE","runner_process_absent":true},
+  "payload_source":{"outside_target_checkout_required":true,"reviewed_source_git_objects_only":true,"checkout_or_worktree_file_fallback_forbidden":true,"network_fetch_pull_sync_forbidden":true,"all_payloads_received_and_buffered_in_memory_before_first_write":true,"filesystem_staging_forbidden":true},
+  "payloads":[
+    {"path":"scripts/h27_detach_target_checkout_one_shot.py","git_blob_sha1":"d1cdf1562a814cef271d606da331e96565fcc79a","size_bytes":10428,"raw_sha256":"e0fd3a4794cc2fdb266b9f3b89da25fa1260f6575e31dc3d95f761ed313b833f"},
+    {"path":"configs/harmonic_censoring_h27_target_checkout_detach_runner_identity_binding.json","git_blob_sha1":"d03385d842ca11631ba690d0a4bb70448c84480e","size_bytes":4927,"raw_sha256":"3db676881b0fca2265c09801be5fbb94d98bbf475429a7113deee872a68970df"},
+    {"path":"configs/harmonic_censoring_h27_target_checkout_detach_runner_identity_binding_external_seal.json","git_blob_sha1":"e574ddbcccb8bac791d9719fbee3e7fd5db8a047","size_bytes":3118,"raw_sha256":"b935cb71933f35517fa407d904b5554dc6fba949e9d3045830e07c5d3e913339"},
+    {"path":"configs/harmonic_censoring_h27_target_checkout_detach_transition_contract_identity_binding.json","git_blob_sha1":"a514aa0270926dca1d8402ac84078a50754d2f17","size_bytes":4496,"raw_sha256":"c614d733121451c65134f480427a6d883013256633b123f34aa57f2a25f09f82"},
+    {"path":"configs/harmonic_censoring_h27_target_checkout_detach_transition_contract_identity_binding_external_seal.json","git_blob_sha1":"0f6a64b7477bde24968200a81d389b03a4a6ced0","size_bytes":2797,"raw_sha256":"bd187e4e692d0d36572d8d3e151e40682b528b03e584d6b9620b34267ffd133f"},
+    {"path":"configs/harmonic_censoring_h27_target_checkout_detach_transition_contract.json","git_blob_sha1":"11fff0962fc0951a0bb06605e233d34756a2f4d9","size_bytes":3643,"raw_sha256":"f1c7bf1b94b0a35e3f0bd1771e93addd594053cb155ed1c3a9e09670e57de1e5"},
+    {"path":"configs/harmonic_censoring_h27_target_checkout_detach_transition_contract_external_seal.json","git_blob_sha1":"24a8c14fddd52eca148f961a31c39abaa4de018f","size_bytes":1796,"raw_sha256":"b62eff68cbca0c84c7483cbd9f3ea5049b1156129398e571b88adcbf553f0aba"},
+    {"path":"readme/results/2026-08-15_harmonic-censoring-h27-creator-read-only-preflight.md","git_blob_sha1":"bda7e1fae7379996563e73d8bbcf1b2d7a871aa0","size_bytes":1987,"raw_sha256":"a28a73389a338c8d493b7c75ca82656fb01ce75eddf3aa0f277d4a928b5dbc95"}
+  ],
+  "payload_invariants":{"count_exact":8,"unique_paths":true,"unique_blob_ids":true,"type_exact":"blob","all_absent_before_execution":true,"unexpected_payload_forbidden":true,"substitution_forbidden":true},
+  "prevalidation":{"all_payloads_before_any_write":true,"raw_size_exact":true,"raw_sha256_exact":true,"git_hash_object_without_write_exact":true,"write_flag_forbidden_during_prevalidation":true},
+  "future_write":{"operation_exact":"git --no-replace-objects --git-dir=/Users/amcarene/midi-worker/repository/.git hash-object -w --stdin","one_write_per_payload_in_declared_order":true,"returned_blob_id_must_equal_expected_immediately":true,"only_target_odb_may_change":true,"ref_update_forbidden":true,"head_change_forbidden":true,"index_change_forbidden":true,"worktree_change_forbidden":true,"unexpected_object_forbidden":true},
+  "future_fail_closed_order":["verify_platform_ack_and_zero_arguments","verify_checkout_and_odb_realpaths","verify_exact_baseline_head_symbolic_head_cleanliness_and_no_index_lock","capture_index_bytes_identity","verify_runner_ack_and_process_absent","receive_exact_eight_payloads_outside_target_checkout_into_memory","prevalidate_all_eight_payload_triples_and_git_blob_ids_without_write","reverify_exact_baseline_and_index_identity","verify_all_eight_target_blobs_absent","write_each_exact_blob_once_in_declared_order_and_require_returned_id","revalidate_all_eight_target_blobs_byte_exact","verify_head_symbolic_head_index_and_worktree_unchanged_no_lock_no_runner_ack","terminal_success_then_stop"],
+  "failure_policy":{"single_attempt_only":true,"no_retry":true,"no_cleanup":true,"no_repair":true,"no_rollback_claim":true,"partial_import_is_terminal_consumed_failure":true,"automatic_recovery_forbidden":true},
+  "postconditions":{"eight_blobs_present_and_byte_exact":true,"head_unchanged":true,"symbolic_head_unchanged":true,"index_byte_identical":true,"worktree_clean_and_unchanged":true,"index_lock_absent":true,"runner_ack_absent":true,"runner_not_invoked":true,"registry_authority_creator_bundle_materializer_science_locked_test_false":true},
+  "current_state":{"contract_only":true,"external_seal_created":true,"implementation_exists":false,"import_executed":false,"target_odb_changed":false,"head_changed":false,"index_changed":false,"worktree_changed":false,"runner_acknowledgement_set":false,"runner_invoked":false,"detach_executed":false,"registry_opened":false,"authority_reserved":false,"creator_invoked":false,"control_bundle_created":false,"materializer_executed":false,"science_or_locked_test":false},
+  "next_action":"External review of this declarative contract and its exact seal only; no blob import"
+}

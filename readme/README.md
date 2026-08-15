@@ -14,12 +14,23 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 exact-detach runner PASS; read-only Mac preflight blocked before invocation because sealed Git blobs are absent. -->
+<!-- H26_CORRECTION_STATUS: H27 read-only preflight PASS; declarative ODB-only exact-blob import contract pending external review, no import. -->
 ## État courant
 
 - Mise à jour : `2026-08-15`.
 - État courant :
-  `H27_TARGET_CHECKOUT_EXACT_DETACH_PREFLIGHT_BLOCKED_REQUIRED_GIT_BLOBS_ABSENT_NO_EFFECT`.
+  `H27_ODB_ONLY_EXACT_BLOB_IMPORT_CONTRACT_PENDING_EXTERNAL_REVIEW_NO_IMPORT`.
+- La revue externe de `0c3a90776c48f3edd5a05f98653e253084637d4d`
+  conclut `PASS` sur l'archive du préflight bloqué et autorise uniquement un
+  contrat déclaratif one-shot d'apport ODB-only. Le lot courant lie les huit
+  payloads par blob/taille/SHA-256, exige leur prévalidation intégrale en
+  mémoire avant toute écriture future, scelle une unique opération
+  `hash-object -w --stdin` par payload, et interdit tout changement de ref,
+  HEAD, index ou worktree. Retry, cleanup et rollback implicite sont interdits ;
+  un import partiel futur serait terminal consommé. Aucun accès Mac ni apport
+  réel n'a lieu. Rapport :
+  `readme/results/2026-08-15_harmonic-censoring-h27-odb-only-exact-blob-import-contract.md`.
+  Prochaine action unique : revue externe du contrat et de son seal exacts.
 - La revue externe de `5bfb382fbb72bdcb0a9a1b432361e64fc3030d36`
   conclut `PASS` sur le runner corrigé et autorise uniquement un préflight Mac
   strictement lecture seule. Ce préflight confirme Darwin, checkout/ODB réels,
@@ -29,8 +40,8 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   l'ODB Mac. Aucun fetch, synchronisation, ACK, runner ou detach n'a été
   exécuté. Rapport :
   `readme/results/2026-08-15_harmonic-censoring-h27-target-checkout-read-only-runner-preflight.md`.
-  Prochaine action unique : revue externe de cette preuve et définition d'un
-  apport contrôlé des objets Git exacts sans changement de HEAD/index/worktree.
+  Cette preuve a depuis reçu `PASS`; le contrat déclaratif autorisé est l'entrée
+  courante ci-dessus.
 - La revue externe de `1c523581c866890c932268b54b66575871741acd`
   conclut `PASS` sur le binding corrigé et autorise uniquement le runner
   dormant one-shot, son binding, seal, tests et documentation. Le runner
