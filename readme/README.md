@@ -39,6 +39,11 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `GIT_TERMINAL_PROMPT=0` et `GIT_NO_LAZY_FETCH=1`. Les redirecteurs d'ODB,
   common-dir, alternates, index, worktree et configuration sont explicitement
   interdits.
+  La seconde revue de `7e238fca...` a rendu `FAIL` parce que la lecture sender
+  pouvait encore sélectionner implicitement le dépôt via le CWD. La correction
+  courante impose le préfixe littéral `git --no-optional-locks
+  --no-replace-objects -C <worktree Windows exact>` à chaque commande Git
+  sender et verrouille la lecture `cat-file blob` complète dans le test.
 - La revue externe de `5abab29c2687d41e54cc2e63f99f97afb87f0166`
   conclut `PASS` sur le contrat rescellé et autorise uniquement la correction
   dormante de l'importer, de son binding, de son seal, des tests et de la

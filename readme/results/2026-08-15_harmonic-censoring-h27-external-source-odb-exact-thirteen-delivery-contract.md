@@ -71,24 +71,37 @@ Tout autre `GIT_*`, notamment les redirecteurs d'ODB, alternates, common-dir,
 index, worktree ou configuration, est interdit. Les chemins Git sont choisis
 uniquement par les arguments littéraux des commandes scellées.
 
+La seconde revue de `7e238fca...` a rendu `FAIL` parce que la commande sender
+`cat-file` ne contenait pas encore de sélecteur de dépôt littéral et dépendait
+donc du CWD. Toutes les commandes Git sender doivent maintenant commencer par :
+
+```text
+git --no-optional-locks --no-replace-objects \
+  -C C:\Users\user\Desktop\midi\tmp\local\worktrees\independent-note-neural-v2
+```
+
+La lecture de chaque payload est scellée comme ce préfixe suivi de
+`cat-file blob <expected-sha1>`. Toute sélection implicite par CWD est
+interdite.
+
 ## Identités du contrat
 
 ```text
-contract blob    659b9ef28b6e69516838fad7f6d9c9488b0d8ece
-contract size    10312
-contract sha256  f60657abee4b5d647dff607bd5b6de30115f612fbf631e88dc1b22aa37552a3e
+contract blob    83fba2bc54bb22712680453bc3253b85aca50ca4
+contract size    10717
+contract sha256  c538c3567f46993f8a1a420a272db552d07ea7e2f2362142700d9670b31f0df2
 ```
 
 ```text
-seal blob        72d6019e828cf4efcac5a674806710bf63459c5c
-seal size        4556
-seal sha256      677d6aa55eb866b7f2db2825c3dda04be35eaf03a65c4d5383bb1355a51e594c
+seal blob        b579a3604e1aa08d9485d10585ebba24febdf446
+seal size        5112
+seal sha256      5c6535d8178f03cee8f91e14fac448567603900cca2e1261758e10ae13166daa
 ```
 
 ## Validation locale
 
-- tests ciblés : `6/6` en `0,014 s` ;
-- suite H27 complète : `531/531` en `94,395 s` ;
+- tests ciblés : `7/7` en `0,010 s` ;
+- suite H27 complète : `532/532` en `94,411 s` ;
 - `py_compile` et `git diff --check` : réussis avant commit.
 
 ## STOP

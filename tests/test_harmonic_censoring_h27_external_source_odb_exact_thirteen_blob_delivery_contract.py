@@ -103,6 +103,20 @@ class TestH27ExternalSourceOdbExactThirteenBlobDeliveryContract(unittest.TestCas
             "git_database_and_worktree_selected_only_by_literal_command_line_arguments": True,
         })
 
+    def test_sender_never_selects_the_repository_from_implicit_cwd(self) -> None:
+        sender = self.contract["sender"]
+        prefix = "git --no-optional-locks --no-replace-objects -C C:\\Users\\user\\Desktop\\midi\\tmp\\local\\worktrees\\independent-note-neural-v2"
+        self.assertEqual(sender["repository_selector_prefix_exact"], prefix)
+        self.assertTrue(sender["all_sender_git_commands_must_start_with_repository_selector_prefix_exact"])
+        self.assertEqual(sender["all_payload_reads_exact"], prefix + " cat-file blob <expected-sha1>")
+        self.assertTrue(sender["implicit_current_working_directory_repository_selection_forbidden"])
+        self.assertEqual(self.seal["future_sender_repository_selection"], {
+            "review_worktree_exact": sender["review_worktree_exact"],
+            "repository_selector_prefix_exact": prefix,
+            "all_payload_reads_exact": sender["all_payload_reads_exact"],
+            "implicit_cwd_repository_selection_forbidden": True,
+        })
+
     def test_fail_closed_order_and_consumption_policy_are_sealed(self) -> None:
         order = self.contract["future_fail_closed_order"]
         self.assertEqual(len(order), 13)
