@@ -1,6 +1,6 @@
 # H27 — Review 4 creator read-only preflight PASS
 
-Date : 2026-08-16  
+Date : 2026-08-16
 Autorisation amont : PASS définitif Review 3 du commit
 `34e884f730e6e9425dc3c9ab917d5215f5c874f8`.
 
