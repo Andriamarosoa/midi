@@ -1,7 +1,7 @@
 # H27 — contrat de transition exacte du checkout cible
 
-Date : 2026-08-15  
-Branche : `codex/independent-note-neural-v2`  
+Date : 2026-08-15
+Branche : `codex/independent-note-neural-v2`
 Autorisation amont : PASS de `b832f8797b557256dda85e40e8f952c59402fa3d`
 
 ## Portée
