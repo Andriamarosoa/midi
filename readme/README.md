@@ -14,12 +14,12 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 block 1 consumed and recovered; block 2 single-SSH delivery runner implemented pending review. -->
+<!-- H26_CORRECTION_STATUS: H27 block 2 delivery and its sole read-only observation both consumed with rc=1; remote state unknown; no retry; review 3 blocked. -->
 ## État courant
 
 - Mise à jour : `2026-08-15`.
 - État courant :
-  `H27_EXACT_THIRTEEN_SOURCE_DELIVERY_RUNNER_IMPLEMENTED_PENDING_REVIEW_NO_SSH`.
+  `H27_EXACT_THIRTEEN_SOURCE_DELIVERY_AND_OBSERVATION_CONSUMED_RC1_REMOTE_STATE_UNKNOWN_STOP`.
 - La revue externe de `61dc4b496a454b596fca6ac361504f441e987aab`
   conclut `PASS` sur le sender dormant corrigé et autorise uniquement sa
   préparation locale Windows au HEAD historique. Le préflight live a révélé
@@ -71,6 +71,16 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `readme/results/2026-08-15_harmonic-censoring-h27-exact-thirteen-source-delivery-runner.md`.
   Prochaine action : review 2/5 du commit complet, puis une exécution unique si
   et seulement si elle rend `PASS`.
+  La correction lazy-fetch `21b4da72...` a reçu `PASS final`. L'unique runner
+  revu `76cd11c4...` a alors été exécuté une fois : l'unique SSH s'est terminé
+  avec `rc=1` en `1.794 s`. Aucun retry ou second SSH n'a été lancé. Le runner
+  capturait stdout/stderr mais ne les archivait pas sur RC non nul ; l'état des
+  treize objets dans `/Users/amcarene/midi/.git` est donc inconnu. Review 3/5
+  a autorisé une seule observation distante strictement read-only, distincte
+  du receiver. Cette observation a elle aussi été consommée une fois et a
+  échoué avec `ssh rc=1`, stdout vide et sans état distant exploitable. Aucun
+  second SSH n'est permis : Review 3/5 reste bloquée et ce chemin est en STOP
+  terminal jusqu'à une nouvelle décision de conception explicitement revue.
 - La revue externe de `bc9fd98e4fdc011f229979206e17040ac66017d5`
   conclut `PASS` sur le receiver exact et autorise uniquement le sender de
   préparation dormant couvrant les quatre étapes pré-SSH. Le lot courant

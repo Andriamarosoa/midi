@@ -51,3 +51,57 @@ vérification n'est donc permis ou nécessaire.
 STOP avant SSH. Prochaine action unique : review 2/5 du runner, du test et de
 ce rapport dans un seul commit. En cas de `PASS`, une seule exécution réelle du
 runner sera autorisée ; en cas d'échec après lancement, aucun retry automatique.
+
+## Exécution consommée
+
+La correction `GIT_NO_LAZY_FETCH=1` au commit `21b4da72...` a reçu `PASS final`
+de la Review 2/5. Le runner exact blob `76cd11c4...` a été chargé depuis Git et
+exécuté une seule fois.
+
+Résultat local :
+
+```text
+elapsed = 1.794 s
+SSH returncode = 1
+ConsumedDeliveryFailure: single SSH returned 1; retry forbidden
+```
+
+Aucun second SSH, retry, cleanup ou receiver n'a été lancé. Le runner avait
+bien capturé stdout/stderr, mais son chemin RC non nul ne les inclut ni ne les
+persiste avant de lever. Leur contenu et même leurs digests sont donc perdus.
+L'état distant est classé inconnu : zéro, une partie ou les treize objets
+peuvent être présents. Aucun import cible, detach, downstream, locked test ou
+science n'a été exécuté.
+
+Review 3/5 est bloquée jusqu'à une décision externe. Les seules suites sûres
+sont l'arrêt terminal ou une autorisation explicite d'observation read-only
+séparée des treize OIDs et de l'état Git source ; la relance du receiver reste
+interdite.
+
+## Observation read-only consommée
+
+La revue externe a ensuite autorisé exactement une observation SSH séparée,
+strictement read-only, sans ACK, receiver, écriture d'objet, reset, mutation de
+ref/index/worktree, import ou cleanup. Elle devait contrôler l'état Git source
+et lire localement les treize blobs avec `GIT_NO_LAZY_FETCH=1`.
+
+Cette observation a été exécutée une seule fois. Résultat terminal :
+
+```text
+status = H27_READ_ONLY_OBSERVATION_CONSUMED_FAILURE
+elapsed = 1.487 s
+ssh_returncode = 1
+stdout_size = 0
+stdout_sha256 = e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+stderr_size = 155
+stderr_sha256 = edb72e4982741a81d3913b389b674abe820da9db57f2e10b51b2e76a6d266ccd
+```
+
+Le contenu stderr n'a pas été exposé par l'enveloppe terminale, et stdout est
+vide. L'observation ne fournit donc aucune preuve sur la présence des treize
+objets ni sur l'état Git distant. Conformément à son contrat, elle n'est pas
+relancée. Le receiver reste consommé, aucun second SSH n'est autorisé, Review
+3/5 ne peut pas commencer et ce chemin H27 est placé en STOP terminal jusqu'à
+une nouvelle décision de conception explicitement revue. Aucun import cible,
+downstream, locked test, entraînement, calibration ou calcul scientifique n'a
+été effectué.
