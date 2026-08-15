@@ -7,6 +7,7 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
+CONTRACT = ROOT / "configs/harmonic_censoring_h27_target_checkout_detach_transition_contract.json"
 BINDING = ROOT / "configs/harmonic_censoring_h27_target_checkout_detach_transition_contract_identity_binding.json"
 SEAL = ROOT / "configs/harmonic_censoring_h27_target_checkout_detach_transition_contract_identity_binding_external_seal.json"
 
@@ -27,6 +28,7 @@ def check(test: unittest.TestCase, identity: dict[str, object]) -> bytes:
 class TestTargetCheckoutDetachTransitionContractIdentityBinding(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
+        cls.contract = json.loads(CONTRACT.read_bytes())
         cls.binding_raw = BINDING.read_bytes()
         cls.seal_raw = SEAL.read_bytes()
         cls.binding = json.loads(cls.binding_raw)
@@ -60,7 +62,8 @@ class TestTargetCheckoutDetachTransitionContractIdentityBinding(unittest.TestCas
         self.assertEqual(tuple(self.binding), (
             "schema_version", "binding_id", "status", "reviewed_transition_contract",
             "transition_contract_external_seal", "reviewed_preflight_evidence",
-            "bound_checkout_transition", "bound_one_shot_fail_closed",
+            "bound_checkout_transition", "bound_future_fail_closed_order",
+            "bound_one_shot_fail_closed",
             "bound_forbidden_operations", "bound_preserved_state", "identity_graph",
             "current_state", "next_action",
         ))
@@ -102,6 +105,28 @@ class TestTargetCheckoutDetachTransitionContractIdentityBinding(unittest.TestCas
             "post_transition_detached_required": True,
             "post_transition_clean_required": True,
         })
+        expected_order = [
+            "verify_platform_and_zero_arguments",
+            "verify_checkout_and_odb_realpaths",
+            "verify_initial_head_exact",
+            "verify_initial_worktree_clean",
+            "verify_target_object_exists_and_type_is_commit",
+            "reverify_initial_head_and_cleanliness",
+            "perform_single_explicit_detach_to_exact_target_sha_as_first_and_only_mutation",
+            "verify_target_head_exact",
+            "verify_detached_state",
+            "verify_worktree_clean",
+            "terminal_success_then_stop",
+        ]
+        self.assertEqual(self.binding["bound_future_fail_closed_order"], expected_order)
+        self.assertEqual(
+            self.binding["bound_future_fail_closed_order"],
+            self.contract["future_fail_closed_order"],
+        )
+        self.assertEqual(
+            self.seal["future_fail_closed_order_exact"],
+            self.contract["future_fail_closed_order"],
+        )
 
     def test_exact_fail_closed_graph_and_dormant_state(self) -> None:
         self.assertEqual(self.binding["bound_one_shot_fail_closed"], {
@@ -160,7 +185,7 @@ class TestTargetCheckoutDetachTransitionContractIdentityBinding(unittest.TestCas
             "schema_version": 1,
             "seal_id": "H27_TARGET_CHECKOUT_EXACT_DETACH_TRANSITION_CONTRACT_IDENTITY_BINDING_EXTERNAL_SEAL_V1",
             "status": "SEALED_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW_NO_RUNNER_NO_MAC_CHECKOUT_CHANGE_NO_REGISTRY_NO_CREATOR_NO_BUNDLE_NO_SCIENCE",
-            "identity_binding": {"path": "configs/harmonic_censoring_h27_target_checkout_detach_transition_contract_identity_binding.json", "git_blob_sha1": "538020022099b186d381d9243076d6f5f5222f7b", "size_bytes": 4052, "raw_sha256": "96b000024e96a3badffc4f6d7ff038b091cf3d79619c8dd0489e33b2cddf78da"},
+            "identity_binding": {"path": "configs/harmonic_censoring_h27_target_checkout_detach_transition_contract_identity_binding.json", "git_blob_sha1": "a514aa0270926dca1d8402ac84078a50754d2f17", "size_bytes": 4496, "raw_sha256": "c614d733121451c65134f480427a6d883013256633b123f34aa57f2a25f09f82"},
             "reviewed_transition_contract_commit": "36d9ee11fc800a7e57edff1a73858c47ccbdb947",
             "reviewed_transition_contract_git_blob_sha1": "11fff0962fc0951a0bb06605e233d34756a2f4d9",
             "transition_contract_seal_git_blob_sha1": "24a8c14fddd52eca148f961a31c39abaa4de018f",
@@ -178,6 +203,19 @@ class TestTargetCheckoutDetachTransitionContractIdentityBinding(unittest.TestCas
             "future_single_attempt_only": True,
             "future_fetch_pull_merge_reset_rebase_forbidden": True,
             "future_branch_modification_forbidden": True,
+            "future_fail_closed_order_exact": [
+                "verify_platform_and_zero_arguments",
+                "verify_checkout_and_odb_realpaths",
+                "verify_initial_head_exact",
+                "verify_initial_worktree_clean",
+                "verify_target_object_exists_and_type_is_commit",
+                "reverify_initial_head_and_cleanliness",
+                "perform_single_explicit_detach_to_exact_target_sha_as_first_and_only_mutation",
+                "verify_target_head_exact",
+                "verify_detached_state",
+                "verify_worktree_clean",
+                "terminal_success_then_stop",
+            ],
             "future_retry_cleanup_or_automatic_repair_forbidden": True,
             "identity_binding_externally_reviewed": False,
             "identity_binding_externally_sealed": False,

@@ -51,13 +51,23 @@ locked test restent interdits.
 
 ```text
 path       configs/harmonic_censoring_h27_target_checkout_detach_transition_contract_identity_binding.json
-git blob   538020022099b186d381d9243076d6f5f5222f7b
-size       4052
-sha256     96b000024e96a3badffc4f6d7ff038b091cf3d79619c8dd0489e33b2cddf78da
+git blob   a514aa0270926dca1d8402ac84078a50754d2f17
+size       4496
+sha256     c614d733121451c65134f480427a6d883013256633b123f34aa57f2a25f09f82
 ```
 
 Le seal externe porte cette identité et reproduit les racines, chemins, HEAD,
 type commit, contraintes one-shot et tous les états aval faux.
+
+## Micro-correction après première revue
+
+La revue externe de `669e2f04...` rend `FAIL` sur un seul point : le binding
+ne liait pas comme liste ordonnée les onze étapes normatives du contrat. La
+correction ajoute `bound_future_fail_closed_order` au binding et
+`future_fail_closed_order_exact` au seal. Le test exige maintenant que ces
+deux listes soient exactement égales à
+`contract["future_fail_closed_order"]`, en plus de la comparaison complète du
+seal. Les trois racines byte-exactes restent inchangées.
 
 ## Validation locale
 
@@ -67,7 +77,8 @@ les racines de revue, les dictionnaires complets des frontières, interdictions,
 
 - `py_compile` : réussi ;
 - test ciblé : `4/4` réussis ;
-- suite H27 complète : `507/507` réussis en `61,581 s` ;
+- suite H27 complète après micro-correction : `507/507` réussis en
+  `62,065 s` ;
 - `git diff --check` : requis avant commit.
 
 ## STOP

@@ -31,6 +31,12 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `readme/results/2026-08-15_harmonic-censoring-h27-target-checkout-exact-detach-transition-contract-identity-binding.md`.
   Prochaine action unique : revue externe du binding et de son seal exacts ;
   aucun runner ou detach avant un nouveau `PASS` explicite.
+- La première revue externe du binding au commit `669e2f04...` conclut `FAIL`
+  sur un unique invariant : l'ordre normatif des onze étapes fail-closed était
+  résumé mais pas lié comme liste ordonnée exacte. La micro-correction courante
+  reproduit cette liste dans le binding et le seal, puis exige dans le test
+  leur égalité directe avec `contract["future_fail_closed_order"]`. Les trois
+  racines approuvées et tous les downstream flags restent inchangés.
 - La revue externe de `b832f8797b557256dda85e40e8f952c59402fa3d`
   conclut `PASS` sur le préflight creator lecture seule et autorise uniquement
   la définition déclarative de la future transition du checkout. Le lot
