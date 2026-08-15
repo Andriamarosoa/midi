@@ -14,12 +14,12 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 Review 3 consumed successfully; target detached at 7ee0a897 with exact eight blobs; STOP before registry/authority/creator/bundle/materializer. -->
+<!-- H26_CORRECTION_STATUS: H27 Review 3 closed PASS; Review 4 creator read-only preflight PASS and STOP; creator/authority/bundle/materializer remain unconsumed. -->
 ## État courant
 
 - Mise à jour : `2026-08-16`.
 - État courant :
-  `H27_REVIEW_3_CONSUMED_SUCCESS_STOP_BEFORE_REVIEW_4`.
+  `H27_REVIEW_4_CREATOR_READ_ONLY_PREFLIGHT_PASS_STOP_PENDING_EXTERNAL_REVIEW`.
 - La revue externe de `61dc4b496a454b596fca6ac361504f441e987aab`
   conclut `PASS` sur le sender dormant corrigé et autorise uniquement sa
   préparation locale Windows au HEAD historique. Le préflight live a révélé
@@ -102,6 +102,16 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   et locked-test restent tous non ouverts/non exécutés. Review 3 est consommée
   sans retry possible. STOP avant Review 4 et nouvelle revue externe du
   résultat terminal.
+  La revue externe du commit d'archive `34e884f730e6e9425dc3c9ab917d5215f5c874f8`
+  conclut ensuite `PASS` définitif et autorise uniquement un préflight creator
+  strictement read-only au HEAD détaché. Ce préflight a été exécuté une fois et
+  rend `H27_REVIEW4_CREATOR_READ_ONLY_PREFLIGHT_PASS_STOP` : HEAD attendu et
+  observé `7ee0a897...`, 130 identités rehashées, source/manifest/digest fermés
+  conformes, registre régulier `0600` vide, final/staging absents, aucun
+  processus ou ACK creator. Aucun `flock`, append, réservation/consommation,
+  creator, bundle, materializer, science ou locked-test n'a été exécuté. STOP
+  avant toute mutation Review 4. Rapport :
+  `readme/results/2026-08-16_harmonic-censoring-h27-review4-creator-read-only-preflight-pass.md`.
 - La revue externe de `bc9fd98e4fdc011f229979206e17040ac66017d5`
   conclut `PASS` sur le receiver exact et autorise uniquement le sender de
   préparation dormant couvrant les quatre étapes pré-SSH. Le lot courant
