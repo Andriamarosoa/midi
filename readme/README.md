@@ -14,12 +14,12 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 Review 3 runner PASS; exact no-SSH local Mac bootstrap approved; execution not consumed and awaiting direct Mac Terminal invocation. -->
+<!-- H26_CORRECTION_STATUS: H27 Review 3 consumed successfully; target detached at 7ee0a897 with exact eight blobs; STOP before registry/authority/creator/bundle/materializer. -->
 ## État courant
 
-- Mise à jour : `2026-08-15`.
+- Mise à jour : `2026-08-16`.
 - État courant :
-  `H27_REVIEW_3_PASS_AWAITING_APPROVED_LOCAL_MAC_BOOTSTRAP_NOT_CONSUMED`.
+  `H27_REVIEW_3_CONSUMED_SUCCESS_STOP_BEFORE_REVIEW_4`.
 - La revue externe de `61dc4b496a454b596fca6ac361504f441e987aab`
   conclut `PASS` sur le sender dormant corrigé et autorise uniquement sa
   préparation locale Windows au HEAD historique. Le préflight live a révélé
@@ -92,9 +92,16 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   sans SSH est également approuvé : téléchargement du runner depuis ce commit
   vers `/Users/amcarene/h27-review3-ef4748f0`, vérification exacte `40550`
   octets / SHA-256 `aaca37b5...` / blob Git `a2ec8048...`, puis une invocation
-  locale avec `H27_TARGET_IMPORT_AND_DETACH_EXECUTE=1`. Cette invocation n'a
-  pas eu lieu et Review 3 n'est pas consommée. Elle requiert une saisie directe
-  dans le Terminal du Mac ; aucun canal Windows conforme sans SSH n'existe.
+  locale avec `H27_TARGET_IMPORT_AND_DETACH_EXECUTE=1`. L'utilisateur a ensuite
+  explicitement autorisé la connexion SSH comme canal de contrôle. Le bootstrap
+  exact a été transmis une seule fois à `/bin/bash -s` et a terminé avec
+  `H27_REVIEW3_RUNNER_CONSUMED_SUCCESS`, code runner `0`. Les huit blobs exacts
+  ont été importés dans l'ODB cible et le checkout est désormais propre,
+  détaché sur `7ee0a8977208bfa389e284b07207abc40a3517fd`. Les refs ordinaires
+  sont inchangées; registry, authority, creator, bundle, materializer, science
+  et locked-test restent tous non ouverts/non exécutés. Review 3 est consommée
+  sans retry possible. STOP avant Review 4 et nouvelle revue externe du
+  résultat terminal.
 - La revue externe de `bc9fd98e4fdc011f229979206e17040ac66017d5`
   conclut `PASS` sur le receiver exact et autorise uniquement le sender de
   préparation dormant couvrant les quatre étapes pré-SSH. Le lot courant

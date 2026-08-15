@@ -105,7 +105,70 @@ lancé, Review 3 est consommée quel que soit son résultat et tout retry est
 interdit. stdout, stderr, exit code et leurs digests doivent rester dans la
 racine administrative.
 
-Cette commande locale n'a pas été exécutée : l'agent Windows ne possède aucun
-canal Terminal Mac sans SSH, et le troisième SSH reste interdit. Le target est
-donc inchangé et Review 3 reste non consommée en attente d'une invocation
-directe dans le Terminal du Mac.
+À ce jalon documentaire, la commande locale n'avait pas été exécutée : l'agent
+Windows ne possédait aucun canal Terminal Mac sans SSH, et le troisième SSH
+restait interdit. Le target était donc inchangé et Review 3 non consommée en
+attente d'une nouvelle autorisation explicite.
+
+## Exécution terminale Review 3
+
+Le 2026-08-16, l'utilisateur a explicitement autorisé la connexion SSH au Mac
+comme canal de contrôle. Le script de bootstrap approuvé a été transmis en
+octets LF, sans BOM, une seule fois à `amcarene@100.89.128.87` via
+`/bin/bash -s`. Aucun retry n'a été effectué.
+
+L'identité du runner a été vérifiée avant son lancement :
+
+```text
+size=40550
+sha256=aaca37b50ec6b98da43392e578145d6b45f45c4b587fac603010ad71a13d15f7
+git_blob_sha1=a2ec8048c7f46915aeb26bb449abd1fe027cddec
+identity_exitcode=0
+```
+
+La frontière de consommation a ensuite été franchie une seule fois. Les
+preuves persistées sous `/Users/amcarene/h27-review3-ef4748f0` donnent :
+
+```text
+runner_exitcode=0
+status=H27_REVIEW3_RUNNER_CONSUMED_SUCCESS
+review3_runner_consumed=true
+retry_forbidden=true
+stdout_size=924
+stdout_sha256=68deffcb8fb0dd14c7101c7c7e42e6b85eb300f3f427aa5ba815be8300c3f37a
+stderr_size=0
+stderr_sha256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+```
+
+Le rapport terminal du runner est :
+
+```text
+H27_TARGET_EXACT_EIGHT_BLOB_IMPORT_AND_DETACH_TERMINAL_SUCCESS
+payload_count=8
+payload_source=embedded_byte_exact_archive
+initial_head=75322bc6b0fbf2afe458cc3ed5116c9cb8229cbf
+target_head=7ee0a8977208bfa389e284b07207abc40a3517fd
+detached=true
+regular_refs_unchanged=true
+worktree_clean=true
+registry_opened=false
+authority_reserved=false
+creator_invoked=false
+control_bundle_created=false
+materializer_executed=false
+science_or_locked_test=false
+```
+
+Une observation SSH post-terminale strictement read-only confirme
+`HEAD (no branch)`, le HEAD cible exact et un status propre. L'ancien ODB
+`/Users/amcarene/midi/.git` n'a pas été lu ni touché.
+
+État terminal :
+
+```text
+H27_REVIEW_3_CONSUMED_SUCCESS_STOP_BEFORE_REVIEW_4
+```
+
+Review 3 ne doit jamais être relancée. Registry, authority, creator, bundle,
+materializer, P0/P1/P2, waveform, entraînement, calibration et locked-test
+restent interdits jusqu'à la revue externe explicite de cette preuve.
