@@ -14,12 +14,23 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 exact-detach transition contract sealed locally and pending external review; no transition runner or Mac checkout change. -->
+<!-- H26_CORRECTION_STATUS: H27 exact-detach transition contract PASS; administrative identity binding sealed locally and pending external review. -->
 ## État courant
 
 - Mise à jour : `2026-08-15`.
 - État courant :
-  `H27_TARGET_CHECKOUT_EXACT_DETACH_TRANSITION_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+  `H27_TARGET_CHECKOUT_EXACT_DETACH_TRANSITION_CONTRACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `36d9ee11fc800a7e57edff1a73858c47ccbdb947`
+  conclut `PASS` sur le contrat de transition et autorise uniquement son
+  identity binding administratif. Le lot courant lie byte-exactement le
+  contrat `11fff096...`, son seal `24a8c14f...` et la preuve préflight
+  `bda7e1fa...` au commit `b832f879...`. Checkout, ODB, HEAD initial
+  `75322bc6...`, cible commit `7ee0a897...`, transition détachée explicite,
+  règles one-shot/fail-closed et tous les downstream flags faux restent
+  scellés. Aucun runner ni effet Mac. Rapport :
+  `readme/results/2026-08-15_harmonic-censoring-h27-target-checkout-exact-detach-transition-contract-identity-binding.md`.
+  Prochaine action unique : revue externe du binding et de son seal exacts ;
+  aucun runner ou detach avant un nouveau `PASS` explicite.
 - La revue externe de `b832f8797b557256dda85e40e8f952c59402fa3d`
   conclut `PASS` sur le préflight creator lecture seule et autorise uniquement
   la définition déclarative de la future transition du checkout. Le lot
