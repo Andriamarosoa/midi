@@ -14,12 +14,27 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 exact 13-blob source ODB delivery read-only preflight blocked; external review required. -->
+<!-- H26_CORRECTION_STATUS: H27 exact 13-blob source ODB receiver implemented dormant; external review required. -->
 ## État courant
 
 - Mise à jour : `2026-08-15`.
 - État courant :
-  `H27_EXTERNAL_SOURCE_ODB_THIRTEEN_DELIVERY_READ_ONLY_PREFLIGHT_BLOCKED_ALL_THIRTEEN_ABSENT_WITH_TRANSIENT_TMP_DEVIATION_PENDING_EXTERNAL_REVIEW_NO_DELIVERY`.
+  `H27_EXTERNAL_SOURCE_ODB_EXACT_THIRTEEN_RECEIVER_IMPLEMENTED_DORMANT_PENDING_EXTERNAL_REVIEW_NO_TRANSPORT_NO_DELIVERY`.
+- La revue externe de `2211f1d6c4b95b93f19dce3c607d478b5697a153`
+  conclut `PASS` sur le préflight et autorise uniquement l'implémentation
+  dormante du receiver exact. Le lot courant ajoute un receiver Python
+  auto-contenu de `119406` octets, avec les treize payloads exacts encodés en
+  base64 canonique (`75730` octets bruts), son identity binding, son external
+  seal et huit tests synthétiques. Décodage complet, prévalidation complète,
+  snapshots invariants, absence des treize objets, unique frontière ordonnée
+  de treize `hash-object -w --stdin`, relecture terminale et delta exact de
+  treize loose objects sont fail-closed. Le receiver reste dormant : aucun
+  SSH, Mac, ACK, transport, objet, import, detach ou downstream. Tests ciblés
+  `15/15`, suite H27 `540/540`, `py_compile` et `git diff --check` réussis.
+  Rapport :
+  `readme/results/2026-08-15_harmonic-censoring-h27-external-source-odb-exact-thirteen-receiver.md`.
+  Prochaine action unique : revue externe du receiver, du binding et du seal
+  exacts ; aucune livraison avant un nouveau `PASS` explicite.
 - La revue externe de `ca9e91481aa129d5bc8af19a54a0b13b71c14e1c`
   conclut `PASS` sur le contrat de livraison exacte et autorise uniquement son
   préflight Mac lecture seule. Ce préflight confirme l'ODB source réel
