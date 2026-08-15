@@ -63,7 +63,9 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   SHA-256, parse statiquement ses treize identités uniques, puis possède une
   unique frontière SSH exacte vers `amcarene@100.89.128.87`. Il transmet les
   bytes receiver par stdin, refuse tout retry et valide l'objet JSON terminal
-  complet produit après écriture/vérification distante des treize blobs. Cinq
+  complet produit après écriture/vérification distante des treize blobs. La
+  lecture locale supprime tout `GIT_*` puis impose prompt et lazy-fetch
+  désactivés. Six
   tests couvrent identité, commande/stdin exacts, appel unique, timeout/RC/
   stderr, JSON/flags et absence de fallback. Aucun SSH n'a été lancé. Rapport :
   `readme/results/2026-08-15_harmonic-censoring-h27-exact-thirteen-source-delivery-runner.md`.

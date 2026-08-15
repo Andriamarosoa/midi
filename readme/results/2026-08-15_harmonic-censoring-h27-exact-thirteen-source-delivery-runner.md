@@ -14,6 +14,9 @@ downstream, locked test ou calcul scientifique n'a été exécuté.
 - lit depuis l'ODB Git le receiver exact
   `9d32cac8ddb29e43975a6b82f5c1c39a91f93df4`, `119406` octets,
   SHA-256 `996c4539a357b13af65012de84ed836179389f111dd1849eb1ca165d15374000` ;
+- supprime tout environnement `GIT_*`, puis réintroduit uniquement
+  `GIT_TERMINAL_PROMPT=0` et `GIT_NO_LAZY_FETCH=1`, interdisant prompt et lazy
+  fetch promisor avant la frontière SSH ;
 - parse `EMBEDDED_OBJECTS` par AST/literal uniquement, sans exécuter le
   receiver, et exige treize paths et blob IDs uniques ;
 - exécute au maximum une fois :
@@ -39,7 +42,7 @@ vérification n'est donc permis ou nécessaire.
 
 ## Tests
 
-- tests ciblés : `5/5` en `0.137 s` ;
+- tests ciblés après correction : `6/6` ;
 - `py_compile` : réussi ;
 - aucune connexion réseau dans les tests.
 

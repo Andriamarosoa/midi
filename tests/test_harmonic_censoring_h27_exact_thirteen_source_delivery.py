@@ -50,6 +50,19 @@ class TestH27ExactThirteenSourceDelivery(unittest.TestCase):
         self.assertEqual(len(self.blob_ids), 13)
         self.assertEqual(len(set(self.blob_ids)), 13)
 
+    def test_receiver_git_read_disables_prompt_and_lazy_fetch(self) -> None:
+        completed = subprocess.CompletedProcess([], 0, stdout=self.receiver_raw, stderr=b"")
+        with mock.patch.object(self.module.subprocess, "run", return_value=completed) as run:
+            self.assertEqual(self.module.read_receiver_blob(), self.receiver_raw)
+        environment = run.call_args.kwargs["env"]
+        self.assertEqual(environment["GIT_TERMINAL_PROMPT"], "0")
+        self.assertEqual(environment["GIT_NO_LAZY_FETCH"], "1")
+        self.assertFalse(any(
+            key.upper().startswith("GIT_")
+            for key in environment
+            if key not in {"GIT_TERMINAL_PROMPT", "GIT_NO_LAZY_FETCH"}
+        ))
+
     def test_success_uses_one_exact_ssh_and_byte_exact_stdin(self) -> None:
         completed = subprocess.CompletedProcess([], 0, stdout=self.terminal(), stderr=b"")
         with (

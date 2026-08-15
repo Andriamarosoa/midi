@@ -40,10 +40,13 @@ class ConsumedDeliveryFailure(RuntimeError):
 
 
 def clean_environment() -> dict[str, str]:
-    return {
+    environment = {
         key: value for key, value in os.environ.items()
         if not key.upper().startswith("GIT_")
     }
+    environment["GIT_TERMINAL_PROMPT"] = "0"
+    environment["GIT_NO_LAZY_FETCH"] = "1"
+    return environment
 
 
 def require_windows_and_zero_arguments() -> None:
