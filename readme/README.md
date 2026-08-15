@@ -14,12 +14,12 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 Windows local sender transition consumed once; manual index recovery complete; no retry; block 2 pending. -->
+<!-- H26_CORRECTION_STATUS: H27 block 1 consumed and recovered; block 2 single-SSH delivery runner implemented pending review. -->
 ## État courant
 
 - Mise à jour : `2026-08-15`.
 - État courant :
-  `H27_WINDOWS_LOCAL_HISTORICAL_SENDER_TRANSITION_CONSUMED_NO_RETRY_MANUAL_INDEX_RECOVERY_COMPLETE_STOP_BEFORE_SSH`.
+  `H27_EXACT_THIRTEEN_SOURCE_DELIVERY_RUNNER_IMPLEMENTED_PENDING_REVIEW_NO_SSH`.
 - La revue externe de `61dc4b496a454b596fca6ac361504f441e987aab`
   conclut `PASS` sur le sender dormant corrigé et autorise uniquement sa
   préparation locale Windows au HEAD historique. Le préflight live a révélé
@@ -56,6 +56,19 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   byte-exact Windows. La transition est consommée et ne sera jamais relancée.
   Prochaine étape : archiver ce résultat puis préparer la review 2/5, livraison
   directe des treize blobs vers le Mac, sans nouvelle micro-gate du bloc 1.
+- Le bloc 2/5 est maintenant implémenté en un seul lot, sans nouveau contrat,
+  binding, seal ou micro-gate. Le runner
+  `scripts/h27_deliver_exact_thirteen_source_odb_once.py` charge exclusivement
+  le receiver revu `9d32cac8...` depuis son blob Git, vérifie SHA-1/taille/
+  SHA-256, parse statiquement ses treize identités uniques, puis possède une
+  unique frontière SSH exacte vers `amcarene@100.89.128.87`. Il transmet les
+  bytes receiver par stdin, refuse tout retry et valide l'objet JSON terminal
+  complet produit après écriture/vérification distante des treize blobs. Cinq
+  tests couvrent identité, commande/stdin exacts, appel unique, timeout/RC/
+  stderr, JSON/flags et absence de fallback. Aucun SSH n'a été lancé. Rapport :
+  `readme/results/2026-08-15_harmonic-censoring-h27-exact-thirteen-source-delivery-runner.md`.
+  Prochaine action : review 2/5 du commit complet, puis une exécution unique si
+  et seulement si elle rend `PASS`.
 - La revue externe de `bc9fd98e4fdc011f229979206e17040ac66017d5`
   conclut `PASS` sur le receiver exact et autorise uniquement le sender de
   préparation dormant couvrant les quatre étapes pré-SSH. Le lot courant
