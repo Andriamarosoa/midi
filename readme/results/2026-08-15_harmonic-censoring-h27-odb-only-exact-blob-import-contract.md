@@ -13,13 +13,13 @@ autorité, creator, bundle, materializer, science ou locked test.
 ## Identités
 
 ```text
-contract blob  902cb51ec2e220ba0bdaf9d2fef90bf3dc174a10
-contract size  6461
-contract sha   75d5583ffbb6dafcdc5b78f50d20b74c39640cd12f68a2b30ecab215a173e76e
+contract blob  52bfb9fe7e2e7b01c64da6fff5d7b4ed29860cf7
+contract size  7010
+contract sha   f51d7810fb261ab1e33d318d92c987432b9a245579e5607fffe8851e6a730ad2
 
-seal blob      3e3348c543c94720323e17271164e2febfc35bac
-seal size      4608
-seal sha       55f1add9ad5e25ed5e5766e5010c3cb5286e97485de3cddfe6dfe0259b032f73
+seal blob      3fd94951b845687cabee31a59e1b72b913b36b9b
+seal size      4984
+seal sha       dc2be1b0d406cb347832fdec33163bb94e63ef66beafcf047f667dc09c486b0c
 ```
 
 Le contrat lie les huit payloads par chemin, blob SHA-1 Git, taille et SHA-256
@@ -31,6 +31,12 @@ avant/après. La correction courante ajoute cette capture et les deux
 comparaisons byte-exactes dans le contrat, le seal, le test et la documentation,
 sans ajouter d'implémentation ni d'effet Mac.
 
+La seconde revue externe de `883a67ab...` confirme cette comparaison pour les
+refs régulières mais rend `FAIL` parce que `for-each-ref` omet les root refs et
+pseudorefs sans option dépendante de la version Git. La correction courante
+conserve la commande portable des refs régulières et ajoute un scan stdlib
+déterministe des fichiers racine Git aux noms majuscules, sans accès Mac.
+
 ## Frontière future préenregistrée
 
 Avant la première écriture future, l'exécuteur devra :
@@ -38,7 +44,8 @@ Avant la première écriture future, l'exécuteur devra :
 1. vérifier Darwin, l'ACK dédié, zéro argument, checkout/ODB réels ;
 2. vérifier HEAD, symbolic HEAD, worktree propre, absence de lock/processus et
    capturer l'identité byte-exacte de l'index ainsi qu'un snapshot déterministe
-   byte-exact de toutes les refs triées par nom ;
+   byte-exact des refs régulières triées par nom ainsi que de toutes les root
+   refs/pseudorefs présentes dans `.git` ;
 3. recevoir hors du checkout cible exactement huit payloads et tous les garder
    en mémoire, sans staging fichier ;
 4. valider les huit triples d'identité et leur hash Git sans `-w` ;
@@ -53,10 +60,11 @@ git --no-replace-objects \
 ```
 
 Chaque retour doit être l'ID attendu. Ensuite, les huit blobs, HEAD, symbolic
-HEAD, snapshot byte-identique de toutes les refs, index byte-identique,
+HEAD, snapshots byte-identiques des refs régulières et root refs/pseudorefs,
+index byte-identique,
 worktree, lock, ACK runner et downstream flags doivent être revalidés.
 
-Le snapshot futur est défini exactement par :
+Le snapshot futur des refs régulières est défini exactement par :
 
 ```text
 git --no-optional-locks --no-replace-objects \
@@ -65,9 +73,14 @@ git --no-optional-locks --no-replace-objects \
   --format=%(refname)%00%(objectname)%00%(objecttype)%00
 ```
 
-Ses octets bruts restent en mémoire ; taille et SHA-256 sont également
-archivés. L'égalité des octets, et pas seulement d'un booléen déclaratif, est
-requise avant et après l'effet.
+En complément, l'exécuteur futur utilise `os.scandir` stdlib sur la racine ODB,
+sélectionne tous les noms correspondant à `^[A-Z][A-Z0-9_]*$`, refuse symlinks
+et entrées non régulières, trie les noms par octets UTF-8, puis conserve nom,
+présence et octets bruts de chaque fichier. Cela couvre `HEAD` et toutes les
+root refs/pseudorefs majuscules présentes, sans dépendre de
+`--include-root-refs`. Les deux snapshots restent en mémoire ; taille et
+SHA-256 sont également archivés. L'égalité exacte est requise avant et après
+l'effet.
 
 Fetch, pull, sync, update-ref, checkout, switch, detach, fallback worktree,
 payload supplémentaire, retry, cleanup, réparation ou récupération automatique
@@ -78,7 +91,7 @@ revendication de rollback.
 
 - `py_compile` : réussi ;
 - tests ciblés : `5/5` réussis en `0,002 s` ;
-- suite H27 complète : `519/519` réussis en `68,123 s` ;
+- suite H27 complète : `519/519` réussis en `61,021 s` ;
 - `git diff --check` : réussi avant commit.
 
 ## STOP

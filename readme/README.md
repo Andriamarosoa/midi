@@ -27,9 +27,12 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   mémoire avant toute écriture future, scelle une unique opération
   `hash-object -w --stdin` par payload, et interdit tout changement de ref,
   HEAD, index ou worktree. Après le premier `FAIL` de revue, il capture
-  désormais un snapshot déterministe byte-exact de toutes les refs, le compare
-  juste avant la première écriture future puis après les huit. Retry, cleanup
-  et rollback implicite sont interdits ;
+  d'abord un snapshot déterministe des refs régulières. Après le second `FAIL`
+  signalant les pseudorefs omises par `for-each-ref`, la correction courante
+  ajoute la capture byte-exacte de tous les fichiers root-ref/pseudoref présents
+  au nom majuscule dans `.git`. Les deux snapshots sont comparés juste avant la
+  première écriture future puis après les huit. Retry, cleanup et rollback
+  implicite sont interdits ;
   un import partiel futur serait terminal consommé. Aucun accès Mac ni apport
   réel n'a lieu. Rapport :
   `readme/results/2026-08-15_harmonic-censoring-h27-odb-only-exact-blob-import-contract.md`.

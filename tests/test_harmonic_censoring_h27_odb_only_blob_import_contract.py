@@ -54,14 +54,18 @@ class TestH27OdbOnlyBlobImportContract(unittest.TestCase):
         self.assertEqual(self.contract["future_fail_closed_order"][6], "prevalidate_all_eight_payload_triples_and_git_blob_ids_without_write")
         self.assertEqual(self.contract["future_fail_closed_order"][9], "write_each_exact_blob_once_in_declared_order_and_require_returned_id")
         self.assertEqual(self.contract["ref_snapshot"], {
-            "operation_exact": "git --no-optional-locks --no-replace-objects --git-dir=/Users/amcarene/midi-worker/repository/.git for-each-ref --sort=refname --format=%(refname)%00%(objectname)%00%(objecttype)%00",
-            "captures_all_refs": True, "raw_bytes_retained_in_memory": True,
-            "size_and_sha256_recorded": True,
-            "exact_raw_bytes_equality_required_before_first_write_and_after_all_writes": True,
+            "regular_refs_operation_exact": "git --no-optional-locks --no-replace-objects --git-dir=/Users/amcarene/midi-worker/repository/.git for-each-ref --sort=refname --format=%(refname)%00%(objectname)%00%(objecttype)%00",
+            "captures_all_regular_refs": True,
+            "root_refs_directory_exact": "/Users/amcarene/midi-worker/repository/.git",
+            "root_ref_name_regex_exact": "^[A-Z][A-Z0-9_]*$",
+            "root_ref_scan_exact": "Python stdlib os.scandir on the exact ODB root; select every matching name; reject symlinks and non-regular entries; sort names by UTF-8 bytes; retain each name, presence and raw file bytes",
+            "captures_all_present_uppercase_root_refs_and_pseudorefs": True,
+            "regular_and_root_raw_bytes_retained_in_memory": True,
+            "size_and_sha256_recorded_for_each_snapshot": True,
+            "exact_regular_and_root_raw_bytes_equality_required_before_first_write_and_after_all_writes": True,
         })
-        self.assertIn("all_refs_snapshot", self.contract["future_fail_closed_order"][3])
-        self.assertIn("all_refs_snapshot", self.contract["future_fail_closed_order"][7])
-        self.assertIn("all_refs_snapshot", self.contract["future_fail_closed_order"][11])
+        for index in (3, 7, 11):
+            self.assertIn("regular_refs_root_refs", self.contract["future_fail_closed_order"][index])
         self.assertTrue(self.contract["prevalidation"]["all_payloads_before_any_write"])
         self.assertTrue(self.contract["prevalidation"]["write_flag_forbidden_during_prevalidation"])
         self.assertEqual(self.contract["future_write"]["operation_exact"], "git --no-replace-objects --git-dir=/Users/amcarene/midi-worker/repository/.git hash-object -w --stdin")
@@ -83,9 +87,9 @@ class TestH27OdbOnlyBlobImportContract(unittest.TestCase):
     def test_exact_external_seal(self) -> None:
         expected_contract = {
             "path": "configs/harmonic_censoring_h27_odb_only_blob_import_contract.json",
-            "git_blob_sha1": "902cb51ec2e220ba0bdaf9d2fef90bf3dc174a10",
-            "size_bytes": 6461,
-            "raw_sha256": "75d5583ffbb6dafcdc5b78f50d20b74c39640cd12f68a2b30ecab215a173e76e",
+            "git_blob_sha1": "52bfb9fe7e2e7b01c64da6fff5d7b4ed29860cf7",
+            "size_bytes": 7010,
+            "raw_sha256": "f51d7810fb261ab1e33d318d92c987432b9a245579e5607fffe8851e6a730ad2",
         }
         self.assertEqual(
             (expected_contract["git_blob_sha1"], expected_contract["size_bytes"], expected_contract["raw_sha256"]),
@@ -97,8 +101,13 @@ class TestH27OdbOnlyBlobImportContract(unittest.TestCase):
             "status": "SEALED_DECLARATIVE_ONLY_PENDING_EXTERNAL_REVIEW_NO_IMPORT_NO_MAC_MUTATION_NO_DETACH_NO_DOWNSTREAM",
             "contract": expected_contract,
             "payloads": self.contract["payloads"],
-            "future_ref_snapshot_operation_exact": self.contract["ref_snapshot"]["operation_exact"],
-            "future_ref_snapshot_raw_bytes_equality_before_and_after_required": True,
+            "future_regular_refs_snapshot_operation_exact": self.contract["ref_snapshot"]["regular_refs_operation_exact"],
+            "future_root_refs_snapshot": {
+                "directory_exact": self.contract["ref_snapshot"]["root_refs_directory_exact"],
+                "name_regex_exact": self.contract["ref_snapshot"]["root_ref_name_regex_exact"],
+                "scan_exact": self.contract["ref_snapshot"]["root_ref_scan_exact"],
+            },
+            "future_regular_and_root_refs_raw_bytes_equality_before_and_after_required": True,
             "future_fail_closed_order": self.contract["future_fail_closed_order"],
             "future_write_operation_exact": self.contract["future_write"]["operation_exact"],
             "future_all_payloads_prevalidated_before_any_write": True,
