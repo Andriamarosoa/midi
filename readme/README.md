@@ -14,12 +14,26 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 read-only preflight PASS; declarative ODB-only exact-blob import contract pending external review, no import. -->
+<!-- H26_CORRECTION_STATUS: H27 ODB-only exact-blob import contract PASS; dormant one-shot importer pending external review, no import. -->
 ## État courant
 
 - Mise à jour : `2026-08-15`.
 - État courant :
-  `H27_ODB_ONLY_EXACT_BLOB_IMPORT_CONTRACT_PENDING_EXTERNAL_REVIEW_NO_IMPORT`.
+  `H27_ODB_ONLY_EXACT_BLOB_IMPORTER_PENDING_EXTERNAL_REVIEW_DORMANT_NO_IMPORT`.
+- La revue externe de `dffce1f9a144be60968b7912e99c761ec058ee0f`
+  conclut `PASS` sur le contrat ODB-only scellé et autorise uniquement son
+  implémentation dormante. Le lot courant ajoute le one-shot importer exact,
+  son identity binding, son external seal et des tests synthétiques. Les huit
+  payloads proviennent exclusivement d'un ODB Git source externe réel, sont
+  tous gardés en mémoire et prévalidés avant le premier effet. Backend `files`,
+  HEAD, symbolic HEAD, worktree, refs régulières, root refs/pseudorefs, index,
+  lock, ACK/processus et inventaire des objets sont contrôlés aux frontières
+  prescrites. L'unique effet futur reste huit `hash-object -w --stdin` dans
+  l'ordre déclaré ; échec partiel terminal, aucun retry ou cleanup. Le runner
+  n'est pas exécuté et aucun accès Mac n'a lieu. Rapport :
+  `readme/results/2026-08-15_harmonic-censoring-h27-odb-only-exact-blob-importer.md`.
+  Prochaine action unique : revue externe du runner, de son binding et de son
+  seal exacts ; aucun import avant un nouveau `PASS` explicite.
 - La revue externe de `0c3a90776c48f3edd5a05f98653e253084637d4d`
   conclut `PASS` sur l'archive du préflight bloqué et autorise uniquement un
   contrat déclaratif one-shot d'apport ODB-only. Le lot courant lie les huit
