@@ -14,12 +14,26 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 exact 13-blob source ODB delivery contract pending external review; declarative only. -->
+<!-- H26_CORRECTION_STATUS: H27 exact 13-blob source ODB delivery read-only preflight blocked; external review required. -->
 ## État courant
 
 - Mise à jour : `2026-08-15`.
 - État courant :
-  `H27_EXTERNAL_SOURCE_ODB_EXACT_THIRTEEN_DELIVERY_CONTRACT_PENDING_EXTERNAL_REVIEW_NO_DELIVERY`.
+  `H27_EXTERNAL_SOURCE_ODB_THIRTEEN_DELIVERY_READ_ONLY_PREFLIGHT_BLOCKED_ALL_THIRTEEN_ABSENT_WITH_TRANSIENT_TMP_DEVIATION_PENDING_EXTERNAL_REVIEW_NO_DELIVERY`.
+- La revue externe de `ca9e91481aa129d5bc8af19a54a0b13b71c14e1c`
+  conclut `PASS` sur le contrat de livraison exacte et autorise uniquement son
+  préflight Mac lecture seule. Ce préflight confirme l'ODB source réel
+  `/Users/amcarene/midi/.git`, HEAD `eaed599a...`, symbolic HEAD attendu,
+  worktree propre, backend `files`, lock/alternate/processus pertinents
+  absents et les treize blobs tous absents. Aucun ACK, transport, receiver,
+  `hash-object -w`, import ou downstream n'a lieu. Le premier relevé a créé
+  puis supprimé un fichier stderr transitoire sous `/tmp` avant que sa sortie
+  soit tronquée ; cet écart à la portée littérale est archivé. Le rerun complet
+  a utilisé uniquement des pipes mémoire et confirme qu'aucun résidu temporaire
+  ne subsiste. Rapport :
+  `readme/results/2026-08-15_harmonic-censoring-h27-external-source-odb-thirteen-delivery-read-only-preflight.md`.
+  Prochaine action unique : revue externe de la preuve et de l'écart `/tmp` ;
+  aucune implémentation ou livraison avant un nouveau `PASS` explicite.
 - La revue externe de `c0bb8d20862f80cabc72ea64a5d437750b7c12e8`
   conclut `PASS` sur l'importer dormant Git 2.39 et autorise uniquement un
   mécanisme/contrat dormant scellé pour apporter les treize objets absents à
