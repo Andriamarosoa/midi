@@ -14,12 +14,12 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 Windows local historical sender transition contract created on auxiliary review branch; external review required. -->
+<!-- H26_CORRECTION_STATUS: H27 Windows local historical sender transition launcher implemented dormant on auxiliary review branch; external review required. -->
 ## État courant
 
 - Mise à jour : `2026-08-15`.
 - État courant :
-  `H27_WINDOWS_LOCAL_HISTORICAL_SENDER_TRANSITION_CONTRACT_ONLY_PENDING_EXTERNAL_REVIEW_NO_TRANSITION_NO_SSH`.
+  `H27_WINDOWS_LOCAL_HISTORICAL_SENDER_TRANSITION_LAUNCHER_DORMANT_PENDING_EXTERNAL_REVIEW_NO_TRANSITION_NO_SSH`.
 - La revue externe de `61dc4b496a454b596fca6ac361504f441e987aab`
   conclut `PASS` sur le sender dormant corrigé et autorise uniquement sa
   préparation locale Windows au HEAD historique. Le préflight live a révélé
@@ -29,14 +29,19 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `codex/independent-note-neural-v2` à `61dc4b49...`, et crée la branche de
   revue auxiliaire `codex/h27-windows-transition-contract` depuis cette base
   dans le worktree `tmp/local/worktrees/h27-windows-transition-contract`.
-  Le lot courant ajoute uniquement un contrat déclaratif et son seal : future
+  La revue externe du contrat auxiliaire `469b3f400358690af628f872b56696a8df368e64`
+  conclut `PASS` et autorise uniquement l'implémentation dormante du launcher.
+  Le lot courant ajoute le launcher one-shot, son identity binding, son seal et
+  ses tests synthétiques : future
   transition one-shot `61dc4b49 → c0bb8d20 → sender transport=false →
-  restauration exacte 61dc4b49`, snapshots index/fichiers/refs, launcher futur
-  chargé uniquement par blob Git/stdin, une restauration obligatoire et une
+  restauration exacte 61dc4b49`, snapshots index/fichiers/refs/octets bruts,
+  launcher futur chargé uniquement par blob Git/stdin, restauration atomique
+  des fichiers suivis puis de l'index, une restauration obligatoire et une
   politique d'échec consommée sans retry. Aucun `reset`, `switch`, launcher,
   sender, SSH, ACK distant ou objet n'est exécuté. Rapport :
-  `readme/results/2026-08-15_harmonic-censoring-h27-windows-local-sender-transition-contract.md`.
-  Prochaine action unique : revue externe du contrat et du seal exacts.
+  `readme/results/2026-08-15_harmonic-censoring-h27-windows-local-sender-transition-launcher.md`.
+  Prochaine action unique : revue externe du launcher, de son binding et de
+  son seal exacts.
 - La revue externe de `bc9fd98e4fdc011f229979206e17040ac66017d5`
   conclut `PASS` sur le receiver exact et autorise uniquement le sender de
   préparation dormant couvrant les quatre étapes pré-SSH. Le lot courant

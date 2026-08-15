@@ -2,8 +2,10 @@
 
 ## Verdict local
 
-Le contrat déclaratif et son external seal sont créés dans un worktree de
-revue auxiliaire. Aucun launcher n'est implémenté et aucune transition,
+Le contrat déclaratif et son external seal ont été créés dans un worktree de
+revue auxiliaire puis approuvés au commit `469b3f400358690af628f872b56696a8df368e64`.
+Ils sont renforcés dans le lot launcher pour conserver et restaurer aussi les
+octets bruts suivis malgré `core.autocrlf=true`. Aucune transition,
 commande `reset`, exécution du sender, ACK, SSH ou livraison n'a eu lieu.
 
 État :
@@ -50,7 +52,8 @@ L'unique séquence mutante future est :
    `H27_SOURCE_ODB_EXACT_THIRTEEN_SENDER_PREPARED_DORMANT_STOP` et
    `transport_executed=false` ;
 4. une seule restauration par `reset --hard` vers `61dc4b49...` ;
-5. restauration atomique des bytes originaux de l'index, puis vérification
+5. restauration atomique des octets bruts originaux des fichiers suivis, puis
+   restauration atomique des bytes originaux de l'index et vérification
    finale byte/state-exacte de HEAD, branche, refs, index, fichiers suivis et
    status ;
 6. archivage et STOP avant SSH.
@@ -74,10 +77,10 @@ persistants attendus sont les deux entrées de reflog scellées et la conséquen
 
 ## Identités
 
-- contrat : blob `e04e0a01d5d2359734a355f8b70cec6dbd29d0c1`, `10467` octets,
-  SHA-256 `3bfdf972b3ae1889999a9c7bce405a049ae2d561ef4d377cc23942691ca8fb54` ;
-- external seal : blob `32cffceb20972d5f6f39df9ca5d33d51c091b3b5`, `5573` octets,
-  SHA-256 `615b0a2783c5429df3249b0f467ce457c8ccd4b1e0283c7f5145227c1364fced`.
+- contrat renforcé : blob `f1a394bb9c764e0d1942f10cf36711517dcb5f4b`, `10871` octets,
+  SHA-256 `499fb31e73c5fc8b371d9c0a2f860e58dd614b58afa0cbca900755c19d3f1a70` ;
+- external seal renforcé : blob `eb5888e8f03b3c558dd3fcedc6d4bf44c898b911`, `5828` octets,
+  SHA-256 `415b140882a981ee2dd0ab3ca0c4aeedf14eeeaeb1832d5eb9b92fef02371fd6`.
 
 ## Validation et limites
 
@@ -105,8 +108,9 @@ La dernière suite H27 complète sur le worktree d'exécution préservé à
 
 Impact live/scientifique : nul. `locked_test_used=false`.
 
-## STOP
+## Suite approuvée
 
-STOP avant implémentation du launcher. Prochaine action unique : revue externe
-du contrat et du seal exacts. Toujours interdits : `reset`, `switch`,
-`update-ref` dans le worktree d'exécution, sender, SSH, ACK Mac et transport.
+La revue externe du commit `469b3f4...` autorise l'implémentation dormante du
+launcher dans le worktree auxiliaire. Les `reset`, `switch`, `update-ref` dans
+le worktree d'exécution, le sender, SSH, l'ACK Mac et le transport restent
+interdits jusqu'à la revue séparée de ce launcher exact.
