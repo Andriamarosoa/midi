@@ -367,6 +367,7 @@ def require_conflicting_runner_absent() -> None:
             "h27_detach_target_checkout_one_shot.py" in command
             or "d1cdf1562a814cef271d606da331e96565fcc79a" in command
             or "h27_import_exact_blobs_odb_only_one_shot.py" in command
+            or "h27_target_import_and_detach_once.py" in command
         ):
             raise PermissionError("H27 conflicting importer or detach runner is active.")
 

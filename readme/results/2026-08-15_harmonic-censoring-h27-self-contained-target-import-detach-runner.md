@@ -58,7 +58,7 @@ le fait que seul le pseudoref `HEAD` prend la valeur cible au detach.
 Validation locale :
 
 ```text
-7/7 tests Review 3 réussis
+8/8 tests Review 3 réussis
 py_compile réussi
 git diff --check réussi
 ```

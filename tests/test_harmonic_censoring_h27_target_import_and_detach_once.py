@@ -180,6 +180,36 @@ class TestH27TargetImportAndDetachOnce(unittest.TestCase):
         write.assert_not_called()
         detach.assert_not_called()
 
+    def test_second_new_runner_pid_blocks_before_import_or_detach(self) -> None:
+        module = self.module
+        other_pid = os.getpid() + 1000
+        ps = subprocess.CompletedProcess(
+            [], 0,
+            (
+                f"{os.getpid()} /usr/bin/python3 h27_target_import_and_detach_once.py\n"
+                f"{other_pid} /usr/bin/python3 h27_target_import_and_detach_once.py\n"
+            ).encode("utf-8"),
+            b"",
+        )
+        with (
+            mock.patch.object(module, "require_platform_ack_and_zero_arguments"),
+            mock.patch.object(module, "verify_checkout_and_odb_realpaths"),
+            mock.patch.object(module, "require_reference_storage_files"),
+            mock.patch.object(module, "require_baseline"),
+            mock.patch.object(module, "regular_refs_snapshot", return_value=b"refs"),
+            mock.patch.object(module, "root_refs_snapshot", return_value=((b"HEAD", b"head"),)),
+            mock.patch.object(module, "index_snapshot", return_value=(True, b"index")),
+            mock.patch.object(module, "run_git", return_value=ps),
+            mock.patch.object(module, "decode_and_prevalidate_all") as decode,
+            mock.patch.object(module, "write_exact_payloads") as write,
+            mock.patch.object(module, "perform_single_explicit_detach") as detach,
+        ):
+            with self.assertRaises(PermissionError):
+                module.import_and_detach_once()
+        decode.assert_not_called()
+        write.assert_not_called()
+        detach.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()
