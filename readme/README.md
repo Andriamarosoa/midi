@@ -14,12 +14,12 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 constructor HEAD transition consumed successfully to required detached HEAD; wrapper post-success exit CR anomaly archived; STOP before constructor. -->
+<!-- H26_CORRECTION_STATUS: H27 constructor execution gate implemented dormant after successful consumed HEAD transition; local tests pass; pending external review; no Mac execution. -->
 ## État courant
 
 - Mise à jour : `2026-08-16`.
 - État courant :
-  `H27_REVIEW4_CONSTRUCTOR_HEAD_TRANSITION_TERMINAL_SUCCESS_STOP_PENDING_EXTERNAL_REVIEW`.
+  `H27_REVIEW4_CONSTRUCTOR_EXECUTION_GATE_DORMANT_PENDING_EXTERNAL_REVIEW`.
 - La revue externe de `61dc4b496a454b596fca6ac361504f441e987aab`
   conclut `PASS` sur le sender dormant corrigé et autorise uniquement sa
   préparation locale Windows au HEAD historique. Le préflight live a révélé
@@ -170,6 +170,25 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   aucun retry ou contrôle distant supplémentaire n'a été lancé. STOP avant
   constructor. Rapport :
   `readme/results/2026-08-16_harmonic-censoring-h27-review4-constructor-head-transition-terminal-execution.md`.
+  La revue externe de cette preuve terminale conclut `PASS` et confirme que
+  l'erreur shell `exit 0\r` est postérieure au succès terminal du runner. Elle
+  autorise uniquement l'implémentation et les tests locaux du gate constructor
+  dormant. Le lot courant ajoute
+  `scripts/h27_review4_constructor_execution_gate_once.py` et ses neuf tests.
+  Le futur runner exige macOS, zéro argument et l'unique ACK constructor; il
+  revalide deux fois le bundle fermé, le HEAD exact détaché/propre, 112
+  identités du checkout et quatre identités d'autorité avant toute ouverture
+  du registre. La création exclusive du registre est sa première frontière
+  persistante; réservation et consommation sont écrites et fsyncées avant
+  l'unique invocation du constructor effect-free. Aucun chemin destination
+  n'est observé, aucun materializer ou calcul n'est accessible. Les tests
+  ciblés rendent `9/9`; `py_compile` et `git diff --check` passent. Le runner
+  reste dormant : aucun SSH, ACK réel, registre Mac, réservation,
+  consommation, constructor, materializer, science ou locked-test n'a été
+  exécuté. Rapport :
+  `readme/results/2026-08-16_harmonic-censoring-h27-review4-constructor-execution-gate-dormant.md`.
+  Prochaine action unique : revue externe du commit complet; aucune exécution
+  Mac avant un nouveau `PASS` explicite.
 - La revue externe de `bc9fd98e4fdc011f229979206e17040ac66017d5`
   conclut `PASS` sur le receiver exact et autorise uniquement le sender de
   préparation dormant couvrant les quatre étapes pré-SSH. Le lot courant

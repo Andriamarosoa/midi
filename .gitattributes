@@ -138,3 +138,6 @@ readme/results/2026-08-12_harmonic-censoring-h26-p0-operational-entrypoint-stop4
 scripts/h27_review4_constructor_head_transition_once.py text eol=lf
 tests/test_harmonic_censoring_h27_review4_constructor_head_transition.py text eol=lf
 readme/results/2026-08-16_harmonic-censoring-h27-review4-constructor-head-transition-dormant.md text eol=lf
+scripts/h27_review4_constructor_execution_gate_once.py text eol=lf
+tests/test_harmonic_censoring_h27_review4_constructor_execution_gate.py text eol=lf
+readme/results/2026-08-16_harmonic-censoring-h27-review4-constructor-execution-gate-dormant.md text eol=lf
