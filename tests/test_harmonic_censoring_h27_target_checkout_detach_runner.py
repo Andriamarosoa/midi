@@ -124,6 +124,7 @@ class TestTargetCheckoutDetachRunner(unittest.TestCase):
         self.assertEqual(self.seal["future_normative_transition_order"], self.contract["future_fail_closed_order"])
         self.assertEqual(self.binding["transition_safeguards"], {
             "clean_git_environment_before_every_git_process": True,
+            "optional_locks_disabled_for_all_read_only_git_commands": True,
             "hooks_disabled_for_all_checkout_git_commands": True,
             "submodule_recursion_disabled": True,
             "target_commit_type_verified_before_mutation": True,
@@ -187,6 +188,52 @@ class TestTargetCheckoutDetachRunner(unittest.TestCase):
         self.assertEqual(calls.count("detach"), 1)
         self.assertEqual(result["status"], "H27_TARGET_CHECKOUT_EXACT_DETACH_TERMINAL_SUCCESS")
 
+    def test_all_read_only_git_commands_disable_optional_locks(self) -> None:
+        completed = mock.Mock(returncode=0, stdout=b"", stderr=b"")
+        with mock.patch.object(self.module.subprocess, "run", return_value=completed) as run:
+            self.module.git_read(["status", "--porcelain=v1", "--untracked-files=all"])
+            self.module.git_read(["rev-parse", "--verify", "HEAD"])
+            self.module.git_read(["cat-file", "-t", self.module.TARGET_HEAD])
+            self.module.git_read(["symbolic-ref", "-q", "HEAD"], expected_returncodes=(0, 1))
+            self.module.read_blob("a" * 40)
+
+        commands = [call.args[0] for call in run.call_args_list]
+        checkout_prefix = [
+            "git", "--no-optional-locks", "-c", "core.hooksPath=/dev/null",
+            "-C", "/Users/amcarene/midi-worker/repository",
+        ]
+        self.assertEqual(commands[:4], [
+            [*checkout_prefix, "status", "--porcelain=v1", "--untracked-files=all"],
+            [*checkout_prefix, "rev-parse", "--verify", "HEAD"],
+            [*checkout_prefix, "cat-file", "-t", self.module.TARGET_HEAD],
+            [*checkout_prefix, "symbolic-ref", "-q", "HEAD"],
+        ])
+        self.assertEqual(commands[4], [
+            "git", "--no-optional-locks",
+            "--git-dir=/Users/amcarene/midi-worker/repository/.git",
+            "cat-file", "blob", "a" * 40,
+        ])
+        transition_reads: list[list[str]] = []
+
+        def record_transition_read(arguments, *, expected_returncodes=(0,)):
+            transition_reads.append(arguments)
+            return subprocess.CompletedProcess(arguments, 0, stdout=b"", stderr=b"")
+
+        with (
+            mock.patch.object(self.module, "require_platform_and_zero_arguments"),
+            mock.patch.object(self.module, "verify_checkout_and_odb_realpaths"),
+            mock.patch.object(self.module, "verify_identity_graph", return_value={str(i): b"" for i in range(5)}),
+            mock.patch.object(self.module, "require_initial_head_exact"),
+            mock.patch.object(self.module, "require_target_object_commit"),
+            mock.patch.object(self.module, "perform_single_explicit_detach"),
+            mock.patch.object(self.module, "require_target_head_exact"),
+            mock.patch.object(self.module, "require_detached_state"),
+            mock.patch.object(self.module, "git_read", side_effect=record_transition_read),
+        ):
+            self.module.transition()
+        status = ["status", "--porcelain=v1", "--untracked-files=all"]
+        self.assertEqual(transition_reads, [status, status, status])
+
     def test_detach_command_exact_and_failure_is_terminal(self) -> None:
         expected = [
             "git", "-c", "core.hooksPath=/dev/null", "-c", "advice.detachedHead=false",
@@ -219,8 +266,8 @@ class TestTargetCheckoutDetachRunner(unittest.TestCase):
             "schema_version": 1,
             "seal_id": "H27_TARGET_CHECKOUT_EXACT_DETACH_ONE_SHOT_RUNNER_IDENTITY_BINDING_EXTERNAL_SEAL_V1",
             "status": "SEALED_PENDING_EXTERNAL_REVIEW_RUNNER_DORMANT_NO_MAC_CHECKOUT_CHANGE_NO_REGISTRY_NO_CREATOR_NO_BUNDLE_NO_SCIENCE",
-            "identity_binding": {"path": "configs/harmonic_censoring_h27_target_checkout_detach_runner_identity_binding.json", "git_blob_sha1": "add9ecfd389225a03f1d8101442d7fc2adcff4d1", "size_bytes": 4865, "raw_sha256": "37eb3b2ff5e7b48f32b5fe79ead6e9a8b47623a2325236a539293c870aeaee75"},
-            "runner": {"path": "scripts/h27_detach_target_checkout_one_shot.py", "git_blob_sha1": "1ed1b57d6fb8ef9c8f27cb553278ba629e4d1e87", "size_bytes": 10382, "raw_sha256": "491c5afe057a0aff364d522e28979ee2fa2d67e470f5cc61e8e8d2b1427cb7f9"},
+            "identity_binding": {"path": "configs/harmonic_censoring_h27_target_checkout_detach_runner_identity_binding.json", "git_blob_sha1": "d03385d842ca11631ba690d0a4bb70448c84480e", "size_bytes": 4927, "raw_sha256": "3db676881b0fca2265c09801be5fbb94d98bbf475429a7113deee872a68970df"},
+            "runner": {"path": "scripts/h27_detach_target_checkout_one_shot.py", "git_blob_sha1": "d1cdf1562a814cef271d606da331e96565fcc79a", "size_bytes": 10428, "raw_sha256": "e0fd3a4794cc2fdb266b9f3b89da25fa1260f6575e31dc3d95f761ed313b833f"},
             "approved_transition_binding_commit": "1c523581c866890c932268b54b66575871741acd",
             "verified_predecessor_identity_count": 5,
             "future_platform_exact": "darwin",
@@ -236,6 +283,7 @@ class TestTargetCheckoutDetachRunner(unittest.TestCase):
             "future_administrative_identity_gate": {"operation_exact": "verify_five_predecessor_identities", "after_transition_step_exact": "verify_checkout_and_odb_realpaths", "before_transition_step_exact": "verify_initial_head_exact", "predecessor_identity_count_exact": 5},
             "future_normative_transition_order": ["verify_platform_and_zero_arguments", "verify_checkout_and_odb_realpaths", "verify_initial_head_exact", "verify_initial_worktree_clean", "verify_target_object_exists_and_type_is_commit", "reverify_initial_head_and_cleanliness", "perform_single_explicit_detach_to_exact_target_sha_as_first_and_only_mutation", "verify_target_head_exact", "verify_detached_state", "verify_worktree_clean", "terminal_success_then_stop"],
             "future_single_attempt_only": True,
+            "future_optional_locks_disabled_for_all_read_only_git_commands": True,
             "future_retry_reset_cleanup_repair_or_automatic_recovery_forbidden": True,
             "runner_externally_reviewed": False, "runner_externally_sealed": False,
             "runner_executed": False, "acknowledgement_set": False,

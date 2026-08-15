@@ -61,7 +61,7 @@ def read_blob(blob_sha1: str) -> bytes:
     if re.fullmatch(r"[0-9a-f]{40}", blob_sha1) is None:
         raise PermissionError("H27 malformed Git blob identity.")
     result = subprocess.run(
-        ["git", f"--git-dir={GIT_DATABASE_TEXT}", "cat-file", "blob", blob_sha1],
+        ["git", "--no-optional-locks", f"--git-dir={GIT_DATABASE_TEXT}", "cat-file", "blob", blob_sha1],
         check=False,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -161,7 +161,7 @@ def verify_identity_graph() -> dict[str, bytes]:
 
 def git_read(arguments: list[str], *, expected_returncodes: tuple[int, ...] = (0,)) -> subprocess.CompletedProcess[bytes]:
     result = subprocess.run(
-        ["git", "-c", "core.hooksPath=/dev/null", "-C", CHECKOUT_TEXT, *arguments],
+        ["git", "--no-optional-locks", "-c", "core.hooksPath=/dev/null", "-C", CHECKOUT_TEXT, *arguments],
         check=False,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,

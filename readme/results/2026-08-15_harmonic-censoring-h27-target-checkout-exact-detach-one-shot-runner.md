@@ -15,9 +15,9 @@ matérialisation, science ou locked test.
 
 ```text
 path       scripts/h27_detach_target_checkout_one_shot.py
-git blob   1ed1b57d6fb8ef9c8f27cb553278ba629e4d1e87
-size       10382
-sha256     491c5afe057a0aff364d522e28979ee2fa2d67e470f5cc61e8e8d2b1427cb7f9
+git blob   d1cdf1562a814cef271d606da331e96565fcc79a
+size       10428
+sha256     e0fd3a4794cc2fdb266b9f3b89da25fa1260f6575e31dc3d95f761ed313b833f
 ```
 
 Le runner exige :
@@ -43,6 +43,10 @@ git -c core.hooksPath=/dev/null -c advice.detachedHead=false \
 
 Les variables d'environnement Git héritées sont retirées avant chaque
 processus Git, les hooks sont désactivés et la récursion submodule interdite.
+Toutes les commandes Git de lecture utilisent en plus
+`git --no-optional-locks` afin que `status`, `rev-parse`, `cat-file`,
+`symbolic-ref` et le rehash des blobs ne puissent pas rafraîchir l'index. La
+commande de detach, seule mutation autorisée, reste strictement inchangée.
 
 ## Binding et seal
 
@@ -51,9 +55,9 @@ du contrat, seal de ce binding et preuve préflight. Le runner rehash les cinq
 prédécesseurs avant l'observation du HEAD.
 
 ```text
-binding blob  add9ecfd389225a03f1d8101442d7fc2adcff4d1
-binding size  4865
-binding sha   37eb3b2ff5e7b48f32b5fe79ead6e9a8b47623a2325236a539293c870aeaee75
+binding blob  d03385d842ca11631ba690d0a4bb70448c84480e
+binding size  4927
+binding sha   3db676881b0fca2265c09801be5fbb94d98bbf475429a7113deee872a68970df
 ```
 
 Le seal reproduit le runner, son binding, les chemins/HEAD, l'ACK, la commande
@@ -71,17 +75,26 @@ les onze valeurs du contrat PASS. Le test charge ce contrat et impose
 directement l'égalité des listes binding/seal avec
 `contract["future_fail_closed_order"]`.
 
+La seconde revue externe de `bdd5c90c...` confirme la nomenclature, mais rend
+encore `FAIL` parce que `git status` pouvait prendre un verrou optionnel et
+rafraîchir `.git/index` avant le detach. La correction courante désactive les
+optional locks pour toutes les lectures Git seulement. Le test prouve
+explicitement ce préfixe sur les deux contrôles de propreté pré-mutation, le
+contrôle terminal, `rev-parse`, `cat-file`, `symbolic-ref` et la lecture de
+blob. L'unique commande mutante reste celle déjà scellée.
+
 ## Validation locale
 
 Les tests vérifient les six identités, le preflight réel des cinq blobs Git,
 les dictionnaires complets, l'ordre statique et dynamique, l'unique mutation,
-la commande POSIX exacte et l'absence de contrôles post-effet après échec.
+la commande POSIX exacte, les lectures Git sans optional locks et l'absence de
+contrôles post-effet après échec.
 
 - `py_compile` runner + test : réussi ;
-- tests ciblés : `6/6` réussis ;
-- suite H27 complète après micro-correction : `513/513` réussis en
-  `68,112 s` ;
-- `git diff --check` : requis avant commit.
+- tests ciblés : `7/7` réussis en `0,243 s` ;
+- suite H27 complète après micro-correction : `514/514` réussis en
+  `61,272 s` avec le venv du projet ;
+- `git diff --check` : réussi avant commit.
 
 ## STOP
 

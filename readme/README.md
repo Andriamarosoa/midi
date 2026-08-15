@@ -39,6 +39,15 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   micro-correction conserve le runner `1ed1b57d...` byte-identique, sépare le
   rehash comme gate entre realpaths et HEAD, et restaure dans binding/seal les
   onze étapes exactement égales à `contract["future_fail_closed_order"]`.
+- La seconde revue externe, sur `bdd5c90c...`, confirme cette correction mais
+  conclut encore `FAIL` parce que les commandes Git déclarées en lecture seule,
+  notamment les trois vérifications de propreté, pouvaient rafraîchir l'index.
+  La micro-correction courante ajoute `git --no-optional-locks` à chaque
+  `status`, `rev-parse`, `cat-file`, `symbolic-ref` et lecture de blob. La seule
+  commande mutante `checkout --detach` reste byte-exactement inchangée. Un test
+  verrouille les deux `status` pré-mutation et le `status` terminal ainsi que
+  toutes les autres lectures. Le runner demeure dormant et aucune commande Mac
+  n'a été exécutée.
 - La revue externe de `36d9ee11fc800a7e57edff1a73858c47ccbdb947`
   conclut `PASS` sur le contrat de transition et autorise uniquement son
   identity binding administratif. Le lot courant lie byte-exactement le
