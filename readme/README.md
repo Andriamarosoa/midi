@@ -14,12 +14,29 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 exact 13-blob sender preparation implemented dormant; external review required. -->
+<!-- H26_CORRECTION_STATUS: H27 Windows local historical sender transition contract created on auxiliary review branch; external review required. -->
 ## État courant
 
 - Mise à jour : `2026-08-15`.
 - État courant :
-  `H27_EXTERNAL_SOURCE_ODB_EXACT_THIRTEEN_SENDER_IMPLEMENTED_DORMANT_PENDING_EXTERNAL_REVIEW_NO_SSH_NO_DELIVERY`.
+  `H27_WINDOWS_LOCAL_HISTORICAL_SENDER_TRANSITION_CONTRACT_ONLY_PENDING_EXTERNAL_REVIEW_NO_TRANSITION_NO_SSH`.
+- La revue externe de `61dc4b496a454b596fca6ac361504f441e987aab`
+  conclut `PASS` sur le sender dormant corrigé et autorise uniquement sa
+  préparation locale Windows au HEAD historique. Le préflight live a révélé
+  que committer le launcher sur la branche d'exécution rendrait son état
+  initial `61dc4b49...` récursivement impossible. La topologie approuvée
+  préserve donc le worktree d'exécution exact, propre, sur
+  `codex/independent-note-neural-v2` à `61dc4b49...`, et crée la branche de
+  revue auxiliaire `codex/h27-windows-transition-contract` depuis cette base
+  dans le worktree `tmp/local/worktrees/h27-windows-transition-contract`.
+  Le lot courant ajoute uniquement un contrat déclaratif et son seal : future
+  transition one-shot `61dc4b49 → c0bb8d20 → sender transport=false →
+  restauration exacte 61dc4b49`, snapshots index/fichiers/refs, launcher futur
+  chargé uniquement par blob Git/stdin, une restauration obligatoire et une
+  politique d'échec consommée sans retry. Aucun `reset`, `switch`, launcher,
+  sender, SSH, ACK distant ou objet n'est exécuté. Rapport :
+  `readme/results/2026-08-15_harmonic-censoring-h27-windows-local-sender-transition-contract.md`.
+  Prochaine action unique : revue externe du contrat et du seal exacts.
 - La revue externe de `bc9fd98e4fdc011f229979206e17040ac66017d5`
   conclut `PASS` sur le receiver exact et autorise uniquement le sender de
   préparation dormant couvrant les quatre étapes pré-SSH. Le lot courant
