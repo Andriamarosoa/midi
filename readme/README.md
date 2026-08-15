@@ -26,7 +26,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   payloads par blob/taille/SHA-256, exige leur prévalidation intégrale en
   mémoire avant toute écriture future, scelle une unique opération
   `hash-object -w --stdin` par payload, et interdit tout changement de ref,
-  HEAD, index ou worktree. Retry, cleanup et rollback implicite sont interdits ;
+  HEAD, index ou worktree. Après le premier `FAIL` de revue, il capture
+  désormais un snapshot déterministe byte-exact de toutes les refs, le compare
+  juste avant la première écriture future puis après les huit. Retry, cleanup
+  et rollback implicite sont interdits ;
   un import partiel futur serait terminal consommé. Aucun accès Mac ni apport
   réel n'a lieu. Rapport :
   `readme/results/2026-08-15_harmonic-censoring-h27-odb-only-exact-blob-import-contract.md`.

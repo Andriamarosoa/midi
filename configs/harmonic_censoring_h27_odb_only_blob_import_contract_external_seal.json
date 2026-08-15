@@ -2,7 +2,7 @@
   "schema_version":1,
   "seal_id":"H27_ODB_ONLY_EXACT_BLOB_IMPORT_ONE_SHOT_CONTRACT_EXTERNAL_SEAL_V1",
   "status":"SEALED_DECLARATIVE_ONLY_PENDING_EXTERNAL_REVIEW_NO_IMPORT_NO_MAC_MUTATION_NO_DETACH_NO_DOWNSTREAM",
-  "contract":{"path":"configs/harmonic_censoring_h27_odb_only_blob_import_contract.json","git_blob_sha1":"a2c1b55cf4f128fcccce21a1823ad60c85f8d0ff","size_bytes":5967,"raw_sha256":"3e784445a6f058c2658f86383cdd0b7f6b59c7214f884546b7f1b59a98ab7321"},
+  "contract":{"path":"configs/harmonic_censoring_h27_odb_only_blob_import_contract.json","git_blob_sha1":"902cb51ec2e220ba0bdaf9d2fef90bf3dc174a10","size_bytes":6461,"raw_sha256":"75d5583ffbb6dafcdc5b78f50d20b74c39640cd12f68a2b30ecab215a173e76e"},
   "payloads":[
     {"path":"scripts/h27_detach_target_checkout_one_shot.py","git_blob_sha1":"d1cdf1562a814cef271d606da331e96565fcc79a","size_bytes":10428,"raw_sha256":"e0fd3a4794cc2fdb266b9f3b89da25fa1260f6575e31dc3d95f761ed313b833f"},
     {"path":"configs/harmonic_censoring_h27_target_checkout_detach_runner_identity_binding.json","git_blob_sha1":"d03385d842ca11631ba690d0a4bb70448c84480e","size_bytes":4927,"raw_sha256":"3db676881b0fca2265c09801be5fbb94d98bbf475429a7113deee872a68970df"},
@@ -13,7 +13,9 @@
     {"path":"configs/harmonic_censoring_h27_target_checkout_detach_transition_contract_external_seal.json","git_blob_sha1":"24a8c14fddd52eca148f961a31c39abaa4de018f","size_bytes":1796,"raw_sha256":"b62eff68cbca0c84c7483cbd9f3ea5049b1156129398e571b88adcbf553f0aba"},
     {"path":"readme/results/2026-08-15_harmonic-censoring-h27-creator-read-only-preflight.md","git_blob_sha1":"bda7e1fae7379996563e73d8bbcf1b2d7a871aa0","size_bytes":1987,"raw_sha256":"a28a73389a338c8d493b7c75ca82656fb01ce75eddf3aa0f277d4a928b5dbc95"}
   ],
-  "future_fail_closed_order":["verify_platform_ack_and_zero_arguments","verify_checkout_and_odb_realpaths","verify_exact_baseline_head_symbolic_head_cleanliness_and_no_index_lock","capture_index_bytes_identity","verify_runner_ack_and_process_absent","receive_exact_eight_payloads_outside_target_checkout_into_memory","prevalidate_all_eight_payload_triples_and_git_blob_ids_without_write","reverify_exact_baseline_and_index_identity","verify_all_eight_target_blobs_absent","write_each_exact_blob_once_in_declared_order_and_require_returned_id","revalidate_all_eight_target_blobs_byte_exact","verify_head_symbolic_head_index_and_worktree_unchanged_no_lock_no_runner_ack","terminal_success_then_stop"],
+  "future_ref_snapshot_operation_exact":"git --no-optional-locks --no-replace-objects --git-dir=/Users/amcarene/midi-worker/repository/.git for-each-ref --sort=refname --format=%(refname)%00%(objectname)%00%(objecttype)%00",
+  "future_ref_snapshot_raw_bytes_equality_before_and_after_required":true,
+  "future_fail_closed_order":["verify_platform_ack_and_zero_arguments","verify_checkout_and_odb_realpaths","verify_exact_baseline_head_symbolic_head_cleanliness_and_no_index_lock","capture_all_refs_snapshot_and_index_bytes_identity","verify_runner_ack_and_process_absent","receive_exact_eight_payloads_outside_target_checkout_into_memory","prevalidate_all_eight_payload_triples_and_git_blob_ids_without_write","reverify_exact_baseline_all_refs_snapshot_and_index_identity","verify_all_eight_target_blobs_absent","write_each_exact_blob_once_in_declared_order_and_require_returned_id","revalidate_all_eight_target_blobs_byte_exact","verify_head_symbolic_head_all_refs_snapshot_index_and_worktree_unchanged_no_lock_no_runner_ack","terminal_success_then_stop"],
   "future_write_operation_exact":"git --no-replace-objects --git-dir=/Users/amcarene/midi-worker/repository/.git hash-object -w --stdin",
   "future_all_payloads_prevalidated_before_any_write":true,
   "future_all_target_blobs_absent_before_execution":true,

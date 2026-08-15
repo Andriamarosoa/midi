@@ -13,17 +13,23 @@ autorité, creator, bundle, materializer, science ou locked test.
 ## Identités
 
 ```text
-contract blob  a2c1b55cf4f128fcccce21a1823ad60c85f8d0ff
-contract size  5967
-contract sha   3e784445a6f058c2658f86383cdd0b7f6b59c7214f884546b7f1b59a98ab7321
+contract blob  902cb51ec2e220ba0bdaf9d2fef90bf3dc174a10
+contract size  6461
+contract sha   75d5583ffbb6dafcdc5b78f50d20b74c39640cd12f68a2b30ecab215a173e76e
 
-seal blob      40b601b483811e42a10f377e3e6a2046e878a98a
-seal size      4250
-seal sha       ca98b7a8ec865c02f6e8e06f7f78fa3f11d7378f64164dcd8ba9160ebcf56599
+seal blob      3e3348c543c94720323e17271164e2febfc35bac
+seal size      4608
+seal sha       55f1add9ad5e25ed5e5766e5010c3cb5286e97485de3cddfe6dfe0259b032f73
 ```
 
 Le contrat lie les huit payloads par chemin, blob SHA-1 Git, taille et SHA-256
 brut. Les huit chemins et les huit IDs doivent être uniques.
+
+La première revue externe du commit `3793e7d6...` rend `FAIL` uniquement parce
+que l'interdiction de modifier les refs n'était pas accompagnée d'une preuve
+avant/après. La correction courante ajoute cette capture et les deux
+comparaisons byte-exactes dans le contrat, le seal, le test et la documentation,
+sans ajouter d'implémentation ni d'effet Mac.
 
 ## Frontière future préenregistrée
 
@@ -31,11 +37,13 @@ Avant la première écriture future, l'exécuteur devra :
 
 1. vérifier Darwin, l'ACK dédié, zéro argument, checkout/ODB réels ;
 2. vérifier HEAD, symbolic HEAD, worktree propre, absence de lock/processus et
-   capturer l'identité byte-exacte de l'index ;
+   capturer l'identité byte-exacte de l'index ainsi qu'un snapshot déterministe
+   byte-exact de toutes les refs triées par nom ;
 3. recevoir hors du checkout cible exactement huit payloads et tous les garder
    en mémoire, sans staging fichier ;
 4. valider les huit triples d'identité et leur hash Git sans `-w` ;
-5. revalider l'état initial puis exiger les huit blobs absents ;
+5. revalider l'état initial, le même snapshot de refs et l'index, puis exiger
+   les huit blobs absents ;
 6. écrire une seule fois chaque blob dans l'ordre déclaré avec :
 
 ```text
@@ -45,8 +53,21 @@ git --no-replace-objects \
 ```
 
 Chaque retour doit être l'ID attendu. Ensuite, les huit blobs, HEAD, symbolic
-HEAD, index byte-identique, worktree, lock, ACK runner et downstream flags
-doivent être revalidés.
+HEAD, snapshot byte-identique de toutes les refs, index byte-identique,
+worktree, lock, ACK runner et downstream flags doivent être revalidés.
+
+Le snapshot futur est défini exactement par :
+
+```text
+git --no-optional-locks --no-replace-objects \
+  --git-dir=/Users/amcarene/midi-worker/repository/.git \
+  for-each-ref --sort=refname \
+  --format=%(refname)%00%(objectname)%00%(objecttype)%00
+```
+
+Ses octets bruts restent en mémoire ; taille et SHA-256 sont également
+archivés. L'égalité des octets, et pas seulement d'un booléen déclaratif, est
+requise avant et après l'effet.
 
 Fetch, pull, sync, update-ref, checkout, switch, detach, fallback worktree,
 payload supplémentaire, retry, cleanup, réparation ou récupération automatique
@@ -57,7 +78,7 @@ revendication de rollback.
 
 - `py_compile` : réussi ;
 - tests ciblés : `5/5` réussis en `0,002 s` ;
-- suite H27 complète : `519/519` réussis en `69,215 s` ;
+- suite H27 complète : `519/519` réussis en `68,123 s` ;
 - `git diff --check` : réussi avant commit.
 
 ## STOP
