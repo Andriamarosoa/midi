@@ -72,3 +72,38 @@ H27 en `75,639 s`, avec `py_compile` et `git diff --check` réussis.
 
 Prochaine action unique : revue externe de cette fermeture mécanique. Aucune
 exécution Mac n'est autorisée par ce lot.
+
+## Préflight Mac lecture seule après PASS
+
+La revue externe de `421fd7d39ec429b149c265eadcdca7cd056568fd` a
+conclu `PASS` et autorisé exclusivement le préflight lecture seule, suivi d'un
+STOP.
+
+Résultat vérifié :
+
+- branche distante : `421fd7d39ec429b149c265eadcdca7cd056568fd` ;
+- checkout Mac inchangé : `75322bc6b0fbf2afe458cc3ed5116c9cb8229cbf` ;
+- ODB réel : `/Users/amcarene/midi-worker/repository/.git` ;
+- runner : type `blob`, `10126` octets, SHA-256
+  `37e40a4ec03bdeef4d7a1ec8826c41b4b0b98bc76aeda252d1e2a6d834be8b4b` ;
+- identités prédécesseures vérifiées : `11` ;
+- parent : directory réel, non-symlink, device `16777234`, inode `1445438` ;
+- `/Users/amcarene/h27-admin/control` : absent ;
+- processus correspondant aux deux runners : `0` ;
+- ACK : absent ;
+- appel `create()` : non effectué ;
+- runner exécuté : faux ;
+- tentative `mkdir` : fausse.
+
+Le premier essai de commande de préflight a fetché correctement la branche,
+puis s'est arrêté avant l'ODB parce que PowerShell avait développé localement
+une substitution de commande. Deux essais ultérieurs de vérification Python
+ont échoué uniquement sur le quoting de `python3 -c`, avant tout appel au
+runner ou accès au parent. La commande corrigée a ensuite effectué le contrôle
+lecture seule ci-dessus. Ces anomalies de commande n'ont posé aucun ACK et
+n'ont produit aucun effet filesystem Mac.
+
+STOP respecté : aucune exécution du runner corrigé, aucun `mkdir`, registre,
+autorité, creator, bundle, constructeur, matérialisation, science ou locked
+test. La prochaine action reste une revue externe de cette preuve avant toute
+éventuelle exécution réelle one-shot.

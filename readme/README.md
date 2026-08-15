@@ -14,12 +14,21 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 corrected control-parent runner mechanically closed after external FAIL; runner/binding/seal byte-identical, micro-corrected test/docs pending external review, no Mac effect. -->
+<!-- H26_CORRECTION_STATUS: H27 corrected control-parent runner PASS; Mac read-only preflight PASS and stopped before ACK/effect, pending external review for any one-shot execution. -->
 ## État courant
 
 - Mise à jour : `2026-08-15`.
 - État courant :
-  `H27_CONTROL_PARENT_CORRECTED_RUNNER_TEST_CLOSURE_PENDING_EXTERNAL_REVIEW`.
+  `H27_CONTROL_PARENT_CORRECTED_RUNNER_READ_ONLY_PREFLIGHT_PASS_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `421fd7d39ec429b149c265eadcdca7cd056568fd`
+  conclut `PASS` et autorise uniquement un préflight Mac lecture seule. Ce
+  préflight a fetché les objets sans checkout, vérifié l'ODB exact, le runner
+  `2b2bd6e5...` (`blob`, `10126`, SHA-256 `37e40a4e...`), ses onze
+  prédécesseurs, puis ouvert le parent avec `O_NOFOLLOW|O_DIRECTORY` : directory
+  réel non-symlink, `16777234 / 1445438`. `control` est absent et aucun runner
+  concerné n'est actif. ACK absent, runner non exécuté, `mkdir` non tenté.
+  STOP respecté. Prochaine action unique : revue externe de ce préflight avant
+  toute éventuelle exécution réelle one-shot.
 - La revue externe de `2f0fb5c7cf0fd496f5a80a514b42081c00f87e74`
   conclut `FAIL` uniquement parce que le test ne comparait pas encore les
   dictionnaires complets du binding et du seal. La micro-correction autorisée
