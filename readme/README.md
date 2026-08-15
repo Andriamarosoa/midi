@@ -14,12 +14,23 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 corrected control-parent one-shot consumed successfully; control created, STOP, no registry/authority/creator/bundle/science, pending external review. -->
+<!-- H26_CORRECTION_STATUS: H27 control parent success PASS; creator read-only preflight blocked only by target checkout HEAD mismatch 75322bc6 != 7ee0a897, STOP with registry empty. -->
 ## État courant
 
 - Mise à jour : `2026-08-15`.
 - État courant :
-  `H27_CONTROL_PARENT_CORRECTED_CREATED_TERMINAL_SUCCESS_PENDING_EXTERNAL_REVIEW`.
+  `H27_CREATOR_READ_ONLY_PREFLIGHT_BLOCKED_TARGET_HEAD_MISMATCH_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `c9da0e5f1afccf9aa7af1f808e6ee4ea61fc116a`
+  conclut `PASS` : le runner control-parent est terminalement consommé et ne
+  doit jamais être rejoué. Le préflight creator lecture seule autorisé vérifie
+  la source publiée, le manifest, le digest fermé, les `130` identités,
+  l'autorité exacte, le parent `control`, l'absence du final/staging et le
+  registre régulier vide `0600`. Le checkout est propre mais son HEAD
+  `75322bc6...` ne correspond pas au HEAD creator exigé `7ee0a897...` : état
+  `BLOCKED_HEAD_MISMATCH`, STOP sans checkout/detach, ACK, lock ou écriture.
+  Rapport : `readme/results/2026-08-15_harmonic-censoring-h27-creator-read-only-preflight.md`.
+  Prochaine action unique : revue externe du blocage avant toute modification
+  du checkout.
 - La revue externe du préflight documenté par
   `1b2043432bc29f9ab1d194e0f8611445fad6fec6` conclut `PASS` et autorise
   exactement une invocation réelle. Le blob Git exact `2b2bd6e5...` a été
