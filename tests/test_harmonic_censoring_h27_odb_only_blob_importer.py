@@ -50,8 +50,22 @@ class TestH27OdbOnlyBlobImporter(unittest.TestCase):
             self.assertFalse(raw.startswith(b"\xef\xbb\xbf"))
             self.assertTrue(raw.endswith(b"\n"))
         self.assertEqual(self.binding["runner"], identity("scripts/h27_import_exact_blobs_odb_only_one_shot.py"))
-        self.assertEqual(self.binding["approved_contract"], identity("configs/harmonic_censoring_h27_odb_only_blob_import_contract.json"))
-        self.assertEqual(self.binding["approved_contract_external_seal"], identity("configs/harmonic_censoring_h27_odb_only_blob_import_contract_external_seal.json"))
+        stale_contract = {
+            "path": "configs/harmonic_censoring_h27_odb_only_blob_import_contract.json",
+            "git_blob_sha1": "42eebb259f247715ddcb404c8c236418093b6a81",
+            "size_bytes": 7477,
+            "raw_sha256": "567712b4e5c4491498be68be65b2633a4537d2221d484bd4a4dcbdbaf16a5b7a",
+        }
+        stale_contract_seal = {
+            "path": "configs/harmonic_censoring_h27_odb_only_blob_import_contract_external_seal.json",
+            "git_blob_sha1": "4002015587573e9a3e0b8f6dbb6dcea93b967b6e",
+            "size_bytes": 5382,
+            "raw_sha256": "95120579e240b454a4bbac21236a4c993b80244ff11d687b27e7a550ed422272",
+        }
+        self.assertEqual(self.binding["approved_contract"], stale_contract)
+        self.assertEqual(self.binding["approved_contract_external_seal"], stale_contract_seal)
+        self.assertNotEqual(self.binding["approved_contract"], identity("configs/harmonic_censoring_h27_odb_only_blob_import_contract.json"))
+        self.assertNotEqual(self.binding["approved_contract_external_seal"], identity("configs/harmonic_censoring_h27_odb_only_blob_import_contract_external_seal.json"))
         self.assertEqual(self.binding["normative_order"], self.contract["future_fail_closed_order"])
         self.assertEqual(self.seal["identity_binding"], identity("configs/harmonic_censoring_h27_odb_only_blob_importer_identity_binding.json"))
         self.assertEqual(self.seal["runner"], self.binding["runner"])
@@ -94,8 +108,14 @@ class TestH27OdbOnlyBlobImporter(unittest.TestCase):
 
     def test_all_payloads_are_received_and_prevalidated_before_return(self) -> None:
         source = Path("/external/source/.git")
-        contract_raw = CONTRACT.read_bytes()
-        seal_raw = CONTRACT_SEAL.read_bytes()
+        contract_raw = subprocess.run(
+            ["git", "cat-file", "blob", self.module.CONTRACT_IDENTITY["git_blob_sha1"]],
+            cwd=ROOT, check=True, stdout=subprocess.PIPE,
+        ).stdout
+        seal_raw = subprocess.run(
+            ["git", "cat-file", "blob", self.module.CONTRACT_SEAL_IDENTITY["git_blob_sha1"]],
+            cwd=ROOT, check=True, stdout=subprocess.PIPE,
+        ).stdout
         raws = {
             self.module.CONTRACT_IDENTITY["git_blob_sha1"]: contract_raw,
             self.module.CONTRACT_SEAL_IDENTITY["git_blob_sha1"]: seal_raw,

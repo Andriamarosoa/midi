@@ -14,12 +14,12 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 dormant ODB-only importer PASS; read-only Mac preflight blocked before effect, no import. -->
+<!-- H26_CORRECTION_STATUS: H27 Git-2.39 files-backend proof correction pending external review; importer binding stale, no import. -->
 ## État courant
 
 - Mise à jour : `2026-08-15`.
 - État courant :
-  `H27_ODB_ONLY_IMPORTER_PREFLIGHT_BLOCKED_REF_FORMAT_UNSUPPORTED_SOURCE_OBJECTS_ABSENT_NO_EFFECT`.
+  `H27_FILES_BACKEND_PROOF_CONTRACT_CORRECTION_PENDING_EXTERNAL_REVIEW_IMPORTER_STALE_NO_IMPORT`.
 - La revue externe de `132e3da97180ce28c851b06e6a271430d7072292`
   conclut `PASS` sur l'importer dormant et autorise uniquement son préflight
   Mac lecture seule. La cible reste sur HEAD `75322bc6...`, symbolic HEAD
@@ -32,6 +32,16 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `readme/results/2026-08-15_harmonic-censoring-h27-odb-only-importer-read-only-preflight.md`.
   Prochaine action unique : revue externe du blocage ; aucune correction ou
   commande Mac mutante avant nouvelle autorisation.
+  Cette revue a depuis conclu `PASS` sur l'archive et autorisé uniquement une
+  micro-correction déclarative de la preuve backend `files`. Le lot courant
+  remplace l'option Git 2.45 incompatible par une preuve composite Git 2.39 :
+  repository format exact `0`, absence exacte de `extensions.refStorage`,
+  `.git/refs` réel non-symlink et `.git/reftable` absent, aux trois frontières.
+  Runner et blocage des treize objets source restent inchangés ; aucun nouvel
+  accès Mac ou effet. Comme le contrat et son seal ont de nouvelles identités,
+  le binding de l'importer reste volontairement lié aux anciennes identités et
+  est désormais stale/non exécutable jusqu'à une autorisation séparée. Le test
+  encode explicitement cette divergence au lieu de la masquer.
 - La revue externe de `dffce1f9a144be60968b7912e99c761ec058ee0f`
   conclut `PASS` sur le contrat ODB-only scellé et autorise uniquement son
   implémentation dormante. Le lot courant ajoute le one-shot importer exact,

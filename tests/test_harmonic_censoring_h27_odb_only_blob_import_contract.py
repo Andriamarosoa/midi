@@ -67,10 +67,21 @@ class TestH27OdbOnlyBlobImportContract(unittest.TestCase):
         for index in (3, 7, 11):
             self.assertIn("regular_refs_root_refs", self.contract["future_fail_closed_order"][index])
         self.assertEqual(self.contract["reference_storage_format"], {
-            "operation_exact": "git --no-optional-locks --no-replace-objects --git-dir=/Users/amcarene/midi-worker/repository/.git rev-parse --show-ref-format",
-            "stdout_exact": "files\n", "verify_before_snapshot": True,
+            "proof_id": "H27_FILES_BACKEND_COMPATIBLE_WITH_APPLE_GIT_2_39_V1",
+            "repository_format_operation_exact": "git --no-optional-locks --no-replace-objects --git-dir=/Users/amcarene/midi-worker/repository/.git config --local --get core.repositoryFormatVersion",
+            "repository_format_stdout_exact": "0\n",
+            "ref_storage_extension_operation_exact": "git --no-optional-locks --no-replace-objects --git-dir=/Users/amcarene/midi-worker/repository/.git config --local --get extensions.refStorage",
+            "ref_storage_extension_returncode_exact": 1,
+            "ref_storage_extension_stdout_exact": "",
+            "ref_storage_extension_stderr_exact": "",
+            "refs_directory_exact": "/Users/amcarene/midi-worker/repository/.git/refs",
+            "refs_directory_real_non_symlink_required": True,
+            "reftable_directory_exact": "/Users/amcarene/midi-worker/repository/.git/reftable",
+            "reftable_directory_absent_required": True,
+            "verify_before_snapshot": True,
             "reverify_immediately_before_first_write": True,
-            "reverify_after_all_writes": True, "reftable_forbidden": True,
+            "reverify_after_all_writes": True,
+            "reftable_forbidden": True,
         })
         for index in (1, 7, 11):
             self.assertIn("reference_storage_format_files", self.contract["future_fail_closed_order"][index])
@@ -95,9 +106,9 @@ class TestH27OdbOnlyBlobImportContract(unittest.TestCase):
     def test_exact_external_seal(self) -> None:
         expected_contract = {
             "path": "configs/harmonic_censoring_h27_odb_only_blob_import_contract.json",
-            "git_blob_sha1": "42eebb259f247715ddcb404c8c236418093b6a81",
-            "size_bytes": 7477,
-            "raw_sha256": "567712b4e5c4491498be68be65b2633a4537d2221d484bd4a4dcbdbaf16a5b7a",
+            "git_blob_sha1": "7f5905f0d2b24eb96a6e1f1555dbe3993e85adbd",
+            "size_bytes": 8149,
+            "raw_sha256": "8e4a00fdba0d7e56c0d77e66f141a914de5c29d08cff914ba2ff53ff7d39d420",
         }
         self.assertEqual(
             (expected_contract["git_blob_sha1"], expected_contract["size_bytes"], expected_contract["raw_sha256"]),
@@ -111,8 +122,17 @@ class TestH27OdbOnlyBlobImportContract(unittest.TestCase):
             "payloads": self.contract["payloads"],
             "future_regular_refs_snapshot_operation_exact": self.contract["ref_snapshot"]["regular_refs_operation_exact"],
             "future_reference_storage_format": {
-                "operation_exact": self.contract["reference_storage_format"]["operation_exact"],
-                "stdout_exact": "files\n",
+                "proof_id": "H27_FILES_BACKEND_COMPATIBLE_WITH_APPLE_GIT_2_39_V1",
+                "repository_format_operation_exact": self.contract["reference_storage_format"]["repository_format_operation_exact"],
+                "repository_format_stdout_exact": "0\n",
+                "ref_storage_extension_operation_exact": self.contract["reference_storage_format"]["ref_storage_extension_operation_exact"],
+                "ref_storage_extension_returncode_exact": 1,
+                "ref_storage_extension_stdout_exact": "",
+                "ref_storage_extension_stderr_exact": "",
+                "refs_directory_exact": "/Users/amcarene/midi-worker/repository/.git/refs",
+                "refs_directory_real_non_symlink_required": True,
+                "reftable_directory_exact": "/Users/amcarene/midi-worker/repository/.git/reftable",
+                "reftable_directory_absent_required": True,
                 "verified_before_snapshot_before_first_write_and_after_all_writes": True,
                 "reftable_forbidden": True,
             },

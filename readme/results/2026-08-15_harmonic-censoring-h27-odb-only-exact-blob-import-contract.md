@@ -13,13 +13,13 @@ autorité, creator, bundle, materializer, science ou locked test.
 ## Identités
 
 ```text
-contract blob  42eebb259f247715ddcb404c8c236418093b6a81
-contract size  7477
-contract sha   567712b4e5c4491498be68be65b2633a4537d2221d484bd4a4dcbdbaf16a5b7a
+contract blob  7f5905f0d2b24eb96a6e1f1555dbe3993e85adbd
+contract size  8149
+contract sha   8e4a00fdba0d7e56c0d77e66f141a914de5c29d08cff914ba2ff53ff7d39d420
 
-seal blob      4002015587573e9a3e0b8f6dbb6dcea93b967b6e
-seal size      5382
-seal sha       95120579e240b454a4bbac21236a4c993b80244ff11d687b27e7a550ed422272
+seal blob      8cfdaba605115f43fffb66fc28161bd85e8cada9
+seal size      6054
+seal sha       745d80d1d163e67b68efb2dae1d4b337e068e4909d40718000848916eaff9573
 ```
 
 Le contrat lie les huit payloads par chemin, blob SHA-1 Git, taille et SHA-256
@@ -39,16 +39,32 @@ déterministe des fichiers racine Git aux noms majuscules, sans accès Mac.
 
 La troisième revue externe de `dda47ec4...` confirme cette couverture avec le
 backend `files`, mais rend `FAIL` car ce backend n'était pas lui-même imposé.
-La correction courante exige désormais exactement :
+Le premier scellement utilisait `rev-parse --show-ref-format` et a reçu `PASS`
+au commit `dffce1f9...`. Le préflight Mac a ensuite démontré qu'Apple Git
+`2.39.5` renvoie littéralement l'option inconnue au lieu de `files`. La
+micro-correction déclarative compatible 2.39.5 exige désormais conjointement :
 
 ```text
 git --no-optional-locks --no-replace-objects \
   --git-dir=/Users/amcarene/midi-worker/repository/.git \
-  rev-parse --show-ref-format
+  config --local --get core.repositoryFormatVersion
+
+stdout exact: 0
+
+git --no-optional-locks --no-replace-objects \
+  --git-dir=/Users/amcarene/midi-worker/repository/.git \
+  config --local --get extensions.refStorage
+
+returncode exact: 1
+stdout/stderr exacts: vides
 ```
 
-avec la sortie `files`, avant snapshot, juste avant le premier effet futur et
-après les huit écritures. Le backend `reftable` échoue fermé.
+Le répertoire `.git/refs` doit en plus être réel, non-symlink, et `.git/reftable`
+doit être absent. Cette preuve composite est répétée avant snapshot, juste
+avant le premier effet futur et après les huit écritures. Tout repository
+format étendu ou `extensions.refStorage`, ainsi que tout répertoire reftable,
+échoue fermé. Le second blocage préflight, les treize objets absents de l'ODB
+source, reste volontairement inchangé.
 
 ## Frontière future préenregistrée
 
@@ -103,11 +119,14 @@ revendication de rollback.
 ## Validation locale
 
 - `py_compile` : réussi ;
-- tests ciblés : `5/5` réussis en `0,003 s` ;
-- suite H27 complète : `519/519` réussis en `61,380 s` ;
+- tests ciblés contrat + importer stale : `10/10` réussis en `0,210 s` ;
+- suite H27 complète : `524/524` réussis en `93,484 s` ;
 - `git diff --check` : réussi avant commit.
 
 ## STOP
 
-Le contrat reste dormant et non approuvé. Prochaine action unique : revue
-externe du contrat et du seal exacts. Aucun apport réel n'est autorisé.
+Le contrat corrigé reste dormant et non approuvé. Son changement d'identité
+rend volontairement stale le binding de l'importer existant, qui reste lié aux
+anciennes identités `42eebb25...` / `40020155...` et ne doit pas être exécuté.
+Prochaine action unique : revue externe du contrat et du seal corrigés. Aucun
+apport réel ni correction du runner/binding n'est autorisé par ce lot.
