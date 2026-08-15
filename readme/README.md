@@ -14,12 +14,23 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 corrected control-parent runner PASS; Mac read-only preflight PASS and stopped before ACK/effect, pending external review for any one-shot execution. -->
+<!-- H26_CORRECTION_STATUS: H27 corrected control-parent one-shot consumed successfully; control created, STOP, no registry/authority/creator/bundle/science, pending external review. -->
 ## État courant
 
 - Mise à jour : `2026-08-15`.
 - État courant :
-  `H27_CONTROL_PARENT_CORRECTED_RUNNER_READ_ONLY_PREFLIGHT_PASS_PENDING_EXTERNAL_REVIEW`.
+  `H27_CONTROL_PARENT_CORRECTED_CREATED_TERMINAL_SUCCESS_PENDING_EXTERNAL_REVIEW`.
+- La revue externe du préflight documenté par
+  `1b2043432bc29f9ab1d194e0f8611445fad6fec6` conclut `PASS` et autorise
+  exactement une invocation réelle. Le blob Git exact `2b2bd6e5...` a été
+  fourni depuis l'ODB au runner avec l'ACK exact et zéro argument. Résultat
+  terminal : `H27_CONTROL_PARENT_CORRECTED_CREATED_TERMINAL_SUCCESS`, onze
+  identités vérifiées, parent `16777234 / 1445438`, cible
+  `/Users/amcarene/h27-admin/control` créée sur `16777234 / 1472478`. L'ancien
+  runner reste non exécuté/non consommé. Registre, autorité, creator, bundle,
+  constructeur, matérialisation, science et locked test restent faux. STOP
+  immédiat, aucune seconde invocation. Prochaine action unique : revue externe
+  de ce résultat one-shot.
 - La revue externe de `421fd7d39ec429b149c265eadcdca7cd056568fd`
   conclut `PASS` et autorise uniquement un préflight Mac lecture seule. Ce
   préflight a fetché les objets sans checkout, vérifié l'ODB exact, le runner

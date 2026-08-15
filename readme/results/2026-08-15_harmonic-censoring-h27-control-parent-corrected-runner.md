@@ -107,3 +107,32 @@ STOP respecté : aucune exécution du runner corrigé, aucun `mkdir`, registre,
 autorité, creator, bundle, constructeur, matérialisation, science ou locked
 test. La prochaine action reste une revue externe de cette preuve avant toute
 éventuelle exécution réelle one-shot.
+
+## Invocation réelle unique après PASS
+
+La revue externe du commit documentaire
+`1b2043432bc29f9ab1d194e0f8611445fad6fec6` a conclu `PASS` et autorisé une
+unique invocation réelle du blob runner corrigé exact. Commande exécutée une
+seule fois depuis l'ODB Git, sans fichier du checkout :
+
+```text
+git --git-dir=/Users/amcarene/midi-worker/repository/.git cat-file blob \
+  2b2bd6e50e5fb7bf647d143db7973a9ca4b04f9d \
+| H27_CONTROL_PARENT_CREATE_EXECUTE=1 python3 -
+```
+
+Résultat terminal exact :
+
+```json
+{"status":"H27_CONTROL_PARENT_CORRECTED_CREATED_TERMINAL_SUCCESS","verified_identity_count":11,"stale_runner_git_blob_sha1":"96df05111a5e40a418e12fb2b3db4bd9516bcab3","stale_runner_executed":false,"stale_runner_consumed":false,"parent_path":"/Users/amcarene/h27-admin","parent_device":16777234,"parent_inode":1445438,"target_path":"/Users/amcarene/h27-admin/control","target_device":16777234,"target_inode":1472478,"registry_opened":false,"authority_reserved":false,"authority_consumed":false,"creator_entrypoint_executed":false,"control_bundle_created":false,"constructor_or_materializer_executed":false,"science_or_locked_test":false}
+```
+
+Le processus s'est terminé avec le code `0`. L'invocation est consommée et ne
+doit pas être rejouée. Le runner a lui-même effectué l'unique probe, le
+`mkdir(control, 0700)`, le `fsync`, la réouverture sans suivi de lien et les
+vérifications finales avant d'émettre ce succès.
+
+STOP immédiat respecté après le résultat : aucune seconde commande Mac, aucun
+retry, cleanup, repair ou recreation ; aucun registre, autorité, creator,
+bundle, constructeur, matérialisation, science ou locked test. Prochaine action
+unique : revue externe de cette preuve one-shot.
