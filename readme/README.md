@@ -14,12 +14,27 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 exact 13-blob source ODB receiver implemented dormant; external review required. -->
+<!-- H26_CORRECTION_STATUS: H27 exact 13-blob sender preparation implemented dormant; external review required. -->
 ## État courant
 
 - Mise à jour : `2026-08-15`.
 - État courant :
-  `H27_EXTERNAL_SOURCE_ODB_EXACT_THIRTEEN_RECEIVER_IMPLEMENTED_DORMANT_PENDING_EXTERNAL_REVIEW_NO_TRANSPORT_NO_DELIVERY`.
+  `H27_EXTERNAL_SOURCE_ODB_EXACT_THIRTEEN_SENDER_IMPLEMENTED_DORMANT_PENDING_EXTERNAL_REVIEW_NO_SSH_NO_DELIVERY`.
+- La revue externe de `bc9fd98e4fdc011f229979206e17040ac66017d5`
+  conclut `PASS` sur le receiver exact et autorise uniquement le sender de
+  préparation dormant couvrant les quatre étapes pré-SSH. Le lot courant
+  vérifie le HEAD historique sender `c0bb8d20...`, la branche et la propreté,
+  charge le receiver exact depuis son blob Git, rehash les treize blobs source
+  et exige leur égalité byte-exacte avec les payloads embarqués, puis construit
+  l'invocation SSH exacte en mémoire et s'arrête sans l'exécuter. Chaque Git
+  subprocess emploie le préfixe `-C` scellé et un environnement `GIT_*`
+  nettoyé. Sender, binding et seal sont figés ; `7/7` tests ciblés, suite H27
+  `547/547`, `py_compile` et `git diff --check` réussissent. Aucun SSH, Mac,
+  ACK distant, transport, objet, import, detach, downstream ou calcul
+  scientifique. Rapport :
+  `readme/results/2026-08-15_harmonic-censoring-h27-external-source-odb-exact-thirteen-sender.md`.
+  Prochaine action unique : revue externe du sender, du binding et du seal
+  exacts ; aucune livraison avant un nouveau `PASS` explicite.
 - La revue externe de `2211f1d6c4b95b93f19dce3c607d478b5697a153`
   conclut `PASS` sur le préflight et autorise uniquement l'implémentation
   dormante du receiver exact. Le lot courant ajoute un receiver Python
