@@ -14,12 +14,12 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 constructor execution gate consumed successfully; authority reserved/consumed and effect-free constructor invoked once; STOP before materializer; pending external review. -->
+<!-- H26_CORRECTION_STATUS: H27 constructor gate terminal PASS; exact authority-instance publisher implemented dormant; STOP before Mac publication; pending external review. -->
 ## État courant
 
 - Mise à jour : `2026-08-16`.
 - État courant :
-  `H27_REVIEW4_CONSTRUCTOR_EXECUTION_GATE_TERMINAL_SUCCESS_STOP_PENDING_EXTERNAL_REVIEW`.
+  `H27_REVIEW4_AUTHORITY_INSTANCE_ARTIFACT_PUBLISHER_DORMANT_PENDING_EXTERNAL_REVIEW`.
 - La revue externe de `61dc4b496a454b596fca6ac361504f441e987aab`
   conclut `PASS` sur le sender dormant corrigé et autorise uniquement sa
   préparation locale Windows au HEAD historique. Le préflight live a révélé
@@ -211,6 +211,28 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   lancé. La tentative est définitivement consommée sans retry. STOP avant
   toute prochaine frontière. Rapport :
   `readme/results/2026-08-16_harmonic-censoring-h27-review4-constructor-execution-gate-terminal.md`.
+  La revue externe de l'archive `6e792bf710595319d7ee85d28ee2d186463546c7`
+  conclut `PASS` sur ce résultat terminal. L'horodatage Mac futur de
+  `issued_at_utc=2026-08-16T08:36:14Z` est contractuellement valide et reste
+  immuable parce qu'il participe à l'identité. Le lot courant implémente
+  uniquement le publisher dormant
+  `scripts/h27_review4_authority_instance_artifact_publish_once.py`. Il
+  reconstruit sans horloge ni aléa les 882 octets exacts de l'instance
+  `d44941a8...`, vérifie leur blob `dc85ee26...` et SHA-256 `89d03ce3...`,
+  dérive le graphe depuis les blobs du HEAD détaché puis rehash les 92
+  identités du checkout. Il exige le registre constructor exact `reserved →
+  consumed`, conserve les descripteurs des parents registry/activation et
+  place la consommation one-shot avant la première observation relative de la
+  destination, suivie d'une création `O_EXCL`, fsync et relecture byte-exacte.
+  Les `21/21` tests publisher+gate et `py_compile` passent. Une suite voisine
+  plus large a rendu `24/26` sur Windows : les deux seuls échecs sont les
+  assertions LF historiques sur des fichiers checkoutés CRLF; les blobs Git
+  exacts restent ceux rehashés par le runner. Aucun ACK réel, SSH, accès Mac,
+  registre de publication, destination, materializer, science ou locked-test
+  n'a été exécuté. Rapport :
+  `readme/results/2026-08-16_harmonic-censoring-h27-review4-authority-instance-artifact-publisher-dormant.md`.
+  Prochaine action unique : revue externe du commit complet; aucune publication
+  Mac avant un nouveau `PASS` explicite.
 - La revue externe de `bc9fd98e4fdc011f229979206e17040ac66017d5`
   conclut `PASS` sur le receiver exact et autorise uniquement le sender de
   préparation dormant couvrant les quatre étapes pré-SSH. Le lot courant
