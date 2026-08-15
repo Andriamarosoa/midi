@@ -229,8 +229,11 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   le fsync, puis appelle uniquement `renameatx_np(..., RENAME_EXCL)` vers le
   final, sans fallback écrasant ni cleanup post-consommation. Le descripteur du
   staging reste ouvert pendant le rename; inode, taille, blob et SHA du final
-  sont ensuite revérifiés avant STOP.
-  Les `23/23` tests publisher+gate et `py_compile` passent. Une suite voisine
+  sont ensuite revérifiés, puis un second `fsync` du parent ferme explicitement
+  l'ordre durable scellé avant STOP. La deuxième revue de `cc6a054e...` avait
+  relevé précisément l'absence de ce fsync terminal; aucun Mac n'avait été
+  utilisé.
+  Les `24/24` tests publisher+gate et `py_compile` passent. Une suite voisine
   plus large a rendu `24/26` sur Windows : les deux seuls échecs sont les
   assertions LF historiques sur des fichiers checkoutés CRLF; les blobs Git
   exacts restent ceux rehashés par le runner. Aucun ACK réel, SSH, accès Mac,

@@ -167,6 +167,10 @@ class TestH27Review4AuthorityInstanceArtifactPublish(unittest.TestCase):
             order.append("exclusive_rename")
             self.assertEqual((parent_fd, source_name, destination_name), (44, self.module.STAGING_NAME, self.module.DESTINATION.name))
 
+        def reread(*args, **kwargs):
+            order.append("reopen_rehash")
+            return raw
+
         with mock.patch.object(self.module.os, "O_NOFOLLOW", 0x20000, create=True), \
              mock.patch.object(self.module.os, "stat", side_effect=observed), \
              mock.patch.object(self.module.os, "open", side_effect=opened) as open_mock, \
@@ -176,13 +180,19 @@ class TestH27Review4AuthorityInstanceArtifactPublish(unittest.TestCase):
              mock.patch.object(self.module.os, "fsync", side_effect=lambda fd: order.append("file_fsync" if fd == 43 else "parent_fsync")), \
              mock.patch.object(self.module.os, "close"), \
              mock.patch.object(self.module, "atomic_exclusive_rename_at", side_effect=renamed), \
-             mock.patch.object(self.module, "stable_regular_bytes_at", return_value=raw):
+             mock.patch.object(self.module, "stable_regular_bytes_at", side_effect=reread):
             self.module.first_destination_observation_and_publish(44, raw)
         self.assertEqual(order[:7], [
             "final_stat", "staging_open", "staging_stat", "write", "file_fsync",
             "exclusive_rename", "final_stat",
         ])
-        self.assertLess(order.index("exclusive_rename"), order.index("parent_fsync"))
+        rename_index = order.index("exclusive_rename")
+        rehash_index = order.index("reopen_rehash")
+        parent_fsync_indexes = [index for index, value in enumerate(order) if value == "parent_fsync"]
+        self.assertEqual(len(parent_fsync_indexes), 2)
+        self.assertLess(rename_index, parent_fsync_indexes[0])
+        self.assertLess(parent_fsync_indexes[0], rehash_index)
+        self.assertLess(rehash_index, parent_fsync_indexes[1])
         flags = self.module.os.O_WRONLY | self.module.os.O_CREAT | self.module.os.O_EXCL | 0x20000
         open_mock.assert_called_once_with(self.module.STAGING_NAME, flags, 0o600, dir_fd=44)
         self.assertNotEqual(open_mock.call_args.args[0], self.module.DESTINATION.name)
@@ -205,6 +215,37 @@ class TestH27Review4AuthorityInstanceArtifactPublish(unittest.TestCase):
         opened.assert_called_once()
         renamed.assert_called_once_with(44, self.module.STAGING_NAME, self.module.DESTINATION.name)
         reread.assert_not_called()
+
+    def test_reopen_rehash_failure_is_terminal_without_cleanup_or_second_publication(self) -> None:
+        raw = self.module.canonical_artifact_bytes()
+        descriptor = SimpleNamespace(st_mode=stat.S_IFREG | 0o600, st_nlink=1, st_dev=3, st_ino=5)
+        stat_calls = 0
+
+        def observed(*args, **kwargs):
+            nonlocal stat_calls
+            stat_calls += 1
+            if stat_calls == 1:
+                raise FileNotFoundError
+            return descriptor
+
+        with mock.patch.object(self.module.os, "O_NOFOLLOW", 0x20000, create=True), \
+             mock.patch.object(self.module.os, "stat", side_effect=observed), \
+             mock.patch.object(self.module.os, "open", return_value=43) as opened, \
+             mock.patch.object(self.module.os, "fchmod", create=True), \
+             mock.patch.object(self.module.os, "fstat", return_value=descriptor), \
+             mock.patch.object(self.module.os, "write", side_effect=lambda fd, value: len(value)), \
+             mock.patch.object(self.module.os, "fsync") as fsync, \
+             mock.patch.object(self.module.os, "close"), \
+             mock.patch.object(self.module.os, "unlink", create=True) as unlink, \
+             mock.patch.object(self.module, "atomic_exclusive_rename_at") as renamed, \
+             mock.patch.object(self.module, "stable_regular_bytes_at", side_effect=OSError("rehash failed")) as reread:
+            with self.assertRaisesRegex(OSError, "rehash failed"):
+                self.module.first_destination_observation_and_publish(44, raw)
+        opened.assert_called_once()
+        renamed.assert_called_once()
+        reread.assert_called_once()
+        unlink.assert_not_called()
+        self.assertEqual([call.args[0] for call in fsync.call_args_list], [43, 44])
 
     def test_execute_orders_ack_preflight_revalidation_consumption_observation_stop(self) -> None:
         identities = (("a", "b", 1, "c"),)

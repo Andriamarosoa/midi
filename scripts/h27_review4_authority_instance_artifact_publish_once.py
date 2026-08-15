@@ -466,6 +466,7 @@ def first_destination_observation_and_publish(activation_parent_fd: int, raw: by
     os.fsync(activation_parent_fd)
     published = stable_regular_bytes_at(activation_parent_fd, DESTINATION.name, required_mode=0o600)
     require((len(published), git_blob(published), sha256(published)) == (CANONICAL_SIZE, CANONICAL_BLOB, CANONICAL_SHA256), "H27 published authority-instance identity mismatch; terminal consumed failure")
+    os.fsync(activation_parent_fd)
 
 
 def execute() -> dict[str, object]:

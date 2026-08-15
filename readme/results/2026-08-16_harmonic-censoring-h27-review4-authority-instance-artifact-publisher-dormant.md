@@ -62,8 +62,11 @@ staging déterministe est créé dans ce même parent avec
 `O_CREAT|O_EXCL|O_NOFOLLOW`, écrit avec les 882 octets exacts et fsyncé. Le
 runner appelle ensuite exclusivement `renameatx_np(..., RENAME_EXCL)` vers le
 nom final, sans fallback vers `rename` ou `replace`, fsync le parent, puis
-rouvre le final par le même descripteur et le rehache. Le descripteur du staging
-reste ouvert pendant le rename et son inode est comparé au final. Tout échec
+rouvre le final par le même descripteur, le rehache et fsync une seconde fois le
+parent avant STOP. La deuxième revue externe de `cc6a054e...` avait refusé
+l'ordre qui terminait avant ce dernier fsync; le correctif conserve le fsync
+précoce et ajoute le fsync terminal exigé. Le descripteur du staging reste
+ouvert pendant le rename et son inode est comparé au final. Tout échec
 post-consommation est terminal, sans retry, suppression, nettoyage ou
 réparation automatique ; un staging éventuel est conservé comme preuve.
 
@@ -74,7 +77,7 @@ python -B -m unittest \
   tests.test_harmonic_censoring_h27_review4_authority_instance_artifact_publish \
   tests.test_harmonic_censoring_h27_review4_constructor_execution_gate
 
-Ran 23 tests
+Ran 24 tests
 OK
 ```
 
@@ -83,6 +86,8 @@ prouvent l'ordre staging/write/fsync/exclusive-rename/parent-fsync/reopen et
 simulent une destination apparue juste avant le rename : elle n'est jamais
 écrasée. Un test séparé vérifie l'appel Darwin `renameatx_np` avec
 `RENAME_EXCL` et l'absence de fallback si cette primitive est indisponible.
+Un échec de reopen/rehash est également terminal : aucune seconde publication,
+aucun cleanup et aucun fsync terminal ne sont tentés après cet échec.
 
 `py_compile` passe pour le runner et son test. Une exécution complémentaire de
 quatre modules a rendu `24/26`; les deux échecs sont les contrôles LF de deux
