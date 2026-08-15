@@ -14,12 +14,24 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 Git-2.39 importer rebound pending external review; dormant, no import. -->
+<!-- H26_CORRECTION_STATUS: H27 exact 13-blob source ODB delivery contract pending external review; declarative only. -->
 ## État courant
 
 - Mise à jour : `2026-08-15`.
 - État courant :
-  `H27_GIT_2_39_IMPORTER_REBOUND_PENDING_EXTERNAL_REVIEW_DORMANT_NO_IMPORT`.
+  `H27_EXTERNAL_SOURCE_ODB_EXACT_THIRTEEN_DELIVERY_CONTRACT_PENDING_EXTERNAL_REVIEW_NO_DELIVERY`.
+- La revue externe de `c0bb8d20862f80cabc72ea64a5d437750b7c12e8`
+  conclut `PASS` sur l'importer dormant Git 2.39 et autorise uniquement un
+  mécanisme/contrat dormant scellé pour apporter les treize objets absents à
+  l'ODB source externe. Le lot courant définit un futur receiver Python
+  auto-contenu transmis par stdin SSH, sans staging distant, ainsi que les
+  treize identités exactes, le préflight fail-closed, l'unique frontière de
+  treize `hash-object -w --stdin`, les snapshots invariants et l'échec partiel
+  terminal sans retry. Le receiver n'est pas implémenté et aucun accès Mac,
+  transport, ACK, apport d'objet, import, detach ou downstream n'a lieu.
+  Rapport :
+  `readme/results/2026-08-15_harmonic-censoring-h27-external-source-odb-exact-thirteen-delivery-contract.md`.
+  Prochaine action unique : revue externe du contrat et de son seal exacts.
 - La revue externe de `5abab29c2687d41e54cc2e63f99f97afb87f0166`
   conclut `PASS` sur le contrat rescellé et autorise uniquement la correction
   dormante de l'importer, de son binding, de son seal, des tests et de la
