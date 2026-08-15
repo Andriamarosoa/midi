@@ -13,9 +13,9 @@ n'autorise aucune exécution Mac.
 
 ```text
 scripts/h27_review4_constructor_head_transition_once.py
-size_bytes=15509
-git_blob_sha1=09c98b709e4ddafaba9ac964cf806ed89bd389ac
-raw_sha256=9209ed6b05ac32e30c9e5885152f06ac6420540fa12bed465e4bb13210da095f
+size_bytes=15975
+git_blob_sha1=037703a9e710c3eebbd349e8801c6fc5913e7582
+raw_sha256=665f2a878973a7e03bd24ea0fac06c583f889a993ff575da697a498969571d32
 ACK=H27_REVIEW4_CONSTRUCTOR_HEAD_TRANSITION_EXECUTE=1
 arguments=0
 initial_head=7ee0a8977208bfa389e284b07207abc40a3517fd
@@ -50,6 +50,12 @@ Avant le premier effet, le runner impose :
 - registre constructor, final et staging tous absents ;
 - aucun processus constructor, materializer ou science.
 
+Après la première revue du commit `3c1b464...`, ce dernier garde-fou inclut
+également toute autre instance du runner de transition lui-même. Le scan parse
+les PID de `ps`, ignore uniquement `os.getpid()` et refuse un autre PID dont la
+commande contient `h27_review4_constructor_head_transition_once.py` avant le
+subprocess checkout.
+
 Une revalidation complète est répétée immédiatement avant la mutation. Après
 la mutation unique, HEAD cible, état détaché/propre, lock, refs, bundle,
 constructor, chemins absents et processus sont revérifiés.
@@ -70,10 +76,10 @@ training ou calibration.
 
 ```text
 py_compile=PASS
-tests_dedies=9/9 PASS
-test_file_size_bytes=10531
-test_file_git_blob_sha1=12154141b5509045d0761287a05684c38ae1aa69
-test_file_raw_sha256=f3670a8cab2201934d95c25017ec741ff82fa1f45fbfed7a6027a73f451224cf
+tests_dedies=10/10 PASS
+test_file_size_bytes=13069
+test_file_git_blob_sha1=f1eaf6b032dd8ee2abe98310fae194eb03943ce4
+test_file_raw_sha256=bd1ff2006be864fa2a05d3a6e0b470d8def30cd7f2110dde532a959fea2d0b19
 git_diff_check=PASS
 ```
 

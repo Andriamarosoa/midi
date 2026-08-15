@@ -97,6 +97,52 @@ class TestH27Review4ConstructorHeadTransition(unittest.TestCase):
                 self.module.transition()
         self.assertEqual(calls, [])
 
+    def test_current_runner_pid_is_ignored_but_competing_runner_blocks_before_checkout(self) -> None:
+        current_only = subprocess.CompletedProcess(
+            ["ps"], 0,
+            stdout=b"111 python h27_review4_constructor_head_transition_once.py\n",
+            stderr=b"",
+        )
+        competing = subprocess.CompletedProcess(
+            ["ps"], 0,
+            stdout=(
+                b"111 python h27_review4_constructor_head_transition_once.py\n"
+                b"222 python h27_review4_constructor_head_transition_once.py\n"
+            ),
+            stderr=b"",
+        )
+        with (
+            mock.patch.object(self.module.os, "getpid", return_value=111),
+            mock.patch.object(self.module.subprocess, "run", return_value=current_only),
+        ):
+            self.module.require_no_active_processes()
+        with (
+            mock.patch.object(self.module.os, "getpid", return_value=111),
+            mock.patch.object(self.module.subprocess, "run", return_value=competing),
+        ):
+            with self.assertRaisesRegex(PermissionError, "competing transition"):
+                self.module.require_no_active_processes()
+
+        checkout: list[str] = []
+        with (
+            mock.patch.object(self.module, "require_platform_ack_and_zero_arguments"),
+            mock.patch.object(self.module, "verify_checkout_realpaths"),
+            mock.patch.object(self.module, "verify_control_bundle", return_value=self.module.CLOSED_BUNDLE_DIGEST),
+            mock.patch.object(self.module, "verify_initial_git_state", return_value=b"refs"),
+            mock.patch.object(self.module, "verify_constructor"),
+            mock.patch.object(self.module, "require_publication_paths_absent"),
+            mock.patch.object(self.module, "current_head", return_value=self.module.INITIAL_HEAD),
+            mock.patch.object(self.module, "require_detached"),
+            mock.patch.object(self.module, "require_clean_and_unlocked"),
+            mock.patch.object(self.module, "regular_refs_snapshot", return_value=b"refs"),
+            mock.patch.object(self.module.os, "getpid", return_value=111),
+            mock.patch.object(self.module.subprocess, "run", side_effect=[current_only, competing]),
+            mock.patch.object(self.module, "perform_single_explicit_detach", side_effect=lambda: checkout.append("checkout")),
+        ):
+            with self.assertRaisesRegex(PermissionError, "competing transition"):
+                self.module.transition()
+        self.assertEqual(checkout, [])
+
     def test_exact_single_mutation_command_and_terminal_failure(self) -> None:
         expected = [
             "git", "-c", "core.hooksPath=/dev/null", "-c", "advice.detachedHead=false",

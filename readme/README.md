@@ -149,6 +149,13 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   dormant : aucun ACK, SSH, checkout, constructor, materializer, science ou
   locked-test n'a été exécuté. Rapport :
   `readme/results/2026-08-16_harmonic-censoring-h27-review4-constructor-head-transition-dormant.md`.
+  La première revue de `3c1b464216524337214776588620663c7233e8d5`
+  rend un `FAIL` limité : le scan de processus ne bloquait pas une seconde
+  instance concurrente du runner de transition. Le micro-correctif courant
+  parse les PID observés, ignore uniquement `os.getpid()` et refuse toute
+  autre commande contenant le nom exact du runner. Un test dynamique couvre
+  le PID courant accepté, le second PID rejeté et l'absence de checkout. Le
+  reste du contrat et toutes les identités scientifiques restent inchangés.
 - La revue externe de `bc9fd98e4fdc011f229979206e17040ac66017d5`
   conclut `PASS` sur le receiver exact et autorise uniquement le sender de
   préparation dormant couvrant les quatre étapes pré-SSH. Le lot courant

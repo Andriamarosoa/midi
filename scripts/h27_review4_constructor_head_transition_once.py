@@ -30,6 +30,7 @@ CONSTRUCTOR_PATH = "src/polyphonic/harmonic_censoring_h27_real_publication_autho
 CONSTRUCTOR_BLOB = "0c1a2aca42baa77edbd77ab42c0bd0cefaaa2b62"
 CONSTRUCTOR_SIZE = 12599
 CONSTRUCTOR_SHA256 = "0b8ad2a7efcd875b0102619eefe7ca9f015d9349693959803b9004bccf15b807"
+RUNNER_NAME = "h27_review4_constructor_head_transition_once.py"
 
 BUNDLE_FILES = (
     ("configs/harmonic_censoring_h27_real_publication_authority_instance_artifact_constructor_execution_gate_contract.json", "1bdc95411520793c2f1ff0c08ef2245e569ef2a0", 6387, "0134f4c459ac9d4e642da70dbcf257f34998db064e568ea0e039b58d5952f215"),
@@ -214,11 +215,21 @@ def require_publication_paths_absent() -> None:
 def require_no_active_processes() -> None:
     raw = subprocess.run(["/bin/ps", "-axo", "pid=,command="], check=True, stdout=subprocess.PIPE).stdout
     forbidden = (
+        RUNNER_NAME.encode("ascii"),
         b"harmonic_censoring_h27_real_publication_authority_instance_artifact_constructor",
         b"harmonic_censoring_h27_population_materializer",
         b"run_harmonic_censoring_h27",
     )
-    require(not any(any(token in line for token in forbidden) for line in raw.splitlines()), "H27 constructor/materializer/science process active")
+    current_pid = os.getpid()
+    active: list[bytes] = []
+    for line in raw.splitlines():
+        fields = line.strip().split(maxsplit=1)
+        require(len(fields) == 2 and fields[0].isdigit(), "H27 malformed process observation")
+        pid = int(fields[0])
+        command = fields[1]
+        if pid != current_pid and any(token in command for token in forbidden):
+            active.append(line.strip())
+    require(not active, "H27 competing transition/constructor/materializer/science process active")
 
 
 def perform_single_explicit_detach() -> None:
