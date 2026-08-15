@@ -14,12 +14,26 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 control parent success PASS; creator read-only preflight blocked only by target checkout HEAD mismatch 75322bc6 != 7ee0a897, STOP with registry empty. -->
+<!-- H26_CORRECTION_STATUS: H27 exact-detach transition contract sealed locally and pending external review; no transition runner or Mac checkout change. -->
 ## État courant
 
 - Mise à jour : `2026-08-15`.
 - État courant :
-  `H27_CREATOR_READ_ONLY_PREFLIGHT_BLOCKED_TARGET_HEAD_MISMATCH_PENDING_EXTERNAL_REVIEW`.
+  `H27_TARGET_CHECKOUT_EXACT_DETACH_TRANSITION_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `b832f8797b557256dda85e40e8f952c59402fa3d`
+  conclut `PASS` sur le préflight creator lecture seule et autorise uniquement
+  la définition déclarative de la future transition du checkout. Le lot
+  courant scelle le checkout exact
+  `/Users/amcarene/midi-worker/repository`, son ODB `.git`, le HEAD initial
+  `75322bc6...`, la cible commit `7ee0a897...`, et une future transition
+  explicite détachée one-shot. Il interdit fetch, pull, merge, reset, rebase,
+  modification de branche, ACK/invocation creator, ouverture/écriture du
+  registre, réservation/consommation, bundle, matérialisation, science et
+  locked test. Aucun runner de transition n'existe et aucun état Mac n'est
+  modifié. Rapport :
+  `readme/results/2026-08-15_harmonic-censoring-h27-target-checkout-exact-detach-transition-contract.md`.
+  Prochaine action unique : revue externe du contrat et de son seal exacts ;
+  aucune implémentation ou exécution avant un nouveau `PASS` explicite.
 - La revue externe de `c9da0e5f1afccf9aa7af1f808e6ee4ea61fc116a`
   conclut `PASS` : le runner control-parent est terminalement consommé et ne
   doit jamais être rejoué. Le préflight creator lecture seule autorisé vérifie
