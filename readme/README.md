@@ -33,6 +33,12 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `readme/results/2026-08-15_harmonic-censoring-h27-target-checkout-exact-detach-one-shot-runner.md`.
   Prochaine action unique : revue externe du runner dormant, de son binding et
   de son seal ; aucun detach réel avant un nouveau `PASS` explicite.
+- La première revue externe du runner au commit `f0bdb521...` conclut `FAIL`
+  sur une seule dérive de nomenclature : le rehash administratif avait été
+  inclus dans une nouvelle liste « normative » de douze étapes. La
+  micro-correction conserve le runner `1ed1b57d...` byte-identique, sépare le
+  rehash comme gate entre realpaths et HEAD, et restaure dans binding/seal les
+  onze étapes exactement égales à `contract["future_fail_closed_order"]`.
 - La revue externe de `36d9ee11fc800a7e57edff1a73858c47ccbdb947`
   conclut `PASS` sur le contrat de transition et autorise uniquement son
   identity binding administratif. Le lot courant lie byte-exactement le

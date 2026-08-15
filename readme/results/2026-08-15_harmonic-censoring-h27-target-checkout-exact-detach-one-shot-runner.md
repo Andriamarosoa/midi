@@ -51,14 +51,25 @@ du contrat, seal de ce binding et preuve préflight. Le runner rehash les cinq
 prédécesseurs avant l'observation du HEAD.
 
 ```text
-binding blob  09e26933b8ea1ba8eadaeea8f9e116fe08a1953a
-binding size  4649
-binding sha   23b370fedc5fce032b3fa694230cfe555cd993f2a8cd41a7f7ac6b5f3f40ac16
+binding blob  add9ecfd389225a03f1d8101442d7fc2adcff4d1
+binding size  4865
+binding sha   37eb3b2ff5e7b48f32b5fe79ead6e9a8b47623a2325236a539293c870aeaee75
 ```
 
 Le seal reproduit le runner, son binding, les chemins/HEAD, l'ACK, la commande
 de mutation et l'ordre normatif complet. Tous les downstream flags restent
 faux.
+
+## Micro-correction après première revue
+
+La revue externe de `f0bdb521...` rend `FAIL` uniquement parce que le binding
+et le seal appelaient « ordre normatif » une liste de douze éléments incluant
+le rehash administratif. Le runner reste byte-identique. La correction sépare
+désormais `verify_five_predecessor_identities` comme gate administratif après
+realpaths et avant HEAD, tandis que l'ordre normatif publié contient exactement
+les onze valeurs du contrat PASS. Le test charge ce contrat et impose
+directement l'égalité des listes binding/seal avec
+`contract["future_fail_closed_order"]`.
 
 ## Validation locale
 
@@ -68,7 +79,8 @@ la commande POSIX exacte et l'absence de contrôles post-effet après échec.
 
 - `py_compile` runner + test : réussi ;
 - tests ciblés : `6/6` réussis ;
-- suite H27 complète : `513/513` réussis en `61,483 s` ;
+- suite H27 complète après micro-correction : `513/513` réussis en
+  `68,112 s` ;
 - `git diff --check` : requis avant commit.
 
 ## STOP
