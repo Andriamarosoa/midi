@@ -1,13 +1,13 @@
 {
   "schema_version":1,
   "seal_id":"H27_WINDOWS_LOCAL_HISTORICAL_SENDER_TRANSITION_LAUNCHER_IDENTITY_BINDING_EXTERNAL_SEAL_V1",
-  "status":"SEALED_LAUNCHER_DORMANT_PENDING_EXTERNAL_REVIEW_NO_TRANSITION_NO_RESET_NO_SENDER_EXECUTION_NO_SSH_NO_DELIVERY",
-  "identity_binding":{"path":"configs/harmonic_censoring_h27_windows_local_sender_transition_launcher_identity_binding.json","git_blob_sha1":"ee5e54aa27b099e04a24f930ee63ed6e5959b889","size_bytes":5298,"raw_sha256":"f7c6e3c89c5060702b251a56c47dbc2bab66e0d3f2a1f5d56e6b9fcb0478071a"},
-  "launcher":{"path":"scripts/h27_windows_local_sender_transition_one_shot.py","git_blob_sha1":"25d06a49e5d4fffe0764de875dc83f937ac8d5c0","size_bytes":24083,"raw_sha256":"4e764f3731c28a691bba2cf6844ff5b73e311d2e13baf898cdae1c2b14f089fd"},
+  "status":"SEALED_CORRECTED_LAUNCHER_AFTER_CONSUMED_ATTEMPT_NO_RETRY_STOP_BEFORE_SSH",
+  "identity_binding":{"path":"configs/harmonic_censoring_h27_windows_local_sender_transition_launcher_identity_binding.json","git_blob_sha1":"4ae98cd08d47be174e75236b6bb6edd30d53bec4","size_bytes":5251,"raw_sha256":"765a752ea77ac0039b27908db9a0a9751b7e46122a3a53e3d2554fe640f33b49"},
+  "launcher":{"path":"scripts/h27_windows_local_sender_transition_one_shot.py","git_blob_sha1":"8249cb84e072afdfdd4420d650412dea6f1a3521","size_bytes":24190,"raw_sha256":"c6a3444d04c660244c3f97535c1ab1115cefc7eebd43abacc04e7f7fc6c8f528"},
   "approved_contract_commit":"469b3f400358690af628f872b56696a8df368e64",
   "approved_contract":{"path":"configs/harmonic_censoring_h27_windows_local_sender_transition_contract.json","git_blob_sha1":"f1a394bb9c764e0d1942f10cf36711517dcb5f4b","size_bytes":10871,"raw_sha256":"499fb31e73c5fc8b371d9c0a2f860e58dd614b58afa0cbca900755c19d3f1a70"},
   "approved_contract_external_seal":{"path":"configs/harmonic_censoring_h27_windows_local_sender_transition_contract_external_seal.json","git_blob_sha1":"eb5888e8f03b3c558dd3fcedc6d4bf44c898b911","size_bytes":5828,"raw_sha256":"415b140882a981ee2dd0ab3ca0c4aeedf14eeeaeb1832d5eb9b92fef02371fd6"},
-  "future_launcher_source_exact":"reviewed Git blob 25d06a49e5d4fffe0764de875dc83f937ac8d5c0 over C:\\Users\\user\\Desktop\\midi\\.venv\\Scripts\\python.exe - stdin",
+  "future_launcher_source_exact":"corrected archival Git blob 8249cb84e072afdfdd4420d650412dea6f1a3521; execution forbidden because the transition was consumed",
   "future_launcher_checkout_file_read_forbidden":true,
   "future_platform_exact":"windows",
   "future_acknowledgement_environment_exact":"H27_WINDOWS_LOCAL_SENDER_TRANSITION_EXECUTE=1",
@@ -38,9 +38,9 @@
   "future_ssh_subprocess_forbidden":true,
   "future_normative_order":["verify_platform_ack_zero_arguments_and_exact_clean_initial_state","verify_local_remote_tracking_ref_without_network_and_no_lock_or_conflicting_process","capture_index_raw_bytes_semantic_tree_tracked_raw_bytes_manifest_refs_head_and_status","load_and_rehash_sender_receiver_contract_bindings_and_seals_from_exact_git_blobs_into_memory","reverify_initial_state_immediately_before_first_effect","reset_hard_once_to_exact_historical_commit","verify_historical_head_symbolic_branch_ref_tree_cleanliness_remote_tracking_ref_and_lock","invoke_prevalidated_sender_bytes_once_with_local_preparation_ack_and_require_terminal_transport_false_json","attempt_mandatory_reset_hard_once_to_exact_initial_commit","restore_original_tracked_raw_bytes_once_by_exclusive_fsynced_atomic_sibling_replaces","restore_original_index_raw_bytes_once_by_exclusive_fsynced_atomic_sibling_replace","verify_exact_restored_head_symbolic_branch_refs_index_tracked_bytes_status_lock_and_no_temp","archive_terminal_preparation_or_consumed_failure_proof_then_stop_before_ssh"],
   "launcher_externally_reviewed":false,
-  "transition_acknowledgement_set":false,
-  "historical_reset_executed":false,
-  "sender_preparation_executed":false,
+  "transition_acknowledgement_set":true,
+  "historical_reset_executed":true,
+  "sender_preparation_executed":true,
   "restoration_executed":false,
   "ssh_invoked":false,
   "remote_acknowledgement_set":false,
@@ -51,5 +51,5 @@
   "detach_executed":false,
   "downstream_executed":false,
   "science_or_locked_test":false,
-  "next_action":"External review of the exact dormant launcher, binding and this seal only; no real transition, sender execution or SSH"
+  "next_action":"Archive consumed block 1 and review block 2 delivery; rerun of this transition is forbidden"
 }

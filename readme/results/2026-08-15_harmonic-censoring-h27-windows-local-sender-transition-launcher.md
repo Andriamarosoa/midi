@@ -52,13 +52,13 @@ l'index. La vérification terminale compare le snapshot brut complet.
   SHA-256 `499fb31e73c5fc8b371d9c0a2f860e58dd614b58afa0cbca900755c19d3f1a70` ;
 - seal du contrat : `eb5888e8f03b3c558dd3fcedc6d4bf44c898b911`, `5828` octets,
   SHA-256 `415b140882a981ee2dd0ab3ca0c4aeedf14eeeaeb1832d5eb9b92fef02371fd6` ;
-- launcher : `25d06a49e5d4fffe0764de875dc83f937ac8d5c0`, `24083` octets,
-  SHA-256 `4e764f3731c28a691bba2cf6844ff5b73e311d2e13baf898cdae1c2b14f089fd` ;
-- binding launcher : `ee5e54aa27b099e04a24f930ee63ed6e5959b889`, `5298` octets,
-  SHA-256 `f7c6e3c89c5060702b251a56c47dbc2bab66e0d3f2a1f5d56e6b9fcb0478071a`.
+- launcher corrigé après consommation : `8249cb84e072afdfdd4420d650412dea6f1a3521`, `24190` octets,
+  SHA-256 `c6a3444d04c660244c3f97535c1ab1115cefc7eebd43abacc04e7f7fc6c8f528` ;
+- binding launcher : `4ae98cd08d47be174e75236b6bb6edd30d53bec4`, `5251` octets,
+  SHA-256 `765a752ea77ac0039b27908db9a0a9751b7e46122a3a53e3d2554fe640f33b49`.
 
-- seal launcher : `02e692e45b68478beb8f0c21d47a2761c5959a43`, `4993` octets,
-  SHA-256 `75a7f7c4a122772b7b5a35d54df758671fec9a01b1c7bd58d98f59b7eabf5d4c`.
+- seal launcher : `b02e86662499ca07ccf2833b67c14a104dff2a87`, `4922` octets,
+  SHA-256 `4d2c2e0fe469f1e487f87e44e2917ba78fada13f2bb59407a9abaadbfe417113`.
 
 ## Validation
 
@@ -68,7 +68,7 @@ identités, environnement Git fermé, graphe ODB exact, ordre succès, échec
 pré-effet, échec sender consommé, échec de restauration terminal, rapport
 sender strict, append exact des deux reflogs et absence d'exécution SSH.
 
-- tests contrat + launcher : `15/15` en `1.336 s` ;
+- tests contrat + launcher après correction : `16/16` en `1.544 s` ;
 - `py_compile` : réussi ;
 - `git diff --check` : réussi.
 
@@ -77,7 +77,31 @@ propre. `locked_test_used=false`; impact live/scientifique nul.
 
 ## STOP
 
-STOP avant toute exécution réelle. Prochaine action unique : revue externe du
-launcher, de son identity binding, de son external seal, des tests et de ce
-rapport. Aucun reset, sender, SSH, ACK distant ou transport avant un nouveau
-`PASS` explicite.
+La revue externe du commit `c526aa14...` a rendu `PASS` et autorisé une unique
+exécution. Elle a été consommée le 2026-08-15.
+
+Le launcher a atteint le sender sans erreur primaire, puis a effectué le reset
+de restauration. La vérification finale a échoué quand `git status` a refusé
+l'index restauré : `unknown index entry format 0x735f0000`. L'index corrompu
+mesure `169704` octets, SHA-256
+`82367d517f483cbd03c90b8099dccdefdd29a18326e45b191bb957fc9b3c3879`.
+L'index reconstruit depuis le HEAD mesure `169506` octets ; les `198` octets de
+différence correspondent exactement aux `198` paires CRLF introduites par une
+écriture Windows en mode texte. La cause est l'absence de `os.O_BINARY` sur les
+descripteurs exclusifs utilisés pour les restaurations index et fichiers.
+
+Conformément au contrat, aucune seconde invocation n'a eu lieu. L'index fautif
+est préservé sous
+`.git/worktrees/independent-note-neural-v2/index.h27-consumed-corrupt-20260815`.
+Une intervention manuelle bornée a déplacé cet index puis exécuté uniquement
+`git read-tree 61dc4b49...`. L'état final contrôlé est : HEAD et refs locales/
+remote-tracking à `61dc4b49...`, branche symbolique exacte, status propre.
+
+Le code historique est corrigé avec `O_BINARY` et un test Windows qui restaure
+un payload contenant LF, CRLF, `0x1a` et `0xff` à l'identique. Cette correction
+est archivale : la tentative reste consommée, son launcher ne doit jamais être
+relancé. Aucun SSH, ACK distant, transport, import, detach, downstream, locked
+test ou science n'a été exécuté.
+
+Prochaine étape : review 2/5 consacrée à la livraison directe et contrôlée des
+treize blobs vers le Mac. Aucun nouveau contrat/seal/micro-gate du bloc 1.

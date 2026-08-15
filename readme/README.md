@@ -14,12 +14,12 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 Windows local historical sender transition launcher implemented dormant on auxiliary review branch; external review required. -->
+<!-- H26_CORRECTION_STATUS: H27 Windows local sender transition consumed once; manual index recovery complete; no retry; block 2 pending. -->
 ## État courant
 
 - Mise à jour : `2026-08-15`.
 - État courant :
-  `H27_WINDOWS_LOCAL_HISTORICAL_SENDER_TRANSITION_LAUNCHER_DORMANT_PENDING_EXTERNAL_REVIEW_NO_TRANSITION_NO_SSH`.
+  `H27_WINDOWS_LOCAL_HISTORICAL_SENDER_TRANSITION_CONSUMED_NO_RETRY_MANUAL_INDEX_RECOVERY_COMPLETE_STOP_BEFORE_SSH`.
 - La revue externe de `61dc4b496a454b596fca6ac361504f441e987aab`
   conclut `PASS` sur le sender dormant corrigé et autorise uniquement sa
   préparation locale Windows au HEAD historique. Le préflight live a révélé
@@ -31,17 +31,31 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   dans le worktree `tmp/local/worktrees/h27-windows-transition-contract`.
   La revue externe du contrat auxiliaire `469b3f400358690af628f872b56696a8df368e64`
   conclut `PASS` et autorise uniquement l'implémentation dormante du launcher.
-  Le lot courant ajoute le launcher one-shot, son identity binding, son seal et
+  Le commit `c526aa14...` ajoutait le launcher one-shot, son identity binding, son seal et
   ses tests synthétiques : future
   transition one-shot `61dc4b49 → c0bb8d20 → sender transport=false →
   restauration exacte 61dc4b49`, snapshots index/fichiers/refs/octets bruts,
   launcher futur chargé uniquement par blob Git/stdin, restauration atomique
   des fichiers suivis puis de l'index, une restauration obligatoire et une
-  politique d'échec consommée sans retry. Aucun `reset`, `switch`, launcher,
-  sender, SSH, ACK distant ou objet n'est exécuté. Rapport :
+  politique d'échec consommée sans retry. À ce stade de préparation, aucun
+  `reset`, `switch`, launcher, sender, SSH, ACK distant ou objet n'avait été
+  exécuté. Rapport :
   `readme/results/2026-08-15_harmonic-censoring-h27-windows-local-sender-transition-launcher.md`.
-  Prochaine action unique : revue externe du launcher, de son binding et de
-  son seal exacts.
+  Ce lot a ensuite reçu la revue externe décrite ci-dessous.
+  La revue 1/5 de `c526aa14ed1a0b23621f73eb546fbf9bfb2e4bdd`
+  a ensuite rendu `PASS` et autorisé une invocation unique. Cette tentative a
+  exécuté les deux resets et le sender dormant (`primary=none`, donc avant SSH
+  et transport), mais la vérification terminale a détecté un index invalide.
+  Cause reproduite : les écritures `os.open/os.write` Windows n'utilisaient pas
+  `O_BINARY`, ajoutant exactement `198` CR aux LF (`169506 → 169704` octets).
+  Aucun retry n'a lieu. L'index corrompu est conservé sous l'administration Git
+  avec SHA-256 `82367d517f483cbd03c90b8099dccdefdd29a18326e45b191bb957fc9b3c3879` ;
+  une récupération manuelle bornée par `read-tree 61dc4b49...` a restauré un
+  index valide. HEAD, branche, refs et status sont de nouveau exacts et propres.
+  Le correctif ajoute `O_BINARY` aux deux restaurations et un test réel
+  byte-exact Windows. La transition est consommée et ne sera jamais relancée.
+  Prochaine étape : archiver ce résultat puis préparer la review 2/5, livraison
+  directe des treize blobs vers le Mac, sans nouvelle micro-gate du bloc 1.
 - La revue externe de `bc9fd98e4fdc011f229979206e17040ac66017d5`
   conclut `PASS` sur le receiver exact et autorise uniquement le sender de
   préparation dormant couvrant les quatre étapes pré-SSH. Le lot courant

@@ -36,6 +36,7 @@ PYTHON_EXACT = r"C:\Users\user\Desktop\midi\.venv\Scripts\python.exe"
 GIT_PREFIX = (
     "git", "--no-optional-locks", "--no-replace-objects", "-C", WORKTREE_TEXT,
 )
+BINARY_FLAG = getattr(os, "O_BINARY", 0)
 
 IDENTITY_KEYS = {"path", "git_blob_sha1", "size_bytes", "raw_sha256"}
 GRAPH_IDENTITIES = (
@@ -327,7 +328,9 @@ def reset_hard_once(commit: str) -> None:
 def restore_index_raw_once(index_raw: bytes) -> None:
     if INDEX_TEMP.exists():
         raise PermissionError("transition temporary index already exists")
-    descriptor = os.open(INDEX_TEMP, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    descriptor = os.open(
+        INDEX_TEMP, os.O_WRONLY | os.O_CREAT | os.O_EXCL | BINARY_FLAG, 0o600,
+    )
     try:
         view = memoryview(index_raw)
         written = 0
@@ -362,7 +365,9 @@ def restore_tracked_raw_once(entries: Sequence[tuple[object, ...]]) -> None:
             raise RestorationFailure(f"unexpected tracked kind: {kind}")
         if path.is_file() and not path.is_symlink() and path.read_bytes() == content:
             continue
-        descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        descriptor = os.open(
+            temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | BINARY_FLAG, 0o600,
+        )
         try:
             view = memoryview(content)
             written = 0

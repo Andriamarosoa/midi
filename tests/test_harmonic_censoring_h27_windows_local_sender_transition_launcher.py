@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import subprocess
 import sys
+import tempfile
 import unittest
 from unittest import mock
 
@@ -243,6 +244,26 @@ class TestH27WindowsLocalSenderTransitionLauncher(unittest.TestCase):
         self.module.require_exact_reset_reflog_append(before, after, "test")
         with self.assertRaises(self.module.RestorationFailure):
             self.module.require_exact_reset_reflog_append(before, after + b"extra\n", "test")
+
+    def test_raw_restoration_is_binary_exact_on_windows(self) -> None:
+        raw = b"DIRC\x00\n\r\n\x1a\xff"
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            index = root / "index"
+            index.write_bytes(b"old")
+            index_temp = root / "index.restore.tmp"
+            tracked = root / "tracked.bin"
+            tracked.write_bytes(b"old")
+            entry = (("tracked.bin", "100644", "0" * 40, "regular", len(raw), hashlib.sha256(raw).hexdigest(), raw),)
+            with (
+                mock.patch.object(self.module, "INDEX_PATH", index),
+                mock.patch.object(self.module, "INDEX_TEMP", index_temp),
+                mock.patch.object(self.module, "WORKTREE", root),
+            ):
+                self.module.restore_index_raw_once(raw)
+                self.module.restore_tracked_raw_once(entry)
+            self.assertEqual(index.read_bytes(), raw)
+            self.assertEqual(tracked.read_bytes(), raw)
 
     def test_launcher_source_has_no_retry_or_ssh_execution(self) -> None:
         source = LAUNCHER.read_text(encoding="utf-8").lower()
