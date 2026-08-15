@@ -14,12 +14,12 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 constructor gate read-only preflight PASS; required HEAD mismatch confirmed and no transition runner identified; STOP before checkout transition/constructor/materializer/P0/P1/P2/science. -->
+<!-- H26_CORRECTION_STATUS: H27 constructor HEAD transition runner implemented dormant and locally tested; pending external review, no Mac execution. -->
 ## État courant
 
 - Mise à jour : `2026-08-16`.
 - État courant :
-  `H27_REVIEW4_CONSTRUCTOR_GATE_READ_ONLY_PREFLIGHT_PASS_STOP_PENDING_EXTERNAL_REVIEW`.
+  `H27_REVIEW4_CONSTRUCTOR_HEAD_TRANSITION_RUNNER_DORMANT_PENDING_EXTERNAL_REVIEW`.
 - La revue externe de `61dc4b496a454b596fca6ac361504f441e987aab`
   conclut `PASS` sur le sender dormant corrigé et autorise uniquement sa
   préparation locale Windows au HEAD historique. Le préflight live a révélé
@@ -135,6 +135,20 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   et locked-test restent faux. Aucun changement de HEAD ou du filesystem Mac
   n'a eu lieu. STOP avant toute transition ou invocation. Rapport :
   `readme/results/2026-08-16_harmonic-censoring-h27-review4-constructor-gate-read-only-preflight.md`.
+  La revue externe de `ace17e9f04ab1b47b6928fc45cddaf8b9d6cdc83`
+  conclut `PASS` sur cette preuve et autorise uniquement l'implémentation
+  dormante d'un runner de transition. Le lot courant ajoute ce runner et neuf
+  tests dédiés. Il exige macOS, zéro argument, l'ACK transition distinct et
+  l'absence de l'ACK constructor; revalide le bundle fermé, le HEAD initial
+  détaché/propre, la relation exacte de onze commits, le constructor cible,
+  les refs, l'absence de lock/processus et surtout l'absence du registre,
+  final et staging avant toute mutation. Sa seule future mutation est le
+  checkout détaché exact `7ee0a897... → 46a6bdf8...`; le lancement de ce
+  subprocess consommera la tentative, sans retry ni réparation. Les mêmes
+  invariants sont revérifiés après la commande, puis STOP. Le runner reste
+  dormant : aucun ACK, SSH, checkout, constructor, materializer, science ou
+  locked-test n'a été exécuté. Rapport :
+  `readme/results/2026-08-16_harmonic-censoring-h27-review4-constructor-head-transition-dormant.md`.
 - La revue externe de `bc9fd98e4fdc011f229979206e17040ac66017d5`
   conclut `PASS` sur le receiver exact et autorise uniquement le sender de
   préparation dormant couvrant les quatre étapes pré-SSH. Le lot courant
