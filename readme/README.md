@@ -30,7 +30,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   d'abord un snapshot déterministe des refs régulières. Après le second `FAIL`
   signalant les pseudorefs omises par `for-each-ref`, la correction courante
   ajoute la capture byte-exacte de tous les fichiers root-ref/pseudoref présents
-  au nom majuscule dans `.git`. Les deux snapshots sont comparés juste avant la
+  au nom majuscule dans `.git`. Après le troisième `FAIL`, le contrat impose
+  aussi `rev-parse --show-ref-format == files` avant la capture, avant le
+  premier effet futur et au contrôle terminal ; `reftable` est refusé. Les deux
+  snapshots sont comparés juste avant la
   première écriture future puis après les huit. Retry, cleanup et rollback
   implicite sont interdits ;
   un import partiel futur serait terminal consommé. Aucun accès Mac ni apport

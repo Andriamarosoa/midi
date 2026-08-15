@@ -66,6 +66,14 @@ class TestH27OdbOnlyBlobImportContract(unittest.TestCase):
         })
         for index in (3, 7, 11):
             self.assertIn("regular_refs_root_refs", self.contract["future_fail_closed_order"][index])
+        self.assertEqual(self.contract["reference_storage_format"], {
+            "operation_exact": "git --no-optional-locks --no-replace-objects --git-dir=/Users/amcarene/midi-worker/repository/.git rev-parse --show-ref-format",
+            "stdout_exact": "files\n", "verify_before_snapshot": True,
+            "reverify_immediately_before_first_write": True,
+            "reverify_after_all_writes": True, "reftable_forbidden": True,
+        })
+        for index in (1, 7, 11):
+            self.assertIn("reference_storage_format_files", self.contract["future_fail_closed_order"][index])
         self.assertTrue(self.contract["prevalidation"]["all_payloads_before_any_write"])
         self.assertTrue(self.contract["prevalidation"]["write_flag_forbidden_during_prevalidation"])
         self.assertEqual(self.contract["future_write"]["operation_exact"], "git --no-replace-objects --git-dir=/Users/amcarene/midi-worker/repository/.git hash-object -w --stdin")
@@ -87,9 +95,9 @@ class TestH27OdbOnlyBlobImportContract(unittest.TestCase):
     def test_exact_external_seal(self) -> None:
         expected_contract = {
             "path": "configs/harmonic_censoring_h27_odb_only_blob_import_contract.json",
-            "git_blob_sha1": "52bfb9fe7e2e7b01c64da6fff5d7b4ed29860cf7",
-            "size_bytes": 7010,
-            "raw_sha256": "f51d7810fb261ab1e33d318d92c987432b9a245579e5607fffe8851e6a730ad2",
+            "git_blob_sha1": "42eebb259f247715ddcb404c8c236418093b6a81",
+            "size_bytes": 7477,
+            "raw_sha256": "567712b4e5c4491498be68be65b2633a4537d2221d484bd4a4dcbdbaf16a5b7a",
         }
         self.assertEqual(
             (expected_contract["git_blob_sha1"], expected_contract["size_bytes"], expected_contract["raw_sha256"]),
@@ -102,6 +110,12 @@ class TestH27OdbOnlyBlobImportContract(unittest.TestCase):
             "contract": expected_contract,
             "payloads": self.contract["payloads"],
             "future_regular_refs_snapshot_operation_exact": self.contract["ref_snapshot"]["regular_refs_operation_exact"],
+            "future_reference_storage_format": {
+                "operation_exact": self.contract["reference_storage_format"]["operation_exact"],
+                "stdout_exact": "files\n",
+                "verified_before_snapshot_before_first_write_and_after_all_writes": True,
+                "reftable_forbidden": True,
+            },
             "future_root_refs_snapshot": {
                 "directory_exact": self.contract["ref_snapshot"]["root_refs_directory_exact"],
                 "name_regex_exact": self.contract["ref_snapshot"]["root_ref_name_regex_exact"],

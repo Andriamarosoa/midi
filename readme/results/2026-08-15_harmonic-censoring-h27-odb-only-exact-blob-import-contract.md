@@ -13,13 +13,13 @@ autorité, creator, bundle, materializer, science ou locked test.
 ## Identités
 
 ```text
-contract blob  52bfb9fe7e2e7b01c64da6fff5d7b4ed29860cf7
-contract size  7010
-contract sha   f51d7810fb261ab1e33d318d92c987432b9a245579e5607fffe8851e6a730ad2
+contract blob  42eebb259f247715ddcb404c8c236418093b6a81
+contract size  7477
+contract sha   567712b4e5c4491498be68be65b2633a4537d2221d484bd4a4dcbdbaf16a5b7a
 
-seal blob      3fd94951b845687cabee31a59e1b72b913b36b9b
-seal size      4984
-seal sha       dc2be1b0d406cb347832fdec33163bb94e63ef66beafcf047f667dc09c486b0c
+seal blob      4002015587573e9a3e0b8f6dbb6dcea93b967b6e
+seal size      5382
+seal sha       95120579e240b454a4bbac21236a4c993b80244ff11d687b27e7a550ed422272
 ```
 
 Le contrat lie les huit payloads par chemin, blob SHA-1 Git, taille et SHA-256
@@ -36,6 +36,19 @@ refs régulières mais rend `FAIL` parce que `for-each-ref` omet les root refs e
 pseudorefs sans option dépendante de la version Git. La correction courante
 conserve la commande portable des refs régulières et ajoute un scan stdlib
 déterministe des fichiers racine Git aux noms majuscules, sans accès Mac.
+
+La troisième revue externe de `dda47ec4...` confirme cette couverture avec le
+backend `files`, mais rend `FAIL` car ce backend n'était pas lui-même imposé.
+La correction courante exige désormais exactement :
+
+```text
+git --no-optional-locks --no-replace-objects \
+  --git-dir=/Users/amcarene/midi-worker/repository/.git \
+  rev-parse --show-ref-format
+```
+
+avec la sortie `files`, avant snapshot, juste avant le premier effet futur et
+après les huit écritures. Le backend `reftable` échoue fermé.
 
 ## Frontière future préenregistrée
 
@@ -90,8 +103,8 @@ revendication de rollback.
 ## Validation locale
 
 - `py_compile` : réussi ;
-- tests ciblés : `5/5` réussis en `0,002 s` ;
-- suite H27 complète : `519/519` réussis en `61,021 s` ;
+- tests ciblés : `5/5` réussis en `0,003 s` ;
+- suite H27 complète : `519/519` réussis en `61,380 s` ;
 - `git diff --check` : réussi avant commit.
 
 ## STOP
