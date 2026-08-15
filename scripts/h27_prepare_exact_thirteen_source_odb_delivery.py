@@ -268,12 +268,27 @@ def verify_receiver_graph_and_objects() -> tuple[bytes, int]:
     return receiver_raw, aggregate
 
 
+def validate_exact_ssh_invocation() -> None:
+    expected = (
+        "ssh", "-T", "amcarene@100.89.128.87", "env",
+        "H27_SOURCE_ODB_EXACT_THIRTEEN_EXECUTE=1", "/usr/bin/python3", "-",
+    )
+    expected_text = (
+        "ssh -T amcarene@100.89.128.87 env "
+        "H27_SOURCE_ODB_EXACT_THIRTEEN_EXECUTE=1 /usr/bin/python3 -"
+    )
+    if SSH_COMMAND != expected or SSH_COMMAND_TEXT != expected_text:
+        raise ValueError("sealed SSH invocation drift")
+    if SSH_COMMAND_TEXT != " ".join(SSH_COMMAND):
+        raise ValueError("SSH command tuple/text mismatch")
+
+
 def prepare_exact_transport() -> PreparedExactTransport:
     require_platform_ack_and_zero_arguments()
     verify_exact_sender_state()
     receiver_raw, aggregate = verify_receiver_graph_and_objects()
-    if SSH_COMMAND_TEXT != " ".join(SSH_COMMAND):
-        raise ValueError("SSH command tuple/text mismatch")
+    require_identity(receiver_raw, RECEIVER)
+    validate_exact_ssh_invocation()
     return PreparedExactTransport(
         command=SSH_COMMAND,
         command_text=SSH_COMMAND_TEXT,

@@ -23,7 +23,8 @@ les quatre étapes pré-SSH autorisées :
 3. lecture ODB et rehash des treize blobs dans l'ordre du contrat, extraction
    AST sans exécution de `EMBEDDED_OBJECTS`, décodage base64 canonique et
    égalité byte-exacte sender/receiver ;
-4. construction en mémoire de l'invocation exacte
+4. revalidation explicite de l'identité du receiver après les treize contrôles,
+   validation puis construction en mémoire de l'invocation exacte
    `ssh -T amcarene@100.89.128.87 env H27_SOURCE_ODB_EXACT_THIRTEEN_EXECUTE=1 /usr/bin/python3 -`,
    puis arrêt avant toute exécution SSH.
 
@@ -41,12 +42,12 @@ l'ODB pour vérifier les identités.
 
 ## Identités exactes
 
-- sender : blob `8bdcc68e7cc6e27bc507f568b44f1978e95a728c`, `13032` octets,
-  SHA-256 `9245a1d0b98806f1092703ee03295557e6d5904c3443d7aca56ae0397d9f2b9d` ;
-- identity binding : blob `cf17caf8c51871a8bf7ceb0e723b0d4a46e54fb9`, `4714` octets,
-  SHA-256 `07088b7a82b481b470c63060d63e16b23af5e482e857aa127acfdb1380ea5d1b` ;
-- external seal : blob `55df7177f8549a9cd24dc84de107db083739ee50`, `4624` octets,
-  SHA-256 `bc2d43c7dea3442e3ade56194bb19b67a4775d8410190c1a8fc1c50c91164e14`.
+- sender : blob `b59564dac93954976bd0d7028e01316fcd556592`, `13580` octets,
+  SHA-256 `a58ac7f3dad832691c47855e777f3ff971650f1d02b82aecd3f3eb1682ab71aa` ;
+- identity binding : blob `7f7a4713ce44a9ae5779013de4de3e42dc643679`, `4777` octets,
+  SHA-256 `8e6a27a58e4d998b8c22eb775fa656bd7d530a8afdf1dd967e937777cabe7912` ;
+- external seal : blob `80c74882b66ca486b79ae9d53a48e30dda26fd19`, `4697` octets,
+  SHA-256 `59ef9621ef3af7dd65423ced648b2be52919e0d34b22bd5e8d309c8af6f1b8be`.
 
 Le receiver reste celui revu : blob
 `9d32cac8ddb29e43975a6b82f5c1c39a91f93df4`, `119406` octets, SHA-256
@@ -55,15 +56,18 @@ Les treize payloads représentent exactement `75730` octets bruts.
 
 ## Validation
 
-- tests sender ciblés : `7/7` en `1.638 s` ;
-- suite H27 complète : `547/547` en `97.046 s` ;
+- tests sender ciblés : `7/7` en `1.663 s` ;
+- suite H27 complète : `547/547` en `99.830 s` ;
 - `py_compile` : réussi ;
 - `git diff --check` : réussi.
 
 Le test d'intégration rehash le receiver et les treize blobs réels depuis
 l'ODB local, sans mutation. Le test de frontière construit le tuple SSH exact
 et démontre que `subprocess.run` n'est jamais appelé dans cette phase de
-préparation simulée.
+préparation simulée. La première revue externe du sender a rendu `FAIL` sur
+l'absence d'une seconde validation du receiver après les treize lectures. La
+micro-correction ajoute et verrouille l'ordre exact : contrôles des treize
+payloads terminés, receiver revalidé, tuple SSH validé, construction, STOP.
 
 ## Latence et science
 

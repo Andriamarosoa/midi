@@ -35,6 +35,11 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `readme/results/2026-08-15_harmonic-censoring-h27-external-source-odb-exact-thirteen-sender.md`.
   Prochaine action unique : revue externe du sender, du binding et du seal
   exacts ; aucune livraison avant un nouveau `PASS` explicite.
+  La première revue du commit `a6bb0202...` a rendu `FAIL` uniquement parce que
+  l'identité du receiver était validée avant les treize lectures mais pas une
+  seconde fois après elles. La micro-correction courante impose et teste
+  explicitement l'ordre : treize contrôles terminés, receiver revalidé, tuple
+  SSH validé/construit, puis STOP sans transport.
 - La revue externe de `2211f1d6c4b95b93f19dce3c607d478b5697a153`
   conclut `PASS` sur le préflight et autorise uniquement l'implémentation
   dormante du receiver exact. Le lot courant ajoute un receiver Python

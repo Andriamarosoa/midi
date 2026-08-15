@@ -70,6 +70,7 @@ class TestH27ExternalSourceOdbExactThirteenSender(unittest.TestCase):
             "future_receiver_source_parsed_without_execution", "future_object_count_exact",
             "future_aggregate_raw_size_bytes",
             "future_all_thirteen_sender_blobs_rehashed_and_byte_equal_to_receiver_payloads",
+            "future_receiver_identity_revalidated_after_all_thirteen_checks",
             "future_ssh_invocation_exact", "future_ssh_invocation_constructed_only",
             "future_ssh_execution_forbidden",
             "future_receiver_source_transport_forbidden_until_separate_review",
@@ -85,6 +86,7 @@ class TestH27ExternalSourceOdbExactThirteenSender(unittest.TestCase):
             "future_receiver_source_loaded_from_exact_reviewed_git_blob",
             "future_receiver_source_parsed_without_execution",
             "future_all_thirteen_sender_blobs_rehashed_and_byte_equal_to_receiver_payloads",
+            "future_receiver_identity_revalidated_after_all_thirteen_checks",
             "future_ssh_invocation_constructed_only", "future_ssh_execution_forbidden",
             "future_receiver_source_transport_forbidden_until_separate_review",
         ):
@@ -140,14 +142,31 @@ class TestH27ExternalSourceOdbExactThirteenSender(unittest.TestCase):
 
     def test_preparation_constructs_exact_transport_but_never_invokes_it(self) -> None:
         receiver = b"#!/usr/bin/env python3\n"
+        events: list[str] = []
         with (
             mock.patch.object(self.module, "require_platform_ack_and_zero_arguments"),
             mock.patch.object(self.module, "verify_exact_sender_state"),
-            mock.patch.object(self.module, "verify_receiver_graph_and_objects", return_value=(receiver, 75730)),
+            mock.patch.object(
+                self.module, "verify_receiver_graph_and_objects",
+                side_effect=lambda: (events.append("payloads_complete") or (receiver, 75730)),
+            ),
+            mock.patch.object(
+                self.module, "require_identity",
+                side_effect=lambda raw, expected: events.append("receiver_revalidated"),
+            ) as revalidate,
+            mock.patch.object(
+                self.module, "validate_exact_ssh_invocation",
+                side_effect=lambda: events.append("ssh_tuple_validated"),
+            ) as validate_ssh,
             mock.patch.object(self.module.subprocess, "run") as run,
         ):
             prepared = self.module.prepare_exact_transport()
         run.assert_not_called()
+        revalidate.assert_called_once_with(receiver, self.module.RECEIVER)
+        validate_ssh.assert_called_once_with()
+        self.assertEqual(events, [
+            "payloads_complete", "receiver_revalidated", "ssh_tuple_validated",
+        ])
         self.assertEqual(prepared.command, self.module.SSH_COMMAND)
         self.assertEqual(prepared.command_text, self.module.SSH_COMMAND_TEXT)
         self.assertEqual(prepared.receiver_source, receiver)
