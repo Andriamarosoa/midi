@@ -14,12 +14,24 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 ODB-only exact-blob import contract PASS; dormant one-shot importer pending external review, no import. -->
+<!-- H26_CORRECTION_STATUS: H27 dormant ODB-only importer PASS; read-only Mac preflight blocked before effect, no import. -->
 ## État courant
 
 - Mise à jour : `2026-08-15`.
 - État courant :
-  `H27_ODB_ONLY_EXACT_BLOB_IMPORTER_PENDING_EXTERNAL_REVIEW_DORMANT_NO_IMPORT`.
+  `H27_ODB_ONLY_IMPORTER_PREFLIGHT_BLOCKED_REF_FORMAT_UNSUPPORTED_SOURCE_OBJECTS_ABSENT_NO_EFFECT`.
+- La revue externe de `132e3da97180ce28c851b06e6a271430d7072292`
+  conclut `PASS` sur l'importer dormant et autorise uniquement son préflight
+  Mac lecture seule. La cible reste sur HEAD `75322bc6...`, symbolic HEAD
+  attendu, worktree propre, index lock et processus absents ; les huit blobs
+  cibles sont absents. Le préflight s'arrête toutefois sur deux bloqueurs avant
+  effet : Apple Git `2.39.5` retourne littéralement `--show-ref-format` au lieu
+  de `files`, et l'ODB source externe `/Users/amcarene/midi/.git` ne contient
+  aucun des treize objets requis. Aucun fetch/sync, ACK, import, detach ou
+  downstream n'a été exécuté. Rapport :
+  `readme/results/2026-08-15_harmonic-censoring-h27-odb-only-importer-read-only-preflight.md`.
+  Prochaine action unique : revue externe du blocage ; aucune correction ou
+  commande Mac mutante avant nouvelle autorisation.
 - La revue externe de `dffce1f9a144be60968b7912e99c761ec058ee0f`
   conclut `PASS` sur le contrat ODB-only scellé et autorise uniquement son
   implémentation dormante. Le lot courant ajoute le one-shot importer exact,
