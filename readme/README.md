@@ -14,12 +14,12 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 Review 4 creator consumed successfully and exact control bundle published; STOP before materializer/P0/P1/P2/science. -->
+<!-- H26_CORRECTION_STATUS: H27 constructor gate read-only preflight PASS; required HEAD mismatch confirmed and no transition runner identified; STOP before checkout transition/constructor/materializer/P0/P1/P2/science. -->
 ## État courant
 
 - Mise à jour : `2026-08-16`.
 - État courant :
-  `H27_REVIEW_4_CREATOR_TERMINAL_SUCCESS_STOP_PENDING_EXTERNAL_REVIEW`.
+  `H27_REVIEW4_CONSTRUCTOR_GATE_READ_ONLY_PREFLIGHT_PASS_STOP_PENDING_EXTERNAL_REVIEW`.
 - La revue externe de `61dc4b496a454b596fca6ac361504f441e987aab`
   conclut `PASS` sur le sender dormant corrigé et autorise uniquement sa
   préparation locale Windows au HEAD historique. Le préflight live a révélé
@@ -122,6 +122,19 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   Materializer, P0/P1/P2, science et locked-test restent tous non exécutés.
   STOP avant toute étape suivante. Rapport :
   `readme/results/2026-08-16_harmonic-censoring-h27-review4-creator-terminal-execution.md`.
+  La revue externe du commit d'archive
+  `45b1108d7d185eee678992596871bfb35dfd7449` conclut `PASS` sur le creator
+  terminal, puis autorise uniquement un préflight constructor-gate strictement
+  read-only. Ce préflight a rehashé les six fichiers du bundle et retrouvé le
+  digest fermé `879d547c...`, l'autorité `45f4dc4f...` et le constructor exact
+  `0c1a2aca...`. Le checkout cible reste propre et détaché sur
+  `7ee0a897...`, mais le gate exige exactement `46a6bdf8...`, ancêtre situé
+  onze commits en arrière. Aucun entrypoint de transition vers ce HEAD n'est
+  identifié dans l'arbre observé. Registre constructor, final et staging sont
+  absents; ACK, réservation, consommation, constructor, materializer, science
+  et locked-test restent faux. Aucun changement de HEAD ou du filesystem Mac
+  n'a eu lieu. STOP avant toute transition ou invocation. Rapport :
+  `readme/results/2026-08-16_harmonic-censoring-h27-review4-constructor-gate-read-only-preflight.md`.
 - La revue externe de `bc9fd98e4fdc011f229979206e17040ac66017d5`
   conclut `PASS` sur le receiver exact et autorise uniquement le sender de
   préparation dormant couvrant les quatre étapes pré-SSH. Le lot courant
