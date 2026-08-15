@@ -8,6 +8,7 @@ publisher never calls a clock or random source: it can only publish the exact
 """
 from __future__ import annotations
 
+import ctypes
 import hashlib
 import json
 import os
@@ -24,6 +25,7 @@ GIT_DATABASE = TARGET / ".git"
 REQUIRED_HEAD = "46a6bdf81a56a7a7a10524d4e55092301a452207"
 DESTINATION_TEXT = "/Users/amcarene/h27-admin/activation/h27-materialization-v1.json"
 DESTINATION = Path(DESTINATION_TEXT)
+STAGING_NAME = ".h27-materialization-v1.json.authority-instance-publication-stage"
 CONSTRUCTOR_REGISTRY = Path(
     "/Users/amcarene/h27-admin/registry/"
     "h27-real-publication-constructor-execution-authority-v1.jsonl"
@@ -33,6 +35,7 @@ PUBLICATION_REGISTRY = Path(
     "h27-review4-authority-instance-artifact-publication-v1.jsonl"
 )
 RUNNER_NAME = "h27_review4_authority_instance_artifact_publish_once.py"
+RENAME_EXCL = 0x00000004
 
 EXECUTION_AUTHORITY_ID = "45f4dc4ff73284f1355eb125dc36d8c8bad2372818bf5f80b85b758ea69ae64e"
 AUTHORITY_INSTANCE_ID = "d44941a8c1c6674e5da89c40a7e3188c4e6318f7c5759ce490577d8bde81437a"
@@ -411,6 +414,27 @@ def consume_publication_authority(registry_parent_fd: int) -> int:
         raise
 
 
+def atomic_exclusive_rename_at(parent_fd: int, source_name: str, destination_name: str) -> None:
+    require(sys.platform == "darwin", "H27 macOS exclusive rename required; terminal consumed failure")
+    try:
+        libc = ctypes.CDLL(None, use_errno=True)
+        renameatx_np = libc.renameatx_np
+    except (AttributeError, OSError) as error:
+        raise PermissionError("H27 renameatx_np unavailable; terminal consumed failure") from error
+    renameatx_np.argtypes = [ctypes.c_int, ctypes.c_char_p, ctypes.c_int, ctypes.c_char_p, ctypes.c_uint]
+    renameatx_np.restype = ctypes.c_int
+    result = renameatx_np(
+        parent_fd,
+        os.fsencode(source_name),
+        parent_fd,
+        os.fsencode(destination_name),
+        RENAME_EXCL,
+    )
+    if result != 0:
+        error_number = ctypes.get_errno()
+        raise OSError(error_number, "H27 exclusive atomic rename failed; terminal consumed failure")
+
+
 def first_destination_observation_and_publish(activation_parent_fd: int, raw: bytes) -> None:
     try:
         os.stat(DESTINATION.name, dir_fd=activation_parent_fd, follow_symlinks=False)
@@ -420,17 +444,23 @@ def first_destination_observation_and_publish(activation_parent_fd: int, raw: by
         raise FileExistsError("H27 authority-instance destination already exists; terminal consumed failure")
 
     flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW
-    fd = os.open(DESTINATION.name, flags, 0o600, dir_fd=activation_parent_fd)
+    fd = os.open(STAGING_NAME, flags, 0o600, dir_fd=activation_parent_fd)
     try:
         if hasattr(os, "fchmod"):
             os.fchmod(fd, 0o600)
         descriptor = os.fstat(fd)
-        named = os.stat(DESTINATION.name, dir_fd=activation_parent_fd, follow_symlinks=False)
-        require(stat.S_ISREG(descriptor.st_mode) and stat.S_ISREG(named.st_mode), "H27 destination is not regular; terminal consumed failure")
-        require(descriptor.st_nlink == 1, "H27 destination hard link forbidden; terminal consumed failure")
-        require((descriptor.st_dev, descriptor.st_ino) == (named.st_dev, named.st_ino), "H27 destination descriptor mismatch; terminal consumed failure")
+        staged = os.stat(STAGING_NAME, dir_fd=activation_parent_fd, follow_symlinks=False)
+        require(stat.S_ISREG(descriptor.st_mode) and stat.S_ISREG(staged.st_mode), "H27 staging is not regular; terminal consumed failure")
+        require(descriptor.st_nlink == 1, "H27 staging hard link forbidden; terminal consumed failure")
+        require((descriptor.st_dev, descriptor.st_ino) == (staged.st_dev, staged.st_ino), "H27 staging descriptor mismatch; terminal consumed failure")
         write_all(fd, raw, "authority-instance artifact")
         os.fsync(fd)
+        atomic_exclusive_rename_at(activation_parent_fd, STAGING_NAME, DESTINATION.name)
+        published_stat = os.stat(DESTINATION.name, dir_fd=activation_parent_fd, follow_symlinks=False)
+        descriptor_after = os.fstat(fd)
+        require(stat.S_ISREG(published_stat.st_mode), "H27 published destination is not regular; terminal consumed failure")
+        require(descriptor_after.st_nlink == 1, "H27 published destination hard link forbidden; terminal consumed failure")
+        require((descriptor_after.st_dev, descriptor_after.st_ino) == (published_stat.st_dev, published_stat.st_ino), "H27 published destination descriptor mismatch; terminal consumed failure")
     finally:
         os.close(fd)
     os.fsync(activation_parent_fd)
@@ -487,6 +517,7 @@ def execute() -> dict[str, object]:
         "canonical_sha256": CANONICAL_SHA256,
         "destination_observed_after_consumption": True,
         "destination_created_exclusive": True,
+        "destination_published_by_atomic_exclusive_rename": True,
         "materializer_invoked": False,
         "science_or_locked_test": False,
         "retry_authorized": False,

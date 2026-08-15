@@ -14,7 +14,7 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 constructor gate terminal PASS; exact authority-instance publisher implemented dormant; STOP before Mac publication; pending external review. -->
+<!-- H26_CORRECTION_STATUS: H27 constructor gate terminal PASS; authority-instance publisher atomic-rename correction dormant; STOP before Mac publication; pending external review. -->
 ## État courant
 
 - Mise à jour : `2026-08-16`.
@@ -223,8 +223,14 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   identités du checkout. Il exige le registre constructor exact `reserved →
   consumed`, conserve les descripteurs des parents registry/activation et
   place la consommation one-shot avant la première observation relative de la
-  destination, suivie d'une création `O_EXCL`, fsync et relecture byte-exacte.
-  Les `21/21` tests publisher+gate et `py_compile` passent. Une suite voisine
+  destination. La première revue de `22aefd65...` a rendu un `FAIL` limité :
+  l'écriture directe du final omettait l'atomic rename transitivement scellé.
+  Le correctif dormant crée désormais un staging `O_EXCL` dans le même parent,
+  le fsync, puis appelle uniquement `renameatx_np(..., RENAME_EXCL)` vers le
+  final, sans fallback écrasant ni cleanup post-consommation. Le descripteur du
+  staging reste ouvert pendant le rename; inode, taille, blob et SHA du final
+  sont ensuite revérifiés avant STOP.
+  Les `23/23` tests publisher+gate et `py_compile` passent. Une suite voisine
   plus large a rendu `24/26` sur Windows : les deux seuls échecs sont les
   assertions LF historiques sur des fichiers checkoutés CRLF; les blobs Git
   exacts restent ceux rehashés par le runner. Aucun ACK réel, SSH, accès Mac,

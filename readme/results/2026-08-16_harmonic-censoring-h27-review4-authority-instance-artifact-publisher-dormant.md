@@ -2,7 +2,7 @@
 
 ## Verdict interne
 
-`IMPLEMENTATION_ONLY_SUCCESS_STOP_PENDING_EXTERNAL_REVIEW`.
+`ATOMIC_EXCLUSIVE_RENAME_CORRECTION_SUCCESS_STOP_PENDING_EXTERNAL_REVIEW`.
 
 La preuve terminale du constructor gate archivée dans `6e792bf710595319d7ee85d28ee2d186463546c7`
 a reçu un `PASS` externe. Le gate est consommé et n'est jamais rejoué. La seule
@@ -49,13 +49,23 @@ Avant toute consommation, le runner :
    `O_DIRECTORY|O_NOFOLLOW` ;
 8. répète les validations immédiatement avant la frontière one-shot.
 
+La première revue externe de `22aefd65098e0db089303b2c83b4ae0cb92ca912`
+a rendu un `FAIL` limité : l'écriture directe du fichier final ne respectait
+pas l'atomic rename transitivement scellé. Aucun Mac ni ACK réel n'avait été
+utilisé.
+
 La future frontière irréversible est la création exclusive du registre de
 publication relatif au parent registry conservé. Le record `consumed` est écrit
 et fsyncé avant toute observation de la destination. Ensuite seulement, la
-destination est sondée relativement au parent activation conservé, créée avec
-`O_CREAT|O_EXCL|O_NOFOLLOW`, écrite avec les 882 octets exacts, fsyncée,
-relue par le même parent et rehashée. Tout échec post-consommation est terminal,
-sans retry, suppression, nettoyage ou réparation automatique.
+destination finale est sondée relativement au parent activation conservé. Un
+staging déterministe est créé dans ce même parent avec
+`O_CREAT|O_EXCL|O_NOFOLLOW`, écrit avec les 882 octets exacts et fsyncé. Le
+runner appelle ensuite exclusivement `renameatx_np(..., RENAME_EXCL)` vers le
+nom final, sans fallback vers `rename` ou `replace`, fsync le parent, puis
+rouvre le final par le même descripteur et le rehache. Le descripteur du staging
+reste ouvert pendant le rename et son inode est comparé au final. Tout échec
+post-consommation est terminal, sans retry, suppression, nettoyage ou
+réparation automatique ; un staging éventuel est conservé comme preuve.
 
 ## Validation locale
 
@@ -64,9 +74,15 @@ python -B -m unittest \
   tests.test_harmonic_censoring_h27_review4_authority_instance_artifact_publish \
   tests.test_harmonic_censoring_h27_review4_constructor_execution_gate
 
-Ran 21 tests in 46.881s
+Ran 23 tests
 OK
 ```
+
+Les tests ajoutés interdisent l'ouverture directe du final avec `O_CREAT`,
+prouvent l'ordre staging/write/fsync/exclusive-rename/parent-fsync/reopen et
+simulent une destination apparue juste avant le rename : elle n'est jamais
+écrasée. Un test séparé vérifie l'appel Darwin `renameatx_np` avec
+`RENAME_EXCL` et l'absence de fallback si cette primitive est indisponible.
 
 `py_compile` passe pour le runner et son test. Une exécution complémentaire de
 quatre modules a rendu `24/26`; les deux échecs sont les contrôles LF de deux

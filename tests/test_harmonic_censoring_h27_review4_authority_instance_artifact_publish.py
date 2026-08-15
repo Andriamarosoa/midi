@@ -115,34 +115,96 @@ class TestH27Review4AuthorityInstanceArtifactPublish(unittest.TestCase):
         self.assertEqual(bytes(write.call_args_list[1].args[1]), b"cdef")
         self.assertEqual(bytes(write.call_args_list[2].args[1]), b"def")
 
-    def test_destination_is_first_observed_then_created_exclusively(self) -> None:
+    def test_atomic_rename_uses_macos_renameatx_np_exclusive_without_fallback(self) -> None:
+        calls = []
+
+        class RenameAtx:
+            argtypes = None
+            restype = None
+
+            def __call__(self, source_fd, source, destination_fd, destination, flags):
+                calls.append((source_fd, source, destination_fd, destination, flags))
+                return 0
+
+        renameatx = RenameAtx()
+        libc = SimpleNamespace(renameatx_np=renameatx)
+        with mock.patch.object(self.module.sys, "platform", "darwin"), \
+             mock.patch.object(self.module.ctypes, "CDLL", return_value=libc):
+            self.module.atomic_exclusive_rename_at(44, self.module.STAGING_NAME, self.module.DESTINATION.name)
+        self.assertEqual(calls, [(
+            44, os.fsencode(self.module.STAGING_NAME), 44,
+            os.fsencode(self.module.DESTINATION.name), self.module.RENAME_EXCL,
+        )])
+        self.assertEqual(renameatx.restype, self.module.ctypes.c_int)
+        self.assertEqual(renameatx.argtypes[-1], self.module.ctypes.c_uint)
+
+        with mock.patch.object(self.module.sys, "platform", "darwin"), \
+             mock.patch.object(self.module.ctypes, "CDLL", side_effect=OSError("unavailable")), \
+             mock.patch.object(self.module.os, "rename", create=True) as rename, \
+             mock.patch.object(self.module.os, "replace") as replace:
+            with self.assertRaises(PermissionError):
+                self.module.atomic_exclusive_rename_at(44, self.module.STAGING_NAME, self.module.DESTINATION.name)
+        rename.assert_not_called()
+        replace.assert_not_called()
+
+    def test_destination_is_first_observed_then_staged_and_renamed_exclusively(self) -> None:
         raw = self.module.canonical_artifact_bytes()
         descriptor = SimpleNamespace(st_mode=stat.S_IFREG | 0o600, st_nlink=1, st_dev=3, st_ino=5)
         order = []
 
         def observed(*args, **kwargs):
-            order.append("stat")
-            if len([item for item in order if item == "stat"]) == 1:
+            name = args[0]
+            order.append("final_stat" if name == self.module.DESTINATION.name else "staging_stat")
+            if name == self.module.DESTINATION.name and order.count("final_stat") == 1:
                 raise FileNotFoundError
             return descriptor
 
         def opened(*args, **kwargs):
-            order.append("open")
+            order.append("staging_open")
             return 43
+
+        def renamed(parent_fd, source_name, destination_name):
+            order.append("exclusive_rename")
+            self.assertEqual((parent_fd, source_name, destination_name), (44, self.module.STAGING_NAME, self.module.DESTINATION.name))
 
         with mock.patch.object(self.module.os, "O_NOFOLLOW", 0x20000, create=True), \
              mock.patch.object(self.module.os, "stat", side_effect=observed), \
              mock.patch.object(self.module.os, "open", side_effect=opened) as open_mock, \
              mock.patch.object(self.module.os, "fchmod", create=True), \
              mock.patch.object(self.module.os, "fstat", return_value=descriptor), \
+             mock.patch.object(self.module.os, "write", side_effect=lambda fd, value: order.append("write") or len(value)), \
+             mock.patch.object(self.module.os, "fsync", side_effect=lambda fd: order.append("file_fsync" if fd == 43 else "parent_fsync")), \
+             mock.patch.object(self.module.os, "close"), \
+             mock.patch.object(self.module, "atomic_exclusive_rename_at", side_effect=renamed), \
+             mock.patch.object(self.module, "stable_regular_bytes_at", return_value=raw):
+            self.module.first_destination_observation_and_publish(44, raw)
+        self.assertEqual(order[:7], [
+            "final_stat", "staging_open", "staging_stat", "write", "file_fsync",
+            "exclusive_rename", "final_stat",
+        ])
+        self.assertLess(order.index("exclusive_rename"), order.index("parent_fsync"))
+        flags = self.module.os.O_WRONLY | self.module.os.O_CREAT | self.module.os.O_EXCL | 0x20000
+        open_mock.assert_called_once_with(self.module.STAGING_NAME, flags, 0o600, dir_fd=44)
+        self.assertNotEqual(open_mock.call_args.args[0], self.module.DESTINATION.name)
+
+    def test_destination_appearing_before_exclusive_rename_is_never_overwritten(self) -> None:
+        raw = self.module.canonical_artifact_bytes()
+        descriptor = SimpleNamespace(st_mode=stat.S_IFREG | 0o600, st_nlink=1, st_dev=3, st_ino=5)
+        with mock.patch.object(self.module.os, "O_NOFOLLOW", 0x20000, create=True), \
+             mock.patch.object(self.module.os, "stat", side_effect=[FileNotFoundError(), descriptor]), \
+             mock.patch.object(self.module.os, "open", return_value=43) as opened, \
+             mock.patch.object(self.module.os, "fchmod", create=True), \
+             mock.patch.object(self.module.os, "fstat", return_value=descriptor), \
              mock.patch.object(self.module.os, "write", side_effect=lambda fd, value: len(value)), \
              mock.patch.object(self.module.os, "fsync"), \
              mock.patch.object(self.module.os, "close"), \
-             mock.patch.object(self.module, "stable_regular_bytes_at", return_value=raw):
-            self.module.first_destination_observation_and_publish(44, raw)
-        self.assertEqual(order[:2], ["stat", "open"])
-        flags = self.module.os.O_WRONLY | self.module.os.O_CREAT | self.module.os.O_EXCL | 0x20000
-        open_mock.assert_called_once_with(self.module.DESTINATION.name, flags, 0o600, dir_fd=44)
+             mock.patch.object(self.module, "atomic_exclusive_rename_at", side_effect=FileExistsError("destination appeared")) as renamed, \
+             mock.patch.object(self.module, "stable_regular_bytes_at") as reread:
+            with self.assertRaises(FileExistsError):
+                self.module.first_destination_observation_and_publish(44, raw)
+        opened.assert_called_once()
+        renamed.assert_called_once_with(44, self.module.STAGING_NAME, self.module.DESTINATION.name)
+        reread.assert_not_called()
 
     def test_execute_orders_ack_preflight_revalidation_consumption_observation_stop(self) -> None:
         identities = (("a", "b", 1, "c"),)
@@ -168,6 +230,7 @@ class TestH27Review4AuthorityInstanceArtifactPublish(unittest.TestCase):
         self.assertEqual(order.count("observe_publish"), 1)
         self.assertEqual(report["status"], "H27_REVIEW4_AUTHORITY_INSTANCE_ARTIFACT_PUBLICATION_TERMINAL_SUCCESS_STOP")
         self.assertTrue(report["publication_authority_consumed"] and report["destination_created_exclusive"])
+        self.assertTrue(report["destination_published_by_atomic_exclusive_rename"])
         self.assertFalse(report["materializer_invoked"] or report["science_or_locked_test"] or report["retry_authorized"])
 
     def test_preflight_failure_never_consumes_or_observes_destination(self) -> None:
