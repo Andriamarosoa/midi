@@ -24,8 +24,8 @@ INITIAL_HEAD = "75322bc6b0fbf2afe458cc3ed5116c9cb8229cbf"
 SYMBOLIC_HEAD = "refs/heads/codex/independent-note-neural-v2"
 ROOT_REF_PATTERN = re.compile(r"^[A-Z][A-Z0-9_]*$")
 
-CONTRACT_IDENTITY = {"path":"configs/harmonic_censoring_h27_odb_only_blob_import_contract.json","git_blob_sha1":"42eebb259f247715ddcb404c8c236418093b6a81","size_bytes":7477,"raw_sha256":"567712b4e5c4491498be68be65b2633a4537d2221d484bd4a4dcbdbaf16a5b7a"}
-CONTRACT_SEAL_IDENTITY = {"path":"configs/harmonic_censoring_h27_odb_only_blob_import_contract_external_seal.json","git_blob_sha1":"4002015587573e9a3e0b8f6dbb6dcea93b967b6e","size_bytes":5382,"raw_sha256":"95120579e240b454a4bbac21236a4c993b80244ff11d687b27e7a550ed422272"}
+CONTRACT_IDENTITY = {"path":"configs/harmonic_censoring_h27_odb_only_blob_import_contract.json","git_blob_sha1":"7f5905f0d2b24eb96a6e1f1555dbe3993e85adbd","size_bytes":8149,"raw_sha256":"8e4a00fdba0d7e56c0d77e66f141a914de5c29d08cff914ba2ff53ff7d39d420"}
+CONTRACT_SEAL_IDENTITY = {"path":"configs/harmonic_censoring_h27_odb_only_blob_import_contract_external_seal.json","git_blob_sha1":"8cfdaba605115f43fffb66fc28161bd85e8cada9","size_bytes":6054,"raw_sha256":"745d80d1d163e67b68efb2dae1d4b337e068e4909d40718000848916eaff9573"}
 PAYLOADS = (
     {"path":"scripts/h27_detach_target_checkout_one_shot.py","git_blob_sha1":"d1cdf1562a814cef271d606da331e96565fcc79a","size_bytes":10428,"raw_sha256":"e0fd3a4794cc2fdb266b9f3b89da25fa1260f6575e31dc3d95f761ed313b833f"},
     {"path":"configs/harmonic_censoring_h27_target_checkout_detach_runner_identity_binding.json","git_blob_sha1":"d03385d842ca11631ba690d0a4bb70448c84480e","size_bytes":4927,"raw_sha256":"3db676881b0fca2265c09801be5fbb94d98bbf475429a7113deee872a68970df"},
@@ -144,8 +144,25 @@ def verify_checkout_odb_and_source_realpaths() -> Path:
 
 
 def require_reference_storage_files() -> None:
-    if target_git(["rev-parse", "--show-ref-format"]).stdout != b"files\n":
-        raise PermissionError("H27 target reference storage format is not files.")
+    repository_format = target_git(["config", "--local", "--get", "core.repositoryFormatVersion"])
+    ref_storage = target_git(
+        ["config", "--local", "--get", "extensions.refStorage"],
+        expected=(0, 1),
+    )
+    refs_directory = GIT_DATABASE / "refs"
+    reftable_directory = GIT_DATABASE / "reftable"
+    try:
+        refs_directory_resolved = refs_directory.resolve(strict=True)
+    except OSError as exc:
+        raise PermissionError("H27 target reference storage format is not the sealed files backend.") from exc
+    if (
+        repository_format.stdout != b"0\n" or repository_format.stderr != b""
+        or ref_storage.returncode != 1 or ref_storage.stdout != b"" or ref_storage.stderr != b""
+        or refs_directory_resolved != refs_directory
+        or refs_directory.is_symlink() or not refs_directory.is_dir()
+        or reftable_directory.exists() or reftable_directory.is_symlink()
+    ):
+        raise PermissionError("H27 target reference storage format is not the sealed files backend.")
 
 
 def require_baseline() -> None:

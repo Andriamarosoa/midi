@@ -14,12 +14,23 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 Git-2.39 files-backend proof correction pending external review; importer binding stale, no import. -->
+<!-- H26_CORRECTION_STATUS: H27 Git-2.39 importer rebound pending external review; dormant, no import. -->
 ## État courant
 
 - Mise à jour : `2026-08-15`.
 - État courant :
-  `H27_FILES_BACKEND_PROOF_CONTRACT_CORRECTION_PENDING_EXTERNAL_REVIEW_IMPORTER_STALE_NO_IMPORT`.
+  `H27_GIT_2_39_IMPORTER_REBOUND_PENDING_EXTERNAL_REVIEW_DORMANT_NO_IMPORT`.
+- La revue externe de `5abab29c2687d41e54cc2e63f99f97afb87f0166`
+  conclut `PASS` sur le contrat rescellé et autorise uniquement la correction
+  dormante de l'importer, de son binding, de son seal, des tests et de la
+  documentation. Le lot courant relie donc l'importer au contrat
+  `7f5905f0...` et à son seal `8cfdaba6...`, puis implémente aux trois
+  frontières la preuve composite compatible Apple Git 2.39 : repository
+  format exact `0`, absence exacte de `extensions.refStorage`, `.git/refs`
+  réel non-symlink et `.git/reftable` absent. Aucun accès Mac, apport d'objet,
+  ACK, import, detach ou downstream n'a lieu. Le blocage des treize objets
+  source reste intact. Prochaine action unique : revue externe de l'importer
+  dormant corrigé et de ses identités exactes.
 - La revue externe de `132e3da97180ce28c851b06e6a271430d7072292`
   conclut `PASS` sur l'importer dormant et autorise uniquement son préflight
   Mac lecture seule. La cible reste sur HEAD `75322bc6...`, symbolic HEAD
@@ -37,11 +48,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   remplace l'option Git 2.45 incompatible par une preuve composite Git 2.39 :
   repository format exact `0`, absence exacte de `extensions.refStorage`,
   `.git/refs` réel non-symlink et `.git/reftable` absent, aux trois frontières.
-  Runner et blocage des treize objets source restent inchangés ; aucun nouvel
-  accès Mac ou effet. Comme le contrat et son seal ont de nouvelles identités,
-  le binding de l'importer reste volontairement lié aux anciennes identités et
-  est désormais stale/non exécutable jusqu'à une autorisation séparée. Le test
-  encode explicitement cette divergence au lieu de la masquer.
+  Runner et blocage des treize objets source restaient inchangés à cette étape ;
+  aucun nouvel accès Mac ou effet. Le binding de l'importer était alors
+  volontairement stale/non exécutable. La revue externe a depuis autorisé la
+  correction dormante archivée dans l'entrée courante ci-dessus.
 - La revue externe de `dffce1f9a144be60968b7912e99c761ec058ee0f`
   conclut `PASS` sur le contrat ODB-only scellé et autorise uniquement son
   implémentation dormante. Le lot courant ajoute le one-shot importer exact,
@@ -71,8 +81,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   signalant les pseudorefs omises par `for-each-ref`, la correction courante
   ajoute la capture byte-exacte de tous les fichiers root-ref/pseudoref présents
   au nom majuscule dans `.git`. Après le troisième `FAIL`, le contrat impose
-  aussi `rev-parse --show-ref-format == files` avant la capture, avant le
-  premier effet futur et au contrôle terminal ; `reftable` est refusé. Les deux
+  aussi, dans sa première version, `rev-parse --show-ref-format == files` avant
+  la capture, avant le premier effet futur et au contrôle terminal. Cette
+  commande Git 2.45 a ensuite été remplacée par la preuve composite Git 2.39
+  décrite dans l'entrée courante ; `reftable` reste refusé. Les deux
   snapshots sont comparés juste avant la
   première écriture future puis après les huit. Retry, cleanup et rollback
   implicite sont interdits ;

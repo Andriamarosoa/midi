@@ -2,7 +2,8 @@
 
 Date : 2026-08-15
 Branche : `codex/independent-note-neural-v2`
-Autorisation amont : PASS de `dffce1f9a144be60968b7912e99c761ec058ee0f`
+Autorisation amont initiale : PASS de `dffce1f9a144be60968b7912e99c761ec058ee0f`
+Correction Git 2.39 autorisée par : PASS de `5abab29c2687d41e54cc2e63f99f97afb87f0166`
 
 ## Portée
 
@@ -35,7 +36,9 @@ source (contrat, seal, huit payloads) avant le premier `hash-object --stdin`.
 
 Le runner vérifie et revalide :
 
-- backend de refs exact `files` ;
+- backend de refs `files` prouvé par repository format exact `0`, absence
+  exacte de `extensions.refStorage`, `.git/refs` réel non-symlink et
+  `.git/reftable` absent ;
 - HEAD `75322bc6...`, symbolic HEAD, worktree propre et absence d'index lock ;
 - absence de l'ACK et du processus du runner de detach ;
 - snapshots byte-exacts des refs régulières, root refs/pseudorefs et index ;
@@ -61,24 +64,24 @@ réparation, rollback revendiqué ou récupération automatique.
 ## Identités
 
 ```text
-runner blob    80f0aeb847df2af6ccef7cd02242caa0dcfeacb0
-runner size    18087
-runner sha256  911bd1efecc223eb18a6e637190a18f990c856c6b7f1af31f9b3f46299170687
+runner blob    4520d69b04eec017f90a6a1c717519e6a303538d
+runner size    18954
+runner sha256  5fee4f5d08ff7640a5e1542f7dd6aeb873a03d0e8a38d35335b8870552d645af
 
-binding blob   f47f9d944a44472de6f339d93807e12bf5503e39
-binding size   4604
-binding sha256 9812a8de86eb02b63d149a1fa5b04ea9be8b4489f50cc8a4971536d262087e31
+binding blob   0bba45c130c9f83ace74a91d92e48d53525740e7
+binding size   5067
+binding sha256 0d751be65f812678ddc59a7f57b3af68d215d626c93aebdbeb65bfd417aa8077
 
-seal blob      08172eedbae3bc7502e07f607cdfc8a42f2c6e88
-seal size      3840
-seal sha256    1ab74c0180167a54d086a941dd4c79b2069a1a1e1693fb7d8e04c198191ff3ad
+seal blob      68cdc76688cee5364b54a8febc6b2d9a46e0994e
+seal size      4314
+seal sha256    e45c26cddd2335fc4236dd62d0011a5208104d9d46e79e4241aeb0bc5e0530aa
 ```
 
 ## Validation locale
 
 - `py_compile` runner + test : réussi ;
-- tests ciblés contrat + importer : `10/10` en `0,033 s` ;
-- suite H27 complète : `524/524` en `94,095 s` ;
+- tests ciblés contrat + importer : `11/11` en `0,222 s` ;
+- suite H27 complète : `525/525` en `85,741 s` ;
 - `git diff --check` : réussi avant commit.
 
 ## STOP

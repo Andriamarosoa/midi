@@ -5,6 +5,7 @@ import importlib.util
 import json
 from pathlib import Path
 import subprocess
+import tempfile
 import unittest
 from unittest import mock
 
@@ -50,27 +51,41 @@ class TestH27OdbOnlyBlobImporter(unittest.TestCase):
             self.assertFalse(raw.startswith(b"\xef\xbb\xbf"))
             self.assertTrue(raw.endswith(b"\n"))
         self.assertEqual(self.binding["runner"], identity("scripts/h27_import_exact_blobs_odb_only_one_shot.py"))
-        stale_contract = {
+        current_contract = {
             "path": "configs/harmonic_censoring_h27_odb_only_blob_import_contract.json",
-            "git_blob_sha1": "42eebb259f247715ddcb404c8c236418093b6a81",
-            "size_bytes": 7477,
-            "raw_sha256": "567712b4e5c4491498be68be65b2633a4537d2221d484bd4a4dcbdbaf16a5b7a",
+            "git_blob_sha1": "7f5905f0d2b24eb96a6e1f1555dbe3993e85adbd",
+            "size_bytes": 8149,
+            "raw_sha256": "8e4a00fdba0d7e56c0d77e66f141a914de5c29d08cff914ba2ff53ff7d39d420",
         }
-        stale_contract_seal = {
+        current_contract_seal = {
             "path": "configs/harmonic_censoring_h27_odb_only_blob_import_contract_external_seal.json",
-            "git_blob_sha1": "4002015587573e9a3e0b8f6dbb6dcea93b967b6e",
-            "size_bytes": 5382,
-            "raw_sha256": "95120579e240b454a4bbac21236a4c993b80244ff11d687b27e7a550ed422272",
+            "git_blob_sha1": "8cfdaba605115f43fffb66fc28161bd85e8cada9",
+            "size_bytes": 6054,
+            "raw_sha256": "745d80d1d163e67b68efb2dae1d4b337e068e4909d40718000848916eaff9573",
         }
-        self.assertEqual(self.binding["approved_contract"], stale_contract)
-        self.assertEqual(self.binding["approved_contract_external_seal"], stale_contract_seal)
-        self.assertNotEqual(self.binding["approved_contract"], identity("configs/harmonic_censoring_h27_odb_only_blob_import_contract.json"))
-        self.assertNotEqual(self.binding["approved_contract_external_seal"], identity("configs/harmonic_censoring_h27_odb_only_blob_import_contract_external_seal.json"))
+        self.assertEqual(self.binding["approved_contract"], current_contract)
+        self.assertEqual(self.binding["approved_contract_external_seal"], current_contract_seal)
+        self.assertEqual(self.binding["approved_contract_commit"], "5abab29c2687d41e54cc2e63f99f97afb87f0166")
+        self.assertEqual(self.binding["approved_contract"], identity("configs/harmonic_censoring_h27_odb_only_blob_import_contract.json"))
+        self.assertEqual(self.binding["approved_contract_external_seal"], identity("configs/harmonic_censoring_h27_odb_only_blob_import_contract_external_seal.json"))
         self.assertEqual(self.binding["normative_order"], self.contract["future_fail_closed_order"])
         self.assertEqual(self.seal["identity_binding"], identity("configs/harmonic_censoring_h27_odb_only_blob_importer_identity_binding.json"))
         self.assertEqual(self.seal["runner"], self.binding["runner"])
         self.assertEqual(self.seal["approved_contract"], self.binding["approved_contract"])
         self.assertEqual(self.seal["approved_contract_external_seal"], self.binding["approved_contract_external_seal"])
+        self.assertEqual(self.seal["approved_contract_commit"], self.binding["approved_contract_commit"])
+        expected_files_proof = {
+            "proof_id": "H27_FILES_BACKEND_COMPATIBLE_WITH_APPLE_GIT_2_39_V1",
+            "repository_format_stdout_exact": "0\n",
+            "ref_storage_extension_returncode_exact": 1,
+            "ref_storage_extension_stdout_exact": "",
+            "ref_storage_extension_stderr_exact": "",
+            "refs_directory_real_non_symlink_required": True,
+            "reftable_directory_absent_required": True,
+            "verified_before_snapshot_before_first_write_and_after_all_writes": True,
+        }
+        self.assertEqual(self.binding["reference_storage_files_proof"], expected_files_proof)
+        self.assertEqual(self.seal["future_reference_storage_files_proof"], expected_files_proof)
         self.assertEqual(self.seal["future_normative_order"], self.contract["future_fail_closed_order"])
         self.assertEqual(set(self.seal), {
             "schema_version", "seal_id", "status", "identity_binding", "runner",
@@ -82,6 +97,7 @@ class TestH27OdbOnlyBlobImporter(unittest.TestCase):
             "future_git_no_lazy_fetch_exact", "future_network_fetch_pull_sync_forbidden",
             "future_all_payloads_buffered_and_prevalidated_before_any_write",
             "future_target_write_operation_exact", "future_exact_write_count",
+            "future_reference_storage_files_proof",
             "future_object_database_path_delta_exactly_eight_expected_loose_objects",
             "future_preexisting_object_paths_and_metadata_unchanged", "future_normative_order",
             "future_single_attempt_only", "future_partial_import_terminal_consumed_failure",
@@ -105,6 +121,52 @@ class TestH27OdbOnlyBlobImporter(unittest.TestCase):
             "science_or_locked_test",
         ):
             self.assertFalse(self.seal[key])
+
+    def test_files_backend_proof_is_exact_and_fail_closed(self) -> None:
+        repository_format = subprocess.CompletedProcess([], 0, stdout=b"0\n", stderr=b"")
+        no_ref_storage = subprocess.CompletedProcess([], 1, stdout=b"", stderr=b"")
+        with tempfile.TemporaryDirectory() as temporary:
+            git_database = Path(temporary).resolve()
+            refs_directory = git_database / "refs"
+            refs_directory.mkdir()
+            with (
+                mock.patch.object(self.module, "GIT_DATABASE", git_database),
+                mock.patch.object(self.module, "target_git", side_effect=[repository_format, no_ref_storage]) as target,
+            ):
+                self.module.require_reference_storage_files()
+            self.assertEqual(target.call_args_list, [
+                mock.call(["config", "--local", "--get", "core.repositoryFormatVersion"]),
+                mock.call(["config", "--local", "--get", "extensions.refStorage"], expected=(0, 1)),
+            ])
+
+            invalid_git_results = (
+                (subprocess.CompletedProcess([], 0, stdout=b"1\n", stderr=b""), no_ref_storage),
+                (repository_format, subprocess.CompletedProcess([], 0, stdout=b"reftable\n", stderr=b"")),
+            )
+            for first, second in invalid_git_results:
+                with (
+                    self.subTest(first=first.stdout, second=second.stdout),
+                    mock.patch.object(self.module, "GIT_DATABASE", git_database),
+                    mock.patch.object(self.module, "target_git", side_effect=[first, second]),
+                ):
+                    with self.assertRaisesRegex(PermissionError, "sealed files backend"):
+                        self.module.require_reference_storage_files()
+
+            refs_directory.rmdir()
+            with (
+                mock.patch.object(self.module, "GIT_DATABASE", git_database),
+                mock.patch.object(self.module, "target_git", side_effect=[repository_format, no_ref_storage]),
+            ):
+                with self.assertRaisesRegex(PermissionError, "sealed files backend"):
+                    self.module.require_reference_storage_files()
+            refs_directory.mkdir()
+            (git_database / "reftable").mkdir()
+            with (
+                mock.patch.object(self.module, "GIT_DATABASE", git_database),
+                mock.patch.object(self.module, "target_git", side_effect=[repository_format, no_ref_storage]),
+            ):
+                with self.assertRaisesRegex(PermissionError, "sealed files backend"):
+                    self.module.require_reference_storage_files()
 
     def test_all_payloads_are_received_and_prevalidated_before_return(self) -> None:
         source = Path("/external/source/.git")
