@@ -14,12 +14,12 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 constructor HEAD transition runner implemented dormant and locally tested; pending external review, no Mac execution. -->
+<!-- H26_CORRECTION_STATUS: H27 constructor HEAD transition consumed successfully to required detached HEAD; wrapper post-success exit CR anomaly archived; STOP before constructor. -->
 ## État courant
 
 - Mise à jour : `2026-08-16`.
 - État courant :
-  `H27_REVIEW4_CONSTRUCTOR_HEAD_TRANSITION_RUNNER_DORMANT_PENDING_EXTERNAL_REVIEW`.
+  `H27_REVIEW4_CONSTRUCTOR_HEAD_TRANSITION_TERMINAL_SUCCESS_STOP_PENDING_EXTERNAL_REVIEW`.
 - La revue externe de `61dc4b496a454b596fca6ac361504f441e987aab`
   conclut `PASS` sur le sender dormant corrigé et autorise uniquement sa
   préparation locale Windows au HEAD historique. Le préflight live a révélé
@@ -156,6 +156,20 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   autre commande contenant le nom exact du runner. Un test dynamique couvre
   le PID courant accepté, le second PID rejeté et l'absence de checkout. Le
   reste du contrat et toutes les identités scientifiques restent inchangés.
+  La revue externe de `f4485f20da16f9342789cddca189e8d593efff01`
+  rend ensuite `PASS — exécutable` et autorise une seule invocation SSH avec
+  téléchargement du blob exact `037703a9...`, triple vérification puis ACK
+  transition distinct. Cette invocation unique a exécuté le checkout et le
+  runner a émis
+  `H27_REVIEW4_CONSTRUCTOR_HEAD_TRANSITION_TERMINAL_SUCCESS_STOP` : HEAD
+  `46a6bdf8...`, détaché/propre, lock absent, refs et bundle inchangés,
+  registre/final/staging absents, aucune consommation constructor, aucun
+  materializer/science/locked-test. La transition est définitivement
+  consommée. Après cette preuve de succès, le shell bootstrap a rendu `255`
+  uniquement parce qu'un CR de transport s'est ajouté au dernier `exit 0`;
+  aucun retry ou contrôle distant supplémentaire n'a été lancé. STOP avant
+  constructor. Rapport :
+  `readme/results/2026-08-16_harmonic-censoring-h27-review4-constructor-head-transition-terminal-execution.md`.
 - La revue externe de `bc9fd98e4fdc011f229979206e17040ac66017d5`
   conclut `PASS` sur le receiver exact et autorise uniquement le sender de
   préparation dormant couvrant les quatre étapes pré-SSH. Le lot courant
