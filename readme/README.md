@@ -14,12 +14,23 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 control-parent contract binding PASS; dormant one-shot runner, binding and seal pending external review, no Mac execution/filesystem/registry/creator/bundle/science. -->
+<!-- H26_CORRECTION_STATUS: H27 control-parent runner stale after read-only device drift; corrective contract and seal pending external review, no runner execution/Mac effect/registry/creator/bundle/science. -->
 ## État courant
 
 - Mise à jour : `2026-08-14`.
 - État courant :
-  `H27_CONTROL_PARENT_ONE_SHOT_RUNNER_PENDING_EXTERNAL_REVIEW_DORMANT`.
+  `H27_CONTROL_PARENT_IDENTITY_DRIFT_CORRECTION_CONTRACT_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de l'arrêt pré-effet conclut `PASS` : le parent réel
+  `/Users/amcarene/h27-admin` conserve l'inode `1445438` mais son device
+  observé en lecture seule est désormais `16777234`, contre `16777233` dans
+  la chaîne scellée. Le runner `96df0511...` n'a jamais été exécuté, son ACK
+  n'a pas été posé, il n'est pas consommé mais son autorisation est révoquée
+  et il est stale. Le lot courant ajoute uniquement un contrat correctif
+  déclaratif, son external seal, un test et la documentation. Les sept objets
+  historiques restent byte-identiques. Aucun nouveau runner ni accès Mac.
+  Rapport :
+  `readme/results/2026-08-15_harmonic-censoring-h27-control-parent-identity-drift-correction-contract.md`.
+  Prochaine action unique : revue externe du contrat correctif et de son seal.
 - La revue externe de `a8662780533c9c613b22f709bd5da94d1526f314`
   conclut `PASS`. Le lot courant implémente uniquement le runner dormant
   one-shot `scripts/h27_create_control_parent_one_shot.py`, son identity
