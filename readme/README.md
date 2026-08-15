@@ -14,12 +14,12 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 constructor gate terminal PASS; authority-instance publisher atomic-rename correction dormant; STOP before Mac publication; pending external review. -->
+<!-- H26_CORRECTION_STATUS: H27 authority-instance publisher stopped pre-consumption because activation parent is absent; no retry; pending external review. -->
 ## État courant
 
 - Mise à jour : `2026-08-16`.
 - État courant :
-  `H27_REVIEW4_AUTHORITY_INSTANCE_ARTIFACT_PUBLISHER_DORMANT_PENDING_EXTERNAL_REVIEW`.
+  `H27_REVIEW4_AUTHORITY_INSTANCE_PUBLICATION_PRECONSUMPTION_FAILURE_STOP_PENDING_EXTERNAL_REVIEW`.
 - La revue externe de `61dc4b496a454b596fca6ac361504f441e987aab`
   conclut `PASS` sur le sender dormant corrigé et autorise uniquement sa
   préparation locale Windows au HEAD historique. Le préflight live a révélé
@@ -242,6 +242,20 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `readme/results/2026-08-16_harmonic-censoring-h27-review4-authority-instance-artifact-publisher-dormant.md`.
   Prochaine action unique : revue externe du commit complet; aucune publication
   Mac avant un nouveau `PASS` explicite.
+  La revue externe de `d296bfee703f9aa3b59904cf8a231a0a4091d3fe`
+  a ensuite rendu `PASS — exécutable` et autorisé une unique invocation Mac du
+  publisher exact. L'unique SSH a vérifié la source hors checkout (`27101`
+  octets, blob `799dc5bb...`, SHA-256 `0688b959...`), puis le runner s'est
+  arrêté avant la création du registre de publication : le parent scellé
+  `/Users/amcarene/h27-admin/activation` était absent et
+  `open_verified_parent()` a levé `FileNotFoundError`. Aucun statut terminal de
+  succès n'a été émis. Selon l'ordre du runner, cette panne précède
+  `consume_publication_authority()` et constitue donc un échec
+  pré-consommation; aucune nouvelle observation distante n'est toutefois
+  effectuée. Aucun retry, second SSH, création de parent, cleanup, materializer,
+  science ou locked-test. STOP et revue externe obligatoire avant toute suite.
+  Rapport :
+  `readme/results/2026-08-16_harmonic-censoring-h27-review4-authority-instance-publication-preconsumption-failure.md`.
 - La revue externe de `bc9fd98e4fdc011f229979206e17040ac66017d5`
   conclut `PASS` sur le receiver exact et autorise uniquement le sender de
   préparation dormant couvrant les quatre étapes pré-SSH. Le lot courant
