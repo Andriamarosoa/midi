@@ -14,12 +14,23 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 control-parent identity-drift corrective contract PASS; administrative binding and seal pending external review, no corrected runner/Mac effect/registry/creator/bundle/science. -->
+<!-- H26_CORRECTION_STATUS: H27 corrected control-parent runner implemented dormant and identity-sealed pending external review; no Mac effect/registry/creator/bundle/science. -->
 ## État courant
 
-- Mise à jour : `2026-08-14`.
+- Mise à jour : `2026-08-15`.
 - État courant :
-  `H27_CONTROL_PARENT_IDENTITY_DRIFT_CORRECTION_BINDING_PENDING_EXTERNAL_REVIEW`.
+  `H27_CONTROL_PARENT_CORRECTED_RUNNER_PENDING_EXTERNAL_REVIEW`.
+- La revue externe de `da614f836e129df9a94534fae621e823ddef1d99`
+  conclut `PASS`. Le nouveau runner one-shot corrigé est distinct du blob stale
+  `96df0511...`, requiert le parent exact `16777234 / 1445438`, rehache onze
+  identités avant toute observation du parent, puis impose une unique création
+  `control` en mode `0700`. Son binding et son seal conservent explicitement
+  l'ancien runner comme révoqué, jamais exécuté et jamais consommé. Le runner
+  demeure dormant : aucune action Mac, aucun ACK, aucun `mkdir`, registre,
+  autorité, creator, bundle, calcul scientifique ou locked test. Rapport :
+  `readme/results/2026-08-15_harmonic-censoring-h27-control-parent-corrected-runner.md`.
+  Prochaine action unique : revue externe du runner corrigé, de son binding et
+  de son seal exacts; aucune exécution Mac avant un nouveau `PASS` explicite.
 - La revue externe de `90fe6eec1a3c6eeb0e174c24b497280a39ee4668`
   conclut `PASS`. Le lot courant lie uniquement le contrat correctif, son seal
   et les sept objets historiques, soit neuf identités uniques. Le binding
