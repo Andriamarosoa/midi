@@ -14,12 +14,25 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 exact-detach transition contract PASS; administrative identity binding sealed locally and pending external review. -->
+<!-- H26_CORRECTION_STATUS: H27 transition contract and binding PASS; dormant exact-detach runner implemented and pending external review. -->
 ## État courant
 
 - Mise à jour : `2026-08-15`.
 - État courant :
-  `H27_TARGET_CHECKOUT_EXACT_DETACH_TRANSITION_CONTRACT_IDENTITY_BINDING_PENDING_EXTERNAL_REVIEW`.
+  `H27_TARGET_CHECKOUT_EXACT_DETACH_ONE_SHOT_RUNNER_PENDING_EXTERNAL_REVIEW_DORMANT`.
+- La revue externe de `1c523581c866890c932268b54b66575871741acd`
+  conclut `PASS` sur le binding corrigé et autorise uniquement le runner
+  dormant one-shot, son binding, seal, tests et documentation. Le runner
+  courant exige macOS, zéro argument et l'ACK exact
+  `H27_TARGET_CHECKOUT_DETACH_EXECUTE=1`, rehash cinq identités après les
+  realpaths et avant le HEAD, puis impose HEAD initial propre, cible de type
+  commit, revalidation et une unique commande `git checkout --detach` vers
+  `7ee0a897...`. Il vérifie ensuite HEAD exact, état detached et propreté,
+  sans retry/reset/cleanup. Il n'est pas exécuté et aucune commande Mac n'a
+  lieu. Rapport :
+  `readme/results/2026-08-15_harmonic-censoring-h27-target-checkout-exact-detach-one-shot-runner.md`.
+  Prochaine action unique : revue externe du runner dormant, de son binding et
+  de son seal ; aucun detach réel avant un nouveau `PASS` explicite.
 - La revue externe de `36d9ee11fc800a7e57edff1a73858c47ccbdb947`
   conclut `PASS` sur le contrat de transition et autorise uniquement son
   identity binding administratif. Le lot courant lie byte-exactement le
