@@ -14,12 +14,12 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 activation parent created exactly at 0700; publisher remains uninvoked; STOP pending external review. -->
+<!-- H26_CORRECTION_STATUS: H27 authority-instance publication terminal PASS; authority consumed; STOP before materializer pending external review. -->
 ## État courant
 
 - Mise à jour : `2026-08-16`.
 - État courant :
-  `H27_REVIEW4_ACTIVATION_PARENT_CREATION_TERMINAL_SUCCESS_STOP_PENDING_EXTERNAL_REVIEW`.
+  `H27_REVIEW4_AUTHORITY_INSTANCE_ARTIFACT_PUBLICATION_TERMINAL_SUCCESS_STOP_PENDING_EXTERNAL_REVIEW`.
 - La revue externe de `61dc4b496a454b596fca6ac361504f441e987aab`
   conclut `PASS` sur le sender dormant corrigé et autorise uniquement sa
   préparation locale Windows au HEAD historique. Le préflight live a révélé
@@ -271,6 +271,20 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `readme/results/2026-08-16_harmonic-censoring-h27-review4-activation-parent-terminal-creation.md`.
   Prochaine action unique : revue externe de cette création avant toute nouvelle
   invocation du publisher exact `d296bfee...`.
+  Cette revue a rendu `PASS` et autorisé une nouvelle invocation unique du
+  publisher exact dans un bootstrap neuf `...-r2`. L'unique SSH a revérifié la
+  source (`27101` octets, blob `799dc5bb...`, SHA-256 `0688b959...`) puis le
+  runner a rendu
+  `H27_REVIEW4_AUTHORITY_INSTANCE_ARTIFACT_PUBLICATION_TERMINAL_SUCCESS_STOP`.
+  Les 92 identités prédécesseures et le registre constructor terminal sont
+  conformes. L'autorité de publication `2645743f...` est consommée; l'instance
+  `d44941a8...` de `882` octets a été publiée par staging et
+  `renameatx_np(..., RENAME_EXCL)`, puis vérifiée au blob `dc85ee26...` et au
+  SHA-256 `89d03ce3...`. Aucun retry n'est autorisé. Materializer, P0/P1/P2,
+  science et locked-test restent non exécutés. Rapport :
+  `readme/results/2026-08-16_harmonic-censoring-h27-review4-authority-instance-artifact-publication-terminal.md`.
+  Prochaine action unique : revue externe de cette preuve terminale avant tout
+  materializer ou préparation de données.
 - La revue externe de `bc9fd98e4fdc011f229979206e17040ac66017d5`
   conclut `PASS` sur le receiver exact et autorise uniquement le sender de
   préparation dormant couvrant les quatre étapes pré-SSH. Le lot courant
