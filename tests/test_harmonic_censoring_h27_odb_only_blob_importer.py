@@ -102,11 +102,14 @@ class TestH27OdbOnlyBlobImporter(unittest.TestCase):
         }
         for item in self.module.PAYLOADS:
             raws[item["git_blob_sha1"]] = (ROOT / item["path"]).read_bytes()
+        events: list[str] = []
 
         def read(_source, blob_sha1):
+            events.append("source_read")
             return raws[blob_sha1]
 
         def hash_without_write(arguments, *, stdin=None, expected=(0,)):
+            events.append("hash_prevalidation")
             self.assertEqual(arguments, ["hash-object", "--stdin"])
             assert stdin is not None
             return subprocess.CompletedProcess(arguments, 0, stdout=(blob(stdin) + "\n").encode("ascii"), stderr=b"")
@@ -120,6 +123,7 @@ class TestH27OdbOnlyBlobImporter(unittest.TestCase):
         self.assertEqual(contract["payloads"], list(self.module.PAYLOADS))
         self.assertEqual(source_read.call_count, 10)
         self.assertEqual(target_read.call_count, 8)
+        self.assertEqual(events, ["source_read"] * 10 + ["hash_prevalidation"] * 8)
 
     def test_write_operation_is_exactly_eight_calls_in_declared_order(self) -> None:
         payloads = {item["git_blob_sha1"]: (ROOT / item["path"]).read_bytes() for item in self.module.PAYLOADS}

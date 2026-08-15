@@ -34,6 +34,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `readme/results/2026-08-15_harmonic-censoring-h27-odb-only-exact-blob-importer.md`.
   Prochaine action unique : revue externe du runner, de son binding et de son
   seal exacts ; aucun import avant un nouveau `PASS` explicite.
+  La première revue de l'implémentation au commit `e17524d8...` a rendu `FAIL`
+  uniquement parce que lecture et prévalidation étaient entrelacées payload
+  par payload. La micro-correction courante sépare strictement les huit
+  lectures complètes des huit prévalidations et verrouille cet ordre par test.
 - La revue externe de `0c3a90776c48f3edd5a05f98653e253084637d4d`
   conclut `PASS` sur l'archive du préflight bloqué et autorise uniquement un
   contrat déclaratif one-shot d'apport ODB-only. Le lot courant lie les huit

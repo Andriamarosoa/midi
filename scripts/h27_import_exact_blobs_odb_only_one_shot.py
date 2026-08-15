@@ -256,16 +256,23 @@ def receive_and_prevalidate_all(source_git_dir: Path) -> tuple[dict[str, bytes],
     if contract.get("payloads") != list(PAYLOADS) or seal.get("contract") != CONTRACT_IDENTITY or seal.get("payloads") != list(PAYLOADS):
         raise PermissionError("H27 import contract, seal, or payload binding mismatch.")
     payloads: dict[str, bytes] = {}
+    # Normative receive phase: all eight payloads must be resident in memory
+    # before the first identity or hash-object prevalidation operation.
     for identity in PAYLOADS:
         raw = read_source_blob(source_git_dir, str(identity["git_blob_sha1"]))
+        payloads[str(identity["git_blob_sha1"])] = raw
+    if len(payloads) != 8:
+        raise PermissionError("H27 requires exactly eight unique buffered payloads.")
+
+    # Normative prevalidation phase: it starts only after the receive phase
+    # above completed for every declared payload.
+    for identity in PAYLOADS:
+        raw = payloads[str(identity["git_blob_sha1"])]
         if not identity_ok(identity, raw):
             raise PermissionError(f"H27 payload identity mismatch: {identity['path']}.")
         calculated = target_git(["hash-object", "--stdin"], stdin=raw).stdout
         if calculated != (str(identity["git_blob_sha1"]) + "\n").encode("ascii"):
             raise PermissionError("H27 target Git hash-object prevalidation mismatch.")
-        payloads[str(identity["git_blob_sha1"])] = raw
-    if len(payloads) != 8:
-        raise PermissionError("H27 requires exactly eight unique buffered payloads.")
     return payloads, contract
 
 

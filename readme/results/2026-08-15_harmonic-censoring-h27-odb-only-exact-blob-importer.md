@@ -24,6 +24,13 @@ Avant la première écriture, le runner garde les huit payloads en mémoire et
 vérifie pour chacun taille, SHA-256 brut, SHA-1 de blob Git et résultat de
 `hash-object --stdin` sans `-w`.
 
+La première revue de l'implémentation au commit `e17524d8...` a rendu `FAIL`
+sur l'ordre de ces deux phases : chaque payload était prévalidé immédiatement
+après sa lecture. La micro-correction sépare désormais mécaniquement la boucle
+qui lit/bufferise les huit payloads de la boucle suivante qui effectue les huit
+prévalidations. Le test enregistre les événements et exige les dix lectures
+source (contrat, seal, huit payloads) avant le premier `hash-object --stdin`.
+
 ## Frontière d'effet
 
 Le runner vérifie et revalide :
@@ -54,24 +61,24 @@ réparation, rollback revendiqué ou récupération automatique.
 ## Identités
 
 ```text
-runner blob    83160f4b80e623a09f646e910d63069e26f6cc79
-runner size    17726
-runner sha256  c29dd8ff53fec81e55228d9b7ec33643004fe4f0edb7393a226a2b94577d45bc
+runner blob    80f0aeb847df2af6ccef7cd02242caa0dcfeacb0
+runner size    18087
+runner sha256  911bd1efecc223eb18a6e637190a18f990c856c6b7f1af31f9b3f46299170687
 
-binding blob   606be5191e3390110be9fc6ec73d161f34d61172
+binding blob   f47f9d944a44472de6f339d93807e12bf5503e39
 binding size   4604
-binding sha256 9ad5199c0d0fbadf63dd4daef03eb9c240e35d8a87bc1e1234df20c0a1ad24ee
+binding sha256 9812a8de86eb02b63d149a1fa5b04ea9be8b4489f50cc8a4971536d262087e31
 
-seal blob      43bd762e7e33327f5dc9a06ef7ab80c8898f8b19
+seal blob      08172eedbae3bc7502e07f607cdfc8a42f2c6e88
 seal size      3840
-seal sha256    223215c40859b6412342c92e31d032fd79180b8e612182f7298384f59fc05f79
+seal sha256    1ab74c0180167a54d086a941dd4c79b2069a1a1e1693fb7d8e04c198191ff3ad
 ```
 
 ## Validation locale
 
 - `py_compile` runner + test : réussi ;
-- tests ciblés contrat + importer : `10/10` en `0,030 s` ;
-- suite H27 complète : `524/524` en `82,721 s` ;
+- tests ciblés contrat + importer : `10/10` en `0,033 s` ;
+- suite H27 complète : `524/524` en `94,095 s` ;
 - `git diff --check` : réussi avant commit.
 
 ## STOP
