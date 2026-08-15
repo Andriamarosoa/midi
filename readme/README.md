@@ -32,6 +32,13 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   Rapport :
   `readme/results/2026-08-15_harmonic-censoring-h27-external-source-odb-exact-thirteen-delivery-contract.md`.
   Prochaine action unique : revue externe du contrat et de son seal exacts.
+  La première revue du commit `aafb1d8a...` a rendu `FAIL` parce que les
+  variables `GIT_*` héritées pouvaient rediriger l'ODB. La micro-correction
+  courante impose à chaque subprocess Git sender/receiver de supprimer toutes
+  les variables préfixées `GIT_`, puis de réintroduire uniquement
+  `GIT_TERMINAL_PROMPT=0` et `GIT_NO_LAZY_FETCH=1`. Les redirecteurs d'ODB,
+  common-dir, alternates, index, worktree et configuration sont explicitement
+  interdits.
 - La revue externe de `5abab29c2687d41e54cc2e63f99f97afb87f0166`
   conclut `PASS` sur le contrat rescellé et autorise uniquement la correction
   dormante de l'importer, de son binding, de son seal, des tests et de la

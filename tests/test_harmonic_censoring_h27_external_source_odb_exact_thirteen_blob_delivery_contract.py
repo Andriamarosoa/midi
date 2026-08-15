@@ -78,6 +78,31 @@ class TestH27ExternalSourceOdbExactThirteenBlobDeliveryContract(unittest.TestCas
         self.assertEqual(self.seal["future_effect"]["operation_exact"], self.contract["future_write"]["operation_exact"])
         self.assertEqual(self.seal["future_effect"]["write_count_exact"], 13)
 
+    def test_every_git_subprocess_uses_a_closed_environment(self) -> None:
+        environment = self.contract["git_subprocess_environment"]
+        self.assertTrue(environment["applies_to_every_sender_and_receiver_git_subprocess"])
+        self.assertEqual(environment["delete_every_inherited_key_whose_name_starts_with_exact"], "GIT_")
+        self.assertEqual(environment["reintroduce_only_exact"], {
+            "GIT_TERMINAL_PROMPT": "0",
+            "GIT_NO_LAZY_FETCH": "1",
+        })
+        self.assertTrue(environment["all_other_git_prefixed_environment_variables_forbidden"])
+        for key in (
+            "GIT_OBJECT_DIRECTORY_forbidden", "GIT_COMMON_DIR_forbidden",
+            "GIT_ALTERNATE_OBJECT_DIRECTORIES_forbidden", "GIT_INDEX_FILE_forbidden",
+            "GIT_WORK_TREE_forbidden", "GIT_DIR_forbidden",
+            "GIT_CONFIG_GLOBAL_forbidden", "GIT_CONFIG_SYSTEM_forbidden",
+            "GIT_CONFIG_COUNT_forbidden", "GIT_CONFIG_KEY_value_pairs_forbidden",
+        ):
+            self.assertTrue(environment[key])
+        self.assertEqual(self.seal["future_git_subprocess_environment"], {
+            "applies_to_every_sender_and_receiver_git_subprocess": True,
+            "delete_every_inherited_GIT_prefixed_key": True,
+            "only_reintroduced_GIT_variables": environment["reintroduce_only_exact"],
+            "GIT_OBJECT_DIRECTORY_GIT_COMMON_DIR_GIT_ALTERNATE_OBJECT_DIRECTORIES_GIT_INDEX_FILE_GIT_WORK_TREE_GIT_DIR_and_GIT_CONFIG_redirectors_forbidden": True,
+            "git_database_and_worktree_selected_only_by_literal_command_line_arguments": True,
+        })
+
     def test_fail_closed_order_and_consumption_policy_are_sealed(self) -> None:
         order = self.contract["future_fail_closed_order"]
         self.assertEqual(len(order), 13)
