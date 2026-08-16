@@ -157,6 +157,9 @@ def verify_runtime(contract):
 def verify_identity(raw: bytes, identity: tuple[str,int,str], message: str) -> None:
     require((git_blob(raw),len(raw),digest(raw))==identity,message)
 
+def parse_frozen_bound_json(contract, frozen_inputs, path):
+    return contract.parse_strict_json(frozen_inputs[path], path.as_posix())
+
 def preclaim():
     require(sys.platform=="darwin" and len(sys.argv)==1,"H27 Darwin zero-argument runner required")
     require(os.environ.get(ACK)=="I_UNDERSTAND_H27_REVIEW4_IS_ONE_SHOT","H27 ACK missing")
@@ -195,7 +198,7 @@ def preclaim():
         raw=git("cat-file","blob",REQUIRED_HEAD+":"+path.as_posix()); require(git_blob(raw)==blob,"H27 frozen scientific input drift: "+path.as_posix()); frozen_inputs[path]=raw
     def frozen_bound_json(repository,path):
         require(Path(repository)==TARGET,"H27 frozen plan repository mismatch"); require(path in frozen_inputs,"H27 unbound frozen plan input")
-        return contract.parse_strict_json(frozen_inputs[path])
+        return parse_frozen_bound_json(contract,frozen_inputs,path)
     contract._bound_json=frozen_bound_json
     return (activation,activation_contract,contract,operational_code,operational_raw,administrative,activation_fd,operational_fd,authority_parent,claim_parent,population_parent,review_parent)
 

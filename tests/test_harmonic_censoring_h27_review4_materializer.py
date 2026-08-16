@@ -7,6 +7,7 @@ import inspect
 import json
 import os
 from pathlib import Path
+import subprocess
 import sys
 import tempfile
 from types import ModuleType
@@ -132,6 +133,27 @@ class Review4MaterializerTests(unittest.TestCase):
         with self.assertRaisesRegex(PermissionError,"registry drift"):
             runner.frozen_module(name,raw,"replacement.py")
         self.assertNotIn(name,sys.modules)
+
+    def test_real_frozen_contract_builds_complete_124_record_plan(self) -> None:
+        runner=load_runner()
+        contract_raw=subprocess.check_output(
+            ["git","cat-file","blob",f"{runner.REQUIRED_HEAD}:{runner.CONTRACT_PATH}"],cwd=ROOT,
+        )
+        frozen=runner.frozen_module("h27_test_real_frozen_contract",contract_raw,runner.CONTRACT_PATH)
+        inputs={}
+        for path,expected_blob in frozen.REVIEWED_GIT_BLOBS.items():
+            raw=subprocess.check_output(
+                ["git","cat-file","blob",f"{runner.REQUIRED_HEAD}:{path.as_posix()}"],cwd=ROOT,
+            )
+            self.assertEqual(runner.git_blob(raw),expected_blob)
+            inputs[path]=raw
+        frozen._bound_json=lambda repository,path: runner.parse_frozen_bound_json(frozen,inputs,path)
+        plan=frozen.load_h27_dormant_plan(ROOT)
+        identities=frozen.canonical_h27_record_identities(plan)
+        self.assertEqual(len(identities),124)
+        self.assertEqual(len(set(identities)),124)
+        self.assertEqual(sum(value.startswith("baseline/") for value in identities),17)
+        self.assertEqual(sum(value.startswith("p2/") for value in identities),107)
 
     def test_binding_seal_and_all_sixteen_administrative_inputs_are_exact(self) -> None:
         runner=load_runner(); raw=MATERIALIZER_PATH.read_bytes()
