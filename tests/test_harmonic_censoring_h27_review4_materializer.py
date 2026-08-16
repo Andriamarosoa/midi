@@ -104,6 +104,35 @@ class Review4MaterializerTests(unittest.TestCase):
         with mock.patch.object(runner.os,"getpid",return_value=7),mock.patch.object(runner,"read_fd",side_effect=(b"activation",b"changed")),mock.patch.object(runner,"digest",side_effect=(runner.ACTIVATION_SHA256,"0"*64)):
             with self.assertRaisesRegex(PermissionError,"code drift"): drift.send((capability,binding))
 
+    def test_frozen_module_supports_dataclass_and_cleans_registry(self) -> None:
+        runner=load_runner(); name="h27_test_frozen_dataclass"
+        raw=b"from dataclasses import dataclass\n@dataclass(frozen=True)\nclass Row:\n    value: int\n"
+        self.assertNotIn(name,sys.modules)
+        module=runner.frozen_module(name,raw,"frozen_dataclass.py")
+        self.assertEqual(module.Row(7).value,7)
+        self.assertNotIn(name,sys.modules)
+
+    def test_frozen_module_rejects_preexisting_registry_collision(self) -> None:
+        runner=load_runner(); name="h27_test_frozen_collision"; existing=ModuleType(name)
+        with mock.patch.dict(sys.modules,{name:existing}):
+            with self.assertRaisesRegex(PermissionError,"name collision"):
+                runner.frozen_module(name,b"executed=True\n","collision.py")
+            self.assertIs(sys.modules[name],existing)
+            self.assertFalse(hasattr(existing,"executed"))
+
+    def test_frozen_module_cleans_registry_after_execution_error(self) -> None:
+        runner=load_runner(); name="h27_test_frozen_error"
+        with self.assertRaisesRegex(RuntimeError,"frozen marker"):
+            runner.frozen_module(name,b"raise RuntimeError('frozen marker')\n","error.py")
+        self.assertNotIn(name,sys.modules)
+
+    def test_frozen_module_rejects_registry_replacement_and_cleans_it(self) -> None:
+        runner=load_runner(); name="h27_test_frozen_replacement"
+        raw=b"import sys\nsys.modules[__name__]=object()\n"
+        with self.assertRaisesRegex(PermissionError,"registry drift"):
+            runner.frozen_module(name,raw,"replacement.py")
+        self.assertNotIn(name,sys.modules)
+
     def test_binding_seal_and_all_sixteen_administrative_inputs_are_exact(self) -> None:
         runner=load_runner(); raw=MATERIALIZER_PATH.read_bytes()
         materializer={"path":runner.OPERATIONAL_REPOSITORY_PATH,"git_blob_sha1":hashlib.sha1(b"blob "+str(len(raw)).encode()+b"\0"+raw).hexdigest(),"size_bytes":len(raw),"raw_sha256":hashlib.sha256(raw).hexdigest()}

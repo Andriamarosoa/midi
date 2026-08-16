@@ -126,9 +126,16 @@ def write_new_at(parent_fd: int,name: str,raw: bytes):
         raise
     finally: os.close(created)
 def frozen_module(name: str,raw: bytes,filename: str,injected=None):
+    require(name not in sys.modules,"H27 frozen module name collision")
     module=ModuleType(name); module.__file__=filename; module.__package__=name.rpartition(".")[0]
     for key,value in (injected or {}).items(): setattr(module,key,value)
-    exec(compile(raw,filename,"exec",dont_inherit=True),module.__dict__); return module
+    sys.modules[name]=module
+    try:
+        exec(compile(raw,filename,"exec",dont_inherit=True),module.__dict__)
+        require(sys.modules.get(name) is module,"H27 frozen module registry drift")
+        return module
+    finally:
+        sys.modules.pop(name,None)
 
 def verify_runtime(contract):
     expected=contract["runtime_exact"]; executable=Path(sys.executable).resolve(strict=True)
