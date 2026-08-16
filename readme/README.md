@@ -14,26 +14,31 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 Review-4 corrective operational materializer pending exact external review; no authority consumption or population. -->
+<!-- H26_CORRECTION_STATUS: H27 Review-4 second corrective operational materializer pending exact external review; no authority consumption or population. -->
 ## État courant
 
 - Mise à jour : `2026-08-16`.
 - État courant :
-  `H27_REVIEW4_CORRECTIVE_MATERIALIZER_PENDING_EXACT_EXTERNAL_REVIEW_NO_CONSUMPTION`.
-- La revue externe stricte de `859a4d848d1f2f625d2acadd728c489fd1f60038`
-  a rendu `NON APPROUVÉ` et interdit toute exécution Mac. Le lot correctif
-  supprime le token/issuer et le registre mutable, consomme une paire exacte
-  capability/binding seulement après authority et claim durables, compile les
-  octets contract/materializer gelés sans loader/pyc et réatteste code,
-  authority et claim immédiatement à la consommation. La publication utilise
-  les descripteurs de répertoire conservés, `O_NOFOLLOW`, `O_EXCL`, modes
-  `0700/0600` et `renameatx_np(..., RENAME_EXCL)` relatif au même parent. Une
-  réconciliation indépendante impose les 124 identités ordonnées, le schéma et
-  les métadonnées dérivées, tailles/digests/masque binaire, unique collision
-  alternate et arbre exhaustif. Le terminal distingue désormais la préparation
-  des données de P0/P1/P2, tous trois `executed=false` et `complete=false`.
-  Un binding et un seal externes dédiés lient les octets opérationnels exacts.
-  Les `8/8` tests correctifs passent localement, ainsi que `py_compile` et
+  `H27_REVIEW4_SECOND_CORRECTIVE_MATERIALIZER_PENDING_EXACT_EXTERNAL_REVIEW_NO_CONSUMPTION`.
+- Les revues externes strictes de `859a4d848d1f2f625d2acadd728c489fd1f60038`
+  puis `8861d7dccb6b088ab31e9b2ab16660444a11e566` ont rendu
+  `NON APPROUVÉ` et interdit toute exécution Mac. Le second correctif retire
+  entièrement allowlist et session publiques. Le runner compile les octets du
+  matérialiseur sans les exécuter, écrit et réouvre byte-exactement authority et
+  claim durables, puis instancie seulement alors une frontière privée dont la
+  paire capability/binding est consommée une fois. Il vérifie et lie les 16
+  entrées administratives exactes du contrat de composition dormant, plus le
+  matérialiseur, son binding et son seal. La publication utilise des
+  descripteurs conservés, `O_NOFOLLOW`, `O_EXCL`, modes `0700/0600` et
+  `renameatx_np(..., RENAME_EXCL)`. Après l'index, le staging entier est relu,
+  rehashé et réconcilié avant le rename. La réconciliation finale impose les
+  124 identités ordonnées, schéma, métadonnées, tailles/digests/masque binaire,
+  collision alternate et arbre exhaustif. `write_new_at` conserve le fd créé
+  ouvert à travers fsync parent et réouverture relative, puis compare device,
+  inode et octets. P0/P1/P2 restent tous `executed=false` et `complete=false`.
+  Les 10 tests correctifs sont découverts localement : 9 passent et la
+  régression dynamique de mutation staging, strictement POSIX, est skip sous
+  Windows; le contrôle d'ordre correspondant passe. `py_compile` et
   `git diff --check`. Aucun SSH mutatif, claim, authority, population,
   P0/P1/P2, moteur, recomputer, entraînement ou locked-test n'a été exécuté.
   Rapport :

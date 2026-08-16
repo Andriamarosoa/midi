@@ -1,21 +1,22 @@
 {
-  "schema_version": 1,
-  "seal_id": "H27_REVIEW4_OPERATIONAL_MATERIALIZER_EXTERNAL_SEAL_V1",
+  "schema_version": 2,
+  "seal_id": "H27_REVIEW4_OPERATIONAL_MATERIALIZER_EXTERNAL_SEAL_V2",
   "status": "PENDING_EXTERNAL_REVIEW_NO_EXECUTION_AUTHORIZED",
   "identity_binding": {
     "path": "configs/harmonic_censoring_h27_review4_materializer_identity_binding.json",
-    "git_blob_sha1": "14eb7ffa320ae99a1fd3f70c56afc73c75ee5adc",
-    "size_bytes": 1512,
-    "raw_sha256": "1f495b010b86f9c47c3c95d56c1aa887ec9d22f8ab857b221a98be88f3e07cc6"
+    "git_blob_sha1": "9371d80c75c2cf08ebf2cc33177c05c123c13efa",
+    "size_bytes": 5269,
+    "raw_sha256": "204f61303277b4a813d23a4a6a478d6d33a17893d30a72156e7a7d2574dfb4da"
   },
   "materializer": {
     "path": "src/polyphonic/harmonic_censoring_h27_review4_materializer.py",
-    "git_blob_sha1": "dab34b25b09e13aac2d46712e688aae2426fcd56",
-    "size_bytes": 28901,
-    "raw_sha256": "8941ed24443aff54fd0ec331e74efb87b71b045e352e0a9ce19a379a31b9650a"
+    "git_blob_sha1": "8cdafbd6a08ea893daa2d6f41cb62166bf9162cd",
+    "size_bytes": 33706,
+    "raw_sha256": "2ecaabf1e1880688244b06ecb03a9b3eb7831d4659e209aa11e36b7b60948be3"
   },
   "seal_semantics": {
-    "exact_materializer_identity_only": true,
+    "all_sixteen_administrative_inputs_bound_by_identity_binding": true,
+    "operational_graph_not_publicly_callable": true,
     "authority_not_created_by_this_seal": true,
     "claim_not_created_by_this_seal": true,
     "materialization_not_authorized_by_this_seal": true,

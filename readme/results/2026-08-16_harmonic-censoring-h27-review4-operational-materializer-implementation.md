@@ -26,6 +26,13 @@ chargement du plan avant claim, publication par chemins, faux marqueurs P0/P1/P2
 réconciliation insuffisante et absence de binding/seal opérationnel dédié.
 Aucune exécution Mac n'a suivi ce verdict.
 
+La seconde revue stricte de
+`8861d7dccb6b088ab31e9b2ab16660444a11e566` a encore rendu
+`NON APPROUVÉ`. Trois défauts restaient : allowlist globale réassignable,
+session construisible par l'appelant et chaîne administrative incomplète, puis
+absence de rehash exhaustif du staging après l'index mais avant le renommage
+exclusif. Aucune exécution Mac n'a suivi ce second verdict.
+
 ## Implémentation corrective
 
 `src/polyphonic/harmonic_censoring_h27_review4_materializer.py` conserve
@@ -35,41 +42,45 @@ considérée mécaniquement identique : elle opère par descripteurs détenus,
 `O_DIRECTORY|O_NOFOLLOW`, créations `O_EXCL`, modes `0700/0600`, fsync et
 `renameatx_np(..., RENAME_EXCL)` relatif au même parent.
 
-Le token secret, `_ISSUED` et l'issuer public ont disparu. La capability n'a
-aucun constructeur public. Le runner crée la paire exacte capability/binding
-après écriture, fsync et relecture byte-exacte de l'authority puis du claim. Un
-consumer generator one-shot réatteste PID, code gelé, authority et claim dans
-la même étape; un objet forgé par `object.__new__` sans ces descripteurs échoue
-avant publication.
+Le token secret, `_ISSUED`, l'issuer, `_ACTIVE_CAPABILITY` et la session publique
+ont disparu. Sur import normal, l'entrypoint et tous les helpers opérationnels
+sont des barrières natives. Le runner compile les octets exacts sans les
+exécuter, crée la paire exacte capability/binding seulement après écriture,
+fsync et réouverture byte-exacte de l'authority puis du claim, et injecte alors
+une unique frontière privée. Un consumer generator one-shot réatteste PID,
+code gelé, authority et claim dans la même étape.
 
-Le runner gèle une seule fois les octets du contrat et du matérialiseur, puis
-les exécute avec `compile`/`exec` dans des modules frais sans SourceFileLoader,
-pyc ou seconde ouverture du chemin. Le plan et NumPy restent post-claim et
-post-consommation. La réconciliation indépendante recalcule les identités
-canoniques ordonnées, les métadonnées dérivées, les payloads, l'unique alternate,
-les modes et l'arbre exhaustif. Le terminal marque explicitement P0/P1/P2 comme
+Le runner gèle une seule fois les octets du contrat et du matérialiseur, vérifie
+les seize identités administratives exactes du contrat de composition dormant,
+et lie cette chaîne complète dans le binding et l'authority. Le plan et NumPy
+restent post-claim et post-consommation. Après écriture et fsync de l'index, le
+staging entier est relu par descripteurs, rehashé et réconcilié avec l'index
+avant `RENAME_EXCL`; la réconciliation finale refait ensuite les contrôles.
+Les écritures authority/claim conservent le fd créé ouvert à travers fsync du
+parent et réouverture relative, puis comparent device/inode et octets. Le
+terminal marque explicitement P0/P1/P2 comme
 non exécutés; seuls baseline/P2 population materialized et reconciliation sont
 vrais. Les deux nouveaux JSON lient et scellent l'identité exacte du module.
 
 Identités opérationnelles proposées à la revue :
 
 ```text
-materializer  blob dab34b25b09e13aac2d46712e688aae2426fcd56
-              28 901 octets
-              SHA-256 8941ed24443aff54fd0ec331e74efb87b71b045e352e0a9ce19a379a31b9650a
-binding       blob 14eb7ffa320ae99a1fd3f70c56afc73c75ee5adc
-              1 512 octets
-              SHA-256 1f495b010b86f9c47c3c95d56c1aa887ec9d22f8ab857b221a98be88f3e07cc6
-seal          blob 28093a9511670f18fdb8b7aba7f6f57bb23ce69d
-              1 118 octets
-              SHA-256 3a330d160de20354670e1d9d849a38bd82dd5b3368790307a1533e94a9032347
+materializer  blob 8cdafbd6a08ea893daa2d6f41cb62166bf9162cd
+              33 706 octets
+              SHA-256 2ecaabf1e1880688244b06ecb03a9b3eb7831d4659e209aa11e36b7b60948be3
+binding       blob 9371d80c75c2cf08ebf2cc33177c05c123c13efa
+              5 269 octets
+              SHA-256 204f61303277b4a813d23a4a6a478d6d33a17893d30a72156e7a7d2574dfb4da
+seal          blob 370eaf40be9863ec381061678451a58409264244
+              1 198 octets
+              SHA-256 f396257c040b7d0504336b98384308f76e45a32614efba129eba91c53b55f1de
 ```
 
 ## Validation locale
 
 ```text
 python -m unittest tests.test_harmonic_censoring_h27_review4_materializer
-8 tests réussis
+10 tests découverts : 9 réussis, 1 skip POSIX-only sous Windows
 
 python -m py_compile \
   src/polyphonic/harmonic_censoring_h27_review4_materializer.py \
@@ -78,10 +89,15 @@ python -m py_compile \
 git diff --check
 ```
 
-Les tests prouvent l'équivalence AST des quatorze fonctions scientifiques, le
-rejet constructeur/copy/deepcopy/pickle/object.__new__, l'absence de token,
-issuer et registre mutable, la cohérence binding/seal et les frontières
-post-claim/non-scientifiques du runner.
+Les tests prouvent l'équivalence AST des quatorze fonctions scientifiques,
+l'absence d'allowlist/session publique, la barrière native sur import normal et
+après rebinding des globals, la consommation exacte one-shot, le rejet de paire
+forgée et de dérive post-claim, les seize identités administratives, la cohérence
+binding/seal, l'ordre claim puis injection et la vérification staging avant
+rename avec réouverture stable des fichiers durables.
+Le test POSIX-only construit 124 répertoires/payloads, modifie un waveform
+après l'index puis exige le rejet sur digest avant rename; il est versionné mais
+non simulé sous Windows, où les invariants fd/mode Unix ne sont pas disponibles.
 
 La découverte globale Windows a également été lancée sans être présentée comme
 un PASS : `599` tests ont été découverts, avec `230` échecs et `44` erreurs dus

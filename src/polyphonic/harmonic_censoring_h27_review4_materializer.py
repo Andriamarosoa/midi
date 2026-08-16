@@ -16,7 +16,8 @@ import math
 import os
 from pathlib import Path
 import stat
-from typing import Any, Callable, Mapping, NamedTuple, Sequence
+from types import FunctionType
+from typing import Any, Callable, Mapping, Sequence
 
 if os.name != "nt":
     import fcntl
@@ -66,67 +67,9 @@ class H27ProductionMaterializationCapability:
         raise TypeError("H27 production capability cannot be serialized.")
 
 
-class H27Review4CapabilityBinding(NamedTuple):
-    authority_sha256: str
-    claim_sha256: str
-    materializer_blob: str
-    invocation_nonce: str
-    process_id: int
-    code_identity_sha256: str
-
-
-class H27Review4Session(NamedTuple):
-    capability: object
-    binding: H27Review4CapabilityBinding
-    consume_attested: Callable[[object], object]
-    authority_fd: int
-    claim_fd: int
-    population_parent_fd: int
-
-
-_ACTIVE_CAPABILITY: object | None = None
-
-
 def _require_capability(value: H27ProductionMaterializationCapability) -> None:
-    if value is not _ACTIVE_CAPABILITY:
-        raise PermissionError("H27 Review 4 capability is invalid or consumed.")
-
-
-def _validate_session_before_consumption(session: H27Review4Session) -> None:
-    if type(session) is not H27Review4Session or type(session.binding) is not H27Review4CapabilityBinding:
-        raise PermissionError("H27 Review 4 exact session required.")
-    if type(session.capability) is not H27ProductionMaterializationCapability:
-        raise PermissionError("H27 Review 4 exact capability required.")
-    if session.binding.process_id != os.getpid():
-        raise PermissionError("H27 Review 4 session crossed a process boundary.")
-    for descriptor, expected in ((session.authority_fd, session.binding.authority_sha256),
-                                 (session.claim_fd, session.binding.claim_sha256)):
-        try:
-            information = os.fstat(descriptor)
-        except OSError as exc:
-            raise PermissionError("H27 Review 4 authority/claim descriptor unavailable.") from exc
-        if (not stat.S_ISREG(information.st_mode) or information.st_nlink != 1 or
-                stat.S_IMODE(information.st_mode) != 0o600 or information.st_uid != os.getuid()):
-            raise PermissionError("H27 Review 4 authority/claim descriptor invariant failed.")
-        position = os.lseek(descriptor, 0, os.SEEK_CUR)
-        os.lseek(descriptor, 0, os.SEEK_SET)
-        chunks = []
-        while True:
-            chunk = os.read(descriptor, 1024 * 1024)
-            if not chunk:
-                break
-            chunks.append(chunk)
-        os.lseek(descriptor, position, os.SEEK_SET)
-        if hashlib.sha256(b"".join(chunks)).hexdigest() != expected:
-            raise PermissionError("H27 Review 4 authority/claim binding mismatch.")
-    population = os.fstat(session.population_parent_fd)
-    if (not stat.S_ISDIR(population.st_mode) or stat.S_IMODE(population.st_mode) != 0o700 or
-            population.st_uid != os.getuid()):
-        raise PermissionError("H27 Review 4 population parent invariant failed.")
-    if os.uname().sysname == "Darwin":
-        observed = fcntl.fcntl(session.population_parent_fd, 50, b"\0" * 1024).split(b"\0", 1)[0].decode()
-        if observed != FINAL_DESTINATION.parent.as_posix():
-            raise PermissionError("H27 Review 4 population parent path mismatch.")
+    del value
+    raise PermissionError("H27 Review 4 direct helper invocation is permanently closed.")
 
 
 @dataclass(frozen=True)
@@ -547,10 +490,107 @@ def _read_exact_file(capability: H27ProductionMaterializationCapability, parent_
         os.close(descriptor)
 
 
+def _open_chain_read(capability: H27ProductionMaterializationCapability, root_fd: int, relative: str) -> int:
+    _require_capability(capability)
+    current = os.dup(root_fd)
+    try:
+        for component in relative.split("/"):
+            if component in ("", ".", ".."):
+                raise ValueError("H27 unsafe staging directory.")
+            child = os.open(component, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) |
+                            getattr(os, "O_NOFOLLOW", 0), dir_fd=current)
+            os.close(current)
+            current = child
+        return current
+    except BaseException:
+        os.close(current)
+        raise
+
+
+def _collect_tree(capability: H27ProductionMaterializationCapability, root_fd: int, prefix: str = "") -> set[str]:
+    _require_capability(capability)
+    result: set[str] = set()
+    for name in os.listdir(root_fd):
+        information = os.stat(name, dir_fd=root_fd, follow_symlinks=False)
+        if stat.S_ISLNK(information.st_mode):
+            raise PermissionError("H27 staging symlink forbidden.")
+        relative = prefix + name
+        if stat.S_ISDIR(information.st_mode):
+            if stat.S_IMODE(information.st_mode) != 0o700 or information.st_uid != os.getuid():
+                raise PermissionError("H27 staging directory invariant failed.")
+            child = os.open(name, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) |
+                            getattr(os, "O_NOFOLLOW", 0), dir_fd=root_fd)
+            try:
+                result.update(_collect_tree(capability, child, relative + "/"))
+            finally:
+                os.close(child)
+        elif (not stat.S_ISREG(information.st_mode) or information.st_nlink != 1 or
+              stat.S_IMODE(information.st_mode) != 0o600 or information.st_uid != os.getuid()):
+            raise PermissionError("H27 staging file invariant failed.")
+        else:
+            result.add(relative)
+    return result
+
+
+def _verify_staging(
+    capability: H27ProductionMaterializationCapability, staging_fd: int,
+    plan: H27DormantPlan, records: Sequence[Mapping[str, object]], expected_index_raw: bytes,
+) -> None:
+    _require_capability(capability)
+    observed_index_raw = _read_exact_file(capability, staging_fd, "population_index.json")
+    if observed_index_raw != expected_index_raw:
+        raise PermissionError("H27 staging index changed before publication.")
+    index = json.loads(observed_index_raw)
+    if (_canonical_json_bytes(index) != observed_index_raw or index.get("schema_version") != 1 or
+            index.get("population_namespace") != POPULATION_NAMESPACE or
+            index.get("record_count") != 124 or index.get("records") != list(records)):
+        raise PermissionError("H27 staging index is not exact canonical content.")
+    identities = tuple(str(row["record_identity"]) for row in records)
+    if identities != canonical_h27_record_identities(plan) or len(set(identities)) != 124:
+        raise PermissionError("H27 staging identity/order mismatch.")
+    descriptors = {item.identity: item for item in _descriptors(plan)}
+    recipes = plan.specifications["baseline_waveform_recipes"]
+    expected_files = {"population_index.json"}
+    for row in records:
+        identity = str(row["record_identity"])
+        descriptor = descriptors[identity]
+        if (tuple(row) != INDEX_FIELDS or row["record_directory"] != identity or
+                row["population_namespace"] != POPULATION_NAMESPACE):
+            raise PermissionError("H27 staging row schema/directory mismatch.")
+        if (row["candidate_pitch"], tuple(row["active_pitches"]), row["proposal_hop_end"],
+            row["resolution_hop_end"], row["cents"], row["inharmonicity"]) != (
+            descriptor.candidate_pitch, descriptor.active_pitches, descriptor.proposal_hop_end,
+            descriptor.resolution_hop_end, descriptor.cents, descriptor.inharmonicity):
+            raise PermissionError("H27 staging derived metadata mismatch.")
+        record_fd = _open_chain_read(capability, staging_fd, identity)
+        try:
+            payloads = row["payload_sha256"]
+            names = set(payloads)
+            if names not in ({"waveform.f64le", "sample-valid-mask.u8"},
+                             {"waveform.f64le", "sample-valid-mask.u8", "alternate-waveform.f64le"}):
+                raise PermissionError("H27 staging payload set mismatch.")
+            if ("alternate-waveform.f64le" in names) != (descriptor.fixture_id not in recipes):
+                raise PermissionError("H27 staging alternate outside planned collision.")
+            for name, expected_sha256 in payloads.items():
+                raw = _read_exact_file(capability, record_fd, name)
+                if hashlib.sha256(raw).hexdigest() != expected_sha256:
+                    raise PermissionError("H27 staging payload digest mismatch.")
+                if name.endswith("waveform.f64le"):
+                    if len(raw) != SAMPLE_COUNT * 8:
+                        raise PermissionError("H27 staging waveform size mismatch.")
+                elif len(raw) != SAMPLE_COUNT * len(ROLE_ORDER) or not set(raw) <= {0, 1}:
+                    raise PermissionError("H27 staging mask invariant failed.")
+                expected_files.add(identity + "/" + name)
+        finally:
+            os.close(record_fd)
+    if _collect_tree(capability, staging_fd) != expected_files:
+        raise PermissionError("H27 staging tree is not exhaustive.")
+
+
 def _publish(
     capability: H27ProductionMaterializationCapability, np: Any, plan: H27DormantPlan,
     population_parent_fd: int,
-) -> None:
+) -> tuple[tuple[Mapping[str, object], ...], bytes]:
     _require_capability(capability)
     staging_name = STAGING_DESTINATION.name
     final_name = FINAL_DESTINATION.name
@@ -591,39 +631,80 @@ def _publish(
                 raise AssertionError("H27 index row field order drift.")
             records.append(row)
         index = {"schema_version": 1, "population_namespace": POPULATION_NAMESPACE, "record_count": 124, "records": records}
-        _write_new(capability, staging_fd, "population_index.json", _canonical_json_bytes(index))
+        index_raw = _canonical_json_bytes(index)
+        _write_new(capability, staging_fd, "population_index.json", index_raw)
+        _fsync_directory(capability, staging_fd)
+        _verify_staging(capability, staging_fd, plan, records, index_raw)
         _fsync_directory(capability, staging_fd)
     finally:
         os.close(staging_fd)
     _rename_no_replace(capability, population_parent_fd, staging_name, final_name)
     _fsync_directory(capability, population_parent_fd)
+    return tuple(records), index_raw
 
 
-def materialize_h27_production_population(
-    session: H27Review4Session,
-    plan_loader: Callable[[Path], H27DormantPlan],
-    repository_root: Path,
-) -> None:
-    """Atomically consume an exact attested session, then publish once."""
+_OPERATIONAL_GRAPH_NAMES = (
+    "_canonical_json_bytes", "_numeric", "_f0", "_envelope", "_accumulate_sources",
+    "_add_noise", "_render_recipe", "_render_collision", "_grid_cells",
+    "_fixture_active_pitches", "_descriptors", "_transformed_recipe", "_mask_bytes",
+    "_render_record", "_write_new", "_fsync_directory", "_rename_no_replace",
+    "_mkdir_chain", "_read_exact_file", "_open_chain_read", "_collect_tree",
+    "_verify_staging", "_publish",
+)
 
-    _validate_session_before_consumption(session)
-    observed = session.consume_attested((session.capability, session.binding))
-    if observed is not session.binding or type(session.capability) is not H27ProductionMaterializationCapability:
-        raise PermissionError("H27 Review 4 attested consumption mismatch.")
-    global _ACTIVE_CAPABILITY
-    if _ACTIVE_CAPABILITY is not None:
-        raise PermissionError("H27 Review 4 materializer is already active.")
-    _ACTIVE_CAPABILITY = session.capability
-    try:
-        # These are deliberately post-claim and post-consumption.
+
+def _build_operational_entry(
+    boundary: Mapping[str, object],
+) -> Callable[[Callable[[Path], H27DormantPlan], Path], tuple[tuple[Mapping[str, object], ...], bytes]]:
+    required = {"capability", "binding", "consume_attested", "population_parent_fd"}
+    if type(boundary) is not dict or set(boundary) != required:
+        raise PermissionError("H27 Review 4 injected boundary is not exact.")
+    exact_capability = boundary["capability"]
+    exact_binding = boundary["binding"]
+    exact_consumer = boundary["consume_attested"]
+    population_parent_fd = boundary["population_parent_fd"]
+    if not callable(exact_consumer) or type(population_parent_fd) is not int:
+        raise PermissionError("H27 Review 4 injected boundary values are invalid.")
+
+    def exact_guard(candidate: object) -> None:
+        if candidate is not exact_capability:
+            raise PermissionError("H27 Review 4 private capability mismatch.")
+
+    private_globals = dict(globals())
+    private_globals["_require_capability"] = exact_guard
+    for name in _OPERATIONAL_GRAPH_NAMES:
+        function = globals()[name]
+        private_globals[name] = FunctionType(
+            function.__code__, private_globals, function.__name__, function.__defaults__, function.__closure__
+        )
+    private_publish = private_globals["_publish"]
+
+    def operational_entry(
+        plan_loader: Callable[[Path], H27DormantPlan], repository_root: Path,
+    ) -> tuple[tuple[Mapping[str, object], ...], bytes]:
+        observed = exact_consumer((exact_capability, exact_binding))
+        if observed is not exact_binding:
+            raise PermissionError("H27 Review 4 attested consumption mismatch.")
         import numpy as np
         plan = plan_loader(repository_root)
-        _publish(session.capability, np, plan, session.population_parent_fd)
-    finally:
-        _ACTIVE_CAPABILITY = None
+        return private_publish(exact_capability, np, plan, population_parent_fd)
+
+    return operational_entry
 
 
-__all__ = [
-    "H27ProductionMaterializationCapability", "H27Review4CapabilityBinding",
-    "H27Review4Session", "materialize_h27_production_population",
-]
+_DORMANT_NATIVE_BARRIER = ().__getitem__
+_injected_boundary = globals().pop("_H27_BOUNDARY_SESSION", None)
+if _injected_boundary is None:
+    materialize_h27_production_population = _DORMANT_NATIVE_BARRIER
+else:
+    materialize_h27_production_population = _build_operational_entry(_injected_boundary)
+del _injected_boundary
+
+# The reviewed scientific graph exists only inside the closure above.  Direct
+# module access remains an immutable native barrier, even if globals are rebound.
+for _name in _OPERATIONAL_GRAPH_NAMES:
+    globals()[_name] = _DORMANT_NATIVE_BARRIER
+_build_operational_entry = _DORMANT_NATIVE_BARRIER
+
+
+__all__ = ["materialize_h27_production_population"]
