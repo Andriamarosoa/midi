@@ -14,12 +14,12 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 Review-4 administrative parents created; runner stopped in preclaim on missing NumPy package metadata; no authority consumption or population. -->
+<!-- H26_CORRECTION_STATUS: H27 Review-4 exact venv runtime passed; runner stopped in preclaim while loading frozen dataclass module outside sys.modules; no authority consumption or population. -->
 ## État courant
 
 - Mise à jour : `2026-08-16`.
 - État courant :
-  `H27_REVIEW4_RUNNER_PRECLAIM_NUMPY_METADATA_ABSENT_STOP_NO_CONSUMPTION`.
+  `H27_REVIEW4_RUNNER_PRECLAIM_FROZEN_DATACLASS_MODULE_REGISTRATION_STOP_NO_CONSUMPTION`.
 - Les revues externes strictes de `859a4d848d1f2f625d2acadd728c489fd1f60038`
   puis `8861d7dccb6b088ab31e9b2ab16660444a11e566` ont rendu
   `NON APPROUVÉ` et interdit toute exécution Mac. Le second correctif retire
@@ -76,6 +76,17 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   AUTHORITY, CLAIM, toute population et toute science. Les trois répertoires
   créés persistent; aucun retry ni réparation n'est effectué. Rapport :
   `readme/results/2026-08-16_harmonic-censoring-h27-review4-runner-preclaim-numpy-metadata-absence.md`.
+  La revue de `7ac1be49b43d269234d56c74f53c6cff1f1197e1` a autorisé
+  une nouvelle reprise unique via le Python du venv existant, sous inspection
+  read-only stricte. Cette inspection a confirmé le même CPython 3.11.9 résolu,
+  NumPy 1.26.4 et les binaires multiarray/OpenBLAS aux tailles et SHA scellés,
+  puis le runner a été invoqué une fois. Il s'est arrêté encore dans
+  `preclaim()`: `frozen_module()` exécute le contrat contenant une `dataclass`
+  sans inscrire temporairement le module dans `sys.modules`, et `dataclasses`
+  échoue sur `sys.modules.get(cls.__module__) is None`. L'arrêt précède toujours
+  `consume_and_run()`, AUTHORITY, CLAIM, population et science. Aucun retry.
+  Rapport :
+  `readme/results/2026-08-16_harmonic-censoring-h27-review4-runner-preclaim-frozen-dataclass-module-registration.md`.
   Rapport :
   `readme/results/2026-08-16_harmonic-censoring-h27-review4-operational-materializer-implementation.md`.
 - La revue externe de `61dc4b496a454b596fca6ac361504f441e987aab`
