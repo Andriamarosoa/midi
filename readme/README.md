@@ -14,12 +14,12 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 Review-4 bootstrap stopped pre-mutation because review4 directory was absent; no authority consumption or population. -->
+<!-- H26_CORRECTION_STATUS: H27 Review-4 bootstrap files verified; runner stopped in preclaim because authority directory was absent; no authority consumption or population. -->
 ## État courant
 
 - Mise à jour : `2026-08-16`.
 - État courant :
-  `H27_REVIEW4_BOOTSTRAP_PREMUTATION_DIRECTORY_ABSENT_STOP_NO_CONSUMPTION`.
+  `H27_REVIEW4_RUNNER_PRECLAIM_AUTHORITY_PARENT_ABSENT_STOP_NO_CONSUMPTION`.
 - Les revues externes strictes de `859a4d848d1f2f625d2acadd728c489fd1f60038`
   puis `8861d7dccb6b088ab31e9b2ab16660444a11e566` ont rendu
   `NON APPROUVÉ` et interdit toute exécution Mac. Le second correctif retire
@@ -58,6 +58,14 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   créer exactement ce répertoire en `0700`, le réouvrir sans symlink et vérifier
   owner/mode avant de reprendre les mêmes six artefacts. Rapport :
   `readme/results/2026-08-16_harmonic-censoring-h27-review4-bootstrap-directory-absence.md`.
+  La revue a autorisé une reprise pré-ACK intégrant le `mkdir` exact au même
+  SSH. Cette reprise a créé/vérifié `review4` en `0700` et les six artefacts
+  scellés en `0400`, puis exporté l'ACK et invoqué le runner une fois. Celui-ci
+  s'est arrêté dans `preclaim()` car le parent relatif `authority` était absent.
+  Aucun authority, claim, consommation, NumPy/plan, staging, population ou
+  science n'a eu lieu. Les fichiers bootstrap restent en place et ne sont pas
+  modifiés; aucun retry n'est lancé sans nouvelle revue. Rapport :
+  `readme/results/2026-08-16_harmonic-censoring-h27-review4-runner-preclaim-authority-directory-absence.md`.
   Rapport :
   `readme/results/2026-08-16_harmonic-censoring-h27-review4-operational-materializer-implementation.md`.
 - La revue externe de `61dc4b496a454b596fca6ac361504f441e987aab`
