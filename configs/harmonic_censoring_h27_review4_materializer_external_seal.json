@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "seal_id": "H27_REVIEW4_OPERATIONAL_MATERIALIZER_EXTERNAL_SEAL_V1",
+  "status": "PENDING_EXTERNAL_REVIEW_NO_EXECUTION_AUTHORIZED",
+  "identity_binding": {
+    "path": "configs/harmonic_censoring_h27_review4_materializer_identity_binding.json",
+    "git_blob_sha1": "14eb7ffa320ae99a1fd3f70c56afc73c75ee5adc",
+    "size_bytes": 1512,
+    "raw_sha256": "1f495b010b86f9c47c3c95d56c1aa887ec9d22f8ab857b221a98be88f3e07cc6"
+  },
+  "materializer": {
+    "path": "src/polyphonic/harmonic_censoring_h27_review4_materializer.py",
+    "git_blob_sha1": "dab34b25b09e13aac2d46712e688aae2426fcd56",
+    "size_bytes": 28901,
+    "raw_sha256": "8941ed24443aff54fd0ec331e74efb87b71b045e352e0a9ce19a379a31b9650a"
+  },
+  "seal_semantics": {
+    "exact_materializer_identity_only": true,
+    "authority_not_created_by_this_seal": true,
+    "claim_not_created_by_this_seal": true,
+    "materialization_not_authorized_by_this_seal": true,
+    "scientific_execution_authorized": false,
+    "locked_test_used": false
+  },
+  "next_action": "External review of this exact corrective commit before any Mac mutation"
+}

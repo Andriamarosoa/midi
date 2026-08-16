@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "binding_id": "H27_REVIEW4_OPERATIONAL_MATERIALIZER_IDENTITY_V1",
+  "status": "PENDING_EXTERNAL_REVIEW_NO_EXECUTION_AUTHORIZED",
+  "required_head_predecessor": "46a6bdf81a56a7a7a10524d4e55092301a452207",
+  "population_namespace": "H27_SYNTHETIC_V1",
+  "materializer": {
+    "path": "src/polyphonic/harmonic_censoring_h27_review4_materializer.py",
+    "git_blob_sha1": "dab34b25b09e13aac2d46712e688aae2426fcd56",
+    "size_bytes": 28901,
+    "raw_sha256": "8941ed24443aff54fd0ec331e74efb87b71b045e352e0a9ce19a379a31b9650a"
+  },
+  "composition_contract": {
+    "path": "src/polyphonic/harmonic_censoring_h27_one_shot_execution_composition_dormant.py",
+    "git_blob_sha1": "c57dbd4ccd6f9ef9b75e3698580ca14d66d74682",
+    "raw_sha256": "6e2ccf317e071eed583b85995c11c386dfc5b306bb9a3b4c283dbf2fe0c6c9bb"
+  },
+  "authority_boundary_contract": {
+    "path": "src/polyphonic/harmonic_censoring_h27_issuer_authority_claim_capability_dormant.py",
+    "git_blob_sha1": "ec61eef88dce7591fd411af230568b1e1d44d62e",
+    "raw_sha256": "d3d06f8c087845089094ff71f29d8745581d391784b9bbc40abeb57b0ba42f2f"
+  },
+  "invariants": {
+    "frozen_bytes_compiled_without_source_loader": true,
+    "durable_authority_and_claim_before_consumption": true,
+    "exact_pair_process_local_single_use": true,
+    "directory_descriptor_relative_publication": true,
+    "review4_materialization_only": true,
+    "p0_p1_p2_science_not_executed": true,
+    "locked_test_used": false,
+    "training_executed": false
+  }
+}

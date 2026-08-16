@@ -14,27 +14,29 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 Review-4 operational materializer and one-shot runner implemented locally; no authority consumption or population yet. -->
+<!-- H26_CORRECTION_STATUS: H27 Review-4 corrective operational materializer pending exact external review; no authority consumption or population. -->
 ## État courant
 
 - Mise à jour : `2026-08-16`.
 - État courant :
-  `H27_REVIEW4_OPERATIONAL_MATERIALIZER_IMPLEMENTED_PENDING_EXACT_CODE_REVIEW_NO_CONSUMPTION`.
-- Le lot courant implémente le matérialiseur opérationnel Review 4 et son
-  runner Mac one-shot, sans invocation. Les dix-huit fonctions scientifiques
-  et de publication sont copiées mécaniquement depuis le matérialiseur H27
-  dormant revu; seule la capability process-local passe de la barrière native
-  à un état `issued → active → terminal`, sans retry. Le runner vérifie le HEAD
-  détaché `46a6bdf8...`, le worktree propre, les huit composants H27 scellés,
-  l'artefact d'autorité `d44941a8...`, le runtime/environnement primaire et
-  l'absence des destinations avant toute écriture. Il prépare ensuite, lors
-  d'une future invocation distincte, authority/claim durables, les 124 records
-  `17 + 107`, leur réconciliation byte-exacte et un terminal sans science.
-  Les `5/5` tests nouveaux passent; les suites historiques liées aux octets Git
-  ne sont pas rejouables sur ce checkout Windows CRLF mais seront rehashées sur
-  le checkout Mac LF avant consommation. Aucun SSH mutatif, claim, authority,
-  population, P0/P1/P2, moteur, recomputer, entraînement ou locked-test n'a été
-  exécuté. Rapport :
+  `H27_REVIEW4_CORRECTIVE_MATERIALIZER_PENDING_EXACT_EXTERNAL_REVIEW_NO_CONSUMPTION`.
+- La revue externe stricte de `859a4d848d1f2f625d2acadd728c489fd1f60038`
+  a rendu `NON APPROUVÉ` et interdit toute exécution Mac. Le lot correctif
+  supprime le token/issuer et le registre mutable, consomme une paire exacte
+  capability/binding seulement après authority et claim durables, compile les
+  octets contract/materializer gelés sans loader/pyc et réatteste code,
+  authority et claim immédiatement à la consommation. La publication utilise
+  les descripteurs de répertoire conservés, `O_NOFOLLOW`, `O_EXCL`, modes
+  `0700/0600` et `renameatx_np(..., RENAME_EXCL)` relatif au même parent. Une
+  réconciliation indépendante impose les 124 identités ordonnées, le schéma et
+  les métadonnées dérivées, tailles/digests/masque binaire, unique collision
+  alternate et arbre exhaustif. Le terminal distingue désormais la préparation
+  des données de P0/P1/P2, tous trois `executed=false` et `complete=false`.
+  Un binding et un seal externes dédiés lient les octets opérationnels exacts.
+  Les `8/8` tests correctifs passent localement, ainsi que `py_compile` et
+  `git diff --check`. Aucun SSH mutatif, claim, authority, population,
+  P0/P1/P2, moteur, recomputer, entraînement ou locked-test n'a été exécuté.
+  Rapport :
   `readme/results/2026-08-16_harmonic-censoring-h27-review4-operational-materializer-implementation.md`.
 - La revue externe de `61dc4b496a454b596fca6ac361504f441e987aab`
   conclut `PASS` sur le sender dormant corrigé et autorise uniquement sa

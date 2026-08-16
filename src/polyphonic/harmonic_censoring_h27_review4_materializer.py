@@ -15,14 +15,22 @@ import json
 import math
 import os
 from pathlib import Path
-import threading
-from typing import Any, Mapping, Sequence
+import stat
+from typing import Any, Callable, Mapping, NamedTuple, Sequence
 
-from src.polyphonic.harmonic_censoring_h27_contract import (
-    H27DormantPlan,
-    canonical_h27_record_identities,
-    deep_thaw,
-)
+if os.name != "nt":
+    import fcntl
+
+if "_H27_FROZEN_CONTRACT" in globals():
+    H27DormantPlan = _H27_FROZEN_CONTRACT.H27DormantPlan
+    canonical_h27_record_identities = _H27_FROZEN_CONTRACT.canonical_h27_record_identities
+    deep_thaw = _H27_FROZEN_CONTRACT.deep_thaw
+else:  # Tests only; the one-shot runner injects the frozen reviewed contract.
+    from src.polyphonic.harmonic_censoring_h27_contract import (
+        H27DormantPlan,
+        canonical_h27_record_identities,
+        deep_thaw,
+    )
 
 
 SAMPLE_COUNT = 16640
@@ -41,15 +49,11 @@ INDEX_FIELDS = (
 class H27ProductionMaterializationCapability:
     """Process-local non-copyable single-use materialization capability."""
 
-    __slots__ = ("_token", "_state")
+    __slots__ = ("__weakref__",)
 
     def __new__(cls, *args: object, **kwargs: object) -> "H27ProductionMaterializationCapability":
-        if args != (_CAPABILITY_TOKEN,) or kwargs:
-            raise PermissionError("H27 production materialization capability is issuer-only.")
-        instance = super().__new__(cls)
-        instance._token = _CAPABILITY_TOKEN
-        instance._state = "issued"
-        return instance
+        del cls, args, kwargs
+        raise PermissionError("H27 production materialization capability has no public constructor.")
 
     def __copy__(self) -> "H27ProductionMaterializationCapability":
         raise PermissionError("H27 production capability cannot be copied.")
@@ -62,29 +66,67 @@ class H27ProductionMaterializationCapability:
         raise TypeError("H27 production capability cannot be serialized.")
 
 
-_CAPABILITY_TOKEN = object()
-_CAPABILITY_LOCK = threading.Lock()
-_ISSUED = False
+class H27Review4CapabilityBinding(NamedTuple):
+    authority_sha256: str
+    claim_sha256: str
+    materializer_blob: str
+    invocation_nonce: str
+    process_id: int
+    code_identity_sha256: str
 
 
-def _issue_review4_capability() -> H27ProductionMaterializationCapability:
-    """Issue the sole process-local capability after the runner's preflight."""
+class H27Review4Session(NamedTuple):
+    capability: object
+    binding: H27Review4CapabilityBinding
+    consume_attested: Callable[[object], object]
+    authority_fd: int
+    claim_fd: int
+    population_parent_fd: int
 
-    global _ISSUED
-    with _CAPABILITY_LOCK:
-        if _ISSUED:
-            raise PermissionError("H27 Review 4 capability was already issued.")
-        _ISSUED = True
-        return H27ProductionMaterializationCapability(_CAPABILITY_TOKEN)
+
+_ACTIVE_CAPABILITY: object | None = None
 
 
 def _require_capability(value: H27ProductionMaterializationCapability) -> None:
-    if (
-        type(value) is not H27ProductionMaterializationCapability
-        or getattr(value, "_token", None) is not _CAPABILITY_TOKEN
-        or getattr(value, "_state", None) != "active"
-    ):
+    if value is not _ACTIVE_CAPABILITY:
         raise PermissionError("H27 Review 4 capability is invalid or consumed.")
+
+
+def _validate_session_before_consumption(session: H27Review4Session) -> None:
+    if type(session) is not H27Review4Session or type(session.binding) is not H27Review4CapabilityBinding:
+        raise PermissionError("H27 Review 4 exact session required.")
+    if type(session.capability) is not H27ProductionMaterializationCapability:
+        raise PermissionError("H27 Review 4 exact capability required.")
+    if session.binding.process_id != os.getpid():
+        raise PermissionError("H27 Review 4 session crossed a process boundary.")
+    for descriptor, expected in ((session.authority_fd, session.binding.authority_sha256),
+                                 (session.claim_fd, session.binding.claim_sha256)):
+        try:
+            information = os.fstat(descriptor)
+        except OSError as exc:
+            raise PermissionError("H27 Review 4 authority/claim descriptor unavailable.") from exc
+        if (not stat.S_ISREG(information.st_mode) or information.st_nlink != 1 or
+                stat.S_IMODE(information.st_mode) != 0o600 or information.st_uid != os.getuid()):
+            raise PermissionError("H27 Review 4 authority/claim descriptor invariant failed.")
+        position = os.lseek(descriptor, 0, os.SEEK_CUR)
+        os.lseek(descriptor, 0, os.SEEK_SET)
+        chunks = []
+        while True:
+            chunk = os.read(descriptor, 1024 * 1024)
+            if not chunk:
+                break
+            chunks.append(chunk)
+        os.lseek(descriptor, position, os.SEEK_SET)
+        if hashlib.sha256(b"".join(chunks)).hexdigest() != expected:
+            raise PermissionError("H27 Review 4 authority/claim binding mismatch.")
+    population = os.fstat(session.population_parent_fd)
+    if (not stat.S_ISDIR(population.st_mode) or stat.S_IMODE(population.st_mode) != 0o700 or
+            population.st_uid != os.getuid()):
+        raise PermissionError("H27 Review 4 population parent invariant failed.")
+    if os.uname().sysname == "Darwin":
+        observed = fcntl.fcntl(session.population_parent_fd, 50, b"\0" * 1024).split(b"\0", 1)[0].decode()
+        if observed != FINAL_DESTINATION.parent.as_posix():
+            raise PermissionError("H27 Review 4 population parent path mismatch.")
 
 
 @dataclass(frozen=True)
@@ -406,29 +448,38 @@ def _render_record(
 
 
 def _write_new(
-    capability: H27ProductionMaterializationCapability, path: Path, raw: bytes,
+    capability: H27ProductionMaterializationCapability, parent_fd: int, name: str, raw: bytes,
 ) -> None:
     _require_capability(capability)
-    path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
-    descriptor = os.open(str(path), os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-    with os.fdopen(descriptor, "wb", closefd=True) as handle:
-        handle.write(raw)
-        handle.flush()
-        os.fsync(handle.fileno())
-
-
-def _fsync_directory(capability: H27ProductionMaterializationCapability, path: Path) -> None:
-    _require_capability(capability)
-    descriptor = os.open(str(path), os.O_RDONLY)
+    if "/" in name or name in ("", ".", ".."):
+        raise ValueError("H27 unsafe relative file name.")
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0)
+    descriptor = os.open(name, flags, 0o600, dir_fd=parent_fd)
     try:
+        view = memoryview(raw)
+        offset = 0
+        while offset < len(raw):
+            count = os.write(descriptor, view[offset:])
+            if count <= 0:
+                raise OSError("H27 incomplete payload write.")
+            offset += count
         os.fsync(descriptor)
+        info = os.fstat(descriptor)
+        if (not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 or
+                stat.S_IMODE(info.st_mode) != 0o600 or info.st_uid != os.getuid()):
+            raise PermissionError("H27 payload ownership/link/mode invariant failed.")
     finally:
         os.close(descriptor)
 
 
+def _fsync_directory(capability: H27ProductionMaterializationCapability, descriptor: int) -> None:
+    _require_capability(capability)
+    os.fsync(descriptor)
+
+
 def _rename_no_replace(
     capability: H27ProductionMaterializationCapability,
-    source: Path, destination: Path,
+    parent_fd: int, source_name: str, destination_name: str,
 ) -> None:
     _require_capability(capability)
     if os.uname().sysname != "Darwin":
@@ -438,77 +489,141 @@ def _rename_no_replace(
     function = libc.renameatx_np
     function.argtypes = (ctypes.c_int, ctypes.c_char_p, ctypes.c_int, ctypes.c_char_p, ctypes.c_uint)
     function.restype = ctypes.c_int
-    if function(-2, os.fsencode(source), -2, os.fsencode(destination), 0x00000004) != 0:
+    if function(parent_fd, os.fsencode(source_name), parent_fd, os.fsencode(destination_name), 0x00000004) != 0:
         code = ctypes.get_errno()
-        raise OSError(code, os.strerror(code), str(destination))
+        raise OSError(code, os.strerror(code), destination_name)
+
+
+def _mkdir_chain(capability: H27ProductionMaterializationCapability, root_fd: int, relative: str) -> int:
+    _require_capability(capability)
+    current = os.dup(root_fd)
+    try:
+        for component in relative.split("/"):
+            if component in ("", ".", ".."):
+                raise ValueError("H27 unsafe record directory.")
+            try:
+                os.mkdir(component, 0o700, dir_fd=current)
+            except FileExistsError:
+                pass
+            child = os.open(
+                component,
+                os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | getattr(os, "O_NOFOLLOW", 0),
+                dir_fd=current,
+            )
+            info = os.fstat(child)
+            if (not stat.S_ISDIR(info.st_mode) or stat.S_IMODE(info.st_mode) != 0o700 or
+                    info.st_nlink < 2 or info.st_uid != os.getuid()):
+                os.close(child)
+                raise PermissionError("H27 record directory mode/type invariant failed.")
+            os.close(current)
+            current = child
+        return current
+    except BaseException:
+        os.close(current)
+        raise
+
+
+def _read_exact_file(capability: H27ProductionMaterializationCapability, parent_fd: int, name: str) -> bytes:
+    _require_capability(capability)
+    descriptor = os.open(name, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0), dir_fd=parent_fd)
+    try:
+        before = os.fstat(descriptor)
+        if (not stat.S_ISREG(before.st_mode) or before.st_nlink != 1 or
+                stat.S_IMODE(before.st_mode) != 0o600 or before.st_uid != os.getuid()):
+            raise PermissionError("H27 payload type/link/mode invariant failed.")
+        chunks = []
+        while True:
+            chunk = os.read(descriptor, 1024 * 1024)
+            if not chunk:
+                break
+            chunks.append(chunk)
+        after = os.fstat(descriptor)
+        if (before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns, before.st_ctime_ns) != (
+            after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns, after.st_ctime_ns
+        ):
+            raise PermissionError("H27 payload changed during verification.")
+        return b"".join(chunks)
+    finally:
+        os.close(descriptor)
 
 
 def _publish(
     capability: H27ProductionMaterializationCapability, np: Any, plan: H27DormantPlan,
+    population_parent_fd: int,
 ) -> None:
     _require_capability(capability)
-    if FINAL_DESTINATION.exists() or STAGING_DESTINATION.exists():
-        raise FileExistsError("H27 final or staging destination already exists.")
-    STAGING_DESTINATION.mkdir(parents=True, mode=0o700)
+    staging_name = STAGING_DESTINATION.name
+    final_name = FINAL_DESTINATION.name
+    os.mkdir(staging_name, 0o700, dir_fd=population_parent_fd)
+    staging_fd = os.open(
+        staging_name,
+        os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | getattr(os, "O_NOFOLLOW", 0),
+        dir_fd=population_parent_fd,
+    )
     records: list[dict[str, object]] = []
-    for descriptor in _descriptors(plan):
-        waveform, mask, alternate = _render_record(capability, np, plan, descriptor)
-        record_root = STAGING_DESTINATION / descriptor.identity
-        payloads = {"waveform.f64le": waveform, "sample-valid-mask.u8": mask}
-        if alternate is not None:
-            payloads["alternate-waveform.f64le"] = alternate
-        shas: dict[str, str] = {}
-        for name, raw in payloads.items():
-            path = record_root / name
-            expected_sha256 = hashlib.sha256(raw).hexdigest()
-            _write_new(capability, path, raw)
-            written = path.read_bytes()
-            if len(written) != len(raw) or hashlib.sha256(written).hexdigest() != expected_sha256:
-                raise ValueError("H27 payload verification before index failed.")
-            shas[name] = expected_sha256
-        row = {
-            "record_identity": descriptor.identity, "record_directory": descriptor.identity,
-            "population_namespace": POPULATION_NAMESPACE, "payload_sha256": shas,
-            "candidate_pitch": descriptor.candidate_pitch, "active_pitches": list(descriptor.active_pitches),
-            "proposal_hop_end": descriptor.proposal_hop_end, "resolution_hop_end": descriptor.resolution_hop_end,
-            "cents": descriptor.cents, "inharmonicity": descriptor.inharmonicity,
-        }
-        if tuple(row) != INDEX_FIELDS:
-            raise AssertionError("H27 index row field order drift.")
-        records.append(row)
-    index = {"schema_version": 1, "population_namespace": POPULATION_NAMESPACE, "record_count": 124, "records": records}
-    index_raw = _canonical_json_bytes(index)
-    _write_new(capability, STAGING_DESTINATION / "population_index.json", index_raw)
-    for row in records:
-        root = STAGING_DESTINATION / str(row["record_directory"])
-        for name, expected in row["payload_sha256"].items():
-            path = root / name
-            if path.is_symlink() or hashlib.sha256(path.read_bytes()).hexdigest() != expected:
-                raise ValueError("H27 staging tree verification failed.")
-    _fsync_directory(capability, STAGING_DESTINATION)
-    _rename_no_replace(capability, STAGING_DESTINATION, FINAL_DESTINATION)
-    _fsync_directory(capability, FINAL_DESTINATION.parent)
+    try:
+        for descriptor in _descriptors(plan):
+            waveform, mask, alternate = _render_record(capability, np, plan, descriptor)
+            payloads = {"waveform.f64le": waveform, "sample-valid-mask.u8": mask}
+            if alternate is not None:
+                payloads["alternate-waveform.f64le"] = alternate
+            record_fd = _mkdir_chain(capability, staging_fd, descriptor.identity)
+            try:
+                shas: dict[str, str] = {}
+                for name, raw in payloads.items():
+                    expected_sha256 = hashlib.sha256(raw).hexdigest()
+                    _write_new(capability, record_fd, name, raw)
+                    written = _read_exact_file(capability, record_fd, name)
+                    if len(written) != len(raw) or hashlib.sha256(written).hexdigest() != expected_sha256:
+                        raise ValueError("H27 payload verification before index failed.")
+                    shas[name] = expected_sha256
+                _fsync_directory(capability, record_fd)
+            finally:
+                os.close(record_fd)
+            row = {
+                "record_identity": descriptor.identity, "record_directory": descriptor.identity,
+                "population_namespace": POPULATION_NAMESPACE, "payload_sha256": shas,
+                "candidate_pitch": descriptor.candidate_pitch, "active_pitches": list(descriptor.active_pitches),
+                "proposal_hop_end": descriptor.proposal_hop_end, "resolution_hop_end": descriptor.resolution_hop_end,
+                "cents": descriptor.cents, "inharmonicity": descriptor.inharmonicity,
+            }
+            if tuple(row) != INDEX_FIELDS:
+                raise AssertionError("H27 index row field order drift.")
+            records.append(row)
+        index = {"schema_version": 1, "population_namespace": POPULATION_NAMESPACE, "record_count": 124, "records": records}
+        _write_new(capability, staging_fd, "population_index.json", _canonical_json_bytes(index))
+        _fsync_directory(capability, staging_fd)
+    finally:
+        os.close(staging_fd)
+    _rename_no_replace(capability, population_parent_fd, staging_name, final_name)
+    _fsync_directory(capability, population_parent_fd)
 
 
 def materialize_h27_production_population(
-    np: Any, capability: H27ProductionMaterializationCapability,
-    plan: H27DormantPlan,
+    session: H27Review4Session,
+    plan_loader: Callable[[Path], H27DormantPlan],
+    repository_root: Path,
 ) -> None:
-    """Consume the exact capability once, then publish the sealed population."""
+    """Atomically consume an exact attested session, then publish once."""
 
-    with _CAPABILITY_LOCK:
-        if (
-            type(capability) is not H27ProductionMaterializationCapability
-            or getattr(capability, "_token", None) is not _CAPABILITY_TOKEN
-            or getattr(capability, "_state", None) != "issued"
-        ):
-            raise PermissionError("H27 Review 4 capability is invalid or consumed.")
-        capability._state = "active"
+    _validate_session_before_consumption(session)
+    observed = session.consume_attested((session.capability, session.binding))
+    if observed is not session.binding or type(session.capability) is not H27ProductionMaterializationCapability:
+        raise PermissionError("H27 Review 4 attested consumption mismatch.")
+    global _ACTIVE_CAPABILITY
+    if _ACTIVE_CAPABILITY is not None:
+        raise PermissionError("H27 Review 4 materializer is already active.")
+    _ACTIVE_CAPABILITY = session.capability
     try:
-        _publish(capability, np, plan)
+        # These are deliberately post-claim and post-consumption.
+        import numpy as np
+        plan = plan_loader(repository_root)
+        _publish(session.capability, np, plan, session.population_parent_fd)
     finally:
-        with _CAPABILITY_LOCK:
-            capability._state = "terminal"
+        _ACTIVE_CAPABILITY = None
 
 
-__all__ = ["H27ProductionMaterializationCapability", "materialize_h27_production_population"]
+__all__ = [
+    "H27ProductionMaterializationCapability", "H27Review4CapabilityBinding",
+    "H27Review4Session", "materialize_h27_production_population",
+]
