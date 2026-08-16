@@ -14,12 +14,12 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 Review-4 bootstrap files verified; runner stopped in preclaim because authority directory was absent; no authority consumption or population. -->
+<!-- H26_CORRECTION_STATUS: H27 Review-4 administrative parents created; runner stopped in preclaim on missing NumPy package metadata; no authority consumption or population. -->
 ## État courant
 
 - Mise à jour : `2026-08-16`.
 - État courant :
-  `H27_REVIEW4_RUNNER_PRECLAIM_AUTHORITY_PARENT_ABSENT_STOP_NO_CONSUMPTION`.
+  `H27_REVIEW4_RUNNER_PRECLAIM_NUMPY_METADATA_ABSENT_STOP_NO_CONSUMPTION`.
 - Les revues externes strictes de `859a4d848d1f2f625d2acadd728c489fd1f60038`
   puis `8861d7dccb6b088ab31e9b2ab16660444a11e566` ont rendu
   `NON APPROUVÉ` et interdit toute exécution Mac. Le second correctif retire
@@ -66,6 +66,16 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   science n'a eu lieu. Les fichiers bootstrap restent en place et ne sont pas
   modifiés; aucun retry n'est lancé sans nouvelle revue. Rapport :
   `readme/results/2026-08-16_harmonic-censoring-h27-review4-runner-preclaim-authority-directory-absence.md`.
+  La revue de `d89403a304d212e61c6dabbe429aea89b67bd390` a ensuite
+  autorisé une nouvelle invocation unique avec création préalable des trois
+  parents administratifs. Le bloc SSH a revalidé byte-exactement les six
+  artefacts, créé/vérifié `authority`, `claims` et `population` en `0700`, puis
+  lancé le runner une fois après ACK. `preclaim()` s'est arrêté au contrôle du
+  runtime : le Python 3.11 scellé ne trouve pas les métadonnées du paquet
+  `numpy`. L'arrêt précède `consume_and_run()`, la création du fichier
+  AUTHORITY, CLAIM, toute population et toute science. Les trois répertoires
+  créés persistent; aucun retry ni réparation n'est effectué. Rapport :
+  `readme/results/2026-08-16_harmonic-censoring-h27-review4-runner-preclaim-numpy-metadata-absence.md`.
   Rapport :
   `readme/results/2026-08-16_harmonic-censoring-h27-review4-operational-materializer-implementation.md`.
 - La revue externe de `61dc4b496a454b596fca6ac361504f441e987aab`
