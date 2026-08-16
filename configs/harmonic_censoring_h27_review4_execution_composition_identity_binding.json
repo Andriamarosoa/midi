@@ -2,13 +2,13 @@
   "schema_version": 1,
   "binding_id": "H27_REVIEW4_EXECUTION_COMPOSITION_IDENTITY_V1",
   "status": "PENDING_EXTERNAL_REVIEW_NO_EXECUTION_AUTHORIZED",
-  "reviewed_commit": "ffe31250f4f3e142c9f04fb8f04f4b7a517ce7d5",
+  "reviewed_commit": "245ff1436ec6ecfbeb23b7aa962016dc098482b1",
   "required_target_head": "46a6bdf81a56a7a7a10524d4e55092301a452207",
   "runner": {
     "path": "scripts/h27_review4_execute_once.py",
-    "git_blob_sha1": "44f3bd75f39265c85601c461984cb44831bd216e",
-    "size_bytes": 26604,
-    "raw_sha256": "5f56026e792b8aa7307c3e32daf2116079919f545abd332a199a19f57e31841c"
+    "git_blob_sha1": "6d7a4ade1abf7fd771a2d08d289ec976f8bba889",
+    "size_bytes": 26857,
+    "raw_sha256": "ae7d535943e7820ad4529579f99ca68d6e4009d344c15430de91fa0f32f99b8c"
   },
   "materializer": {
     "path": "src/polyphonic/harmonic_censoring_h27_review4_materializer.py",

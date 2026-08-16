@@ -14,12 +14,12 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 Review-4 exact venv runtime passed; runner stopped in preclaim while loading frozen dataclass module outside sys.modules; no authority consumption or population. -->
+<!-- H26_CORRECTION_STATUS: H27 Review-4 frozen dataclass loader corrected and newly sealed locally; pending external review, no Mac reprise. -->
 ## État courant
 
 - Mise à jour : `2026-08-16`.
 - État courant :
-  `H27_REVIEW4_RUNNER_PRECLAIM_FROZEN_DATACLASS_MODULE_REGISTRATION_STOP_NO_CONSUMPTION`.
+  `H27_REVIEW4_FROZEN_MODULE_CORRECTION_AND_RESEAL_PENDING_EXTERNAL_REVIEW_NO_MAC_REPRISE`.
 - Les revues externes strictes de `859a4d848d1f2f625d2acadd728c489fd1f60038`
   puis `8861d7dccb6b088ab31e9b2ab16660444a11e566` ont rendu
   `NON APPROUVÉ` et interdit toute exécution Mac. Le second correctif retire
@@ -87,6 +87,17 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `consume_and_run()`, AUTHORITY, CLAIM, population et science. Aucun retry.
   Rapport :
   `readme/results/2026-08-16_harmonic-censoring-h27-review4-runner-preclaim-frozen-dataclass-module-registration.md`.
+  La revue externe de `c956d941b6841514cc41bdfe04f182a30de8344f`
+  a ensuite autorisé uniquement un correctif local en deux commits. Le commit A
+  `245ff1436ec6ecfbeb23b7aa962016dc098482b1` inscrit désormais le module figé
+  dans `sys.modules` seulement pendant `exec`, refuse collision et remplacement,
+  puis nettoie dans `finally`; quatre tests couvrent les cinq invariants exigés,
+  dont une vraie `dataclass`. Le lot B courant renouvelle seulement le binding
+  et le seal de composition vers ce runner; le matérialiseur reste byte-exact.
+  Les 15 tests ciblés passent (14 pass, 1 skip POSIX sous Windows), ainsi que
+  `py_compile` et `git diff --check`. Aucun SSH ou remplacement Mac n'est
+  autorisé avant nouvelle revue. Rapport :
+  `readme/results/2026-08-16_harmonic-censoring-h27-review4-frozen-module-correction-and-reseal.md`.
   Rapport :
   `readme/results/2026-08-16_harmonic-censoring-h27-review4-operational-materializer-implementation.md`.
 - La revue externe de `61dc4b496a454b596fca6ac361504f441e987aab`
