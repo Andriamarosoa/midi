@@ -14,12 +14,12 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 Review-4 second corrective operational materializer pending exact external review; no authority consumption or population. -->
+<!-- H26_CORRECTION_STATUS: H27 Review-4 runner composition seal pending exact external review; no authority consumption or population. -->
 ## État courant
 
 - Mise à jour : `2026-08-16`.
 - État courant :
-  `H27_REVIEW4_SECOND_CORRECTIVE_MATERIALIZER_PENDING_EXACT_EXTERNAL_REVIEW_NO_CONSUMPTION`.
+  `H27_REVIEW4_EXECUTION_COMPOSITION_SEAL_PENDING_EXACT_EXTERNAL_REVIEW_NO_CONSUMPTION`.
 - Les revues externes strictes de `859a4d848d1f2f625d2acadd728c489fd1f60038`
   puis `8861d7dccb6b088ab31e9b2ab16660444a11e566` ont rendu
   `NON APPROUVÉ` et interdit toute exécution Mac. Le second correctif retire
@@ -36,11 +36,20 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   collision alternate et arbre exhaustif. `write_new_at` conserve le fd créé
   ouvert à travers fsync parent et réouverture relative, puis compare device,
   inode et octets. P0/P1/P2 restent tous `executed=false` et `complete=false`.
-  Les 10 tests correctifs sont découverts localement : 9 passent et la
+  Les 11 tests correctifs sont découverts localement : 10 passent et la
   régression dynamique de mutation staging, strictement POSIX, est skip sous
   Windows; le contrôle d'ordre correspondant passe. `py_compile` et
   `git diff --check`. Aucun SSH mutatif, claim, authority, population,
   P0/P1/P2, moteur, recomputer, entraînement ou locked-test n'a été exécuté.
+  La revue de `ffe31250f4f3e142c9f04fb8f04f4b7a517ce7d5` valide ces trois
+  corrections mais rend un `FAIL limité` : le runner privilégié n'était pas
+  lui-même scellé comme composition opérationnelle distincte. Le lot courant
+  ajoute uniquement son identity binding et son external seal. Ils figent le
+  runner revu à `ffe31250...` (blob `44f3bd75...`, 26 604 octets, SHA-256
+  `5f56026e...`), le HEAD cible, le materializer et ses deux artefacts, ainsi que
+  les 16 identités administratives. Le futur bootstrap devra matérialiser ce
+  runner hors checkout et vérifier size/blob/SHA avant ACK et lancement; aucune
+  auto-identité circulaire n'est introduite.
   Rapport :
   `readme/results/2026-08-16_harmonic-censoring-h27-review4-operational-materializer-implementation.md`.
 - La revue externe de `61dc4b496a454b596fca6ac361504f441e987aab`

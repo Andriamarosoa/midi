@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "seal_id": "H27_REVIEW4_EXECUTION_COMPOSITION_EXTERNAL_SEAL_V1",
+  "status": "PENDING_EXTERNAL_REVIEW_NO_EXECUTION_AUTHORIZED",
+  "reviewed_commit": "ffe31250f4f3e142c9f04fb8f04f4b7a517ce7d5",
+  "execution_composition_identity_binding": {
+    "path": "configs/harmonic_censoring_h27_review4_execution_composition_identity_binding.json",
+    "git_blob_sha1": "7a1437c466cf905b984b0710bdda6cd473608dda",
+    "size_bytes": 5955,
+    "raw_sha256": "56b06449eda6658a0a916f3807f22ba0d6bdc71825d0a6fce15d3f8e7e4ca6ef"
+  },
+  "runner": {
+    "path": "scripts/h27_review4_execute_once.py",
+    "git_blob_sha1": "44f3bd75f39265c85601c461984cb44831bd216e",
+    "size_bytes": 26604,
+    "raw_sha256": "5f56026e792b8aa7307c3e32daf2116079919f545abd332a199a19f57e31841c"
+  },
+  "materializer": {
+    "path": "src/polyphonic/harmonic_censoring_h27_review4_materializer.py",
+    "git_blob_sha1": "8cdafbd6a08ea893daa2d6f41cb62166bf9162cd",
+    "size_bytes": 33706,
+    "raw_sha256": "2ecaabf1e1880688244b06ecb03a9b3eb7831d4659e209aa11e36b7b60948be3"
+  },
+  "seal_semantics": {
+    "distinct_operational_composition_module_bound": true,
+    "bootstrap_must_verify_runner_before_ack_and_launch": true,
+    "runner_must_be_materialized_outside_checkout": true,
+    "self_hash_or_circular_identity_forbidden": true,
+    "authority_not_created_by_this_seal": true,
+    "claim_not_created_by_this_seal": true,
+    "materialization_not_authorized_by_this_seal": true,
+    "science_authorized": false,
+    "locked_test_used": false
+  },
+  "next_action": "External review of runner binding and seal before any Mac bootstrap or mutation"
+}

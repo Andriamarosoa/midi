@@ -114,6 +114,19 @@ class Review4MaterializerTests(unittest.TestCase):
         self.assertEqual(seal["materializer"],materializer)
         self.assertEqual(seal["identity_binding"],{"path":runner.OPERATIONAL_BINDING_PATH,"git_blob_sha1":hashlib.sha1(b"blob "+str(len(binding_raw)).encode()+b"\0"+binding_raw).hexdigest(),"size_bytes":len(binding_raw),"raw_sha256":hashlib.sha256(binding_raw).hexdigest()})
 
+    def test_execution_composition_runner_is_separately_bound_and_sealed(self) -> None:
+        runner=load_runner(); runner_path=ROOT/"scripts/h27_review4_execute_once.py"; runner_raw=runner_path.read_bytes()
+        runner_identity={"path":"scripts/h27_review4_execute_once.py","git_blob_sha1":hashlib.sha1(b"blob "+str(len(runner_raw)).encode()+b"\0"+runner_raw).hexdigest(),"size_bytes":len(runner_raw),"raw_sha256":hashlib.sha256(runner_raw).hexdigest()}
+        binding_path=ROOT/"configs/harmonic_censoring_h27_review4_execution_composition_identity_binding.json"; binding_raw=binding_path.read_bytes(); binding=json.loads(binding_raw)
+        seal=json.loads((ROOT/"configs/harmonic_censoring_h27_review4_execution_composition_external_seal.json").read_bytes())
+        expected_admin=[{"path":path,"git_blob_sha1":blob,"size_bytes":size,"raw_sha256":sha} for path,blob,size,sha in runner.ADMINISTRATIVE_INPUTS]
+        self.assertEqual(binding["runner"],runner_identity); self.assertEqual(binding["administrative_chain"],expected_admin)
+        self.assertEqual(binding["required_target_head"],runner.REQUIRED_HEAD); self.assertEqual(seal["runner"],runner_identity)
+        self.assertEqual(seal["execution_composition_identity_binding"],{"path":"configs/harmonic_censoring_h27_review4_execution_composition_identity_binding.json","git_blob_sha1":hashlib.sha1(b"blob "+str(len(binding_raw)).encode()+b"\0"+binding_raw).hexdigest(),"size_bytes":len(binding_raw),"raw_sha256":hashlib.sha256(binding_raw).hexdigest()})
+        self.assertTrue(binding["bootstrap_contract"]["verify_runner_size_blob_sha_before_execution"])
+        self.assertTrue(binding["bootstrap_contract"]["verification_must_precede_ack_and_runner_launch"])
+        self.assertTrue(seal["seal_semantics"]["bootstrap_must_verify_runner_before_ack_and_launch"])
+
     def test_runner_orders_claim_then_injection_and_seals_authority_chain(self) -> None:
         source=(ROOT/"scripts/h27_review4_execute_once.py").read_text(encoding="utf-8")
         self.assertLess(source.index("claim_fd,claim_raw=write_new_at"),source.index('name="h27_frozen_materializer"'))

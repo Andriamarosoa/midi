@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "binding_id": "H27_REVIEW4_EXECUTION_COMPOSITION_IDENTITY_V1",
+  "status": "PENDING_EXTERNAL_REVIEW_NO_EXECUTION_AUTHORIZED",
+  "reviewed_commit": "ffe31250f4f3e142c9f04fb8f04f4b7a517ce7d5",
+  "required_target_head": "46a6bdf81a56a7a7a10524d4e55092301a452207",
+  "runner": {
+    "path": "scripts/h27_review4_execute_once.py",
+    "git_blob_sha1": "44f3bd75f39265c85601c461984cb44831bd216e",
+    "size_bytes": 26604,
+    "raw_sha256": "5f56026e792b8aa7307c3e32daf2116079919f545abd332a199a19f57e31841c"
+  },
+  "materializer": {
+    "path": "src/polyphonic/harmonic_censoring_h27_review4_materializer.py",
+    "git_blob_sha1": "8cdafbd6a08ea893daa2d6f41cb62166bf9162cd",
+    "size_bytes": 33706,
+    "raw_sha256": "2ecaabf1e1880688244b06ecb03a9b3eb7831d4659e209aa11e36b7b60948be3"
+  },
+  "materializer_identity_binding": {
+    "path": "configs/harmonic_censoring_h27_review4_materializer_identity_binding.json",
+    "git_blob_sha1": "9371d80c75c2cf08ebf2cc33177c05c123c13efa",
+    "size_bytes": 5269,
+    "raw_sha256": "204f61303277b4a813d23a4a6a478d6d33a17893d30a72156e7a7d2574dfb4da"
+  },
+  "materializer_external_seal": {
+    "path": "configs/harmonic_censoring_h27_review4_materializer_external_seal.json",
+    "git_blob_sha1": "370eaf40be9863ec381061678451a58409264244",
+    "size_bytes": 1198,
+    "raw_sha256": "f396257c040b7d0504336b98384308f76e45a32614efba129eba91c53b55f1de"
+  },
+  "administrative_chain": [
+    {"path":"configs/harmonic_censoring_h27_one_shot_execution_composition_contract.json","git_blob_sha1":"2fc615a5f1c45245dd579891b42cfe12feb100aa","size_bytes":9912,"raw_sha256":"230249ef9118d43d0d538f8b005178fd123852ddf6ed7ee69e1d76553949b622"},
+    {"path":"configs/harmonic_censoring_h27_one_shot_execution_composition_contract_external_seal.json","git_blob_sha1":"d912a1ebd0fb6818147a0f07da1f6140d9434398","size_bytes":2786,"raw_sha256":"9a698340046692eab0e415a6094cdffc7ce36c40ce38382cbe53425f10c6238e"},
+    {"path":"configs/harmonic_censoring_h27_one_shot_execution_composition_identity_binding.json","git_blob_sha1":"1f41f92b60c541219013bb78d40d38d183b2b80c","size_bytes":6092,"raw_sha256":"4621b87709ecf74ed5cb733d1a4470e576b8ea159b48256446b5dd539b0a70e0"},
+    {"path":"configs/harmonic_censoring_h27_one_shot_execution_composition_identity_binding_external_seal.json","git_blob_sha1":"cfaf71d625e774cf7294b993b7ea6206b53adc43","size_bytes":3184,"raw_sha256":"9e8b20928f233e0910c3bb3c583a4a4686681b91ab8049e89dfe4129c1a5e5e3"},
+    {"path":"configs/harmonic_censoring_h27_materialization_activation_contract.json","git_blob_sha1":"2df0e53637cc31d97c01e75b88cb47c2e866c187","size_bytes":11131,"raw_sha256":"a1e679e4357552bd88640d3d67a6f17bd9feaad38e8f26e4ed68539f167980c4"},
+    {"path":"configs/harmonic_censoring_h27_materialization_activation_contract_external_seal.json","git_blob_sha1":"0ef61aa7ada69b619a8e7acd7138151a36496089","size_bytes":3122,"raw_sha256":"2174570372df3e8349a425d62ce8e1d084238757fb944968ad8539d9dcabac9d"},
+    {"path":"configs/harmonic_censoring_h27_activation_capable_materializer_authority_contract.json","git_blob_sha1":"e7ff1b71bdd62adf8341dbd824302f1eb57e69c6","size_bytes":7358,"raw_sha256":"da96c338d4a99e848ab5fa63d717442c3af27fab6268bb9abae99c1f76321dab"},
+    {"path":"configs/harmonic_censoring_h27_activation_capable_materializer_authority_contract_external_seal.json","git_blob_sha1":"d34da25095581694ce4ca928734bb9b01d2e357c","size_bytes":1245,"raw_sha256":"8bb92ad437331528adf744388e77b445c8477a2e7dcbc87f4b84d602a147102b"},
+    {"path":"configs/harmonic_censoring_h27_issuer_authority_claim_capability_identity_binding.json","git_blob_sha1":"e7191b7b27d9339b1f94fc89aec032dd9ad61062","size_bytes":6032,"raw_sha256":"0f965e7bce28982d408dfd41054bde59f02c11a5016dc90af483dba6a14b6a1d"},
+    {"path":"configs/harmonic_censoring_h27_issuer_authority_claim_capability_identity_binding_external_seal.json","git_blob_sha1":"9e89d4d68013193582dee1062c61aaf8dd191ad3","size_bytes":2848,"raw_sha256":"664ad640a623f3357226b83985665253b3c37b5c4fc10252223e25e0087def12"},
+    {"path":"configs/harmonic_censoring_h27_issuer_authority_claim_capability_boundary_external_review_seal.json","git_blob_sha1":"c33350b3712a179a0e5577e90763ec72f96fd165","size_bytes":3864,"raw_sha256":"93b3d86633f979a9521cd93d0e7629956015e279ad61cbbfca579d2857185c6b"},
+    {"path":"src/polyphonic/harmonic_censoring_h27_issuer_authority_claim_capability_dormant.py","git_blob_sha1":"ec61eef88dce7591fd411af230568b1e1d44d62e","size_bytes":18915,"raw_sha256":"d3d06f8c087845089094ff71f29d8745581d391784b9bbc40abeb57b0ba42f2f"},
+    {"path":"configs/harmonic_censoring_h27_activation_capable_materializer_identity_binding.json","git_blob_sha1":"a32721107c1ff65697661cfa7a2a235811884fc6","size_bytes":4609,"raw_sha256":"a752721a022433ac1d9fddccb29b9e56cbd5c1bc0566762ca50acd2f9b01a9fc"},
+    {"path":"configs/harmonic_censoring_h27_activation_capable_materializer_identity_binding_external_seal.json","git_blob_sha1":"be17bda1d7da5144758606ed4b4f1b56708ebf3d","size_bytes":1760,"raw_sha256":"a7aa1f6d844fb25e2f633db8bd2817f6741bfe194418985c8419bda64573b3be"},
+    {"path":"configs/harmonic_censoring_h27_activation_capable_production_materializer_external_review_seal.json","git_blob_sha1":"d5b852e63676b59a75b938ef17c51f9247dd5e68","size_bytes":3057,"raw_sha256":"68751aede0f11ce04763eb7398f4c071db91310c62c9a58c11667b908b58f95f"},
+    {"path":"src/polyphonic/harmonic_censoring_h27_activation_capable_production_materializer_dormant.py","git_blob_sha1":"79f399359e366781f9526098c98a93cca71b1b49","size_bytes":32243,"raw_sha256":"02bf7e9a8e7d0e8f292adb7b00742c83c19ab56eb89e35adc5da9c1c3144ff70"}
+  ],
+  "bootstrap_contract": {
+    "materialize_runner_outside_checkout": true,
+    "verify_runner_size_blob_sha_before_execution": true,
+    "verification_must_precede_ack_and_runner_launch": true,
+    "no_self_hash_or_circular_identity": true,
+    "execution_authorized_by_this_binding": false
+  }
+}

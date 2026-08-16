@@ -80,7 +80,7 @@ seal          blob 370eaf40be9863ec381061678451a58409264244
 
 ```text
 python -m unittest tests.test_harmonic_censoring_h27_review4_materializer
-10 tests découverts : 9 réussis, 1 skip POSIX-only sous Windows
+11 tests découverts : 10 réussis, 1 skip POSIX-only sous Windows
 
 python -m py_compile \
   src/polyphonic/harmonic_censoring_h27_review4_materializer.py \
@@ -116,3 +116,37 @@ remplace pas le préflight Mac qui relit les blobs Git LF exacts.
 
 Le prochain geste est la revue du code exact, puis seulement son transfert
 binaire et son préflight Mac avant l'unique consommation.
+
+## Scellement séparé de la composition opérationnelle
+
+La revue stricte de `ffe31250f4f3e142c9f04fb8f04f4b7a517ce7d5`
+rend `FAIL limité` tout en déclarant les trois bloqueurs fonctionnels précédents
+fermés. Son unique bloqueur restant est l'absence de binding/seal séparés pour
+le runner privilégié qui crée authority/claim et injecte la frontière.
+
+Le correctif suivant ne modifie ni runner ni materializer. Il ajoute :
+
+```text
+runner revu à ffe31250...
+  blob 44f3bd75f39265c85601c461984cb44831bd216e
+  26 604 octets
+  SHA-256 5f56026e792b8aa7307c3e32daf2116079919f545abd332a199a19f57e31841c
+
+execution-composition binding
+  blob 7a1437c466cf905b984b0710bdda6cd473608dda
+  5 955 octets
+  SHA-256 56b06449eda6658a0a916f3807f22ba0d6bdc71825d0a6fce15d3f8e7e4ca6ef
+
+execution-composition external seal
+  blob 7eb0f555c077134e1e949530492a25a2a56192b2
+  1 640 octets
+  SHA-256 de9cc1c15c69611168b9b53b94ce39caea8bb181f1a2d584d30a8e9a7d46b283
+```
+
+Le binding reprend le HEAD cible exact, les identités materializer/binding/seal
+et les seize entrées administratives. Le seal lie byte-exactement le binding et
+le runner. Le futur bootstrap doit matérialiser le runner hors checkout puis
+vérifier size/blob/SHA avant ACK et lancement; ni auto-hash ni cycle d'identité
+n'est créé. Cette étape reste purement documentaire et testée : aucune mutation
+Mac, authority, claim, population ou science n'est autorisée avant la nouvelle
+revue externe.
