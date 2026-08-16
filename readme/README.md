@@ -14,12 +14,12 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 Review-4 frozen dataclass loader corrected and newly sealed locally; pending external review, no Mac reprise. -->
+<!-- H26_CORRECTION_STATUS: H27 Review-4 one-shot consumed; r2 failed after AUTHORITY/CLAIM on missing parse_strict_json label; no retry. -->
 ## État courant
 
 - Mise à jour : `2026-08-16`.
 - État courant :
-  `H27_REVIEW4_FROZEN_MODULE_CORRECTION_AND_RESEAL_PENDING_EXTERNAL_REVIEW_NO_MAC_REPRISE`.
+  `H27_REVIEW4_CONSUMED_FAILURE_PARSE_STRICT_JSON_LABEL_NO_RETRY_PENDING_EXTERNAL_REVIEW`.
 - Les revues externes strictes de `859a4d848d1f2f625d2acadd728c489fd1f60038`
   puis `8861d7dccb6b088ab31e9b2ab16660444a11e566` ont rendu
   `NON APPROUVÉ` et interdit toute exécution Mac. Le second correctif retire
@@ -98,6 +98,18 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   `py_compile` et `git diff --check`. Aucun SSH ou remplacement Mac n'est
   autorisé avant nouvelle revue. Rapport :
   `readme/results/2026-08-16_harmonic-censoring-h27-review4-frozen-module-correction-and-reseal.md`.
+  La revue finale A+B a rendu `PASS` et autorisé une reprise immutable unique
+  `review4-runner-r2`. Le bloc a revalidé runtime, HEAD, anciens artefacts et
+  destinations, puis créé/vérifié exclusivement le nouveau répertoire et ses
+  trois artefacts. Après ACK, le runner a franchi AUTHORITY puis CLAIM et
+  consommé définitivement la capability. Il a ensuite échoué dans
+  `frozen_bound_json`: le contrat figé expose désormais
+  `parse_strict_json(raw, label)`, mais le runner appelle encore la fonction
+  avec un seul argument. NumPy a été importé après consommation, mais aucun plan,
+  rendu, staging, population, terminal, P0/P1/P2, entraînement ou locked-test
+  n'a été exécuté. L'essai H27 Review 4 est consommé et aucun retry, nettoyage
+  ou réparation n'est permis. Rapport :
+  `readme/results/2026-08-16_harmonic-censoring-h27-review4-consumed-parse-strict-json-label-failure.md`.
   Rapport :
   `readme/results/2026-08-16_harmonic-censoring-h27-review4-operational-materializer-implementation.md`.
 - La revue externe de `61dc4b496a454b596fca6ac361504f441e987aab`
