@@ -14,12 +14,28 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 authority-instance publication terminal PASS; authority consumed; STOP before materializer pending external review. -->
+<!-- H26_CORRECTION_STATUS: H27 Review-4 operational materializer and one-shot runner implemented locally; no authority consumption or population yet. -->
 ## État courant
 
 - Mise à jour : `2026-08-16`.
 - État courant :
-  `H27_REVIEW4_AUTHORITY_INSTANCE_ARTIFACT_PUBLICATION_TERMINAL_SUCCESS_STOP_PENDING_EXTERNAL_REVIEW`.
+  `H27_REVIEW4_OPERATIONAL_MATERIALIZER_IMPLEMENTED_PENDING_EXACT_CODE_REVIEW_NO_CONSUMPTION`.
+- Le lot courant implémente le matérialiseur opérationnel Review 4 et son
+  runner Mac one-shot, sans invocation. Les dix-huit fonctions scientifiques
+  et de publication sont copiées mécaniquement depuis le matérialiseur H27
+  dormant revu; seule la capability process-local passe de la barrière native
+  à un état `issued → active → terminal`, sans retry. Le runner vérifie le HEAD
+  détaché `46a6bdf8...`, le worktree propre, les huit composants H27 scellés,
+  l'artefact d'autorité `d44941a8...`, le runtime/environnement primaire et
+  l'absence des destinations avant toute écriture. Il prépare ensuite, lors
+  d'une future invocation distincte, authority/claim durables, les 124 records
+  `17 + 107`, leur réconciliation byte-exacte et un terminal sans science.
+  Les `5/5` tests nouveaux passent; les suites historiques liées aux octets Git
+  ne sont pas rejouables sur ce checkout Windows CRLF mais seront rehashées sur
+  le checkout Mac LF avant consommation. Aucun SSH mutatif, claim, authority,
+  population, P0/P1/P2, moteur, recomputer, entraînement ou locked-test n'a été
+  exécuté. Rapport :
+  `readme/results/2026-08-16_harmonic-censoring-h27-review4-operational-materializer-implementation.md`.
 - La revue externe de `61dc4b496a454b596fca6ac361504f441e987aab`
   conclut `PASS` sur le sender dormant corrigé et autorise uniquement sa
   préparation locale Windows au HEAD historique. Le préflight live a révélé
