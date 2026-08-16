@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "contract_id": "H27_MATERIALIZATION_ACTIVATION_V2_RECOVERY_V1",
+  "status": "DORMANT_PENDING_EXTERNAL_REVIEW_NO_EXECUTION_AUTHORIZED",
+  "purpose": "Independent recovery lineage after terminal consumed H27 Review 4 failure",
+  "terminal_predecessor": {
+    "archive_commit": "8ff8049a3745208bc9bab1fb79f073ca12fcb073",
+    "failure_reason": "parse_strict_json missing required label",
+    "activation_path": "/Users/amcarene/h27-admin/activation/h27-materialization-v1.json",
+    "activation_raw_sha256": "89d03ce3ea8f31a253b4e245e0357236e20860d409c27f0779a003d058fe91d2",
+    "authority_instance_id": "d44941a8c1c6674e5da89c40a7e3188c4e6318f7c5759ce490577d8bde81437a",
+    "authority_path": "/Users/amcarene/h27-admin/authority/h27-materialization-v1.json",
+    "claim_path": "/Users/amcarene/h27-admin/claims/h27-synthetic-v1.consumed.json",
+    "authority_created": true,
+    "claim_created": true,
+    "capability_consumed": true,
+    "retry_allowed": false,
+    "credentials_reusable": false,
+    "cleanup_or_repair_allowed": false
+  },
+  "recovery_lineage": {
+    "activation_id": "101ef27d0bd246816696623a24608433d50850bfcaf5d4f02a2affb85d59ee5b",
+    "authority_instance_id": "f1e8fb1a5c9fab6a75608a19a73916791bab406334d8a1c7162cbe3d8c5035e2",
+    "issuer_id": "h27-recovery-execution-codex-mac-primary",
+    "administrative_root": "/Users/amcarene/h27-admin-recovery-v1",
+    "activation_path": "/Users/amcarene/h27-admin-recovery-v1/activation/h27-materialization-recovery-v1.json",
+    "authority_path": "/Users/amcarene/h27-admin-recovery-v1/authority/h27-materialization-recovery-v1.json",
+    "claim_path": "/Users/amcarene/h27-admin-recovery-v1/claims/h27-synthetic-v1-recovery.consumed.json",
+    "runner_root": "/Users/amcarene/h27-admin-recovery-v1/runner-r1",
+    "terminal_path": "/Users/amcarene/h27-admin-recovery-v1/terminal/h27-materialization-recovery-v1.json",
+    "staging_path": "/Users/amcarene/h27-admin-recovery-v1/population/.h27-synthetic-v1-recovery.staging",
+    "final_path": "/Users/amcarene/h27-admin-recovery-v1/population/h27-synthetic-v1",
+    "population_namespace": "H27_SYNTHETIC_V1",
+    "invocations_maximum": 1,
+    "retry_allowed": false,
+    "old_credentials_forbidden": true,
+    "paths_disjoint_from_terminal_predecessor": true
+  },
+  "scientific_identity": {
+    "required_target_head": "46a6bdf81a56a7a7a10524d4e55092301a452207",
+    "population_namespace": "H27_SYNTHETIC_V1",
+    "population_namespace_unchanged": true,
+    "expected_total_records": 124,
+    "expected_baseline_records": 17,
+    "expected_p2_records": 107,
+    "materializer_git_blob_sha1": "8cdafbd6a08ea893daa2d6f41cb62166bf9162cd",
+    "materializer_size_bytes": 33706,
+    "materializer_raw_sha256": "2ecaabf1e1880688244b06ecb03a9b3eb7831d4659e209aa11e36b7b60948be3",
+    "taxonomy_changed": false,
+    "population_changed": false,
+    "science_authorized": false,
+    "locked_test_used": false
+  },
+  "loader_correction": {
+    "reviewed_commit": "f2ea3b82f4e58278711f1e9826a2db9694c47e40",
+    "runner_git_blob_sha1": "a9a9895917633a99563fca27161bfca70760d161",
+    "runner_size_bytes": 26999,
+    "runner_raw_sha256": "d66e1f57ebc5b7bc192c6e129b1cffddccb88722354486f924767f92fc8be74c",
+    "strict_json_label_policy": "path.as_posix()",
+    "real_frozen_contract_plan_cardinality_tested": 124
+  },
+  "future_activation_requirements": {
+    "prior_authority_and_claim_must_be_read_only_attested": true,
+    "prior_authority_and_claim_must_remain_immutable": true,
+    "new_activation_artifact_must_be_externally_reviewed_before_creation": true,
+    "new_runner_binding_and_external_seal_required": true,
+    "new_authority_and_claim_paths_must_be_absent_before_activation": true,
+    "no_ssh_before_external_pass": true,
+    "no_training": true,
+    "no_locked_test": true
+  },
+  "next_action": "External review of the independent recovery contract and loader correction; no Mac execution"
+}
