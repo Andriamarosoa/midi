@@ -14,12 +14,12 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 Review-4 runner composition seal pending exact external review; no authority consumption or population. -->
+<!-- H26_CORRECTION_STATUS: H27 Review-4 bootstrap stopped pre-mutation because review4 directory was absent; no authority consumption or population. -->
 ## État courant
 
 - Mise à jour : `2026-08-16`.
 - État courant :
-  `H27_REVIEW4_EXECUTION_COMPOSITION_SEAL_PENDING_EXACT_EXTERNAL_REVIEW_NO_CONSUMPTION`.
+  `H27_REVIEW4_BOOTSTRAP_PREMUTATION_DIRECTORY_ABSENT_STOP_NO_CONSUMPTION`.
 - Les revues externes strictes de `859a4d848d1f2f625d2acadd728c489fd1f60038`
   puis `8861d7dccb6b088ab31e9b2ab16660444a11e566` ont rendu
   `NON APPROUVÉ` et interdit toute exécution Mac. Le second correctif retire
@@ -50,6 +50,14 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   les 16 identités administratives. Le futur bootstrap devra matérialiser ce
   runner hors checkout et vérifier size/blob/SHA avant ACK et lancement; aucune
   auto-identité circulaire n'est introduite.
+  La revue finale de `78a704337b2c81c57f7e087f5ab2c12a8633189d`
+  rend ensuite `PASS` et autorise un bloc SSH unique. Ce bloc a terminé `rc=1`
+  au premier contrôle : `/Users/amcarene/h27-admin/review4` n'existait pas.
+  L'arrêt précède tout fichier, ACK, runner, authority, claim, staging,
+  population ou science. Aucun retry n'est lancé. Le bootstrap corrigé devra
+  créer exactement ce répertoire en `0700`, le réouvrir sans symlink et vérifier
+  owner/mode avant de reprendre les mêmes six artefacts. Rapport :
+  `readme/results/2026-08-16_harmonic-censoring-h27-review4-bootstrap-directory-absence.md`.
   Rapport :
   `readme/results/2026-08-16_harmonic-censoring-h27-review4-operational-materializer-implementation.md`.
 - La revue externe de `61dc4b496a454b596fca6ac361504f441e987aab`
