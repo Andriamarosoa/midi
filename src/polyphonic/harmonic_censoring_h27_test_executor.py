@@ -140,11 +140,10 @@ def _secondary_runtime_records(
     environment = os.environ.copy()
     for key, value in runtime_grid["process_environment_exact"].items():
         environment[str(key)] = str(value)
-    claim_path = Path("/Users/amcarene/h27-admin-recovery-v2/science/review5-v1/claim.json")
+    claim_path, activation_path = _recovery_secondary_authority_paths(environment)
     claim_raw = claim_path.read_bytes()
     environment["H27_REVIEW5_INTERNAL_SECONDARY"] = "1"
     environment["H27_REVIEW5_INTERNAL_CLAIM_SHA256"] = hashlib.sha256(claim_raw).hexdigest()
-    activation_path = Path(environment["H27_REVIEW5_ACTIVATION_PATH"])
     environment["H27_REVIEW5_INTERNAL_ACTIVATION_SHA256"] = hashlib.sha256(
         activation_path.read_bytes()).hexdigest()
     helper = Path(repository_root) / "scripts/h27_review5_scientific_secondary.py"
@@ -164,6 +163,17 @@ def _secondary_runtime_records(
     if payload["record_count"] != 4 or tuple(item.record_identity for item in rows) != expected_identities:
         raise RuntimeError("H27 secondary runtime identity/order mismatch")
     return rows
+
+
+def _recovery_secondary_authority_paths(
+    environment: Mapping[str, str],
+) -> tuple[Path, Path]:
+    """Return only the independent recovery claim and activation paths."""
+
+    return (
+        Path("/Users/amcarene/h27-admin-recovery-v2/science/review5-recovery-v1/claim.json"),
+        Path(environment["H27_REVIEW5_RECOVERY_ACTIVATION_PATH"]),
+    )
 
 
 def _require_primary_runtime_identity(np: Any, expected: Mapping[str, object]) -> None:

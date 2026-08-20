@@ -29,7 +29,11 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   invocation n'a été tenté. La lignée recovery locale ajoute le repository root
   à `sys.path` avant tout import `src.polyphonic`, prouve le bootstrap via une
   vraie exécution absolue depuis un autre CWD, utilise un nouvel output/ACK/path
-  d'activation et lie les trois artefacts consommés par leurs SHA. Aucun nouveau
+  d'activation et lie les trois artefacts consommés par leurs SHA. Le worker
+  P2-007 utilise exclusivement le nouveau claim et la nouvelle variable
+  d'activation recovery. L'attestation V1 exige également que son répertoire
+  contienne exactement `claim.json`, `terminal.json` et `COMPLETE.json`, sans
+  receipt ni rapport scientifique résiduel. Aucun nouveau
   SSH scientifique n'est autorisé avant nouvelle revue stricte.
   Rapport :
   `readme/results/2026-08-20_harmonic-censoring-h27-review5b-consumed-import-failure.md`.

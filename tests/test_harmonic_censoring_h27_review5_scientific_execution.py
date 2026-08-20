@@ -249,14 +249,30 @@ class H27Review5ScientificExecutionTests(unittest.TestCase):
                 "execution_id": EXECUTION_ID, "activation_nonce": ACTIVATION_NONCE,
                 "activation_sha256": "a" * 64, "terminal_status": runner.INCONCLUSIVE,
             }
+            filenames = {"claim": "claim.json", "terminal": "terminal.json",
+                         "complete": "COMPLETE.json"}
             for name, raw in artifacts.items():
-                path = root / f"{name}.json"; path.write_bytes(raw)
+                path = root / filenames[name]; path.write_bytes(raw)
                 consumed[f"{name}_path"] = str(path)
                 consumed[f"{name}_sha256"] = hashlib.sha256(raw).hexdigest()
             runner._verify_consumed_review5_v1({"consumed_review5_v1": consumed})
+            fake_receipt = root / "001-H27-T-P0-001.json"
+            fake_receipt.write_bytes(b"{}\n")
+            with self.assertRaisesRegex(PermissionError, "directory contents"):
+                runner._verify_consumed_review5_v1({"consumed_review5_v1": consumed})
+            fake_receipt.unlink()
             (root / "terminal.json").write_bytes(terminal_raw + b" ")
             with self.assertRaisesRegex(PermissionError, "terminal SHA"):
                 runner._verify_consumed_review5_v1({"consumed_review5_v1": consumed})
+
+    def test_secondary_runtime_uses_only_recovery_claim_and_activation_paths(self) -> None:
+        activation = "/tmp/h27-review5-recovery-activation.json"
+        claim, observed_activation = executor._recovery_secondary_authority_paths({
+            "H27_REVIEW5_RECOVERY_ACTIVATION_PATH": activation,
+        })
+        self.assertEqual(claim.as_posix(),
+                         "/Users/amcarene/h27-admin-recovery-v2/science/review5-recovery-v1/claim.json")
+        self.assertEqual(observed_activation.as_posix(), activation)
 
     def test_atomic_publisher_never_overwrites_an_existing_result(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

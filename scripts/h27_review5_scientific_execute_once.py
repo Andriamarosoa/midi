@@ -275,9 +275,21 @@ def _verify_consumed_review5_v1(contract: Mapping[str, Any]) -> None:
 
     consumed = contract["consumed_review5_v1"]
     assert type(consumed) is dict
+    paths = {name: Path(str(consumed[f"{name}_path"]))
+             for name in ("claim", "terminal", "complete")}
+    parents = {path.parent for path in paths.values()}
+    if len(parents) != 1:
+        raise PermissionError("H27 consumed Review-5 V1 artifacts must share one directory")
+    parent = next(iter(parents))
+    if (parent.is_symlink() or parent.resolve(strict=True) != parent
+            or not parent.is_dir()):
+        raise PermissionError("H27 consumed Review-5 V1 directory invalid")
+    expected_names = {"claim.json", "terminal.json", "COMPLETE.json"}
+    if {entry.name for entry in parent.iterdir()} != expected_names:
+        raise PermissionError("H27 consumed Review-5 V1 directory contents mismatch")
     values: dict[str, dict[str, object]] = {}
     for name in ("claim", "terminal", "complete"):
-        path = Path(str(consumed[f"{name}_path"]))
+        path = paths[name]
         if (not path.is_absolute() or path.is_symlink()
                 or path.resolve(strict=True) != path or not path.is_file()):
             raise PermissionError(f"H27 consumed Review-5 V1 {name} path invalid")

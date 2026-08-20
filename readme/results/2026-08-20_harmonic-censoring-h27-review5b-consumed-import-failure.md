@@ -38,6 +38,14 @@ variable d'activation `H27_REVIEW5_RECOVERY_ACTIVATION_PATH`. Le contrat lie et
 revérifie les SHA des claim/terminal/COMPLETE V1 consommés avant toute nouvelle
 activation.
 
+Après la première revue recovery, deux intégrations ont été durcies : le worker
+secondaire P2-007 lit uniquement le claim `review5-recovery-v1` et
+`H27_REVIEW5_RECOVERY_ACTIVATION_PATH`; une régression prouve que l'ancien nom
+n'est pas requis. L'attestation du V1 consommé exige désormais que le répertoire
+immédiat contienne exactement `claim.json`, `terminal.json` et `COMPLETE.json`.
+Un faux receipt supplémentaire est explicitement rejeté, de sorte que les
+compteurs P0/P1/P2 nuls sont dérivés de l'arbre réel et non seulement déclarés.
+
 Cette étape est locale uniquement. Aucun nouveau SSH scientifique, activation,
 CLAIM, P0/P1/P2, locked-test ou entraînement n'est autorisé avant binding, seal
 et nouvelle revue stricte de la lignée recovery.
