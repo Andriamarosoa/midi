@@ -9,6 +9,10 @@ synthétiques et non consommantes.
 La chaîne de remplacement V2 a ensuite reçu un second `FAIL`, limité à quatre
 écarts. Le correctif courant les ferme sans activation ni accès scientifique.
 
+La chaîne V3 a reçu un troisième `FAIL`, désormais limité à deux écarts. Le
+lot V4 exige que le `HEAD` d'exécution égale exactement le commit external-seal
+reviewé et complète le contrat A06 avec ses deux rôles previous exact-zero.
+
 ## Corrections
 
 - Le moteur valide le schéma fermé d'un `H27SealedRecordBinding` slotté sans
@@ -24,6 +28,9 @@ La chaîne de remplacement V2 a ensuite reçu un second `FAIL`, limité à quatr
 - Le preflight relit le binding et le seal via `git show` depuis leurs commits
   déclarés, exige l'égalité byte-for-byte avec le checkout et vérifie le tuple
   Git blob/taille/SHA du binding inscrit dans le seal.
+- Le `HEAD` doit être exactement le commit external-seal déclaré. Un descendant
+  contenant une modification non reviewée d'un des douze composants est refusé
+  avant toute frontière de consommation.
 - La capability ne peut être issue que depuis une preuve process-local créée
   après publication `O_EXCL`, réouverture `O_NOFOLLOW` et comparaison canonique
   du claim durable. Le runtime secondaire répète la vérification de la même
@@ -44,6 +51,9 @@ La chaîne de remplacement V2 a ensuite reçu un second `FAIL`, limité à quatr
   vraie mutation `2^-80` et les primitives de classification/spectre du moteur.
   P1 contrôle en outre rôles et masques fixture par fixture et réconcilie une
   fois exactement les 17 fixtures de P1-001 à P1-008.
+- A06 exige explicitement les rôles
+  `VALID_EXACT_ZERO_PREVIOUS_SHORT` et `VALID_EXACT_ZERO_PREVIOUS_LONG`; deux
+  régressions corrompent séparément chacun de ces rôles et exigent le rejet.
 - Chaque test terminé publie un reçu create-exclusive ordonné et chaîné au SHA
   précédent. Un premier FAIL arrête la séquence et aucun reçu ultérieur n'est
   produit.
@@ -61,7 +71,6 @@ La chaîne de remplacement V2 a ensuite reçu un second `FAIL`, limité à quatr
 
 ## État
 
-La chaîne V3 est complète : implementation `5ea555312f521afbe3f1c17bf38d163233bc3652`,
-identity binding `576ba120c898ab8757cc22b0c7410dc02f7b11bc`, puis external
-seal dans le commit courant. Elle attend une nouvelle revue externe. Toute
-activation réelle reste interdite.
+La chaîne V4 est constituée du commit contenant ces deux corrections, de son
+identity binding V4 et de son external seal V4 final. Elle attend une nouvelle
+revue externe. Toute activation réelle reste interdite.

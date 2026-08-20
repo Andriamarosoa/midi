@@ -307,6 +307,8 @@ def _p1_fixture_contract(fixture_id: str, row: H27EngineResult,
     if fixture_id == "H27-F-A06":
         return (roles["current_short"] == "INVALID_CURRENT_SHORT_ANALYSIS"
                 and roles["current_long"] == "INVALID_CURRENT_LONG_ANALYSIS"
+                and roles["previous_short"] == "VALID_EXACT_ZERO_PREVIOUS_SHORT"
+                and roles["previous_long"] == "VALID_EXACT_ZERO_PREVIOUS_LONG"
                 and row.early_resolution_reason == "nonzero_not_above_floor")
     if fixture_id == "H27-F-A07":
         return (roles["current_short"] == "INVALID_CURRENT_SHORT_ANALYSIS"

@@ -14,12 +14,22 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 Review-5A V3 corrected chain complete; external PASS required before real science. -->
+<!-- H26_CORRECTION_STATUS: H27 Review-5A V4 corrected chain complete; external PASS required before real science. -->
 ## État courant
 
 - Mise à jour : `2026-08-20`.
 - État courant :
-  `H27_REVIEW5A_V3_CHAIN_COMPLETE_PENDING_EXTERNAL_REVIEW_NO_REAL_EXECUTION`.
+  `H27_REVIEW5A_V4_CHAIN_COMPLETE_PENDING_EXTERNAL_REVIEW_NO_REAL_EXECUTION`.
+- La revue externe stricte de la chaîne V3
+  `5ea55531... → 576ba120... → e69f0125...` a rendu `FAIL` limité à deux
+  corrections locales. Le runner exige désormais que `HEAD` soit exactement
+  le commit external-seal déclaré par l'activation, empêchant tout descendant
+  non reviewé de modifier un des douze composants. P1 impose aussi pour A06
+  les deux rôles previous exact-zero, avec régressions indépendantes contre la
+  dérive de chacun. La chaîne V4 issue du commit contenant ces corrections,
+  de son identity binding V4 et de son external seal V4 attend une nouvelle
+  revue stricte. Les 27 tests ciblés passent; aucun SSH, claim, P0/P1/P2 réel,
+  locked-test ou entraînement n'a été exécuté.
 - La seconde revue externe stricte de la chaîne corrigée
   `312ae65b... → a24cc3ee... → eb9f394e...` a encore rendu `FAIL` avant toute
   science réelle. Le lot local ferme ses quatre bloqueurs : le contrat Review 5A

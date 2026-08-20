@@ -249,11 +249,11 @@ class H27Review5ScientificExecutionTests(unittest.TestCase):
 
     def test_activation_binds_review_chain_population_and_both_runtimes(self) -> None:
         contract = dict(runner._load_contract(ROOT))
-        head = subprocess.check_output(("git", "rev-parse", "HEAD"), cwd=ROOT, text=True).strip()
         index_raw = self.index_raw
         with tempfile.TemporaryDirectory() as temporary:
             test_root = Path(temporary).resolve(); configs = test_root / "configs"; configs.mkdir()
             commits = ("1"*40, "2"*40, "3"*40)
+            head = commits[2]
             binding = configs / "harmonic_censoring_h27_review5_scientific_execution_identity_binding.json"
             seal = configs / "harmonic_censoring_h27_review5_scientific_execution_external_seal.json"
             binding.write_bytes(runner._canonical({"implementation_commit": commits[0]}))
@@ -293,6 +293,9 @@ class H27Review5ScientificExecutionTests(unittest.TestCase):
                 observed, digest = runner._load_activation(test_root, contract, head, index_raw)
             self.assertEqual(observed["execution_id"], value["execution_id"])
             self.assertEqual(digest, hashlib.sha256(path.read_bytes()).hexdigest())
+            with patch.dict("os.environ", {runner.ACTIVATION_ENVIRONMENT: str(path)}):
+                with self.assertRaisesRegex(PermissionError, "HEAD must equal"):
+                    runner._load_activation(test_root, contract, "4" * 40, index_raw)
             binding.write_bytes(runner._canonical({"implementation_commit": commits[0], "drift": True}))
             with patch.dict("os.environ", {runner.ACTIVATION_ENVIRONMENT: str(path)}), patch.object(
                 runner.subprocess, "run", return_value=subprocess.CompletedProcess([], 0)
@@ -482,6 +485,17 @@ class H27Review5ScientificExecutionTests(unittest.TestCase):
             self.assertFalse(executor._p1_fixture_contract(
                 "H27-F-P01", H27EngineResult(**{**vars(valid), "role_classifications": generic}), binding,
             ))
+            a06_binding = by_identity["baseline/H27-F-A06"]
+            a06 = self._result(a06_binding)
+            self.assertTrue(executor._p1_fixture_contract("H27-F-A06", a06, a06_binding))
+            for role in ("previous_short", "previous_long"):
+                corrupted = dict(a06.role_classifications)
+                corrupted[role] = "VALID_PREVIOUS_SHORT_ANALYSIS" if role.endswith("short") else "VALID_PREVIOUS_LONG_ANALYSIS"
+                self.assertFalse(executor._p1_fixture_contract(
+                    "H27-F-A06",
+                    H27EngineResult(**{**vars(a06), "role_classifications": corrupted}),
+                    a06_binding,
+                ))
 
     def test_first_failure_kills_all_later_tests_without_retry(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

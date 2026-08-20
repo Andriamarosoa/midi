@@ -156,6 +156,10 @@ def _load_activation(root: Path, contract: Mapping[str, Any], head: str,
         "implementation_commit", "identity_binding_commit", "external_seal_commit"))
     if any(len(item) != 40 or any(c not in "0123456789abcdef" for c in item) for item in commits):
         raise ValueError("H27 Review-5 activation commit invalid")
+    if head != commits[2]:
+        raise PermissionError(
+            "H27 Review-5 execution HEAD must equal reviewed external seal commit"
+        )
     if any(subprocess.run(("git", "merge-base", "--is-ancestor", left, right), cwd=root).returncode
            for left, right in zip(commits, commits[1:] + (head,))):
         raise PermissionError("H27 Review-5 activation commit chain invalid")
