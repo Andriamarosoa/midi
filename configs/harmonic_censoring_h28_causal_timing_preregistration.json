@@ -1,0 +1,202 @@
+{
+  "schema_identity": "H28_CAUSAL_CERTIFICATE_TIMING_PREREGISTRATION_V1",
+  "schema_version": 1,
+  "status": "PREREGISTERED_DORMANT_NO_SCIENTIFIC_EXECUTION",
+  "hypothesis_id": "H28_FIRST_CAUSAL_CERTIFICATE_TIME_V1",
+  "design_base_commit": "a441a43c80bf831b59c70f35d17dba2bff6901c0",
+  "predecessor": {
+    "hypothesis_id": "H27_ROLE_AWARE_ZERO_CONTEXT_V1",
+    "terminal_status": "H27_PREREGISTRATION_OR_IDENTIFIABILITY_INVALID",
+    "closed_no_retry": true,
+    "report": "readme/results/2026-08-20_harmonic-censoring-h27-definitive-scientific-failure.md"
+  },
+  "scientific_question": "What is the first causal horizon at which the unchanged H27 certificate supports the isolated P01 birth without turning the old-harmonic N01 control into BIRTH_SUPPORTED?",
+  "single_experimental_variable": "causal_samples_available_after_fixed_onset",
+  "fixed_dependencies": [
+    {
+      "path": "configs/harmonic_censoring_h27_fixture_specifications.json",
+      "git_blob": "9aea04053a13a3f5cf81b461a58977c377600f5b",
+      "size_bytes": 21241,
+      "sha256": "28707e95e2d1219fa0aa678e2103a8ef5cae7e7ca24a7100f4a84479dd0ff93d"
+    },
+    {
+      "path": "configs/harmonic_censoring_h27_scientific_preregistration_contract.json",
+      "git_blob": "869c70f7c643d8387645377a8cf5166b8728914d",
+      "size_bytes": 10354,
+      "sha256": "93d081a2f1ab17396cde97f974f6f338ecb41dc5c98ed40a72289200215efe29"
+    },
+    {
+      "path": "configs/harmonic_censoring_h27_engine_recomputer_contract.json",
+      "git_blob": "684f0594d563d40ebc51502aa0f0b987cbe44b01",
+      "size_bytes": 18415,
+      "sha256": "de28cef12aff887045ac244f8aa9085bdd1dab20e9587314e94a96eff546dc78"
+    },
+    {
+      "path": "src/polyphonic/harmonic_censoring_h27_engine.py",
+      "git_blob": "ec7e775d0397a4415ca21df18c7b49528aa29387",
+      "size_bytes": 24316,
+      "sha256": "eb28f19d383215408516163a2f6e53f164ab1cbc7dcdbd6977954a58d49e507a"
+    },
+    {
+      "path": "src/polyphonic/harmonic_censoring_h27_recomputer.py",
+      "git_blob": "4949137f5a827e436c92b361f36f66b6f0312bcb",
+      "size_bytes": 22456,
+      "sha256": "4411e27fb1c2e9846f9e5688e90cb6bcc8d1d9bfd0fd12726ffd510e9f1a286a"
+    },
+    {
+      "path": "src/polyphonic/harmonic_censoring_h27_review4_materializer.py",
+      "git_blob": "8cdafbd6a08ea893daa2d6f41cb62166bf9162cd",
+      "size_bytes": 34416,
+      "sha256": "db8ab8073affa01b148da581ee4f21da99e3a2eefcc95a9c1205d907eec756bd"
+    }
+  ],
+  "population": {
+    "namespace": "H28_CAUSAL_TIMING_SYNTHETIC_V1",
+    "fixture_ids_in_order": ["H27-F-P01", "H27-F-N01"],
+    "record_count": 6,
+    "real_audio_forbidden": true,
+    "labels_forbidden": true,
+    "locked_test_forbidden": true,
+    "h27_payload_reuse_forbidden": true,
+    "h27_waveform_prefix_must_be_byte_identical_through_sample": 16639,
+    "h27_baseline_payload_sha256": {
+      "H27-F-P01": {
+        "waveform.f64le": "173183bf0a8017e8d24591cbbdd4c8055838546775917a5534c894527fa70a7e",
+        "sample-valid-mask.u8": "c38ec8da6c365d305710ffee001885a5a3ee99dffe73f6acc4ebd5f2461e3205"
+      },
+      "H27-F-N01": {
+        "waveform.f64le": "657fb5dd2a0bac49b6d4a56911d861bcc194cc04f95de6c93d2731e3da0e0ebb",
+        "sample-valid-mask.u8": "c38ec8da6c365d305710ffee001885a5a3ee99dffe73f6acc4ebd5f2461e3205"
+      }
+    },
+    "extended_stream_last_sample": 17151,
+    "candidate_onset_sample": 16128,
+    "sample_rate_hz": 44100,
+    "hop_samples": 256,
+    "short_view_samples": 4096,
+    "long_view_samples": 8192,
+    "previous_view_offset_hops": 1,
+    "maximum_future_samples_read": 0
+  },
+  "horizons": [
+    {
+      "id": "N",
+      "order": 1,
+      "proposal_hop_end": 16383,
+      "resolution_hop_end": 16639,
+      "causal_samples_after_onset": 256,
+      "causal_milliseconds": 5.804988662131519
+    },
+    {
+      "id": "N_PLUS_1",
+      "order": 2,
+      "proposal_hop_end": 16639,
+      "resolution_hop_end": 16895,
+      "causal_samples_after_onset": 512,
+      "causal_milliseconds": 11.609977324263038
+    },
+    {
+      "id": "N_PLUS_2",
+      "order": 3,
+      "proposal_hop_end": 16895,
+      "resolution_hop_end": 17151,
+      "causal_samples_after_onset": 768,
+      "causal_milliseconds": 17.414965986394556
+    }
+  ],
+  "unchanged_science": {
+    "window": "Hann",
+    "fft_zero_padding_multiplier": 8,
+    "partial_band_half_width_cents": 35.0,
+    "partial_ranks": [1, 2, 3, 4, 5, 6, 7, 8],
+    "nnls_iterations": 512,
+    "positive_minimum_exclusive_energy_ratio": 0.02,
+    "positive_minimum_onset_rise": 0.05,
+    "positive_minimum_residual_improvement": 0.1,
+    "negative_maximum_exclusive_energy_ratio": 0.002,
+    "negative_maximum_onset_rise": 0.005,
+    "negative_maximum_residual_improvement": 0.001,
+    "negative_minimum_margin": 10.0,
+    "minimum_exclusive_partial_count": 2,
+    "minimum_valid_bin_count_per_partial": 3
+  },
+  "evaluation_contract": {
+    "independent_snapshot_per_fixture_and_horizon": true,
+    "decoder_state_carry_between_horizons_forbidden": true,
+    "engine_and_independent_recomputer_required": true,
+    "engine_recomputer_numeric_tolerance": "abs(left-right)<=1e-12+1e-10*abs(left)",
+    "record_order": [
+      "H27-F-P01/N",
+      "H27-F-N01/N",
+      "H27-F-P01/N_PLUS_1",
+      "H27-F-N01/N_PLUS_1",
+      "H27-F-P01/N_PLUS_2",
+      "H27-F-N01/N_PLUS_2"
+    ],
+    "p01_first_birth_horizon_is_primary_estimand": true,
+    "n01_birth_at_any_horizon_is_safety_failure": true,
+    "n01_no_birth_or_ambiguous_are_non_birth_safe": true
+  },
+  "required_diagnostic_fields": [
+    "record_identity",
+    "fixture_id",
+    "horizon_id",
+    "proposal_hop_end",
+    "maximum_sample_read",
+    "role_classifications",
+    "mask_counts",
+    "current_short_total_power",
+    "previous_short_total_power",
+    "current_long_total_power",
+    "previous_long_total_power",
+    "exclusive_ranks",
+    "exclusive_band_energies",
+    "harmonic_ratios",
+    "ratios_at_or_above_positive_threshold",
+    "onset_rise",
+    "active_residual_before_candidate",
+    "augmented_residual_after_candidate",
+    "residual_improvement",
+    "persistence",
+    "bounded_claim_lower_bounds",
+    "negative_margins",
+    "positive_partial_condition",
+    "positive_onset_condition",
+    "positive_residual_condition",
+    "negative_partial_condition",
+    "negative_onset_condition",
+    "negative_residual_condition",
+    "outcome",
+    "certificate_kind",
+    "certificate_complete",
+    "decision_reason",
+    "waveform_sha256",
+    "mask_sha256"
+  ],
+  "terminal_verdict_order": [
+    "H28_PROVENANCE_OR_RECOMPUTATION_INVALID",
+    "H28_NEGATIVE_CONTROL_BECAME_BIRTH_SUPPORTED",
+    "H28_P01_FIRST_SUPPORTED_AT_N",
+    "H28_P01_FIRST_SUPPORTED_AT_N_PLUS_1",
+    "H28_P01_FIRST_SUPPORTED_AT_N_PLUS_2",
+    "H28_TIMING_INSUFFICIENT_THROUGH_N_PLUS_2"
+  ],
+  "interpretation": {
+    "H28_P01_FIRST_SUPPORTED_AT_N": "H27 P01 failure is not reproduced under the sealed H28 replay and requires forensic review.",
+    "H28_P01_FIRST_SUPPORTED_AT_N_PLUS_1": "The unchanged certificate needs approximately one MIDI-40 period and adds one hop of causal evidence.",
+    "H28_P01_FIRST_SUPPORTED_AT_N_PLUS_2": "The unchanged certificate needs about 17.4 ms of causal evidence.",
+    "H28_TIMING_INSUFFICIENT_THROUGH_N_PLUS_2": "Timing alone is insufficient; only a successor may investigate Hann, bands, NNLS, or thresholds.",
+    "H28_NEGATIVE_CONTROL_BECAME_BIRTH_SUPPORTED": "Additional time is unsafe because the old-harmonic control becomes a false birth."
+  },
+  "authorization_boundary": {
+    "contract_and_dormant_schema_tests_authorized": true,
+    "population_materialization_authorized": false,
+    "scientific_execution_authorized": false,
+    "mac_execution_authorized": false,
+    "training_authorized": false,
+    "calibration_authorized": false,
+    "checkpoint_selection_authorized": false,
+    "locked_test_authorized": false,
+    "requires_external_review_before_materialization": true
+  }
+}

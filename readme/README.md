@@ -14,12 +14,27 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 closed as definitive scientific failure at Review-5B Recovery P0-003; no retry, Review-5C, training, checkpoint, calibration, or locked-test authorized. -->
+<!-- H26_CORRECTION_STATUS: H28 causal timing preregistration dormant pending external review; H27 remains closed with no retry. -->
 ## État courant
 
 - Mise à jour : `2026-08-20`.
 - État courant :
-  `H27_CLOSED_DEFINITIVE_SCIENTIFIC_FAILURE_P0_003`.
+  `H28_CAUSAL_TIMING_PREREGISTERED_DORMANT_PENDING_EXTERNAL_REVIEW`.
+- H28 est préenregistrée comme hypothèse distincte après la clôture définitive
+  de H27. Elle conserve P01, N01, Hann, FFT x8, bandes de 35 cents, NNLS et tous
+  les seuils H27, et ne fait varier que l'horizon causal : `N=256`,
+  `N_PLUS_1=512`, `N_PLUS_2=768` échantillons après l'onset. Les six snapshots
+  `P01/N01 x 3 horizons` sont indépendants; toute naissance de N01 est un échec
+  de sécurité prioritaire. Le contrat exige désormais la sérialisation des
+  puissances, rangs/énergies/ratios harmoniques, résidus avant/après,
+  amélioration, onset, persistance et booléens de chaque sous-condition. Le
+  loader dormant vérifie les six dépendances H27 byte-for-byte et la dérivation
+  du verdict est testée localement. Aucune population, matérialisation, FFT
+  scientifique, exécution Mac, training, calibration, checkpoint ou locked-test
+  H28 n'est autorisé avant revue externe. Prochaine action unique : revue du
+  contrat et de son loader dormant, puis seulement autorisation séparée d'un
+  matérialiseur H28. Rapport :
+  `readme/results/2026-08-20_harmonic-censoring-h28-causal-timing-preregistration.md`.
 - L'unique exécution scientifique Mac Review 5B Recovery autorisée est
   définitivement consommée. Elle a créé son CLAIM, puis exécuté P0 dans l'ordre :
   `H27-T-P0-001=PASS`, `H27-T-P0-002=PASS`,
@@ -4283,6 +4298,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 ## Rapports détaillés
 
 - [2026-08-20 — clôture définitive H27 sur échec scientifique P0-003](results/2026-08-20_harmonic-censoring-h27-definitive-scientific-failure.md)
+- [2026-08-20 — préinscription H28 du premier instant causal de certification](results/2026-08-20_harmonic-censoring-h28-causal-timing-preregistration.md)
 - [2026-08-12 — contrat H27 des fixtures, tests et population future](results/2026-08-12_harmonic-censoring-h27-fixture-test-population-design.md)
 - [2026-07-22 — entraînement polyphonique multi-source](results/2026-07-22_polyphonic-training.md)
 - [2026-07-27 — validation du décodeur desktop polyphonique](results/2026-07-27_polyphonic-desktop-validation.md)
