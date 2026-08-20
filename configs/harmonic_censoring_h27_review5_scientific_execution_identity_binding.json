@@ -1,21 +1,21 @@
 {
-  "schema_identity": "H27_REVIEW5_SCIENTIFIC_EXECUTION_IDENTITY_BINDING_V2",
-  "schema_version": 2,
-  "status": "CORRECTED_IMPLEMENTATION_SEALED_PENDING_EXTERNAL_REVIEW_NO_REAL_EXECUTION",
-  "implementation_commit": "312ae65b3b22d926e378d0653343492a3135000f",
+  "schema_identity": "H27_REVIEW5_SCIENTIFIC_EXECUTION_IDENTITY_BINDING_V3",
+  "schema_version": 3,
+  "status": "SECOND_CORRECTED_IMPLEMENTATION_SEALED_PENDING_EXTERNAL_REVIEW_NO_REAL_EXECUTION",
+  "implementation_commit": "5ea555312f521afbe3f1c17bf38d163233bc3652",
   "review4_terminal_commit": "2b54bc624314a8ac56380ac826c8fe14ee09d3db",
   "components": {
     "execution_contract": {"path":"configs/harmonic_censoring_h27_review5_scientific_execution_contract.json","git_blob_sha1":"746297461df7c3cf153996d8a2390c5b325490b3","size_bytes":4946,"sha256":"3b6d154d4efffb46b7dcc8bae6db8f643a5d8acea079610189b3ea7f5b849d2d"},
     "post_science_contract": {"path":"configs/harmonic_censoring_h27_post_science_model_evaluation_contract.json","git_blob_sha1":"5da0175e46d5788b49d42e9157f0842c659fd13e","size_bytes":1264,"sha256":"2616f2bca6f5920d9f006643764c8f02067f46550a81d48ee14580463df3083e"},
     "engine_recomputer_contract": {"path":"configs/harmonic_censoring_h27_engine_recomputer_contract.json","git_blob_sha1":"684f0594d563d40ebc51502aa0f0b987cbe44b01","size_bytes":18415,"sha256":"de28cef12aff887045ac244f8aa9085bdd1dab20e9587314e94a96eff546dc78"},
-    "primary_entrypoint": {"path":"scripts/h27_review5_scientific_execute_once.py","git_blob_sha1":"bf58817cedc45b5a17d7b000f7774dbb8c497ce8","size_bytes":20697,"sha256":"63aad702a5ce8a974e05aee142977cccc12ebb93d46b45e98ce04655e011f4a7"},
-    "secondary_entrypoint": {"path":"scripts/h27_review5_scientific_secondary.py","git_blob_sha1":"d0490032a63d1e81aa0e3c7ab29cd0db6f27a47f","size_bytes":5747,"sha256":"10c3ce80b2ffa8454cbadbe6626e1125056418543520c5e3971ee372722d4377"},
-    "scientific_authority": {"path":"src/polyphonic/harmonic_censoring_h27_scientific_authority.py","git_blob_sha1":"ba76ff85b6ce15f462b69c8a997f2ca3f3eb31f1","size_bytes":6791,"sha256":"ac559adf4e67ab8093769ee555aa7011948793a96da2f6cffcc400161cce2f1d"},
+    "primary_entrypoint": {"path":"scripts/h27_review5_scientific_execute_once.py","git_blob_sha1":"c9d90b04c2688bafdc88b3f5bde19a3457911d15","size_bytes":21994,"sha256":"03648c06fafa7c71f2495b3a669891c0acc7765f89f8a2070e33f05ada8af7e3"},
+    "secondary_entrypoint": {"path":"scripts/h27_review5_scientific_secondary.py","git_blob_sha1":"50b515095e6a8bd7064df3732d7b91788934a19d","size_bytes":5798,"sha256":"a95acdfb5691a66d0f40841b72fec11947c21b1b79fd2a040d74ead65e49c1cc"},
+    "scientific_authority": {"path":"src/polyphonic/harmonic_censoring_h27_scientific_authority.py","git_blob_sha1":"26446afbbe4480fa75cc9ebafdf47ee9dc54be7f","size_bytes":8049,"sha256":"73b853d4804de6fe1dc38588bc745cb252032d9f98917cc94c6791c585265662"},
     "population_loader": {"path":"src/polyphonic/harmonic_censoring_h27_sealed_population_loader.py","git_blob_sha1":"7a8e30c26bcbb7caad16e2579dbf1a29588d163e","size_bytes":5902,"sha256":"7fa1e6114b31f17d432722c495cd40b0bbd3a4ff58c60886f8a6534931dfbb8c"},
-    "test_executor": {"path":"src/polyphonic/harmonic_censoring_h27_test_executor.py","git_blob_sha1":"b10356b57a038d02462d172e2e3a1d010b11cd0f","size_bytes":24806,"sha256":"10a9f908fa52f4f89c220eb2719ddf61d311cc1fa668f58a30ad61b07d2f5c9b"},
+    "test_executor": {"path":"src/polyphonic/harmonic_censoring_h27_test_executor.py","git_blob_sha1":"0d382a74509f6b753f38a5d83a7b5207b344dbaa","size_bytes":33371,"sha256":"817ffb2860cca6713984cbda6ae607007250c0a59ccd896199d7ff028ff3d937"},
     "scientific_engine": {"path":"src/polyphonic/harmonic_censoring_h27_engine.py","git_blob_sha1":"ec7e775d0397a4415ca21df18c7b49528aa29387","size_bytes":24316,"sha256":"eb28f19d383215408516163a2f6e53f164ab1cbc7dcdbd6977954a58d49e507a"},
     "independent_recomputer": {"path":"src/polyphonic/harmonic_censoring_h27_recomputer.py","git_blob_sha1":"4949137f5a827e436c92b361f36f66b6f0312bcb","size_bytes":22456,"sha256":"4411e27fb1c2e9846f9e5688e90cb6bcc8d1d9bfd0fd12726ffd510e9f1a286a"},
-    "execution_tests": {"path":"tests/test_harmonic_censoring_h27_review5_scientific_execution.py","git_blob_sha1":"8ac19edc174ec9dff4dab3848c88282b3be94e17","size_bytes":25755,"sha256":"c0cfcd8a0f31876984efe2b344672f5be393b72a8aa39c633e2d99f271487dba"},
+    "execution_tests": {"path":"tests/test_harmonic_censoring_h27_review5_scientific_execution.py","git_blob_sha1":"a6413e1edca8db04c8638ae1f99775af7215a0bf","size_bytes":30578,"sha256":"f791d273af9c3d5099d938885f3c2c427583179f0b8c5b990591b83ddf924907"},
     "engine_recomputer_tests": {"path":"tests/test_harmonic_censoring_h27_engine_recomputer_dormant.py","git_blob_sha1":"c5e7d0a873ae7ef29f5136ea64ac7430df044acb","size_bytes":9322,"sha256":"63297d805d9ee865a07ec07a2a3f37cddeb4de3367659801cc4e1f75e288f69f"}
   },
   "component_count": 12,
@@ -28,5 +28,5 @@
   "claim_creation_authorized": false,
   "locked_test_authorized": false,
   "training_authorized": false,
-  "next_action": "Create replacement external seal then obtain full external review before activation"
+  "next_action": "Create V3 external seal then obtain full external review before activation"
 }
