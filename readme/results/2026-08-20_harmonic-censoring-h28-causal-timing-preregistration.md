@@ -40,6 +40,13 @@ H28 fige sans modification : Hann, zero-padding FFT x8, bandes de 35 cents,
 rangs harmoniques 1 à 8, NNLS 512 itérations et tous les seuils positifs et
 négatifs H27. Aucun seuil ne pourra être choisi après observation.
 
+Le moteur H27 reste la référence normative des formules, mais ne peut pas être
+appelé directement : sa validation impose un signal de 16640 samples et refuse
+un horizon supérieur ou égal à 16640. H28 exigera donc un moteur et un
+recomputer séparés dont les seules différences autorisées sont la longueur
+17152, les plans de masque correspondants, la borne d'horizon 16895 et la
+sérialisation diagnostique complète. Toute autre dérive algorithmique échoue.
+
 La seule variable expérimentale est donc :
 
 ```text
@@ -55,7 +62,7 @@ Contrairement au rapport H27, chaque résultat futur devra persister les
 puissances des quatre vues, rangs et énergies exclusifs, tous les ratios,
 résidus avant/après candidat, amélioration résiduelle, montée d'onset,
 persistance, bornes, marges, booléens de chaque sous-condition, décision et
-borne causale réellement lue. Le moteur et un recomputer indépendant devront
+borne causale réellement lue. Le moteur H28 et un recomputer H28 indépendant devront
 être réconciliés avant toute interprétation.
 
 ## Verdict préenregistré
@@ -77,7 +84,7 @@ Le présent lot contient uniquement :
 - la dérivation pure du verdict ;
 - des tests locaux sans NumPy scientifique ni population.
 
-Validation locale : `22/22` tests réussis, comprenant les `11` tests H28 et
+Validation locale : `23/23` tests réussis, comprenant les `12` tests H28 et
 les `11` régressions dormantes moteur/recomputer H27, puis `py_compile` et
 `git diff --check`. Ces tests n'ont lu aucun payload scientifique H27/H28.
 

@@ -29,7 +29,10 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   puissances, rangs/énergies/ratios harmoniques, résidus avant/après,
   amélioration, onset, persistance et booléens de chaque sous-condition. Le
   loader dormant vérifie les six dépendances H27 byte-for-byte et la dérivation
-  du verdict est testée localement. Aucune population, matérialisation, FFT
+  du verdict est testée localement. La revue locale a aussi figé que le moteur
+  H27, limité à 16640 samples, est seulement une référence normative : H28 doit
+  posséder un moteur/recomputer séparé dont seules la géométrie 17152 et la
+  sérialisation complète diffèrent. Aucune population, matérialisation, FFT
   scientifique, exécution Mac, training, calibration, checkpoint ou locked-test
   H28 n'est autorisé avant revue externe. Prochaine action unique : revue du
   contrat et de son loader dormant, puis seulement autorisation séparée d'un

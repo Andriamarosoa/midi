@@ -76,7 +76,7 @@ class H28TimingContractTests(unittest.TestCase):
         contract = h28.load_h28_timing_contract(ROOT)
         self.assertEqual(
             contract.raw_sha256,
-            "7b42080ee96a40c23805c7eae946650b065ca8c252d6560f996ca4a61045bac2",
+            "4685ec98ada20a8efc2ba642b2a46897210c926506117cd3d6f549e4238bf4b4",
         )
         self.assertEqual(
             tuple(item.causal_samples_after_onset for item in contract.horizons),
@@ -102,7 +102,19 @@ class H28TimingContractTests(unittest.TestCase):
         self.assertEqual(science["positive_minimum_exclusive_energy_ratio"], 0.02)
         self.assertEqual(science["positive_minimum_onset_rise"], 0.05)
         self.assertEqual(science["positive_minimum_residual_improvement"], 0.1)
+        self.assertTrue(science["h27_engine_formulas_are_normative_reference"])
+        self.assertTrue(science["h27_engine_direct_runtime_reuse_forbidden"])
+        self.assertTrue(science["h28_geometry_only_engine_adapter_required"])
         self.assertTrue(document["evaluation_contract"]["n01_birth_at_any_horizon_is_safety_failure"])
+
+    def test_h27_engine_cannot_directly_execute_the_extended_h28_horizons(self):
+        source = (ROOT / "src/polyphonic/harmonic_censoring_h27_engine.py").read_text(encoding="utf-8")
+        self.assertIn("invocation.proposal_hop_end >= 16640", source)
+        self.assertIn("waveform.shape != (16640,)", source)
+        self.assertIn("mask.shape != (66560,)", source)
+        evaluation = h28.load_h28_timing_contract(ROOT).document["evaluation_contract"]
+        self.assertTrue(evaluation["direct_h27_engine_invocation_for_h28_forbidden"])
+        self.assertTrue(evaluation["independent_h28_engine_and_h28_recomputer_required"])
 
     def test_diagnostics_close_the_h27_forensic_gap(self):
         required = set(h28.REQUIRED_DIAGNOSTIC_FIELDS)

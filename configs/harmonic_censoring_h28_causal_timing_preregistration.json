@@ -118,12 +118,23 @@
     "negative_maximum_residual_improvement": 0.001,
     "negative_minimum_margin": 10.0,
     "minimum_exclusive_partial_count": 2,
-    "minimum_valid_bin_count_per_partial": 3
+    "minimum_valid_bin_count_per_partial": 3,
+    "h27_engine_formulas_are_normative_reference": true,
+    "h27_engine_direct_runtime_reuse_forbidden": true,
+    "h28_geometry_only_engine_adapter_required": true,
+    "permitted_engine_geometry_changes": [
+      "waveform sample count 16640 to 17152",
+      "role-major mask plane length 16640 to 17152",
+      "proposal horizon upper bound extended through 16895",
+      "complete diagnostic serialization"
+    ]
   },
   "evaluation_contract": {
     "independent_snapshot_per_fixture_and_horizon": true,
     "decoder_state_carry_between_horizons_forbidden": true,
-    "engine_and_independent_recomputer_required": true,
+    "h27_engine_and_recomputer_are_reference_only": true,
+    "direct_h27_engine_invocation_for_h28_forbidden": true,
+    "independent_h28_engine_and_h28_recomputer_required": true,
     "engine_recomputer_numeric_tolerance": "abs(left-right)<=1e-12+1e-10*abs(left)",
     "record_order": [
       "H27-F-P01/N",

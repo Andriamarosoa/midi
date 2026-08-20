@@ -266,10 +266,20 @@ def load_h28_timing_contract(repository_root: Path) -> H28TimingContract:
         "negative_minimum_margin": 10.0,
         "minimum_exclusive_partial_count": 2,
         "minimum_valid_bin_count_per_partial": 3,
+        "h27_engine_formulas_are_normative_reference": True,
+        "h27_engine_direct_runtime_reuse_forbidden": True,
+        "h28_geometry_only_engine_adapter_required": True,
     }
     for key, expected in required_science.items():
         if science.get(key) != expected:
             raise ValueError(f"H28 inherited science changed: {key}")
+    if science.get("permitted_engine_geometry_changes") != [
+        "waveform sample count 16640 to 17152",
+        "role-major mask plane length 16640 to 17152",
+        "proposal horizon upper bound extended through 16895",
+        "complete diagnostic serialization",
+    ]:
+        raise ValueError("H28 permitted engine geometry changes changed")
 
     evaluation = _mapping(document.get("evaluation_contract"), label="H28 evaluation")
     if evaluation.get("record_order") != list(RECORD_ORDER):
@@ -277,7 +287,9 @@ def load_h28_timing_contract(repository_root: Path) -> H28TimingContract:
     if (
         evaluation.get("independent_snapshot_per_fixture_and_horizon") is not True
         or evaluation.get("decoder_state_carry_between_horizons_forbidden") is not True
-        or evaluation.get("engine_and_independent_recomputer_required") is not True
+        or evaluation.get("h27_engine_and_recomputer_are_reference_only") is not True
+        or evaluation.get("direct_h27_engine_invocation_for_h28_forbidden") is not True
+        or evaluation.get("independent_h28_engine_and_h28_recomputer_required") is not True
         or evaluation.get("n01_birth_at_any_horizon_is_safety_failure") is not True
     ):
         raise ValueError("H28 evaluation boundary changed")
