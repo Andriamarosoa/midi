@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 import tempfile
 import subprocess
+import os
+import sys
 import unittest
 from unittest.mock import patch
 import numpy as np
@@ -201,7 +203,12 @@ class H27Review5ScientificExecutionTests(unittest.TestCase):
 
     def test_contract_is_dormant_and_post_science_work_is_separately_forbidden(self) -> None:
         value = json.loads(CONTRACT.read_text(encoding="utf-8"))
-        self.assertEqual(value["status"], "IMPLEMENTED_PENDING_EXTERNAL_REVIEW_NO_REAL_EXECUTION")
+        self.assertEqual(value["status"], "RECOVERY_IMPLEMENTED_PENDING_EXTERNAL_REVIEW_NO_REAL_EXECUTION")
+        self.assertEqual(value["scientific_output_root"],
+                         "/Users/amcarene/h27-admin-recovery-v2/science/review5-recovery-v1")
+        self.assertEqual(value["consumed_review5_v1"]["terminal_status"],
+                         "H27_EXECUTION_INCONCLUSIVE")
+        self.assertIs(value["consumed_review5_v1"]["retry_allowed"], False)
         for field in (
             "real_execution_authorized", "scientific_authority_creation_authorized",
             "scientific_claim_creation_authorized", "locked_test_authorized",
@@ -221,6 +228,35 @@ class H27Review5ScientificExecutionTests(unittest.TestCase):
         with patch.object(runner.platform, "system", return_value="Windows"):
             with self.assertRaisesRegex(RuntimeError, "requires macOS"):
                 runner._preflight(ROOT, contract)
+
+    def test_recovery_verifies_the_consumed_v1_terminal_chain(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            claim = {
+                "execution_id": EXECUTION_ID, "activation_nonce": ACTIVATION_NONCE,
+                "activation_sha256": "a" * 64, "retry_allowed": False,
+            }
+            claim_raw = runner._canonical(claim); claim_sha = hashlib.sha256(claim_raw).hexdigest()
+            terminal = {"claim_sha256": claim_sha, "status": runner.INCONCLUSIVE,
+                        "retry_allowed": False}
+            terminal_raw = runner._canonical(terminal)
+            terminal_sha = hashlib.sha256(terminal_raw).hexdigest()
+            complete = {"claim_sha256": claim_sha, "terminal_sha256": terminal_sha,
+                        "status": runner.INCONCLUSIVE}
+            artifacts = {"claim": claim_raw, "terminal": terminal_raw,
+                         "complete": runner._canonical(complete)}
+            consumed = {
+                "execution_id": EXECUTION_ID, "activation_nonce": ACTIVATION_NONCE,
+                "activation_sha256": "a" * 64, "terminal_status": runner.INCONCLUSIVE,
+            }
+            for name, raw in artifacts.items():
+                path = root / f"{name}.json"; path.write_bytes(raw)
+                consumed[f"{name}_path"] = str(path)
+                consumed[f"{name}_sha256"] = hashlib.sha256(raw).hexdigest()
+            runner._verify_consumed_review5_v1({"consumed_review5_v1": consumed})
+            (root / "terminal.json").write_bytes(terminal_raw + b" ")
+            with self.assertRaisesRegex(PermissionError, "terminal SHA"):
+                runner._verify_consumed_review5_v1({"consumed_review5_v1": consumed})
 
     def test_atomic_publisher_never_overwrites_an_existing_result(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -312,6 +348,18 @@ class H27Review5ScientificExecutionTests(unittest.TestCase):
                 runner, "_git_bytes", side_effect=committed_bytes):
                 with self.assertRaisesRegex(ValueError, "population_index_sha256"):
                     runner._load_activation(test_root, contract, head, index_raw)
+
+    def test_absolute_entrypoint_bootstraps_repository_import_without_pythonpath(self) -> None:
+        environment = dict(os.environ)
+        environment.pop("PYTHONPATH", None)
+        with tempfile.TemporaryDirectory() as temporary:
+            result = subprocess.run(
+                (sys.executable, str(ROOT / "scripts/h27_review5_scientific_execute_once.py"),
+                 "--bootstrap-import-check"),
+                cwd=temporary, env=environment, text=True, capture_output=True,
+            )
+        self.assertEqual(result.returncode, 0, msg=result.stderr)
+        self.assertEqual(result.stdout.strip(), "H27_REVIEW5_BOOTSTRAP_IMPORT_OK")
 
     def test_durable_claim_rejects_activation_identity_drift(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

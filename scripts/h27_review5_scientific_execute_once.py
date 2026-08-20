@@ -13,14 +13,18 @@ import uuid
 from typing import Any, Mapping
 
 
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 CONTRACT_RELATIVE = Path("configs/harmonic_censoring_h27_review5_scientific_execution_contract.json")
 SUCCESS = "H27_REVIEW5_SCIENCE_27_OF_27_PASS_STOP_BEFORE_POST_SCIENCE"
 INCONCLUSIVE = "H27_EXECUTION_INCONCLUSIVE"
-ACTIVATION_ENVIRONMENT = "H27_REVIEW5_ACTIVATION_PATH"
+ACTIVATION_ENVIRONMENT = "H27_REVIEW5_RECOVERY_ACTIVATION_PATH"
 
 
 def _repo_root() -> Path:
-    return Path(__file__).resolve().parents[1]
+    return ROOT
 
 
 def _sha(raw: bytes) -> str:
@@ -206,7 +210,7 @@ def _load_contract(root: Path) -> Mapping[str, Any]:
         for phase in ("P0", "P1", "P2") for index in range(1, 10)
     ]
     required = {
-        "schema_identity": "H27_REVIEW5_SCIENTIFIC_EXECUTION_V1",
+        "schema_identity": "H27_REVIEW5_SCIENTIFIC_EXECUTION_RECOVERY_V1",
         "schema_version": 1,
         "review4_terminal_commit": "2b54bc624314a8ac56380ac826c8fe14ee09d3db",
         "scientific_target_commit": "46a6bdf81a56a7a7a10524d4e55092301a452207",
@@ -214,10 +218,10 @@ def _load_contract(root: Path) -> Mapping[str, Any]:
         "population_index_sha256": "ae67455b07cde223b77c6d1da221cbba2252c6b67fa8c07b9d3ebfbd50f3a9f8",
         "review4_terminal_sha256": "122a87f9dfe83a342099fc7a9a7508c47b5bda5abb8fa73da42ea29adb31a636",
         "review4_terminal_path": "/Users/amcarene/h27-admin-recovery-v2/terminal/h27-materialization-recovery-v2.json",
-        "scientific_output_root": "/Users/amcarene/h27-admin-recovery-v2/science/review5-v1",
+        "scientific_output_root": "/Users/amcarene/h27-admin-recovery-v2/science/review5-recovery-v1",
         "runtime_python": "/Users/amcarene/midi-worker/.venv/bin/python",
         "secondary_runtime_python": "/Users/amcarene/midi-worker/.venv-py39/bin/python",
-        "acknowledgement_environment": "H27_REVIEW5_SCIENTIFIC_EXECUTE",
+        "acknowledgement_environment": "H27_REVIEW5_RECOVERY_SCIENTIFIC_EXECUTE",
         "acknowledgement_value": "1",
         "process_environment_exact": {"MIDI_FORCE_CPU":"1","OMP_NUM_THREADS":"1","OPENBLAS_NUM_THREADS":"1","MKL_NUM_THREADS":"1","NUMEXPR_NUM_THREADS":"1","VECLIB_MAXIMUM_THREADS":"1","PYTHONHASHSEED":"0","LC_ALL":"C","LANG":"C","TZ":"UTC"},
         "test_ids": expected_tests,
@@ -238,6 +242,22 @@ def _load_contract(root: Path) -> Mapping[str, Any]:
         "training_authorized": False,
         "calibration_authorized": False,
         "checkpoint_selection_authorized": False,
+        "consumed_review5_v1": {
+            "execution_id": "8ecc2fbb-c48e-43a1-a712-682d8cf03de4",
+            "activation_nonce": "19fbda53-fdf5-46c4-bdfa-973488119aba",
+            "activation_sha256": "6c9f54ff89ab4bab6fa10d45e6b18b4d472ac7907558841298ba0b62c4ccc0f3",
+            "claim_path": "/Users/amcarene/h27-admin-recovery-v2/science/review5-v1/claim.json",
+            "claim_sha256": "9733d4d9b1a12a29b0456458b13436f1d1cb5ec26b5698ba359b4d89e1fc2625",
+            "terminal_path": "/Users/amcarene/h27-admin-recovery-v2/science/review5-v1/terminal.json",
+            "terminal_sha256": "2545cf8e56495043565370248f271a47ea8617c5fafdee5ec0c9c0508f5419d1",
+            "complete_path": "/Users/amcarene/h27-admin-recovery-v2/science/review5-v1/COMPLETE.json",
+            "complete_sha256": "baceb446a48172f5197d8cbcaef75b30d6a6dd143ab76619d15b7507d0ed98c9",
+            "terminal_status": "H27_EXECUTION_INCONCLUSIVE",
+            "retry_allowed": False,
+            "p0_executed": 0,
+            "p1_executed": 0,
+            "p2_executed": 0,
+        },
     }
     for key, expected in required.items():
         if value.get(key) != expected or type(value.get(key)) is not type(expected):
@@ -245,9 +265,38 @@ def _load_contract(root: Path) -> Mapping[str, Any]:
     lifecycle = (value.get("status"), value.get("real_execution_authorized"),
                  value.get("scientific_authority_creation_authorized"),
                  value.get("scientific_claim_creation_authorized"))
-    if lifecycle != ("IMPLEMENTED_PENDING_EXTERNAL_REVIEW_NO_REAL_EXECUTION", False, False, False):
+    if lifecycle != ("RECOVERY_IMPLEMENTED_PENDING_EXTERNAL_REVIEW_NO_REAL_EXECUTION", False, False, False):
         raise ValueError("H27 Review-5 lifecycle mismatch")
     return value
+
+
+def _verify_consumed_review5_v1(contract: Mapping[str, Any]) -> None:
+    """Bind recovery to the immutable, consumed Review-5B V1 terminal chain."""
+
+    consumed = contract["consumed_review5_v1"]
+    assert type(consumed) is dict
+    values: dict[str, dict[str, object]] = {}
+    for name in ("claim", "terminal", "complete"):
+        path = Path(str(consumed[f"{name}_path"]))
+        if (not path.is_absolute() or path.is_symlink()
+                or path.resolve(strict=True) != path or not path.is_file()):
+            raise PermissionError(f"H27 consumed Review-5 V1 {name} path invalid")
+        raw = path.read_bytes()
+        if _sha(raw) != consumed[f"{name}_sha256"]:
+            raise PermissionError(f"H27 consumed Review-5 V1 {name} SHA mismatch")
+        values[name] = _strict_json(raw, f"consumed Review-5 V1 {name}")
+    claim, terminal, complete = values["claim"], values["terminal"], values["complete"]
+    if (claim.get("execution_id") != consumed["execution_id"]
+            or claim.get("activation_nonce") != consumed["activation_nonce"]
+            or claim.get("activation_sha256") != consumed["activation_sha256"]
+            or claim.get("retry_allowed") is not False
+            or terminal.get("claim_sha256") != consumed["claim_sha256"]
+            or terminal.get("status") != consumed["terminal_status"]
+            or terminal.get("retry_allowed") is not False
+            or complete.get("status") != consumed["terminal_status"]
+            or complete.get("claim_sha256") != consumed["claim_sha256"]
+            or complete.get("terminal_sha256") != consumed["terminal_sha256"]):
+        raise PermissionError("H27 consumed Review-5 V1 terminal chain mismatch")
 
 
 def _preflight(root: Path, contract: Mapping[str, Any]) -> tuple[str, bytes, Mapping[str, object], str]:
@@ -280,6 +329,7 @@ def _preflight(root: Path, contract: Mapping[str, Any]) -> tuple[str, bytes, Map
     index_raw = (population_root / "population_index.json").read_bytes()
     if _sha(index_raw) != contract["population_index_sha256"]:
         raise ValueError("H27 population index SHA mismatch")
+    _verify_consumed_review5_v1(contract)
     activation, activation_sha = _load_activation(root, contract, head, index_raw)
     # The immutable dormant contract must remain false.  Only the separately
     # reviewed, byte-bound activation above authorizes this one execution.
@@ -447,4 +497,12 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    if sys.argv[1:] == ["--bootstrap-import-check"]:
+        from src.polyphonic.harmonic_censoring_h27_contract import load_h27_dormant_plan
+        if not callable(load_h27_dormant_plan):
+            raise RuntimeError("H27 Review-5 bootstrap import target unavailable")
+        print("H27_REVIEW5_BOOTSTRAP_IMPORT_OK")
+        raise SystemExit(0)
+    if sys.argv[1:]:
+        raise SystemExit("H27 Review-5 arguments forbidden")
     raise SystemExit(main())

@@ -14,12 +14,25 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 Review-5A V4 corrected chain complete; external PASS required before real science. -->
+<!-- H26_CORRECTION_STATUS: H27 Review-5B V1 consumed inconclusive; independent recovery implementation pending external review. -->
 ## État courant
 
 - Mise à jour : `2026-08-20`.
 - État courant :
-  `H27_REVIEW5A_V4_CHAIN_COMPLETE_PENDING_EXTERNAL_REVIEW_NO_REAL_EXECUTION`.
+  `H27_REVIEW5B_V1_CONSUMED_INCONCLUSIVE_RECOVERY_IMPLEMENTED_PENDING_EXTERNAL_REVIEW`.
+- Review 5A V4 a reçu `PASS FINAL`, puis l'activation Review 5B exacte a reçu
+  `PASS`. L'unique invocation Mac a créé son CLAIM puis échoué avant P0 sur
+  `ModuleNotFoundError: No module named 'src.polyphonic.harmonic_censoring_h27_contract'`.
+  Elle est définitivement consommée : P0/P1/P2=`0/0/0`, aucun receipt ni
+  rapport scientifique, `locked_test_used=false`, `training_used=false`,
+  terminal `H27_EXECUTION_INCONCLUSIVE`. Aucun retry, nettoyage ou seconde
+  invocation n'a été tenté. La lignée recovery locale ajoute le repository root
+  à `sys.path` avant tout import `src.polyphonic`, prouve le bootstrap via une
+  vraie exécution absolue depuis un autre CWD, utilise un nouvel output/ACK/path
+  d'activation et lie les trois artefacts consommés par leurs SHA. Aucun nouveau
+  SSH scientifique n'est autorisé avant nouvelle revue stricte.
+  Rapport :
+  `readme/results/2026-08-20_harmonic-censoring-h27-review5b-consumed-import-failure.md`.
 - La revue externe stricte de la chaîne V3
   `5ea55531... → 576ba120... → e69f0125...` a rendu `FAIL` limité à deux
   corrections locales. Le runner exige désormais que `HEAD` soit exactement

@@ -1,17 +1,17 @@
 {
-  "schema_identity": "H27_REVIEW5_SCIENTIFIC_EXECUTION_V1",
+  "schema_identity": "H27_REVIEW5_SCIENTIFIC_EXECUTION_RECOVERY_V1",
   "schema_version": 1,
-  "status": "IMPLEMENTED_PENDING_EXTERNAL_REVIEW_NO_REAL_EXECUTION",
+  "status": "RECOVERY_IMPLEMENTED_PENDING_EXTERNAL_REVIEW_NO_REAL_EXECUTION",
   "review4_terminal_commit": "2b54bc624314a8ac56380ac826c8fe14ee09d3db",
   "scientific_target_commit": "46a6bdf81a56a7a7a10524d4e55092301a452207",
   "population_root": "/Users/amcarene/h27-admin-recovery-v2/population/h27-synthetic-v1",
   "population_index_sha256": "ae67455b07cde223b77c6d1da221cbba2252c6b67fa8c07b9d3ebfbd50f3a9f8",
   "review4_terminal_sha256": "122a87f9dfe83a342099fc7a9a7508c47b5bda5abb8fa73da42ea29adb31a636",
   "review4_terminal_path": "/Users/amcarene/h27-admin-recovery-v2/terminal/h27-materialization-recovery-v2.json",
-  "scientific_output_root": "/Users/amcarene/h27-admin-recovery-v2/science/review5-v1",
+  "scientific_output_root": "/Users/amcarene/h27-admin-recovery-v2/science/review5-recovery-v1",
   "runtime_python": "/Users/amcarene/midi-worker/.venv/bin/python",
   "secondary_runtime_python": "/Users/amcarene/midi-worker/.venv-py39/bin/python",
-  "acknowledgement_environment": "H27_REVIEW5_SCIENTIFIC_EXECUTE",
+  "acknowledgement_environment": "H27_REVIEW5_RECOVERY_SCIENTIFIC_EXECUTE",
   "acknowledgement_value": "1",
   "process_environment_exact": {"MIDI_FORCE_CPU":"1","OMP_NUM_THREADS":"1","OPENBLAS_NUM_THREADS":"1","MKL_NUM_THREADS":"1","NUMEXPR_NUM_THREADS":"1","VECLIB_MAXIMUM_THREADS":"1","PYTHONHASHSEED":"0","LC_ALL":"C","LANG":"C","TZ":"UTC"},
   "source_bindings": {
@@ -51,5 +51,21 @@
   "training_authorized": false,
   "calibration_authorized": false,
   "checkpoint_selection_authorized": false,
-  "next_action": "External review of the complete Review 5A implementation before any Mac bootstrap, authority, claim, payload read, P0, P1, or P2"
+  "consumed_review5_v1": {
+    "execution_id": "8ecc2fbb-c48e-43a1-a712-682d8cf03de4",
+    "activation_nonce": "19fbda53-fdf5-46c4-bdfa-973488119aba",
+    "activation_sha256": "6c9f54ff89ab4bab6fa10d45e6b18b4d472ac7907558841298ba0b62c4ccc0f3",
+    "claim_path": "/Users/amcarene/h27-admin-recovery-v2/science/review5-v1/claim.json",
+    "claim_sha256": "9733d4d9b1a12a29b0456458b13436f1d1cb5ec26b5698ba359b4d89e1fc2625",
+    "terminal_path": "/Users/amcarene/h27-admin-recovery-v2/science/review5-v1/terminal.json",
+    "terminal_sha256": "2545cf8e56495043565370248f271a47ea8617c5fafdee5ec0c9c0508f5419d1",
+    "complete_path": "/Users/amcarene/h27-admin-recovery-v2/science/review5-v1/COMPLETE.json",
+    "complete_sha256": "baceb446a48172f5197d8cbcaef75b30d6a6dd143ab76619d15b7507d0ed98c9",
+    "terminal_status": "H27_EXECUTION_INCONCLUSIVE",
+    "retry_allowed": false,
+    "p0_executed": 0,
+    "p1_executed": 0,
+    "p2_executed": 0
+  },
+  "next_action": "External review of the independent Review 5B recovery lineage before any new activation or Mac execution"
 }
