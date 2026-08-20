@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "seal_id": "H27_MATERIALIZATION_RECOVERY_V1_EXECUTION_EXTERNAL_SEAL",
+  "status": "SEALED_DORMANT_PENDING_EXTERNAL_REVIEW_NO_MAC_EXECUTION_AUTHORIZED",
+  "reviewed_component_commit": "61ed9df1e80453ba2c3b980009a420bb5378c160",
+  "execution_binding": {
+    "path": "configs/harmonic_censoring_h27_materialization_recovery_v1_execution_binding.json",
+    "git_blob_sha1": "362b697623c37145e1218d1cc2084d77688b33ad",
+    "size_bytes": 5245,
+    "raw_sha256": "b4edfa8eadd820460a4f4acdebcbdb1ddebb837fdbc6e5c554fe5a532456907c"
+  },
+  "authorization_boundary": {
+    "external_pass_required_before_any_ssh": true,
+    "only_exact_nine_bootstrap_components_may_be_created": true,
+    "old_activation_authority_claim_and_runner_are_immutable": true,
+    "new_recovery_root_must_be_absent_before_bootstrap": true,
+    "bootstrap_and_runner_invocations_maximum": 1,
+    "retry_cleanup_repair_or_rollback_forbidden": true,
+    "success_requires_exact_terminal_report_and_population_index": true,
+    "expected_records": 124,
+    "expected_baseline_records": 17,
+    "expected_p2_records": 107
+  },
+  "forbidden": ["science","P0","P1","P2","locked_test","training","calibration","old_activation_retry"],
+  "next_action": "External review of implementation, compatibility binding/seal, execution binding, and this seal; no Mac execution without explicit PASS"
+}
