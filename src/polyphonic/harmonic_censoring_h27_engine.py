@@ -19,6 +19,7 @@ from .harmonic_censoring_h27_contract import (
 )
 from .harmonic_censoring_h27_scientific_capability_dormant import (
     H27ScientificCapability, H27SealedRecordBinding,
+    H27_SEALED_RECORD_BINDING_FIELDS,
     require_h27_scientific_capability, require_h27_sealed_record_binding,
 )
 
@@ -145,7 +146,10 @@ def _validate_invocation(invocation: H27SealedRecordBinding) -> None:
            or any(ch not in "0123456789abcdef" for ch in value)
            for value in invocation.payload_sha256.values()):
         raise ValueError("H27 payload SHA-256 invalid.")
-    if FORBIDDEN_DESCRIPTOR_FIELDS & set(vars(invocation)):
+    # H27SealedRecordBinding is intentionally slotted and has no __dict__.
+    # Validate its closed declared schema directly instead of calling vars(),
+    # which would fail before the first scientific test on every real binding.
+    if FORBIDDEN_DESCRIPTOR_FIELDS & set(H27_SEALED_RECORD_BINDING_FIELDS):
         raise ValueError("H27 forbidden scientific descriptor field.")
 
 

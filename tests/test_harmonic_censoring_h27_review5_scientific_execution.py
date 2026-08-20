@@ -8,6 +8,8 @@ import tempfile
 import subprocess
 import unittest
 from unittest.mock import patch
+import numpy as np
+import uuid
 
 from src.polyphonic.harmonic_censoring_h27_contract import (
     canonical_h27_record_identities, load_h27_dormant_plan,
@@ -16,6 +18,7 @@ from src.polyphonic.harmonic_censoring_h27_engine import H27EngineResult
 from src.polyphonic.harmonic_censoring_h27_recomputer import H27RecomputedResult
 from src.polyphonic.harmonic_censoring_h27_scientific_authority import (
     issue_h27_scientific_capability, require_operational_h27_binding,
+    verify_durable_h27_claim,
 )
 import src.polyphonic.harmonic_censoring_h27_scientific_authority as authority
 from src.polyphonic.harmonic_censoring_h27_sealed_population_loader import (
@@ -45,20 +48,27 @@ class H27Review5ScientificExecutionTests(unittest.TestCase):
         self.plan = load_h27_dormant_plan(plan_root)
         authority._CAPABILITIES.clear()
         authority._BINDINGS.clear()
+        authority._CLAIMS.clear()
         authority._ISSUED_ONCE = False
-        claim = b'{"claim":"test"}\n'
         self.index = self._index_value()
         self.index_raw = _raw(self.index)
-        self.capability = issue_h27_scientific_capability(
-            claim_raw=claim, claim_sha256=hashlib.sha256(claim).hexdigest(),
-            population_index_sha256=hashlib.sha256(self.index_raw).hexdigest(),
-            execution_authorized=True,
+        self.claim_source = tempfile.TemporaryDirectory()
+        claim_value = {"population_index_sha256": hashlib.sha256(self.index_raw).hexdigest()}
+        claim = runner._canonical(claim_value)
+        claim_path = Path(self.claim_source.name) / "claim.json"
+        claim_path.write_bytes(claim)
+        proof = verify_durable_h27_claim(
+            claim_path=claim_path, expected_claim=claim_value,
+            expected_claim_sha256=hashlib.sha256(claim).hexdigest(), authority_sha256="a" * 64,
         )
+        self.capability = issue_h27_scientific_capability(durable_claim=proof)
 
     def tearDown(self) -> None:
         authority._CAPABILITIES.clear()
         authority._BINDINGS.clear()
+        authority._CLAIMS.clear()
         authority._ISSUED_ONCE = False
+        self.claim_source.cleanup()
         self.plan_source.cleanup()
 
     def _index_value(self):
@@ -80,10 +90,10 @@ class H27Review5ScientificExecutionTests(unittest.TestCase):
                 "inharmonicity": 0.0,
             })
         return {
+            "schema_version": 1,
             "population_namespace": "H27_SYNTHETIC_V1",
             "record_count": 124,
             "records": records,
-            "schema_version": 1,
         }
     def _population(self, root: Path):
         for record in self.index["records"]:
@@ -120,14 +130,39 @@ class H27Review5ScientificExecutionTests(unittest.TestCase):
         if fixture == "H27-F-P01" and identity.startswith("baseline/"):
             classes["previous_short"] = "VALID_EXACT_ZERO_PREVIOUS_SHORT"
             classes["previous_long"] = "VALID_EXACT_ZERO_PREVIOUS_LONG"
+        if fixture == "H27-F-A04":
+            classes["previous_short"] = "INVALID_SUPPORT"
+            classes["previous_long"] = "INVALID_SUPPORT"
+            reason = "invalid_or_incomplete_support"
+        elif fixture in {"H27-F-A05", "H27-F-A06"}:
+            if fixture == "H27-F-A05":
+                classes["previous_short"] = "INVALID_PREVIOUS_SHORT_CONTEXT"
+                classes["previous_long"] = "INVALID_PREVIOUS_LONG_CONTEXT"
+            else:
+                classes["current_short"] = "INVALID_CURRENT_SHORT_ANALYSIS"
+                classes["current_long"] = "INVALID_CURRENT_LONG_ANALYSIS"
+            reason = "nonzero_not_above_floor"
+        elif fixture == "H27-F-A07":
+            classes["current_short"] = "INVALID_CURRENT_SHORT_ANALYSIS"
+            classes["current_long"] = "INVALID_CURRENT_LONG_ANALYSIS"
+            reason = "invalid_current_exact_zero"
         values = dict(
             record_identity=identity, validated_payload_sha256=binding.payload_sha256,
             role_classifications=classes, mask_counts={role:4096 for role in classes},
             outcome=expected, certificate_kind=kind,
             certificate_complete=kind in {"POSITIVE","NEGATIVE","ACTIVE_HISTORY","EQUIVALENCE"},
-            exclusive_partial_membership=(), exclusive_energy_ratios=None,
-            onset_rise=None, residual_improvement=None, persistence=None,
-            bounded_claim_lower_bounds=None, negative_margins=None,
+            exclusive_partial_membership=(2,3) if expected in {"BIRTH_SUPPORTED","NO_BIRTH"} else (),
+            exclusive_energy_ratios=((0.03,0.03) if expected == "BIRTH_SUPPORTED" else
+                                     (0.001,0.001) if expected == "NO_BIRTH" else None),
+            onset_rise=(0.1 if expected == "BIRTH_SUPPORTED" else
+                        0.001 if expected == "NO_BIRTH" else None),
+            residual_improvement=(0.2 if expected == "BIRTH_SUPPORTED" else
+                                  0.0005 if expected == "NO_BIRTH" else None),
+            persistence=0.1 if expected in {"BIRTH_SUPPORTED","NO_BIRTH"} else None,
+            bounded_claim_lower_bounds=((0.01,0.01) if expected == "BIRTH_SUPPORTED" else
+                                        (0.02,0.02) if expected == "NO_BIRTH" else None),
+            negative_margins=((1.0,1.0) if expected == "BIRTH_SUPPORTED" else
+                              (20.0,20.0) if expected == "NO_BIRTH" else None),
             pitch_dilution_curve=None, early_resolution_reason=reason,
             maximum_sample_read=binding.proposal_hop_end,
         )
@@ -166,13 +201,78 @@ class H27Review5ScientificExecutionTests(unittest.TestCase):
             self.assertEqual(path.read_bytes(), raw)
             self.assertFalse((path.parent / ".receipt.json.part").exists())
 
+    def test_durable_claim_is_reopened_and_tampering_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "claim.json"
+            value = {"population_index_sha256": "c" * 64}
+            raw = runner._canonical(value); path.write_bytes(raw)
+            path.write_bytes(runner._canonical({"population_index_sha256": "d" * 64}))
+            with self.assertRaisesRegex(PermissionError, "changed"):
+                verify_durable_h27_claim(
+                    claim_path=path, expected_claim=value,
+                    expected_claim_sha256=hashlib.sha256(raw).hexdigest(), authority_sha256="a" * 64)
+
+    def test_activation_binds_review_chain_population_and_both_runtimes(self) -> None:
+        contract = dict(runner._load_contract(ROOT))
+        head = subprocess.check_output(("git", "rev-parse", "HEAD"), cwd=ROOT, text=True).strip()
+        index_raw = self.index_raw
+        with tempfile.TemporaryDirectory() as temporary:
+            test_root = Path(temporary).resolve(); configs = test_root / "configs"; configs.mkdir()
+            commits = ("1"*40, "2"*40, "3"*40)
+            binding = configs / "harmonic_censoring_h27_review5_scientific_execution_identity_binding.json"
+            seal = configs / "harmonic_censoring_h27_review5_scientific_execution_external_seal.json"
+            binding.write_bytes(runner._canonical({"implementation_commit": commits[0]}))
+            seal.write_bytes(runner._canonical({"implementation_commit": commits[0],
+                "identity_binding_commit": commits[1],
+                "population_index_sha256": hashlib.sha256(index_raw).hexdigest()}))
+            value = {
+                "schema_identity": "H27_REVIEW5_SCIENTIFIC_ACTIVATION_V1", "schema_version": 1,
+                "status": "AUTHORIZED_REAL_SCIENCE_ONE_SHOT", "execution_id": str(uuid.uuid4()),
+                "activation_nonce": str(uuid.uuid4()), "issuer": "h27-execution-codex-mac-primary",
+                "implementation_commit": commits[0], "identity_binding_commit": commits[1],
+                "external_seal_commit": commits[2],
+                "identity_binding_sha256": hashlib.sha256(binding.read_bytes()).hexdigest(),
+                "external_seal_sha256": hashlib.sha256(seal.read_bytes()).hexdigest(),
+                "population_index_sha256": hashlib.sha256(index_raw).hexdigest(),
+                "primary_runtime": contract["runtime_python"],
+                "secondary_runtime": contract["secondary_runtime_python"], "single_use": True,
+                "retry_allowed": False, "locked_test_authorized": False, "training_authorized": False,
+            }
+            path = test_root / "activation.json"
+            path.write_bytes(json.dumps(value, separators=(",", ":")).encode() + b"\n")
+            with patch.dict("os.environ", {runner.ACTIVATION_ENVIRONMENT: str(path)}), patch.object(
+                runner.subprocess, "run", return_value=subprocess.CompletedProcess([], 0)
+            ), patch.object(runner, "_git", return_value=commits[2]):
+                observed, digest = runner._load_activation(test_root, contract, head, index_raw)
+            self.assertEqual(observed["execution_id"], value["execution_id"])
+            self.assertEqual(digest, hashlib.sha256(path.read_bytes()).hexdigest())
+            value["population_index_sha256"] = "0" * 64
+            path.write_bytes(json.dumps(value, separators=(",", ":")).encode() + b"\n")
+            with patch.dict("os.environ", {runner.ACTIVATION_ENVIRONMENT: str(path)}), patch.object(
+                runner.subprocess, "run", return_value=subprocess.CompletedProcess([], 0)
+            ), patch.object(runner, "_git", return_value=commits[2]):
+                with self.assertRaisesRegex(ValueError, "population_index_sha256"):
+                    runner._load_activation(test_root, contract, head, index_raw)
+
+    def test_receipts_are_exclusive_contiguous_and_sha_chained(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            publisher = runner._ReceiptPublisher(
+                output=Path(temporary), claim_sha256="a"*64, activation_sha256="b"*64,
+                population_index_sha256="c"*64)
+            first = executor.H27TestResult("H27-T-P0-001", "P0", "PASS", 0, (), "one")
+            second = executor.H27TestResult("H27-T-P0-002", "P0", "FAIL", 1, ("x",), "two")
+            publisher(first); first_sha = publisher.previous_sha256; publisher(second)
+            second_value = json.loads((Path(temporary) / "002-H27-T-P0-002.json").read_text())
+            self.assertEqual(second_value["previous_receipt_sha256"], first_sha)
+            with self.assertRaisesRegex(RuntimeError, "contiguous"):
+                publisher(executor.H27TestResult("H27-T-P0-004", "P0", "PASS", 0, (), "skip"))
+            with self.assertRaises(FileExistsError):
+                runner._ReceiptPublisher(output=Path(temporary), claim_sha256="a"*64,
+                    activation_sha256="b"*64, population_index_sha256="c"*64)(first)
+
     def test_process_capability_is_strictly_one_shot(self) -> None:
         with self.assertRaisesRegex(PermissionError, "already been issued"):
-            issue_h27_scientific_capability(
-                claim_raw=b'{}\n', claim_sha256=hashlib.sha256(b'{}\n').hexdigest(),
-                population_index_sha256=hashlib.sha256(self.index_raw).hexdigest(),
-                execution_authorized=True,
-            )
+            issue_h27_scientific_capability(durable_claim=object())  # type: ignore[arg-type]
 
     def test_loader_requires_issued_capability_and_binds_exact_index_order(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -187,6 +287,64 @@ class H27Review5ScientificExecutionTests(unittest.TestCase):
                     capability=forged, plan=self.plan, population_root=Path(temporary),
                     expected_index_sha256=hashlib.sha256(raw).hexdigest(),
                 )
+
+    def test_real_loader_engine_recomputer_path_is_operational_without_consumption(self) -> None:
+        """Exercise real bytes and both implementations without the one-shot runner."""
+        from src.polyphonic.harmonic_censoring_h27_engine import run_h27_engine
+        from src.polyphonic.harmonic_censoring_h27_recomputer import (
+            compare_h27_engine_and_recomputer, run_h27_independent_recomputer,
+        )
+        from src.polyphonic.harmonic_censoring_h27_scientific_authority import operational_h27_engine_boundary
+        with tempfile.TemporaryDirectory() as temporary:
+            population = Path(temporary) / "population"
+            population.mkdir()
+            records = []
+            for source_record in self.index["records"]:
+                identity = source_record["record_identity"]
+                fixture = identity.split("/")[1] if identity.startswith("baseline/") else identity.split("/")[2]
+                directory = population / identity
+                directory.mkdir(parents=True)
+                if identity == "baseline/H27-F-H01":
+                    waveform = np.zeros(16640, dtype=np.float64)
+                    payload_values = {
+                        "waveform.f64le": waveform.astype("<f8").tobytes(),
+                        "sample-valid-mask.u8": bytes([1]) * (4 * 16640),
+                    }
+                else:
+                    names = ["waveform.f64le", "sample-valid-mask.u8"]
+                    if fixture in {"H27-F-A01", "H27-F-A02"}:
+                        names.append("alternate-waveform.f64le")
+                    payload_values = {name: b"" for name in names}
+                payload_sha = {}
+                for name, raw in payload_values.items():
+                    (directory / name).write_bytes(raw)
+                    payload_sha[name] = hashlib.sha256(raw).hexdigest()
+                record = dict(source_record); record["payload_sha256"] = payload_sha
+                if identity == "baseline/H27-F-H01":
+                    record["active_pitches"] = [40]
+                records.append(record)
+            index_raw = _raw({"schema_version": 1, "population_namespace": "H27_SYNTHETIC_V1",
+                              "record_count": 124, "records": records})
+            (population / "population_index.json").write_bytes(index_raw)
+            authority._CAPABILITIES.clear(); authority._BINDINGS.clear(); authority._CLAIMS.clear()
+            authority._ISSUED_ONCE = False
+            claim_value = {"population_index_sha256": hashlib.sha256(index_raw).hexdigest()}
+            claim_path = Path(temporary) / "claim.json"
+            claim_raw = runner._canonical(claim_value); claim_path.write_bytes(claim_raw)
+            proof = verify_durable_h27_claim(
+                claim_path=claim_path, expected_claim=claim_value,
+                expected_claim_sha256=hashlib.sha256(claim_raw).hexdigest(), authority_sha256="b" * 64)
+            capability = issue_h27_scientific_capability(durable_claim=proof)
+            bindings = load_h27_sealed_population_bindings(
+                capability=capability, plan=self.plan, population_root=population,
+                expected_index_sha256=hashlib.sha256(index_raw).hexdigest())
+            binding = next(item for item in bindings if item.record_identity == "baseline/H27-F-H01")
+            with operational_h27_engine_boundary(capability):
+                engine = run_h27_engine(np, capability, ROOT, binding)
+                recomputed = run_h27_independent_recomputer(np, capability, ROOT, binding)
+                compare_h27_engine_and_recomputer(engine, recomputed)
+            self.assertEqual(engine.record_identity, "baseline/H27-F-H01")
+            self.assertEqual(engine.outcome, "ALREADY_ACTIVE_HISTORY")
 
     def test_executor_runs_27_in_order_over_124_unique_records_and_stops(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -205,8 +363,7 @@ class H27Review5ScientificExecutionTests(unittest.TestCase):
                 return tuple(self._result(by_identity[identity]) for identity in identities)
             with patch.object(executor, "run_h27_engine", engine), patch.object(
                 executor, "run_h27_independent_recomputer", recomputer
-            ), patch.object(executor, "compare_h27_engine_and_recomputer"), patch.object(
-                executor, "operational_h27_engine_boundary", boundary
+            ), patch.object(executor, "operational_h27_engine_boundary", boundary
             ), patch.object(executor, "_secondary_runtime_records", secondary
             ), patch.object(executor, "_require_primary_runtime_identity"
             ):
@@ -214,7 +371,8 @@ class H27Review5ScientificExecutionTests(unittest.TestCase):
                     np=object(), capability=self.capability, repository_root=ROOT,
                     plan=self.plan, bindings=bindings,
                 )
-            self.assertEqual(result.terminal_status, executor.PASS_STATUS)
+            self.assertEqual(result.terminal_status, executor.PASS_STATUS,
+                             msg=result.test_results[-1] if result.test_results else None)
             self.assertEqual((result.tests_passed, result.tests_failed, result.tests_not_run), (27,0,0))
             self.assertEqual(result.unique_records_evaluated, 124)
             self.assertEqual(result.record_evaluations, 248)
@@ -224,6 +382,21 @@ class H27Review5ScientificExecutionTests(unittest.TestCase):
             self.assertTrue(all(identity.endswith("runtime=secondary") for identity in secondary_calls[0]))
             self.assertFalse(result.locked_test_used)
             self.assertFalse(result.training_used)
+
+    def test_every_declared_inverse_has_a_checker_and_rejects_its_corruption(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            _, bindings = self._population(Path(temporary))
+            by_identity = {item.record_identity: item for item in bindings}
+            required = (
+                "H27-F-P01", "H27-F-P02", "H27-F-N01", "H27-F-P04", "H27-F-A01",
+                "H27-F-A04", "H27-F-A05", "H27-F-A06", "H27-F-A07",
+            )
+            rows = {f"baseline/{fixture}": self._result(by_identity[f"baseline/{fixture}"])
+                    for fixture in required}
+            executor.require_inverse_checker_coverage(self.plan)
+            observed = executor._inverse_checks(self.plan, rows, by_identity)
+            self.assertEqual(set(observed), set(self.plan.test_manifest["inverse_contracts"]))
+            self.assertTrue(all(observed.values()), msg=observed)
 
     def test_first_failure_kills_all_later_tests_without_retry(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -238,21 +411,25 @@ class H27Review5ScientificExecutionTests(unittest.TestCase):
             def secondary(_plan, _root, identities):
                 by_identity = {item.record_identity:item for item in bindings}
                 return tuple(self._result(by_identity[identity], corrupt=True) for identity in identities)
+            completed = []
             with patch.object(executor, "run_h27_engine", engine), patch.object(
                 executor, "run_h27_independent_recomputer", recomputer
-            ), patch.object(executor, "compare_h27_engine_and_recomputer"), patch.object(
-                executor, "operational_h27_engine_boundary", boundary
+            ), patch.object(executor, "operational_h27_engine_boundary", boundary
             ), patch.object(executor, "_secondary_runtime_records", secondary
             ), patch.object(executor, "_require_primary_runtime_identity"
             ):
                 result = executor.execute_h27_scientific_sequence(
                     np=object(), capability=self.capability, repository_root=ROOT,
                     plan=self.plan, bindings=bindings,
+                    on_test_completed=completed.append,
                 )
             self.assertEqual(result.terminal_status, executor.KILL_STATUS["P0"])
             self.assertEqual(result.tests_failed, 1)
             self.assertGreater(result.tests_not_run, 0)
             self.assertEqual(result.test_results[-1].status, "FAIL")
+            self.assertEqual(tuple(item.test_id for item in completed),
+                             tuple(item.test_id for item in result.test_results))
+            self.assertEqual(completed[-1].status, "FAIL")
 
 
 if __name__ == "__main__":

@@ -29,7 +29,7 @@
   "training_calibration_authorized": false,
   "dormant_implementation_bindings": {
     "capability":{"path":"src/polyphonic/harmonic_censoring_h27_scientific_capability_dormant.py","git_blob_sha1":"f54829e12d1acb0ae0e9a8f475fbe3fd2f1ebcf4","issuer_exists":false,"issued_identity_count":0},
-    "engine":{"path":"src/polyphonic/harmonic_censoring_h27_engine.py","git_blob_sha1":"d21c60e5a96cba5ba6d90dacedd49b8b1eaa5635","numpy_import_time":false,"execution_invoked":false},
+    "engine":{"path":"src/polyphonic/harmonic_censoring_h27_engine.py","git_blob_sha1":"ec7e775d0397a4415ca21df18c7b49528aa29387","numpy_import_time":false,"execution_invoked":false},
     "independent_recomputer":{"path":"src/polyphonic/harmonic_censoring_h27_recomputer.py","git_blob_sha1":"4949137f5a827e436c92b361f36f66b6f0312bcb","imports_engine":false,"execution_invoked":false},
     "tests":{"path":"tests/test_harmonic_censoring_h27_engine_recomputer_dormant.py","git_blob_sha1":"c5e7d0a873ae7ef29f5136ea64ac7430df044acb","scientific_kernels_invoked":false}
   },

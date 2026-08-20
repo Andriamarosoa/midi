@@ -1,7 +1,7 @@
 """Fixed H27 P0/P1/P2 executor over the sealed 124-record population."""
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 import hashlib
 import json
 import math
@@ -9,10 +9,12 @@ import os
 from pathlib import Path
 import platform
 import subprocess
-from typing import Any, Mapping
+from typing import Any, Callable, Mapping
 
 from .harmonic_censoring_h27_contract import H27DormantPlan, canonical_h27_record_identities
-from .harmonic_censoring_h27_engine import H27EngineResult, run_h27_engine
+from .harmonic_censoring_h27_engine import (
+    FORBIDDEN_DESCRIPTOR_FIELDS, H27EngineResult, run_h27_engine,
+)
 from .harmonic_censoring_h27_recomputer import (
     H27RecomputedResult, compare_h27_engine_and_recomputer,
     run_h27_independent_recomputer,
@@ -36,6 +38,10 @@ KILL_STATUS = {
     "P2": "H27_ROBUSTNESS_NOT_DEMONSTRATED",
 }
 PASS_STATUS = "H27_REVIEW5_SCIENCE_27_OF_27_PASS_STOP_BEFORE_POST_SCIENCE"
+INVERSE_IDS = (
+    "ZERO-INV-01", "ZERO-INV-02", "ZERO-INV-03", "ZERO-INV-04", "POS-INV",
+    "NEG-INV", "COLLISION-INV", "CAUSAL-INV", "LEAKAGE-INV", "RECOMPUTE-INV",
+)
 
 
 @dataclass(frozen=True)
@@ -137,6 +143,9 @@ def _secondary_runtime_records(
     claim_raw = claim_path.read_bytes()
     environment["H27_REVIEW5_INTERNAL_SECONDARY"] = "1"
     environment["H27_REVIEW5_INTERNAL_CLAIM_SHA256"] = hashlib.sha256(claim_raw).hexdigest()
+    activation_path = Path(environment["H27_REVIEW5_ACTIVATION_PATH"])
+    environment["H27_REVIEW5_INTERNAL_ACTIVATION_SHA256"] = hashlib.sha256(
+        activation_path.read_bytes()).hexdigest()
     helper = Path(repository_root) / "scripts/h27_review5_scientific_secondary.py"
     completed = subprocess.run(
         (str(executable), str(helper)), cwd=repository_root, env=environment,
@@ -214,9 +223,103 @@ def _same_semantics(left: H27EngineResult, right: H27EngineResult) -> bool:
     return all(close(getattr(left, name), getattr(right, name)) for name in numeric)
 
 
+def _strict_result_contract(row: H27EngineResult, binding: H27SealedRecordBinding) -> bool:
+    roles = ("current_short", "previous_short", "current_long", "previous_long")
+    if tuple(row.role_classifications) != roles or tuple(row.mask_counts) != roles:
+        return False
+    if row.maximum_sample_read > binding.proposal_hop_end:
+        return False
+    if row.outcome == "BIRTH_SUPPORTED":
+        ratios = row.exclusive_energy_ratios or ()
+        return (row.certificate_kind == "POSITIVE" and row.certificate_complete is True
+                and row.early_resolution_reason == "complete_positive_certificate"
+                and sum(value >= 0.02 for value in ratios) >= 2
+                and row.onset_rise is not None and row.onset_rise >= 0.05
+                and row.residual_improvement is not None and row.residual_improvement >= 0.1)
+    if row.outcome == "NO_BIRTH":
+        ratios, bounds, margins = (row.exclusive_energy_ratios or (),
+                                    row.bounded_claim_lower_bounds or (), row.negative_margins or ())
+        bounded = tuple(i for i, value in enumerate(bounds) if math.isfinite(value) and value >= 0.02)
+        return (row.certificate_kind == "NEGATIVE" and row.certificate_complete is True
+                and row.early_resolution_reason == "complete_bounded_negative_certificate"
+                and len(ratios) == len(bounds) == len(margins) and len(bounded) >= 2
+                and all(ratios[i] <= 0.002 and margins[i] >= 10.0 for i in bounded)
+                and row.onset_rise is not None and row.onset_rise <= 0.005
+                and row.residual_improvement is not None and row.residual_improvement <= 0.001)
+    if row.outcome == "ALREADY_ACTIVE_HISTORY":
+        return (row.certificate_kind == "ACTIVE_HISTORY" and row.certificate_complete is True
+                and row.early_resolution_reason == "candidate_active_before_proposal")
+    if row.certificate_kind == "EQUIVALENCE":
+        return (row.outcome == "AMBIGUOUS" and row.certificate_complete is True
+                and row.early_resolution_reason == "observation_equivalent_latent_causes")
+    return (row.outcome == "AMBIGUOUS" and row.certificate_kind == "NONE"
+            and row.certificate_complete is False)
+
+
+def _inverse_checks(
+    plan: H27DormantPlan, rows: Mapping[str, H27EngineResult],
+    bindings: Mapping[str, H27SealedRecordBinding],
+) -> Mapping[str, bool]:
+    """Execute every preregistered inverse as a corruption rejection."""
+
+    positive = rows["baseline/H27-F-P02"]
+    negative = rows["baseline/H27-F-N01"]
+    collision = rows["baseline/H27-F-A01"]
+    causal = rows["baseline/H27-F-P04"]
+    p01 = rows["baseline/H27-F-P01"]
+    quasi_previous = rows["baseline/H27-F-A05"]
+    quasi_current = rows["baseline/H27-F-A06"]
+    exact_current = rows["baseline/H27-F-A07"]
+    masked = rows["baseline/H27-F-A04"]
+
+    def rejected(row: H27EngineResult) -> bool:
+        return not _strict_result_contract(row, bindings[row.record_identity])
+
+    recomputed = H27RecomputedResult(**vars(p01))
+    recompute_corruptions = (
+        replace(recomputed, validated_payload_sha256={}),
+        replace(recomputed, record_identity="oracle/forbidden"),
+        replace(recomputed, maximum_sample_read=bindings[p01.record_identity].proposal_hop_end + 1),
+        replace(recomputed, outcome="NO_BIRTH"),
+        replace(recomputed, pitch_dilution_curve=((96, 0.0),)),
+    )
+    detected = []
+    for corruption in recompute_corruptions:
+        try:
+            compare_h27_engine_and_recomputer(p01, corruption)
+        except RuntimeError:
+            detected.append(True)
+        else:
+            detected.append(False)
+    forbidden = set(FORBIDDEN_DESCRIPTOR_FIELDS)
+    binding_fields = set(type(bindings[p01.record_identity]).__slots__)
+    return {
+        "ZERO-INV-01": (p01.role_classifications["previous_short"] == "VALID_EXACT_ZERO_PREVIOUS_SHORT"
+                        and quasi_previous.role_classifications["previous_short"] != "VALID_EXACT_ZERO_PREVIOUS_SHORT"),
+        "ZERO-INV-02": masked.role_classifications["previous_short"] == "INVALID_SUPPORT",
+        "ZERO-INV-03": (quasi_current.outcome == "AMBIGUOUS"
+                        and quasi_current.early_resolution_reason == "nonzero_not_above_floor"),
+        "ZERO-INV-04": (quasi_previous.early_resolution_reason == "nonzero_not_above_floor"
+                        and exact_current.early_resolution_reason == "invalid_current_exact_zero"),
+        "POS-INV": rejected(replace(positive, onset_rise=0.0)),
+        "NEG-INV": rejected(replace(negative, bounded_claim_lower_bounds=None)),
+        "COLLISION-INV": rejected(replace(collision, early_resolution_reason="broken_equivalence_certificate")),
+        "CAUSAL-INV": rejected(replace(causal, maximum_sample_read=bindings[causal.record_identity].proposal_hop_end + 1)),
+        "LEAKAGE-INV": not (forbidden & binding_fields),
+        "RECOMPUTE-INV": len(detected) == 5 and all(detected),
+    }
+
+
+def require_inverse_checker_coverage(plan: H27DormantPlan) -> None:
+    declared = tuple(plan.test_manifest["inverse_contracts"])
+    if set(declared) != set(INVERSE_IDS) or len(declared) != len(INVERSE_IDS):
+        raise ValueError("H27 inverse checker coverage mismatch")
+
+
 def execute_h27_scientific_sequence(
     *, np: Any, capability: H27ScientificCapability, repository_root: Path,
     plan: H27DormantPlan, bindings: tuple[H27SealedRecordBinding, ...],
+    on_test_completed: Callable[[H27TestResult], None] | None = None,
 ) -> H27ScientificSequenceResult:
     """Run exactly P0 then P1 then P2; return immediately on first failure."""
 
@@ -233,6 +336,7 @@ def execute_h27_scientific_sequence(
     tests = plan.tests
     if tuple(str(item["id"]) for item in tests) != TEST_IDS:
         raise ValueError("H27 test order mismatch")
+    require_inverse_checker_coverage(plan)
 
     by_identity = dict(zip(identities, bindings))
     expected = _fixture_expected(plan)
@@ -278,8 +382,10 @@ def execute_h27_scientific_sequence(
 
     passed: list[H27TestResult] = []
     outcome_counts: dict[str, int] = {}
+    inverse_results: Mapping[str, bool] | None = None
 
     def check(test: Mapping[str, object]) -> tuple[bool, tuple[str, ...], str]:
+        nonlocal inverse_results
         test_id, phase = str(test["id"]), str(test["phase"])
         fixture_ids = tuple(str(item) for item in test.get("fixture_ids", ()))
         if phase == "P0":
@@ -310,17 +416,30 @@ def execute_h27_scientific_sequence(
             elif test_id == "H27-T-P0-008":
                 ok = all(row.maximum_sample_read <= by_identity[row.record_identity].proposal_hop_end for row in rows)
             else:
-                ok = len(rows) == 4  # every row already passed independent recomputation above
+                ok = len(rows) == 4
+            declared_for_test = tuple(str(item) for item in test.get("inverse_ids", ()))
+            if declared_for_test:
+                if inverse_results is None:
+                    required = tuple(
+                        f"baseline/{fixture}" for fixture in
+                        ("H27-F-P01", "H27-F-P02", "H27-F-N01", "H27-F-P04", "H27-F-A01",
+                         "H27-F-A04", "H27-F-A05", "H27-F-A06", "H27-F-A07")
+                    )
+                    inverse_results = _inverse_checks(
+                        plan, {identity: evaluate(identity) for identity in required}, by_identity,
+                    )
+                ok = ok and all(inverse_results[item] for item in declared_for_test)
             return ok, tuple(row.record_identity for row in rows), str(test.get("pass_rule", ""))
 
         if phase == "P1":
             rows = tuple(baseline(item) for item in fixture_ids)
+            strict = all(_strict_result_contract(row, by_identity[row.record_identity]) for row in rows)
             if test_id == "H27-T-P1-009":
                 counts = {value: sum(row.outcome == value for row in rows) for value in (
                     "BIRTH_SUPPORTED", "NO_BIRTH", "ALREADY_ACTIVE_HISTORY", "AMBIGUOUS")}
-                ok = counts == {"BIRTH_SUPPORTED":4,"NO_BIRTH":4,"ALREADY_ACTIVE_HISTORY":2,"AMBIGUOUS":7}
+                ok = strict and counts == {"BIRTH_SUPPORTED":4,"NO_BIRTH":4,"ALREADY_ACTIVE_HISTORY":2,"AMBIGUOUS":7}
             else:
-                ok = all(row.outcome == expected[item] for item, row in zip(fixture_ids, rows))
+                ok = strict and all(row.outcome == expected[item] for item, row in zip(fixture_ids, rows))
             return ok, tuple(row.record_identity for row in rows), str(test.get("pass_rule", ""))
 
         if test_id == "H27-T-P2-009":
@@ -348,6 +467,8 @@ def execute_h27_scientific_sequence(
             ok, used, detail = check(test)
             if not ok:
                 failed = H27TestResult(str(test["id"]), phase, "FAIL", len(used), used, detail)
+                if on_test_completed is not None:
+                    on_test_completed(failed)
                 all_results = tuple(passed + [failed])
                 for summary in summaries:
                     outcome = str(summary["outcome"])
@@ -356,7 +477,10 @@ def execute_h27_scientific_sequence(
                     KILL_STATUS[phase], len(passed), 1, 27-len(all_results), evaluations,
                     len(cache), dict(outcome_counts), all_results, tuple(summaries),
                 )
-            passed.append(H27TestResult(str(test["id"]), phase, "PASS", len(used), used, detail))
+            completed = H27TestResult(str(test["id"]), phase, "PASS", len(used), used, detail)
+            if on_test_completed is not None:
+                on_test_completed(completed)
+            passed.append(completed)
 
     for summary in summaries:
         outcome = str(summary["outcome"])
@@ -376,5 +500,5 @@ def scientific_sequence_as_dict(result: H27ScientificSequenceResult) -> dict[str
 __all__ = [
     "H27ScientificSequenceResult", "H27TestResult", "KILL_STATUS", "PASS_STATUS",
     "TEST_IDS", "execute_h27_scientific_sequence", "h27_engine_result_as_portable_dict",
-    "scientific_sequence_as_dict",
+    "require_inverse_checker_coverage", "scientific_sequence_as_dict",
 ]

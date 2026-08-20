@@ -14,12 +14,26 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 Review-5A implemented locally; external review required before real science. -->
+<!-- H26_CORRECTION_STATUS: H27 Review-5A strict-review corrections implemented locally; replacement binding and seal required before real science. -->
 ## État courant
 
 - Mise à jour : `2026-08-20`.
 - État courant :
-  `H27_REVIEW5A_IMPLEMENTED_PENDING_EXTERNAL_REVIEW_NO_REAL_EXECUTION`.
+  `H27_REVIEW5A_STRICT_REVIEW_CORRECTED_PENDING_REPLACEMENT_BINDING_SEAL_NO_REAL_EXECUTION`.
+- La revue externe stricte de la première chaîne Review 5A a rendu `FAIL` avant
+  toute science réelle. Le correctif local ferme les sept bloqueurs : invocation
+  slottée compatible et test réel loader→engine→recomputer, activation Review 5B
+  distincte liée aux commits/seals/runtimes/index, capability issue uniquement
+  d'un claim `O_EXCL` rouvert et rehaché, bootstrap vide pré-claim, contrôles
+  inverses exhaustifs et P1 certificat-complet, reçus create-exclusive chaînés
+  pour chacun des 27 tests, puis terminal et marker de complétion distincts.
+  Les 12 tests Review 5 ciblés passent, dont le chemin réel non consommant.
+  Aucun SSH, payload Review 4 réel, claim scientifique, P0/P1/P2 réel,
+  locked-test ou entraînement n'a été exécuté. Prochaine action : créer le
+  remplacement implementation→identity binding→external seal, pousser, puis
+  soumettre de nouveau la chaîne complète au reviewer avant toute activation.
+  Rapport :
+  `readme/results/2026-08-20_harmonic-censoring-h27-review5a-strict-review-corrections.md`.
 - Review 5A est implémentée dans le worktree isolé : contrat scientifique
   dormant, capability process-local one-shot, loader de l'index scellé,
   exécuteur ordonné des `27` tests (`P0/P1/P2 = 9/9/9`), runtime secondaire

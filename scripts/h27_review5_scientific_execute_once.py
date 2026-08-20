@@ -9,12 +9,14 @@ from pathlib import Path
 import platform
 import subprocess
 import sys
+import uuid
 from typing import Any, Mapping
 
 
 CONTRACT_RELATIVE = Path("configs/harmonic_censoring_h27_review5_scientific_execution_contract.json")
 SUCCESS = "H27_REVIEW5_SCIENCE_27_OF_27_PASS_STOP_BEFORE_POST_SCIENCE"
 INCONCLUSIVE = "H27_EXECUTION_INCONCLUSIVE"
+ACTIVATION_ENVIRONMENT = "H27_REVIEW5_ACTIVATION_PATH"
 
 
 def _repo_root() -> Path:
@@ -79,6 +81,95 @@ def _atomic_publish(path: Path, value: object) -> tuple[bytes, str]:
     return raw, _sha(raw)
 
 
+def _fsync_directory(path: Path) -> None:
+    if os.name == "posix":
+        descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) |
+                             getattr(os, "O_NOFOLLOW", 0))
+        try:
+            os.fsync(descriptor)
+        finally:
+            os.close(descriptor)
+
+
+def _prepare_empty_output(path: Path) -> None:
+    """Bootstrap before consumption; an exactly empty directory is retry-neutral."""
+
+    path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+    _fsync_directory(path.parent)
+    if path.exists():
+        if path.is_symlink() or not path.is_dir() or any(path.iterdir()):
+            raise FileExistsError("H27 Review-5 consumed or non-empty output exists; retry forbidden")
+        return
+    path.mkdir(mode=0o700)
+    _fsync_directory(path.parent)
+
+
+def _load_activation(root: Path, contract: Mapping[str, Any], head: str,
+                     index_raw: bytes) -> tuple[Mapping[str, object], str]:
+    """Verify the distinct Review-5B activation before the irreversible claim."""
+
+    supplied = os.environ.get(ACTIVATION_ENVIRONMENT)
+    if not supplied:
+        raise PermissionError("H27 Review-5 activation path missing")
+    path = Path(supplied)
+    if not path.is_absolute() or path.is_symlink() or path.resolve(strict=True) != path:
+        raise PermissionError("H27 Review-5 activation must be an exact regular path")
+    raw = path.read_bytes()
+    activation_sha = _sha(raw)
+    value = _strict_json(raw, "Review-5 activation")
+    expected_keys = (
+        "schema_identity", "schema_version", "status", "execution_id", "activation_nonce",
+        "issuer", "implementation_commit", "identity_binding_commit", "external_seal_commit",
+        "identity_binding_sha256", "external_seal_sha256", "population_index_sha256",
+        "primary_runtime", "secondary_runtime", "single_use", "retry_allowed",
+        "locked_test_authorized", "training_authorized",
+    )
+    if tuple(value) != expected_keys:
+        raise ValueError("H27 Review-5 activation schema/order mismatch")
+    fixed = {
+        "schema_identity": "H27_REVIEW5_SCIENTIFIC_ACTIVATION_V1",
+        "schema_version": 1,
+        "status": "AUTHORIZED_REAL_SCIENCE_ONE_SHOT",
+        "issuer": "h27-execution-codex-mac-primary",
+        "population_index_sha256": _sha(index_raw),
+        "primary_runtime": str(contract["runtime_python"]),
+        "secondary_runtime": str(contract["secondary_runtime_python"]),
+        "single_use": True, "retry_allowed": False,
+        "locked_test_authorized": False, "training_authorized": False,
+    }
+    for key, expected in fixed.items():
+        if value.get(key) != expected or type(value.get(key)) is not type(expected):
+            raise ValueError(f"H27 Review-5 activation mismatch: {key}")
+    try:
+        uuid.UUID(str(value["execution_id"])); uuid.UUID(str(value["activation_nonce"]))
+    except ValueError as exc:
+        raise ValueError("H27 Review-5 activation identifiers invalid") from exc
+    commits = tuple(str(value[key]) for key in (
+        "implementation_commit", "identity_binding_commit", "external_seal_commit"))
+    if any(len(item) != 40 or any(c not in "0123456789abcdef" for c in item) for item in commits):
+        raise ValueError("H27 Review-5 activation commit invalid")
+    if any(subprocess.run(("git", "merge-base", "--is-ancestor", left, right), cwd=root).returncode
+           for left, right in zip(commits, commits[1:] + (head,))):
+        raise PermissionError("H27 Review-5 activation commit chain invalid")
+    binding = root / "configs/harmonic_censoring_h27_review5_scientific_execution_identity_binding.json"
+    seal = root / "configs/harmonic_censoring_h27_review5_scientific_execution_external_seal.json"
+    binding_raw, seal_raw = binding.read_bytes(), seal.read_bytes()
+    if (_sha(binding_raw) != value["identity_binding_sha256"] or
+            _sha(seal_raw) != value["external_seal_sha256"]):
+        raise PermissionError("H27 Review-5 activation reviewed artifact mismatch")
+    binding_value = _strict_json(binding_raw, "Review-5 identity binding")
+    seal_value = _strict_json(seal_raw, "Review-5 external seal")
+    if (binding_value.get("implementation_commit") != commits[0]
+            or seal_value.get("implementation_commit") != commits[0]
+            or seal_value.get("identity_binding_commit") != commits[1]
+            or seal_value.get("population_index_sha256") != _sha(index_raw)):
+        raise PermissionError("H27 Review-5 activation transitive binding mismatch")
+    seal_introduction = _git(root, "log", "-1", "--format=%H", "--", seal.relative_to(root).as_posix())
+    if seal_introduction != commits[2]:
+        raise PermissionError("H27 Review-5 activation external seal commit mismatch")
+    return value, activation_sha
+
+
 def _load_contract(root: Path) -> Mapping[str, Any]:
     value = _strict_json((root / CONTRACT_RELATIVE).read_bytes(), "Review-5 contract")
     expected_tests = [
@@ -96,6 +187,7 @@ def _load_contract(root: Path) -> Mapping[str, Any]:
         "review4_terminal_path": "/Users/amcarene/h27-admin-recovery-v2/terminal/h27-materialization-recovery-v2.json",
         "scientific_output_root": "/Users/amcarene/h27-admin-recovery-v2/science/review5-v1",
         "runtime_python": "/Users/amcarene/midi-worker/.venv/bin/python",
+        "secondary_runtime_python": "/Users/amcarene/midi-worker/.venv-py39/bin/python",
         "acknowledgement_environment": "H27_REVIEW5_SCIENTIFIC_EXECUTE",
         "acknowledgement_value": "1",
         "process_environment_exact": {"MIDI_FORCE_CPU":"1","OMP_NUM_THREADS":"1","OPENBLAS_NUM_THREADS":"1","MKL_NUM_THREADS":"1","NUMEXPR_NUM_THREADS":"1","VECLIB_MAXIMUM_THREADS":"1","PYTHONHASHSEED":"0","LC_ALL":"C","LANG":"C","TZ":"UTC"},
@@ -132,7 +224,7 @@ def _load_contract(root: Path) -> Mapping[str, Any]:
     return value
 
 
-def _preflight(root: Path, contract: Mapping[str, Any]) -> tuple[str, bytes]:
+def _preflight(root: Path, contract: Mapping[str, Any]) -> tuple[str, bytes, Mapping[str, object], str]:
     if contract["real_execution_authorized"] is not True:
         raise PermissionError("H27 Review-5 real execution is not externally authorized")
     if platform.system() != "Darwin":
@@ -170,19 +262,22 @@ def _preflight(root: Path, contract: Mapping[str, Any]) -> tuple[str, bytes]:
     if _sha(index_raw) != contract["population_index_sha256"]:
         raise ValueError("H27 population index SHA mismatch")
     output = Path(str(contract["scientific_output_root"]))
-    if output.exists():
-        raise FileExistsError("H27 Review-5 one-shot output already exists; retry forbidden")
     if output.parent.is_symlink():
         raise ValueError("H27 Review-5 output parent symlink forbidden")
-    output.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
-    return head, index_raw
+    _prepare_empty_output(output)
+    activation, activation_sha = _load_activation(root, contract, head, index_raw)
+    return head, index_raw, activation, activation_sha
 
 
-def _claim(contract: Mapping[str, Any], head: str, index_raw: bytes) -> dict[str, object]:
+def _claim(contract: Mapping[str, Any], head: str, index_raw: bytes,
+           activation: Mapping[str, object], activation_sha: str) -> dict[str, object]:
     return {
         "schema_identity": "H27_REVIEW5_SCIENTIFIC_CLAIM_V1",
         "schema_version": 1,
         "authorization_commit": head,
+        "execution_id": activation["execution_id"],
+        "activation_nonce": activation["activation_nonce"],
+        "activation_sha256": activation_sha,
         "scientific_target_commit": contract["scientific_target_commit"],
         "review4_terminal_commit": contract["review4_terminal_commit"],
         "population_index_sha256": _sha(index_raw),
@@ -194,40 +289,84 @@ def _claim(contract: Mapping[str, Any], head: str, index_raw: bytes) -> dict[str
     }
 
 
+class _ReceiptPublisher:
+    """Durable ordered SHA chain for the 27 preregistered test completions."""
+
+    def __init__(self, *, output: Path, claim_sha256: str, activation_sha256: str,
+                 population_index_sha256: str) -> None:
+        self.output = output
+        self.claim_sha256 = claim_sha256
+        self.activation_sha256 = activation_sha256
+        self.population_index_sha256 = population_index_sha256
+        self.previous_sha256 = claim_sha256
+        self.completed = 0
+
+    def __call__(self, test_result: object) -> None:
+        test_id = str(getattr(test_result, "test_id"))
+        phase = str(getattr(test_result, "phase"))
+        ordinal = int(test_id.rsplit("-", 1)[1]) + {"P0": 0, "P1": 9, "P2": 18}[phase]
+        if ordinal != self.completed + 1:
+            raise RuntimeError("H27 test receipt order is not contiguous")
+        evidence = _canonical({
+            "record_count": getattr(test_result, "record_count"),
+            "record_identities": getattr(test_result, "record_identities"),
+            "detail": getattr(test_result, "detail"),
+        })
+        _, digest = _atomic_publish(self.output / f"{ordinal:03d}-{test_id}.json", {
+            "schema_identity": "H27_REVIEW5_TEST_RECEIPT_V1", "schema_version": 1,
+            "order": ordinal, "test_id": test_id, "phase": phase,
+            "status": str(getattr(test_result, "status")), "evidence_sha256": _sha(evidence),
+            "population_index_sha256": self.population_index_sha256,
+            "activation_sha256": self.activation_sha256, "claim_sha256": self.claim_sha256,
+            "previous_receipt_sha256": self.previous_sha256,
+        })
+        self.previous_sha256 = digest
+        self.completed = ordinal
+
+
 def main() -> int:
     root = _repo_root()
     contract = _load_contract(root)
-    head, index_raw = _preflight(root, contract)
+    head, index_raw, activation, activation_sha = _preflight(root, contract)
     output = Path(str(contract["scientific_output_root"]))
-    output.mkdir(mode=0o700)
-    claim_raw, claim_sha = _atomic_publish(output / "claim.json", _claim(contract, head, index_raw))
+    claim_value = _claim(contract, head, index_raw, activation, activation_sha)
+    claim_raw, claim_sha = _atomic_publish(output / "claim.json", claim_value)
     terminal_status = INCONCLUSIVE
     try:
         from src.polyphonic.harmonic_censoring_h27_contract import load_h27_dormant_plan
-        from src.polyphonic.harmonic_censoring_h27_scientific_authority import issue_h27_scientific_capability
+        from src.polyphonic.harmonic_censoring_h27_scientific_authority import (
+            issue_h27_scientific_capability, verify_durable_h27_claim,
+        )
         from src.polyphonic.harmonic_censoring_h27_sealed_population_loader import load_h27_sealed_population_bindings
         from src.polyphonic.harmonic_censoring_h27_test_executor import (
             execute_h27_scientific_sequence, scientific_sequence_as_dict,
         )
-        capability = issue_h27_scientific_capability(
-            claim_raw=claim_raw, claim_sha256=claim_sha,
-            population_index_sha256=str(contract["population_index_sha256"]),
-            execution_authorized=True,
+        proof = verify_durable_h27_claim(
+            claim_path=output / "claim.json", expected_claim=claim_value,
+            expected_claim_sha256=claim_sha, authority_sha256=activation_sha,
         )
+        capability = issue_h27_scientific_capability(durable_claim=proof)
         plan = load_h27_dormant_plan(root)
         bindings = load_h27_sealed_population_bindings(
             capability=capability, plan=plan, population_root=Path(str(contract["population_root"])),
             expected_index_sha256=str(contract["population_index_sha256"]),
         )
         import numpy as np
+        receipt_publisher = _ReceiptPublisher(
+            output=output, claim_sha256=claim_sha, activation_sha256=activation_sha,
+            population_index_sha256=str(contract["population_index_sha256"]),
+        )
         result = execute_h27_scientific_sequence(
             np=np, capability=capability, repository_root=root, plan=plan, bindings=bindings,
+            on_test_completed=receipt_publisher,
         )
         report = scientific_sequence_as_dict(result)
         report.update({
             "schema_identity": "H27_REVIEW5_SCIENTIFIC_REPORT_V1",
             "schema_version": 1,
             "claim_sha256": claim_sha,
+            "activation_sha256": activation_sha,
+            "last_test_receipt_sha256": receipt_publisher.previous_sha256,
             "population_index_sha256": contract["population_index_sha256"],
             "locked_test_used": False,
             "training_used": False,
@@ -237,7 +376,7 @@ def main() -> int:
         report_raw, report_sha = _atomic_publish(output / "scientific_report.json", report)
         del report_raw
         terminal_status = result.terminal_status
-        _atomic_publish(output / "terminal.json", {
+        _, terminal_sha = _atomic_publish(output / "terminal.json", {
             "schema_identity": "H27_REVIEW5_SCIENTIFIC_TERMINAL_V1",
             "schema_version": 1,
             "status": terminal_status,
@@ -247,8 +386,17 @@ def main() -> int:
             "training_used": False,
             "retry_allowed": False,
         })
+        _atomic_publish(output / "COMPLETE.json", {
+            "schema_identity": "H27_REVIEW5_COMPLETION_MARKER_V1", "schema_version": 1,
+            "terminal_sha256": terminal_sha, "claim_sha256": claim_sha,
+            "last_test_receipt_sha256": receipt_publisher.previous_sha256,
+        })
     except BaseException as exc:
-        _atomic_publish(output / "terminal.json", {
+        if (output / "terminal.json").exists():
+            # Terminal data without its independently published marker remains
+            # deliberately inconclusive and must never be overwritten.
+            raise
+        _, terminal_sha = _atomic_publish(output / "terminal.json", {
             "schema_identity": "H27_REVIEW5_SCIENTIFIC_TERMINAL_V1",
             "schema_version": 1,
             "status": INCONCLUSIVE,
@@ -258,6 +406,11 @@ def main() -> int:
             "locked_test_used": False,
             "training_used": False,
             "retry_allowed": False,
+        })
+        _atomic_publish(output / "COMPLETE.json", {
+            "schema_identity": "H27_REVIEW5_COMPLETION_MARKER_V1", "schema_version": 1,
+            "terminal_sha256": terminal_sha, "claim_sha256": claim_sha,
+            "status": INCONCLUSIVE,
         })
         raise
     print(terminal_status)

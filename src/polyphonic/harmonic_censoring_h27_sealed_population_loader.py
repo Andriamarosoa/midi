@@ -21,7 +21,8 @@ from .harmonic_censoring_h27_scientific_capability_dormant import (
 )
 
 
-INDEX_FIELDS = ("population_namespace", "record_count", "records", "schema_version")
+# Exact order emitted and hashed by the reviewed Review-4 materializer.
+INDEX_FIELDS = ("schema_version", "population_namespace", "record_count", "records")
 RECORD_FIELDS = (
     "record_identity", "record_directory", "population_namespace", "payload_sha256",
     "candidate_pitch", "active_pitches", "proposal_hop_end", "resolution_hop_end",

@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import platform
+import subprocess
 import sys
 
 
@@ -55,7 +56,7 @@ def _runtime_identity(np, expected) -> None:
 def main() -> int:
     if os.environ.get("H27_REVIEW5_INTERNAL_SECONDARY") != "1":
         raise PermissionError("H27 secondary internal acknowledgement missing")
-    from scripts.h27_review5_scientific_execute_once import _load_contract
+    from scripts.h27_review5_scientific_execute_once import _load_activation, _load_contract
     contract = _load_contract(ROOT)
     if contract["real_execution_authorized"] is not True:
         raise PermissionError("H27 secondary execution is not authorized")
@@ -64,6 +65,11 @@ def main() -> int:
     claim_sha = hashlib.sha256(claim_raw).hexdigest()
     if claim_sha != os.environ.get("H27_REVIEW5_INTERNAL_CLAIM_SHA256"):
         raise PermissionError("H27 secondary claim SHA mismatch")
+    index_raw = (Path(str(contract["population_root"])) / "population_index.json").read_bytes()
+    head = subprocess.check_output(("git", "rev-parse", "HEAD"), cwd=ROOT, text=True).strip()
+    activation, activation_sha = _load_activation(ROOT, contract, head, index_raw)
+    if activation_sha != os.environ.get("H27_REVIEW5_INTERNAL_ACTIVATION_SHA256"):
+        raise PermissionError("H27 secondary activation SHA mismatch")
     from src.polyphonic.harmonic_censoring_h27_contract import load_h27_dormant_plan
     plan = load_h27_dormant_plan(ROOT)
     grid = plan.test_manifest["perturbation_grids"]["P2_RUNTIME_V1"]
@@ -74,6 +80,7 @@ def main() -> int:
     _runtime_identity(np, grid["axes"]["runtime"][1]["identity"])
     from src.polyphonic.harmonic_censoring_h27_scientific_authority import (
         issue_h27_scientific_capability, operational_h27_engine_boundary,
+        verify_durable_h27_claim,
     )
     from src.polyphonic.harmonic_censoring_h27_sealed_population_loader import load_h27_sealed_population_bindings
     from src.polyphonic.harmonic_censoring_h27_engine import run_h27_engine
@@ -81,11 +88,12 @@ def main() -> int:
         compare_h27_engine_and_recomputer, run_h27_independent_recomputer,
     )
     from src.polyphonic.harmonic_censoring_h27_test_executor import h27_engine_result_as_portable_dict
-    capability = issue_h27_scientific_capability(
-        claim_raw=claim_raw, claim_sha256=claim_sha,
-        population_index_sha256=str(contract["population_index_sha256"]),
-        execution_authorized=True,
+    claim_value = json.loads(claim_raw.decode("utf-8"))
+    proof = verify_durable_h27_claim(
+        claim_path=claim_path, expected_claim=claim_value,
+        expected_claim_sha256=claim_sha, authority_sha256=activation_sha,
     )
+    capability = issue_h27_scientific_capability(durable_claim=proof)
     bindings = load_h27_sealed_population_bindings(
         capability=capability, plan=plan, population_root=Path(str(contract["population_root"])),
         expected_index_sha256=str(contract["population_index_sha256"]),
