@@ -24,8 +24,12 @@ class H27VerifiedDurableClaim:
         raise PermissionError("H27 durable claim proof is factory-only.")
 
 
-_CLAIMS: dict[int, tuple[weakref.ReferenceType[H27VerifiedDurableClaim], str, str, str]] = {}
-_CAPABILITIES: dict[int, tuple[weakref.ReferenceType[H27ScientificCapability], str, str, str]] = {}
+_CLAIMS: dict[int, tuple[
+    weakref.ReferenceType[H27VerifiedDurableClaim], str, str, str, str, str,
+]] = {}
+_CAPABILITIES: dict[int, tuple[
+    weakref.ReferenceType[H27ScientificCapability], str, str, str, str, str,
+]] = {}
 _BINDINGS: dict[int, tuple[weakref.ReferenceType[H27SealedRecordBinding], int]] = {}
 _ISSUED_ONCE = False
 
@@ -54,22 +58,46 @@ def _read_regular_nofollow(path: Path) -> bytes:
 
 def verify_durable_h27_claim(
     *, claim_path: Path, expected_claim: Mapping[str, object], expected_claim_sha256: str,
-    authority_sha256: str,
+    expected_activation_sha256: str, expected_execution_id: str,
+    expected_activation_nonce: str,
 ) -> H27VerifiedDurableClaim:
-    """Reopen the O_EXCL-published claim and attest its canonical exact bytes."""
+    """Reopen the claim and bind it to the exact verified activation identity."""
 
+    required_keys = {
+        "schema_identity", "schema_version", "authorization_commit", "execution_id",
+        "activation_nonce", "activation_sha256", "scientific_target_commit",
+        "review4_terminal_commit", "population_index_sha256", "test_ids", "single_use",
+        "retry_allowed", "locked_test_used", "training_used",
+    }
+    if set(expected_claim) != required_keys:
+        raise ValueError("H27 durable claim schema mismatch.")
+    fixed = {
+        "schema_identity": "H27_REVIEW5_SCIENTIFIC_CLAIM_V1",
+        "schema_version": 1,
+        "execution_id": expected_execution_id,
+        "activation_nonce": expected_activation_nonce,
+        "activation_sha256": expected_activation_sha256,
+        "single_use": True,
+        "retry_allowed": False,
+        "locked_test_used": False,
+        "training_used": False,
+    }
+    for key, expected in fixed.items():
+        if expected_claim.get(key) != expected or type(expected_claim.get(key)) is not type(expected):
+            raise PermissionError(f"H27 durable claim activation mismatch: {key}.")
     expected_raw = _canonical(dict(expected_claim))
     observed_raw = _read_regular_nofollow(claim_path)
     observed_sha = hashlib.sha256(observed_raw).hexdigest()
     if observed_raw != expected_raw or observed_sha != expected_claim_sha256:
         raise PermissionError("H27 durable claim bytes changed after publication.")
-    for digest in (authority_sha256, str(expected_claim.get("population_index_sha256", ""))):
+    for digest in (expected_activation_sha256, str(expected_claim.get("population_index_sha256", ""))):
         if len(digest) != 64 or digest.lower() != digest or any(c not in "0123456789abcdef" for c in digest):
             raise ValueError("H27 durable claim authority digest invalid.")
     proof = object.__new__(H27VerifiedDurableClaim)
     _CLAIMS[id(proof)] = (
         weakref.ref(proof, lambda _ref, key=id(proof): _CLAIMS.pop(key, None)),
-        observed_sha, str(expected_claim["population_index_sha256"]), authority_sha256,
+        observed_sha, str(expected_claim["population_index_sha256"]),
+        expected_activation_sha256, expected_execution_id, expected_activation_nonce,
     )
     return proof
 

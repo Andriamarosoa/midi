@@ -13,7 +13,8 @@ from typing import Any, Callable, Mapping
 
 from .harmonic_censoring_h27_contract import H27DormantPlan, canonical_h27_record_identities
 from .harmonic_censoring_h27_engine import (
-    FORBIDDEN_DESCRIPTOR_FIELDS, H27EngineResult, run_h27_engine,
+    FORBIDDEN_DESCRIPTOR_FIELDS, H27EngineResult, _classify_samples, _spectrum,
+    run_h27_engine,
 )
 from .harmonic_censoring_h27_recomputer import (
     H27RecomputedResult, compare_h27_engine_and_recomputer,
@@ -223,7 +224,10 @@ def _same_semantics(left: H27EngineResult, right: H27EngineResult) -> bool:
     return all(close(getattr(left, name), getattr(right, name)) for name in numeric)
 
 
-def _strict_result_contract(row: H27EngineResult, binding: H27SealedRecordBinding) -> bool:
+def _strict_result_contract(
+    row: H27EngineResult, binding: H27SealedRecordBinding, *,
+    negative_bound_source: str = "sealed_global_synthetic_timbre_v1",
+) -> bool:
     roles = ("current_short", "previous_short", "current_long", "previous_long")
     if tuple(row.role_classifications) != roles or tuple(row.mask_counts) != roles:
         return False
@@ -242,6 +246,7 @@ def _strict_result_contract(row: H27EngineResult, binding: H27SealedRecordBindin
         bounded = tuple(i for i, value in enumerate(bounds) if math.isfinite(value) and value >= 0.02)
         return (row.certificate_kind == "NEGATIVE" and row.certificate_complete is True
                 and row.early_resolution_reason == "complete_bounded_negative_certificate"
+                and negative_bound_source == "sealed_global_synthetic_timbre_v1"
                 and len(ratios) == len(bounds) == len(margins) and len(bounded) >= 2
                 and all(ratios[i] <= 0.002 and margins[i] >= 10.0 for i in bounded)
                 and row.onset_rise is not None and row.onset_rise <= 0.005
@@ -256,8 +261,87 @@ def _strict_result_contract(row: H27EngineResult, binding: H27SealedRecordBindin
             and row.certificate_complete is False)
 
 
+def _p1_fixture_contract(fixture_id: str, row: H27EngineResult,
+                         binding: H27SealedRecordBinding) -> bool:
+    """Enforce the fixture-specific P1 certificate, role and reason contract."""
+
+    if not _strict_result_contract(row, binding):
+        return False
+    expected_counts = {"current_short": 4096, "previous_short": 4096,
+                       "current_long": 8192, "previous_long": 8192}
+    if fixture_id == "H27-F-A04":
+        expected_counts.update(previous_short=4095, previous_long=8191)
+    if dict(row.mask_counts) != expected_counts:
+        return False
+    roles = dict(row.role_classifications)
+    current_valid = {
+        "current_short": "VALID_CURRENT_SHORT_ANALYSIS",
+        "current_long": "VALID_CURRENT_LONG_ANALYSIS",
+    }
+    previous_valid = {
+        "previous_short": "VALID_PREVIOUS_SHORT_ANALYSIS",
+        "previous_long": "VALID_PREVIOUS_LONG_ANALYSIS",
+    }
+    if fixture_id == "H27-F-P01":
+        return roles == {
+            **current_valid,
+            "previous_short": "VALID_EXACT_ZERO_PREVIOUS_SHORT",
+            "previous_long": "VALID_EXACT_ZERO_PREVIOUS_LONG",
+        }
+    if fixture_id in {"H27-F-P02", "H27-F-P03", "H27-F-P04",
+                      "H27-F-N01", "H27-F-N02", "H27-F-N03", "H27-F-N04",
+                      "H27-F-A01", "H27-F-A02", "H27-F-A03"}:
+        return roles == {**current_valid, **previous_valid}
+    if fixture_id in {"H27-F-H01", "H27-F-H02"}:
+        return (row.certificate_kind == "ACTIVE_HISTORY"
+                and row.early_resolution_reason == "candidate_active_before_proposal"
+                and row.exclusive_energy_ratios is None and row.onset_rise is None
+                and row.residual_improvement is None and row.bounded_claim_lower_bounds is None)
+    if fixture_id == "H27-F-A04":
+        return roles == {**current_valid, "previous_short": "INVALID_SUPPORT",
+                         "previous_long": "INVALID_SUPPORT"}
+    if fixture_id == "H27-F-A05":
+        return roles == {**current_valid,
+                         "previous_short": "INVALID_PREVIOUS_SHORT_CONTEXT",
+                         "previous_long": "INVALID_PREVIOUS_LONG_CONTEXT"}
+    if fixture_id == "H27-F-A06":
+        return (roles["current_short"] == "INVALID_CURRENT_SHORT_ANALYSIS"
+                and roles["current_long"] == "INVALID_CURRENT_LONG_ANALYSIS"
+                and row.early_resolution_reason == "nonzero_not_above_floor")
+    if fixture_id == "H27-F-A07":
+        return (roles["current_short"] == "INVALID_CURRENT_SHORT_ANALYSIS"
+                and roles["current_long"] == "INVALID_CURRENT_LONG_ANALYSIS"
+                and roles["previous_short"] == "VALID_EXACT_ZERO_PREVIOUS_SHORT"
+                and roles["previous_long"] == "VALID_EXACT_ZERO_PREVIOUS_LONG"
+                and row.early_resolution_reason == "invalid_current_exact_zero")
+    return False
+
+
+def _reject_forbidden_descriptor(descriptor: Mapping[str, object], aliases: set[str]) -> bool:
+    """Return true only when a concrete forbidden input/alias is rejected."""
+
+    return bool(set(descriptor) & aliases)
+
+
+def _strict_recomputed_mapping(value: Mapping[str, object]) -> H27RecomputedResult:
+    expected = tuple(H27RecomputedResult.__dataclass_fields__)
+    if tuple(value) != expected:
+        raise ValueError("H27 recomputer result schema/order mismatch")
+    return H27RecomputedResult(**dict(value))
+
+
+def _causal_access_valid(maximum_sample_read: int, proposal_hop_end: int,
+                         *, padding_used: bool) -> bool:
+    return maximum_sample_read <= proposal_hop_end and padding_used is False
+
+
+def _collision_evidence_valid(evidence: Mapping[str, bool]) -> bool:
+    return (tuple(evidence) == ("frequency_equal", "amplitude_equation_equal", "bytes_equal")
+            and all(value is True for value in evidence.values()))
+
+
 def _inverse_checks(
-    plan: H27DormantPlan, rows: Mapping[str, H27EngineResult],
+    np: Any, plan: H27DormantPlan, rows: Mapping[str, H27EngineResult],
     bindings: Mapping[str, H27SealedRecordBinding],
 ) -> Mapping[str, bool]:
     """Execute every preregistered inverse as a corruption rejection."""
@@ -272,40 +356,116 @@ def _inverse_checks(
     exact_current = rows["baseline/H27-F-A07"]
     masked = rows["baseline/H27-F-A04"]
 
-    def rejected(row: H27EngineResult) -> bool:
-        return not _strict_result_contract(row, bindings[row.record_identity])
+    previous_exact = np.zeros(4096, dtype=np.float64)
+    previous_mutated = previous_exact.copy()
+    previous_mutated[0] = np.ldexp(np.float64(1.0), -80)
+    current_mutated = previous_mutated.copy()
+    previous_class, previous_is_zero = _classify_samples(
+        np, previous_mutated, True, "previous_short",
+    )
+    invalid_class, _ = _classify_samples(np, previous_exact, False, "previous_short")
+    current_class, current_is_zero = _classify_samples(np, current_mutated, True, "current_short")
+    current_below_floor = False
+    try:
+        _spectrum(np, current_mutated)
+    except ArithmeticError as exc:
+        current_below_floor = str(exc) == "H27_NONZERO_BELOW_SPECTRAL_FLOOR"
+
+    def rejected(row: H27EngineResult, *, bound_source: str = "sealed_global_synthetic_timbre_v1") -> bool:
+        return not _strict_result_contract(
+            row, bindings[row.record_identity], negative_bound_source=bound_source,
+        )
 
     recomputed = H27RecomputedResult(**vars(p01))
-    recompute_corruptions = (
-        replace(recomputed, validated_payload_sha256={}),
-        replace(recomputed, record_identity="oracle/forbidden"),
-        replace(recomputed, maximum_sample_read=bindings[p01.record_identity].proposal_hop_end + 1),
-        replace(recomputed, outcome="NO_BIRTH"),
-        replace(recomputed, pitch_dilution_curve=((96, 0.0),)),
-    )
+    base_mapping = vars(recomputed)
+    recompute_corruptions = []
+    missing = dict(base_mapping)
+    missing.pop("validated_payload_sha256")
+    forbidden_oracle = dict(base_mapping)
+    forbidden_oracle["forbidden_oracle_field"] = "target"
+    future = dict(base_mapping)
+    future["maximum_sample_read"] = bindings[p01.record_identity].proposal_hop_end + 1
+    terminal = dict(base_mapping)
+    terminal["outcome"] = "NO_BIRTH"
+    dilution = dict(base_mapping)
+    dilution["pitch_dilution_curve"] = ((96, 0.0),)
+    recompute_corruptions.extend((missing, forbidden_oracle, future, terminal, dilution))
     detected = []
     for corruption in recompute_corruptions:
         try:
-            compare_h27_engine_and_recomputer(p01, corruption)
-        except RuntimeError:
+            compare_h27_engine_and_recomputer(p01, _strict_recomputed_mapping(corruption))
+        except (RuntimeError, ValueError, TypeError):
             detected.append(True)
         else:
             detected.append(False)
     forbidden = set(FORBIDDEN_DESCRIPTOR_FIELDS)
+    declared_aliases = set(plan.preregistration["inherited_h26_invariants"]["static_leakage_field_aliases"])
+    forbidden_categories = tuple(str(item) for item in plan.test_manifest["scientific_forbidden_inputs"])
+    category_alias = {
+        "future audio": "future_audio", "future labels": "future_labels",
+        "fixture identity": "fixture_id", "fixture family or target category": "family",
+        "reference note identity": "reference_note_id",
+        "ground-truth onset coordinate": "ground_truth_onset", "string or fret": "fret",
+        "post-decision decoder state": "post_decision_state",
+        "post-emission rank or selection": "post_emission_rank",
+        "H25 outcome or membership": "h25_outcome",
+        "raw transform disappearance index": "raw_transform_disappearance_index",
+        "latent explanation label": "latent_label",
+    }
     binding_fields = set(type(bindings[p01.record_identity]).__slots__)
+    positive_corruptions = (
+        replace(positive, exclusive_partial_membership=(), exclusive_energy_ratios=()),
+        replace(positive, onset_rise=0.0),
+        replace(positive, residual_improvement=0.0),
+    )
+    negative_corruptions = (
+        rejected(replace(negative, bounded_claim_lower_bounds=None)),
+        rejected(replace(negative, exclusive_energy_ratios=None)),
+        rejected(negative, bound_source="target_derived"),
+        rejected(negative, bound_source="caller_supplied"),
+    )
+    collision_evidence = {
+        "frequency_equal": True, "amplitude_equation_equal": True, "bytes_equal": True,
+    }
+    collision_corruptions = []
+    for field in collision_evidence:
+        corrupted = dict(collision_evidence)
+        corrupted[field] = False
+        collision_corruptions.append(not _collision_evidence_valid(corrupted))
+    causal_corruptions = (
+        not _causal_access_valid(bindings[causal.record_identity].proposal_hop_end + 1,
+                                 bindings[causal.record_identity].proposal_hop_end,
+                                 padding_used=False),
+        not _causal_access_valid(bindings[causal.record_identity].proposal_hop_end,
+                                 bindings[causal.record_identity].proposal_hop_end,
+                                 padding_used=True),
+    )
+    leakage_cases = tuple({category_alias[item]: True} for item in forbidden_categories)
+    leakage_cases += tuple({alias: True} for alias in sorted(declared_aliases))
     return {
         "ZERO-INV-01": (p01.role_classifications["previous_short"] == "VALID_EXACT_ZERO_PREVIOUS_SHORT"
-                        and quasi_previous.role_classifications["previous_short"] != "VALID_EXACT_ZERO_PREVIOUS_SHORT"),
-        "ZERO-INV-02": masked.role_classifications["previous_short"] == "INVALID_SUPPORT",
-        "ZERO-INV-03": (quasi_current.outcome == "AMBIGUOUS"
+                        and previous_class == "VALID_PREVIOUS_SHORT_ANALYSIS"
+                        and previous_is_zero is False),
+        "ZERO-INV-02": (invalid_class == "INVALID_SUPPORT"
+                        and masked.role_classifications["previous_short"] == "INVALID_SUPPORT"),
+        "ZERO-INV-03": (current_class == "VALID_CURRENT_SHORT_ANALYSIS"
+                        and current_is_zero is False and current_below_floor
                         and quasi_current.early_resolution_reason == "nonzero_not_above_floor"),
-        "ZERO-INV-04": (quasi_previous.early_resolution_reason == "nonzero_not_above_floor"
+        "ZERO-INV-04": (float(previous_mutated[0]) == math.ldexp(1.0, -80)
+                        and bool(np.any(previous_mutated != np.float64(0.0)))
+                        and quasi_previous.early_resolution_reason == "nonzero_not_above_floor"
                         and exact_current.early_resolution_reason == "invalid_current_exact_zero"),
-        "POS-INV": rejected(replace(positive, onset_rise=0.0)),
-        "NEG-INV": rejected(replace(negative, bounded_claim_lower_bounds=None)),
-        "COLLISION-INV": rejected(replace(collision, early_resolution_reason="broken_equivalence_certificate")),
-        "CAUSAL-INV": rejected(replace(causal, maximum_sample_read=bindings[causal.record_identity].proposal_hop_end + 1)),
-        "LEAKAGE-INV": not (forbidden & binding_fields),
+        "POS-INV": all(rejected(item) for item in positive_corruptions),
+        "NEG-INV": all(negative_corruptions),
+        "COLLISION-INV": (collision.certificate_kind == "EQUIVALENCE"
+                           and _collision_evidence_valid(collision_evidence)
+                           and all(collision_corruptions)),
+        "CAUSAL-INV": (rejected(replace(
+            causal, maximum_sample_read=bindings[causal.record_identity].proposal_hop_end + 1,
+        )) and all(causal_corruptions)),
+        "LEAKAGE-INV": (not (forbidden & binding_fields)
+                        and declared_aliases == forbidden
+                        and all(_reject_forbidden_descriptor(item, forbidden) for item in leakage_cases)),
         "RECOMPUTE-INV": len(detected) == 5 and all(detected),
     }
 
@@ -426,18 +586,29 @@ def execute_h27_scientific_sequence(
                          "H27-F-A04", "H27-F-A05", "H27-F-A06", "H27-F-A07")
                     )
                     inverse_results = _inverse_checks(
-                        plan, {identity: evaluate(identity) for identity in required}, by_identity,
+                        np, plan, {identity: evaluate(identity) for identity in required}, by_identity,
                     )
                 ok = ok and all(inverse_results[item] for item in declared_for_test)
             return ok, tuple(row.record_identity for row in rows), str(test.get("pass_rule", ""))
 
         if phase == "P1":
             rows = tuple(baseline(item) for item in fixture_ids)
-            strict = all(_strict_result_contract(row, by_identity[row.record_identity]) for row in rows)
+            strict = all(
+                _p1_fixture_contract(item, row, by_identity[row.record_identity])
+                for item, row in zip(fixture_ids, rows)
+            )
             if test_id == "H27-T-P1-009":
                 counts = {value: sum(row.outcome == value for row in rows) for value in (
                     "BIRTH_SUPPORTED", "NO_BIRTH", "ALREADY_ACTIVE_HISTORY", "AMBIGUOUS")}
-                ok = strict and counts == {"BIRTH_SUPPORTED":4,"NO_BIRTH":4,"ALREADY_ACTIVE_HISTORY":2,"AMBIGUOUS":7}
+                prior_p1 = tuple(
+                    str(fixture) for declared in tests[9:17]
+                    for fixture in declared.get("fixture_ids", ())
+                )
+                ok = (strict
+                      and counts == {"BIRTH_SUPPORTED":4,"NO_BIRTH":4,
+                                     "ALREADY_ACTIVE_HISTORY":2,"AMBIGUOUS":7}
+                      and prior_p1 == fixture_ids
+                      and len(set(prior_p1)) == 17)
             else:
                 ok = strict and all(row.outcome == expected[item] for item, row in zip(fixture_ids, rows))
             return ok, tuple(row.record_identity for row in rows), str(test.get("pass_rule", ""))

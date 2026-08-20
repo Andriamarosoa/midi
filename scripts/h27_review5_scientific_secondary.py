@@ -56,10 +56,8 @@ def _runtime_identity(np, expected) -> None:
 def main() -> int:
     if os.environ.get("H27_REVIEW5_INTERNAL_SECONDARY") != "1":
         raise PermissionError("H27 secondary internal acknowledgement missing")
-    from scripts.h27_review5_scientific_execute_once import _load_activation, _load_contract
+    from scripts.h27_review5_scientific_execute_once import _claim, _load_activation, _load_contract
     contract = _load_contract(ROOT)
-    if contract["real_execution_authorized"] is not True:
-        raise PermissionError("H27 secondary execution is not authorized")
     claim_path = Path(str(contract["scientific_output_root"])) / "claim.json"
     claim_raw = claim_path.read_bytes()
     claim_sha = hashlib.sha256(claim_raw).hexdigest()
@@ -88,10 +86,13 @@ def main() -> int:
         compare_h27_engine_and_recomputer, run_h27_independent_recomputer,
     )
     from src.polyphonic.harmonic_censoring_h27_test_executor import h27_engine_result_as_portable_dict
-    claim_value = json.loads(claim_raw.decode("utf-8"))
+    claim_value = _claim(contract, head, index_raw, activation, activation_sha)
     proof = verify_durable_h27_claim(
         claim_path=claim_path, expected_claim=claim_value,
-        expected_claim_sha256=claim_sha, authority_sha256=activation_sha,
+        expected_claim_sha256=claim_sha,
+        expected_activation_sha256=activation_sha,
+        expected_execution_id=str(activation["execution_id"]),
+        expected_activation_nonce=str(activation["activation_nonce"]),
     )
     capability = issue_h27_scientific_capability(durable_claim=proof)
     bindings = load_h27_sealed_population_bindings(

@@ -36,6 +36,22 @@ def _raw(value: object) -> bytes:
     return json.dumps(value, ensure_ascii=False, separators=(",", ":")).encode("utf-8") + b"\n"
 
 
+EXECUTION_ID = "11111111-1111-4111-8111-111111111111"
+ACTIVATION_NONCE = "22222222-2222-4222-8222-222222222222"
+
+
+def _claim_value(index_sha: str, activation_sha: str = "a" * 64) -> dict[str, object]:
+    return {
+        "schema_identity": "H27_REVIEW5_SCIENTIFIC_CLAIM_V1", "schema_version": 1,
+        "authorization_commit": "3" * 40, "execution_id": EXECUTION_ID,
+        "activation_nonce": ACTIVATION_NONCE, "activation_sha256": activation_sha,
+        "scientific_target_commit": "4" * 40, "review4_terminal_commit": "5" * 40,
+        "population_index_sha256": index_sha, "test_ids": list(executor.TEST_IDS),
+        "single_use": True, "retry_allowed": False, "locked_test_used": False,
+        "training_used": False,
+    }
+
+
 class H27Review5ScientificExecutionTests(unittest.TestCase):
     def setUp(self) -> None:
         self.plan_source = tempfile.TemporaryDirectory()
@@ -53,13 +69,15 @@ class H27Review5ScientificExecutionTests(unittest.TestCase):
         self.index = self._index_value()
         self.index_raw = _raw(self.index)
         self.claim_source = tempfile.TemporaryDirectory()
-        claim_value = {"population_index_sha256": hashlib.sha256(self.index_raw).hexdigest()}
+        claim_value = _claim_value(hashlib.sha256(self.index_raw).hexdigest())
         claim = runner._canonical(claim_value)
         claim_path = Path(self.claim_source.name) / "claim.json"
         claim_path.write_bytes(claim)
         proof = verify_durable_h27_claim(
             claim_path=claim_path, expected_claim=claim_value,
-            expected_claim_sha256=hashlib.sha256(claim).hexdigest(), authority_sha256="a" * 64,
+            expected_claim_sha256=hashlib.sha256(claim).hexdigest(),
+            expected_activation_sha256="a" * 64, expected_execution_id=EXECUTION_ID,
+            expected_activation_nonce=ACTIVATION_NONCE,
         )
         self.capability = issue_h27_scientific_capability(durable_claim=proof)
 
@@ -125,8 +143,12 @@ class H27Review5ScientificExecutionTests(unittest.TestCase):
             "NO_BIRTH":"complete_bounded_negative_certificate",
             "ALREADY_ACTIVE_HISTORY":"candidate_active_before_proposal",
         }.get(expected, "observation_equivalent_latent_causes" if kind == "EQUIVALENCE" else "certificate_gap_or_conflict")
-        classes = {role: "VALID_CURRENT_SHORT_ANALYSIS" for role in (
-            "current_short", "previous_short", "current_long", "previous_long")}
+        classes = {
+            "current_short": "VALID_CURRENT_SHORT_ANALYSIS",
+            "previous_short": "VALID_PREVIOUS_SHORT_ANALYSIS",
+            "current_long": "VALID_CURRENT_LONG_ANALYSIS",
+            "previous_long": "VALID_PREVIOUS_LONG_ANALYSIS",
+        }
         if fixture == "H27-F-P01" and identity.startswith("baseline/"):
             classes["previous_short"] = "VALID_EXACT_ZERO_PREVIOUS_SHORT"
             classes["previous_long"] = "VALID_EXACT_ZERO_PREVIOUS_LONG"
@@ -141,14 +163,23 @@ class H27Review5ScientificExecutionTests(unittest.TestCase):
             else:
                 classes["current_short"] = "INVALID_CURRENT_SHORT_ANALYSIS"
                 classes["current_long"] = "INVALID_CURRENT_LONG_ANALYSIS"
+                classes["previous_short"] = "VALID_EXACT_ZERO_PREVIOUS_SHORT"
+                classes["previous_long"] = "VALID_EXACT_ZERO_PREVIOUS_LONG"
             reason = "nonzero_not_above_floor"
         elif fixture == "H27-F-A07":
             classes["current_short"] = "INVALID_CURRENT_SHORT_ANALYSIS"
             classes["current_long"] = "INVALID_CURRENT_LONG_ANALYSIS"
+            classes["previous_short"] = "VALID_EXACT_ZERO_PREVIOUS_SHORT"
+            classes["previous_long"] = "VALID_EXACT_ZERO_PREVIOUS_LONG"
             reason = "invalid_current_exact_zero"
+        counts = {"current_short":4096, "previous_short":4096,
+                  "current_long":8192, "previous_long":8192}
+        if fixture == "H27-F-A04":
+            counts["previous_short"] = 4095
+            counts["previous_long"] = 8191
         values = dict(
             record_identity=identity, validated_payload_sha256=binding.payload_sha256,
-            role_classifications=classes, mask_counts={role:4096 for role in classes},
+            role_classifications=classes, mask_counts=counts,
             outcome=expected, certificate_kind=kind,
             certificate_complete=kind in {"POSITIVE","NEGATIVE","ACTIVE_HISTORY","EQUIVALENCE"},
             exclusive_partial_membership=(2,3) if expected in {"BIRTH_SUPPORTED","NO_BIRTH"} else (),
@@ -184,10 +215,11 @@ class H27Review5ScientificExecutionTests(unittest.TestCase):
             "final_validation_authorized", "implementation_authorized",
         )))
 
-    def test_runner_refuses_before_platform_or_output_when_not_authorized(self) -> None:
+    def test_dormant_contract_stays_false_and_activation_is_the_runtime_authority(self) -> None:
         contract = runner._load_contract(ROOT)
-        with patch.object(runner.platform, "system", side_effect=AssertionError("platform accessed")):
-            with self.assertRaisesRegex(PermissionError, "not externally authorized"):
+        self.assertIs(contract["real_execution_authorized"], False)
+        with patch.object(runner.platform, "system", return_value="Windows"):
+            with self.assertRaisesRegex(RuntimeError, "requires macOS"):
                 runner._preflight(ROOT, contract)
 
     def test_atomic_publisher_never_overwrites_an_existing_result(self) -> None:
@@ -204,13 +236,16 @@ class H27Review5ScientificExecutionTests(unittest.TestCase):
     def test_durable_claim_is_reopened_and_tampering_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary) / "claim.json"
-            value = {"population_index_sha256": "c" * 64}
+            value = _claim_value("c" * 64)
             raw = runner._canonical(value); path.write_bytes(raw)
-            path.write_bytes(runner._canonical({"population_index_sha256": "d" * 64}))
+            changed = dict(value); changed["population_index_sha256"] = "d" * 64
+            path.write_bytes(runner._canonical(changed))
             with self.assertRaisesRegex(PermissionError, "changed"):
                 verify_durable_h27_claim(
                     claim_path=path, expected_claim=value,
-                    expected_claim_sha256=hashlib.sha256(raw).hexdigest(), authority_sha256="a" * 64)
+                    expected_claim_sha256=hashlib.sha256(raw).hexdigest(),
+                    expected_activation_sha256="a" * 64, expected_execution_id=EXECUTION_ID,
+                    expected_activation_nonce=ACTIVATION_NONCE)
 
     def test_activation_binds_review_chain_population_and_both_runtimes(self) -> None:
         contract = dict(runner._load_contract(ROOT))
@@ -222,9 +257,18 @@ class H27Review5ScientificExecutionTests(unittest.TestCase):
             binding = configs / "harmonic_censoring_h27_review5_scientific_execution_identity_binding.json"
             seal = configs / "harmonic_censoring_h27_review5_scientific_execution_external_seal.json"
             binding.write_bytes(runner._canonical({"implementation_commit": commits[0]}))
+            binding_raw = binding.read_bytes()
             seal.write_bytes(runner._canonical({"implementation_commit": commits[0],
                 "identity_binding_commit": commits[1],
+                "identity_binding": {
+                    "path": "configs/harmonic_censoring_h27_review5_scientific_execution_identity_binding.json",
+                    "git_blob_sha1": runner._git_blob_sha1(binding_raw),
+                    "size_bytes": len(binding_raw),
+                    "sha256": hashlib.sha256(binding_raw).hexdigest(),
+                },
                 "population_index_sha256": hashlib.sha256(index_raw).hexdigest()}))
+            committed_binding = binding.read_bytes()
+            committed_seal = seal.read_bytes()
             value = {
                 "schema_identity": "H27_REVIEW5_SCIENTIFIC_ACTIVATION_V1", "schema_version": 1,
                 "status": "AUTHORIZED_REAL_SCIENCE_ONE_SHOT", "execution_id": str(uuid.uuid4()),
@@ -240,19 +284,45 @@ class H27Review5ScientificExecutionTests(unittest.TestCase):
             }
             path = test_root / "activation.json"
             path.write_bytes(json.dumps(value, separators=(",", ":")).encode() + b"\n")
+            def committed_bytes(_root, _verb, spec):
+                return committed_binding if spec.startswith(commits[1]) else committed_seal
             with patch.dict("os.environ", {runner.ACTIVATION_ENVIRONMENT: str(path)}), patch.object(
                 runner.subprocess, "run", return_value=subprocess.CompletedProcess([], 0)
-            ), patch.object(runner, "_git", return_value=commits[2]):
+            ), patch.object(runner, "_git", return_value=commits[2]), patch.object(
+                runner, "_git_bytes", side_effect=committed_bytes):
                 observed, digest = runner._load_activation(test_root, contract, head, index_raw)
             self.assertEqual(observed["execution_id"], value["execution_id"])
             self.assertEqual(digest, hashlib.sha256(path.read_bytes()).hexdigest())
+            binding.write_bytes(runner._canonical({"implementation_commit": commits[0], "drift": True}))
+            with patch.dict("os.environ", {runner.ACTIVATION_ENVIRONMENT: str(path)}), patch.object(
+                runner.subprocess, "run", return_value=subprocess.CompletedProcess([], 0)
+            ), patch.object(runner, "_git", return_value=commits[2]), patch.object(
+                runner, "_git_bytes", side_effect=committed_bytes):
+                with self.assertRaisesRegex(PermissionError, "bytes changed"):
+                    runner._load_activation(test_root, contract, head, index_raw)
+            binding.write_bytes(committed_binding)
             value["population_index_sha256"] = "0" * 64
             path.write_bytes(json.dumps(value, separators=(",", ":")).encode() + b"\n")
             with patch.dict("os.environ", {runner.ACTIVATION_ENVIRONMENT: str(path)}), patch.object(
                 runner.subprocess, "run", return_value=subprocess.CompletedProcess([], 0)
-            ), patch.object(runner, "_git", return_value=commits[2]):
+            ), patch.object(runner, "_git", return_value=commits[2]), patch.object(
+                runner, "_git_bytes", side_effect=committed_bytes):
                 with self.assertRaisesRegex(ValueError, "population_index_sha256"):
                     runner._load_activation(test_root, contract, head, index_raw)
+
+    def test_durable_claim_rejects_activation_identity_drift(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            value = _claim_value("c" * 64)
+            path = Path(temporary) / "claim.json"
+            raw = runner._canonical(value); path.write_bytes(raw)
+            with self.assertRaisesRegex(PermissionError, "execution_id"):
+                verify_durable_h27_claim(
+                    claim_path=path, expected_claim=value,
+                    expected_claim_sha256=hashlib.sha256(raw).hexdigest(),
+                    expected_activation_sha256="a" * 64,
+                    expected_execution_id="33333333-3333-4333-8333-333333333333",
+                    expected_activation_nonce=ACTIVATION_NONCE,
+                )
 
     def test_receipts_are_exclusive_contiguous_and_sha_chained(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -328,12 +398,14 @@ class H27Review5ScientificExecutionTests(unittest.TestCase):
             (population / "population_index.json").write_bytes(index_raw)
             authority._CAPABILITIES.clear(); authority._BINDINGS.clear(); authority._CLAIMS.clear()
             authority._ISSUED_ONCE = False
-            claim_value = {"population_index_sha256": hashlib.sha256(index_raw).hexdigest()}
+            claim_value = _claim_value(hashlib.sha256(index_raw).hexdigest(), "b" * 64)
             claim_path = Path(temporary) / "claim.json"
             claim_raw = runner._canonical(claim_value); claim_path.write_bytes(claim_raw)
             proof = verify_durable_h27_claim(
                 claim_path=claim_path, expected_claim=claim_value,
-                expected_claim_sha256=hashlib.sha256(claim_raw).hexdigest(), authority_sha256="b" * 64)
+                expected_claim_sha256=hashlib.sha256(claim_raw).hexdigest(),
+                expected_activation_sha256="b" * 64, expected_execution_id=EXECUTION_ID,
+                expected_activation_nonce=ACTIVATION_NONCE)
             capability = issue_h27_scientific_capability(durable_claim=proof)
             bindings = load_h27_sealed_population_bindings(
                 capability=capability, plan=self.plan, population_root=population,
@@ -368,7 +440,7 @@ class H27Review5ScientificExecutionTests(unittest.TestCase):
             ), patch.object(executor, "_require_primary_runtime_identity"
             ):
                 result = executor.execute_h27_scientific_sequence(
-                    np=object(), capability=self.capability, repository_root=ROOT,
+                    np=np, capability=self.capability, repository_root=ROOT,
                     plan=self.plan, bindings=bindings,
                 )
             self.assertEqual(result.terminal_status, executor.PASS_STATUS,
@@ -394,9 +466,22 @@ class H27Review5ScientificExecutionTests(unittest.TestCase):
             rows = {f"baseline/{fixture}": self._result(by_identity[f"baseline/{fixture}"])
                     for fixture in required}
             executor.require_inverse_checker_coverage(self.plan)
-            observed = executor._inverse_checks(self.plan, rows, by_identity)
+            observed = executor._inverse_checks(np, self.plan, rows, by_identity)
             self.assertEqual(set(observed), set(self.plan.test_manifest["inverse_contracts"]))
             self.assertTrue(all(observed.values()), msg=observed)
+
+    def test_p1_fixture_specific_roles_reject_generic_or_swapped_classifications(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            _, bindings = self._population(Path(temporary))
+            by_identity = {item.record_identity: item for item in bindings}
+            binding = by_identity["baseline/H27-F-P01"]
+            valid = self._result(binding)
+            self.assertTrue(executor._p1_fixture_contract("H27-F-P01", valid, binding))
+            generic = dict(valid.role_classifications)
+            generic["previous_short"] = "VALID_PREVIOUS_SHORT_ANALYSIS"
+            self.assertFalse(executor._p1_fixture_contract(
+                "H27-F-P01", H27EngineResult(**{**vars(valid), "role_classifications": generic}), binding,
+            ))
 
     def test_first_failure_kills_all_later_tests_without_retry(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -419,7 +504,7 @@ class H27Review5ScientificExecutionTests(unittest.TestCase):
             ), patch.object(executor, "_require_primary_runtime_identity"
             ):
                 result = executor.execute_h27_scientific_sequence(
-                    np=object(), capability=self.capability, repository_root=ROOT,
+                    np=np, capability=self.capability, repository_root=ROOT,
                     plan=self.plan, bindings=bindings,
                     on_test_completed=completed.append,
                 )

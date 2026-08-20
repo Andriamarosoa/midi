@@ -31,6 +31,14 @@ def _git(root: Path, *args: str) -> str:
     return subprocess.check_output(("git", *args), cwd=root, text=True, encoding="utf-8").strip()
 
 
+def _git_bytes(root: Path, *args: str) -> bytes:
+    return subprocess.check_output(("git", *args), cwd=root)
+
+
+def _git_blob_sha1(raw: bytes) -> str:
+    return hashlib.sha1(b"blob " + str(len(raw)).encode("ascii") + b"\0" + raw).hexdigest()
+
+
 def _canonical(value: object) -> bytes:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False).encode("utf-8") + b"\n"
 
@@ -151,14 +159,31 @@ def _load_activation(root: Path, contract: Mapping[str, Any], head: str,
     if any(subprocess.run(("git", "merge-base", "--is-ancestor", left, right), cwd=root).returncode
            for left, right in zip(commits, commits[1:] + (head,))):
         raise PermissionError("H27 Review-5 activation commit chain invalid")
-    binding = root / "configs/harmonic_censoring_h27_review5_scientific_execution_identity_binding.json"
-    seal = root / "configs/harmonic_censoring_h27_review5_scientific_execution_external_seal.json"
+    binding_relative = "configs/harmonic_censoring_h27_review5_scientific_execution_identity_binding.json"
+    seal_relative = "configs/harmonic_censoring_h27_review5_scientific_execution_external_seal.json"
+    binding = root / binding_relative
+    seal = root / seal_relative
     binding_raw, seal_raw = binding.read_bytes(), seal.read_bytes()
+    committed_binding_raw = _git_bytes(root, "show", f"{commits[1]}:{binding_relative}")
+    committed_seal_raw = _git_bytes(root, "show", f"{commits[2]}:{seal_relative}")
+    if binding_raw != committed_binding_raw or seal_raw != committed_seal_raw:
+        raise PermissionError("H27 Review-5 activation reviewed artifact bytes changed")
     if (_sha(binding_raw) != value["identity_binding_sha256"] or
             _sha(seal_raw) != value["external_seal_sha256"]):
         raise PermissionError("H27 Review-5 activation reviewed artifact mismatch")
     binding_value = _strict_json(binding_raw, "Review-5 identity binding")
     seal_value = _strict_json(seal_raw, "Review-5 external seal")
+    sealed_binding = seal_value.get("identity_binding")
+    if type(sealed_binding) is not dict:
+        raise PermissionError("H27 Review-5 external seal binding identity missing")
+    expected_binding_identity = {
+        "path": binding_relative,
+        "git_blob_sha1": _git_blob_sha1(committed_binding_raw),
+        "size_bytes": len(committed_binding_raw),
+        "sha256": _sha(committed_binding_raw),
+    }
+    if sealed_binding != expected_binding_identity:
+        raise PermissionError("H27 Review-5 external seal binding identity mismatch")
     if (binding_value.get("implementation_commit") != commits[0]
             or seal_value.get("implementation_commit") != commits[0]
             or seal_value.get("identity_binding_commit") != commits[1]
@@ -216,24 +241,14 @@ def _load_contract(root: Path) -> Mapping[str, Any]:
     lifecycle = (value.get("status"), value.get("real_execution_authorized"),
                  value.get("scientific_authority_creation_authorized"),
                  value.get("scientific_claim_creation_authorized"))
-    if lifecycle not in {
-        ("IMPLEMENTED_PENDING_EXTERNAL_REVIEW_NO_REAL_EXECUTION", False, False, False),
-        ("AUTHORIZED_REAL_SCIENCE_ONE_SHOT", True, True, True),
-    }:
+    if lifecycle != ("IMPLEMENTED_PENDING_EXTERNAL_REVIEW_NO_REAL_EXECUTION", False, False, False):
         raise ValueError("H27 Review-5 lifecycle mismatch")
     return value
 
 
 def _preflight(root: Path, contract: Mapping[str, Any]) -> tuple[str, bytes, Mapping[str, object], str]:
-    if contract["real_execution_authorized"] is not True:
-        raise PermissionError("H27 Review-5 real execution is not externally authorized")
     if platform.system() != "Darwin":
         raise RuntimeError("H27 Review-5 scientific execution requires macOS")
-    if os.environ.get(str(contract["acknowledgement_environment"])) != contract["acknowledgement_value"]:
-        raise PermissionError("H27 Review-5 acknowledgement missing")
-    for key, value in contract["process_environment_exact"].items():
-        if os.environ.get(str(key)) != str(value):
-            raise PermissionError(f"H27 Review-5 environment mismatch: {key}")
     if Path(sys.executable).resolve(strict=True) != Path(str(contract["runtime_python"])).resolve(strict=True):
         raise PermissionError("H27 Review-5 Python runtime mismatch")
     if _git(root, "status", "--porcelain=v1"):
@@ -261,11 +276,18 @@ def _preflight(root: Path, contract: Mapping[str, Any]) -> tuple[str, bytes, Map
     index_raw = (population_root / "population_index.json").read_bytes()
     if _sha(index_raw) != contract["population_index_sha256"]:
         raise ValueError("H27 population index SHA mismatch")
+    activation, activation_sha = _load_activation(root, contract, head, index_raw)
+    # The immutable dormant contract must remain false.  Only the separately
+    # reviewed, byte-bound activation above authorizes this one execution.
+    if os.environ.get(str(contract["acknowledgement_environment"])) != contract["acknowledgement_value"]:
+        raise PermissionError("H27 Review-5 acknowledgement missing")
+    for key, value in contract["process_environment_exact"].items():
+        if os.environ.get(str(key)) != str(value):
+            raise PermissionError(f"H27 Review-5 environment mismatch: {key}")
     output = Path(str(contract["scientific_output_root"]))
     if output.parent.is_symlink():
         raise ValueError("H27 Review-5 output parent symlink forbidden")
     _prepare_empty_output(output)
-    activation, activation_sha = _load_activation(root, contract, head, index_raw)
     return head, index_raw, activation, activation_sha
 
 
@@ -343,7 +365,10 @@ def main() -> int:
         )
         proof = verify_durable_h27_claim(
             claim_path=output / "claim.json", expected_claim=claim_value,
-            expected_claim_sha256=claim_sha, authority_sha256=activation_sha,
+            expected_claim_sha256=claim_sha,
+            expected_activation_sha256=activation_sha,
+            expected_execution_id=str(activation["execution_id"]),
+            expected_activation_nonce=str(activation["activation_nonce"]),
         )
         capability = issue_h27_scientific_capability(durable_claim=proof)
         plan = load_h27_dormant_plan(root)
