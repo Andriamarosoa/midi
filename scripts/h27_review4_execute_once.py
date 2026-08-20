@@ -18,6 +18,8 @@ TERMINAL = ADMIN / "review4/h27-review4-terminal.json"
 POPULATION_PARENT = ADMIN / "population"
 FINAL_NAME, STAGING_NAME = "h27-synthetic-v1", ".h27-synthetic-v1.staging"
 OPERATIONAL_MODULE = ADMIN / "review4/harmonic_censoring_h27_review4_materializer.py"
+OPERATIONAL_PARENT_NAME = "review4"
+TERMINAL_PARENT_NAME = "review4"
 OPERATIONAL_REPOSITORY_PATH = "src/polyphonic/harmonic_censoring_h27_review4_materializer.py"
 OPERATIONAL_MODULE_SHA256 = "2ecaabf1e1880688244b06ecb03a9b3eb7831d4659e209aa11e36b7b60948be3"
 OPERATIONAL_MODULE_BLOB = "8cdafbd6a08ea893daa2d6f41cb62166bf9162cd"
@@ -29,6 +31,9 @@ OPERATIONAL_BINDING_IDENTITY = ("9371d80c75c2cf08ebf2cc33177c05c123c13efa", 5269
 OPERATIONAL_SEAL_IDENTITY = ("370eaf40be9863ec381061678451a58409264244", 1198, "f396257c040b7d0504336b98384308f76e45a32614efba129eba91c53b55f1de")
 AUTHORITY_INSTANCE_ID = "d44941a8c1c6674e5da89c40a7e3188c4e6318f7c5759ce490577d8bde81437a"
 ACTIVATION_SHA256 = "89d03ce3ea8f31a253b4e245e0357236e20860d409c27f0779a003d058fe91d2"
+EXPECTED_ISSUER_ID = "h27-execution-codex-mac-primary"
+EXPECTED_ACTIVATION_ID = None
+RECOVERY_PREDECESSOR = None
 CONTRACT_PATH = "src/polyphonic/harmonic_censoring_h27_contract.py"
 
 ADMINISTRATIVE_INPUTS = (
@@ -160,6 +165,19 @@ def verify_identity(raw: bytes, identity: tuple[str,int,str], message: str) -> N
 def parse_frozen_bound_json(contract, frozen_inputs, path):
     return contract.parse_strict_json(frozen_inputs[path], path.as_posix())
 
+def attest_recovery_predecessor():
+    if RECOVERY_PREDECESSOR is None:
+        return None
+    observed={}
+    for label,path,expected in RECOVERY_PREDECESSOR:
+        fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW)
+        try: raw=read_fd(fd,0o600)
+        finally: os.close(fd)
+        value=strict_json(raw)
+        for key,wanted in expected.items(): require(value.get(key)==wanted,f"H27 predecessor {label} semantic drift: {key}")
+        observed[label]={"path":path.as_posix(),"size_bytes":len(raw),"raw_sha256":digest(raw)}
+    return observed
+
 def preclaim():
     require(sys.platform=="darwin" and len(sys.argv)==1,"H27 Darwin zero-argument runner required")
     require(os.environ.get(ACK)=="I_UNDERSTAND_H27_REVIEW4_IS_ONE_SHOT","H27 ACK missing")
@@ -173,11 +191,12 @@ def preclaim():
     for relative,blob,size,sha in ADMINISTRATIVE_INPUTS:
         raw=git("cat-file","blob",REQUIRED_HEAD+":"+relative); verify_identity(raw,(blob,size,sha),"H27 administrative chain drift: "+relative)
         administrative.append({"path":relative,"git_blob_sha1":blob,"size_bytes":size,"raw_sha256":sha})
-    admin_fd=open_directory(ADMIN); review_parent=open_subdirectory(admin_fd,"review4")
-    operational_fd=os.open(OPERATIONAL_MODULE.name,os.O_RDONLY|os.O_NOFOLLOW,dir_fd=review_parent); operational_raw=read_fd(operational_fd,0o400)
+    admin_fd=open_directory(ADMIN); operational_parent=open_subdirectory(admin_fd,OPERATIONAL_PARENT_NAME)
+    terminal_parent=os.dup(operational_parent) if TERMINAL_PARENT_NAME==OPERATIONAL_PARENT_NAME else open_subdirectory(admin_fd,TERMINAL_PARENT_NAME)
+    operational_fd=os.open(OPERATIONAL_MODULE.name,os.O_RDONLY|os.O_NOFOLLOW,dir_fd=operational_parent); operational_raw=read_fd(operational_fd,0o400)
     verify_identity(operational_raw,(OPERATIONAL_MODULE_BLOB,len(operational_raw),OPERATIONAL_MODULE_SHA256),"H27 operational identity mismatch")
     operational_code=compile(operational_raw,str(OPERATIONAL_MODULE),"exec",dont_inherit=True)
-    binding_fd,binding_raw=open_relative(review_parent,OPERATIONAL_BINDING_FILE.name,0o400); seal_fd,seal_raw=open_relative(review_parent,OPERATIONAL_SEAL_FILE.name,0o400)
+    binding_fd,binding_raw=open_relative(operational_parent,OPERATIONAL_BINDING_FILE.name,0o400); seal_fd,seal_raw=open_relative(operational_parent,OPERATIONAL_SEAL_FILE.name,0o400)
     os.close(binding_fd); os.close(seal_fd)
     verify_identity(binding_raw,OPERATIONAL_BINDING_IDENTITY,"H27 operational binding identity mismatch"); verify_identity(seal_raw,OPERATIONAL_SEAL_IDENTITY,"H27 operational seal identity mismatch")
     binding_json,seal_json=strict_json(binding_raw),strict_json(seal_raw)
@@ -186,9 +205,10 @@ def preclaim():
     require(seal_json["identity_binding"]=={"path":OPERATIONAL_BINDING_PATH,"git_blob_sha1":OPERATIONAL_BINDING_IDENTITY[0],"size_bytes":OPERATIONAL_BINDING_IDENTITY[1],"raw_sha256":OPERATIONAL_BINDING_IDENTITY[2]} and seal_json["materializer"]==materializer_identity,"H27 operational seal mismatch")
     activation_parent=open_subdirectory(admin_fd,"activation"); activation_fd,activation_raw=open_relative(activation_parent,ACTIVATION.name); os.close(activation_parent)
     require(digest(activation_raw)==ACTIVATION_SHA256,"H27 activation digest mismatch"); activation=strict_json(activation_raw)
-    require(activation.get("authority_instance_id")==AUTHORITY_INSTANCE_ID and activation.get("single_use") is True and activation.get("consumed") is False and activation.get("issuer_id")=="h27-execution-codex-mac-primary","H27 activation semantics mismatch")
+    require(activation.get("authority_instance_id")==AUTHORITY_INSTANCE_ID and activation.get("single_use") is True and activation.get("consumed") is False and activation.get("issuer_id")==EXPECTED_ISSUER_ID,"H27 activation semantics mismatch")
+    if EXPECTED_ACTIVATION_ID is not None: require(activation.get("activation_id")==EXPECTED_ACTIVATION_ID,"H27 activation id mismatch")
     authority_parent=open_subdirectory(admin_fd,"authority"); claim_parent=open_subdirectory(admin_fd,"claims"); population_parent=open_subdirectory(admin_fd,"population"); os.close(admin_fd)
-    for parent,name in ((authority_parent,AUTHORITY.name),(claim_parent,CLAIM.name),(population_parent,FINAL_NAME),(population_parent,STAGING_NAME),(review_parent,TERMINAL.name)):
+    for parent,name in ((authority_parent,AUTHORITY.name),(claim_parent,CLAIM.name),(population_parent,FINAL_NAME),(population_parent,STAGING_NAME),(terminal_parent,TERMINAL.name)):
         try: os.stat(name,dir_fd=parent,follow_symlinks=False)
         except FileNotFoundError: pass
         else: raise FileExistsError("H27 one-shot destination preexists: "+name)
@@ -200,7 +220,8 @@ def preclaim():
         require(Path(repository)==TARGET,"H27 frozen plan repository mismatch"); require(path in frozen_inputs,"H27 unbound frozen plan input")
         return parse_frozen_bound_json(contract,frozen_inputs,path)
     contract._bound_json=frozen_bound_json
-    return (activation,activation_contract,contract,operational_code,operational_raw,administrative,activation_fd,operational_fd,authority_parent,claim_parent,population_parent,review_parent)
+    predecessor=attest_recovery_predecessor()
+    return (activation,activation_contract,contract,operational_code,operational_raw,administrative,activation_fd,operational_fd,authority_parent,claim_parent,population_parent,operational_parent,terminal_parent,predecessor)
 
 def attested_consumer(capability,binding,activation_fd,operational_fd,authority_fd,claim_fd):
     request=yield
@@ -214,9 +235,9 @@ def attested_consumer(capability,binding,activation_fd,operational_fd,authority_
     yield binding
 
 def consume_and_run(state):
-    (activation,activation_contract,contract,operational_code,operational_raw,administrative,activation_fd,operational_fd,authority_parent,claim_parent,population_parent,review_parent)=state
+    (activation,activation_contract,contract,operational_code,operational_raw,administrative,activation_fd,operational_fd,authority_parent,claim_parent,population_parent,operational_parent,terminal_parent,predecessor)=state
     nonce=str(activation["invocation_nonce"])
-    authority={"schema_version":1,"authority_type":"h27_review4_materialization_authority","authority_instance_id":AUTHORITY_INSTANCE_ID,"activation":{"raw_sha256":ACTIVATION_SHA256,"issuer_identity":activation["issuer_id"]},"invocation_nonce":nonce,"required_head":REQUIRED_HEAD,"population_namespace":"H27_SYNTHETIC_V1","expected_counts":{"total":124,"baseline":17,"p2":107},"fixed_destinations":{"final":(POPULATION_PARENT/FINAL_NAME).as_posix(),"staging":(POPULATION_PARENT/STAGING_NAME).as_posix()},"runtime_exact":activation_contract["runtime_exact"],"process_environment_exact":activation_contract["process_environment_exact"],"sealed_h27_inputs":activation_contract["sealed_h27_inputs"],"sealed_administrative_inputs":administrative,"sealed_components":[{"path":path,"git_blob_sha1":blob,"size_bytes":size,"raw_sha256":sha} for path,blob,size,sha in SEALED_COMPONENTS],"materializer":{"git_blob_sha1":OPERATIONAL_MODULE_BLOB,"size_bytes":len(operational_raw),"raw_sha256":OPERATIONAL_MODULE_SHA256},"operational_identity_binding":{"git_blob_sha1":OPERATIONAL_BINDING_IDENTITY[0],"size_bytes":OPERATIONAL_BINDING_IDENTITY[1],"raw_sha256":OPERATIONAL_BINDING_IDENTITY[2]},"operational_external_seal":{"git_blob_sha1":OPERATIONAL_SEAL_IDENTITY[0],"size_bytes":OPERATIONAL_SEAL_IDENTITY[1],"raw_sha256":OPERATIONAL_SEAL_IDENTITY[2]},"single_use":True,"science_authorized":False,"locked_test_used":False}
+    authority={"schema_version":1,"authority_type":"h27_review4_materialization_authority","authority_instance_id":AUTHORITY_INSTANCE_ID,"activation":{"raw_sha256":ACTIVATION_SHA256,"issuer_identity":activation["issuer_id"]},"invocation_nonce":nonce,"required_head":REQUIRED_HEAD,"population_namespace":"H27_SYNTHETIC_V1","expected_counts":{"total":124,"baseline":17,"p2":107},"fixed_destinations":{"final":(POPULATION_PARENT/FINAL_NAME).as_posix(),"staging":(POPULATION_PARENT/STAGING_NAME).as_posix()},"runtime_exact":activation_contract["runtime_exact"],"process_environment_exact":activation_contract["process_environment_exact"],"sealed_h27_inputs":activation_contract["sealed_h27_inputs"],"sealed_administrative_inputs":administrative,"sealed_components":[{"path":path,"git_blob_sha1":blob,"size_bytes":size,"raw_sha256":sha} for path,blob,size,sha in SEALED_COMPONENTS],"materializer":{"git_blob_sha1":OPERATIONAL_MODULE_BLOB,"size_bytes":len(operational_raw),"raw_sha256":OPERATIONAL_MODULE_SHA256},"operational_identity_binding":{"git_blob_sha1":OPERATIONAL_BINDING_IDENTITY[0],"size_bytes":OPERATIONAL_BINDING_IDENTITY[1],"raw_sha256":OPERATIONAL_BINDING_IDENTITY[2]},"operational_external_seal":{"git_blob_sha1":OPERATIONAL_SEAL_IDENTITY[0],"size_bytes":OPERATIONAL_SEAL_IDENTITY[1],"raw_sha256":OPERATIONAL_SEAL_IDENTITY[2]},"predecessor_consumed_attestation":predecessor,"single_use":True,"science_authorized":False,"locked_test_used":False}
     authority_fd,authority_raw=write_new_at(authority_parent,AUTHORITY.name,canonical(authority))
     claim={"schema_version":1,"claim_type":"h27_review4_materialization_consumed","activation_sha256":ACTIVATION_SHA256,"authority_sha256":digest(authority_raw),"materializer_blob":OPERATIONAL_MODULE_BLOB,"materializer_sha256":OPERATIONAL_MODULE_SHA256,"operational_binding_sha256":OPERATIONAL_BINDING_IDENTITY[2],"operational_seal_sha256":OPERATIONAL_SEAL_IDENTITY[2],"runtime_process_id":os.getpid(),"invocation_nonce":nonce,"fixed_destinations":authority["fixed_destinations"],"retry_allowed":False,"consumed":True}
     claim_fd,claim_raw=write_new_at(claim_parent,CLAIM.name,canonical(claim))
@@ -233,7 +254,7 @@ def consume_and_run(state):
         if sys.modules.get(name) is materializer: del sys.modules[name]
     records,index_raw=materializer.materialize_h27_production_population(contract.load_h27_dormant_plan,TARGET)
     plan=contract.load_h27_dormant_plan(TARGET); terminal=reconcile(contract,plan,population_parent,records,index_raw)
-    terminal_fd,_=write_new_at(review_parent,TERMINAL.name,canonical(terminal)); os.close(terminal_fd); return terminal
+    terminal_fd,_=write_new_at(terminal_parent,TERMINAL.name,canonical(terminal)); os.close(terminal_fd); return terminal
 
 def open_chain(root_fd,relative):
     current=os.dup(root_fd)
@@ -272,7 +293,7 @@ def reconcile(contract,plan,population_parent,expected_records,expected_index_ra
                 require((name.endswith("waveform.f64le") and len(raw)==133120) or (name=="sample-valid-mask.u8" and len(raw)==66560 and set(raw)<={0,1}),"H27 final payload invariant failed"); expected_files.add(identity+"/"+name)
         finally: os.close(record_fd)
     require(collect_tree(final_fd)==expected_files,"H27 exhaustive final tree mismatch"); os.close(final_fd)
-    return {"status":"H27_REVIEW4_TERMINAL_SUCCESS","control_plane_verified":True,"constructor_gate_replayed":False,"publisher_replayed":False,"authority_instance_id":AUTHORITY_INSTANCE_ID,"materializer_authority_consumed":True,"materializer_invoked_once":True,"p0_executed":False,"p1_executed":False,"p2_executed":False,"p0_complete":False,"p1_complete":False,"p2_complete":False,"baseline_population_materialized":True,"p2_population_materialized":True,"population_reconciled":True,"population_namespace":"H27_SYNTHETIC_V1","total_records":124,"unique_records":124,"baseline_records":17,"p2_records":107,"population_index_sha256":digest(index_raw),"data_preparation_complete":True,"global_reconciliation_pass":True,"science_executed":False,"locked_test_opened":False,"training_executed":False,"review4_closed":True}
+    return {"status":"H27_REVIEW4_TERMINAL_SUCCESS","control_plane_verified":True,"constructor_gate_replayed":False,"publisher_replayed":False,"authority_instance_id":AUTHORITY_INSTANCE_ID,"materializer_authority_consumed":True,"materializer_invoked_once":True,"p0_executed":False,"p1_executed":False,"p2_executed":False,"p0_complete":False,"p1_complete":False,"p2_complete":False,"baseline_population_materialized":True,"p2_population_materialized":True,"population_reconciled":True,"population_namespace":"H27_SYNTHETIC_V1","total_records":124,"unique_records":124,"baseline_records":17,"p2_records":107,"population_index_sha256":digest(index_raw),"data_preparation_complete":True,"global_reconciliation_pass":True,"predecessor_consumed_attested":RECOVERY_PREDECESSOR is not None,"science_executed":False,"locked_test_opened":False,"training_executed":False,"review4_closed":True}
 
 def main() -> int:
     terminal=consume_and_run(preclaim()); print(json.dumps(terminal,sort_keys=True,separators=(",",":"))); return 0

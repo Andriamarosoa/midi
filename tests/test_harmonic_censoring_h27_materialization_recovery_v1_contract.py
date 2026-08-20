@@ -19,7 +19,7 @@ class H27MaterializationRecoveryV1ContractTests(unittest.TestCase):
         self.assertNotIn(b"\r",self.raw)
         self.assertEqual(self.value["schema_version"],1)
         self.assertIs(type(self.value["schema_version"]),int)
-        self.assertEqual(self.value["status"],"DORMANT_PENDING_EXTERNAL_REVIEW_NO_EXECUTION_AUTHORIZED")
+        self.assertEqual(self.value["status"],"DORMANT_IMPLEMENTED_PENDING_EXTERNAL_REVIEW_NO_EXECUTION_AUTHORIZED")
         self.assertFalse(self.value["scientific_identity"]["science_authorized"])
         self.assertFalse(self.value["scientific_identity"]["locked_test_used"])
 
@@ -60,12 +60,16 @@ class H27MaterializationRecoveryV1ContractTests(unittest.TestCase):
 
     def test_loader_fix_is_exactly_bound_and_future_execution_remains_forbidden(self) -> None:
         loader=self.value["loader_correction"]
-        raw=(ROOT/"scripts/h27_review4_execute_once.py").read_bytes()
-        self.assertEqual(len(raw),loader["runner_size_bytes"])
-        self.assertEqual(hashlib.sha1(b"blob "+str(len(raw)).encode()+b"\0"+raw).hexdigest(),loader["runner_git_blob_sha1"])
-        self.assertEqual(hashlib.sha256(raw).hexdigest(),loader["runner_raw_sha256"])
         self.assertEqual(loader["strict_json_label_policy"],"path.as_posix()")
         self.assertEqual(loader["real_frozen_contract_plan_cardinality_tested"],124)
+        for prefix,path in (("base_runner",ROOT/"scripts/h27_review4_execute_once.py"),("entrypoint",ROOT/"scripts/h27_review4_recovery_v1_execute_once.py")):
+            raw=path.read_bytes(); execution=self.value["recovery_execution"]
+            self.assertEqual(len(raw),execution[prefix+"_size_bytes"])
+            self.assertEqual(hashlib.sha1(b"blob "+str(len(raw)).encode()+b"\0"+raw).hexdigest(),execution[prefix+"_git_blob_sha1"])
+            self.assertEqual(hashlib.sha256(raw).hexdigest(),execution[prefix+"_raw_sha256"])
+        activation=self.value["recovery_activation_artifact"]
+        raw=(ROOT/activation["repository_path"]).read_bytes()
+        self.assertEqual((len(raw),hashlib.sha1(b"blob "+str(len(raw)).encode()+b"\0"+raw).hexdigest(),hashlib.sha256(raw).hexdigest()),(activation["size_bytes"],activation["git_blob_sha1"],activation["raw_sha256"]))
         requirements=self.value["future_activation_requirements"]
         self.assertTrue(requirements["no_ssh_before_external_pass"])
         self.assertTrue(requirements["new_runner_binding_and_external_seal_required"])

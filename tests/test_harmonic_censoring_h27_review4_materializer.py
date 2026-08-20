@@ -166,10 +166,12 @@ class Review4MaterializerTests(unittest.TestCase):
         self.assertEqual(seal["identity_binding"],{"path":runner.OPERATIONAL_BINDING_PATH,"git_blob_sha1":hashlib.sha1(b"blob "+str(len(binding_raw)).encode()+b"\0"+binding_raw).hexdigest(),"size_bytes":len(binding_raw),"raw_sha256":hashlib.sha256(binding_raw).hexdigest()})
 
     def test_execution_composition_runner_is_separately_bound_and_sealed(self) -> None:
-        runner=load_runner(); runner_path=ROOT/"scripts/h27_review4_execute_once.py"; runner_raw=runner_path.read_bytes()
-        runner_identity={"path":"scripts/h27_review4_execute_once.py","git_blob_sha1":hashlib.sha1(b"blob "+str(len(runner_raw)).encode()+b"\0"+runner_raw).hexdigest(),"size_bytes":len(runner_raw),"raw_sha256":hashlib.sha256(runner_raw).hexdigest()}
+        runner=load_runner()
         binding_path=ROOT/"configs/harmonic_censoring_h27_review4_execution_composition_identity_binding.json"; binding_raw=binding_path.read_bytes(); binding=json.loads(binding_raw)
         seal=json.loads((ROOT/"configs/harmonic_censoring_h27_review4_execution_composition_external_seal.json").read_bytes())
+        runner_identity=binding["runner"]
+        runner_raw=subprocess.check_output(["git","cat-file","blob",runner_identity["git_blob_sha1"]],cwd=ROOT)
+        self.assertEqual((len(runner_raw),hashlib.sha1(b"blob "+str(len(runner_raw)).encode()+b"\0"+runner_raw).hexdigest(),hashlib.sha256(runner_raw).hexdigest()),(runner_identity["size_bytes"],runner_identity["git_blob_sha1"],runner_identity["raw_sha256"]))
         expected_admin=[{"path":path,"git_blob_sha1":blob,"size_bytes":size,"raw_sha256":sha} for path,blob,size,sha in runner.ADMINISTRATIVE_INPUTS]
         self.assertEqual(binding["runner"],runner_identity); self.assertEqual(binding["administrative_chain"],expected_admin)
         self.assertEqual(binding["required_target_head"],runner.REQUIRED_HEAD); self.assertEqual(seal["runner"],runner_identity)

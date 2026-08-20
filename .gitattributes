@@ -144,4 +144,10 @@ readme/results/2026-08-16_harmonic-censoring-h27-review4-constructor-execution-g
 readme/results/2026-08-16_harmonic-censoring-h27-review4-constructor-execution-gate-terminal.md text eol=lf
 scripts/h27_review4_authority_instance_artifact_publish_once.py text eol=lf
 tests/test_harmonic_censoring_h27_review4_authority_instance_artifact_publish.py text eol=lf
+scripts/h27_review4_execute_once.py text eol=lf
+scripts/h27_review4_recovery_v1_execute_once.py text eol=lf
+configs/harmonic_censoring_h27_materialization_recovery_v1_contract.json text eol=lf
+configs/harmonic_censoring_h27_materialization_recovery_v1_activation.json text eol=lf
+tests/test_harmonic_censoring_h27_materialization_recovery_v1_contract.py text eol=lf
+tests/test_harmonic_censoring_h27_review4_recovery_v1_runner.py text eol=lf
 readme/results/2026-08-16_harmonic-censoring-h27-review4-authority-instance-artifact-publisher-dormant.md text eol=lf
