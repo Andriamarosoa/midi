@@ -2,12 +2,12 @@
   "schema_version": 1,
   "seal_id": "H27_MATERIALIZATION_RECOVERY_V1_EXECUTION_EXTERNAL_SEAL",
   "status": "SEALED_DORMANT_PENDING_EXTERNAL_REVIEW_NO_MAC_EXECUTION_AUTHORIZED",
-  "reviewed_component_commit": "61ed9df1e80453ba2c3b980009a420bb5378c160",
+  "reviewed_component_commit": "2fbaecce58e001e5f4dfa2250f9dcc63ecff49fb",
   "execution_binding": {
     "path": "configs/harmonic_censoring_h27_materialization_recovery_v1_execution_binding.json",
-    "git_blob_sha1": "362b697623c37145e1218d1cc2084d77688b33ad",
-    "size_bytes": 5245,
-    "raw_sha256": "b4edfa8eadd820460a4f4acdebcbdb1ddebb837fdbc6e5c554fe5a532456907c"
+    "git_blob_sha1": "7ca83c94f8f0276b67025499f28d4e37963ddacb",
+    "size_bytes": 5234,
+    "raw_sha256": "313762563ae02167422b276115133c90db810b330ffdc244aad3516c2f3eeb1a"
   },
   "authorization_boundary": {
     "external_pass_required_before_any_ssh": true,
