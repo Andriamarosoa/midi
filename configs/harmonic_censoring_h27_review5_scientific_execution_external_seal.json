@@ -1,14 +1,14 @@
 {
-  "schema_identity": "H27_REVIEW5_SCIENTIFIC_EXECUTION_EXTERNAL_SEAL_V4",
-  "schema_version": 4,
-  "status": "THIRD_CORRECTED_CHAIN_SEALED_PENDING_EXTERNAL_REVIEW_NO_REAL_EXECUTION",
-  "implementation_commit": "74805ea3ec870385c0ad9d0c4d7e9354a97965a2",
-  "identity_binding_commit": "8dd545633553b3683034594e26a32941b9ff1558",
+  "schema_identity": "H27_REVIEW5_SCIENTIFIC_EXECUTION_RECOVERY_EXTERNAL_SEAL_V1",
+  "schema_version": 1,
+  "status": "RECOVERY_CHAIN_SEALED_PENDING_EXTERNAL_REVIEW_NO_REAL_EXECUTION",
+  "implementation_commit": "0e33a35c5d6d2259c3bd196cf1ba882c511d37fc",
+  "identity_binding_commit": "38d55b61d45980f02943077264a16a90e26aeabc",
   "identity_binding": {
     "path": "configs/harmonic_censoring_h27_review5_scientific_execution_identity_binding.json",
-    "git_blob_sha1": "0e2f71e3bf93cb5e2e25174392b9c9aa89d40c6e",
-    "size_bytes": 3990,
-    "sha256": "c51a783b92df3e7a0ba2bfab60fed7af043c3dd7789f25ae60ffa76ad72c1d13"
+    "git_blob_sha1": "1fc78b53430aeebda75d45ea2b1edbc2bae72ae9",
+    "size_bytes": 4009,
+    "sha256": "504554003f5a7aa7d772bd8cb8f11082fc0a25ec3ce4aa1dcd9ffa5ff41dabff"
   },
   "population_index_sha256": "ae67455b07cde223b77c6d1da221cbba2252c6b67fa8c07b9d3ebfbd50f3a9f8",
   "primary_runtime": "/Users/amcarene/midi-worker/.venv/bin/python",
@@ -25,5 +25,5 @@
   "locked_test_authorized": false,
   "training_authorized": false,
   "retry_allowed": false,
-  "next_action": "External review of third corrected implementation, V4 identity binding, and this V4 seal before any activation"
+  "next_action": "External review of the independent recovery implementation, binding, and seal before any new activation"
 }
