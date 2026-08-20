@@ -14,12 +14,28 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 Review-4 one-shot consumed; r2 failed after AUTHORITY/CLAIM on missing parse_strict_json label; no retry. -->
+<!-- H26_CORRECTION_STATUS: H27 Review-4 Recovery V1 fully sealed locally; external PASS required before the single Mac execution. -->
 ## État courant
 
 - Mise à jour : `2026-08-16`.
 - État courant :
-  `H27_REVIEW4_CONSUMED_FAILURE_PARSE_STRICT_JSON_LABEL_NO_RETRY_PENDING_EXTERNAL_REVIEW`.
+  `H27_REVIEW4_RECOVERY_V1_FULLY_SEALED_PENDING_EXTERNAL_PASS_NO_MAC_EXECUTION`.
+- La lignée consommée reste intacte et non réutilisable. La recovery indépendante
+  est maintenant entièrement implémentée et scellée dans les commits
+  `f2ea3b82...` à `ca6fca42...`. Elle utilise exclusivement
+  `/Users/amcarene/h27-admin-recovery-v1`, une activation/authority/claim/runner
+  neufs et un entrypoint distinct. Le vrai loader figé construit localement les
+  `124` identités uniques (`17 baseline + 107 P2`) sans publication. Le
+  matérialiseur historique reste byte-identique et possède désormais un binding
+  et un seal de compatibilité recovery; le binding d'exécution contient les neuf
+  composants exacts du bootstrap et son seal externe. Les 30 tests ciblés
+  passent (29 pass, 1 skip POSIX sous Windows), avec `py_compile` et
+  `git diff --check`. Aucun SSH, activation Mac, AUTHORITY/CLAIM recovery,
+  population, P0/P1/P2, locked-test, entraînement ou calibration n'a été
+  exécuté. Prochaine action unique : revue externe byte-exacte du lot poussé;
+  une seule exécution Mac Review 4 sera permise uniquement après `PASS` explicite.
+  Rapport :
+  `readme/results/2026-08-20_harmonic-censoring-h27-review4-independent-recovery-v1.md`.
 - Les revues externes strictes de `859a4d848d1f2f625d2acadd728c489fd1f60038`
   puis `8861d7dccb6b088ab31e9b2ab16660444a11e566` ont rendu
   `NON APPROUVÉ` et interdit toute exécution Mac. Le second correctif retire
