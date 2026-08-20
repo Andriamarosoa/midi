@@ -24,7 +24,7 @@
   "directories_exact": ["activation","authority","claims","population","runner-r1","terminal"],
   "directory_mode": "0700",
   "bootstrap_file_mode": "0400",
-  "runtime_entrypoint": "/Users/amcarene/midi-worker/repository/.venv/bin/python",
+  "runtime_entrypoint": "/Users/amcarene/midi-worker/.venv/bin/python",
   "runner_path": "/Users/amcarene/h27-admin-recovery-v1/runner-r1/h27_review4_recovery_v1_execute_once.py",
   "acknowledgement": {"name":"H27_REVIEW4_MATERIALIZATION_EXECUTE","value":"I_UNDERSTAND_H27_REVIEW4_IS_ONE_SHOT"},
   "predecessor_read_only": {

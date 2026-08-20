@@ -29,6 +29,7 @@ class H27RecoveryV1ExecutionBindingTests(unittest.TestCase):
     def test_paths_are_new_and_scope_stops_before_science(self) -> None:
         self.assertEqual(self.value["recovery_root"], "/Users/amcarene/h27-admin-recovery-v1")
         self.assertEqual(self.value["directories_exact"], ["activation","authority","claims","population","runner-r1","terminal"])
+        self.assertEqual(self.value["runtime_entrypoint"], "/Users/amcarene/midi-worker/.venv/bin/python")
         self.assertTrue(all(not row["destination_relative"].startswith("/") and ".." not in Path(row["destination_relative"]).parts for row in self.value["bootstrap_components"]))
         self.assertTrue(self.value["predecessor_read_only"]["must_not_be_modified_deleted_or_reused"])
         self.assertEqual(self.value["scope"], {"review4_only":True,"science":False,"p0":False,"p1":False,"p2":False,"locked_test":False,"training":False,"calibration":False})
