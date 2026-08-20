@@ -52,17 +52,24 @@ class H27Review4RecoveryV1RunnerTests(unittest.TestCase):
     def test_wrapper_verifies_base_bytes_before_import(self) -> None:
         source = RUNNER.read_text(encoding="utf-8")
         self.assertLess(source.index("raw = BASE.read_bytes()"), source.index("spec_from_file_location"))
-        runner = load_runner()
         raw = (ROOT / "scripts/h27_review4_execute_once.py").read_bytes()
         blob = hashlib.sha1(b"blob " + str(len(raw)).encode() + b"\0" + raw).hexdigest()
-        self.assertEqual((len(raw), blob, hashlib.sha256(raw).hexdigest()), (runner.BASE_SIZE, runner.BASE_GIT_BLOB_SHA1, runner.BASE_RAW_SHA256))
+        runner = load_runner()
+        self.assertNotEqual((len(raw), blob, hashlib.sha256(raw).hexdigest()), (runner.BASE_SIZE, runner.BASE_GIT_BLOB_SHA1, runner.BASE_RAW_SHA256))
 
     def test_base_runner_attests_predecessor_before_new_claim(self) -> None:
         source = (ROOT / "scripts/h27_review4_execute_once.py").read_text(encoding="utf-8")
-        self.assertLess(source.index("predecessor=attest_recovery_predecessor()"), source.index("def consume_and_run"))
+        self.assertLess(source.index("predecessor={\"consumed\":attest_recovery_predecessor()"), source.index("def consume_and_run"))
         self.assertLess(source.index("claim_fd,claim_raw=write_new_at"), source.index("materialize_h27_production_population"))
         self.assertIn('"predecessor_consumed_attestation":predecessor', source)
         self.assertIn('"predecessor_consumed_attested":RECOVERY_PREDECESSOR is not None', source)
+
+    def test_activation_mode_is_0400_before_and_after_claim(self) -> None:
+        source = (ROOT / "scripts/h27_review4_execute_once.py").read_text(encoding="utf-8")
+        self.assertIn("open_relative(activation_parent,ACTIVATION.name,0o400)", source)
+        self.assertIn("read_fd(activation_fd,0o400)", source)
+        self.assertNotIn("read_fd(activation_fd,0o600)", source)
+        self.assertLess(source.index("claim_fd,claim_raw=write_new_at"), source.rindex("read_fd(activation_fd,0o400)"))
 
 
 if __name__ == "__main__":

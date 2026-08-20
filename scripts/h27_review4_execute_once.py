@@ -34,6 +34,7 @@ ACTIVATION_SHA256 = "89d03ce3ea8f31a253b4e245e0357236e20860d409c27f0779a003d058f
 EXPECTED_ISSUER_ID = "h27-execution-codex-mac-primary"
 EXPECTED_ACTIVATION_ID = None
 RECOVERY_PREDECESSOR = None
+RECOVERY_FAILED_ROOT = None
 CONTRACT_PATH = "src/polyphonic/harmonic_censoring_h27_contract.py"
 
 ADMINISTRATIVE_INPUTS = (
@@ -178,6 +179,33 @@ def attest_recovery_predecessor():
         observed[label]={"path":path.as_posix(),"size_bytes":len(raw),"raw_sha256":digest(raw)}
     return observed
 
+def attest_failed_recovery_root():
+    if RECOVERY_FAILED_ROOT is None:
+        return None
+    root, directories, files, absent = RECOVERY_FAILED_ROOT
+    root_fd=open_directory(root)
+    try:
+        observed={"root":root.as_posix(),"directories":[],"files":[]}
+        for name in directories:
+            directory_fd=open_subdirectory(root_fd,name); os.close(directory_fd); observed["directories"].append(name)
+        for relative,blob,size,sha,mode in files:
+            parent_name,file_name=relative.split("/",1)
+            parent_fd=open_subdirectory(root_fd,parent_name)
+            try: file_fd,raw=open_relative(parent_fd,file_name,mode)
+            finally: os.close(parent_fd)
+            try: verify_identity(raw,(blob,size,sha),"H27 failed recovery artifact drift: "+relative)
+            finally: os.close(file_fd)
+            observed["files"].append({"path":relative,"git_blob_sha1":blob,"size_bytes":size,"raw_sha256":sha,"mode":oct(mode)})
+        for relative in absent:
+            parent_name,file_name=relative.split("/",1); parent_fd=open_subdirectory(root_fd,parent_name)
+            try:
+                try: os.stat(file_name,dir_fd=parent_fd,follow_symlinks=False)
+                except FileNotFoundError: pass
+                else: raise FileExistsError("H27 failed recovery forbidden artifact exists: "+relative)
+            finally: os.close(parent_fd)
+        return observed
+    finally: os.close(root_fd)
+
 def preclaim():
     require(sys.platform=="darwin" and len(sys.argv)==1,"H27 Darwin zero-argument runner required")
     require(os.environ.get(ACK)=="I_UNDERSTAND_H27_REVIEW4_IS_ONE_SHOT","H27 ACK missing")
@@ -203,7 +231,7 @@ def preclaim():
     materializer_identity={"path":OPERATIONAL_REPOSITORY_PATH,"git_blob_sha1":OPERATIONAL_MODULE_BLOB,"size_bytes":len(operational_raw),"raw_sha256":OPERATIONAL_MODULE_SHA256}
     require(binding_json["materializer"]==materializer_identity and binding_json["administrative_chain"]==administrative,"H27 operational binding mismatch")
     require(seal_json["identity_binding"]=={"path":OPERATIONAL_BINDING_PATH,"git_blob_sha1":OPERATIONAL_BINDING_IDENTITY[0],"size_bytes":OPERATIONAL_BINDING_IDENTITY[1],"raw_sha256":OPERATIONAL_BINDING_IDENTITY[2]} and seal_json["materializer"]==materializer_identity,"H27 operational seal mismatch")
-    activation_parent=open_subdirectory(admin_fd,"activation"); activation_fd,activation_raw=open_relative(activation_parent,ACTIVATION.name); os.close(activation_parent)
+    activation_parent=open_subdirectory(admin_fd,"activation"); activation_fd,activation_raw=open_relative(activation_parent,ACTIVATION.name,0o400); os.close(activation_parent)
     require(digest(activation_raw)==ACTIVATION_SHA256,"H27 activation digest mismatch"); activation=strict_json(activation_raw)
     require(activation.get("authority_instance_id")==AUTHORITY_INSTANCE_ID and activation.get("single_use") is True and activation.get("consumed") is False and activation.get("issuer_id")==EXPECTED_ISSUER_ID,"H27 activation semantics mismatch")
     if EXPECTED_ACTIVATION_ID is not None: require(activation.get("activation_id")==EXPECTED_ACTIVATION_ID,"H27 activation id mismatch")
@@ -220,14 +248,14 @@ def preclaim():
         require(Path(repository)==TARGET,"H27 frozen plan repository mismatch"); require(path in frozen_inputs,"H27 unbound frozen plan input")
         return parse_frozen_bound_json(contract,frozen_inputs,path)
     contract._bound_json=frozen_bound_json
-    predecessor=attest_recovery_predecessor()
+    predecessor={"consumed":attest_recovery_predecessor(),"failed_preclaim":attest_failed_recovery_root()}
     return (activation,activation_contract,contract,operational_code,operational_raw,administrative,activation_fd,operational_fd,authority_parent,claim_parent,population_parent,operational_parent,terminal_parent,predecessor)
 
 def attested_consumer(capability,binding,activation_fd,operational_fd,authority_fd,claim_fd):
     request=yield
     require(type(request) is tuple and len(request)==2 and request[0] is capability and request[1] is binding,"H27 exact capability/binding pair required")
     require(os.getpid()==binding.process_id,"H27 process drift")
-    require(digest(read_fd(activation_fd,0o600))==ACTIVATION_SHA256,"H27 activation drift after claim")
+    require(digest(read_fd(activation_fd,0o400))==ACTIVATION_SHA256,"H27 activation drift after claim")
     code_raw=read_fd(operational_fd,0o400)
     require(digest(code_raw)==binding.code_sha256 and git_blob(code_raw)==binding.code_git_blob_sha1,"H27 code drift after claim")
     require(digest(read_fd(authority_fd,0o600))==binding.authority_sha256,"H27 authority drift after claim")
