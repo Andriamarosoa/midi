@@ -1,0 +1,15 @@
+{
+  "schema_identity": "H27_POST_SCIENCE_MODEL_EVALUATION_PREREGISTRATION_V1",
+  "schema_version": 1,
+  "status": "DESIGN_REQUIRED_AFTER_SCIENTIFIC_PASS_NO_EXECUTION",
+  "prerequisite_terminal_status": "H27_REVIEW5_SCIENCE_27_OF_27_PASS_STOP_BEFORE_POST_SCIENCE",
+  "required_order": ["scientific_27_of_27_pass","training_on_non_locked_data","checkpoint_generation","non_locked_metrics","irreversible_checkpoint_selection","selected_checkpoint_sha256_seal","stop_for_external_review","locked_test_one_shot_authority_and_claim","single_locked_test_evaluation","no_retrain_or_reselection","final_h27_terminal"],
+  "must_preregister_before_execution": ["training_population","forbidden_data","model_architecture","hyperparameters","seeds","maximum_runs","checkpoint_rule","metrics","selection_rule","numeric_pass_fail_rules","selected_checkpoint_identity","locked_test_open_rule","post_locked_test_no_retrain_or_reselection"],
+  "training_authorized": false,
+  "checkpoint_generation_authorized": false,
+  "checkpoint_selection_authorized": false,
+  "locked_test_authorized": false,
+  "final_validation_authorized": false,
+  "implementation_authorized": false,
+  "next_action": "Complete this contract only after the H27 scientific terminal is externally reviewed"
+}

@@ -14,12 +14,23 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 Review-4 closed successfully by Recovery V2; STOP before Review 5. -->
+<!-- H26_CORRECTION_STATUS: H27 Review-5A implemented locally; external review required before real science. -->
 ## État courant
 
-- Mise à jour : `2026-08-16`.
+- Mise à jour : `2026-08-20`.
 - État courant :
-  `H27_REVIEW4_RECOVERY_V2_TERMINAL_SUCCESS_STOP_BEFORE_REVIEW5`.
+  `H27_REVIEW5A_IMPLEMENTED_PENDING_EXTERNAL_REVIEW_NO_REAL_EXECUTION`.
+- Review 5A est implémentée dans le worktree isolé : contrat scientifique
+  dormant, capability process-local one-shot, loader de l'index scellé,
+  exécuteur ordonné des `27` tests (`P0/P1/P2 = 9/9/9`), runtime secondaire
+  réel réservé à `P2-007`, publication atomique claim/rapport/terminal et arrêt
+  au premier échec. Le contrat post-science séparé maintient entraînement,
+  checkpoint, calibration, locked-test et validation finale interdits. Les
+  tests sont synthétiques/local-only; aucun payload H27, NumPy scientifique,
+  SSH, claim réel, P0/P1/P2 ou locked-test n'a été exécuté. Prochaine action :
+  commit, binding/seal, puis revue externe complète avant toute activation Mac.
+  Rapport :
+  `readme/results/2026-08-20_harmonic-censoring-h27-review5a-scientific-runner.md`.
 - L'unique exécution Recovery V2 autorisée a terminé avec `rc=0`. Le terminal
   donne `H27_REVIEW4_TERMINAL_SUCCESS`, `review4_closed=true`, réconciliation
   globale réussie et exactement `124` records uniques (`17 baseline + 107 P2`).
