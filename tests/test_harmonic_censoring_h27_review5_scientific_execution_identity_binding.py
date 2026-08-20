@@ -14,9 +14,9 @@ BINDING = ROOT / "configs/harmonic_censoring_h27_review5_scientific_execution_id
 class H27Review5IdentityBindingTests(unittest.TestCase):
     def test_binding_is_exact_complete_and_dormant(self) -> None:
         value = json.loads(BINDING.read_text(encoding="utf-8"))
-        self.assertEqual(value["schema_identity"], "H27_REVIEW5_SCIENTIFIC_EXECUTION_IDENTITY_BINDING_V3")
-        self.assertEqual(value["schema_version"], 3)
-        self.assertEqual(value["implementation_commit"], "5ea555312f521afbe3f1c17bf38d163233bc3652")
+        self.assertEqual(value["schema_identity"], "H27_REVIEW5_SCIENTIFIC_EXECUTION_IDENTITY_BINDING_V4")
+        self.assertEqual(value["schema_version"], 4)
+        self.assertEqual(value["implementation_commit"], "74805ea3ec870385c0ad9d0c4d7e9354a97965a2")
         self.assertEqual(value["component_count"], 12)
         self.assertEqual(len(value["components"]), 12)
         for component in value["components"].values():
