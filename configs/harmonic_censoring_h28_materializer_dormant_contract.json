@@ -1,0 +1,126 @@
+{
+  "schema_identity": "H28_DORMANT_MATERIALIZER_DESIGN_V1",
+  "schema_version": 1,
+  "status": "IMPLEMENTED_DORMANT_NO_PAYLOAD_NO_POPULATION_NO_SCIENCE",
+  "hypothesis_id": "H28_CAUSAL_CERTIFICATE_TIMING_V1",
+  "population_namespace": "H28_CAUSAL_TIMING_SYNTHETIC_V1",
+  "fixed_contracts": {
+    "timing_preregistration": {
+      "path": "configs/harmonic_censoring_h28_causal_timing_preregistration.json",
+      "size_bytes": 8488,
+      "sha256": "b0602a501281cff608c39c5648dec3d198a12c76289601ea549d84d2b9ddc13a",
+      "git_blob": "8d105567f6150fdaff93dc33f0b230adc2e1abf3"
+    },
+    "engine_recomputer": {
+      "path": "configs/harmonic_censoring_h28_engine_recomputer_dormant_contract.json",
+      "size_bytes": 5118,
+      "sha256": "784100a20890a7ba15d1d43e79009b39469e7b60e5132efa78e7934878a35ed8",
+      "git_blob": "b893bb477b69c7af686e3581753389de9cf92c7a"
+    },
+    "h27_fixture_specification": {
+      "path": "configs/harmonic_censoring_h27_fixture_specifications.json",
+      "size_bytes": 21241,
+      "sha256": "28707e95e2d1219fa0aa678e2103a8ef5cae7e7ca24a7100f4a84479dd0ff93d",
+      "git_blob": "9aea04053a13a3f5cf81b461a58977c377600f5b"
+    }
+  },
+  "implementation_binding": {
+    "path": "src/polyphonic/harmonic_censoring_h28_materializer_dormant.py",
+    "size_bytes": 14085,
+    "sha256": "a5a6f02c817ac854de1bcc81f95bda5244473869e23af4d3a12defe44d3a6475",
+    "git_blob": "8afac18c601f8f24af41d23c4400147e20e28198"
+  },
+  "population_plan": {
+    "record_count": 6,
+    "record_order": [
+      "H27-F-P01/N",
+      "H27-F-N01/N",
+      "H27-F-P01/N_PLUS_1",
+      "H27-F-N01/N_PLUS_1",
+      "H27-F-P01/N_PLUS_2",
+      "H27-F-N01/N_PLUS_2"
+    ],
+    "fixture_semantics": {
+      "H27-F-P01": {
+        "candidate_pitch": 40,
+        "active_pitches": []
+      },
+      "H27-F-N01": {
+        "candidate_pitch": 52,
+        "active_pitches": [40]
+      }
+    },
+    "proposal_hop_ends": [16383, 16383, 16639, 16639, 16895, 16895],
+    "resolution_hop_ends": [16639, 16639, 16895, 16895, 17151, 17151],
+    "snapshot_state_carry_forbidden": true
+  },
+  "rendering_contract": {
+    "sample_count": 17152,
+    "sample_rate_hz": 44100,
+    "waveform_dtype": "<f8",
+    "waveform_size_bytes": 137216,
+    "mask_role_order": ["current_short", "previous_short", "current_long", "previous_long"],
+    "mask_dtype": "uint8",
+    "mask_size_bytes": 68608,
+    "mask_allowed_values": [0, 1],
+    "noise_kind": "NONE",
+    "cents": 0.0,
+    "inharmonicity": 0.0,
+    "h27_rendering_primitives_ast_identical": [
+      "_numeric",
+      "_f0",
+      "_envelope",
+      "_accumulate_sources"
+    ],
+    "new_thresholds": 0,
+    "new_fallbacks": 0
+  },
+  "historical_prefix_contract": {
+    "prefix_samples": 16640,
+    "prefix_size_bytes": 133120,
+    "prefix_sha256_by_fixture": {
+      "H27-F-P01": "173183bf0a8017e8d24591cbbdd4c8055838546775917a5534c894527fa70a7e",
+      "H27-F-N01": "657fb5dd2a0bac49b6d4a56911d861bcc194cc04f95de6c93d2731e3da0e0ebb"
+    },
+    "legacy_n_mask_size_bytes": 66560,
+    "legacy_n_mask_sha256": "c38ec8da6c365d305710ffee001885a5a3ee99dffe73f6acc4ebd5f2461e3205",
+    "prefix_and_legacy_mask_verified_before_record_return": true
+  },
+  "capability_boundary": {
+    "public_issuer_exists": false,
+    "capability_instances_issued": 0,
+    "public_render_entry_fails_before_numpy_contract_or_filesystem": true,
+    "publication_code_exists": false,
+    "filesystem_destination_exists": false,
+    "future_authority_publisher_and_one_shot_claim_require_separate_reviewed_commit": true
+  },
+  "authorization_boundary": {
+    "payload_rendering_authorized": false,
+    "population_materialization_authorized": false,
+    "scientific_execution_authorized": false,
+    "mac_execution_authorized": false,
+    "training_authorized": false,
+    "calibration_authorized": false,
+    "checkpoint_selection_authorized": false,
+    "locked_test_authorized": false
+  },
+  "allowed_current_operations": [
+    "strict metadata-only descriptor planning",
+    "byte identity verification of contracts and source",
+    "module import and py_compile",
+    "AST parity checks",
+    "unissuable-capability regression tests",
+    "git diff check"
+  ],
+  "forbidden_current_operations": [
+    "issue or forge a materialization capability",
+    "call NumPy rendering helpers",
+    "create waveform or mask payloads",
+    "create or publish a population directory",
+    "run engine or recomputer science",
+    "access locked test",
+    "train or calibrate"
+  ],
+  "next_action": "strict review of the dormant materializer before a separate authority publisher design",
+  "stop_state": "H28_DORMANT_MATERIALIZER_IMPLEMENTED_NO_PAYLOAD_NO_POPULATION_NO_SCIENCE"
+}

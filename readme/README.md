@@ -14,12 +14,12 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H28 dormant engine/recomputer implemented; no population or science; H27 remains closed with no retry. -->
+<!-- H26_CORRECTION_STATUS: H28 dormant materializer implemented; no payload, population, or science; H27 remains closed with no retry. -->
 ## État courant
 
 - Mise à jour : `2026-08-20`.
 - État courant :
-  `H28_DORMANT_ENGINE_RECOMPUTER_IMPLEMENTED_NO_POPULATION_NO_SCIENCE`.
+  `H28_DORMANT_MATERIALIZER_IMPLEMENTED_NO_PAYLOAD_NO_POPULATION_NO_SCIENCE`.
 - H28 est préenregistrée comme hypothèse distincte après la clôture définitive
   de H27. Elle conserve P01, N01, Hann, FFT x8, bandes de 35 cents, NNLS et tous
   les seuils H27, et ne fait varier que l'horizon causal : `N=256`,
@@ -41,11 +41,20 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   byte-exact est scellé par contrat; `33/33` tests locaux passent sans lire ou
   créer de payload scientifique. Aucune population, matérialisation, FFT/NNLS,
   exécution Mac, training, calibration, checkpoint ou locked-test H28 n'a eu
-  lieu. Prochaine action unique : implémenter séparément le matérialiseur dormant
-  des six snapshots, toujours sans l'exécuter ni émettre de capability. Rapports :
+  lieu. Le matérialiseur dormant est également implémenté : il planifie
+  exactement six descripteurs `P01/N01 x N/N+1/N+2`, prolonge dans une future
+  activation les deux recettes H27 jusqu'à 17152 samples et doit prouver le
+  préfixe 16640 par les SHA H27 avant de retourner un record. Le masque H28
+  fournit les quatre vues exactes à chaque horizon et sa sémantique `N` est
+  comparée au masque H27 historique. Sa capability reste sans issuer, aucun
+  code de publication n'existe et `40/40` tests locaux passent. Prochaine action
+  unique : concevoir séparément l'autorité, le publisher atomique et le runner
+  one-shot, toujours dormants avant toute activation. Rapports :
   `readme/results/2026-08-20_harmonic-censoring-h28-causal-timing-preregistration.md`
   et
-  `readme/results/2026-08-20_harmonic-censoring-h28-dormant-engine-recomputer.md`.
+  `readme/results/2026-08-20_harmonic-censoring-h28-dormant-engine-recomputer.md`
+  et
+  `readme/results/2026-08-20_harmonic-censoring-h28-dormant-materializer.md`.
 - L'unique exécution scientifique Mac Review 5B Recovery autorisée est
   définitivement consommée. Elle a créé son CLAIM, puis exécuté P0 dans l'ordre :
   `H27-T-P0-001=PASS`, `H27-T-P0-002=PASS`,
@@ -4311,6 +4320,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-20 — clôture définitive H27 sur échec scientifique P0-003](results/2026-08-20_harmonic-censoring-h27-definitive-scientific-failure.md)
 - [2026-08-20 — préinscription H28 du premier instant causal de certification](results/2026-08-20_harmonic-censoring-h28-causal-timing-preregistration.md)
 - [2026-08-20 — moteur et recomputer H28 dormants à horizon causal étendu](results/2026-08-20_harmonic-censoring-h28-dormant-engine-recomputer.md)
+- [2026-08-20 — matérialiseur H28 dormant des six snapshots causaux](results/2026-08-20_harmonic-censoring-h28-dormant-materializer.md)
 - [2026-08-12 — contrat H27 des fixtures, tests et population future](results/2026-08-12_harmonic-censoring-h27-fixture-test-population-design.md)
 - [2026-07-22 — entraînement polyphonique multi-source](results/2026-07-22_polyphonic-training.md)
 - [2026-07-27 — validation du décodeur desktop polyphonique](results/2026-07-27_polyphonic-desktop-validation.md)
