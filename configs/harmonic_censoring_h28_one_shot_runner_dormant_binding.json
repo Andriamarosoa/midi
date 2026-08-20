@@ -1,0 +1,38 @@
+{
+  "schema_identity": "H28_ONE_SHOT_RUNNER_DORMANT_BINDING_V1",
+  "schema_version": 1,
+  "status": "BOUND_DORMANT_NO_EXTERNAL_ACTIVATION_NO_CLAIM_NO_SCIENCE",
+  "execution_contract": {
+    "path": "configs/harmonic_censoring_h28_one_shot_execution_contract.json",
+    "size_bytes": 4855,
+    "sha256": "eddea5b3525cd6022cf171627368a04aa47db13689c130567e239d49995005df",
+    "git_blob": "4e73b489659b743fb9c332025446f75059bde896"
+  },
+  "runner": {
+    "path": "scripts/h28_causal_timing_execute_once.py",
+    "size_bytes": 27349,
+    "sha256": "f0ae12a644e392ac0e8518aabd26a9803c3c18c7cd4f928417022566e16634b8",
+    "git_blob": "153b406834632b10f89f42a8029dbebe35dd8f23"
+  },
+  "entrypoint": {
+    "arguments": ["one ignored external activation JSON path"],
+    "default_activation_forbidden": true,
+    "exact_clean_head_from_activation_required": true,
+    "acknowledgement_environment_required": true,
+    "claim_created_with_o_excl": true,
+    "darwin_renameatx_np_rename_excl_required": true,
+    "retry_allowed": false
+  },
+  "current_state": {
+    "external_activation_exists": false,
+    "claim_exists": false,
+    "output_exists": false,
+    "runner_invoked": false,
+    "payloads_rendered": 0,
+    "records_measured": 0,
+    "locked_test_used": false,
+    "training_used": false
+  },
+  "next_action": "strict code review of the exact runner binding, then a separate explicit activation decision",
+  "stop_state": "H28_ONE_SHOT_RUNNER_BOUND_DORMANT_NO_ACTIVATION_NO_CLAIM_NO_SCIENCE"
+}

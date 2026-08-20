@@ -1,0 +1,126 @@
+{
+  "schema_identity": "H28_ONE_SHOT_EXECUTION_CONTRACT_V1",
+  "schema_version": 1,
+  "status": "DORMANT_RUNNER_REQUIRES_SEPARATE_EXTERNAL_ACTIVATION",
+  "hypothesis_id": "H28_CAUSAL_CERTIFICATE_TIMING_V1",
+  "fixed_contracts": [
+    {
+      "path": "configs/harmonic_censoring_h28_causal_timing_preregistration.json",
+      "size_bytes": 8488,
+      "sha256": "b0602a501281cff608c39c5648dec3d198a12c76289601ea549d84d2b9ddc13a",
+      "git_blob": "8d105567f6150fdaff93dc33f0b230adc2e1abf3"
+    },
+    {
+      "path": "configs/harmonic_censoring_h28_engine_recomputer_dormant_contract.json",
+      "size_bytes": 5118,
+      "sha256": "784100a20890a7ba15d1d43e79009b39469e7b60e5132efa78e7934878a35ed8",
+      "git_blob": "b893bb477b69c7af686e3581753389de9cf92c7a"
+    },
+    {
+      "path": "configs/harmonic_censoring_h28_materializer_dormant_contract.json",
+      "size_bytes": 4685,
+      "sha256": "50808c37a3c72d565b42eb824bf928217cfb7455575b80bbcfe76d08e3c99098",
+      "git_blob": "b417aaea1b21b95c8b95ba929be2113ad9bcaaa9"
+    }
+  ],
+  "runtime": {
+    "platform_system": "Darwin",
+    "platform_machine": "arm64",
+    "python_version": "3.11.9",
+    "numpy_version": "1.26.4",
+    "cpu_only": true,
+    "environment_exact": {
+      "MIDI_FORCE_CPU": "1",
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1",
+      "VECLIB_MAXIMUM_THREADS": "1",
+      "PYTHONHASHSEED": "0",
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC"
+    },
+    "tensorflow_import_forbidden": true,
+    "network_access_after_claim_forbidden": true
+  },
+  "activation_contract": {
+    "activation_file_must_be_outside_git_and_inside_repository_tmp_local": true,
+    "field_order": [
+      "schema_identity",
+      "execution_id",
+      "expected_commit",
+      "execution_contract_sha256",
+      "output_relative_path",
+      "claim_relative_path",
+      "acknowledgement_env",
+      "acknowledgement_value",
+      "retry_allowed",
+      "locked_test_used"
+    ],
+    "schema_identity": "H28_ONE_SHOT_EXTERNAL_ACTIVATION_V1",
+    "output_relative_path": "tmp/local/h28-causal-timing-v1",
+    "claim_relative_path": "tmp/local/h28-causal-timing-v1.claim.json",
+    "acknowledgement_env": "H28_CAUSAL_TIMING_EXECUTE",
+    "acknowledgement_value": "1",
+    "retry_allowed": false,
+    "locked_test_used": false
+  },
+  "preclaim_order": [
+    "strictly parse and hash execution contract and external activation",
+    "verify every fixed contract byte size SHA256 and Git blob",
+    "verify exact clean Git HEAD from activation",
+    "verify activation and all output claim staging destinations are absent",
+    "verify exact Darwin arm64 CPython NumPy and CPU environment",
+    "only then import NumPy",
+    "only then create claim with O_EXCL and fsync"
+  ],
+  "postclaim_order": [
+    "activate process-local materialization scientific and binding guards",
+    "render exactly six in-memory records and verify H27 prefixes",
+    "write exact payloads and canonical population index into unique staging",
+    "run engine then independent recomputer for each record in sealed order",
+    "reconcile and serialize each complete diagnostic record",
+    "derive the preregistered terminal verdict",
+    "write report diagnostics and completion marker with O_EXCL and fsync",
+    "atomically rename staging to the absent final destination",
+    "leave claim and terminal evidence permanently"
+  ],
+  "failure_policy": {
+    "claim_is_consumption_boundary": true,
+    "retry_allowed": false,
+    "postclaim_failure_terminal": true,
+    "failure_evidence_required": true,
+    "partial_staging_must_not_be_promoted": true,
+    "automatic_cleanup_forbidden": true
+  },
+  "scientific_scope": {
+    "record_count": 6,
+    "record_order": [
+      "H27-F-P01/N",
+      "H27-F-N01/N",
+      "H27-F-P01/N_PLUS_1",
+      "H27-F-N01/N_PLUS_1",
+      "H27-F-P01/N_PLUS_2",
+      "H27-F-N01/N_PLUS_2"
+    ],
+    "engine_recomputer_tolerance": "abs(left-right)<=1e-12+1e-10*abs(left)",
+    "terminal_verdict_order_unchanged": true,
+    "no_threshold_population_target_or_bootstrap_change": true
+  },
+  "authorization_boundary": {
+    "runner_implementation_and_non_scientific_tests_authorized": true,
+    "external_activation_exists": false,
+    "claim_exists": false,
+    "payload_rendering_authorized": false,
+    "population_materialization_authorized": false,
+    "scientific_execution_authorized": false,
+    "mac_execution_authorized": false,
+    "training_authorized": false,
+    "calibration_authorized": false,
+    "checkpoint_selection_authorized": false,
+    "locked_test_authorized": false
+  },
+  "next_action": "implement and test the dormant one-shot runner, then stop before creating an external activation",
+  "stop_state": "H28_ONE_SHOT_RUNNER_CONTRACT_DORMANT_NO_ACTIVATION_NO_CLAIM_NO_SCIENCE"
+}
