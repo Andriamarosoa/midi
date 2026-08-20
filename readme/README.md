@@ -28,7 +28,8 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   checkpoint, calibration, locked-test et validation finale interdits. Les
   tests sont synthétiques/local-only; aucun payload H27, NumPy scientifique,
   SSH, claim réel, P0/P1/P2 ou locked-test n'a été exécuté. Prochaine action :
-  commit, binding/seal, puis revue externe complète avant toute activation Mac.
+  revue externe complète des commits `189e4e74...`, `0c0af9d9...` et de leur
+  seal avant toute activation Mac.
   Rapport :
   `readme/results/2026-08-20_harmonic-censoring-h27-review5a-scientific-runner.md`.
 - L'unique exécution Recovery V2 autorisée a terminé avec `rc=0`. Le terminal

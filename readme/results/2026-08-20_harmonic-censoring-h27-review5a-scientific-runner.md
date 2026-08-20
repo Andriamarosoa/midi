@@ -39,7 +39,7 @@ C:\Users\user\Desktop\midi\.venv\Scripts\python.exe -B -m unittest \
   tests.test_harmonic_censoring_h27_materializer_dormant
 ```
 
-Résultat vérifié : `26 tests`, succès. Les tests utilisent uniquement des
+Résultat vérifié après binding et seal : `28 tests`, succès. Les tests utilisent uniquement des
 bindings temporaires et des résultats synthétiques ; aucune waveform H27 réelle
 n'est lue. `py_compile` et `git diff --check` passent également.
 
@@ -58,3 +58,6 @@ checkpoint_selection=false
 
 Une revue externe du code complet, de son identity binding et de son seal est
 obligatoire avant de créer une activation ou de toucher au payload Mac.
+
+Chaîne soumise : implémentation `189e4e7499a6a1a719f152365bfc792f4d1fa4ac`,
+identity binding `0c0af9d98dbca919592f845391cba57af9fcd14a`, puis seal externe.

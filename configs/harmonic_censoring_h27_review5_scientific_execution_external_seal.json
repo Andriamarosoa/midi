@@ -1,0 +1,22 @@
+{
+  "schema_identity": "H27_REVIEW5_SCIENTIFIC_EXECUTION_EXTERNAL_SEAL_V1",
+  "schema_version": 1,
+  "status": "SEALED_PENDING_EXTERNAL_REVIEW_NO_REAL_EXECUTION",
+  "implementation_commit": "189e4e7499a6a1a719f152365bfc792f4d1fa4ac",
+  "identity_binding_commit": "0c0af9d98dbca919592f845391cba57af9fcd14a",
+  "identity_binding": {
+    "path": "configs/harmonic_censoring_h27_review5_scientific_execution_identity_binding.json",
+    "git_blob_sha1": "7a33cda20efb32ec09536e2c619ea2ec845cdfeb",
+    "size_bytes": 2677,
+    "sha256": "a297cb74539a311bbfe0e973f4933630784e584cfe5cc0fadfcca9e188001487"
+  },
+  "population_index_sha256": "ae67455b07cde223b77c6d1da221cbba2252c6b67fa8c07b9d3ebfbd50f3a9f8",
+  "success_terminal_status": "H27_REVIEW5_SCIENCE_27_OF_27_PASS_STOP_BEFORE_POST_SCIENCE",
+  "real_execution_authorized": false,
+  "authority_creation_authorized": false,
+  "claim_creation_authorized": false,
+  "locked_test_authorized": false,
+  "training_authorized": false,
+  "retry_allowed": false,
+  "next_action": "External review of implementation, identity binding, and this seal before any activation"
+}
