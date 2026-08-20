@@ -69,7 +69,8 @@ class H27Review4RecoveryV1RunnerTests(unittest.TestCase):
         self.assertIn("open_relative(activation_parent,ACTIVATION.name,0o400)", source)
         self.assertIn("read_fd(activation_fd,0o400)", source)
         self.assertNotIn("read_fd(activation_fd,0o600)", source)
-        self.assertLess(source.index("claim_fd,claim_raw=write_new_at"), source.rindex("read_fd(activation_fd,0o400)"))
+        self.assertLess(source.index("claim_fd,claim_raw=write_new_at"), source.index("consumer=attested_consumer"))
+        self.assertLess(source.index("consumer.send"), source.index("materialize_h27_production_population"))
 
 
 if __name__ == "__main__":
