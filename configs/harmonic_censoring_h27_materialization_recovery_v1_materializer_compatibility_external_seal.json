@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "seal_id": "H27_MATERIALIZATION_RECOVERY_V1_MATERIALIZER_COMPATIBILITY_EXTERNAL_SEAL",
+  "status": "SEALED_DORMANT_PENDING_EXTERNAL_REVIEW",
+  "compatibility_binding": {"path":"configs/harmonic_censoring_h27_materialization_recovery_v1_materializer_compatibility_binding.json","git_blob_sha1":"96924daef1004643475b52c8380a962401fe9a6c","size_bytes":2366,"raw_sha256":"fa44e6a36a20ae967120955a57548d642c8ecdc1012e9bd6802057af956a6a88"},
+  "sealed_conclusion": {"unchanged_materializer_is_compatible_with_recovery_v1":true,"old_claim_is_not_a_credential":true,"recovery_runner_and_activation_are_distinct":true,"population_contract_unchanged":true,"expected_records":124,"science_authorized":false,"locked_test_used":false},
+  "next_action": "Bind this seal into the final Recovery V1 execution composition and obtain external PASS"
+}

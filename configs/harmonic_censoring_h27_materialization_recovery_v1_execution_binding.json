@@ -2,7 +2,7 @@
   "schema_version": 1,
   "binding_id": "H27_MATERIALIZATION_RECOVERY_V1_EXECUTION_BINDING",
   "status": "DORMANT_PENDING_EXTERNAL_REVIEW_NO_MAC_EXECUTION_AUTHORIZED",
-  "implementation_commit": "1d01ce9e6ae518b10c6578fbcc72ee0fc25aab22",
+  "implementation_commit": "fb1702aeebdb37c01c76af1226d5ecd9bebdf1c7",
   "target_checkout": {
     "path": "/Users/amcarene/midi-worker/repository",
     "required_head": "46a6bdf81a56a7a7a10524d4e55092301a452207",
@@ -17,7 +17,9 @@
     {"repository_path":"scripts/h27_review4_recovery_v1_execute_once.py","destination_relative":"runner-r1/h27_review4_recovery_v1_execute_once.py","git_blob_sha1":"181c0afa18e7e9f1dcd6ed02cb4183426ac30f3e","size_bytes":3659,"raw_sha256":"e23193d347c6bf17eb95fd3f2ba8102397c7cabb3d1c60ea371d6c72b1096205"},
     {"repository_path":"src/polyphonic/harmonic_censoring_h27_review4_materializer.py","destination_relative":"runner-r1/harmonic_censoring_h27_review4_materializer.py","git_blob_sha1":"8cdafbd6a08ea893daa2d6f41cb62166bf9162cd","size_bytes":33706,"raw_sha256":"2ecaabf1e1880688244b06ecb03a9b3eb7831d4659e209aa11e36b7b60948be3"},
     {"repository_path":"configs/harmonic_censoring_h27_review4_materializer_identity_binding.json","destination_relative":"runner-r1/harmonic_censoring_h27_review4_materializer_identity_binding.json","git_blob_sha1":"9371d80c75c2cf08ebf2cc33177c05c123c13efa","size_bytes":5269,"raw_sha256":"204f61303277b4a813d23a4a6a478d6d33a17893d30a72156e7a7d2574dfb4da"},
-    {"repository_path":"configs/harmonic_censoring_h27_review4_materializer_external_seal.json","destination_relative":"runner-r1/harmonic_censoring_h27_review4_materializer_external_seal.json","git_blob_sha1":"370eaf40be9863ec381061678451a58409264244","size_bytes":1198,"raw_sha256":"f396257c040b7d0504336b98384308f76e45a32614efba129eba91c53b55f1de"}
+    {"repository_path":"configs/harmonic_censoring_h27_review4_materializer_external_seal.json","destination_relative":"runner-r1/harmonic_censoring_h27_review4_materializer_external_seal.json","git_blob_sha1":"370eaf40be9863ec381061678451a58409264244","size_bytes":1198,"raw_sha256":"f396257c040b7d0504336b98384308f76e45a32614efba129eba91c53b55f1de"},
+    {"repository_path":"configs/harmonic_censoring_h27_materialization_recovery_v1_materializer_compatibility_binding.json","destination_relative":"runner-r1/harmonic_censoring_h27_materialization_recovery_v1_materializer_compatibility_binding.json","git_blob_sha1":"96924daef1004643475b52c8380a962401fe9a6c","size_bytes":2366,"raw_sha256":"fa44e6a36a20ae967120955a57548d642c8ecdc1012e9bd6802057af956a6a88"},
+    {"repository_path":"configs/harmonic_censoring_h27_materialization_recovery_v1_materializer_compatibility_external_seal.json","destination_relative":"runner-r1/harmonic_censoring_h27_materialization_recovery_v1_materializer_compatibility_external_seal.json","git_blob_sha1":"596206fabb7bb23f24a666ab320403086924a7f2","size_bytes":860,"raw_sha256":"f1fb80262d048de9935ad8420d095d18b9c73bdee175a739d1bc4a5b7371c332"}
   ],
   "directories_exact": ["activation","authority","claims","population","runner-r1","terminal"],
   "directory_mode": "0700",

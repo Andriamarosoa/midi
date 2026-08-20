@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 BINDING = ROOT / "configs/harmonic_censoring_h27_materialization_recovery_v1_execution_binding.json"
 SEAL = ROOT / "configs/harmonic_censoring_h27_materialization_recovery_v1_execution_external_seal.json"
 COMPATIBILITY = ROOT / "configs/harmonic_censoring_h27_materialization_recovery_v1_materializer_compatibility_binding.json"
+COMPATIBILITY_SEAL = ROOT / "configs/harmonic_censoring_h27_materialization_recovery_v1_materializer_compatibility_external_seal.json"
 
 
 class H27RecoveryV1ExecutionBindingTests(unittest.TestCase):
@@ -18,8 +19,8 @@ class H27RecoveryV1ExecutionBindingTests(unittest.TestCase):
 
     def test_every_bootstrap_component_is_byte_exact(self) -> None:
         components = self.value["bootstrap_components"]
-        self.assertEqual(len(components), 7)
-        self.assertEqual(len({row["destination_relative"] for row in components}), 7)
+        self.assertEqual(len(components), 9)
+        self.assertEqual(len({row["destination_relative"] for row in components}), 9)
         for row in components:
             raw = (ROOT / row["repository_path"]).read_bytes()
             blob = hashlib.sha1(b"blob " + str(len(raw)).encode() + b"\0" + raw).hexdigest()
@@ -62,6 +63,9 @@ class H27RecoveryV1ExecutionBindingTests(unittest.TestCase):
         self.assertTrue(invariants["materializer_bytes_unchanged"])
         self.assertTrue(invariants["old_claim_is_history_not_credential"])
         self.assertFalse(invariants["science_authorized"])
+        seal=json.loads(COMPATIBILITY_SEAL.read_bytes()); row=seal["compatibility_binding"]
+        raw=COMPATIBILITY.read_bytes(); blob=hashlib.sha1(b"blob "+str(len(raw)).encode()+b"\0"+raw).hexdigest()
+        self.assertEqual((len(raw),blob,hashlib.sha256(raw).hexdigest()),(row["size_bytes"],row["git_blob_sha1"],row["raw_sha256"]))
 
 
 if __name__ == "__main__":
