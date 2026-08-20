@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "binding_id": "H27_MATERIALIZATION_RECOVERY_V1_EXECUTION_BINDING",
+  "status": "DORMANT_PENDING_EXTERNAL_REVIEW_NO_MAC_EXECUTION_AUTHORIZED",
+  "implementation_commit": "1d01ce9e6ae518b10c6578fbcc72ee0fc25aab22",
+  "target_checkout": {
+    "path": "/Users/amcarene/midi-worker/repository",
+    "required_head": "46a6bdf81a56a7a7a10524d4e55092301a452207",
+    "detached_required": true,
+    "clean_required": true
+  },
+  "recovery_root": "/Users/amcarene/h27-admin-recovery-v1",
+  "bootstrap_components": [
+    {"repository_path":"configs/harmonic_censoring_h27_materialization_recovery_v1_contract.json","destination_relative":"runner-r1/harmonic_censoring_h27_materialization_recovery_v1_contract.json","git_blob_sha1":"16a80f9bef4dc8f7b6db4d65c0523763d3b07077","size_bytes":5078,"raw_sha256":"5e029b31cb1af411c6429c01e2c4e2e80e8709226722746be2f1fb04fff78596"},
+    {"repository_path":"configs/harmonic_censoring_h27_materialization_recovery_v1_activation.json","destination_relative":"activation/h27-materialization-recovery-v1.json","git_blob_sha1":"ab42ecbc6ec38fa5737f0dc42a8752632473ac55","size_bytes":900,"raw_sha256":"fca5db1f2aca0abb2ed20d2e531e47981a83a8d7c317d2a7f13b018080bfd91d"},
+    {"repository_path":"scripts/h27_review4_execute_once.py","destination_relative":"runner-r1/h27_review4_execute_once.py","git_blob_sha1":"53a5d243b9b3ac614856ae35a052ea46f49b30ad","size_bytes":28265,"raw_sha256":"94dc4fe68fe9950f04df9ffd2c5ac7481a45712ffac16d05bc5fe4e8a019594d"},
+    {"repository_path":"scripts/h27_review4_recovery_v1_execute_once.py","destination_relative":"runner-r1/h27_review4_recovery_v1_execute_once.py","git_blob_sha1":"f19e9c98557575a759dab48c0f6e95ecdc81ae50","size_bytes":3659,"raw_sha256":"5cfc2cc22f3d8c229cdd8734fe368fe8937bcd3f30a2a363c153fb2ee87e1458"},
+    {"repository_path":"src/polyphonic/harmonic_censoring_h27_review4_materializer.py","destination_relative":"runner-r1/harmonic_censoring_h27_review4_materializer.py","git_blob_sha1":"8cdafbd6a08ea893daa2d6f41cb62166bf9162cd","size_bytes":33706,"raw_sha256":"2ecaabf1e1880688244b06ecb03a9b3eb7831d4659e209aa11e36b7b60948be3"},
+    {"repository_path":"configs/harmonic_censoring_h27_review4_materializer_identity_binding.json","destination_relative":"runner-r1/harmonic_censoring_h27_review4_materializer_identity_binding.json","git_blob_sha1":"9371d80c75c2cf08ebf2cc33177c05c123c13efa","size_bytes":5269,"raw_sha256":"204f61303277b4a813d23a4a6a478d6d33a17893d30a72156e7a7d2574dfb4da"},
+    {"repository_path":"configs/harmonic_censoring_h27_review4_materializer_external_seal.json","destination_relative":"runner-r1/harmonic_censoring_h27_review4_materializer_external_seal.json","git_blob_sha1":"370eaf40be9863ec381061678451a58409264244","size_bytes":1198,"raw_sha256":"f396257c040b7d0504336b98384308f76e45a32614efba129eba91c53b55f1de"}
+  ],
+  "directories_exact": ["activation","authority","claims","population","runner-r1","terminal"],
+  "directory_mode": "0700",
+  "bootstrap_file_mode": "0400",
+  "runtime_entrypoint": "/Users/amcarene/midi-worker/repository/.venv/bin/python",
+  "runner_path": "/Users/amcarene/h27-admin-recovery-v1/runner-r1/h27_review4_recovery_v1_execute_once.py",
+  "acknowledgement": {"name":"H27_REVIEW4_MATERIALIZATION_EXECUTE","value":"I_UNDERSTAND_H27_REVIEW4_IS_ONE_SHOT"},
+  "predecessor_read_only": {
+    "authority_path": "/Users/amcarene/h27-admin/authority/h27-materialization-v1.json",
+    "claim_path": "/Users/amcarene/h27-admin/claims/h27-synthetic-v1.consumed.json",
+    "activation_sha256": "89d03ce3ea8f31a253b4e245e0357236e20860d409c27f0779a003d058fe91d2",
+    "authority_instance_id": "d44941a8c1c6674e5da89c40a7e3188c4e6318f7c5759ce490577d8bde81437a",
+    "must_not_be_modified_deleted_or_reused": true
+  },
+  "one_shot_rules": {
+    "all_paths_and_component_bytes_verified_before_ack": true,
+    "all_destinations_absent_before_ack": true,
+    "authority_and_claim_create_exclusive": true,
+    "materializer_invocations_maximum": 1,
+    "retry_after_ack_or_claim_forbidden": true,
+    "no_cleanup_repair_or_rollback": true,
+    "success_requires_terminal_and_124_reconciled_records": true
+  },
+  "scope": {"review4_only":true,"science":false,"p0":false,"p1":false,"p2":false,"locked_test":false,"training":false,"calibration":false},
+  "next_action": "Create an external seal in a distinct commit, then external review; no Mac execution before PASS"
+}

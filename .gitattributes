@@ -150,4 +150,7 @@ configs/harmonic_censoring_h27_materialization_recovery_v1_contract.json text eo
 configs/harmonic_censoring_h27_materialization_recovery_v1_activation.json text eol=lf
 tests/test_harmonic_censoring_h27_materialization_recovery_v1_contract.py text eol=lf
 tests/test_harmonic_censoring_h27_review4_recovery_v1_runner.py text eol=lf
+configs/harmonic_censoring_h27_materialization_recovery_v1_execution_binding.json text eol=lf
+configs/harmonic_censoring_h27_materialization_recovery_v1_execution_external_seal.json text eol=lf
+tests/test_harmonic_censoring_h27_materialization_recovery_v1_execution_binding.py text eol=lf
 readme/results/2026-08-16_harmonic-censoring-h27-review4-authority-instance-artifact-publisher-dormant.md text eol=lf
