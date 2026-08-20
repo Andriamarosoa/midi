@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "binding_id": "H27_MATERIALIZATION_RECOVERY_V1_MATERIALIZER_COMPATIBILITY_BINDING",
+  "status": "DORMANT_PENDING_EXTERNAL_REVIEW",
+  "recovery_contract": {"path":"configs/harmonic_censoring_h27_materialization_recovery_v1_contract.json","git_blob_sha1":"242f3f4efc4dc07285fc6b62b58113a3afca2f3c","size_bytes":5079,"raw_sha256":"e8d000ed37ac010c284290b3077a92768abee99825e03a843d0247e2a5a5eaf3"},
+  "recovery_activation": {"path":"configs/harmonic_censoring_h27_materialization_recovery_v1_activation.json","git_blob_sha1":"4220e0de4916ed5d5d87bcc2e61aa9133bea7a33","size_bytes":2382,"raw_sha256":"a5f1e68b66b59b343785fe8ab66d02f3eceb69e9b05b63581ae7f2d7678a75ac"},
+  "base_runner": {"path":"scripts/h27_review4_execute_once.py","git_blob_sha1":"53a5d243b9b3ac614856ae35a052ea46f49b30ad","size_bytes":28265,"raw_sha256":"94dc4fe68fe9950f04df9ffd2c5ac7481a45712ffac16d05bc5fe4e8a019594d"},
+  "recovery_runner": {"path":"scripts/h27_review4_recovery_v1_execute_once.py","git_blob_sha1":"181c0afa18e7e9f1dcd6ed02cb4183426ac30f3e","size_bytes":3659,"raw_sha256":"e23193d347c6bf17eb95fd3f2ba8102397c7cabb3d1c60ea371d6c72b1096205"},
+  "unchanged_materializer": {"path":"src/polyphonic/harmonic_censoring_h27_review4_materializer.py","git_blob_sha1":"8cdafbd6a08ea893daa2d6f41cb62166bf9162cd","size_bytes":33706,"raw_sha256":"2ecaabf1e1880688244b06ecb03a9b3eb7831d4659e209aa11e36b7b60948be3"},
+  "historical_operational_binding": {"path":"configs/harmonic_censoring_h27_review4_materializer_identity_binding.json","git_blob_sha1":"9371d80c75c2cf08ebf2cc33177c05c123c13efa","size_bytes":5269,"raw_sha256":"204f61303277b4a813d23a4a6a478d6d33a17893d30a72156e7a7d2574dfb4da"},
+  "historical_operational_seal": {"path":"configs/harmonic_censoring_h27_review4_materializer_external_seal.json","git_blob_sha1":"370eaf40be9863ec381061678451a58409264244","size_bytes":1198,"raw_sha256":"f396257c040b7d0504336b98384308f76e45a32614efba129eba91c53b55f1de"},
+  "compatibility_invariants": {"materializer_bytes_unchanged":true,"population_namespace":"H27_SYNTHETIC_V1","expected_records":124,"expected_baseline_records":17,"expected_p2_records":107,"recovery_root_only":true,"old_claim_is_history_not_credential":true,"science_authorized":false,"locked_test_used":false},
+  "next_action": "External compatibility seal, then full Recovery V1 execution review"
+}

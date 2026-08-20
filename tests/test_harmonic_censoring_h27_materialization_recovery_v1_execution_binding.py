@@ -8,6 +8,8 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 BINDING = ROOT / "configs/harmonic_censoring_h27_materialization_recovery_v1_execution_binding.json"
+SEAL = ROOT / "configs/harmonic_censoring_h27_materialization_recovery_v1_execution_external_seal.json"
+COMPATIBILITY = ROOT / "configs/harmonic_censoring_h27_materialization_recovery_v1_materializer_compatibility_binding.json"
 
 
 class H27RecoveryV1ExecutionBindingTests(unittest.TestCase):
@@ -37,6 +39,29 @@ class H27RecoveryV1ExecutionBindingTests(unittest.TestCase):
         self.assertEqual(rules["materializer_invocations_maximum"], 1)
         self.assertTrue(rules["retry_after_ack_or_claim_forbidden"])
         self.assertTrue(rules["success_requires_terminal_and_124_reconciled_records"])
+
+    def test_external_seal_binds_exact_execution_binding(self) -> None:
+        seal = json.loads(SEAL.read_bytes())
+        row = seal["execution_binding"]
+        raw = BINDING.read_bytes()
+        blob = hashlib.sha1(b"blob " + str(len(raw)).encode() + b"\0" + raw).hexdigest()
+        self.assertEqual((len(raw), blob, hashlib.sha256(raw).hexdigest()), (row["size_bytes"], row["git_blob_sha1"], row["raw_sha256"]))
+        boundary = seal["authorization_boundary"]
+        self.assertTrue(boundary["external_pass_required_before_any_ssh"])
+        self.assertTrue(boundary["old_activation_authority_claim_and_runner_are_immutable"])
+        self.assertEqual((boundary["expected_records"], boundary["expected_baseline_records"], boundary["expected_p2_records"]), (124, 17, 107))
+        self.assertEqual(set(seal["forbidden"]), {"science","P0","P1","P2","locked_test","training","calibration","old_activation_retry"})
+
+    def test_materializer_compatibility_binding_is_byte_exact(self) -> None:
+        value = json.loads(COMPATIBILITY.read_bytes())
+        for key in ("recovery_contract","recovery_activation","base_runner","recovery_runner","unchanged_materializer","historical_operational_binding","historical_operational_seal"):
+            row = value[key]; raw = (ROOT / row["path"]).read_bytes()
+            blob = hashlib.sha1(b"blob " + str(len(raw)).encode() + b"\0" + raw).hexdigest()
+            self.assertEqual((len(raw),blob,hashlib.sha256(raw).hexdigest()),(row["size_bytes"],row["git_blob_sha1"],row["raw_sha256"]))
+        invariants=value["compatibility_invariants"]
+        self.assertTrue(invariants["materializer_bytes_unchanged"])
+        self.assertTrue(invariants["old_claim_is_history_not_credential"])
+        self.assertFalse(invariants["science_authorized"])
 
 
 if __name__ == "__main__":
