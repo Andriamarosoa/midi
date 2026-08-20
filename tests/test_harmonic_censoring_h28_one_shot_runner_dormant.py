@@ -18,7 +18,7 @@ class H28DormantOneShotRunnerTests(unittest.TestCase):
         raw = path.read_bytes()
         self.assertEqual(
             hashlib.sha256(raw).hexdigest(),
-            "1fbbd623af15354c6184f002842a6b9553525e7f3736457ce2f7ee3dfee67e6f",
+            "51277979d1f97cf8e545941fd0cafa2b924136de3c0f8b1e6401a628b206b617",
         )
         document = runner._strict_json(raw, label="H28 runner binding test")
         for key in ("execution_contract", "runner"):

@@ -8,14 +8,14 @@
     "timing_preregistration": {
       "path": "configs/harmonic_censoring_h28_causal_timing_preregistration.json",
       "size_bytes": 8488,
-      "sha256": "b0602a501281cff608c39c5648dec3d198a12c76289601ea549d84d2b9ddc13a",
-      "git_blob": "8d105567f6150fdaff93dc33f0b230adc2e1abf3"
+      "sha256": "634de15cb0547368391bea1ca70b889320a9309c6b111af2c6e8474ce29260c6",
+      "git_blob": "94d2ebe58fc2c65c1efcc3255cedb6a9ae8ed059"
     },
     "engine_recomputer": {
       "path": "configs/harmonic_censoring_h28_engine_recomputer_dormant_contract.json",
       "size_bytes": 5118,
-      "sha256": "784100a20890a7ba15d1d43e79009b39469e7b60e5132efa78e7934878a35ed8",
-      "git_blob": "b893bb477b69c7af686e3581753389de9cf92c7a"
+      "sha256": "4fa739c2815872d4a5b7fd949288cea956590769269aa1906598b1f6fa15d90f",
+      "git_blob": "70d417f9ba53009c3156d381fcff7f5bce903195"
     },
     "h27_fixture_specification": {
       "path": "configs/harmonic_censoring_h27_fixture_specifications.json",

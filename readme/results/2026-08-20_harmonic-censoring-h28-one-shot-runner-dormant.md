@@ -12,7 +12,7 @@ externe exact échoue avant tout accès scientifique.
 Avant NumPy et avant toute création, le runner impose :
 
 - contrat d'exécution au SHA-256
-  `eddea5b3525cd6022cf171627368a04aa47db13689c130567e239d49995005df` ;
+  `286179fd68cf93b0c35ac6e8a54632772ada863a6c6041cac6738298461a9dd7` ;
 - trois contrats fixes et toutes leurs liaisons transitives size/SHA/Git blob ;
 - activation stricte placée sous `tmp/local`, non suivie et non symlinkée ;
 - `HEAD` exactement égal au commit activé et worktree propre ;
@@ -57,7 +57,7 @@ Binding dormant du runner :
 
 ```text
 configs/harmonic_censoring_h28_one_shot_runner_dormant_binding.json
-SHA-256 1fbbd623af15354c6184f002842a6b9553525e7f3736457ce2f7ee3dfee67e6f
+SHA-256 51277979d1f97cf8e545941fd0cafa2b924136de3c0f8b1e6401a628b206b617
 ```
 
 ## Latence et suite

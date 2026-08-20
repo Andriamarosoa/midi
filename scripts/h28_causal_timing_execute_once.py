@@ -30,7 +30,7 @@ EXECUTION_CONTRACT_RELATIVE_PATH = Path(
     "configs/harmonic_censoring_h28_one_shot_execution_contract.json"
 )
 EXECUTION_CONTRACT_SHA256 = (
-    "eddea5b3525cd6022cf171627368a04aa47db13689c130567e239d49995005df"
+    "286179fd68cf93b0c35ac6e8a54632772ada863a6c6041cac6738298461a9dd7"
 )
 ACTIVATION_FIELDS = (
     "schema_identity",

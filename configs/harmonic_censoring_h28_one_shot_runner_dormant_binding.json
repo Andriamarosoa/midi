@@ -5,14 +5,14 @@
   "execution_contract": {
     "path": "configs/harmonic_censoring_h28_one_shot_execution_contract.json",
     "size_bytes": 4855,
-    "sha256": "eddea5b3525cd6022cf171627368a04aa47db13689c130567e239d49995005df",
-    "git_blob": "4e73b489659b743fb9c332025446f75059bde896"
+    "sha256": "286179fd68cf93b0c35ac6e8a54632772ada863a6c6041cac6738298461a9dd7",
+    "git_blob": "082a1d5db2292be7b5af2ced3caa46eaac57f352"
   },
   "runner": {
     "path": "scripts/h28_causal_timing_execute_once.py",
     "size_bytes": 27349,
-    "sha256": "f0ae12a644e392ac0e8518aabd26a9803c3c18c7cd4f928417022566e16634b8",
-    "git_blob": "153b406834632b10f89f42a8029dbebe35dd8f23"
+    "sha256": "094f4ad3a61780cacff43d6a7ebeb0b1e6fe8d1a2b817c9fda411354657aede9",
+    "git_blob": "69fb2477c7c846be3eace97e14df239b847f87b3"
   },
   "entrypoint": {
     "arguments": ["one ignored external activation JSON path"],

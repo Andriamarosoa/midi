@@ -4,19 +4,19 @@
   "status": "IMPLEMENTED_DORMANT_NO_POPULATION_NO_SCIENCE",
   "hypothesis_id": "H28_CAUSAL_CERTIFICATE_TIMING_V1",
   "population_namespace": "H28_CAUSAL_TIMING_SYNTHETIC_V1",
-  "timing_preregistration_sha256": "b0602a501281cff608c39c5648dec3d198a12c76289601ea549d84d2b9ddc13a",
+  "timing_preregistration_sha256": "634de15cb0547368391bea1ca70b889320a9309c6b111af2c6e8474ce29260c6",
   "dormant_implementation_bindings": [
     {
       "path": "configs/harmonic_censoring_h28_causal_timing_preregistration.json",
       "size_bytes": 8488,
-      "sha256": "b0602a501281cff608c39c5648dec3d198a12c76289601ea549d84d2b9ddc13a",
-      "git_blob": "8d105567f6150fdaff93dc33f0b230adc2e1abf3"
+      "sha256": "634de15cb0547368391bea1ca70b889320a9309c6b111af2c6e8474ce29260c6",
+      "git_blob": "94d2ebe58fc2c65c1efcc3255cedb6a9ae8ed059"
     },
     {
       "path": "src/polyphonic/harmonic_censoring_h28_timing_contract.py",
       "size_bytes": 24797,
-      "sha256": "dccd612405686ea65642927291daed3e24d77a21dbe9ff76e30171e333c78e97",
-      "git_blob": "1f577a38d31122b974999a8a24a5ce33d7141fc1"
+      "sha256": "3a6cebe809c5e7d75c6960efa9ef6f2fc6663726d4364477f5fc2db424797e96",
+      "git_blob": "552729602fbbac242511c5d1435118c4caccb06f"
     },
     {
       "path": "src/polyphonic/harmonic_censoring_h28_scientific_capability_dormant.py",

@@ -98,7 +98,7 @@ class H28DormantEngineRecomputerTests(unittest.TestCase):
         raw = contract_path.read_bytes()
         self.assertEqual(
             hashlib.sha256(raw).hexdigest(),
-            "784100a20890a7ba15d1d43e79009b39469e7b60e5132efa78e7934878a35ed8",
+            "4fa739c2815872d4a5b7fd949288cea956590769269aa1906598b1f6fa15d90f",
         )
         document = timing._strict_json(raw, label="H28 dormant implementation contract")
         self.assertIs(type(document), dict)

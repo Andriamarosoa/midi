@@ -34,7 +34,7 @@ DEPENDENCY_BINDINGS = (
     ("configs/harmonic_censoring_h27_engine_recomputer_contract.json", "684f0594d563d40ebc51502aa0f0b987cbe44b01", 18415, "de28cef12aff887045ac244f8aa9085bdd1dab20e9587314e94a96eff546dc78"),
     ("src/polyphonic/harmonic_censoring_h27_engine.py", "ec7e775d0397a4415ca21df18c7b49528aa29387", 24316, "eb28f19d383215408516163a2f6e53f164ab1cbc7dcdbd6977954a58d49e507a"),
     ("src/polyphonic/harmonic_censoring_h27_recomputer.py", "4949137f5a827e436c92b361f36f66b6f0312bcb", 22456, "4411e27fb1c2e9846f9e5688e90cb6bcc8d1d9bfd0fd12726ffd510e9f1a286a"),
-    ("src/polyphonic/harmonic_censoring_h27_review4_materializer.py", "8cdafbd6a08ea893daa2d6f41cb62166bf9162cd", 34416, "db8ab8073affa01b148da581ee4f21da99e3a2eefcc95a9c1205d907eec756bd"),
+    ("src/polyphonic/harmonic_censoring_h27_review4_materializer.py", "8cdafbd6a08ea893daa2d6f41cb62166bf9162cd", 33706, "2ecaabf1e1880688244b06ecb03a9b3eb7831d4659e209aa11e36b7b60948be3"),
 )
 H27_BASELINE_PAYLOAD_SHA256 = {
     "H27-F-P01": {

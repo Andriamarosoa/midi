@@ -57,7 +57,7 @@ Contrat du lot dormant :
 
 ```text
 configs/harmonic_censoring_h28_engine_recomputer_dormant_contract.json
-SHA-256 784100a20890a7ba15d1d43e79009b39469e7b60e5132efa78e7934878a35ed8
+SHA-256 4fa739c2815872d4a5b7fd949288cea956590769269aa1906598b1f6fa15d90f
 ```
 
 ## Latence et limites

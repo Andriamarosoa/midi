@@ -34,7 +34,7 @@ class H28DormantMaterializerTests(unittest.TestCase):
         raw = path.read_bytes()
         self.assertEqual(
             hashlib.sha256(raw).hexdigest(),
-            "50808c37a3c72d565b42eb824bf928217cfb7455575b80bbcfe76d08e3c99098",
+            "09e704b1171b48fc64cb537149113d600322e52a3aac825c4b4cf1e87dff01ef",
         )
         document = timing._strict_json(raw, label="H28 dormant materializer contract")
         self.assertEqual(document["schema_identity"], "H28_DORMANT_MATERIALIZER_DESIGN_V1")

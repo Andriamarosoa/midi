@@ -57,7 +57,7 @@ Contrat du lot :
 
 ```text
 configs/harmonic_censoring_h28_materializer_dormant_contract.json
-SHA-256 50808c37a3c72d565b42eb824bf928217cfb7455575b80bbcfe76d08e3c99098
+SHA-256 09e704b1171b48fc64cb537149113d600322e52a3aac825c4b4cf1e87dff01ef
 ```
 
 ## Latence, risques et suite

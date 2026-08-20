@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import OrderedDict
+import hashlib
 import json
 from pathlib import Path
 import tempfile
@@ -75,11 +76,23 @@ def _positive_diagnostic_record():
 
 
 class H28TimingContractTests(unittest.TestCase):
+    def test_h27_materializer_dependency_is_portable_lf_bytes(self):
+        relative = "src/polyphonic/harmonic_censoring_h27_review4_materializer.py"
+        attributes = (ROOT / ".gitattributes").read_text(encoding="utf-8")
+        self.assertIn(f"{relative} text eol=lf\n", attributes)
+        raw = (ROOT / relative).read_bytes()
+        self.assertNotIn(b"\r\n", raw)
+        self.assertEqual(len(raw), 33706)
+        self.assertEqual(
+            hashlib.sha256(raw).hexdigest(),
+            "2ecaabf1e1880688244b06ecb03a9b3eb7831d4659e209aa11e36b7b60948be3",
+        )
+
     def test_repository_contract_is_dormant_complete_and_byte_bound(self):
         contract = h28.load_h28_timing_contract(ROOT)
         self.assertEqual(
             contract.raw_sha256,
-            "b0602a501281cff608c39c5648dec3d198a12c76289601ea549d84d2b9ddc13a",
+            "634de15cb0547368391bea1ca70b889320a9309c6b111af2c6e8474ce29260c6",
         )
         self.assertEqual(
             tuple(item.causal_samples_after_onset for item in contract.horizons),
