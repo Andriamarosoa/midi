@@ -14,6 +14,9 @@ SEAL = ROOT / "configs/harmonic_censoring_h27_review5_scientific_execution_exter
 class H27Review5ExternalSealTests(unittest.TestCase):
     def test_seal_binds_exact_prior_commit_and_remains_dormant(self) -> None:
         value = json.loads(SEAL.read_text(encoding="utf-8"))
+        self.assertEqual(value["schema_identity"], "H27_REVIEW5_SCIENTIFIC_EXECUTION_EXTERNAL_SEAL_V2")
+        self.assertEqual(value["implementation_commit"], "312ae65b3b22d926e378d0653343492a3135000f")
+        self.assertEqual(value["identity_binding_commit"], "a24cc3ee185a35a3248849590af26def0bfaaa2a")
         binding = value["identity_binding"]
         raw = subprocess.check_output(
             ("git", "show", f"{value['identity_binding_commit']}:{binding['path']}"), cwd=ROOT
@@ -23,6 +26,10 @@ class H27Review5ExternalSealTests(unittest.TestCase):
         self.assertEqual(len(raw), binding["size_bytes"])
         self.assertEqual(hashlib.sha256(raw).hexdigest(), binding["sha256"])
         self.assertEqual(value["success_terminal_status"], "H27_REVIEW5_SCIENCE_27_OF_27_PASS_STOP_BEFORE_POST_SCIENCE")
+        self.assertTrue(value["activation_required_before_claim"])
+        self.assertTrue(value["activation_must_bind_this_seal_commit"])
+        self.assertEqual(value["per_test_receipts_required"], 27)
+        self.assertTrue(value["terminal_completion_marker_required"])
         for field in (
             "real_execution_authorized", "authority_creation_authorized",
             "claim_creation_authorized", "locked_test_authorized", "training_authorized",
