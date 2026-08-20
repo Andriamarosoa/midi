@@ -14,12 +14,23 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 Review-4 Recovery V1 fully sealed locally; external PASS required before the single Mac execution. -->
+<!-- H26_CORRECTION_STATUS: H27 Review-4 Recovery V1 non-replayable; independent Recovery V2 sealed pending external PASS. -->
 ## État courant
 
 - Mise à jour : `2026-08-16`.
 - État courant :
-  `H27_REVIEW4_RECOVERY_V1_FULLY_SEALED_PENDING_EXTERNAL_PASS_NO_MAC_EXECUTION`.
+  `H27_REVIEW4_RECOVERY_V2_SEALED_PENDING_EXTERNAL_PASS_NO_MAC_EXECUTION`.
+- Recovery V1 a vérifié ses neuf composants puis échoué dans `preclaim()` avant
+  AUTHORITY/CLAIM : le binding imposait l'activation en `0400` alors que le
+  runner la relisait en `0600`. Son ACK et son invocation unique sont épuisés;
+  son root reste intact et non rejouable. Recovery V2 corrige strictement les
+  deux lectures en `0400`, utilise `/Users/amcarene/h27-admin-recovery-v2`, de
+  nouveaux IDs et atteste les deux prédécesseurs read-only. Matérialiseur,
+  population `124 = 17 + 107`, taxonomie et scope restent inchangés. La
+  composition V2 et ses seals sont prêts pour revue externe; aucun SSH V2,
+  AUTHORITY/CLAIM V2, record, P0/P1/P2, science, locked-test ou train n'a été
+  exécuté. Rapport :
+  `readme/results/2026-08-20_harmonic-censoring-h27-review4-recovery-v1-failure-and-v2-seal.md`.
 - La lignée consommée reste intacte et non réutilisable. La recovery indépendante
   est maintenant entièrement implémentée et scellée dans les commits
   `f2ea3b82...` à `ca6fca42...`. Elle utilise exclusivement
