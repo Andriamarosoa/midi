@@ -1,14 +1,14 @@
 {
-  "schema_identity": "H27_REVIEW5_SCIENTIFIC_EXECUTION_EXTERNAL_SEAL_V2",
-  "schema_version": 2,
-  "status": "CORRECTED_CHAIN_SEALED_PENDING_EXTERNAL_REVIEW_NO_REAL_EXECUTION",
-  "implementation_commit": "312ae65b3b22d926e378d0653343492a3135000f",
-  "identity_binding_commit": "a24cc3ee185a35a3248849590af26def0bfaaa2a",
+  "schema_identity": "H27_REVIEW5_SCIENTIFIC_EXECUTION_EXTERNAL_SEAL_V3",
+  "schema_version": 3,
+  "status": "SECOND_CORRECTED_CHAIN_SEALED_PENDING_EXTERNAL_REVIEW_NO_REAL_EXECUTION",
+  "implementation_commit": "5ea555312f521afbe3f1c17bf38d163233bc3652",
+  "identity_binding_commit": "576ba120c898ab8757cc22b0c7410dc02f7b11bc",
   "identity_binding": {
     "path": "configs/harmonic_censoring_h27_review5_scientific_execution_identity_binding.json",
-    "git_blob_sha1": "9c4f4ff2d7190875bdd859de09545d3312a7c140",
-    "size_bytes": 3993,
-    "sha256": "4cfa7dffd8b99cad21dada36471105e9ce8613b773f1bd04d3725b5849887d30"
+    "git_blob_sha1": "fbb65fd06d2f40db160bd9443f9749e5a475b0e5",
+    "size_bytes": 3991,
+    "sha256": "7a1507e904418ca7423be8bddaae845648f954a9fbfefb33685831f3d34acb4f"
   },
   "population_index_sha256": "ae67455b07cde223b77c6d1da221cbba2252c6b67fa8c07b9d3ebfbd50f3a9f8",
   "primary_runtime": "/Users/amcarene/midi-worker/.venv/bin/python",
@@ -25,5 +25,5 @@
   "locked_test_authorized": false,
   "training_authorized": false,
   "retry_allowed": false,
-  "next_action": "External review of corrected implementation, replacement identity binding, and this seal before any activation"
+  "next_action": "External review of second corrected implementation, V3 identity binding, and this V3 seal before any activation"
 }

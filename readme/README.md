@@ -14,12 +14,12 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 Review-5A second strict-review corrections implemented locally; V3 binding and seal required before real science. -->
+<!-- H26_CORRECTION_STATUS: H27 Review-5A V3 corrected chain complete; external PASS required before real science. -->
 ## État courant
 
 - Mise à jour : `2026-08-20`.
 - État courant :
-  `H27_REVIEW5A_SECOND_STRICT_REVIEW_CORRECTED_PENDING_V3_BINDING_SEAL_NO_REAL_EXECUTION`.
+  `H27_REVIEW5A_V3_CHAIN_COMPLETE_PENDING_EXTERNAL_REVIEW_NO_REAL_EXECUTION`.
 - La seconde revue externe stricte de la chaîne corrigée
   `312ae65b... → a24cc3ee... → eb9f394e...` a encore rendu `FAIL` avant toute
   science réelle. Le lot local ferme ses quatre bloqueurs : le contrat Review 5A
@@ -30,8 +30,9 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   une par une selon le manifeste et P1 applique des predicates fixture-spécifiques.
   Les 14 tests Review 5 ciblés passent. Aucun SSH, payload Review 4 réel, claim,
   P0/P1/P2 réel, locked-test ou entraînement n'a été exécuté. Prochaine action :
-  créer la chaîne V3 implementation→identity binding→external seal, pousser et
-  resoumettre au reviewer avant toute activation.
+  la chaîne V3 implementation `5ea55531...` → identity binding
+  `576ba120...` → external seal courant est complète. Prochaine action : pousser
+  et resoumettre au reviewer avant toute activation.
   Rapport :
   `readme/results/2026-08-20_harmonic-censoring-h27-review5a-strict-review-corrections.md`.
 - La première revue externe stricte de Review 5A avait rendu `FAIL` avant

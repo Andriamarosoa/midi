@@ -53,6 +53,7 @@ La chaîne de remplacement V2 a ensuite reçu un second `FAIL`, limité à quatr
 ## Validation locale
 
 - `14` tests Review 5 ciblés : PASS.
+- Suite complète Review 5 + moteur/recomputer + binding/seal : `27/27` PASS.
 - `py_compile` : PASS.
 - `git diff --check` : PASS.
 - Aucun Mac/SSH, claim réel, P0/P1/P2 réel, locked-test, entraînement,
@@ -60,6 +61,7 @@ La chaîne de remplacement V2 a ensuite reçu un second `FAIL`, limité à quatr
 
 ## État
 
-Le lot attend une nouvelle chaîne V3 implementation → identity binding →
-external seal puis une nouvelle revue externe. Toute activation réelle reste
-interdite.
+La chaîne V3 est complète : implementation `5ea555312f521afbe3f1c17bf38d163233bc3652`,
+identity binding `576ba120c898ab8757cc22b0c7410dc02f7b11bc`, puis external
+seal dans le commit courant. Elle attend une nouvelle revue externe. Toute
+activation réelle reste interdite.
