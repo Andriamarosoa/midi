@@ -143,6 +143,7 @@ configs/harmonic_censoring_h28_one_shot_runner_dormant_binding.json text eol=lf
 tests/test_harmonic_censoring_h28_one_shot_runner_dormant.py text eol=lf
 readme/results/2026-08-20_harmonic-censoring-h28-one-shot-runner-dormant.md text eol=lf
 readme/results/2026-08-20_harmonic-censoring-h28-lf-portability-fix.md text eol=lf
+readme/results/2026-08-21_harmonic-censoring-h28-one-shot-scientific-result.md text eol=lf
 configs/harmonic_censoring_h27_materialization_activation_contract.json text eol=lf
 configs/harmonic_censoring_h27_materialization_activation_contract_external_seal.json text eol=lf
 tests/test_harmonic_censoring_h27_materialization_activation_contract.py text eol=lf

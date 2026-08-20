@@ -1,6 +1,6 @@
 # Résumé unique — Guitar MIDI AI
 
-> Dernière mise à jour manuelle : 2026-08-20
+> Dernière mise à jour manuelle : 2026-08-21
 >
 > Branche active : `codex/h28-causal-certificate-timing`
 >
@@ -14,53 +14,32 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H28 one-shot runner byte-portable and locally validated; no activation, claim, payload, population, or science; H27 remains closed with no retry. -->
+<!-- H26_CORRECTION_STATUS: H28 complete one-shot consumed; timing insufficient through N+2; no retry, locked test, training, or calibration. -->
 ## État courant
 
-- Mise à jour : `2026-08-20`.
+- Mise à jour : `2026-08-21`.
 - État courant :
-  `H28_ONE_SHOT_RUNNER_LF_PORTABLE_PENDING_MAC_RECHECK_NO_ACTIVATION_NO_CLAIM_NO_SCIENCE`.
-- H28 est préenregistrée comme hypothèse distincte après la clôture définitive
-  de H27. Elle conserve P01, N01, Hann, FFT x8, bandes de 35 cents, NNLS et tous
-  les seuils H27, et ne fait varier que l'horizon causal : `N=256`,
-  `N_PLUS_1=512`, `N_PLUS_2=768` échantillons après l'onset. Les six snapshots
-  `P01/N01 x 3 horizons` sont indépendants; toute naissance de N01 est un échec
-  de sécurité prioritaire. Le contrat exige la sérialisation des
-  puissances, rangs/énergies/ratios harmoniques, résidus avant/après,
-  amélioration, onset, persistance, courbe pitch-dilution complète et booléens
-  de chaque sous-condition. Le
-  loader dormant vérifie les six dépendances H27 byte-for-byte et la dérivation
-  du verdict est testée localement. La revue locale a aussi figé que le moteur
-  H27, limité à 16640 samples, est seulement une référence normative. Le moteur
-  et le recomputer H28 séparés sont maintenant implémentés avec une géométrie
-  exacte de 17152 samples/68608 octets de masque et une borne de proposition à
-  16895. Leurs primitives scientifiques sont AST-identiques à H27; leur résultat
-  expose les diagnostics bruts et dérivés, puis un sérialiseur fermé exige leur
-  accord indépendant. La capability et le binding restent inconstructibles et
-  les deux entrées publiques échouent avant NumPy, contrat ou filesystem. Le lot
-  byte-exact est scellé par contrat; `33/33` tests locaux passent sans lire ou
-  créer de payload scientifique. Aucune population, matérialisation, FFT/NNLS,
-  exécution Mac, training, calibration, checkpoint ou locked-test H28 n'a eu
-  lieu. Le matérialiseur dormant est également implémenté : il planifie
-  exactement six descripteurs `P01/N01 x N/N+1/N+2`, prolonge dans une future
-  activation les deux recettes H27 jusqu'à 17152 samples et doit prouver le
-  préfixe 16640 par les SHA H27 avant de retourner un record. Le masque H28
-  fournit les quatre vues exactes à chaque horizon et sa sémantique `N` est
-  comparée au masque H27 historique. Sa capability reste sans issuer, aucun
-  code de publication n'existe dans le matérialiseur et `40/40` tests locaux
-  passaient à ce jalon. Le runner one-shot séparé est maintenant implémenté et
-  lié byte-for-byte. Il exige une activation externe ignorée, le commit Git exact,
-  un worktree propre, Darwin arm64, CPython 3.11.9, NumPy 1.26.4 et l'environnement
-  CPU figé avant import NumPy. Le CLAIM `O_EXCL` est la frontière de consommation;
-  ensuite seulement il rend les six records, exécute moteur/recomputer, publie
-  atomiquement via `renameatx_np(RENAME_EXCL)` et interdit toute relance. Le
-  premier préflight Mac a refusé avant NumPy/CLAIM un binding CRLF Windows du
-  matérialiseur H27. Le fichier historique est déjà LF dans Git ; H28 lie
-  désormais ses octets Git/LF portables (`33706` octets, SHA-256 `2ecaabf1…`),
-  `.gitattributes` impose `eol=lf`, toute la chaîne de SHA H28 a été rescellée et
-  `48/48` tests locaux passent sans activation, claim, payload ni science.
-  Prochaine action unique : re-préflight Mac read-only, puis décision explicite de
-  créer ou non l'unique activation externe pour ce commit exact. Rapports :
+  `H28_COMPLETE_ONE_SHOT_CONSUMED_TIMING_INSUFFICIENT_THROUGH_N_PLUS_2_NO_RETRY`.
+- H28 est terminée au commit scientifique exact
+  `9528889c5e7db30cd3030d15fa8e4ac0c62e5a2b`. Après correction pré-CLAIM de
+  l'unique binding CRLF non portable, le Mac a passé `48/48` tests, le preflight
+  byte/runtime/Git et l'activation externe exacte. Le CLAIM `O_EXCL` a consommé
+  l'unique passe, puis les six snapshots indépendants `P01/N01 x N/N+1/N+2`
+  ont été rendus, mesurés par le moteur et le recomputer, réconciliés et publiés
+  atomiquement. Les six décisions sont `AMBIGUOUS`; le terminal préenregistré est
+  `H28_TIMING_INSUFFICIENT_THROUGH_N_PLUS_2`. Pour P01, l'onset passe aux trois
+  horizons (`1`, `0,9666`, `0,8710`), mais aucun ratio harmonique n'atteint `0,02`
+  et l'amélioration résiduelle ne monte que de `0,0230` à `0,0409`, sous le seuil
+  `0,1`. Attendre jusqu'à environ `17,4 ms` ne suffit donc pas à certifier le
+  pitch 40 avec cette géométrie. N01 ne devient jamais `BIRTH_SUPPORTED` : onset
+  et amélioration résiduelle restent nuls, mais ses bornes partielles sont trop
+  faibles pour produire le certificat négatif complet, donc il reste également
+  ambigu. Résultat publié sans staging ni failure, puis revalidé hors runner :
+  six lignes, hashes COMPLETE et verdict conformes. Durée totale `8731,48 s`.
+  Aucun retry, locked-test, entraînement, calibration ou checkpoint n'a été
+  utilisé. Une suite éventuelle doit être une hypothèse H29 séparée sur la
+  géométrie de preuve spectrale/normalisation ; H28 ne doit pas être relancée.
+  Rapports :
   `readme/results/2026-08-20_harmonic-censoring-h28-causal-timing-preregistration.md`
   et
   `readme/results/2026-08-20_harmonic-censoring-h28-dormant-engine-recomputer.md`
@@ -69,7 +48,9 @@ ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
   et
   `readme/results/2026-08-20_harmonic-censoring-h28-one-shot-runner-dormant.md`
   et
-  `readme/results/2026-08-20_harmonic-censoring-h28-lf-portability-fix.md`.
+  `readme/results/2026-08-20_harmonic-censoring-h28-lf-portability-fix.md`
+  et
+  `readme/results/2026-08-21_harmonic-censoring-h28-one-shot-scientific-result.md`.
 - L'unique exécution scientifique Mac Review 5B Recovery autorisée est
   définitivement consommée. Elle a créé son CLAIM, puis exécuté P0 dans l'ordre :
   `H27-T-P0-001=PASS`, `H27-T-P0-002=PASS`,
@@ -4338,6 +4319,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 - [2026-08-20 — matérialiseur H28 dormant des six snapshots causaux](results/2026-08-20_harmonic-censoring-h28-dormant-materializer.md)
 - [2026-08-20 — runner H28 one-shot dormant et lié](results/2026-08-20_harmonic-censoring-h28-one-shot-runner-dormant.md)
 - [2026-08-20 — correction de portabilité LF avant CLAIM H28](results/2026-08-20_harmonic-censoring-h28-lf-portability-fix.md)
+- [2026-08-21 — résultat scientifique one-shot H28](results/2026-08-21_harmonic-censoring-h28-one-shot-scientific-result.md)
 - [2026-08-12 — contrat H27 des fixtures, tests et population future](results/2026-08-12_harmonic-censoring-h27-fixture-test-population-design.md)
 - [2026-07-22 — entraînement polyphonique multi-source](results/2026-07-22_polyphonic-training.md)
 - [2026-07-27 — validation du décodeur desktop polyphonique](results/2026-07-27_polyphonic-desktop-validation.md)
