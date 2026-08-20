@@ -1,8 +1,8 @@
 # Résumé unique — Guitar MIDI AI
 
-> Dernière mise à jour manuelle : 2026-08-10
+> Dernière mise à jour manuelle : 2026-08-20
 >
-> Branche active : `codex/independent-note-neural-v2`
+> Branche active : `codex/h28-causal-certificate-timing`
 >
 > Règle : ce fichier est le résumé chronologique unique du projet. Chaque
 > étape terminée, active, suivante ou en anomalie doit y être inscrite.
@@ -14,30 +14,38 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H28 causal timing preregistration dormant pending external review; H27 remains closed with no retry. -->
+<!-- H26_CORRECTION_STATUS: H28 dormant engine/recomputer implemented; no population or science; H27 remains closed with no retry. -->
 ## État courant
 
 - Mise à jour : `2026-08-20`.
 - État courant :
-  `H28_CAUSAL_TIMING_PREREGISTERED_DORMANT_PENDING_EXTERNAL_REVIEW`.
+  `H28_DORMANT_ENGINE_RECOMPUTER_IMPLEMENTED_NO_POPULATION_NO_SCIENCE`.
 - H28 est préenregistrée comme hypothèse distincte après la clôture définitive
   de H27. Elle conserve P01, N01, Hann, FFT x8, bandes de 35 cents, NNLS et tous
   les seuils H27, et ne fait varier que l'horizon causal : `N=256`,
   `N_PLUS_1=512`, `N_PLUS_2=768` échantillons après l'onset. Les six snapshots
   `P01/N01 x 3 horizons` sont indépendants; toute naissance de N01 est un échec
-  de sécurité prioritaire. Le contrat exige désormais la sérialisation des
+  de sécurité prioritaire. Le contrat exige la sérialisation des
   puissances, rangs/énergies/ratios harmoniques, résidus avant/après,
-  amélioration, onset, persistance et booléens de chaque sous-condition. Le
+  amélioration, onset, persistance, courbe pitch-dilution complète et booléens
+  de chaque sous-condition. Le
   loader dormant vérifie les six dépendances H27 byte-for-byte et la dérivation
   du verdict est testée localement. La revue locale a aussi figé que le moteur
-  H27, limité à 16640 samples, est seulement une référence normative : H28 doit
-  posséder un moteur/recomputer séparé dont seules la géométrie 17152 et la
-  sérialisation complète diffèrent. Aucune population, matérialisation, FFT
-  scientifique, exécution Mac, training, calibration, checkpoint ou locked-test
-  H28 n'est autorisé avant revue externe. Prochaine action unique : revue du
-  contrat et de son loader dormant, puis seulement autorisation séparée d'un
-  matérialiseur H28. Rapport :
-  `readme/results/2026-08-20_harmonic-censoring-h28-causal-timing-preregistration.md`.
+  H27, limité à 16640 samples, est seulement une référence normative. Le moteur
+  et le recomputer H28 séparés sont maintenant implémentés avec une géométrie
+  exacte de 17152 samples/68608 octets de masque et une borne de proposition à
+  16895. Leurs primitives scientifiques sont AST-identiques à H27; leur résultat
+  expose les diagnostics bruts et dérivés, puis un sérialiseur fermé exige leur
+  accord indépendant. La capability et le binding restent inconstructibles et
+  les deux entrées publiques échouent avant NumPy, contrat ou filesystem. Le lot
+  byte-exact est scellé par contrat; `33/33` tests locaux passent sans lire ou
+  créer de payload scientifique. Aucune population, matérialisation, FFT/NNLS,
+  exécution Mac, training, calibration, checkpoint ou locked-test H28 n'a eu
+  lieu. Prochaine action unique : implémenter séparément le matérialiseur dormant
+  des six snapshots, toujours sans l'exécuter ni émettre de capability. Rapports :
+  `readme/results/2026-08-20_harmonic-censoring-h28-causal-timing-preregistration.md`
+  et
+  `readme/results/2026-08-20_harmonic-censoring-h28-dormant-engine-recomputer.md`.
 - L'unique exécution scientifique Mac Review 5B Recovery autorisée est
   définitivement consommée. Elle a créé son CLAIM, puis exécuté P0 dans l'ordre :
   `H27-T-P0-001=PASS`, `H27-T-P0-002=PASS`,
@@ -4302,6 +4310,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 
 - [2026-08-20 — clôture définitive H27 sur échec scientifique P0-003](results/2026-08-20_harmonic-censoring-h27-definitive-scientific-failure.md)
 - [2026-08-20 — préinscription H28 du premier instant causal de certification](results/2026-08-20_harmonic-censoring-h28-causal-timing-preregistration.md)
+- [2026-08-20 — moteur et recomputer H28 dormants à horizon causal étendu](results/2026-08-20_harmonic-censoring-h28-dormant-engine-recomputer.md)
 - [2026-08-12 — contrat H27 des fixtures, tests et population future](results/2026-08-12_harmonic-censoring-h27-fixture-test-population-design.md)
 - [2026-07-22 — entraînement polyphonique multi-source](results/2026-07-22_polyphonic-training.md)
 - [2026-07-27 — validation du décodeur desktop polyphonique](results/2026-07-27_polyphonic-desktop-validation.md)

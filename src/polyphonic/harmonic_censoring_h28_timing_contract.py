@@ -69,6 +69,7 @@ REQUIRED_DIAGNOSTIC_FIELDS = (
     "persistence",
     "bounded_claim_lower_bounds",
     "negative_margins",
+    "pitch_dilution_curve",
     "positive_partial_condition",
     "positive_onset_condition",
     "positive_residual_condition",
@@ -349,6 +350,25 @@ def _numeric_sequence(value: object, *, label: str, allow_infinity: bool = False
     return tuple(result)
 
 
+def _pitch_dilution_curve(value: object) -> tuple[tuple[int, float], ...]:
+    if type(value) is not list or len(value) != 73:
+        raise ValueError("H28 pitch dilution curve must cover MIDI 24 through 96")
+    result: list[tuple[int, float]] = []
+    for expected_pitch, item in zip(range(24, 97), value):
+        if type(item) is not list or len(item) != 2 or type(item[0]) is not int:
+            raise ValueError("H28 pitch dilution curve entry invalid")
+        pitch = item[0]
+        improvement = _finite_float(item[1], label="H28 pitch dilution improvement")
+        if pitch != expected_pitch or improvement < 0.0:
+            raise ValueError("H28 pitch dilution curve order or value invalid")
+        result.append((pitch, improvement))
+    return tuple(result)
+
+
+def _close(left: float, right: float) -> bool:
+    return abs(left - right) <= 1e-12 + 1e-10 * abs(left)
+
+
 def validate_h28_diagnostic_record(
     contract: H28TimingContract, value: object,
 ) -> Mapping[str, object]:
@@ -397,6 +417,7 @@ def validate_h28_diagnostic_record(
     if dict(role_classifications) != expected_roles:
         raise ValueError("H28 role classification is inconsistent with fixture/horizon")
 
+    numeric_values: dict[str, float] = {}
     for field in (
         "current_short_total_power",
         "previous_short_total_power",
@@ -411,6 +432,7 @@ def validate_h28_diagnostic_record(
         number = _finite_float(row[field], label=f"H28 {field}")
         if field != "persistence" and number < 0.0:
             raise ValueError(f"H28 {field} must be nonnegative")
+        numeric_values[field] = number
 
     ranks_raw = row["exclusive_ranks"]
     if type(ranks_raw) is not list:
@@ -426,6 +448,48 @@ def validate_h28_diagnostic_record(
         raise ValueError("H28 exclusive diagnostic lengths differ")
     if any(number < 0.0 for values in (energies, ratios, bounds, margins) for number in values):
         raise ValueError("H28 exclusive diagnostics must be nonnegative")
+    curve = _pitch_dilution_curve(row["pitch_dilution_curve"])
+
+    current_short_total = numeric_values["current_short_total_power"]
+    previous_short_total = numeric_values["previous_short_total_power"]
+    current_long_total = numeric_values["current_long_total_power"]
+    previous_long_total = numeric_values["previous_long_total_power"]
+    expected_ratios = tuple(
+        energy / max(current_short_total, 1e-24) for energy in energies
+    )
+    expected_onset = max(0.0, current_short_total - previous_short_total) / max(
+        current_short_total, 1e-24
+    )
+    expected_persistence = (current_long_total - previous_long_total) / max(
+        current_long_total, 1e-24
+    )
+    active_residual = numeric_values["active_residual_before_candidate"]
+    augmented_residual = numeric_values["augmented_residual_after_candidate"]
+    expected_improvement = max(0.0, active_residual - augmented_residual) / max(
+        active_residual, 1e-24
+    )
+    expected_margins = tuple(
+        math.inf if ratio == 0.0 else bound / ratio
+        for ratio, bound in zip(ratios, bounds)
+    )
+    if any(not _close(observed, expected) for observed, expected in zip(ratios, expected_ratios)):
+        raise ValueError("H28 harmonic ratios inconsistent with energies and total power")
+    if not _close(numeric_values["onset_rise"], expected_onset):
+        raise ValueError("H28 onset rise inconsistent with total powers")
+    if not _close(numeric_values["persistence"], expected_persistence):
+        raise ValueError("H28 persistence inconsistent with total powers")
+    if not _close(numeric_values["residual_improvement"], expected_improvement):
+        raise ValueError("H28 residual improvement inconsistent with residuals")
+    for observed, expected in zip(margins, expected_margins):
+        if math.isinf(expected):
+            if observed != math.inf:
+                raise ValueError("H28 negative margin inconsistent with bound and ratio")
+        elif not _close(observed, expected):
+            raise ValueError("H28 negative margin inconsistent with bound and ratio")
+    candidate_pitch = 40 if fixture_id == "H27-F-P01" else 52
+    curve_improvement = dict(curve)[candidate_pitch]
+    if not _close(curve_improvement, numeric_values["residual_improvement"]):
+        raise ValueError("H28 pitch dilution curve disagrees at the candidate pitch")
 
     ratio_count = sum(number >= 0.02 for number in ratios)
     if (

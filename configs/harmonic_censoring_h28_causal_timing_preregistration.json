@@ -171,6 +171,7 @@
     "persistence",
     "bounded_claim_lower_bounds",
     "negative_margins",
+    "pitch_dilution_curve",
     "positive_partial_condition",
     "positive_onset_condition",
     "positive_residual_condition",

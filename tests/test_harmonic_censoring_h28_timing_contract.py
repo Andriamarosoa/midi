@@ -55,7 +55,10 @@ def _positive_diagnostic_record():
         ("residual_improvement", 0.5),
         ("persistence", 0.4),
         ("bounded_claim_lower_bounds", [0.01, 0.01]),
-        ("negative_margins", [0.3, 0.3]),
+        ("negative_margins", [1.0 / 3.0, 1.0 / 3.0]),
+        ("pitch_dilution_curve", [
+            [pitch, 0.5 if pitch == 40 else 0.0] for pitch in range(24, 97)
+        ]),
         ("positive_partial_condition", True),
         ("positive_onset_condition", True),
         ("positive_residual_condition", True),
@@ -76,7 +79,7 @@ class H28TimingContractTests(unittest.TestCase):
         contract = h28.load_h28_timing_contract(ROOT)
         self.assertEqual(
             contract.raw_sha256,
-            "4685ec98ada20a8efc2ba642b2a46897210c926506117cd3d6f549e4238bf4b4",
+            "b0602a501281cff608c39c5648dec3d198a12c76289601ea549d84d2b9ddc13a",
         )
         self.assertEqual(
             tuple(item.causal_samples_after_onset for item in contract.horizons),
@@ -130,6 +133,7 @@ class H28TimingContractTests(unittest.TestCase):
             "positive_partial_condition",
             "positive_onset_condition",
             "positive_residual_condition",
+            "pitch_dilution_curve",
             "maximum_sample_read",
         } <= required)
 
@@ -141,6 +145,14 @@ class H28TimingContractTests(unittest.TestCase):
         corrupted = dict(record)
         corrupted["positive_residual_condition"] = False
         with self.assertRaisesRegex(ValueError, "derived condition inconsistent"):
+            h28.validate_h28_diagnostic_record(contract, corrupted)
+        corrupted = _positive_diagnostic_record()
+        corrupted["onset_rise"] = 0.4
+        with self.assertRaisesRegex(ValueError, "onset rise inconsistent"):
+            h28.validate_h28_diagnostic_record(contract, corrupted)
+        corrupted = _positive_diagnostic_record()
+        corrupted["pitch_dilution_curve"][40 - 24][1] = 0.4
+        with self.assertRaisesRegex(ValueError, "curve disagrees"):
             h28.validate_h28_diagnostic_record(contract, corrupted)
 
     def test_future_diagnostic_record_cannot_read_future(self):

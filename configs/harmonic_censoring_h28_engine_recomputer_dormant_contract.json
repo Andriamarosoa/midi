@@ -1,0 +1,139 @@
+{
+  "schema_identity": "H28_DORMANT_ENGINE_RECOMPUTER_DESIGN_V1",
+  "schema_version": 1,
+  "status": "IMPLEMENTED_DORMANT_NO_POPULATION_NO_SCIENCE",
+  "hypothesis_id": "H28_CAUSAL_CERTIFICATE_TIMING_V1",
+  "population_namespace": "H28_CAUSAL_TIMING_SYNTHETIC_V1",
+  "timing_preregistration_sha256": "b0602a501281cff608c39c5648dec3d198a12c76289601ea549d84d2b9ddc13a",
+  "dormant_implementation_bindings": [
+    {
+      "path": "configs/harmonic_censoring_h28_causal_timing_preregistration.json",
+      "size_bytes": 8488,
+      "sha256": "b0602a501281cff608c39c5648dec3d198a12c76289601ea549d84d2b9ddc13a",
+      "git_blob": "8d105567f6150fdaff93dc33f0b230adc2e1abf3"
+    },
+    {
+      "path": "src/polyphonic/harmonic_censoring_h28_timing_contract.py",
+      "size_bytes": 24797,
+      "sha256": "dccd612405686ea65642927291daed3e24d77a21dbe9ff76e30171e333c78e97",
+      "git_blob": "1f577a38d31122b974999a8a24a5ce33d7141fc1"
+    },
+    {
+      "path": "src/polyphonic/harmonic_censoring_h28_scientific_capability_dormant.py",
+      "size_bytes": 2808,
+      "sha256": "a91ede2c7c61d34ff4d8e92dc6b34fdd312807a4f16be2c09ac22dcb29bc9054",
+      "git_blob": "343671045cb61d56469929f4c39046855d8400a0"
+    },
+    {
+      "path": "src/polyphonic/harmonic_censoring_h28_engine.py",
+      "size_bytes": 26557,
+      "sha256": "aa08767dd9d177002a7162c551b819e79fce5d7ae6764180ee19cd78629b4df4",
+      "git_blob": "dcb959c2b7c009e0b5393c340531cd9712b8201d"
+    },
+    {
+      "path": "src/polyphonic/harmonic_censoring_h28_recomputer.py",
+      "size_bytes": 26054,
+      "sha256": "df8c847e22eaf7ba5ca2fa731e4225aba6c264a39177b0038fa82da1c3083b00",
+      "git_blob": "c349bbeb2cfcdb4cbe7d638b7b109ee084df457d"
+    },
+    {
+      "path": "src/polyphonic/harmonic_censoring_h28_diagnostics.py",
+      "size_bytes": 7178,
+      "sha256": "e2fdcd156b5d1b1b1be8b51c5eafc5ac069939944b68d06b3b45516f6753ecb5",
+      "git_blob": "f413a75ed1ed1fb2249c0bc568b07b05133a6fa3"
+    }
+  ],
+  "geometry_only_changes_from_h27": {
+    "waveform_samples": 17152,
+    "role_major_mask_values": 68608,
+    "maximum_proposal_hop_end": 16895,
+    "horizons": [16383, 16639, 16895],
+    "complete_diagnostic_serialization": true
+  },
+  "scientific_formula_parity": {
+    "h27_engine_primitives_ast_identical": [
+      "_spectrum",
+      "_f0",
+      "_center",
+      "_kernel",
+      "_band",
+      "_exclusive_ranks",
+      "_basis",
+      "_residual"
+    ],
+    "h27_recomputer_primitives_ast_identical": [
+      "_independent_spectrum",
+      "_frequency",
+      "_weights",
+      "_energy",
+      "_exclusive",
+      "_independent_residual"
+    ],
+    "threshold_changes": 0,
+    "new_fallbacks": 0
+  },
+  "future_payload_contract": {
+    "record_count": 6,
+    "record_order": [
+      "H27-F-P01/N",
+      "H27-F-N01/N",
+      "H27-F-P01/N_PLUS_1",
+      "H27-F-N01/N_PLUS_1",
+      "H27-F-P01/N_PLUS_2",
+      "H27-F-N01/N_PLUS_2"
+    ],
+    "payload_names": ["waveform.f64le", "sample-valid-mask.u8"],
+    "waveform_dtype": "<f8",
+    "waveform_exact_size_bytes": 137216,
+    "mask_dtype": "uint8",
+    "mask_exact_size_bytes": 68608,
+    "alternate_payload_forbidden": true,
+    "path_containment_and_no_symlink_required": true,
+    "exact_size_and_sha256_required_before_decode": true
+  },
+  "diagnostic_reconciliation": {
+    "engine_and_recomputer_independent": true,
+    "shared_scientific_intermediates_forbidden": true,
+    "raw_and_derived_fields_compared": true,
+    "json_native_closed_schema_revalidated": true,
+    "pitch_dilution_curve_complete_midi_24_through_96": true,
+    "numeric_tolerance": "abs(left-right)<=1e-12+1e-10*abs(left)",
+    "mismatch_is_terminal": true
+  },
+  "capability_boundary": {
+    "public_issuer_exists": false,
+    "public_binding_loader_exists": false,
+    "capability_instances_issued": 0,
+    "engine_fails_before_numpy_contract_or_filesystem": true,
+    "recomputer_fails_before_numpy_contract_or_filesystem": true,
+    "future_authority_and_population_binding_require_separate_reviewed_commit": true
+  },
+  "authorization_boundary": {
+    "population_materialization_authorized": false,
+    "scientific_execution_authorized": false,
+    "mac_execution_authorized": false,
+    "training_authorized": false,
+    "calibration_authorized": false,
+    "checkpoint_selection_authorized": false,
+    "locked_test_authorized": false
+  },
+  "allowed_current_operations": [
+    "strict contract parsing and byte verification",
+    "module import and py_compile",
+    "AST parity checks",
+    "unissuable-capability regression tests",
+    "pure result comparison and diagnostic serialization tests",
+    "git diff check"
+  ],
+  "forbidden_current_operations": [
+    "issue or forge a scientific capability",
+    "create or read H28 population payloads",
+    "run FFT or NNLS",
+    "run engine or recomputer science",
+    "materialize the six records",
+    "access locked test",
+    "train or calibrate"
+  ],
+  "next_action": "independent strict review of this byte-exact dormant lot before any materializer or authority",
+  "stop_state": "H28_DORMANT_ENGINE_RECOMPUTER_IMPLEMENTED_NO_POPULATION_NO_SCIENCE"
+}

@@ -61,7 +61,8 @@ utilisé à `N_PLUS_1` ou `N_PLUS_2`.
 Contrairement au rapport H27, chaque résultat futur devra persister les
 puissances des quatre vues, rangs et énergies exclusifs, tous les ratios,
 résidus avant/après candidat, amélioration résiduelle, montée d'onset,
-persistance, bornes, marges, booléens de chaque sous-condition, décision et
+persistance, bornes, marges, courbe complète de pitch-dilution MIDI 24–96,
+booléens de chaque sous-condition, décision et
 borne causale réellement lue. Le moteur H28 et un recomputer H28 indépendant devront
 être réconciliés avant toute interprétation.
 
