@@ -14,10 +14,10 @@ SEAL = ROOT / "configs/harmonic_censoring_h27_review5_scientific_execution_exter
 class H27Review5ExternalSealTests(unittest.TestCase):
     def test_seal_binds_exact_prior_commit_and_remains_dormant(self) -> None:
         value = json.loads(SEAL.read_text(encoding="utf-8"))
-        self.assertEqual(value["schema_identity"], "H27_REVIEW5_SCIENTIFIC_EXECUTION_RECOVERY_EXTERNAL_SEAL_V1")
-        self.assertEqual(value["schema_version"], 1)
-        self.assertEqual(value["implementation_commit"], "0e33a35c5d6d2259c3bd196cf1ba882c511d37fc")
-        self.assertEqual(value["identity_binding_commit"], "38d55b61d45980f02943077264a16a90e26aeabc")
+        self.assertEqual(value["schema_identity"], "H27_REVIEW5_SCIENTIFIC_EXECUTION_RECOVERY_EXTERNAL_SEAL_V2")
+        self.assertEqual(value["schema_version"], 2)
+        self.assertEqual(value["implementation_commit"], "fd4b43ff08a0f11923b1d23a1034acbc58e91eaa")
+        self.assertEqual(value["identity_binding_commit"], "0b79e6c59bd1b9f99f06ee5119e4846036d9017b")
         binding = value["identity_binding"]
         raw = subprocess.check_output(
             ("git", "show", f"{value['identity_binding_commit']}:{binding['path']}"), cwd=ROOT
