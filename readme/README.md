@@ -14,12 +14,27 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 Review-5B V1 consumed inconclusive; independent recovery implementation pending external review. -->
+<!-- H26_CORRECTION_STATUS: H27 closed as definitive scientific failure at Review-5B Recovery P0-003; no retry, Review-5C, training, checkpoint, calibration, or locked-test authorized. -->
 ## État courant
 
 - Mise à jour : `2026-08-20`.
 - État courant :
-  `H27_REVIEW5B_V1_CONSUMED_INCONCLUSIVE_RECOVERY_IMPLEMENTED_PENDING_EXTERNAL_REVIEW`.
+  `H27_CLOSED_DEFINITIVE_SCIENTIFIC_FAILURE_P0_003`.
+- L'unique exécution scientifique Mac Review 5B Recovery autorisée est
+  définitivement consommée. Elle a créé son CLAIM, puis exécuté P0 dans l'ordre :
+  `H27-T-P0-001=PASS`, `H27-T-P0-002=PASS`,
+  `H27-T-P0-003=FAIL`. Le terminal scellé est
+  `H27_PREREGISTRATION_OR_IDENTIFIABILITY_INVALID` : P01 et N01, qui devaient
+  représenter respectivement `BIRTH_SUPPORTED` et `NO_BIRTH`, ont tous deux été
+  classés `AMBIGUOUS`; H01 est `ALREADY_ACTIVE_HISTORY` et A01 est
+  `AMBIGUOUS` avec certificat `EQUIVALENCE`. Les 24 tests suivants sont restés
+  non exécutés par kill rule; P1/P2, Review 5C, entraînement, checkpoint,
+  calibration et locked-test n'ont pas été utilisés. Aucun retry, réparation
+  post-CLAIM ou seconde invocation n'est autorisé. Le reviewer a rendu
+  `FAIL SCIENTIFIQUE DÉFINITIF — H27 arrêté en P0`; H27 est clos. Toute nouvelle
+  tentative doit être une hypothèse/préinscription distincte, par exemple H28.
+  Rapport :
+  `readme/results/2026-08-20_harmonic-censoring-h27-definitive-scientific-failure.md`.
 - Review 5A V4 a reçu `PASS FINAL`, puis l'activation Review 5B exacte a reçu
   `PASS`. L'unique invocation Mac a créé son CLAIM puis échoué avant P0 sur
   `ModuleNotFoundError: No module named 'src.polyphonic.harmonic_censoring_h27_contract'`.
@@ -4267,6 +4282,7 @@ cet onset est faible. Une protection d'accord sans preuve indépendante serait
 <!-- JOURNAL_END -->
 ## Rapports détaillés
 
+- [2026-08-20 — clôture définitive H27 sur échec scientifique P0-003](results/2026-08-20_harmonic-censoring-h27-definitive-scientific-failure.md)
 - [2026-08-12 — contrat H27 des fixtures, tests et population future](results/2026-08-12_harmonic-censoring-h27-fixture-test-population-design.md)
 - [2026-07-22 — entraînement polyphonique multi-source](results/2026-07-22_polyphonic-training.md)
 - [2026-07-27 — validation du décodeur desktop polyphonique](results/2026-07-27_polyphonic-desktop-validation.md)
