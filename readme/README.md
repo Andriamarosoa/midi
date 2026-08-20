@@ -14,12 +14,19 @@ live et des entraînements reproductibles exécutés localement. Kaggle et Colab
 ne sont plus utilisés sauf nouvelle autorisation explicite de l’utilisateur.
 
 <!-- CURRENT_STATUS_START -->
-<!-- H26_CORRECTION_STATUS: H27 Review-4 Recovery V1 non-replayable; independent Recovery V2 sealed pending external PASS. -->
+<!-- H26_CORRECTION_STATUS: H27 Review-4 closed successfully by Recovery V2; STOP before Review 5. -->
 ## État courant
 
 - Mise à jour : `2026-08-16`.
 - État courant :
-  `H27_REVIEW4_RECOVERY_V2_SEALED_PENDING_EXTERNAL_PASS_NO_MAC_EXECUTION`.
+  `H27_REVIEW4_RECOVERY_V2_TERMINAL_SUCCESS_STOP_BEFORE_REVIEW5`.
+- L'unique exécution Recovery V2 autorisée a terminé avec `rc=0`. Le terminal
+  donne `H27_REVIEW4_TERMINAL_SUCCESS`, `review4_closed=true`, réconciliation
+  globale réussie et exactement `124` records uniques (`17 baseline + 107 P2`).
+  L'index a le SHA-256 `ae67455b...` et le terminal `122a87f9...`. P0/P1/P2,
+  science, locked-test et entraînement restent tous non exécutés. Review 4 est
+  clôturée; STOP avant toute action Review 5. Rapport :
+  `readme/results/2026-08-20_harmonic-censoring-h27-review4-recovery-v2-terminal.md`.
 - Recovery V1 a vérifié ses neuf composants puis échoué dans `preclaim()` avant
   AUTHORITY/CLAIM : le binding imposait l'activation en `0400` alors que le
   runner la relisait en `0600`. Son ACK et son invocation unique sont épuisés;
